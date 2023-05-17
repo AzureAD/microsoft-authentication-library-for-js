@@ -14,7 +14,6 @@ import { JwtConstants } from "../utils/Constants";
  * @public
  */
 export class ClientAssertion {
-
     private jwt: string;
     private privateKey: string;
     private thumbprint: string;
@@ -39,12 +38,17 @@ export class ClientAssertion {
      * @param privateKey - secret key
      * @param publicCertificate - electronic document provided to prove the ownership of the public key
      */
-    public static fromCertificate(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion {
+    public static fromCertificate(
+        thumbprint: string,
+        privateKey: string,
+        publicCertificate?: string
+    ): ClientAssertion {
         const clientAssertion = new ClientAssertion();
         clientAssertion.privateKey = privateKey;
         clientAssertion.thumbprint = thumbprint;
         if (publicCertificate) {
-            clientAssertion.publicCertificate = this.parseCertificate(publicCertificate);
+            clientAssertion.publicCertificate =
+                this.parseCertificate(publicCertificate);
         }
         return clientAssertion;
     }
@@ -55,11 +59,19 @@ export class ClientAssertion {
      * @param issuer - iss claim
      * @param jwtAudience - aud claim
      */
-    public getJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string): string {
+    public getJwt(
+        cryptoProvider: CryptoProvider,
+        issuer: string,
+        jwtAudience: string
+    ): string {
         // if assertion was created from certificate, check if jwt is expired and create new one.
         if (this.privateKey && this.thumbprint) {
-
-            if (this.jwt && !this.isExpired() && issuer === this.issuer && jwtAudience === this.jwtAudience) {
+            if (
+                this.jwt &&
+                !this.isExpired() &&
+                issuer === this.issuer &&
+                jwtAudience === this.jwtAudience
+            ) {
                 return this.jwt;
             }
 
@@ -80,8 +92,11 @@ export class ClientAssertion {
     /**
      * JWT format and required claims specified: https://tools.ietf.org/html/rfc7523#section-3
      */
-    private createJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string): string {
-
+    private createJwt(
+        cryptoProvider: CryptoProvider,
+        issuer: string,
+        jwtAudience: string
+    ): string {
         this.issuer = issuer;
         this.jwtAudience = jwtAudience;
         const issuedAt = TimeUtils.nowSeconds();
@@ -89,12 +104,12 @@ export class ClientAssertion {
 
         const header: JwtHeader = {
             alg: JwtConstants.RSA_256,
-            x5t: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex")
+            x5t: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex"),
         };
 
         if (this.publicCertificate) {
             Object.assign(header, {
-                x5c: this.publicCertificate
+                x5c: this.publicCertificate,
             } as Partial<JwtHeader>);
         }
 
@@ -104,7 +119,7 @@ export class ClientAssertion {
             [JwtConstants.ISSUER]: this.issuer,
             [JwtConstants.SUBJECT]: this.issuer,
             [JwtConstants.NOT_BEFORE]: issuedAt,
-            [JwtConstants.JWT_ID]: cryptoProvider.createNewGuid()
+            [JwtConstants.JWT_ID]: cryptoProvider.createNewGuid(),
         };
 
         this.jwt = sign(payload, this.privateKey, { header });
@@ -130,7 +145,8 @@ export class ClientAssertion {
          * "." means any string character, "+" means match 1 or more times, and "?" means the shortest match.
          * The "g" at the end of the regex means search the string globally, and the "s" enables the "." to match newlines.
          */
-        const regexToFindCerts = /-----BEGIN CERTIFICATE-----\r*\n(.+?)\r*\n-----END CERTIFICATE-----/gs;
+        const regexToFindCerts =
+            /-----BEGIN CERTIFICATE-----\r*\n(.+?)\r*\n-----END CERTIFICATE-----/gs;
         const certs: string[] = [];
 
         let matches;

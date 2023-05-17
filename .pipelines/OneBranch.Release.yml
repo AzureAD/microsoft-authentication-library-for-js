@@ -20,9 +20,6 @@ parameters: # parameters are shown up in ADO UI in a build queue time
   displayName: 'Run in test mode'
   type: boolean
   default: false
-- name: 'overrideMsalCore'
-  displayName: 'Publish MSAL Core'
-  type: boolean
   default: false
 - name: 'overrideMsalCommon'
   displayName: 'Publish MSAL Common'
@@ -100,12 +97,10 @@ extends:
             inputs:
               scriptPath: "release-scripts/prepublish.sh"
             name: filter
-    # PUBLISH MSAL Core
     - stage: publish
       dependsOn: pre_release
       displayName: 'Publish Packages'
       variables:
-        publishMsalCore: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCore'] ]
         publishMsalCommon: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCommon'] ]
         publishMsalBrowser: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalBrowser'] ]
         publishMsalReact: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalReact'] ]
@@ -113,15 +108,6 @@ extends:
         publishMsalNode: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNode'] ]
         publishMsalNodeExtensions: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNodeExtensions'] ]
       jobs:
-      # Release MSAL Core
-        - template: .pipelines/custom-templates/publish-template.yml@self
-          parameters:
-            jobName: 'publish_msal_core'
-            path: 'lib'
-            libName: 'msal-core'
-            publishFlagName: 'MsalCore'
-            publishOverride: ${{ parameters.overrideMsalCore }}
-            testMode: ${{ parameters.testMode }}
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:

@@ -3,13 +3,17 @@
  * Licensed under the MIT License.
  */
 
+// AADAuthorityConstants
+
 import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
-import { Constants as NodeConstants, ApiId, REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
 import {
-    ClientCredentialClient,
-    OnBehalfOfClient,
+    Constants as NodeConstants,
+    ApiId,
+    REGION_ENVIRONMENT_VARIABLE,
+} from "../utils/Constants";
+import {
     CommonClientCredentialRequest,
     CommonOnBehalfOfRequest,
     AuthenticationResult,
@@ -19,18 +23,25 @@ import {
     AuthError,
     Constants,
     IAppTokenProvider,
-    OIDC_DEFAULT_SCOPES
+    OIDC_DEFAULT_SCOPES,
+    UrlString,
+    AADAuthorityConstants,
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
+import { ClientCredentialClient } from "./ClientCredentialClient";
+import { OnBehalfOfClient } from "./OnBehalfOfClient";
 
 /**
  *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
  *  will configure application secrets, client certificates/assertions as applicable
  * @public
  */
-export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication {
+export class ConfidentialClientApplication
+    extends ClientApplication
+    implements IConfidentialClientApplication
+{
     private appTokenProvider?: IAppTokenProvider;
 
     /**
@@ -58,11 +69,11 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         this.appTokenProvider = undefined;
     }
 
-    /**               
+    /**
      * This extensibility point only works for the client_credential flow, i.e. acquireTokenByClientCredential and
      * is meant for Azure SDK to enhance Managed Identity support.
-     * 
-     * @param IAppTokenProvider  - Extensibility interface, which allows the app developer to return a token from a custom source.     
+     *
+     * @param IAppTokenProvider  - Extensibility interface, which allows the app developer to return a token from a custom source.
      */
     SetAppTokenProvider(provider: IAppTokenProvider): void {
         this.appTokenProvider = provider;
@@ -71,15 +82,20 @@ export class ConfidentialClientApplication extends ClientApplication implements 
     /**
      * Acquires tokens from the authority for the application (not for an end user).
      */
-    public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByClientCredential called", request.correlationId);
+    public async acquireTokenByClientCredential(
+        request: ClientCredentialRequest
+    ): Promise<AuthenticationResult | null> {
+        this.logger.info(
+            "acquireTokenByClientCredential called",
+            request.correlationId
+        );
 
         // If there is a client assertion present in the request, it overrides the one present in the client configuration
         let clientAssertion;
         if (request.clientAssertion) {
             clientAssertion = {
                 assertion: request.clientAssertion,
-                assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
+                assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE,
             };
         }
 
@@ -88,31 +104,58 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         // valid base request should not contain oidc scopes in this grant type
         const validBaseRequest = {
             ...baseRequest,
-            scopes: baseRequest.scopes.filter((scope: string) => !OIDC_DEFAULT_SCOPES.includes(scope))
+            scopes: baseRequest.scopes.filter(
+                (scope: string) => !OIDC_DEFAULT_SCOPES.includes(scope)
+            ),
         };
 
         const validRequest: CommonClientCredentialRequest = {
             ...request,
             ...validBaseRequest,
-            clientAssertion
+            clientAssertion,
         };
+
+        /*
+         * valid request should not have "common" or "organizations" in lieu of the tenant_id in the authority in the auth configuration
+         * example authority: "https://login.microsoftonline.com/TenantId",
+         */
+        const authority = new UrlString(validRequest.authority);
+        const tenantId = authority.getUrlComponents().PathSegments[0];
+        if (
+            Object.values(AADAuthorityConstants).includes(
+                tenantId as AADAuthorityConstants
+            )
+        ) {
+            throw ClientAuthError.createMissingTenantIdError();
+        }
 
         const azureRegionConfiguration: AzureRegionConfiguration = {
             azureRegion: validRequest.azureRegion,
-            environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE]
+            environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE],
         };
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(
+            ApiId.acquireTokenByClientCredential,
+            validRequest.correlationId,
+            validRequest.skipCache
+        );
         try {
-            const clientCredentialConfig = await this.buildOauthClientConfiguration(
-                validRequest.authority,
-                validRequest.correlationId,
-                serverTelemetryManager,
-                azureRegionConfiguration,
-                request.azureCloudOptions
+            const clientCredentialConfig =
+                await this.buildOauthClientConfiguration(
+                    validRequest.authority,
+                    validRequest.correlationId,
+                    serverTelemetryManager,
+                    azureRegionConfiguration,
+                    request.azureCloudOptions
+                );
+            const clientCredentialClient = new ClientCredentialClient(
+                clientCredentialConfig,
+                this.appTokenProvider
             );
-            const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig, this.appTokenProvider);
-            this.logger.verbose("Client credential client created", validRequest.correlationId);
+            this.logger.verbose(
+                "Client credential client created",
+                validRequest.correlationId
+            );
             return clientCredentialClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
@@ -134,11 +177,16 @@ export class ConfidentialClientApplication extends ClientApplication implements 
      * See how to gain consent upfront for your middle-tier app from this article.
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#gaining-consent-for-the-middle-tier-application
      */
-    public async acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenOnBehalfOf called", request.correlationId);
+    public async acquireTokenOnBehalfOf(
+        request: OnBehalfOfRequest
+    ): Promise<AuthenticationResult | null> {
+        this.logger.info(
+            "acquireTokenOnBehalfOf called",
+            request.correlationId
+        );
         const validRequest: CommonOnBehalfOfRequest = {
             ...request,
-            ... await this.initializeBaseRequest(request)
+            ...(await this.initializeBaseRequest(request)),
         };
         try {
             const onBehalfOfConfig = await this.buildOauthClientConfiguration(
@@ -149,7 +197,10 @@ export class ConfidentialClientApplication extends ClientApplication implements 
                 request.azureCloudOptions
             );
             const oboClient = new OnBehalfOfClient(onBehalfOfConfig);
-            this.logger.verbose("On behalf of client created", validRequest.correlationId);
+            this.logger.verbose(
+                "On behalf of client created",
+                validRequest.correlationId
+            );
             return oboClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
@@ -160,13 +211,19 @@ export class ConfidentialClientApplication extends ClientApplication implements 
     }
 
     private setClientCredential(configuration: Configuration): void {
-        const clientSecretNotEmpty = !StringUtils.isEmpty(configuration.auth.clientSecret);
-        const clientAssertionNotEmpty = !StringUtils.isEmpty(configuration.auth.clientAssertion);
+        const clientSecretNotEmpty = !StringUtils.isEmpty(
+            configuration.auth.clientSecret
+        );
+        const clientAssertionNotEmpty = !StringUtils.isEmpty(
+            configuration.auth.clientAssertion
+        );
         const certificate = configuration.auth.clientCertificate || {
             thumbprint: Constants.EMPTY_STRING,
-            privateKey: Constants.EMPTY_STRING
+            privateKey: Constants.EMPTY_STRING,
         };
-        const certificateNotEmpty = !StringUtils.isEmpty(certificate.thumbprint) || !StringUtils.isEmpty(certificate.privateKey);
+        const certificateNotEmpty =
+            !StringUtils.isEmpty(certificate.thumbprint) ||
+            !StringUtils.isEmpty(certificate.privateKey);
 
         /*
          * If app developer configures this callback, they don't need a credential
@@ -178,9 +235,10 @@ export class ConfidentialClientApplication extends ClientApplication implements 
 
         // Check that at most one credential is set on the application
         if (
-            clientSecretNotEmpty && clientAssertionNotEmpty ||
-            clientAssertionNotEmpty && certificateNotEmpty ||
-            clientSecretNotEmpty && certificateNotEmpty) {
+            (clientSecretNotEmpty && clientAssertionNotEmpty) ||
+            (clientAssertionNotEmpty && certificateNotEmpty) ||
+            (clientSecretNotEmpty && certificateNotEmpty)
+        ) {
             throw ClientAuthError.createInvalidCredentialError();
         }
 
@@ -190,14 +248,20 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         }
 
         if (configuration.auth.clientAssertion) {
-            this.clientAssertion = ClientAssertion.fromAssertion(configuration.auth.clientAssertion);
+            this.clientAssertion = ClientAssertion.fromAssertion(
+                configuration.auth.clientAssertion
+            );
             return;
         }
 
         if (!certificateNotEmpty) {
             throw ClientAuthError.createInvalidCredentialError();
         } else {
-            this.clientAssertion = ClientAssertion.fromCertificate(certificate.thumbprint, certificate.privateKey, configuration.auth.clientCertificate?.x5c);
+            this.clientAssertion = ClientAssertion.fromCertificate(
+                certificate.thumbprint,
+                certificate.privateKey,
+                configuration.auth.clientCertificate?.x5c
+            );
         }
     }
 }

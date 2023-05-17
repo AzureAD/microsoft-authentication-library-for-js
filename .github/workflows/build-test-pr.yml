@@ -11,7 +11,7 @@ on:
       - 'extensions/msal-node-extensions/**/*'
       - '!**.md'
       - '.github/workflows/build-test-pr.yml'
-      
+
 concurrency:
   group: ci-${{github.ref}}
   cancel-in-progress: true
@@ -25,7 +25,7 @@ jobs:
       contents: read  # for dorny/paths-filter to fetch a list of changed files
       pull-requests: read  # for dorny/paths-filter to read pull requests
     runs-on: ubuntu-latest
-    outputs: 
+    outputs:
       # Expose matched filters as job 'packages' output variable
       packages: ${{ steps.lib-filter.outputs.changes }}
       extensions: ${{ steps.extensions-filter.outputs.node-extensions }}
@@ -39,9 +39,6 @@ jobs:
           # browser/node filter will match any path under common as well as their own
           # angular/react filter will match any path under common and browser as well as their own
           filters: |
-            msal-core:
-              - 'lib/msal-core/**/**.!(md)'
-              - '.github/workflows/build-test-pr.yml'
             msal-common: &common
               - 'lib/msal-common/**/**.!(md)'
               - '.github/workflows/build-test-pr.yml'
@@ -57,9 +54,6 @@ jobs:
             msal-react:
               - *browser
               - 'lib/msal-react/**/**.!(md)'
-            node-token-validation:
-              - *common
-              - 'lib/node-token-validation/**/**.!(md)'
 
       - uses: dorny/paths-filter@v2
         id: extensions-filter
@@ -80,16 +74,16 @@ jobs:
           # Parse JSON array containing names of all filters matching any of changed files
           # e.g. ['package1', 'package2'] if both package folders contains changes
           library: ${{ fromJSON(needs.pre-check.outputs.packages) }}
-  
+
     name: ${{ matrix.library }}
-    
+
     steps:
     - uses: actions/checkout@v3
 
     - name: Use Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: 20
 
     - name: Restore node_modules
       uses: actions/cache@v3
@@ -137,9 +131,9 @@ jobs:
     needs: pre-check
     runs-on: windows-2019
     if: needs.pre-check.outputs.extensions == 'true'
-  
+
     name: msal-node-extensions
-    
+
     steps:
     - uses: actions/checkout@v3
 

@@ -76,7 +76,7 @@ export class AccountEntity {
             environment: this.environment,
             tenantId: this.realm,
             username: this.username,
-            localAccountId: this.localAccountId
+            localAccountId: this.localAccountId,
         });
     }
 
@@ -111,7 +111,7 @@ export class AccountEntity {
             localAccountId: this.localAccountId,
             name: this.name,
             idTokenClaims: this.idTokenClaims,
-            nativeAccountId: this.nativeAccountId
+            nativeAccountId: this.nativeAccountId,
         };
     }
 
@@ -167,17 +167,23 @@ export class AccountEntity {
             account.idTokenClaims = idToken.claims;
 
             // How do you account for MSA CID here?
-            account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || Constants.EMPTY_STRING;
+            account.localAccountId =
+                idToken?.claims?.oid ||
+                idToken?.claims?.sub ||
+                Constants.EMPTY_STRING;
 
             /*
              * In B2C scenarios the emails claim is used instead of preferred_username and it is an array.
-             * In most cases it will contain a single email. This field should not be relied upon if a custom 
+             * In most cases it will contain a single email. This field should not be relied upon if a custom
              * policy is configured to return more than 1 email.
              */
             const preferredUsername = idToken?.claims?.preferred_username;
-            const email = (idToken?.claims?.emails) ? idToken.claims.emails[0] : null;
-            
-            account.username = preferredUsername || email || Constants.EMPTY_STRING;
+            const email = idToken?.claims?.emails
+                ? idToken.claims.emails[0]
+                : null;
+
+            account.username =
+                preferredUsername || email || Constants.EMPTY_STRING;
             account.name = idToken?.claims?.name;
         }
 
@@ -202,16 +208,16 @@ export class AccountEntity {
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
-        account.authorityType = (
-            authority &&
-            authority.authorityType === AuthorityType.Adfs
-        ) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
-        
+        account.authorityType =
+            authority && authority.authorityType === AuthorityType.Adfs
+                ? CacheAccountType.ADFS_ACCOUNT_TYPE
+                : CacheAccountType.GENERIC_ACCOUNT_TYPE;
+
         account.homeAccountId = homeAccountId;
         // non AAD scenarios can have empty realm
         account.realm = Constants.EMPTY_STRING;
 
-        const env = environment || authority && authority.getPreferredCache();
+        const env = environment || (authority && authority.getPreferredCache());
 
         if (!env) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -219,7 +225,10 @@ export class AccountEntity {
 
         if (idToken) {
             // How do you account for MSA CID here?
-            account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || Constants.EMPTY_STRING;
+            account.localAccountId =
+                idToken?.claims?.oid ||
+                idToken?.claims?.sub ||
+                Constants.EMPTY_STRING;
             // upn claim for most ADFS scenarios
             account.username = idToken?.claims?.upn || Constants.EMPTY_STRING;
             account.name = idToken?.claims?.name || Constants.EMPTY_STRING;
@@ -251,11 +260,15 @@ export class AccountEntity {
         cryptoObj: ICrypto,
         idToken?: AuthToken
     ): string {
-
-        const accountId = idToken?.claims?.sub ? idToken.claims.sub : Constants.EMPTY_STRING;
+        const accountId = idToken?.claims?.sub
+            ? idToken.claims.sub
+            : Constants.EMPTY_STRING;
 
         // since ADFS does not have tid and does not set client_info
-        if (authType === AuthorityType.Adfs || authType === AuthorityType.Dsts) {
+        if (
+            authType === AuthorityType.Adfs ||
+            authType === AuthorityType.Dsts
+        ) {
             return accountId;
         }
 
@@ -263,7 +276,10 @@ export class AccountEntity {
         if (serverClientInfo) {
             try {
                 const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
-                if (!StringUtils.isEmpty(clientInfo.uid) && !StringUtils.isEmpty(clientInfo.utid)) {
+                if (
+                    !StringUtils.isEmpty(clientInfo.uid) &&
+                    !StringUtils.isEmpty(clientInfo.utid)
+                ) {
                     return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
                 }
             } catch (e) {}
@@ -279,7 +295,6 @@ export class AccountEntity {
      * @param entity
      */
     static isAccountEntity(entity: object): boolean {
-
         if (!entity) {
             return false;
         }
@@ -300,27 +315,36 @@ export class AccountEntity {
      * @param accountB
      * @param compareClaims - If set to true idTokenClaims will also be compared to determine account equality
      */
-    static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null, compareClaims?: boolean): boolean {
+    static accountInfoIsEqual(
+        accountA: AccountInfo | null,
+        accountB: AccountInfo | null,
+        compareClaims?: boolean
+    ): boolean {
         if (!accountA || !accountB) {
             return false;
         }
 
         let claimsMatch = true; // default to true so as to not fail comparison below if compareClaims: false
         if (compareClaims) {
-            const accountAClaims = (accountA.idTokenClaims || {}) as TokenClaims;
-            const accountBClaims = (accountB.idTokenClaims || {}) as TokenClaims;
+            const accountAClaims = (accountA.idTokenClaims ||
+                {}) as TokenClaims;
+            const accountBClaims = (accountB.idTokenClaims ||
+                {}) as TokenClaims;
 
             // issued at timestamp and nonce are expected to change each time a new id token is acquired
-            claimsMatch = (accountAClaims.iat === accountBClaims.iat) &&
-            (accountAClaims.nonce === accountBClaims.nonce);
+            claimsMatch =
+                accountAClaims.iat === accountBClaims.iat &&
+                accountAClaims.nonce === accountBClaims.nonce;
         }
 
-        return (accountA.homeAccountId === accountB.homeAccountId) &&
-            (accountA.localAccountId === accountB.localAccountId) &&
-            (accountA.username === accountB.username) &&
-            (accountA.tenantId === accountB.tenantId) &&
-            (accountA.environment === accountB.environment) &&
-            (accountA.nativeAccountId === accountB.nativeAccountId) &&
-            claimsMatch;
+        return (
+            accountA.homeAccountId === accountB.homeAccountId &&
+            accountA.localAccountId === accountB.localAccountId &&
+            accountA.username === accountB.username &&
+            accountA.tenantId === accountB.tenantId &&
+            accountA.environment === accountB.environment &&
+            accountA.nativeAccountId === accountB.nativeAccountId &&
+            claimsMatch
+        );
     }
 }

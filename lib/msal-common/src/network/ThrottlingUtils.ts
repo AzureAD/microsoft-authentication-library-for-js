@@ -5,7 +5,11 @@
 
 import { NetworkResponse } from "./NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { HeaderNames, ThrottlingConstants, Constants } from "../utils/Constants";
+import {
+    HeaderNames,
+    ThrottlingConstants,
+    Constants,
+} from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerError } from "../error/ServerError";
 import { RequestThumbprint } from "./RequestThumbprint";
@@ -13,13 +17,14 @@ import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 export class ThrottlingUtils {
-
     /**
      * Prepares a RequestThumbprint to be stored as a key.
      * @param thumbprint
      */
     static generateThrottlingStorageKey(thumbprint: RequestThumbprint): string {
-        return `${ThrottlingConstants.THROTTLING_PREFIX}.${JSON.stringify(thumbprint)}`;
+        return `${ThrottlingConstants.THROTTLING_PREFIX}.${JSON.stringify(
+            thumbprint
+        )}`;
     }
 
     /**
@@ -27,7 +32,10 @@ export class ThrottlingUtils {
      * @param cacheManager
      * @param thumbprint
      */
-    static preProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint): void {
+    static preProcess(
+        cacheManager: CacheManager,
+        thumbprint: RequestThumbprint
+    ): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
         const value = cacheManager.getThrottlingCache(key);
 
@@ -36,7 +44,11 @@ export class ThrottlingUtils {
                 cacheManager.removeItem(key);
                 return;
             }
-            throw new ServerError(value.errorCodes?.join(" ") || Constants.EMPTY_STRING, value.errorMessage, value.subError);
+            throw new ServerError(
+                value.errorCodes?.join(" ") || Constants.EMPTY_STRING,
+                value.errorMessage,
+                value.subError
+            );
         }
     }
 
@@ -46,14 +58,23 @@ export class ThrottlingUtils {
      * @param thumbprint
      * @param response
      */
-    static postProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint, response: NetworkResponse<ServerAuthorizationTokenResponse>): void {
-        if (ThrottlingUtils.checkResponseStatus(response) || ThrottlingUtils.checkResponseForRetryAfter(response)) {
+    static postProcess(
+        cacheManager: CacheManager,
+        thumbprint: RequestThumbprint,
+        response: NetworkResponse<ServerAuthorizationTokenResponse>
+    ): void {
+        if (
+            ThrottlingUtils.checkResponseStatus(response) ||
+            ThrottlingUtils.checkResponseForRetryAfter(response)
+        ) {
             const thumbprintValue: ThrottlingEntity = {
-                throttleTime: ThrottlingUtils.calculateThrottleTime(parseInt(response.headers[HeaderNames.RETRY_AFTER])),
+                throttleTime: ThrottlingUtils.calculateThrottleTime(
+                    parseInt(response.headers[HeaderNames.RETRY_AFTER])
+                ),
                 error: response.body.error,
                 errorCodes: response.body.error_codes,
                 errorMessage: response.body.error_description,
-                subError: response.body.suberror
+                subError: response.body.suberror,
             };
             cacheManager.setThrottlingCache(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
@@ -66,17 +87,27 @@ export class ThrottlingUtils {
      * Checks a NetworkResponse object's status codes against 429 or 5xx
      * @param response
      */
-    static checkResponseStatus(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
-        return response.status === 429 || response.status >= 500 && response.status < 600;
+    static checkResponseStatus(
+        response: NetworkResponse<ServerAuthorizationTokenResponse>
+    ): boolean {
+        return (
+            response.status === 429 ||
+            (response.status >= 500 && response.status < 600)
+        );
     }
 
     /**
      * Checks a NetworkResponse object's RetryAfter header
      * @param response
      */
-    static checkResponseForRetryAfter(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
+    static checkResponseForRetryAfter(
+        response: NetworkResponse<ServerAuthorizationTokenResponse>
+    ): boolean {
         if (response.headers) {
-            return response.headers.hasOwnProperty(HeaderNames.RETRY_AFTER) && (response.status < 200 || response.status >= 300);
+            return (
+                response.headers.hasOwnProperty(HeaderNames.RETRY_AFTER) &&
+                (response.status < 200 || response.status >= 300)
+            );
         }
         return false;
     }
@@ -89,13 +120,22 @@ export class ThrottlingUtils {
         const time = throttleTime <= 0 ? 0 : throttleTime;
 
         const currentSeconds = Date.now() / 1000;
-        return Math.floor(Math.min(
-            currentSeconds + (time || ThrottlingConstants.DEFAULT_THROTTLE_TIME_SECONDS),
-            currentSeconds + ThrottlingConstants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
-        ) * 1000);
+        return Math.floor(
+            Math.min(
+                currentSeconds +
+                    (time || ThrottlingConstants.DEFAULT_THROTTLE_TIME_SECONDS),
+                currentSeconds +
+                    ThrottlingConstants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
+            ) * 1000
+        );
     }
 
-    static removeThrottle(cacheManager: CacheManager, clientId: string, request: BaseAuthRequest, homeAccountIdentifier?: string): void {
+    static removeThrottle(
+        cacheManager: CacheManager,
+        clientId: string,
+        request: BaseAuthRequest,
+        homeAccountIdentifier?: string
+    ): void {
         const thumbprint: RequestThumbprint = {
             clientId: clientId,
             authority: request.authority,
@@ -106,7 +146,7 @@ export class ThrottlingUtils {
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
-            sshKid: request.sshKid
+            sshKid: request.sshKid,
         };
 
         const key = this.generateThrottlingStorageKey(thumbprint);

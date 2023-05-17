@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import Dpapi from "../../src/Dpapi";
+import { Dpapi } from "../../src/Dpapi";
 import { DataProtectionScope } from "../../src/persistence/DataProtectionScope";
 import { platform } from "process"
 

@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "2.5.7",
+  "version": "3.0.0-alpha.2",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -16,11 +16,14 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
     "build:all": "npm run build:common && npm run build:browser && npm run build",
+    "build:all:prod": "npm run build:common && npm run build:browser && npm run build:prod",
     "build:browser": "cd ../msal-browser && npm run build",
     "build:common": "cd ../msal-common && npm run build",
     "build:pack": "npm run build && cd dist && npm pack",
-    "deploy": "npm run build:all && npm publish ./dist",
+    "deploy": "npm run build:all:prod && npm publish ./dist",
+    "deploy:alpha": "npm run build:all:prod && npm publish ./dist --tag alpha",
     "test": "ng test",
     "test:coverage": "npm test",
     "lint": "cd ../../ && npm run lint:angular",
@@ -28,28 +31,28 @@
     "e2e": "ng e2e",
     "prepack": "npm run build:all",
     "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser --scope @azure/msal-angular",
-    "prepublishOnly": "echo Use npm run deploy && exit 1"
+    "prepublishOnly": "echo Use npm run deploy && exit 1",
+    "format:check": "npx prettier --ignore-path .gitignore --check src",
+    "format:fix": "npx prettier --ignore-path .gitignore --write src"
   },
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
-    "disallowedChangeTypes": [
-      "major"
-    ]
+    "disallowedChangeTypes": []
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.1102.11",
-    "@angular/animations": "~11.2.12",
-    "@angular/cli": "~11.2.11",
-    "@angular/common": "~11.2.12",
-    "@angular/compiler": "~11.2.12",
-    "@angular/compiler-cli": "~11.2.12",
-    "@angular/core": "~11.2.12",
-    "@angular/forms": "~11.2.12",
-    "@angular/platform-browser": "~11.2.12",
-    "@angular/platform-browser-dynamic": "~11.2.12",
-    "@angular/router": "~11.2.12",
-    "@azure/msal-browser": "^2.36.0",
+    "@angular-devkit/build-angular": "^15.1.5",
+    "@angular/animations": "^15.1.4",
+    "@angular/cli": "^15.1.5",
+    "@angular/common": "^15.1.4",
+    "@angular/compiler": "^15.1.4",
+    "@angular/compiler-cli": "^15.1.4",
+    "@angular/core": "^15.1.4",
+    "@angular/forms": "^15.1.4",
+    "@angular/platform-browser": "^15.1.4",
+    "@angular/platform-browser-dynamic": "^15.1.4",
+    "@angular/router": "^15.1.4",
+    "@azure/msal-browser": "^3.0.0-alpha.2",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
@@ -60,16 +63,16 @@
     "karma-coverage-istanbul-reporter": "~3.0.2",
     "karma-jasmine": "~5.0.0",
     "karma-jasmine-html-reporter": "^2.0.0",
-    "ng-packagr": "^11.2.4",
-    "protractor": "~7.0.0",
-    "rxjs": "~6.5.5",
+    "ng-packagr": "^15.1.2",
+    "prettier": "2.8.7",
+    "rxjs": "^7.8.1",
     "ts-node": "~8.3.0",
     "tslib": "^2.0.0",
-    "typescript": "~4.1.5",
-    "zone.js": "~0.10.3"
+    "typescript": "~4.8.4",
+    "zone.js": "~0.11.8"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.37.0",
-    "rxjs": "^6.0.0 || ^7.0.0"
+    "@azure/msal-browser": "^3.0.0-alpha.2",
+    "rxjs": "^7.0.0"
   }
 }

@@ -10,9 +10,9 @@ import { ApiId } from "../utils/BrowserConstants";
  */
 export type NavigationOptions = {
     /** The Id of the API that initiated navigation */
-    apiId: ApiId
+    apiId: ApiId;
     /** Suggested timeout (ms) based on the configuration provided to PublicClientApplication */
-    timeout: number
+    timeout: number;
     /** When set to true the url should not be added to the browser history */
-    noHistory: boolean
+    noHistory: boolean;
 };

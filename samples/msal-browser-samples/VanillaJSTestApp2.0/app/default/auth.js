@@ -15,10 +15,12 @@ let accountId = "";
 // configuration parameters are located at authConfig.js
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
-// Redirect: once login is successful and redirects with tokens, call Graph API
-myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
-    console.error(err);
-});
+myMSALObj.initialize().then(() => {
+    // Redirect: once login is successful and redirects with tokens, call Graph API
+    myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+        console.error(err);
+    });
+})
 
 function handleResponse(resp) {
     if (resp !== null) {
@@ -44,7 +46,10 @@ function handleResponse(resp) {
 async function signIn(method) {
     signInType = isIE ? "redirect" : method;
     if (signInType === "popup") {
-        return myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
+        return myMSALObj.loginPopup({
+            ...loginRequest,
+            redirectUri: "/redirect"
+        }).then(handleResponse).catch(function (error) {
             console.log(error);
         });
     } else if (signInType === "redirect") {
@@ -67,17 +72,20 @@ function signOut(interactionType) {
 }
 
 async function getTokenPopup(request, account) {
-    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
-        console.log("silent token acquisition fails.");
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            console.log("acquiring token using popup");
-            return myMSALObj.acquireTokenPopup(request).catch(error => {
+    request.redirectUri = "/redirect"
+    return await myMSALObj
+        .acquireTokenSilent(request)
+        .catch(async (error) => {
+            console.log("silent token acquisition fails.");
+            if (error instanceof msal.InteractionRequiredAuthError) {
+                console.log("acquiring token using popup");
+                return myMSALObj.acquireTokenPopup(request).catch((error) => {
+                    console.error(error);
+                });
+            } else {
                 console.error(error);
-            });
-        } else {
-            console.error(error);
-        }
-    });
+            }
+        });
 }
 
 // This function can be removed if you do not need to support IE

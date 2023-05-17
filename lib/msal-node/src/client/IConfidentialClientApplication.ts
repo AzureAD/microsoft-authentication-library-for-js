@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, IAppTokenProvider, Logger } from "@azure/msal-common";
+import {
+    AuthenticationResult,
+    IAppTokenProvider,
+    Logger,
+} from "@azure/msal-common";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
@@ -18,27 +22,38 @@ import { TokenCache } from "../cache/TokenCache";
  * @public
  */
 export interface IConfidentialClientApplication {
-
     /** Creates the URL of the authorization request */
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
 
     /**  Acquires a token by exchanging the authorization code received from the first step of OAuth 2.0 Authorization Code Flow */
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
+    acquireTokenByCode(
+        request: AuthorizationCodeRequest
+    ): Promise<AuthenticationResult>;
 
     /**  Acquires a token silently when a user specifies the account the token is requested for */
-    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
+    acquireTokenSilent(
+        request: SilentFlowRequest
+    ): Promise<AuthenticationResult | null>;
 
     /** Acquires a token by exchanging the refresh token provided for a new set of tokens */
-    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByRefreshToken(
+        request: RefreshTokenRequest
+    ): Promise<AuthenticationResult | null>;
 
     /** Acquires tokens from the authority for the application (not for an end user) */
-    acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByClientCredential(
+        request: ClientCredentialRequest
+    ): Promise<AuthenticationResult | null>;
 
     /** Acquires tokens from the authority for the application */
-    acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
+    acquireTokenOnBehalfOf(
+        request: OnBehalfOfRequest
+    ): Promise<AuthenticationResult | null>;
 
     /** Acquires tokens with password grant by exchanging client applications username and password for credentials */
-    acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByUsernamePassword(
+        request: UsernamePasswordRequest
+    ): Promise<AuthenticationResult | null>;
 
     /** Gets the token cache for the application */
     getTokenCache(): TokenCache;
@@ -53,5 +68,5 @@ export interface IConfidentialClientApplication {
     clearCache(): void;
 
     /** This extensibility point is meant for Azure SDK to enhance Managed Identity support */
-    SetAppTokenProvider(provider: IAppTokenProvider): void
+    SetAppTokenProvider(provider: IAppTokenProvider): void;
 }

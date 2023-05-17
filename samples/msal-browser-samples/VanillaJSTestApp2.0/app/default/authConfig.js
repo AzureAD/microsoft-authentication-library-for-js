@@ -1,8 +1,8 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
-        authority: "https://login.microsoftonline.com/common"
+        clientId: "ENTER_CLIENT_ID_HERE",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_ID_HERE",
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -32,15 +32,15 @@ const msalConfig = {
                         console.log(message);
                         return;
                 }
-            }
-        }
+            },
+        },
     },
     telemetry: {
         application: {
             appName: "MSAL Browser V2 Default Sample",
-            appVersion: "1.0.0"
-        }
-    }
+            appVersion: "1.0.0",
+        },
+    },
 };
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.

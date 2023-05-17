@@ -1,24 +1,37 @@
 {
-  "include": ["src", "test"],
+  "include": [
+    "src",
+    "test"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
   "compilerOptions": {
     "module": "esnext",
+    "target": "es2020",
     "moduleResolution": "node",
-    "lib": ["dom", "esnext"],
+    "lib": [
+      "dom",
+      "esnext"
+    ],
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
     "rootDir": "./",
+    "outDir": "./dist",
     "noUnusedLocals": true,
     "baseUrl": "./",
-    "paths": {
-      "*": ["src/*", "node_modules/*", "build/"]
-    },
     "jsx": "react",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strict": true,
+    "types": [
+      "node",
+      "jest"
+    ]
   },
   "references": [
     {
-        "path": "../../lib/msal-common"
+      "path": "../../lib/msal-common"
     }
   ]
 }

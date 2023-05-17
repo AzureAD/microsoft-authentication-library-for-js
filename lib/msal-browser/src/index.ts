@@ -12,20 +12,49 @@
  * Warning: This set of exports is purely intended to be used by other MSAL libraries, and should be considered potentially unstable. We strongly discourage using them directly, you do so at your own risk.
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
+
 import * as internals from "./internals";
 export { internals };
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
-export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions, BrowserConfiguration, DEFAULT_IFRAME_TIMEOUT_MS } from "./config/Configuration";
-export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId, CacheLookupPolicy } from "./utils/BrowserConstants";
+export {
+    Configuration,
+    BrowserAuthOptions,
+    CacheOptions,
+    BrowserSystemOptions,
+    BrowserConfiguration,
+    DEFAULT_IFRAME_TIMEOUT_MS,
+} from "./config/Configuration";
+export {
+    InteractionType,
+    InteractionStatus,
+    BrowserCacheLocation,
+    WrapperSKU,
+    ApiId,
+    CacheLookupPolicy,
+} from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
+/*
+ * export { IController} from "./controllers/IController";
+ * export { StandardController } from "./controllers/StandardController";
+ */
+
 // Browser Errors
-export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
-export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } from "./error/BrowserConfigurationAuthError";
+export {
+    BrowserAuthError,
+    BrowserAuthErrorMessage,
+} from "./error/BrowserAuthError";
+export {
+    BrowserConfigurationAuthError,
+    BrowserConfigurationAuthErrorMessage,
+} from "./error/BrowserConfigurationAuthError";
 
 // Interfaces
-export { IPublicClientApplication, stubbedPublicClientApplication } from "./app/IPublicClientApplication";
+export {
+    IPublicClientApplication,
+    stubbedPublicClientApplication,
+} from "./app/IPublicClientApplication";
 export { INavigationClient } from "./navigation/INavigationClient";
 export { NavigationClient } from "./navigation/NavigationClient";
 export { NavigationOptions } from "./navigation/NavigationOptions";
@@ -42,10 +71,20 @@ export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { LoadTokenOptions } from "./cache/TokenCache";
 
 // Events
-export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
+export {
+    EventMessage,
+    EventPayload,
+    EventError,
+    EventCallbackFunction,
+    EventMessageUtils,
+    PopupEvent,
+} from "./event/EventMessage";
 export { EventType } from "./event/EventType";
 
-export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttpRequest";
+export {
+    SignedHttpRequest,
+    SignedHttpRequestOptions,
+} from "./crypto/SignedHttpRequest";
 
 export { PopupWindowAttributes } from "./request/PopupWindowAttributes";
 
@@ -89,7 +128,7 @@ export {
     OIDC_DEFAULT_SCOPES,
     PerformanceCallbackFunction,
     PerformanceEvent,
-    PerformanceEvents
+    PerformanceEvents,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

@@ -15,7 +15,6 @@ const RANDOM_BYTE_ARR_LENGTH = 32;
  * Class which exposes APIs to generate PKCE codes and code verifiers.
  */
 export class PkceGenerator {
-
     private base64Encode: Base64Encode;
     private cryptoObj: BrowserCrypto;
 
@@ -29,10 +28,12 @@ export class PkceGenerator {
      */
     async generateCodes(): Promise<PkceCodes> {
         const codeVerifier = this.generateCodeVerifier();
-        const codeChallenge = await this.generateCodeChallengeFromVerifier(codeVerifier);
+        const codeChallenge = await this.generateCodeChallengeFromVerifier(
+            codeVerifier
+        );
         return {
             verifier: codeVerifier,
-            challenge: codeChallenge
+            challenge: codeChallenge,
         };
     }
 
@@ -46,10 +47,11 @@ export class PkceGenerator {
             const buffer: Uint8Array = new Uint8Array(RANDOM_BYTE_ARR_LENGTH);
             this.cryptoObj.getRandomValues(buffer);
             // encode verifier as base64
-            const pkceCodeVerifierB64: string = this.base64Encode.urlEncodeArr(buffer);
+            const pkceCodeVerifierB64: string =
+                this.base64Encode.urlEncodeArr(buffer);
             return pkceCodeVerifierB64;
         } catch (e) {
-            throw BrowserAuthError.createPkceNotGeneratedError(e);
+            throw BrowserAuthError.createPkceNotGeneratedError(e as string);
         }
     }
 
@@ -57,14 +59,20 @@ export class PkceGenerator {
      * Creates a base64 encoded PKCE Code Challenge string from the
      * hash created from the PKCE Code Verifier supplied
      */
-    private async generateCodeChallengeFromVerifier(pkceCodeVerifier: string): Promise<string> {
+    private async generateCodeChallengeFromVerifier(
+        pkceCodeVerifier: string
+    ): Promise<string> {
         try {
             // hashed verifier
-            const pkceHashedCodeVerifier = await this.cryptoObj.sha256Digest(pkceCodeVerifier);
+            const pkceHashedCodeVerifier = await this.cryptoObj.sha256Digest(
+                pkceCodeVerifier
+            );
             // encode hash as base64
-            return this.base64Encode.urlEncodeArr(new Uint8Array(pkceHashedCodeVerifier));
+            return this.base64Encode.urlEncodeArr(
+                new Uint8Array(pkceHashedCodeVerifier)
+            );
         } catch (e) {
-            throw BrowserAuthError.createPkceNotGeneratedError(e);
+            throw BrowserAuthError.createPkceNotGeneratedError(e as string);
         }
     }
 }

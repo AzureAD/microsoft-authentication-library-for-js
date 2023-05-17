@@ -8,12 +8,16 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 
 describe("Event API tests", () => {
     const loggerOptions = {
-        loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+        loggerCallback: (
+            level: LogLevel,
+            message: string,
+            containsPii: boolean
+        ): void => {
             if (containsPii) {
                 console.log(`Log level: ${level} Message: ${message}`);
             }
         },
-        piiLoggingEnabled: true
+        piiLoggingEnabled: true,
     };
     const logger = new Logger(loggerOptions);
     const browserCrypto = new CryptoOps(logger);
@@ -40,7 +44,7 @@ describe("Event API tests", () => {
         const callbackSpy = sinon.spy(subscriber);
 
         const eventHandler = new EventHandler(logger, browserCrypto);
-        
+
         const callbackId = eventHandler.addEventCallback(callbackSpy);
         eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
         eventHandler.removeEventCallback(callbackId || "");
@@ -65,7 +69,10 @@ describe("Event API tests", () => {
 
         eventHandler.addEventCallback(subscriber1);
         eventHandler.addEventCallback(subscriber2);
-        eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Redirect);
+        eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_START,
+            InteractionType.Redirect
+        );
     });
 
     it("sets interactionType, payload, and error to null by default", (done) => {
@@ -88,7 +95,7 @@ describe("Event API tests", () => {
         const subscriber = (message: EventMessage) => {
             expect(message.eventType).toEqual(EventType.LOGIN_START);
             expect(message.interactionType).toEqual(InteractionType.Silent);
-            expect(message.payload).toEqual({scopes: ["user.read"]});
+            expect(message.payload).toEqual({ scopes: ["user.read"] });
             expect(message.error).toBeNull();
             expect(message.timestamp).not.toBeNull();
             done();
@@ -97,7 +104,12 @@ describe("Event API tests", () => {
         const eventHandler = new EventHandler(logger, browserCrypto);
 
         eventHandler.addEventCallback(subscriber);
-        eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Silent, {scopes: ["user.read"]}, null);
+        eventHandler.emitEvent(
+            EventType.LOGIN_START,
+            InteractionType.Silent,
+            { scopes: ["user.read"] },
+            null
+        );
     });
 
     describe("handleAccountCacheChange", () => {
@@ -122,8 +134,8 @@ describe("Event API tests", () => {
                 realm: "test-tenantId-1",
                 name: "name-1",
                 idTokenClaims: {},
-                authorityType: "AAD"
-            }
+                authorityType: "AAD",
+            };
 
             const account: AccountInfo = {
                 homeAccountId: accountEntity.homeAccountId,
@@ -132,16 +144,16 @@ describe("Event API tests", () => {
                 environment: accountEntity.environment,
                 tenantId: accountEntity.realm,
                 name: accountEntity.name,
-                idTokenClaims: accountEntity.idTokenClaims
+                idTokenClaims: accountEntity.idTokenClaims,
             };
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
-    
+
             // @ts-ignore
             eventHandler.handleAccountCacheChange({
                 key: cacheKey1,
                 oldValue: null,
-                newValue: JSON.stringify(accountEntity)
+                newValue: JSON.stringify(accountEntity),
             });
         });
 
@@ -166,8 +178,8 @@ describe("Event API tests", () => {
                 realm: "test-tenantId-1",
                 name: "name-1",
                 idTokenClaims: {},
-                authorityType: "AAD"
-            }
+                authorityType: "AAD",
+            };
 
             const account: AccountInfo = {
                 homeAccountId: accountEntity.homeAccountId,
@@ -176,16 +188,16 @@ describe("Event API tests", () => {
                 environment: accountEntity.environment,
                 tenantId: accountEntity.realm,
                 name: accountEntity.name,
-                idTokenClaims: accountEntity.idTokenClaims
+                idTokenClaims: accountEntity.idTokenClaims,
             };
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
-    
+
             // @ts-ignore
             eventHandler.handleAccountCacheChange({
                 key: cacheKey1,
                 oldValue: JSON.stringify(accountEntity),
-                newValue: null
+                newValue: null,
             });
         });
 
@@ -199,7 +211,7 @@ describe("Event API tests", () => {
             eventHandler.handleAccountCacheChange({
                 key: "testCacheKey",
                 oldValue: "not JSON",
-                newValue: null
+                newValue: null,
             });
 
             expect(emitEventSpy.getCalls().length).toBe(0);
@@ -214,8 +226,10 @@ describe("Event API tests", () => {
             // @ts-ignore
             eventHandler.handleAccountCacheChange({
                 key: "testCacheKey",
-                oldValue: JSON.stringify({testKey: "this is not an account object"}),
-                newValue: null
+                oldValue: JSON.stringify({
+                    testKey: "this is not an account object",
+                }),
+                newValue: null,
             });
 
             expect(emitEventSpy.getCalls().length).toBe(0);
@@ -231,7 +245,7 @@ describe("Event API tests", () => {
             eventHandler.handleAccountCacheChange({
                 key: "testCacheKey",
                 oldValue: null,
-                newValue: null
+                newValue: null,
             });
 
             expect(emitEventSpy.getCalls().length).toBe(0);

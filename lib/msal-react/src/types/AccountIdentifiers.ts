@@ -5,4 +5,6 @@
 
 import { AccountInfo } from "@azure/msal-browser";
 
-export type AccountIdentifiers = Partial<Pick<AccountInfo, "homeAccountId"|"localAccountId"|"username">>;
+export type AccountIdentifiers = Partial<
+    Pick<AccountInfo, "homeAccountId" | "localAccountId" | "username">
+>;

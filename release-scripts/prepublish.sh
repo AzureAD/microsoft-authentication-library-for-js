@@ -1,10 +1,9 @@
 #!/usr/bin/bash
 
-libNames=("msal-core" "msal-common" "msal-browser" "msal-node" "msal-angular" "msal-react");
+libNames=("msal-common" "msal-browser" "msal-node" "msal-angular" "msal-react");
 
 declare -A publishFlagNames;
 
-publishFlagNames["msal-core"]=publishMsalCore;
 publishFlagNames["msal-common"]=publishMsalCommon;
 publishFlagNames["msal-browser"]=publishMsalBrowser;
 publishFlagNames["msal-node"]=publishMsalNode;
@@ -13,14 +12,8 @@ publishFlagNames["msal-react"]=publishMsalReact;
 
 # Iterate each library directory name
 for i in "${libNames[@]}"; do
-    libPath="../lib/${i}/package.json"
-    # Git diff --name-only prints the file name in the input path given that
-    # that file has changed between the two commits referenced and
-    # --exit-code sets the successful or failed result into $?
-    # so if there are changes to a library's package.json, $? will have a 1 (success),
-    # no changes means $? is 0, therefore library won't be release unless it's dependent
-    # packages have been updated (dependent logic is out of scope for this script)
-    git diff --exit-code --name-only HEAD HEAD~1 -- $libPath 
+    libPath="./lib/${i}"
+    node checkIfPackageShouldBePublished.js $libPath
 
     if [ $? -eq 1 ]
     then
@@ -36,9 +29,10 @@ done
 
 # Same for extensions
 
-libPath="../extensions/msal-node-extensions/package.json"
+libPath="./extensions/msal-node-extensions"
 varName=publishMsalNodeExtensions;
-git diff --exit-code --name-only HEAD HEAD~1 -- $libPath
+
+node checkIfPackageShouldBePublished.js $libPath
 
 if [ $? -eq 1 ]
 then

@@ -16,7 +16,9 @@ export type CloudInstanceDiscoveryErrorResponse = {
     error_uri?: String;
 };
 
-export function isCloudInstanceDiscoveryErrorResponse(response: object): boolean {
+export function isCloudInstanceDiscoveryErrorResponse(
+    response: object
+): boolean {
     return (
         response.hasOwnProperty("error") &&
         response.hasOwnProperty("error_description")

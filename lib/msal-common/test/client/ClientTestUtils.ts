@@ -3,8 +3,35 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ValidCredentialType, Logger, LogLevel, TokenKeys } from "../../src";
-import { AUTHENTICATION_RESULT, ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
+import {
+    ClientConfiguration,
+    Constants,
+    PkceCodes,
+    ClientAuthError,
+    AccountEntity,
+    AppMetadataEntity,
+    ThrottlingEntity,
+    IdTokenEntity,
+    AccessTokenEntity,
+    RefreshTokenEntity,
+    ProtocolMode,
+    AuthorityFactory,
+    AuthorityOptions,
+    AuthorityMetadataEntity,
+    ValidCredentialType,
+    Logger,
+    LogLevel,
+    TokenKeys,
+} from "../../src";
+import {
+    AUTHENTICATION_RESULT,
+    ID_TOKEN_CLAIMS,
+    RANDOM_TEST_GUID,
+    TEST_CONFIG,
+    TEST_CRYPTO_VALUES,
+    TEST_POP_VALUES,
+    TEST_TOKENS,
+} from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
@@ -50,16 +77,18 @@ export class MockStorageClass extends CacheManager {
     }
 
     getTokenKeys(): TokenKeys {
-        return this.store[TOKEN_KEYS] || {
-            idToken: [],
-            accessToken: [],
-            refreshToken: []
-        }
+        return (
+            this.store[TOKEN_KEYS] || {
+                idToken: [],
+                accessToken: [],
+                refreshToken: [],
+            }
+        );
     }
 
     // Credentials (idtokens)
     getIdTokenCredential(key: string): IdTokenEntity | null {
-        return this.store[key] as IdTokenEntity || null;
+        return (this.store[key] as IdTokenEntity) || null;
     }
     setIdTokenCredential(value: IdTokenEntity): void {
         const key = value.generateCredentialKey();
@@ -74,7 +103,7 @@ export class MockStorageClass extends CacheManager {
 
     // Credentials (accesstokens)
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
-        return this.store[key] as AccessTokenEntity || null;
+        return (this.store[key] as AccessTokenEntity) || null;
     }
     setAccessTokenCredential(value: AccessTokenEntity): void {
         const key = value.generateCredentialKey();
@@ -89,7 +118,7 @@ export class MockStorageClass extends CacheManager {
 
     // Credentials (accesstokens)
     getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
-        return this.store[key] as RefreshTokenEntity || null;
+        return (this.store[key] as RefreshTokenEntity) || null;
     }
     setRefreshTokenCredential(value: RefreshTokenEntity): void {
         const key = value.generateCredentialKey();
@@ -152,7 +181,10 @@ export class MockStorageClass extends CacheManager {
     async clear(): Promise<void> {
         this.store = {};
     }
-    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+    updateCredentialCacheKey(
+        currentCacheKey: string,
+        credential: ValidCredentialType
+    ): string {
         const updatedCacheKey = credential.generateCredentialKey();
 
         if (currentCacheKey !== updatedCacheKey) {
@@ -213,13 +245,16 @@ export const mockCrypto = {
     },
     async hashString(): Promise<string> {
         return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-    }
+    },
 };
 
 export class ClientTestUtils {
-    
-    static async createTestClientConfiguration(): Promise<ClientConfiguration>{
-        const mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
+    static async createTestClientConfiguration(): Promise<ClientConfiguration> {
+        const mockStorage = new MockStorageClass(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            mockCrypto,
+            new Logger({})
+        );
 
         const testLoggerCallback = (): void => {
             return;
@@ -231,33 +266,39 @@ export class ClientTestUtils {
             },
             sendPostRequestAsync<T>(): T {
                 return {} as T;
-            }
+            },
         };
 
         const authorityOptions: AuthorityOptions = {
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [TEST_CONFIG.validAuthority],
             cloudDiscoveryMetadata: "",
-            authorityMetadata: ""
+            authorityMetadata: "",
         };
 
         const loggerOptions = {
             loggerCallback: (): void => {},
             piiLoggingEnabled: true,
-            logLevel: LogLevel.Verbose
+            logLevel: LogLevel.Verbose,
         };
         const logger = new Logger(loggerOptions);
 
-        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient, mockStorage, authorityOptions, logger);
+        const authority = AuthorityFactory.createInstance(
+            TEST_CONFIG.validAuthority,
+            mockHttpClient,
+            mockStorage,
+            authorityOptions,
+            logger
+        );
 
-        await authority.resolveEndpointsAsync().catch(error => {
+        await authority.resolveEndpointsAsync().catch((error) => {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
         });
 
         return {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: authority
+                authority: authority,
             },
             storageInterface: mockStorage,
             networkInterface: mockHttpClient,
@@ -266,7 +307,8 @@ export class ClientTestUtils {
                 loggerCallback: testLoggerCallback,
             },
             systemOptions: {
-                tokenRenewalOffsetSeconds: TEST_CONFIG.DEFAULT_TOKEN_RENEWAL_OFFSET
+                tokenRenewalOffsetSeconds:
+                    TEST_CONFIG.DEFAULT_TOKEN_RENEWAL_OFFSET,
             },
             clientCredentials: {
                 clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
@@ -280,9 +322,9 @@ export class ClientTestUtils {
             telemetry: {
                 application: {
                     appName: TEST_CONFIG.applicationName,
-                    appVersion: TEST_CONFIG.applicationVersion
-                }
-            }
+                    appVersion: TEST_CONFIG.applicationVersion,
+                },
+            },
         };
     }
 }

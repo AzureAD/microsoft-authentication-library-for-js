@@ -63,5 +63,6 @@ export enum Platform {
 
 export enum ErrorCodes {
     INTERATION_REQUIRED_ERROR_CODE = "interaction_required",
-    SERVER_UNAVAILABLE = "server_unavailable"
+    SERVER_UNAVAILABLE = "server_unavailable",
+    UNKNOWN = "unknown_error",
 }

@@ -19,14 +19,18 @@ export class ScopeSet {
 
     constructor(inputScopes: Array<string>) {
         // Filter empty string and null/undefined array items
-        const scopeArr = inputScopes ? StringUtils.trimArrayEntries([...inputScopes]) : [];
-        const filteredInput = scopeArr ? StringUtils.removeEmptyStringsFromArray(scopeArr) : [];
+        const scopeArr = inputScopes
+            ? StringUtils.trimArrayEntries([...inputScopes])
+            : [];
+        const filteredInput = scopeArr
+            ? StringUtils.removeEmptyStringsFromArray(scopeArr)
+            : [];
 
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(filteredInput);
 
         this.scopes = new Set<string>(); // Iterator in constructor not supported by IE11
-        filteredInput.forEach(scope => this.scopes.add(scope));
+        filteredInput.forEach((scope) => this.scopes.add(scope));
     }
 
     /**
@@ -43,8 +47,8 @@ export class ScopeSet {
 
     /**
      * Creates the set of scopes to search for in cache lookups
-     * @param inputScopeString 
-     * @returns 
+     * @param inputScopeString
+     * @returns
      */
     static createSearchScopes(inputScopeString: Array<string>): ScopeSet {
         const scopeSet = new ScopeSet(inputScopeString);
@@ -77,7 +81,9 @@ export class ScopeSet {
         const lowerCaseScopes = this.printScopesLowerCase().split(" ");
         const lowerCaseScopesSet = new ScopeSet(lowerCaseScopes);
         // compare lowercase scopes
-        return !StringUtils.isEmpty(scope) ? lowerCaseScopesSet.scopes.has(scope.toLowerCase()) : false;
+        return !StringUtils.isEmpty(scope)
+            ? lowerCaseScopesSet.scopes.has(scope.toLowerCase())
+            : false;
     }
 
     /**
@@ -89,7 +95,10 @@ export class ScopeSet {
             return false;
         }
 
-        return (this.scopes.size >= scopeSet.scopes.size && scopeSet.asArray().every(scope => this.containsScope(scope)));
+        return (
+            this.scopes.size >= scopeSet.scopes.size &&
+            scopeSet.asArray().every((scope) => this.containsScope(scope))
+        );
     }
 
     /**
@@ -122,9 +131,9 @@ export class ScopeSet {
      */
     appendScopes(newScopes: Array<string>): void {
         try {
-            newScopes.forEach(newScope => this.appendScope(newScope));
+            newScopes.forEach((newScope) => this.appendScope(newScope));
         } catch (e) {
-            throw ClientAuthError.createAppendScopeSetError(e);
+            throw ClientAuthError.createAppendScopeSetError(e as string);
         }
     }
 
@@ -158,8 +167,10 @@ export class ScopeSet {
             throw ClientAuthError.createEmptyInputScopeSetError();
         }
         const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
-        otherScopes.scopes.forEach(scope => unionScopes.add(scope.toLowerCase()));
-        this.scopes.forEach(scope => unionScopes.add(scope.toLowerCase()));
+        otherScopes.scopes.forEach((scope) =>
+            unionScopes.add(scope.toLowerCase())
+        );
+        this.scopes.forEach((scope) => unionScopes.add(scope.toLowerCase()));
         return unionScopes;
     }
 
@@ -171,7 +182,7 @@ export class ScopeSet {
         if (!otherScopes) {
             throw ClientAuthError.createEmptyInputScopeSetError();
         }
-        
+
         // Do not allow OIDC scopes to be the only intersecting scopes
         if (!otherScopes.containsOnlyOIDCScopes()) {
             otherScopes.removeOIDCScopes();
@@ -180,7 +191,7 @@ export class ScopeSet {
         const sizeOtherScopes = otherScopes.getScopeCount();
         const sizeThisScopes = this.getScopeCount();
         const sizeUnionScopes = unionScopes.size;
-        return sizeUnionScopes < (sizeThisScopes + sizeOtherScopes);
+        return sizeUnionScopes < sizeThisScopes + sizeOtherScopes;
     }
 
     /**
@@ -195,7 +206,7 @@ export class ScopeSet {
      */
     asArray(): Array<string> {
         const array: Array<string> = [];
-        this.scopes.forEach(val => array.push(val));
+        this.scopes.forEach((val) => array.push(val));
         return array;
     }
 

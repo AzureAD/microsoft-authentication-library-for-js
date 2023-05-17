@@ -17,7 +17,7 @@ export type OpenIdConfigResponse = {
 export function isOpenIdConfigResponse(response: object): boolean {
     return (
         response.hasOwnProperty("authorization_endpoint") &&
-        response.hasOwnProperty("token_endpoint") && 
+        response.hasOwnProperty("token_endpoint") &&
         response.hasOwnProperty("issuer") &&
         response.hasOwnProperty("jwks_uri")
     );

@@ -16,46 +16,59 @@ import { ClientAuthError } from "../error/ClientAuthError";
  * - platformState - string value sent from the platform.
  */
 export type LibraryStateObject = {
-    id: string,
-    meta?: Record<string, string>
+    id: string;
+    meta?: Record<string, string>;
 };
 
 /**
  * Type which defines the stringified and encoded object sent to the service in the authorize request.
  */
 export type RequestStateObject = {
-    userRequestState: string,
-    libraryState: LibraryStateObject
+    userRequestState: string;
+    libraryState: LibraryStateObject;
 };
 
 /**
  * Class which provides helpers for OAuth 2.0 protocol specific values
  */
 export class ProtocolUtils {
-
     /**
      * Appends user state with random guid, or returns random guid.
-     * @param userState 
-     * @param randomGuid 
+     * @param userState
+     * @param randomGuid
      */
-    static setRequestState(cryptoObj: ICrypto, userState?: string, meta?: Record<string, string>): string {
-        const libraryState = ProtocolUtils.generateLibraryState(cryptoObj, meta);
-        return !StringUtils.isEmpty(userState) ? `${libraryState}${Constants.RESOURCE_DELIM}${userState}` : libraryState;
+    static setRequestState(
+        cryptoObj: ICrypto,
+        userState?: string,
+        meta?: Record<string, string>
+    ): string {
+        const libraryState = ProtocolUtils.generateLibraryState(
+            cryptoObj,
+            meta
+        );
+        return !StringUtils.isEmpty(userState)
+            ? `${libraryState}${Constants.RESOURCE_DELIM}${userState}`
+            : libraryState;
     }
 
     /**
      * Generates the state value used by the common library.
-     * @param randomGuid 
-     * @param cryptoObj 
+     * @param randomGuid
+     * @param cryptoObj
      */
-    static generateLibraryState(cryptoObj: ICrypto, meta?: Record<string, string>): string {
+    static generateLibraryState(
+        cryptoObj: ICrypto,
+        meta?: Record<string, string>
+    ): string {
         if (!cryptoObj) {
-            throw ClientAuthError.createNoCryptoObjectError("generateLibraryState");
+            throw ClientAuthError.createNoCryptoObjectError(
+                "generateLibraryState"
+            );
         }
 
         // Create a state object containing a unique id and the timestamp of the request creation
         const stateObj: LibraryStateObject = {
-            id: cryptoObj.createNewGuid()
+            id: cryptoObj.createNewGuid(),
         };
 
         if (meta) {
@@ -69,31 +82,46 @@ export class ProtocolUtils {
 
     /**
      * Parses the state into the RequestStateObject, which contains the LibraryState info and the state passed by the user.
-     * @param state 
-     * @param cryptoObj 
+     * @param state
+     * @param cryptoObj
      */
-    static parseRequestState(cryptoObj: ICrypto, state: string): RequestStateObject {
+    static parseRequestState(
+        cryptoObj: ICrypto,
+        state: string
+    ): RequestStateObject {
         if (!cryptoObj) {
-            throw ClientAuthError.createNoCryptoObjectError("parseRequestState");
+            throw ClientAuthError.createNoCryptoObjectError(
+                "parseRequestState"
+            );
         }
 
         if (StringUtils.isEmpty(state)) {
-            throw ClientAuthError.createInvalidStateError(state, "Null, undefined or empty state");
+            throw ClientAuthError.createInvalidStateError(
+                state,
+                "Null, undefined or empty state"
+            );
         }
 
         try {
             // Split the state between library state and user passed state and decode them separately
             const splitState = state.split(Constants.RESOURCE_DELIM);
             const libraryState = splitState[0];
-            const userState = splitState.length > 1 ? splitState.slice(1).join(Constants.RESOURCE_DELIM) : Constants.EMPTY_STRING;
+            const userState =
+                splitState.length > 1
+                    ? splitState.slice(1).join(Constants.RESOURCE_DELIM)
+                    : Constants.EMPTY_STRING;
             const libraryStateString = cryptoObj.base64Decode(libraryState);
-            const libraryStateObj = JSON.parse(libraryStateString) as LibraryStateObject;
+            const libraryStateObj = JSON.parse(
+                libraryStateString
+            ) as LibraryStateObject;
             return {
-                userRequestState: !StringUtils.isEmpty(userState) ? userState : Constants.EMPTY_STRING,
-                libraryState: libraryStateObj
+                userRequestState: !StringUtils.isEmpty(userState)
+                    ? userState
+                    : Constants.EMPTY_STRING,
+                libraryState: libraryStateObj,
             };
-        } catch(e) {
-            throw ClientAuthError.createInvalidStateError(state, e);
+        } catch (e) {
+            throw ClientAuthError.createInvalidStateError(state, e as string);
         }
     }
 }

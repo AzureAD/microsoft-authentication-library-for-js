@@ -3,8 +3,29 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager } from "@azure/msal-common";
-import { JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedAppMetadataEntity } from "./SerializerTypes";
+import {
+    StringUtils,
+    AccountCache,
+    IdTokenCache,
+    AccessTokenCache,
+    RefreshTokenCache,
+    AppMetadataCache,
+    AccountEntity,
+    IdTokenEntity,
+    AccessTokenEntity,
+    RefreshTokenEntity,
+    AppMetadataEntity,
+    CacheManager,
+} from "@azure/msal-common";
+import {
+    JsonCache,
+    InMemoryCache,
+    SerializedAccountEntity,
+    SerializedIdTokenEntity,
+    SerializedAccessTokenEntity,
+    SerializedRefreshTokenEntity,
+    SerializedAppMetadataEntity,
+} from "./SerializerTypes";
 
 /**
  * This class deserializes cache entities read from the file into in memory object types defined internally
@@ -25,7 +46,9 @@ export class Deserializer {
      * Deserializes accounts to AccountEntity objects
      * @param accounts
      */
-    static deserializeAccounts(accounts: Record<string, SerializedAccountEntity>): AccountCache {
+    static deserializeAccounts(
+        accounts: Record<string, SerializedAccountEntity>
+    ): AccountCache {
         const accountObjects: AccountCache = {};
         if (accounts) {
             Object.keys(accounts).map(function (key) {
@@ -55,7 +78,9 @@ export class Deserializer {
      * Deserializes id tokens to IdTokenEntity objects
      * @param idTokens
      */
-    static deserializeIdTokens(idTokens: Record<string, SerializedIdTokenEntity>): IdTokenCache {
+    static deserializeIdTokens(
+        idTokens: Record<string, SerializedIdTokenEntity>
+    ): IdTokenCache {
         const idObjects: IdTokenCache = {};
         if (idTokens) {
             Object.keys(idTokens).map(function (key) {
@@ -80,7 +105,9 @@ export class Deserializer {
      * Deserializes access tokens to AccessTokenEntity objects
      * @param accessTokens
      */
-    static deserializeAccessTokens(accessTokens: Record<string, SerializedAccessTokenEntity>): AccessTokenCache {
+    static deserializeAccessTokens(
+        accessTokens: Record<string, SerializedAccessTokenEntity>
+    ): AccessTokenCache {
         const atObjects: AccessTokenCache = {};
         if (accessTokens) {
             Object.keys(accessTokens).map(function (key) {
@@ -116,7 +143,9 @@ export class Deserializer {
      * Deserializes refresh tokens to RefreshTokenEntity objects
      * @param refreshTokens
      */
-    static deserializeRefreshTokens(refreshTokens: Record<string, SerializedRefreshTokenEntity>): RefreshTokenCache {
+    static deserializeRefreshTokens(
+        refreshTokens: Record<string, SerializedRefreshTokenEntity>
+    ): RefreshTokenCache {
         const rtObjects: RefreshTokenCache = {};
         if (refreshTokens) {
             Object.keys(refreshTokens).map(function (key) {
@@ -131,7 +160,8 @@ export class Deserializer {
                     target: serializedRT.target,
                     realm: serializedRT.realm,
                 };
-                const refreshToken: RefreshTokenEntity = new RefreshTokenEntity();
+                const refreshToken: RefreshTokenEntity =
+                    new RefreshTokenEntity();
                 CacheManager.toObject(refreshToken, mappedRT);
                 rtObjects[key] = refreshToken;
             });
@@ -144,7 +174,9 @@ export class Deserializer {
      * Deserializes appMetadata to AppMetaData objects
      * @param appMetadata
      */
-    static deserializeAppMetadata(appMetadata: Record<string, SerializedAppMetadataEntity>): AppMetadataCache {
+    static deserializeAppMetadata(
+        appMetadata: Record<string, SerializedAppMetadataEntity>
+    ): AppMetadataCache {
         const appMetadataObjects: AppMetadataCache = {};
         if (appMetadata) {
             Object.keys(appMetadata).map(function (key) {

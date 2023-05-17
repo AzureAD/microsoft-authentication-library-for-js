@@ -16,7 +16,7 @@ import {
     CredentialType,
     AuthorityMetadataEntity,
     ValidCredentialType,
-    TokenKeys
+    TokenKeys,
 } from "@azure/msal-common";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
@@ -60,16 +60,18 @@ export class TestStorageManager extends CacheManager {
     }
 
     getTokenKeys(): TokenKeys {
-        return this.store[TOKEN_KEYS] || {
-            idToken: [],
-            accessToken: [],
-            refreshToken: []
-        }
+        return (
+            this.store[TOKEN_KEYS] || {
+                idToken: [],
+                accessToken: [],
+                refreshToken: [],
+            }
+        );
     }
-    
+
     // Credentials (idtokens)
     getIdTokenCredential(key: string): IdTokenEntity | null {
-        return this.store[key] as IdTokenEntity || null;
+        return (this.store[key] as IdTokenEntity) || null;
     }
 
     setIdTokenCredential(idToken: IdTokenEntity): void {
@@ -83,7 +85,7 @@ export class TestStorageManager extends CacheManager {
 
     // Credentials (accesstokens)
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
-        return this.store[key] as AccessTokenEntity || null;
+        return (this.store[key] as AccessTokenEntity) || null;
     }
 
     setAccessTokenCredential(accessToken: AccessTokenEntity): void {
@@ -97,7 +99,7 @@ export class TestStorageManager extends CacheManager {
 
     // Credentials (accesstokens)
     getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
-        return this.store[key] as RefreshTokenEntity || null;
+        return (this.store[key] as RefreshTokenEntity) || null;
     }
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
         const refreshTokenKey = refreshToken.generateCredentialKey();
@@ -122,7 +124,7 @@ export class TestStorageManager extends CacheManager {
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
         return this.store[key] as AuthorityMetadataEntity;
     }
-    
+
     setAuthorityMetadata(key: string, value: AuthorityMetadataEntity): void {
         this.store[key] = value;
     }
@@ -167,7 +169,10 @@ export class TestStorageManager extends CacheManager {
     async clear(): Promise<void> {
         this.store = {};
     }
-    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+    updateCredentialCacheKey(
+        currentCacheKey: string,
+        credential: ValidCredentialType
+    ): string {
         const updatedCacheKey = credential.generateCredentialKey();
 
         if (currentCacheKey !== updatedCacheKey) {

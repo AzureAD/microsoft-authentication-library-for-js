@@ -17,11 +17,11 @@ import { StringDict } from "../utils/MsalTypes";
  * - extraQueryParameters   - String to string map of custom query parameters added to the /authorize call
  */
 export type CommonEndSessionRequest = {
-    correlationId: string
-    account?: AccountInfo | null,
-    postLogoutRedirectUri?: string | null,
-    idTokenHint?: string,
-    state?: string,
-    logoutHint?: string,
-    extraQueryParameters?: StringDict
+    correlationId: string;
+    account?: AccountInfo | null;
+    postLogoutRedirectUri?: string | null;
+    idTokenHint?: string;
+    state?: string;
+    logoutHint?: string;
+    extraQueryParameters?: StringDict;
 };

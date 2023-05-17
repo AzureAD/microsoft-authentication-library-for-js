@@ -10,22 +10,20 @@ import { PerformanceEvents } from "./PerformanceEvent";
 
 export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     /* eslint-disable-next-line @typescript-eslint/no-empty-function */
-    startMeasurement(): void { }
+    startMeasurement(): void {}
     /* eslint-disable-next-line @typescript-eslint/no-empty-function */
-    endMeasurement(): void { }
+    endMeasurement(): void {}
     flushMeasurement(): number | null {
         return null;
     }
-    
 }
 
-export class StubPerformanceClient extends PerformanceClient implements IPerformanceClient {
+export class StubPerformanceClient
+    extends PerformanceClient
+    implements IPerformanceClient
+{
     generateId(): string {
         return "callback-id";
-    }
-    
-    startPerformanceMeasuremeant(): IPerformanceMeasurement {
-        return new StubPerformanceMeasurement();
     }
 
     startPerformanceMeasurement(): IPerformanceMeasurement {
@@ -37,14 +35,18 @@ export class StubPerformanceClient extends PerformanceClient implements IPerform
         return 0;
     }
 
-    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-    addQueueMeasurement(eventName: PerformanceEvents, correlationId: string, queueTime: number): void {
+    addQueueMeasurement(
+        eventName: PerformanceEvents, // eslint-disable-line @typescript-eslint/no-unused-vars
+        correlationId: string, // eslint-disable-line @typescript-eslint/no-unused-vars
+        queueTime: number // eslint-disable-line @typescript-eslint/no-unused-vars
+    ): void {
         return;
     }
 
-    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): void {
+    setPreQueueTime(
+        eventName: PerformanceEvents, // eslint-disable-line @typescript-eslint/no-unused-vars
+        correlationId?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+    ): void {
         return;
     }
-
 }

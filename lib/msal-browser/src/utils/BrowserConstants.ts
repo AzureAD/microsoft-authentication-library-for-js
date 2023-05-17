@@ -44,20 +44,20 @@ export const BrowserConstants = {
 export const NativeConstants = {
     CHANNEL_ID: "53ee284d-920a-4b59-9d30-a60315b26836",
     PREFERRED_EXTENSION_ID: "ppnbnpeolgkicgegkbkbjmhlideopiji",
-    MATS_TELEMETRY: "MATS"
+    MATS_TELEMETRY: "MATS",
 };
 
 export enum NativeExtensionMethod {
     HandshakeRequest = "Handshake",
     HandshakeResponse = "HandshakeResponse",
     GetToken = "GetToken",
-    Response = "Response"
+    Response = "Response",
 }
 
 export enum BrowserCacheLocation {
     LocalStorage = "localStorage",
     SessionStorage = "sessionStorage",
-    MemoryStorage = "memoryStorage"
+    MemoryStorage = "memoryStorage",
 }
 
 /**
@@ -65,7 +65,7 @@ export enum BrowserCacheLocation {
  */
 export enum HTTP_REQUEST_TYPE {
     GET = "GET",
-    POST = "POST"
+    POST = "POST",
 }
 
 /**
@@ -86,12 +86,12 @@ export enum TemporaryCacheKeys {
     CCS_CREDENTIAL = "ccs.credential",
     CORRELATION_ID = "request.correlationId",
     NATIVE_REQUEST = "request.native",
-    REDIRECT_CONTEXT = "request.redirect.context"
+    REDIRECT_CONTEXT = "request.redirect.context",
 }
 
 export enum StaticCacheKeys {
     ACCOUNT_KEYS = "msal.account.keys",
-    TOKEN_KEYS = "msal.token.keys"
+    TOKEN_KEYS = "msal.token.keys",
 }
 
 /**
@@ -99,11 +99,11 @@ export enum StaticCacheKeys {
  */
 export enum InMemoryCacheKeys {
     WRAPPER_SKU = "wrapper.sku",
-    WRAPPER_VER = "wrapper.version"
+    WRAPPER_VER = "wrapper.version",
 }
 
 /**
- * API Codes for Telemetry purposes. 
+ * API Codes for Telemetry purposes.
  * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
  * 0-99 Silent Flow
  * 800-899 Auth Code Flow
@@ -117,7 +117,7 @@ export enum ApiId {
     acquireTokenByCode = 866,
     acquireTokenSilent_silentFlow = 61,
     logout = 961,
-    logoutPopup = 962
+    logoutPopup = 962,
 }
 
 /*
@@ -127,7 +127,7 @@ export enum InteractionType {
     Redirect = "redirect",
     Popup = "popup",
     Silent = "silent",
-    None = "none"
+    None = "none",
 }
 
 /**
@@ -145,7 +145,7 @@ export enum InteractionStatus {
     Login = "login",
     /**
      * Status set when logout call occuring
-     */ 
+     */
     Logout = "logout",
     /**
      * Status set for acquireToken calls
@@ -162,11 +162,11 @@ export enum InteractionStatus {
     /**
      * Status set when interaction is complete
      */
-    None = "none"
+    None = "none",
 }
 
-export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
-    scopes: OIDC_DEFAULT_SCOPES
+export const DEFAULT_REQUEST: RedirectRequest | PopupRequest = {
+    scopes: OIDC_DEFAULT_SCOPES,
 };
 
 /**
@@ -177,7 +177,7 @@ export const KEY_FORMAT_JWK = "jwk";
 // Supported wrapper SKUs
 export enum WrapperSKU {
     React = "@azure/msal-react",
-    Angular = "@azure/msal-angular"
+    Angular = "@azure/msal-angular",
 }
 
 // DatabaseStorage Constants

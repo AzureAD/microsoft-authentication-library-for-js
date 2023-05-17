@@ -4,11 +4,23 @@
  */
 
 import sinon from "sinon";
-import { ResponseMode, AuthenticationScheme, AzureCloudOptions, AzureCloudInstance, Authority } from "@azure/msal-common";
+import {
+    ResponseMode,
+    AuthenticationScheme,
+    AzureCloudOptions,
+    AzureCloudInstance,
+    Authority,
+} from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient";
 import { EndSessionRequest } from "../../src/request/EndSessionRequest";
-import { TEST_CONFIG, TEST_STATE_VALUES, TEST_URIS, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
+import {
+    TEST_CONFIG,
+    TEST_STATE_VALUES,
+    TEST_URIS,
+    DEFAULT_TENANT_DISCOVERY_RESPONSE,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+} from "../utils/StringConstants";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { FetchClient } from "../../src/network/FetchClient";
@@ -22,8 +34,14 @@ class testStandardInteractionClient extends StandardInteractionClient {
         return super.initializeAuthorizationCodeRequest(request);
     }
 
-    async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions) {
-        return super.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions);
+    async getDiscoveredAuthority(
+        requestAuthority?: string,
+        requestAzureCloudOptions?: AzureCloudOptions
+    ) {
+        return super.getDiscoveredAuthority(
+            requestAuthority,
+            requestAzureCloudOptions
+        );
     }
 
     logout(request: EndSessionRequest): Promise<void> {
@@ -38,19 +56,50 @@ describe("StandardInteractionClient", () => {
     beforeEach(() => {
         pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
-            }
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
         });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
         // @ts-ignore
-        testClient = new testStandardInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, null, pca.performanceClient);
-        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").returns(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon.stub(FetchClient.prototype, "sendGetRequestAsync").callsFake((url) => {
-            if (url.startsWith("https://login.microsoftonline.com/common/discovery/instance?")) {
-                return Promise.resolve(DEFAULT_TENANT_DISCOVERY_RESPONSE);
-            } else {
-                return Promise.reject({headers: {}, status: 404, body: {}});
-            }
-        });
+        testClient = new testStandardInteractionClient(
+            //@ts-ignore
+            pca.config,
+            //@ts-ignore
+            pca.browserStorage,
+            //@ts-ignore
+            pca.browserCrypto,
+            //@ts-ignore
+            pca.logger,
+            //@ts-ignore
+            pca.eventHandler,
+            //@ts-ignore
+            null,
+            //@ts-ignore
+            pca.performanceClient
+        );
+        sinon
+            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
+            .returns(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon
+            .stub(FetchClient.prototype, "sendGetRequestAsync")
+            .callsFake((url) => {
+                if (
+                    url.startsWith(
+                        "https://login.microsoftonline.com/common/discovery/instance?"
+                    )
+                ) {
+                    return Promise.resolve(DEFAULT_TENANT_DISCOVERY_RESPONSE);
+                } else {
+                    return Promise.reject({
+                        headers: {},
+                        status: 404,
+                        body: {},
+                    });
+                }
+            });
     });
 
     afterEach(() => {
@@ -58,7 +107,6 @@ describe("StandardInteractionClient", () => {
     });
 
     it("initializeAuthorizationCodeRequest", async () => {
-
         const request: AuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
@@ -68,21 +116,22 @@ describe("StandardInteractionClient", () => {
             correlationId: TEST_CONFIG.CORRELATION_ID,
             responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
             nonce: "",
-            authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            authenticationScheme:
+                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
         };
 
         sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
             challenge: TEST_CONFIG.TEST_CHALLENGE,
-            verifier: TEST_CONFIG.TEST_VERIFIER
+            verifier: TEST_CONFIG.TEST_VERIFIER,
         });
 
-        const authCodeRequest = await testClient.initializeAuthorizationCodeRequest(request);
+        const authCodeRequest =
+            await testClient.initializeAuthorizationCodeRequest(request);
         expect(request.codeChallenge).toBe(TEST_CONFIG.TEST_CHALLENGE);
         expect(authCodeRequest.codeVerifier).toBe(TEST_CONFIG.TEST_VERIFIER);
     });
 
     it("getDiscoveredAuthority - request authority only", async () => {
-
         const reqAuthority = TEST_CONFIG.validAuthority;
 
         const authority = await testClient.getDiscoveredAuthority(reqAuthority);
@@ -90,30 +139,32 @@ describe("StandardInteractionClient", () => {
     });
 
     it("getDiscoveredAuthority - azureCloudOptions set", async () => {
-
         const reqAuthority = TEST_CONFIG.validAuthority;
         const reqAzureCloudOptions: AzureCloudOptions = {
             azureCloudInstance: AzureCloudInstance.AzureUsGovernment,
-            tenant: TEST_CONFIG.TENANT
+            tenant: TEST_CONFIG.TENANT,
         };
 
-        const authority = await testClient.getDiscoveredAuthority(reqAuthority, reqAzureCloudOptions);
+        const authority = await testClient.getDiscoveredAuthority(
+            reqAuthority,
+            reqAzureCloudOptions
+        );
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.usGovAuthority);
     });
 
     it("getDiscoveredAuthority - Config defaults", async () => {
-
         const authority = await testClient.getDiscoveredAuthority();
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.validAuthority);
     });
 
     it("getDiscoveredAuthority - Only azureCloudInstance provided ", async () => {
-
         const reqAzureCloudOptions: AzureCloudOptions = {
-            azureCloudInstance: AzureCloudInstance.AzureGermany
+            azureCloudInstance: AzureCloudInstance.AzureGermany,
         };
-        const authority = await testClient.getDiscoveredAuthority(undefined, reqAzureCloudOptions);
+        const authority = await testClient.getDiscoveredAuthority(
+            undefined,
+            reqAzureCloudOptions
+        );
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.germanyAuthority);
     });
-
 });

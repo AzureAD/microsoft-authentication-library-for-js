@@ -5,7 +5,6 @@
 
 import { ApiId, Constants } from "../utils/Constants";
 import {
-    DeviceCodeClient,
     AuthenticationResult,
     CommonDeviceCodeRequest,
     AuthError,
@@ -17,7 +16,7 @@ import {
     NativeRequest,
     NativeSignOutRequest,
     AccountInfo,
-    INativeBrokerPlugin
+    INativeBrokerPlugin,
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
@@ -31,13 +30,17 @@ import { LoopbackClient } from "../network/LoopbackClient";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { SignOutRequest } from "../request/SignOutRequest";
 import { ILoopbackClient } from "../network/ILoopbackClient";
+import { DeviceCodeClient } from "./DeviceCodeClient";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
  * are not trusted to safely store application secrets, and therefore can only request tokens in the name of an user.
  * @public
  */
-export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
+export class PublicClientApplication
+    extends ClientApplication
+    implements IPublicClientApplication
+{
     private nativeBrokerPlugin?: INativeBrokerPlugin;
     /**
      * Important attributes in the Configuration object for auth are:
@@ -61,9 +64,13 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         if (this.config.broker.nativeBrokerPlugin) {
             if (this.config.broker.nativeBrokerPlugin.isBrokerAvailable) {
                 this.nativeBrokerPlugin = this.config.broker.nativeBrokerPlugin;
-                this.nativeBrokerPlugin.setLogger(this.config.system.loggerOptions); 
+                this.nativeBrokerPlugin.setLogger(
+                    this.config.system.loggerOptions
+                );
             } else {
-                this.logger.warning("NativeBroker implementation was provided but the broker is unavailable.");
+                this.logger.warning(
+                    "NativeBroker implementation was provided but the broker is unavailable."
+                );
             }
         }
     }
@@ -77,10 +84,21 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * Since the client cannot receive incoming requests, it polls the authorization server repeatedly
      * until the end-user completes input of credentials.
      */
-    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByDeviceCode called", request.correlationId);
-        const validRequest: CommonDeviceCodeRequest = Object.assign(request,  await this.initializeBaseRequest(request));
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId);
+    public async acquireTokenByDeviceCode(
+        request: DeviceCodeRequest
+    ): Promise<AuthenticationResult | null> {
+        this.logger.info(
+            "acquireTokenByDeviceCode called",
+            request.correlationId
+        );
+        const validRequest: CommonDeviceCodeRequest = Object.assign(
+            request,
+            await this.initializeBaseRequest(request)
+        );
+        const serverTelemetryManager = this.initializeServerTelemetryManager(
+            ApiId.acquireTokenByDeviceCode,
+            validRequest.correlationId
+        );
         try {
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
@@ -90,13 +108,16 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 request.azureCloudOptions
             );
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
-            this.logger.verbose("Device code client created", validRequest.correlationId);
+            this.logger.verbose(
+                "Device code client created",
+                validRequest.correlationId
+            );
             return deviceCodeClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
-            serverTelemetryManager.cacheFailedRequest(e);
+            serverTelemetryManager.cacheFailedRequest(e as AuthError);
             throw e;
         }
     }
@@ -104,10 +125,20 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     /**
      * Acquires a token interactively via the browser by requesting an authorization code then exchanging it for a token.
      */
-    async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
-        const correlationId = request.correlationId || this.cryptoProvider.createNewGuid();
+    async acquireTokenInteractive(
+        request: InteractiveRequest
+    ): Promise<AuthenticationResult> {
+        const correlationId =
+            request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenInteractive called", correlationId);
-        const { openBrowser, successTemplate, errorTemplate, windowHandle, loopbackClient: customLoopbackClient, ...remainingProperties } = request;
+        const {
+            openBrowser,
+            successTemplate,
+            errorTemplate,
+            windowHandle,
+            loopbackClient: customLoopbackClient,
+            ...remainingProperties
+        } = request;
 
         if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
@@ -119,18 +150,26 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 correlationId: correlationId,
                 extraParameters: {
                     ...remainingProperties.extraQueryParameters,
-                    ...remainingProperties.tokenQueryParameters
+                    ...remainingProperties.tokenQueryParameters,
                 },
-                accountId: remainingProperties.account?.nativeAccountId
+                accountId: remainingProperties.account?.nativeAccountId,
             };
-            return this.nativeBrokerPlugin.acquireTokenInteractive(brokerRequest, windowHandle);
+            return this.nativeBrokerPlugin.acquireTokenInteractive(
+                brokerRequest,
+                windowHandle
+            );
         }
 
-        const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
+        const { verifier, challenge } =
+            await this.cryptoProvider.generatePkceCodes();
 
-        const loopbackClient: ILoopbackClient = customLoopbackClient || new LoopbackClient();
+        const loopbackClient: ILoopbackClient =
+            customLoopbackClient || new LoopbackClient();
 
-        const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
+        const authCodeListener = loopbackClient.listenForAuthCode(
+            successTemplate,
+            errorTemplate
+        );
         const redirectUri = loopbackClient.getRedirectUri();
 
         const validRequest: AuthorizationUrlRequest = {
@@ -140,7 +179,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             redirectUri: redirectUri,
             responseMode: ResponseMode.QUERY,
             codeChallenge: challenge,
-            codeChallengeMethod: CodeChallengeMethodValues.S256
+            codeChallengeMethod: CodeChallengeMethodValues.S256,
         };
 
         const authCodeUrl = await this.getAuthCodeUrl(validRequest);
@@ -150,7 +189,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         });
 
         if (authCodeResponse.error) {
-            throw new ServerError(authCodeResponse.error, authCodeResponse.error_description, authCodeResponse.suberror);
+            throw new ServerError(
+                authCodeResponse.error,
+                authCodeResponse.error_description,
+                authCodeResponse.suberror
+            );
         } else if (!authCodeResponse.code) {
             throw NodeAuthError.createNoAuthCodeInResponseError();
         }
@@ -160,18 +203,21 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             code: authCodeResponse.code,
             codeVerifier: verifier,
             clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
-            ...validRequest
+            ...validRequest,
         };
         return this.acquireTokenByCode(tokenRequest);
     }
 
     /**
      * Returns a token retrieved either from the cache or by exchanging the refresh token for a fresh access token. If brokering is enabled the token request will be serviced by the broker.
-     * @param request 
-     * @returns 
+     * @param request
+     * @returns
      */
-    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
-        const correlationId = request.correlationId || this.cryptoProvider.createNewGuid();
+    async acquireTokenSilent(
+        request: SilentFlowRequest
+    ): Promise<AuthenticationResult> {
+        const correlationId =
+            request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenSilent called", correlationId);
 
         if (this.nativeBrokerPlugin) {
@@ -184,7 +230,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 correlationId: correlationId,
                 extraParameters: request.tokenQueryParameters,
                 accountId: request.account.nativeAccountId,
-                forceRefresh: request.forceRefresh || false
+                forceRefresh: request.forceRefresh || false,
             };
             return this.nativeBrokerPlugin.acquireTokenSilent(brokerRequest);
         }
@@ -194,15 +240,17 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     /**
      * Removes cache artifacts associated with the given account
-     * @param request 
-     * @returns 
+     * @param request
+     * @returns
      */
     async signOut(request: SignOutRequest): Promise<void> {
         if (this.nativeBrokerPlugin && request.account.nativeAccountId) {
             const signoutRequest: NativeSignOutRequest = {
                 clientId: this.config.auth.clientId,
                 accountId: request.account.nativeAccountId,
-                correlationId: request.correlationId || this.cryptoProvider.createNewGuid()
+                correlationId:
+                    request.correlationId ||
+                    this.cryptoProvider.createNewGuid(),
             };
             await this.nativeBrokerPlugin.signOut(signoutRequest);
         }
@@ -212,12 +260,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     /**
      * Returns all cached accounts for this application. If brokering is enabled this request will be serviced by the broker.
-     * @returns 
+     * @returns
      */
     async getAllAccounts(): Promise<AccountInfo[]> {
         if (this.nativeBrokerPlugin) {
             const correlationId = this.cryptoProvider.createNewGuid();
-            return this.nativeBrokerPlugin.getAllAccounts(this.config.auth.clientId, correlationId);
+            return this.nativeBrokerPlugin.getAllAccounts(
+                this.config.auth.clientId,
+                correlationId
+            );
         }
 
         return this.getTokenCache().getAllAccounts();
