@@ -6,7 +6,8 @@
 const execSync = require("child_process").execSync;
 
 function checkVersion(packageName, version) {
-	return execSync(`npm view ${packageName}@${version} 2? /dev/null`).toString().trim();
+	// It is expected npm view will fail for packages that are about to be published. 2> dev/null/ is used to suppress the error.
+	return execSync(`npm view ${packageName}@${version} 2> /dev/null`).toString().trim();
 }
 
 const path = require("path");
