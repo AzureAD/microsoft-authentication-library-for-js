@@ -20,7 +20,6 @@ parameters: # parameters are shown up in ADO UI in a build queue time
   displayName: 'Run in test mode'
   type: boolean
   default: false
-  default: false
 - name: 'overrideMsalCommon'
   displayName: 'Publish MSAL Common'
   type: boolean
