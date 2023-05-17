@@ -4,7 +4,7 @@
  */
 
 import sinon from "sinon";
-import { AccountInfo, AccountEntity, TokenClaims } from "@azure/msal-common";
+import { AccountInfo, AccountEntity, TokenClaims, ClientConfigurationError } from "@azure/msal-common";
 import { TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "../utils/StringConstants";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { EndSessionRequest, PublicClientApplication } from "../../src";
@@ -116,6 +116,78 @@ describe("BaseInteractionClient", () => {
             expect(pca.getAccountByHomeId(testAccountInfo1.homeAccountId)).toBe(null);
             expect(pca.getAccountByHomeId(testAccountInfo2.homeAccountId)).toMatchObject(testAccountInfo2);
             expect(pca.getActiveAccount()).toBe(null);
+        });
+
+    });
+    describe("validateRequestAuthority()", () => {
+        let testAccountInfo1: AccountInfo;
+
+        beforeEach(() => {
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+
+            testAccountInfo1 = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || ""
+            };
+
+            const testAccount1: AccountEntity = new AccountEntity();
+            testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
+            testAccount1.localAccountId = testAccountInfo1.localAccountId;
+            testAccount1.environment = testAccountInfo1.environment;
+            testAccount1.realm = testAccountInfo1.tenantId;
+            testAccount1.username = testAccountInfo1.username;
+            testAccount1.name = testAccountInfo1.name;
+            testAccount1.authorityType = "MSSTS";
+            testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+            pca.setActiveAccount(testAccountInfo1);
+            // @ts-ignore
+            pca.browserStorage.setAccount(testAccount1);
+        });
+
+        afterEach(() => {
+            window.sessionStorage.clear();
+        });
+
+        it("Throw error when authority in request or MSAL config does not match with environment set for account", async () => {
+            let loginRequest = {
+                authority: "https://login.windows-ppe.net/common",
+                account: pca.getActiveAccount()
+            };
+
+            if(loginRequest.account) {
+                await testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
+                    .catch(error => {
+                        expect(error).toStrictEqual(ClientConfigurationError.createAuthorityMismatchError());
+                });
+            };
+        });
+
+        it("Does not throw error when authority in request or MSAL config matches with environment set for account", async () => {
+            let loginRequest = {
+                authority: "https://login.microsoftonline.com/common",
+                account: pca.getActiveAccount()
+            };
+
+            if(loginRequest.account) {
+                await testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
+                    .then( error => {
+                        expect(error).toBe(undefined);
+                    }
+                );
+            };
         });
     });
 });
