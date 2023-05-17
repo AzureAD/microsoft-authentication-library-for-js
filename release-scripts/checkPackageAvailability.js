@@ -6,7 +6,7 @@
 const execSync = require("child_process").execSync;
 
 function getPublishedVersion(packageName) {
-    return execSync(`npm view ${packageName} version`).toString().trim();
+    return execSync(`npm view ${packageName}@${version}`).toString().trim();
 }
 
 const path = require("path");
