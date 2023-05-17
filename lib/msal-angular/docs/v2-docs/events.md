@@ -196,7 +196,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 ## Optional `MsalBroadcastService` Configurations
 
-The `MsalBroadcastService` can be optionally configured to replay past events when subscribed to. By default, events that are emitted after the `MsalBroadcastService` is subscribed to are available. There may be instances where events prior to subscription are needed. By providing a configuration for the `MsalBroadcastService` and setting the `replayPastEvents` parameter to a number, that number of past events will be available upon subscription. 
+The `MsalBroadcastService` can be optionally configured to replay past events when subscribed to. By default, events that are emitted after the `MsalBroadcastService` is subscribed to are available. There may be instances where events prior to subscription are needed. By providing a configuration for the `MsalBroadcastService` and setting the `eventsToReplay` parameter to a number, that number of past events will be available upon subscription. 
 
 For more information about replaying events, see the RxJS docs on ReplaySubjects [here](https://rxjs.dev/api/index/class/ReplaySubject).
 
@@ -250,7 +250,7 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
         {
           provide: MSAL_BROADCAST_CONFIG, // Add configuration to providers here
           useValue: {
-            replayPastEvents: 2 // Set how many events you want to replay when subscribing
+            eventsToReplay: 2 // Set how many events you want to replay when subscribing
           }
         },
         MsalGuard,
