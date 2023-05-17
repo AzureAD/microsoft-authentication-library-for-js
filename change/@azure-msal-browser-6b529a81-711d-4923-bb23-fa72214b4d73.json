@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Fix inProgress state reset when page restored from bfCache #6037",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
