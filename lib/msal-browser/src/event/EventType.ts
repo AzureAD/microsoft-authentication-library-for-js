@@ -28,4 +28,5 @@ export enum EventType {
     LOGOUT_SUCCESS = "msal:logoutSuccess",
     LOGOUT_FAILURE = "msal:logoutFailure",
     LOGOUT_END = "msal:logoutEnd",
+    RESTORE_FROM_BFCACHE = "msal:restoreFromBFCache"
 }
