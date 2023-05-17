@@ -11,7 +11,7 @@
             "author": "sameera.gajjarapu@microsoft.com",
             "package": "msal",
             "commit": "9fc8ec7d5318f6da827f755b7f7132bbddbf4a28",
-            "comment": "Update polycheck version, rename Blacklist params (#5901)"
+            "comment": "Update polycheck version, rename Blocklist params (#5901)"
           }
         ]
       }

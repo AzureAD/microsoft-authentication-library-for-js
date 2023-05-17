@@ -10,7 +10,7 @@ Mon, 01 May 2023 20:47:42 GMT
 
 ### Patches
 
-- Update polycheck version, rename Blacklist params (#5901) (sameera.gajjarapu@microsoft.com)
+- Update polycheck version, rename Blocklist params (#5901) (sameera.gajjarapu@microsoft.com)
 
 ## 1.4.17
 
@@ -192,7 +192,7 @@ Tue, 25 Aug 2020 00:40:45 GMT
 * Add onRedirectNavigate callback to stop navigatation and get redirect url. (#1691)
 * Allow applications to bypass network request for OpenID configuration. (#1578)
 * Extend acquireTokenSilent Instrumentation. (#1629)
-* Add performance instrumentation to TelemetryManager events. (#1643) 
+* Add performance instrumentation to TelemetryManager events. (#1643)
 
 # 1.3.1
 
