@@ -46,7 +46,7 @@ stages:
           - template: custom-templates/post-publish-template.yml
             parameters:
               name: 'msal_node_extensions'
-              libName: 'node_extensions'
+              libName: 'node-extensions'
               path: 'extensions'
 
           # Get GitHub PAT
