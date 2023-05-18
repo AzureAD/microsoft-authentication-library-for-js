@@ -24,6 +24,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
         throw e;
     });
     await screenshot.takeScreenshot(page, "loginPage");
+    await page.$eval('#i0116', (el: any) => el.value = ''), // clear the text field
     await page.type("#i0116", username);
     await screenshot.takeScreenshot(page, "loginPageUsernameFilled")
     await Promise.all([
