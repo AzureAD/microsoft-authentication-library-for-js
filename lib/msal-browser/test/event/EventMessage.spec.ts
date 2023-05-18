@@ -128,6 +128,17 @@ describe("EventMessage.ts Unit Tests", () => {
             expect(test2).toBe(InteractionStatus.None);
         });
 
+        it("returns status None with event type RESTORE_FROM_BFCACHE", () => {
+            TEST_EVENT_MESSAGE.eventType = EventType.RESTORE_FROM_BFCACHE;
+            TEST_EVENT_MESSAGE.interactionType = InteractionType.Redirect;
+
+            const test1 = EventMessageUtils.getInteractionStatusFromEvent(TEST_EVENT_MESSAGE, InteractionStatus.Login);
+            expect(test1).toBe(InteractionStatus.None);
+
+            const test2 = EventMessageUtils.getInteractionStatusFromEvent(TEST_EVENT_MESSAGE, InteractionStatus.AcquireToken);
+            expect(test2).toBe(InteractionStatus.None);
+        });
+
         it("returns null with event type ACQUIRE_TOKEN_SUCCESS if current interaction is not login or acquireToken", () => {
             TEST_EVENT_MESSAGE.eventType = EventType.ACQUIRE_TOKEN_SUCCESS;
             TEST_EVENT_MESSAGE.interactionType = InteractionType.Redirect;
