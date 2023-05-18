@@ -74,7 +74,4 @@ export const protectedResources = {
  */
 export const loginRequest = {
     scopes: [...protectedResources.toDoListAPI.scopes.read, ...protectedResources.toDoListAPI.scopes.write],
-    extraQueryParameters: {
-        dc: "ESTS-PUB-EUS-AZ1-FD000-TEST1"
-    }
 };
