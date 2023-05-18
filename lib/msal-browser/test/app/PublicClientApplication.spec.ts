@@ -61,8 +61,6 @@ import {
 } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { EventType } from "../../src/event/EventType";
-import { PopupRequest } from "../../src/request/PopupRequest";
-import { RedirectRequest } from "../../src/request/RedirectRequest";
 import { SilentRequest } from "../../src/request/SilentRequest";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
 import { PopupRequest } from "../../src/request/PopupRequest";
