@@ -8,8 +8,6 @@ import {
     AccountInfo,
     Logger,
     PerformanceCallbackFunction,
-    IPerformanceClient,
-    ICrypto,
     CommonSilentFlowRequest,
 } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
@@ -17,17 +15,12 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { EndSessionRequest } from "../request/EndSessionRequest";
-import { ApiId, InteractionType, WrapperSKU } from "../utils/BrowserConstants";
+import { ApiId, WrapperSKU } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { EventHandler } from "../event/EventHandler";
-import { PopupClient } from "../interaction_client/PopupClient";
-import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 
 export interface IController {
     initialize(): Promise<void>;
@@ -104,44 +97,4 @@ export interface IController {
     setNavigationClient(navigationClient: INavigationClient): void;
 
     getConfiguration(): BrowserConfiguration;
-
-    isBrowserEnv(): boolean;
-
-    getBrowserStorage(): BrowserCacheManager;
-
-    getNativeInternalStorage(): BrowserCacheManager;
-
-    getBrowserCrypto(): ICrypto;
-
-    getPerformanceClient(): IPerformanceClient;
-
-    getNativeExtensionProvider(): NativeMessageHandler | undefined;
-
-    setNativeExtensionProvider(
-        provider: NativeMessageHandler | undefined
-    ): void;
-
-    getNativeAccountId(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest
-    ): string;
-
-    getEventHandler(): EventHandler;
-
-    getNavigationClient(): INavigationClient;
-
-    getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>>;
-
-    preflightBrowserEnvironmentCheck(
-        interactionType: InteractionType,
-        setInteractionInProgress?: boolean
-    ): void;
-
-    canUseNative(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest,
-        accountId?: string
-    ): boolean;
-
-    createPopupClient(correlationId?: string): PopupClient;
-
-    createSilentIframeClient(correlationId?: string): SilentIframeClient;
 }
