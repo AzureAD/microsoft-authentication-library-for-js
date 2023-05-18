@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 16 May 2023 22:51:19 GMT",
+      "tag": "@azure/msal-common_v14.0.0-alpha.2",
+      "version": "14.0.0-alpha.2",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "a8887cdd7da77f70fd7f67ba8e91f9db32a38d71",
+            "comment": "Support tenant switching for tenant domain names #6022"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 08 May 2023 20:12:00 GMT",
       "tag": "@azure/msal-common_v14.0.0-alpha.0",
       "version": "14.0.0-alpha.1",
