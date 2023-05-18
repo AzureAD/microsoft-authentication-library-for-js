@@ -849,6 +849,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenRedirect", () => {
+        const oldWindow: Window & typeof globalThis = window;
+        let oldWindowLocation: Location;
+        beforeEach(() => {
+            oldWindowLocation = window.location;
+            // @ts-ignore
+            delete window.location;
+            window.location = {
+                ...oldWindowLocation,
+                assign: () => {},
+            };
+        });
+
+        afterEach(() => {
+            window = oldWindow;
+        });
+
         it("goes directly to the native broker if nativeAccountId is present", async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -1318,6 +1334,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const popupWindow = {
                 ...window,
                 close: () => {},
+                focus: (): void => {
+                    return;
+                }
             };
             // @ts-ignore
             sinon.stub(window, "open").returns(popupWindow);
