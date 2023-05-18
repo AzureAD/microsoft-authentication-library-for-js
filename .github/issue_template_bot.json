@@ -12,11 +12,6 @@
                         "@azure/msal-browser"
                     ]
                 },
-                "msal-browser-v3": {
-                    "searchStrings": [
-                        "@azure/msal-browser@alpha"
-                    ]
-                },
                 "msal-node": {
                     "searchStrings": [
                         "@azure/msal-node"
