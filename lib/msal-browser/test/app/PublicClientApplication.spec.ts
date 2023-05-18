@@ -1325,7 +1325,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            sinon.stub(PopupClient.prototype, "initiateAuthRequest").throws("Request object has been built at this point, no need to continue");
+            jest.spyOn(PopupClient.prototype, "initiateAuthRequest").mockImplementation(() => {
+                throw "Request object has been built at this point, no need to continue";
+            });
 
             await pca.loginPopup(request).catch(() => null);
             await pca.loginPopup(request).catch(() => null);
@@ -1694,7 +1696,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            sinon.stub(PopupClient.prototype, "initiateAuthRequest").throws("Request object has been built at this point, no need to continue");
+            jest.spyOn(PopupClient.prototype, "initiateAuthRequest").mockImplementation(() => {
+                throw "Request object has been built at this point, no need to continue";
+            });
 
             await pca.acquireTokenPopup(request).catch(() => null);
             await pca.acquireTokenPopup(request).catch(() => null);
