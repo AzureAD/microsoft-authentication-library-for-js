@@ -807,8 +807,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            await pca.loginRedirect(request).catch(() => null);
-            await pca.loginRedirect(request).catch(() => null);
+            try {
+                await pca.loginRedirect(request);
+            } catch (e) {
+                try {
+                    await pca.loginRedirect(request);
+                } catch (e) {
+                    // Expected to fail, silently catch
+                }
+            }
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -849,22 +856,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenRedirect", () => {
-        const oldWindow: Window & typeof globalThis = window;
-        let oldWindowLocation: Location;
-        beforeEach(() => {
-            oldWindowLocation = window.location;
-            // @ts-ignore
-            delete window.location;
-            window.location = {
-                ...oldWindowLocation,
-                assign: () => {},
-            };
-        });
-
-        afterEach(() => {
-            window = oldWindow;
-        });
-
         it("goes directly to the native broker if nativeAccountId is present", async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -1118,14 +1109,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const request: RedirectRequest = {
                 scopes: [],
             };
-
-            await pca
-                .acquireTokenRedirect(request)
-                .catch(() => null);
-
-            await pca
-                .acquireTokenRedirect(request)
-                .catch(() => null);
+            try {
+                await pca.acquireTokenRedirect(request);
+            } catch (e) {
+                try {
+                    await pca.acquireTokenRedirect(request);
+                } catch (e) {
+                    // Expected to fail, silently catch
+                }
+            }
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1334,9 +1326,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const popupWindow = {
                 ...window,
                 close: () => {},
-                focus: (): void => {
-                    return;
-                }
             };
             // @ts-ignore
             sinon.stub(window, "open").returns(popupWindow);
@@ -1347,9 +1336,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            await pca.loginPopup(request).catch(() => null);
-
-            await pca.loginPopup(request).catch(() => null);
+            try {
+                await pca.loginPopup(request);
+            } catch (e) {
+                try {
+                    await pca.loginPopup(request);
+                } catch (e) {
+                    // Expected to fail, silently catch
+                }
+            }
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1715,13 +1710,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            await pca
-                .acquireTokenPopup(request)
-                .catch(() => null);
-
-            await pca
-                .acquireTokenPopup(request)
-                .catch(() => null);
+            try {
+                await pca.acquireTokenPopup(request);
+            } catch (e) {
+                try {
+                    await pca.acquireTokenPopup(request);
+                } catch (e) {
+                    // Expected to fail, silently catch
+                }
+            }
 
             expect(request.correlationId).toBe(undefined);
         });
