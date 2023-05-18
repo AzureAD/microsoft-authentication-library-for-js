@@ -144,7 +144,6 @@ function stubProvider(pca: PublicClientApplication) {
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let pca: PublicClientApplication;
-    window.location.assign = () => {}; // Not supported in jsdom
     beforeEach(() => {
         pca = new PublicClientApplication({
             auth: {
