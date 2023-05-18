@@ -61,6 +61,8 @@ import {
 } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { EventType } from "../../src/event/EventType";
+import { PopupRequest } from "../../src/request/PopupRequest";
+import { RedirectRequest } from "../../src/request/RedirectRequest";
 import { SilentRequest } from "../../src/request/SilentRequest";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
@@ -142,6 +144,7 @@ function stubProvider(pca: PublicClientApplication) {
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let pca: PublicClientApplication;
+    window.location.assign = () => {}; // Not supported in jsdom
     beforeEach(() => {
         pca = new PublicClientApplication({
             auth: {
@@ -801,13 +804,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("loginRedirect", () => {
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: RedirectRequest = {
                 scopes: [],
             };
 
-            const result1 = await pca.loginRedirect(request).catch(() => null);
-
-            const result2 = await pca.loginRedirect(request).catch(() => null);
+            await pca.loginRedirect(request).catch(() => null);
+            await pca.loginRedirect(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1098,15 +1100,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: RedirectRequest = {
                 scopes: [],
             };
 
-            const result1 = await pca
+            await pca
                 .acquireTokenRedirect(request)
                 .catch(() => null);
 
-            const result2 = await pca
+            await pca
                 .acquireTokenRedirect(request)
                 .catch(() => null);
 
@@ -1323,13 +1325,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: PopupRequest = {
                 scopes: [],
             };
 
-            const result1 = await pca.loginPopup(request).catch(() => null);
+            await pca.loginPopup(request).catch(() => null);
 
-            const result2 = await pca.loginPopup(request).catch(() => null);
+            await pca.loginPopup(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1691,15 +1693,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: PopupRequest = {
                 scopes: [],
             };
 
-            const result1 = await pca
+            await pca
                 .acquireTokenPopup(request)
                 .catch(() => null);
 
-            const result2 = await pca
+            await pca
                 .acquireTokenPopup(request)
                 .catch(() => null);
 
@@ -2138,9 +2140,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            const result1 = await pca.ssoSilent(request).catch(() => null);
-
-            const result2 = await pca.ssoSilent(request).catch(() => null);
+            await pca.ssoSilent(request).catch(() => null);
+            await pca.ssoSilent(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -2447,11 +2448,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 code: "123",
             };
 
-            const result1 = await pca
+            await pca
                 .acquireTokenByCode(request)
                 .catch(() => null);
 
-            const result2 = await pca
+            await pca
                 .acquireTokenByCode(request)
                 .catch(() => null);
 
@@ -2953,11 +2954,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            const result1 = await pca
+            await pca
                 .acquireTokenSilent(request)
                 .catch(() => null);
 
-            const result2 = await pca
+            await pca
                 .acquireTokenSilent(request)
                 .catch(() => null);
 
@@ -4145,9 +4146,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             const request: EndSessionRequest = {};
 
-            const result1 = await pca.logout(request).catch(() => null);
-
-            const result2 = await pca.logout(request).catch(() => null);
+            await pca.logout(request).catch(() => null);
+            await pca.logout(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -4159,9 +4159,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const request: EndSessionRequest = {};
 
-            const result1 = await pca.logoutRedirect(request).catch(() => null);
-
-            const result2 = await pca.logoutRedirect(request).catch(() => null);
+            await pca.logoutRedirect(request).catch(() => null);
+            await pca.logoutRedirect(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -4190,9 +4189,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const request: EndSessionRequest = {};
 
-            const result1 = await pca.logoutPopup(request).catch(() => null);
-
-            const result2 = await pca.logoutPopup(request).catch(() => null);
+            await pca.logoutPopup(request).catch(() => null);
+            await pca.logoutPopup(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
