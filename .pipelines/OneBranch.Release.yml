@@ -7,10 +7,6 @@
 # Retail Tasks:   https://aka.ms/obpipelines/tasks                              #
 # Support:        https://aka.ms/onebranchsup                                   #
 #################################################################################
-
-trigger:
-  - release
-
 parameters: # parameters are shown up in ADO UI in a build queue time
 - name: 'debug'
   displayName: 'Enable debug output'
@@ -19,7 +15,6 @@ parameters: # parameters are shown up in ADO UI in a build queue time
 - name: 'testMode'
   displayName: 'Run in test mode'
   type: boolean
-  default: false
   default: false
 - name: 'overrideMsalCommon'
   displayName: 'Publish MSAL Common'

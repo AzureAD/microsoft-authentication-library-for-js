@@ -3,27 +3,21 @@
  * Licensed under the MIT License.
  */
 
-const execSync = require("child_process").execSync;
-
-function getPublishedVersion(packageName) {
-    return execSync(`npm view ${packageName} version`).toString().trim();
-}
-
+const checkPackageAndVersion = require("./checkPackageAndVersion.js");
 const path = require("path");
 const libPath = path.join(__dirname, '..', process.argv[2]);
 
-const packageName = require(`${libPath}/package.json`).name;
-const currentVersion = require(`${libPath}/package.json`).version;
+const { name, version } = require(`${libPath}/package.json`);
 
 let iteration = 0;
 const intervalId = setInterval(() => {
     if (iteration > 12) {
         clearInterval(intervalId);
-        throw new Error(`Timed out waiting for ${packageName} version ${currentVersion}`);
+        throw new Error(`Timed out waiting for ${name} version ${version}`);
     }
-    const publishedVersion = getPublishedVersion(packageName);
-    if (currentVersion === publishedVersion) {
-        console.log(`${packageName} successfully published version ${currentVersion}`);
+    const versionIsPublished = checkPackageAndVersion(name, version);
+    if (versionIsPublished) {
+        console.log(`${name} successfully published version ${version}`);
         clearInterval(intervalId);
         process.exit(0);
     }
