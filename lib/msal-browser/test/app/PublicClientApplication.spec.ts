@@ -64,6 +64,8 @@ import { EventType } from "../../src/event/EventType";
 import { PopupRequest } from "../../src/request/PopupRequest";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
 import { SilentRequest } from "../../src/request/SilentRequest";
+import { RedirectRequest } from "../../src/request/RedirectRequest";
+import { PopupRequest } from "../../src/request/PopupRequest";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { EventMessage } from "../../src/event/EventMessage";
@@ -805,6 +807,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("doesnt mutate request correlation id", async () => {
             const request: RedirectRequest = {
                 scopes: [],
+                onRedirectNavigate: () => false // Skip the navigation
             };
 
             await pca.loginRedirect(request).catch(() => null);
@@ -1101,15 +1104,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("doesnt mutate request correlation id", async () => {
             const request: RedirectRequest = {
                 scopes: [],
+                onRedirectNavigate: () => false // Skip the navigation
             };
 
-            await pca
-                .acquireTokenRedirect(request)
-                .catch(() => null);
-
-            await pca
-                .acquireTokenRedirect(request)
-                .catch(() => null);
+            await pca.acquireTokenRedirect(request).catch(() => null);
+            await pca.acquireTokenRedirect(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1328,8 +1327,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            await pca.loginPopup(request).catch(() => null);
+            jest.spyOn(PopupClient.prototype, "initiateAuthRequest").mockImplementation(() => {
+                throw "Request object has been built at this point, no need to continue";
+            });
 
+            await pca.loginPopup(request).catch(() => null);
             await pca.loginPopup(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
@@ -1696,13 +1698,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            await pca
-                .acquireTokenPopup(request)
-                .catch(() => null);
+            jest.spyOn(PopupClient.prototype, "initiateAuthRequest").mockImplementation(() => {
+                throw "Request object has been built at this point, no need to continue";
+            });
 
-            await pca
-                .acquireTokenPopup(request)
-                .catch(() => null);
+            await pca.acquireTokenPopup(request).catch(() => null);
+            await pca.acquireTokenPopup(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
