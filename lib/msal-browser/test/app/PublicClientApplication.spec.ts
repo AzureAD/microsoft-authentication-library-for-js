@@ -807,15 +807,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            try {
-                await pca.loginRedirect(request);
-            } catch (e) {
-                try {
-                    await pca.loginRedirect(request);
-                } catch (e) {
-                    // Expected to fail, silently catch
-                }
-            }
+            await pca.loginRedirect(request).catch(() => null);
+            await pca.loginRedirect(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1109,15 +1102,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const request: RedirectRequest = {
                 scopes: [],
             };
-            try {
-                await pca.acquireTokenRedirect(request);
-            } catch (e) {
-                try {
-                    await pca.acquireTokenRedirect(request);
-                } catch (e) {
-                    // Expected to fail, silently catch
-                }
-            }
+
+            await pca
+                .acquireTokenRedirect(request)
+                .catch(() => null);
+
+            await pca
+                .acquireTokenRedirect(request)
+                .catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1336,15 +1328,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            try {
-                await pca.loginPopup(request);
-            } catch (e) {
-                try {
-                    await pca.loginPopup(request);
-                } catch (e) {
-                    // Expected to fail, silently catch
-                }
-            }
+            await pca.loginPopup(request).catch(() => null);
+
+            await pca.loginPopup(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1710,15 +1696,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            try {
-                await pca.acquireTokenPopup(request);
-            } catch (e) {
-                try {
-                    await pca.acquireTokenPopup(request);
-                } catch (e) {
-                    // Expected to fail, silently catch
-                }
-            }
+            await pca
+                .acquireTokenPopup(request)
+                .catch(() => null);
+
+            await pca
+                .acquireTokenPopup(request)
+                .catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
