@@ -1093,6 +1093,8 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
+            const eventSpy = sinon.stub(EventHandler.prototype, "emitEvent");
+
             const testLogger = new Logger(loggerOptions);
             const browserCrypto = new CryptoOps(new Logger({}));
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
@@ -1103,6 +1105,7 @@ describe("RedirectClient", () => {
                 expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(RANDOM_TEST_GUID);
                 expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
                 bfCacheCallback({ persisted: true });
+                expect(eventSpy.calledWith(EventType.RESTORE_FROM_BFCACHE, InteractionType.Redirect)).toBe(true);
                 expect(browserStorage.isInteractionInProgress()).toBe(false);
                 expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(null);
                 expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(null);
