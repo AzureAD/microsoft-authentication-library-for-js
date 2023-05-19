@@ -21,6 +21,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
+import { EventHandler } from "../event/EventHandler";
 
 export interface IController {
     initialize(): Promise<void>;
@@ -97,4 +98,6 @@ export interface IController {
     setNavigationClient(navigationClient: INavigationClient): void;
 
     getConfiguration(): BrowserConfiguration;
+
+    getEventHandler(): EventHandler;
 }
