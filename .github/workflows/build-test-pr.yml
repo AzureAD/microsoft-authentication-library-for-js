@@ -5,12 +5,7 @@ name: Run CI
 # Runs CI on Pull Requests for libraries affected by PR
 
 on:
-  pull_request:
-    paths:
-      - 'lib/**/*'
-      - 'extensions/msal-node-extensions/**/*'
-      - '!**.md'
-      - '.github/workflows/build-test-pr.yml'
+  - pull_request
 
 concurrency:
   group: ci-${{github.ref}}
@@ -71,11 +66,15 @@ jobs:
     strategy:
         fail-fast: false
         matrix:
-          # Parse JSON array containing names of all filters matching any of changed files
-          # e.g. ['package1', 'package2'] if both package folders contains changes
-          library: ${{ fromJSON(needs.pre-check.outputs.packages) }}
+          library:
+            - msal-common
+            - msal-browser
+            - msal-node
+            - msal-angular
+            - msal-react
 
     name: ${{ matrix.library }}
+    if: ${{ contains(needs.pre-check.outputs.packages, matrix.library) }}
 
     steps:
     - uses: actions/checkout@v3
