@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Remove `null` from `acquireTokenSilent` return type #5912",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

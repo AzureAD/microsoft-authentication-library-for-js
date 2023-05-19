@@ -9,6 +9,7 @@ import { CrossPlatformLockOptions } from "./CrossPlatformLockOptions";
 import { Constants } from "../utils/Constants";
 import { PersistenceError } from "../error/PersistenceError";
 import { Logger } from "@azure/msal-common";
+import { isNodeError } from "../utils/TypeGuards";
 
 /**
  * Cross-process lock that works on all platforms.
@@ -16,7 +17,7 @@ import { Logger } from "@azure/msal-common";
 export class CrossPlatformLock {
 
     private readonly lockFilePath: string;
-    private lockFileHandle: fs.FileHandle;
+    private lockFileHandle: fs.FileHandle | undefined;
     private readonly retryNumber: number;
     private readonly retryDelay: number;
 
@@ -44,12 +45,16 @@ export class CrossPlatformLock {
                 await this.lockFileHandle.write(pid.toString());
                 return;
             } catch (err) {
-                if (err.code === Constants.EEXIST_ERROR || err.code === Constants.EPERM_ERROR) {
-                    this.logger.info(err);
-                    await this.sleep(this.retryDelay);
+                if (isNodeError(err)) {
+                    if (err.code === Constants.EEXIST_ERROR || err.code === Constants.EPERM_ERROR) {
+                        this.logger.info(err.message);
+                        await this.sleep(this.retryDelay);
+                    } else {
+                        this.logger.error(`${pid} was not able to acquire lock. Ran into error: ${err.message}`);
+                        throw PersistenceError.createCrossPlatformLockError(err.message);
+                    }
                 } else {
-                    this.logger.error(`${pid} was not able to acquire lock. Ran into error: ${err.message}`);
-                    throw PersistenceError.createCrossPlatformLockError(err.message);
+                    throw err;
                 }
             }
         }
@@ -72,16 +77,20 @@ export class CrossPlatformLock {
                 this.logger.warning("lockfile handle does not exist, so lockfile could not be deleted");
             }
         } catch (err) {
-            if (err.code === Constants.ENOENT_ERROR) {
-                this.logger.info("Tried to unlock but lockfile does not exist");
+            if (isNodeError(err)) {
+                if (err.code === Constants.ENOENT_ERROR) {
+                    this.logger.info("Tried to unlock but lockfile does not exist");
+                } else {
+                    this.logger.error(`${pid} was not able to release lock. Ran into error: ${err.message}`);
+                    throw PersistenceError.createCrossPlatformLockError(err.message);
+                }
             } else {
-                this.logger.error(`${pid} was not able to release lock. Ran into error: ${err.message}`);
-                throw PersistenceError.createCrossPlatformLockError(err.message);
+                throw err;
             }
         }
     }
 
-    private sleep(ms): Promise<void> {
+    private sleep(ms: number): Promise<void> {
         return new Promise((resolve) => {
             setTimeout(resolve, ms);
         });

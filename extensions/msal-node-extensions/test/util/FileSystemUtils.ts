@@ -15,6 +15,7 @@ export class FileSystemUtils {
             await fs.access(filePath);
             return true;
         } catch (error) {
+            // @ts-ignore
             if (error.code == Constants.ENOENT_ERROR) {
                 return false;
             } else {
@@ -30,6 +31,7 @@ export class FileSystemUtils {
             await fileHandle.close();
         } catch (error) {
             // if error is due to lockfile not being present, that's fine
+            // @ts-ignore
             if (error.code !== Constants.ENOENT_ERROR) {
                 throw error;
             }

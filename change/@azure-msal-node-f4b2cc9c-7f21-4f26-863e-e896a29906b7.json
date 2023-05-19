@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update MSAL Node compatible versions to include Node v20 and drop v16 #5905",
-  "packageName": "@azure/msal-node",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

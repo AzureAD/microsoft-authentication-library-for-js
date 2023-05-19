@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Fix telemetry typos #5868",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
