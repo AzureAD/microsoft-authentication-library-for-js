@@ -65,19 +65,10 @@ jobs:
       run: |
         npm run install:local
         npm install
-        npm ls rxjs
 
     - name: Build ${{ matrix.sample }}
       working-directory: samples/msal-angular-v3-samples/${{ matrix.sample }}
       run: npm run build
-
-    - name: Upload npm logs
-      uses: actions/upload-artifact@v3
-      if: failure()
-      with:
-        name: npm_logs_${{ matrix.library }}
-        path: ~/.npm/_logs/**/*
-        retention-days: 2
 
     - name: E2E Tests
       working-directory: samples/msal-angular-v3-samples/${{ matrix.sample }}
