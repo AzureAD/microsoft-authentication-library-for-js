@@ -157,7 +157,7 @@ describe("BaseInteractionClient", () => {
 
             await testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
                 .then(() => {
-                    throw "String unexpected";
+                    throw "This is unexpected. This call should have failed.";
                 })
                 .catch(error => {
                     expect(error).toStrictEqual(ClientConfigurationError.createAuthorityMismatchError());
