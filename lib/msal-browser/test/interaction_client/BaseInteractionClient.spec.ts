@@ -142,19 +142,7 @@ describe("BaseInteractionClient", () => {
                 username: testIdTokenClaims.preferred_username || ""
             };
 
-            const testAccount1: AccountEntity = new AccountEntity();
-            testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
-            testAccount1.localAccountId = testAccountInfo1.localAccountId;
-            testAccount1.environment = testAccountInfo1.environment;
-            testAccount1.realm = testAccountInfo1.tenantId;
-            testAccount1.username = testAccountInfo1.username;
-            testAccount1.name = testAccountInfo1.name;
-            testAccount1.authorityType = "MSSTS";
-            testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-
             pca.setActiveAccount(testAccountInfo1);
-            // @ts-ignore
-            pca.browserStorage.setAccount(testAccount1);
         });
 
         afterEach(() => {
@@ -164,30 +152,30 @@ describe("BaseInteractionClient", () => {
         it("Throw error when authority in request or MSAL config does not match with environment set for account", async () => {
             let loginRequest = {
                 authority: "https://login.windows-ppe.net/common",
-                account: pca.getActiveAccount()
+                account: testAccountInfo1
             };
 
-            if(loginRequest.account) {
-                await testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
-                    .catch(error => {
-                        expect(error).toStrictEqual(ClientConfigurationError.createAuthorityMismatchError());
-                });
-            };
+            await testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
+                .then(() => {
+                    throw "String unexpected";
+                })
+                .catch(error => {
+                    expect(error).toStrictEqual(ClientConfigurationError.createAuthorityMismatchError());
+            });
         });
 
-        it("Does not throw error when authority in request or MSAL config matches with environment set for account", async () => {
+        it("Does not throw error when authority in request or MSAL config matches with environment set for account", (done) => {
             let loginRequest = {
                 authority: "https://login.microsoftonline.com/common",
-                account: pca.getActiveAccount()
+                account: testAccountInfo1
             };
 
-            if(loginRequest.account) {
-                await testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
-                    .then( error => {
-                        expect(error).toBe(undefined);
-                    }
-                );
-            };
+            testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
+                .then(() => { 
+                    done();
+                }).catch(error => {
+                    done(error);
+            });
         });
     });
 });
