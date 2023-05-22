@@ -38,17 +38,6 @@ export interface IController {
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult>;
 
-    acquireTokenNative(
-        request: PopupRequest | SilentRequest | SsoSilentRequest,
-        apiId: ApiId,
-        accountId?: string
-    ): Promise<AuthenticationResult>;
-
-    acquireTokenByRefreshToken(
-        commonRequest: CommonSilentFlowRequest,
-        silentRequest: SilentRequest
-    ): Promise<AuthenticationResult>;
-
     addEventCallback(callback: Function): string | null;
 
     removeEventCallback(callbackId: string): void;
