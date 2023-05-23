@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Switch to const enums to reduce the bundle size #6056",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
