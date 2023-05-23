@@ -22,7 +22,6 @@ jobs:
     outputs:
       # Expose matched filters as job 'packages' output variable
       packages: ${{ steps.lib-filter.outputs.changes }}
-      extensions: ${{ steps.extensions-filter.outputs.node-extensions }}
 
     steps:
       - uses: dorny/paths-filter@v2
@@ -48,14 +47,8 @@ jobs:
             msal-react:
               - *browser
               - 'lib/msal-react/**/**.!(md)'
-
-      - uses: dorny/paths-filter@v2
-        id: extensions-filter
-        with:
-          filters: |
             node-extensions:
-              - 'lib/msal-common/**/**.!(md)'
-              - '.github/workflows/build-test-pr.yml'
+              - *common
               - 'extensions/msal-node-extensions/**/**.!(md)'
 
   ci-msal-common:
@@ -63,7 +56,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      contains(fromJSON(needs.pre-publish.outputs.packages), 'msal-common')
+      needs.pre-check.outputs.packages['msal-common'] == 'true'
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'lib'
@@ -74,7 +67,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      contains(fromJSON(needs.pre-publish.outputs.packages), 'msal-browser')
+      needs.pre-check.outputs.packages['msal-browser'] == 'true'
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'lib'
@@ -85,7 +78,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      contains(fromJSON(needs.pre-publish.outputs.packages), 'msal-node')
+      needs.pre-check.outputs.packages['msal-node'] == 'true'
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'lib'
@@ -96,7 +89,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      contains(fromJSON(needs.pre-publish.outputs.packages), 'msal-angular')
+      needs.pre-check.outputs.packages['msal-angular'] == 'true'
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'lib'
@@ -107,7 +100,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      contains(fromJSON(needs.pre-publish.outputs.packages), 'msal-react')
+      needs.pre-check.outputs.packages['msal-react'] == 'true'
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'lib'
@@ -118,7 +111,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      needs.pre-publish.outputs.extensions == 'true'
+      needs.pre-check.outputs.packages['msal-node-extensions'] == 'true'
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'extensions'
