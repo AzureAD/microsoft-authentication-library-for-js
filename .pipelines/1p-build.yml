@@ -1,7 +1,7 @@
 trigger: none # Disable push triggers
 
 pr:
-- dev
+- msal-lts
 
 jobs:
   - job: Build_1P
@@ -14,7 +14,7 @@ jobs:
         inputs:
           versionSpec: '16.x'
           
-      - checkout: git://IDDP/msal-javascript-1p
+      - checkout: git://IDDP/msal-javascript-1p@msal-lts
       - script: |
           npm run submodule:init
         displayName: Initialize submodule
