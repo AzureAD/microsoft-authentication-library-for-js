@@ -14,15 +14,16 @@ export type OSError = {
     retryable?: boolean;
 };
 
-export const enum NativeStatusCode {
-    USER_INTERACTION_REQUIRED = "USER_INTERACTION_REQUIRED",
-    USER_CANCEL = "USER_CANCEL",
-    NO_NETWORK = "NO_NETWORK",
-    TRANSIENT_ERROR = "TRANSIENT_ERROR",
-    PERSISTENT_ERROR = "PERSISTENT_ERROR",
-    DISABLED = "DISABLED",
-    ACCOUNT_UNAVAILABLE = "ACCOUNT_UNAVAILABLE",
-}
+export const NativeStatusCode = {
+    USER_INTERACTION_REQUIRED: "USER_INTERACTION_REQUIRED",
+    USER_CANCEL: "USER_CANCEL",
+    NO_NETWORK: "NO_NETWORK",
+    TRANSIENT_ERROR: "TRANSIENT_ERROR",
+    PERSISTENT_ERROR: "PERSISTENT_ERROR",
+    DISABLED: "DISABLED",
+    ACCOUNT_UNAVAILABLE: "ACCOUNT_UNAVAILABLE",
+} as const;
+export type NativeStatusCode = typeof NativeStatusCode[keyof typeof NativeStatusCode];
 
 export const NativeAuthErrorMessage = {
     extensionError: {

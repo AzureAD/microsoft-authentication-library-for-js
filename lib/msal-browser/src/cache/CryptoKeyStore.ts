@@ -7,10 +7,12 @@ import { Logger } from "@azure/msal-common";
 import { CachedKeyPair } from "../crypto/CryptoOps";
 import { AsyncMemoryStorage } from "./AsyncMemoryStorage";
 
-export const enum CryptoKeyStoreNames {
-    asymmetricKeys = "asymmetricKeys",
-    symmetricKeys = "symmetricKeys",
-}
+export const CryptoKeyStoreNames = {
+    asymmetricKeys: "asymmetricKeys",
+    symmetricKeys: "symmetricKeys",
+} as const;
+export type CryptoKeyStoreNames = typeof CryptoKeyStoreNames[keyof typeof CryptoKeyStoreNames];
+
 /**
  * MSAL CryptoKeyStore DB Version 2
  */

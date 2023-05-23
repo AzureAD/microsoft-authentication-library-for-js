@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Switch to const enums to reduce the bundle size #6056",
+  "comment": "Switch from enums to object literals to reduce the bundle size #6056",
   "packageName": "@azure/msal-common",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "prerelease"

@@ -27,10 +27,11 @@ export type ReqCnfData = {
     reqCnfHash: string;
 };
 
-const enum KeyLocation {
-    SW = "sw",
-    UHW = "uhw",
-}
+const KeyLocation = {
+    SW: "sw",
+    UHW: "uhw",
+} as const;
+export type KeyLocation = typeof KeyLocation[keyof typeof KeyLocation];
 
 export class PopTokenGenerator {
     private cryptoUtils: ICrypto;
