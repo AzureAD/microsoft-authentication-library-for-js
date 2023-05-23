@@ -11,10 +11,17 @@ on:
       lib-name:
         required: true
         type: string
+      runs-on:
+        default: ubuntu-latest
+        type: string
+        
+concurrency:
+  group: ci-${{github.ref}}
+  cancel-in-progress: true
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
+  build-test:
+    runs-on: ${{ inputs.runs-on }}
 
     steps:
     - uses: actions/checkout@v3
