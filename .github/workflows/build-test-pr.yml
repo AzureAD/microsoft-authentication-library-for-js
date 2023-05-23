@@ -116,3 +116,4 @@ jobs:
     with:
       path: 'extensions'
       lib-name: 'msal-node-extensions'
+      runs-on: 'windows-latest'
