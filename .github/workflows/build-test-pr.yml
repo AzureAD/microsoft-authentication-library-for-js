@@ -63,7 +63,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      contains(toJSON(needs.pre-publish.outputs.packages), 'common')
+      contains(toJSON(needs.pre-publish.outputs.packages), 'msal-common')
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'lib'
@@ -74,7 +74,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      contains(toJSON(needs.pre-publish.outputs.packages), 'browser')
+      contains(toJSON(needs.pre-publish.outputs.packages), 'msal-browser')
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'lib'
@@ -85,7 +85,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      contains(toJSON(needs.pre-publish.outputs.packages), 'node')
+      contains(toJSON(needs.pre-publish.outputs.packages), 'msal-node')
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'lib'
@@ -96,7 +96,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      contains(toJSON(needs.pre-publish.outputs.packages), 'angular')
+      contains(toJSON(needs.pre-publish.outputs.packages), 'msal-angular')
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'lib'
@@ -107,7 +107,7 @@ jobs:
     needs: pre-check
     if: |
       !failure() && 
-      contains(toJSON(needs.pre-publish.outputs.packages), 'react')
+      contains(toJSON(needs.pre-publish.outputs.packages), 'msal-react')
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
     with:
       path: 'lib'
