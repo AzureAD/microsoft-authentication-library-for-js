@@ -101,7 +101,7 @@ export const enum PersistentCacheKeys {
 /**
  * String constants related to AAD Authority
  */
-export const enum AADAuthorityConstants {
+export enum AADAuthorityConstants {
     COMMON = "common",
     ORGANIZATIONS = "organizations",
     CONSUMERS = "consumers",
