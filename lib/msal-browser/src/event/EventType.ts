@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-export const enum EventType {
+export enum EventType {
     INITIALIZE_START = "msal:initializeStart",
     INITIALIZE_END = "msal:initializeEnd",
     ACCOUNT_ADDED = "msal:accountAdded",

@@ -6,7 +6,7 @@
 /**
  * Protocol modes supported by MSAL.
  */
-export const enum ProtocolMode {
+export enum ProtocolMode {
     AAD = "AAD",
     OIDC = "OIDC",
 }
