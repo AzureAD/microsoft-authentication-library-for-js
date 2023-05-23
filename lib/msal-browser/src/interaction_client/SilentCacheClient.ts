@@ -69,7 +69,7 @@ export class SilentCacheClient extends StandardInteractionClient {
         this.performanceClient.setPreQueueTime(PerformanceEvents.InitializeBaseRequest, this.correlationId);
         return {
             ...request,
-            ...await this.initializeBaseRequest(request),
+            ...await this.initializeBaseRequest(request, account),
             account: account,
             forceRefresh: request.forceRefresh || false
         };

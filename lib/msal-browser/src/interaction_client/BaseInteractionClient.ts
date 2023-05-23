@@ -77,10 +77,14 @@ export abstract class BaseInteractionClient {
      * Initializer function for all request APIs
      * @param request
      */
-    protected async initializeBaseRequest(request: Partial<BaseAuthRequest>): Promise<BaseAuthRequest> {
+    protected async initializeBaseRequest(request: Partial<BaseAuthRequest>, account?: AccountInfo): Promise<BaseAuthRequest> {
         this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeBaseRequest, request.correlationId);
         this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
+
+        if (account) {
+            await this.validateRequestAuthority(authority, account);
+        }
 
         const scopes = [...((request && request.scopes) || [])];
 
@@ -126,6 +130,18 @@ export abstract class BaseInteractionClient {
         this.logger.verbose("getRedirectUri called");
         const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
         return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
+    }
+
+    /*
+     * If authority provided in the request does not match environment/authority specified 
+     * in the account or MSAL config, we throw an error.
+     */
+    async validateRequestAuthority(authority: string, account: AccountInfo): Promise<void> {
+        const discoveredAuthority = await this.getDiscoveredAuthority(authority);
+        
+        if(!discoveredAuthority.isAlias(account.environment)) {
+            throw ClientConfigurationError.createAuthorityMismatchError();
+        }
     }
 
     /**

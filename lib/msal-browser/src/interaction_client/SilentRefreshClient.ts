@@ -19,7 +19,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
         this.performanceClient.setPreQueueTime(PerformanceEvents.InitializeBaseRequest, request.correlationId);
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
-            ...await this.initializeBaseRequest(request)
+            ...await this.initializeBaseRequest(request, request.account)
         };
         const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentRefreshClientAcquireToken, silentRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
