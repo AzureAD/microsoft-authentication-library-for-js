@@ -130,13 +130,12 @@ export type ApiId = typeof ApiId[keyof typeof ApiId];
 /*
  * Interaction type of the API - used for state and telemetry
  */
-export const InteractionType = {
-    Redirect: "redirect",
-    Popup: "popup",
-    Silent: "silent",
-    None: "none",
-} as const;
-export type InteractionType = typeof InteractionType[keyof typeof InteractionType];
+export enum InteractionType {
+    Redirect = "redirect",
+    Popup = "popup",
+    Silent = "silent",
+    None = "none",
+}
 
 /**
  * Types of interaction currently in progress.
