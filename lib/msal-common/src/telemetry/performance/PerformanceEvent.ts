@@ -9,7 +9,7 @@
  * @export
  * @enum {number}
  */
-export enum PerformanceEvents {
+export const enum PerformanceEvents {
     /**
      * acquireTokenByCode API (msal-browser and msal-node).
      * Used to acquire tokens by trading an authorization code against the token endpoint.
@@ -248,7 +248,7 @@ export enum PerformanceEvents {
  * @export
  * @enum {number}
  */
-export enum PerformanceEventStatus {
+export const enum PerformanceEventStatus {
     NotStarted,
     InProgress,
     Completed,

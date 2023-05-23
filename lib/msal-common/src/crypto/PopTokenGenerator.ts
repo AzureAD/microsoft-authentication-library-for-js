@@ -27,7 +27,7 @@ export type ReqCnfData = {
     reqCnfHash: string;
 };
 
-enum KeyLocation {
+const enum KeyLocation {
     SW = "sw",
     UHW = "uhw",
 }

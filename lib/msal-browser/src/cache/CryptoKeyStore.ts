@@ -7,7 +7,7 @@ import { Logger } from "@azure/msal-common";
 import { CachedKeyPair } from "../crypto/CryptoOps";
 import { AsyncMemoryStorage } from "./AsyncMemoryStorage";
 
-export enum CryptoKeyStoreNames {
+export const enum CryptoKeyStoreNames {
     asymmetricKeys = "asymmetricKeys",
     symmetricKeys = "symmetricKeys",
 }

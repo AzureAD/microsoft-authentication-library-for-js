@@ -15,7 +15,7 @@ export type AuthorityOptions = {
     azureRegionConfiguration?: AzureRegionConfiguration;
 };
 
-export enum AzureCloudInstance {
+export const enum AzureCloudInstance {
     // AzureCloudInstance is not specified.
     None,
 

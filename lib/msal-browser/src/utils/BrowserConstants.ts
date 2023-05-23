@@ -47,14 +47,14 @@ export const NativeConstants = {
     MATS_TELEMETRY: "MATS",
 };
 
-export enum NativeExtensionMethod {
+export const enum NativeExtensionMethod {
     HandshakeRequest = "Handshake",
     HandshakeResponse = "HandshakeResponse",
     GetToken = "GetToken",
     Response = "Response",
 }
 
-export enum BrowserCacheLocation {
+export const enum BrowserCacheLocation {
     LocalStorage = "localStorage",
     SessionStorage = "sessionStorage",
     MemoryStorage = "memoryStorage",
@@ -71,7 +71,7 @@ export enum HTTP_REQUEST_TYPE {
 /**
  * Temporary cache keys for MSAL, deleted after any request.
  */
-export enum TemporaryCacheKeys {
+export const enum TemporaryCacheKeys {
     AUTHORITY = "authority",
     ACQUIRE_TOKEN_ACCOUNT = "acquireToken.account",
     SESSION_STATE = "session.state",
@@ -89,7 +89,7 @@ export enum TemporaryCacheKeys {
     REDIRECT_CONTEXT = "request.redirect.context",
 }
 
-export enum StaticCacheKeys {
+export const enum StaticCacheKeys {
     ACCOUNT_KEYS = "msal.account.keys",
     TOKEN_KEYS = "msal.token.keys",
 }
@@ -97,7 +97,7 @@ export enum StaticCacheKeys {
 /**
  * Cache keys stored in-memory
  */
-export enum InMemoryCacheKeys {
+export const enum InMemoryCacheKeys {
     WRAPPER_SKU = "wrapper.sku",
     WRAPPER_VER = "wrapper.version",
 }
@@ -108,7 +108,7 @@ export enum InMemoryCacheKeys {
  * 0-99 Silent Flow
  * 800-899 Auth Code Flow
  */
-export enum ApiId {
+export const enum ApiId {
     acquireTokenRedirect = 861,
     acquireTokenPopup = 862,
     ssoSilent = 863,
@@ -123,7 +123,7 @@ export enum ApiId {
 /*
  * Interaction type of the API - used for state and telemetry
  */
-export enum InteractionType {
+export const enum InteractionType {
     Redirect = "redirect",
     Popup = "popup",
     Silent = "silent",
@@ -134,7 +134,7 @@ export enum InteractionType {
  * Types of interaction currently in progress.
  * Used in events in wrapper libraries to invoke functions when certain interaction is in progress or all interactions are complete.
  */
-export enum InteractionStatus {
+export const enum InteractionStatus {
     /**
      * Initial status before interaction occurs
      */
@@ -175,7 +175,7 @@ export const DEFAULT_REQUEST: RedirectRequest | PopupRequest = {
 export const KEY_FORMAT_JWK = "jwk";
 
 // Supported wrapper SKUs
-export enum WrapperSKU {
+export const enum WrapperSKU {
     React = "@azure/msal-react",
     Angular = "@azure/msal-angular",
 }
@@ -185,7 +185,7 @@ export const DB_NAME = "msal.db";
 export const DB_VERSION = 1;
 export const DB_TABLE_NAME = `${DB_NAME}.keys`;
 
-export enum CacheLookupPolicy {
+export const enum CacheLookupPolicy {
     /*
      * acquireTokenSilent will attempt to retrieve an access token from the cache. If the access token is expired
      * or cannot be found the refresh token will be used to acquire a new one. Finally, if the refresh token

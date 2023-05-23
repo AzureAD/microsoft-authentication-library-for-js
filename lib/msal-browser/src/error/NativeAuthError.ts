@@ -14,7 +14,7 @@ export type OSError = {
     retryable?: boolean;
 };
 
-export enum NativeStatusCode {
+export const enum NativeStatusCode {
     USER_INTERACTION_REQUIRED = "USER_INTERACTION_REQUIRED",
     USER_CANCEL = "USER_CANCEL",
     NO_NETWORK = "NO_NETWORK",

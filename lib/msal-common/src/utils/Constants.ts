@@ -75,7 +75,7 @@ export const OIDC_SCOPES = [...OIDC_DEFAULT_SCOPES, Constants.EMAIL_SCOPE];
 /**
  * Request header names
  */
-export enum HeaderNames {
+export const enum HeaderNames {
     CONTENT_TYPE = "Content-Type",
     RETRY_AFTER = "Retry-After",
     CCS_HEADER = "X-AnchorMailbox",
@@ -88,7 +88,7 @@ export enum HeaderNames {
 /**
  * Persistent cache keys MSAL which stay while user is logged in.
  */
-export enum PersistentCacheKeys {
+export const enum PersistentCacheKeys {
     ID_TOKEN = "idtoken",
     CLIENT_INFO = "client.info",
     ADAL_ID_TOKEN = "adal.idtoken",
@@ -101,7 +101,7 @@ export enum PersistentCacheKeys {
 /**
  * String constants related to AAD Authority
  */
-export enum AADAuthorityConstants {
+export const enum AADAuthorityConstants {
     COMMON = "common",
     ORGANIZATIONS = "organizations",
     CONSUMERS = "consumers",
@@ -110,7 +110,7 @@ export enum AADAuthorityConstants {
 /**
  * Keys in the hashParams sent by AAD Server
  */
-export enum AADServerParamKeys {
+export const enum AADServerParamKeys {
     CLIENT_ID = "client_id",
     REDIRECT_URI = "redirect_uri",
     RESPONSE_TYPE = "response_type",
@@ -164,7 +164,7 @@ export enum AADServerParamKeys {
 /**
  * Claims request keys
  */
-export enum ClaimsRequestKeys {
+export const enum ClaimsRequestKeys {
     ACCESS_TOKEN = "access_token",
     XMS_CC = "xms_cc",
 }
@@ -186,7 +186,7 @@ export const PromptValue = {
 /**
  * SSO Types - generated to populate hints
  */
-export enum SSOTypes {
+export const enum SSOTypes {
     ACCOUNT = "account",
     SID = "sid",
     LOGIN_HINT = "login_hint",
@@ -207,19 +207,9 @@ export const CodeChallengeMethodValues = {
 };
 
 /**
- * The method used to encode the code verifier for the code challenge parameter. can be one
- * of plain or s256. if excluded, code challenge is assumed to be plaintext. for more
- * information, see the pkce rcf: https://tools.ietf.org/html/rfc7636
- */
-export const CodeChallengeMethodValuesArray: string[] = [
-    CodeChallengeMethodValues.PLAIN,
-    CodeChallengeMethodValues.S256,
-];
-
-/**
  * allowed values for response_mode
  */
-export enum ResponseMode {
+export const enum ResponseMode {
     QUERY = "query",
     FRAGMENT = "fragment",
     FORM_POST = "form_post",
@@ -228,7 +218,7 @@ export enum ResponseMode {
 /**
  * allowed grant_type
  */
-export enum GrantType {
+export const enum GrantType {
     IMPLICIT_GRANT = "implicit",
     AUTHORIZATION_CODE_GRANT = "authorization_code",
     CLIENT_CREDENTIALS_GRANT = "client_credentials",
@@ -241,7 +231,7 @@ export enum GrantType {
 /**
  * Account types in Cache
  */
-export enum CacheAccountType {
+export const enum CacheAccountType {
     MSSTS_ACCOUNT_TYPE = "MSSTS",
     ADFS_ACCOUNT_TYPE = "ADFS",
     MSAV1_ACCOUNT_TYPE = "MSA",
@@ -251,7 +241,7 @@ export enum CacheAccountType {
 /**
  * Separators used in cache
  */
-export enum Separators {
+export const enum Separators {
     CACHE_KEY_SEPARATOR = "-",
     CLIENT_INFO_SEPARATOR = ".",
 }
@@ -259,7 +249,7 @@ export enum Separators {
 /**
  * Credential Type stored in the cache
  */
-export enum CredentialType {
+export const enum CredentialType {
     ID_TOKEN = "IdToken",
     ACCESS_TOKEN = "AccessToken",
     ACCESS_TOKEN_WITH_AUTH_SCHEME = "AccessToken_With_AuthScheme",
@@ -269,7 +259,7 @@ export enum CredentialType {
 /**
  * Combine all cache types
  */
-export enum CacheType {
+export const enum CacheType {
     ADFS = 1001,
     MSA = 1002,
     MSSTS = 1003,
@@ -293,7 +283,7 @@ export const AUTHORITY_METADATA_CONSTANTS = {
     REFRESH_TIME_SECONDS: 3600 * 24, // 24 Hours
 };
 
-export enum AuthorityMetadataSource {
+export const enum AuthorityMetadataSource {
     CONFIG = "config",
     CACHE = "cache",
     NETWORK = "network",
@@ -316,7 +306,7 @@ export const SERVER_TELEM_CONSTANTS = {
 /**
  * Type of the authentication request
  */
-export enum AuthenticationScheme {
+export const enum AuthenticationScheme {
     BEARER = "Bearer",
     POP = "pop",
     SSH = "ssh-cert",
@@ -344,7 +334,7 @@ export const Errors = {
 /**
  * Password grant parameters
  */
-export enum PasswordGrantConstants {
+export const enum PasswordGrantConstants {
     username = "username",
     password = "password",
 }
@@ -352,7 +342,7 @@ export enum PasswordGrantConstants {
 /**
  * Response codes
  */
-export enum ResponseCodes {
+export const enum ResponseCodes {
     httpSuccess = 200,
     httpBadRequest = 400,
 }
@@ -360,7 +350,7 @@ export enum ResponseCodes {
 /**
  * Region Discovery Sources
  */
-export enum RegionDiscoverySources {
+export const enum RegionDiscoverySources {
     FAILED_AUTO_DETECTION = "1",
     INTERNAL_CACHE = "2",
     ENVIRONMENT_VARIABLE = "3",
@@ -370,7 +360,7 @@ export enum RegionDiscoverySources {
 /**
  * Region Discovery Outcomes
  */
-export enum RegionDiscoveryOutcomes {
+export const enum RegionDiscoveryOutcomes {
     CONFIGURED_MATCHES_DETECTED = "1",
     CONFIGURED_NO_AUTO_DETECTION = "2",
     CONFIGURED_NOT_DETECTED = "3",
@@ -378,7 +368,7 @@ export enum RegionDiscoveryOutcomes {
     AUTO_DETECTION_REQUESTED_FAILED = "5",
 }
 
-export enum CacheOutcome {
+export const enum CacheOutcome {
     NO_CACHE_HIT = "0",
     FORCE_REFRESH = "1",
     NO_CACHED_ACCESS_TOKEN = "2",
@@ -386,7 +376,7 @@ export enum CacheOutcome {
     REFRESH_CACHED_ACCESS_TOKEN = "4",
 }
 
-export enum JsonTypes {
+export const enum JsonTypes {
     Jwt = "JWT",
     Jwk = "JWK",
     Pop = "pop",

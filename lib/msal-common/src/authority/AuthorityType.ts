@@ -6,7 +6,7 @@
 /**
  * Authority types supported by MSAL.
  */
-export enum AuthorityType {
+export const enum AuthorityType {
     Default,
     Adfs,
     Dsts,
