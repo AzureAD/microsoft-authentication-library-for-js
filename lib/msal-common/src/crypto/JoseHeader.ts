@@ -7,9 +7,9 @@ import { JoseHeaderError } from "../error/JoseHeaderError";
 import { JsonTypes } from "../utils/Constants";
 
 export type JoseHeaderOptions = {
-    typ?: JsonTypes,
-    alg?: string,
-    kid?: string
+    typ?: JsonTypes;
+    alg?: string;
+    kid?: string;
 };
 
 export class JoseHeader {
@@ -17,7 +17,7 @@ export class JoseHeader {
     public alg?: string;
     public kid?: string;
 
-    constructor (options: JoseHeaderOptions) {
+    constructor(options: JoseHeaderOptions) {
         this.typ = options.typ;
         this.alg = options.alg;
         this.kid = options.kid;
@@ -28,8 +28,8 @@ export class JoseHeader {
      * JOSE Header options provided or previously set on the object and returns
      * the stringified header object.
      * Throws if keyId or algorithm aren't provided since they are required for Access Token Binding.
-     * @param shrHeaderOptions 
-     * @returns 
+     * @param shrHeaderOptions
+     * @returns
      */
     static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions): string {
         // KeyID is required on the SHR header
@@ -46,7 +46,7 @@ export class JoseHeader {
             // Access Token PoP headers must have type pop, but the type header can be overriden for special cases
             typ: shrHeaderOptions.typ || JsonTypes.Pop,
             kid: shrHeaderOptions.kid,
-            alg: shrHeaderOptions.alg
+            alg: shrHeaderOptions.alg,
         });
 
         return JSON.stringify(shrHeader);

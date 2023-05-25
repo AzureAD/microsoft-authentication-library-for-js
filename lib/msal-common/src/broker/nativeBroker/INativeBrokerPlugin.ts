@@ -12,9 +12,18 @@ import { AuthenticationResult } from "../../response/AuthenticationResult";
 export interface INativeBrokerPlugin {
     isBrokerAvailable: boolean;
     setLogger(loggerOptions: LoggerOptions): void;
-    getAccountById(accountId: string, correlationId: string): Promise<AccountInfo>;
-    getAllAccounts(clientId: string, correlationId: string): Promise<AccountInfo[]>;
+    getAccountById(
+        accountId: string,
+        correlationId: string
+    ): Promise<AccountInfo>;
+    getAllAccounts(
+        clientId: string,
+        correlationId: string
+    ): Promise<AccountInfo[]>;
     acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult>;
-    acquireTokenInteractive(request: NativeRequest, windowHandle?: Buffer): Promise<AuthenticationResult>;
+    acquireTokenInteractive(
+        request: NativeRequest,
+        windowHandle?: Buffer
+    ): Promise<AuthenticationResult>;
     signOut(request: NativeSignOutRequest): Promise<void>;
 }

@@ -12,9 +12,6 @@ export class HashUtils {
      * @param buffer
      */
     sha256(buffer: string): Buffer {
-        return crypto
-            .createHash(Hash.SHA256)
-            .update(buffer)
-            .digest();
+        return crypto.createHash(Hash.SHA256).update(buffer).digest();
     }
 }

@@ -30,6 +30,7 @@
 1. [Is the result of getAllAccounts sorted in any order?](#is-the-result-of-getallaccounts-sorted-in-any-order)
 1. [If an account is returned by getAllAccounts does that mean the user has an active session on the server?](#if-an-account-is-returned-by-getallaccounts-does-that-mean-the-user-has-an-active-session-on-the-server)
 1. [How can I switch between multiple logged in users?](#how-can-i-switch-between-multiple-logged-in-users)
+1. [How can I avoid prompting users if SSO for one or more accounts is available?](#how-can-i-avoid-prompting-users-if-SSO-for-one-or-more-accounts-is-available) 
 
 **[Configuration](#Configuration)**
 
@@ -227,6 +228,12 @@ Deciding which account to use to acquire tokens is app dependent, however, `@azu
 
 You can read more about the account APIs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md).
 You can also find an example implementation of an account switcher using the `@azure/msal-react` wrapper in our [react-router-sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample).
+
+# How can I avoid prompting users if SSO for one or more accounts is available?
+
+The following flow diagram can help you avoid unnecessary authentication prompts when an account (or multiple accounts) is available for SSO.
+
+![MSAL.js boot flow diagram](docs/images/msaljs-boot-flow.png )
 
 # Configuration
 

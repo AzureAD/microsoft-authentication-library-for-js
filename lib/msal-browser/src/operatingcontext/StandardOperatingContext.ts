@@ -6,7 +6,6 @@
 import { BaseOperatingContext } from "./BaseOperatingContext";
 
 export class StandardOperatingContext extends BaseOperatingContext {
-
     /*
      * TODO: Once we have determine the bundling code return here to specify the name of the bundle
      * containing the implementation for this operating context
@@ -21,7 +20,7 @@ export class StandardOperatingContext extends BaseOperatingContext {
     /**
      * Return the module name.  Intended for use with import() to enable dynamic import
      * of the implementation associated with this operating context
-     * @returns 
+     * @returns
      */
     getModuleName(): string {
         return StandardOperatingContext.MODULE_NAME;
@@ -35,7 +34,7 @@ export class StandardOperatingContext extends BaseOperatingContext {
     }
 
     /**
-     * Checks whether the operating context is available.  
+     * Checks whether the operating context is available.
      * Confirms that the code is running a browser rather.  This is required.
      * @returns Promise<boolean> indicating whether this operating context is currently available.
      */
@@ -47,5 +46,4 @@ export class StandardOperatingContext extends BaseOperatingContext {
          * We can move the current contents of the initialize method to here and verify that the WAM extension is available
          */
     }
-
 }

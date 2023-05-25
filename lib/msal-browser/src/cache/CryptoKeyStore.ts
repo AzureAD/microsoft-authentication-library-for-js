@@ -7,10 +7,12 @@ import { Logger } from "@azure/msal-common";
 import { CachedKeyPair } from "../crypto/CryptoOps";
 import { AsyncMemoryStorage } from "./AsyncMemoryStorage";
 
-export enum CryptoKeyStoreNames {
-    asymmetricKeys = "asymmetricKeys",
-    symmetricKeys = "symmetricKeys"
-}
+export const CryptoKeyStoreNames = {
+    asymmetricKeys: "asymmetricKeys",
+    symmetricKeys: "symmetricKeys",
+} as const;
+export type CryptoKeyStoreNames = typeof CryptoKeyStoreNames[keyof typeof CryptoKeyStoreNames];
+
 /**
  * MSAL CryptoKeyStore DB Version 2
  */
@@ -19,17 +21,23 @@ export class CryptoKeyStore {
     public symmetricKeys: AsyncMemoryStorage<CryptoKey>;
     public logger: Logger;
 
-    constructor(logger: Logger){
+    constructor(logger: Logger) {
         this.logger = logger;
-        this.asymmetricKeys = new AsyncMemoryStorage<CachedKeyPair>(this.logger, CryptoKeyStoreNames.asymmetricKeys);
-        this.symmetricKeys = new AsyncMemoryStorage<CryptoKey>(this.logger, CryptoKeyStoreNames.symmetricKeys);
+        this.asymmetricKeys = new AsyncMemoryStorage<CachedKeyPair>(
+            this.logger,
+            CryptoKeyStoreNames.asymmetricKeys
+        );
+        this.symmetricKeys = new AsyncMemoryStorage<CryptoKey>(
+            this.logger,
+            CryptoKeyStoreNames.symmetricKeys
+        );
     }
 
     async clear(): Promise<boolean> {
         // Delete in-memory keystores
         this.asymmetricKeys.clearInMemory();
-	    this.symmetricKeys.clearInMemory();
-		
+        this.symmetricKeys.clearInMemory();
+
         /**
          * There is only one database, so calling clearPersistent on asymmetric keystore takes care of
          * every persistent keystore
@@ -39,11 +47,15 @@ export class CryptoKeyStore {
             return true;
         } catch (e) {
             if (e instanceof Error) {
-                this.logger.error(`Clearing keystore failed with error: ${e.message}`);
+                this.logger.error(
+                    `Clearing keystore failed with error: ${e.message}`
+                );
             } else {
-                this.logger.error("Clearing keystore failed with unknown error");
+                this.logger.error(
+                    "Clearing keystore failed with unknown error"
+                );
             }
-            
+
             return false;
         }
     }

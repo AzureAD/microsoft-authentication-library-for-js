@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CommonDeviceCodeRequest , DeviceCodeResponse } from "@azure/msal-common";
+import {
+    CommonDeviceCodeRequest,
+    DeviceCodeResponse,
+} from "@azure/msal-common";
 
 /**
  * Parameters for Oauth2 device code flow.
@@ -15,7 +18,16 @@ import { CommonDeviceCodeRequest , DeviceCodeResponse } from "@azure/msal-common
  * - extraQueryParameters       - String to string map of custom query parameters added to the query string
  * @public
  */
-export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes"|"deviceCodeCallback"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash">> & {
+export type DeviceCodeRequest = Partial<
+    Omit<
+        CommonDeviceCodeRequest,
+        | "scopes"
+        | "deviceCodeCallback"
+        | "resourceRequestMethod"
+        | "resourceRequestUri"
+        | "requestedClaimsHash"
+    >
+> & {
     scopes: Array<string>;
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
 };

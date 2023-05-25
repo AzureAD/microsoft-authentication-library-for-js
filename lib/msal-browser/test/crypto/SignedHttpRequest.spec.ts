@@ -7,7 +7,7 @@ import { AuthToken, Logger } from "@azure/msal-common";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 let mockDatabase = {
-    "TestDB.keys": {}
+    "TestDB.keys": {},
 };
 
 // Mock DatabaseStorage
@@ -30,30 +30,35 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     delete mockDatabase["TestDB.keys"][kid];
                 },
                 containsKey: (kid: string) => {
-                    return !!(mockDatabase["TestDB.keys"][kid]);
-                }
-            }
-      })
-    }
+                    return !!mockDatabase["TestDB.keys"][kid];
+                },
+            };
+        }),
+    };
 });
 
 describe("SignedHttpRequest.ts Unit Tests", () => {
-    jest.setTimeout(30000)
+    jest.setTimeout(30000);
 
     let oldWindowCrypto = window.crypto;
-    
 
     beforeEach(() => {
-        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation((): Promise<ArrayBuffer> => {
-            return Promise.resolve(createHash("SHA256").update(Buffer.from("test-data")).digest());
-        });
-        
+        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation(
+            (): Promise<ArrayBuffer> => {
+                return Promise.resolve(
+                    createHash("SHA256")
+                        .update(Buffer.from("test-data"))
+                        .digest()
+                );
+            }
+        );
+
         oldWindowCrypto = window.crypto;
         //@ts-ignore
         window.crypto = {
             ...oldWindowCrypto,
-            ...msrCrypto
-        }
+            ...msrCrypto,
+        };
     });
 
     afterEach(() => {
@@ -64,8 +69,8 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
 
     it("generates expected kid", async () => {
         const shr: SignedHttpRequest = new SignedHttpRequest({
-            resourceRequestUri: "https://consoto.com", 
-            resourceRequestMethod: "GET"
+            resourceRequestUri: "https://consoto.com",
+            resourceRequestMethod: "GET",
         });
         const kid = await shr.generatePublicKeyThumbprint();
         expect(kid).toEqual("oYYABCL-q4VzKcaE6f6RQSsaXbCEEAs3qYz8lbYqqGc");
@@ -77,17 +82,20 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
         const ts = 123456;
 
         const shr: SignedHttpRequest = new SignedHttpRequest({
-            resourceRequestUri: "https://consoto.com/path", 
-            resourceRequestMethod: "GET"
+            resourceRequestUri: "https://consoto.com/path",
+            resourceRequestMethod: "GET",
         });
         const kid = await shr.generatePublicKeyThumbprint();
 
         const popToken = await shr.signRequest(payload, kid, {
             nonce,
-            ts
+            ts,
         });
 
-        const decodedToken = AuthToken.extractTokenClaims(popToken, new CryptoOps(new Logger({})))
+        const decodedToken = AuthToken.extractTokenClaims(
+            popToken,
+            new CryptoOps(new Logger({}))
+        );
 
         expect(decodedToken.nonce).toEqual("test-nonce");
         expect(decodedToken.ts).toEqual(123456);
@@ -99,13 +107,13 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
 
     it("removes keys", async () => {
         const shr: SignedHttpRequest = new SignedHttpRequest({
-            resourceRequestUri: "https://consoto.com/path", 
-            resourceRequestMethod: "GET"
+            resourceRequestUri: "https://consoto.com/path",
+            resourceRequestMethod: "GET",
         });
         const kid = await shr.generatePublicKeyThumbprint();
 
         const removeOp = await shr.removeKeys(kid);
 
         expect(removeOp).toEqual(true);
-    })
+    });
 });

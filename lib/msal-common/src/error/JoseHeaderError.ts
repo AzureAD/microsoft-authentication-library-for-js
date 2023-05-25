@@ -11,11 +11,11 @@ import { AuthError } from "./AuthError";
 export const JoseHeaderErrorMessage = {
     missingKidError: {
         code: "missing_kid_error",
-        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires a keyId to be configured as the 'kid' header claim. No 'kid' value was provided."
+        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires a keyId to be configured as the 'kid' header claim. No 'kid' value was provided.",
     },
     missingAlgError: {
         code: "missing_alg_error",
-        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided."
+        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided.",
     },
 };
 
@@ -34,13 +34,19 @@ export class JoseHeaderError extends AuthError {
      * Creates an error thrown when keyId isn't set on JOSE header.
      */
     static createMissingKidError(): JoseHeaderError {
-        return new JoseHeaderError(JoseHeaderErrorMessage.missingKidError.code, JoseHeaderErrorMessage.missingKidError.desc);
+        return new JoseHeaderError(
+            JoseHeaderErrorMessage.missingKidError.code,
+            JoseHeaderErrorMessage.missingKidError.desc
+        );
     }
 
     /**
      * Creates an error thrown when algorithm isn't set on JOSE header.
      */
     static createMissingAlgError(): JoseHeaderError {
-        return new JoseHeaderError(JoseHeaderErrorMessage.missingAlgError.code, JoseHeaderErrorMessage.missingAlgError.desc);
+        return new JoseHeaderError(
+            JoseHeaderErrorMessage.missingAlgError.code,
+            JoseHeaderErrorMessage.missingAlgError.desc
+        );
     }
 }

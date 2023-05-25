@@ -111,6 +111,12 @@ Any redirect URI used must be configured in the portal registration. You can als
 
 MSAL has additional configuration options which you can review [here](./configuration.md).
 
+## Handling App Launch with 0 or More Available Accounts
+
+The following flow diagram can help you avoid unnecessary authentication prompts when an account (or multiple accounts) is available for SSO.
+
+![MSAL.js boot flow diagram](images/msaljs-boot-flow.png )
+
 ## Choosing an Interaction Type
 
 In the browser, there are two ways you can present the login screen to your users from your application:

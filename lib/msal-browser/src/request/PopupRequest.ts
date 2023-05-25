@@ -33,7 +33,17 @@ import { PopupWindowAttributes } from "./PopupWindowAttributes";
  * - popupWindowAttributes      - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.
  */
 
-export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod"|"requestedClaimsHash"|"nativeBroker">> & {
+export type PopupRequest = Partial<
+    Omit<
+        CommonAuthorizationUrlRequest,
+        | "responseMode"
+        | "scopes"
+        | "codeChallenge"
+        | "codeChallengeMethod"
+        | "requestedClaimsHash"
+        | "nativeBroker"
+    >
+> & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
 };

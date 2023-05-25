@@ -4,8 +4,25 @@
  */
 
 import { NodeStorage } from "./NodeStorage";
-import { StringUtils, AccountEntity, AccountInfo, Logger, ISerializableTokenCache, ICachePlugin, TokenCacheContext } from "@azure/msal-common";
-import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity, CacheKVStore } from "./serializer/SerializerTypes";
+import {
+    StringUtils,
+    AccountEntity,
+    AccountInfo,
+    Logger,
+    ISerializableTokenCache,
+    ICachePlugin,
+    TokenCacheContext,
+} from "@azure/msal-common";
+import {
+    InMemoryCache,
+    JsonCache,
+    SerializedAccountEntity,
+    SerializedAccessTokenEntity,
+    SerializedRefreshTokenEntity,
+    SerializedIdTokenEntity,
+    SerializedAppMetadataEntity,
+    CacheKVStore,
+} from "./serializer/SerializerTypes";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
 import { ITokenCache } from "./ITokenCache";
@@ -23,14 +40,17 @@ const defaultSerializedCache: JsonCache = {
  * @public
  */
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
-
     private storage: NodeStorage;
     private cacheHasChanged: boolean;
     private cacheSnapshot: string;
     private readonly persistence: ICachePlugin;
     private logger: Logger;
 
-    constructor(storage: NodeStorage, logger: Logger, cachePlugin?: ICachePlugin) {
+    constructor(
+        storage: NodeStorage,
+        logger: Logger,
+        cachePlugin?: ICachePlugin
+    ) {
         this.cacheHasChanged = false;
         this.storage = storage;
         this.storage.registerChangeEmitter(this.handleChangeEvent.bind(this));
@@ -101,7 +121,6 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * API that retrieves all accounts currently in cache to the user
      */
     async getAllAccounts(): Promise<AccountInfo[]> {
-
         this.logger.trace("getAllAccounts called");
         let cacheContext;
         try {
@@ -123,10 +142,20 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * or null when no matching account is found
      * @param homeAccountId - unique identifier for an account (uid.utid)
      */
-    async getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null> {
+    async getAccountByHomeId(
+        homeAccountId: string
+    ): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
-        if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
-            return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;
+        if (
+            !StringUtils.isEmpty(homeAccountId) &&
+            allAccounts &&
+            allAccounts.length
+        ) {
+            return (
+                allAccounts.filter(
+                    (accountObj) => accountObj.homeAccountId === homeAccountId
+                )[0] || null
+            );
         } else {
             return null;
         }
@@ -138,10 +167,20 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * or null when no matching account is found
      * @param localAccountId - unique identifier of an account (sub/obj when homeAccountId cannot be populated)
      */
-    async getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null> {
+    async getAccountByLocalId(
+        localAccountId: string
+    ): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
-        if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
-            return allAccounts.filter(accountObj => accountObj.localAccountId === localAccountId)[0] || null;
+        if (
+            !StringUtils.isEmpty(localAccountId) &&
+            allAccounts &&
+            allAccounts.length
+        ) {
+            return (
+                allAccounts.filter(
+                    (accountObj) => accountObj.localAccountId === localAccountId
+                )[0] || null
+            );
         } else {
             return null;
         }
@@ -159,7 +198,9 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 cacheContext = new TokenCacheContext(this, true);
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
-            await this.storage.removeAccount(AccountEntity.generateAccountCacheKey(account));
+            await this.storage.removeAccount(
+                AccountEntity.generateAccountCacheKey(account)
+            );
         } finally {
             if (this.persistence && cacheContext) {
                 await this.persistence.afterCacheAccess(cacheContext);
@@ -179,7 +220,10 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param oldState - cache before changes
      * @param currentState - current cache state in the library
      */
-    private mergeState(oldState: JsonCache, currentState: JsonCache): JsonCache {
+    private mergeState(
+        oldState: JsonCache,
+        currentState: JsonCache
+    ): JsonCache {
         this.logger.trace("Merging in-memory cache with cache snapshot");
         const stateAfterRemoval = this.mergeRemovals(oldState, currentState);
         return this.mergeUpdates(stateAfterRemoval, currentState);
@@ -204,9 +248,16 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 const newValueNotNull = newValue !== null;
                 const newValueIsObject = typeof newValue === "object";
                 const newValueIsNotArray = !Array.isArray(newValue);
-                const oldStateNotUndefinedOrNull = typeof oldState[newKey] !== "undefined" && oldState[newKey] !== null;
+                const oldStateNotUndefinedOrNull =
+                    typeof oldState[newKey] !== "undefined" &&
+                    oldState[newKey] !== null;
 
-                if (newValueNotNull && newValueIsObject && newValueIsNotArray && oldStateNotUndefinedOrNull) {
+                if (
+                    newValueNotNull &&
+                    newValueIsObject &&
+                    newValueIsNotArray &&
+                    oldStateNotUndefinedOrNull
+                ) {
                     this.mergeUpdates(oldState[newKey], newValue);
                 } else {
                     oldState[newKey] = newValue;
@@ -225,11 +276,36 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      */
     private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
         this.logger.trace("Remove updated entries in cache");
-        const accounts = oldState.Account ? this.mergeRemovalsDict<SerializedAccountEntity>(oldState.Account, newState.Account) : oldState.Account;
-        const accessTokens = oldState.AccessToken ? this.mergeRemovalsDict<SerializedAccessTokenEntity>(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
-        const refreshTokens = oldState.RefreshToken ? this.mergeRemovalsDict<SerializedRefreshTokenEntity>(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
-        const idTokens = oldState.IdToken ? this.mergeRemovalsDict<SerializedIdTokenEntity>(oldState.IdToken, newState.IdToken) : oldState.IdToken;
-        const appMetadata = oldState.AppMetadata ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
+        const accounts = oldState.Account
+            ? this.mergeRemovalsDict<SerializedAccountEntity>(
+                  oldState.Account,
+                  newState.Account
+              )
+            : oldState.Account;
+        const accessTokens = oldState.AccessToken
+            ? this.mergeRemovalsDict<SerializedAccessTokenEntity>(
+                  oldState.AccessToken,
+                  newState.AccessToken
+              )
+            : oldState.AccessToken;
+        const refreshTokens = oldState.RefreshToken
+            ? this.mergeRemovalsDict<SerializedRefreshTokenEntity>(
+                  oldState.RefreshToken,
+                  newState.RefreshToken
+              )
+            : oldState.RefreshToken;
+        const idTokens = oldState.IdToken
+            ? this.mergeRemovalsDict<SerializedIdTokenEntity>(
+                  oldState.IdToken,
+                  newState.IdToken
+              )
+            : oldState.IdToken;
+        const appMetadata = oldState.AppMetadata
+            ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(
+                  oldState.AppMetadata,
+                  newState.AppMetadata
+              )
+            : oldState.AppMetadata;
 
         return {
             ...oldState,
@@ -237,7 +313,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
             AccessToken: accessTokens,
             RefreshToken: refreshTokens,
             IdToken: idTokens,
-            AppMetadata: appMetadata
+            AppMetadata: appMetadata,
         };
     }
 
@@ -246,10 +322,13 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param oldState - cache before changes
      * @param newState - updated cache
      */
-    private mergeRemovalsDict<T>(oldState: Record<string, T>, newState?: Record<string, T>): Record<string, T> {
+    private mergeRemovalsDict<T>(
+        oldState: Record<string, T>,
+        newState?: Record<string, T>
+    ): Record<string, T> {
         const finalState = { ...oldState };
         Object.keys(oldState).forEach((oldKey) => {
-            if (!newState || !(newState.hasOwnProperty(oldKey))) {
+            if (!newState || !newState.hasOwnProperty(oldKey)) {
                 delete finalState[oldKey];
             }
         });

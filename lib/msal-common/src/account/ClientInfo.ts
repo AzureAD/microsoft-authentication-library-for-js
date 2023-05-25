@@ -12,8 +12,8 @@ import { Separators, Constants } from "../utils/Constants";
  * Client info object which consists of two IDs. Need to add more info here.
  */
 export type ClientInfo = {
-    uid: string,
-    utid: string
+    uid: string;
+    utid: string;
 };
 
 /**
@@ -21,7 +21,10 @@ export type ClientInfo = {
  * @param rawClientInfo
  * @param crypto
  */
-export function buildClientInfo(rawClientInfo: string, crypto: ICrypto): ClientInfo {
+export function buildClientInfo(
+    rawClientInfo: string,
+    crypto: ICrypto
+): ClientInfo {
     if (StringUtils.isEmpty(rawClientInfo)) {
         throw ClientAuthError.createClientInfoEmptyError();
     }
@@ -30,21 +33,33 @@ export function buildClientInfo(rawClientInfo: string, crypto: ICrypto): ClientI
         const decodedClientInfo: string = crypto.base64Decode(rawClientInfo);
         return JSON.parse(decodedClientInfo) as ClientInfo;
     } catch (e) {
-        throw ClientAuthError.createClientInfoDecodingError((e as ClientAuthError).message);
+        throw ClientAuthError.createClientInfoDecodingError(
+            (e as ClientAuthError).message
+        );
     }
 }
 
 /**
  * Function to build a client info object from cached homeAccountId string
- * @param homeAccountId 
+ * @param homeAccountId
  */
-export function buildClientInfoFromHomeAccountId(homeAccountId: string): ClientInfo {
+export function buildClientInfoFromHomeAccountId(
+    homeAccountId: string
+): ClientInfo {
     if (StringUtils.isEmpty(homeAccountId)) {
-        throw ClientAuthError.createClientInfoDecodingError("Home account ID was empty.");
+        throw ClientAuthError.createClientInfoDecodingError(
+            "Home account ID was empty."
+        );
     }
-    const clientInfoParts: string[] = homeAccountId.split(Separators.CLIENT_INFO_SEPARATOR, 2);
+    const clientInfoParts: string[] = homeAccountId.split(
+        Separators.CLIENT_INFO_SEPARATOR,
+        2
+    );
     return {
         uid: clientInfoParts[0],
-        utid: clientInfoParts.length < 2 ? Constants.EMPTY_STRING : clientInfoParts[1]
+        utid:
+            clientInfoParts.length < 2
+                ? Constants.EMPTY_STRING
+                : clientInfoParts[1],
     };
 }

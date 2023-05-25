@@ -11,6 +11,7 @@ import { DataProtectionScope } from "./DataProtectionScope";
 import { Logger, LoggerOptions } from "@azure/msal-common";
 import { dirname } from "path";
 import { BasePersistence } from "./BasePersistence";
+import { isNodeError } from "../utils/TypeGuards";
 
 /**
  * Uses CryptProtectData and CryptUnprotectData on Windows to encrypt and decrypt file contents.
@@ -22,12 +23,13 @@ export class FilePersistenceWithDataProtection extends BasePersistence implement
 
     private filePersistence: FilePersistence;
     private scope: DataProtectionScope;
-    private optionalEntropy: Uint8Array;
+    private optionalEntropy: Uint8Array | null;
 
-    private constructor(scope: DataProtectionScope, optionalEntropy?: string) {
+    private constructor(filePersistence: FilePersistence, scope: DataProtectionScope, optionalEntropy?: string) {
         super();
         this.scope = scope;
         this.optionalEntropy = optionalEntropy ? Buffer.from(optionalEntropy, "utf-8") : null;
+        this.filePersistence = filePersistence;
     }
 
     public static async create(
@@ -36,8 +38,8 @@ export class FilePersistenceWithDataProtection extends BasePersistence implement
         optionalEntropy?: string,
         loggerOptions?: LoggerOptions): Promise<FilePersistenceWithDataProtection> {
 
-        const persistence = new FilePersistenceWithDataProtection(scope, optionalEntropy);
-        persistence.filePersistence = await FilePersistence.create(fileLocation, loggerOptions);
+        const filePersistence = await FilePersistence.create(fileLocation, loggerOptions);
+        const persistence = new FilePersistenceWithDataProtection(filePersistence, scope, optionalEntropy);
         return persistence;
     }
 
@@ -49,7 +51,11 @@ export class FilePersistenceWithDataProtection extends BasePersistence implement
                 this.scope.toString());
             await this.filePersistence.saveBuffer(encryptedContents);
         } catch (err) {
-            throw PersistenceError.createFilePersistenceWithDPAPIError(err.message);
+            if (isNodeError(err)) {
+                throw PersistenceError.createFilePersistenceWithDPAPIError(err.message);
+            } else {
+                throw err;
+            }
         }
     }
 
@@ -65,7 +71,11 @@ export class FilePersistenceWithDataProtection extends BasePersistence implement
                 this.optionalEntropy,
                 this.scope.toString()).toString();
         } catch (err) {
-            throw PersistenceError.createFilePersistenceWithDPAPIError(err.message);
+            if (isNodeError(err)) {
+                throw PersistenceError.createFilePersistenceWithDPAPIError(err.message);
+            } else {
+                throw err;
+            }
         }
     }
 

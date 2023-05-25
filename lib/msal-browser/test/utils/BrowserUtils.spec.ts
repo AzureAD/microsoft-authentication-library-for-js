@@ -4,15 +4,12 @@
  */
 
 import sinon from "sinon";
-import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TEST_URIS } from "./StringConstants";
 import { XhrClient } from "../../src/network/XhrClient";
 import { FetchClient } from "../../src/network/FetchClient";
-import { BrowserAuthErrorMessage, InteractionType } from "../../src";
-import { BrowserAuthError } from "../../lib";
+import { BrowserUtils, BrowserAuthError, BrowserAuthErrorMessage, InteractionType } from "../../src";
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
-
     const oldWindow: Window & typeof globalThis = window;
     afterEach(() => {
         window = oldWindow;
@@ -75,7 +72,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     });
 
     it("isInPopup() returns false if window opener is not the same as the current window but window name does not starts with 'msal.'", () => {
-        window.opener = {...window};
+        window.opener = { ...window };
         sinon.stub(window, "name").value("non-msal-popup");
         expect(BrowserUtils.isInPopup()).toBe(false);
     });
@@ -88,7 +85,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
 
     it("isInPopup() returns true if window opener is not the same as the current window and the window name starts with 'msal.'", () => {
         expect(BrowserUtils.isInPopup()).toBe(false);
-        window.opener = {...window};
+        window.opener = { ...window };
         sinon.stub(window, "name").value("msal.popupwindow");
         expect(BrowserUtils.isInPopup()).toBe(true);
     });
@@ -105,21 +102,30 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         // @ts-ignore
         window.Headers = () => {};
 
-        expect(BrowserUtils.getBrowserNetworkClient() instanceof FetchClient).toBe(true);
+        expect(
+            BrowserUtils.getBrowserNetworkClient() instanceof FetchClient
+        ).toBe(true);
     });
 
     it("getBrowserNetworkClient() returns xhr client if available", () => {
-        expect(BrowserUtils.getBrowserNetworkClient() instanceof XhrClient).toBe(true);
+        expect(
+            BrowserUtils.getBrowserNetworkClient() instanceof XhrClient
+        ).toBe(true);
     });
 
     describe("blockRedirectInIframe", () => {
-        it("throws when inside an iframe", done => {
+        it("throws when inside an iframe", (done) => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             try {
-                BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
+                BrowserUtils.blockRedirectInIframe(
+                    InteractionType.Redirect,
+                    false
+                );
             } catch (e) {
                 const browserAuthError = e as BrowserAuthError;
-                expect(browserAuthError.errorCode).toBe(BrowserAuthErrorMessage.redirectInIframeError.code);
+                expect(browserAuthError.errorCode).toBe(
+                    BrowserAuthErrorMessage.redirectInIframeError.code
+                );
                 done();
             }
         });
@@ -133,5 +139,5 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(false);
             BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
         });
-    })
+    });
 });

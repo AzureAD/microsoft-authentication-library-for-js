@@ -7,10 +7,6 @@
 # Retail Tasks:   https://aka.ms/obpipelines/tasks                              #
 # Support:        https://aka.ms/onebranchsup                                   #
 #################################################################################
-
-trigger:
-  - release
-
 parameters: # parameters are shown up in ADO UI in a build queue time
 - name: 'debug'
   displayName: 'Enable debug output'
@@ -18,10 +14,6 @@ parameters: # parameters are shown up in ADO UI in a build queue time
   default: false
 - name: 'testMode'
   displayName: 'Run in test mode'
-  type: boolean
-  default: false
-- name: 'overrideMsalCore'
-  displayName: 'Publish MSAL Core'
   type: boolean
   default: false
 - name: 'overrideMsalCommon'
@@ -100,12 +92,10 @@ extends:
             inputs:
               scriptPath: "release-scripts/prepublish.sh"
             name: filter
-    # PUBLISH MSAL Core
     - stage: publish
       dependsOn: pre_release
       displayName: 'Publish Packages'
       variables:
-        publishMsalCore: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCore'] ]
         publishMsalCommon: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCommon'] ]
         publishMsalBrowser: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalBrowser'] ]
         publishMsalReact: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalReact'] ]
@@ -113,23 +103,12 @@ extends:
         publishMsalNode: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNode'] ]
         publishMsalNodeExtensions: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNodeExtensions'] ]
       jobs:
-      # Release MSAL Core
-        - template: .pipelines/custom-templates/publish-template.yml@self
-          parameters:
-            jobName: 'publish_msal_core'
-            path: 'lib'
-            libName: 'msal-core'
-            cdn: false # Change to true when CDN release automation is working
-            publishFlagName: 'MsalCore'
-            publishOverride: ${{ parameters.overrideMsalCore }}
-            testMode: ${{ parameters.testMode }}
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
             jobName: 'publish_msal_common'
             path: 'lib'
             libName: 'msal-common'
-            cdn: false
             publishFlagName: 'MsalCommon'
             publishOverride: ${{ parameters.overrideMsalCommon }}
             testMode: ${{ parameters.testMode }}
@@ -139,7 +118,6 @@ extends:
             jobName: 'publish_msal_browser'
             path: 'lib'
             libName: 'msal-browser'
-            cdn: false # Change to true when CDN release automation is working
             publishFlagName: 'MsalBrowser'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalBrowser }}
@@ -150,7 +128,6 @@ extends:
             jobName: 'publish_msal_react'
             path: 'lib'
             libName: 'msal-react'
-            cdn: false
             publishFlagName: 'MsalReact'
             dependsOn: 'publish_msal_browser'
             publishOverride: ${{ parameters.overrideMsalReact }}
@@ -160,7 +137,6 @@ extends:
             jobName: 'publish_msal_angular'
             path: 'lib'
             libName: 'msal-angular'
-            cdn: false
             publishFlagName: 'MsalAngular'
             dependsOn: 'publish_msal_browser'
             publishOverride: ${{ parameters.overrideMsalAngular }}
@@ -171,7 +147,6 @@ extends:
             jobName: 'publish_msal_node'
             path: 'lib'
             libName: 'msal-node'
-            cdn: false
             publishFlagName: 'MsalNode'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalNode }}
@@ -182,7 +157,6 @@ extends:
             jobName: 'publish_msal_node_extensions'
             path: 'extensions'
             libName: 'msal-node-extensions'
-            cdn: false
             publishFlagName: 'MsalNodeExtensions'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalNodeExtensions }}

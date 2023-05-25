@@ -32,13 +32,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [ 16, 18 ]
+        node: [ 18, 20 ]
         sample:
           - 'auth-code'
           - 'client-credentials'
           - 'device-code'
           - 'silent-flow'
           - 'b2c-user-flows'
+          - 'on-behalf-of'
 
     name: ${{ matrix.sample }} - Node v${{ matrix.node }}
 
@@ -93,6 +94,10 @@ jobs:
         path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
         key: ${{ runner.os }}-node-e2e-${{ matrix.sample }}-${{ matrix.node }}-${{ hashFiles(format('samples/msal-node-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
 
+    - name: Install msal-node-samples packages
+      working-directory: samples/msal-node-samples
+      run: npm i
+
     - name: Install Sample
       if: steps.sample-cache.outputs.cache-hit != 'true'
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
@@ -107,6 +112,12 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        OBO_WEB_APP_CLIENT_ID: ${{ secrets.OBO_WEB_APP_CLIENT_ID }}
+        OBO_WEB_APP_CLIENT_SECRET: ${{ secrets.OBO_WEB_APP_CLIENT_SECRET }}
+        OBO_WEB_API_CLIENT_ID: ${{ secrets.OBO_WEB_API_CLIENT_ID }}
+        OBO_WEB_API_CLIENT_SECRET: ${{ secrets.OBO_WEB_API_CLIENT_SECRET }}
+        OBO_WEB_API_SCOPE: ${{ secrets.OBO_WEB_API_SCOPE }}
+        OBO_WEB_API_TENANT_ID: ${{ secrets.OBO_WEB_API_TENANT_ID }}
       run: npm test
 
     - name: Upload E2E Test Screenshots
@@ -173,6 +184,10 @@ jobs:
       with:
         path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
         key: ${{ runner.os }}-electron-e2e-${{ matrix.sample }}-${{ hashFiles(format('samples/msal-node-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
+
+    - name: Install msal-node-samples packages
+      working-directory: samples/msal-node-samples
+      run: npm i
 
     - name: Install Sample
       if: steps.sample-cache.outputs.cache-hit != 'true'

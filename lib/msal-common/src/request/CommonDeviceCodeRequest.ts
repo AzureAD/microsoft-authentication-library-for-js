@@ -20,7 +20,10 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - extraQueryParameters       - String to string map of custom query parameters added to the query string
  */
 // export type CommonDeviceCodeRequest = BaseAuthRequest &  {
-export type CommonDeviceCodeRequest = Omit<BaseAuthRequest, "tokenQueryParameters"> & {
+export type CommonDeviceCodeRequest = Omit<
+    BaseAuthRequest,
+    "tokenQueryParameters"
+> & {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
     cancel?: boolean;
     timeout?: number;

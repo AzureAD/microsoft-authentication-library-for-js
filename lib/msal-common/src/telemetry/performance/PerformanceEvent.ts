@@ -9,239 +9,239 @@
  * @export
  * @enum {number}
  */
-export enum PerformanceEvents {
-
+export const PerformanceEvents = {
     /**
      * acquireTokenByCode API (msal-browser and msal-node).
      * Used to acquire tokens by trading an authorization code against the token endpoint.
      */
-    AcquireTokenByCode = "acquireTokenByCode",
+    AcquireTokenByCode: "acquireTokenByCode",
 
     /**
      * acquireTokenByRefreshToken API (msal-browser and msal-node).
      * Used to renew an access token using a refresh token against the token endpoint.
      */
-    AcquireTokenByRefreshToken = "acquireTokenByRefreshToken",
+    AcquireTokenByRefreshToken: "acquireTokenByRefreshToken",
 
     /**
      * acquireTokenSilent API (msal-browser and msal-node).
      * Used to silently acquire a new access token (from the cache or the network).
      */
-    AcquireTokenSilent = "acquireTokenSilent",
+    AcquireTokenSilent: "acquireTokenSilent",
 
     /**
      * acquireTokenSilentAsync (msal-browser).
      * Internal API for acquireTokenSilent.
      */
-    AcquireTokenSilentAsync = "acquireTokenSilentAsync",
+    AcquireTokenSilentAsync: "acquireTokenSilentAsync",
 
     /**
      * acquireTokenPopup (msal-browser).
      * Used to acquire a new access token interactively through pop ups
      */
-    AcquireTokenPopup = "acquireTokenPopup",
+    AcquireTokenPopup: "acquireTokenPopup",
 
     /**
      * getPublicKeyThumbprint API in CryptoOpts class (msal-browser).
      * Used to generate a public/private keypair and generate a public key thumbprint for pop requests.
      */
-    CryptoOptsGetPublicKeyThumbprint = "cryptoOptsGetPublicKeyThumbprint",
+    CryptoOptsGetPublicKeyThumbprint: "cryptoOptsGetPublicKeyThumbprint",
 
     /**
      * signJwt API in CryptoOpts class (msal-browser).
      * Used to signed a pop token.
      */
-    CryptoOptsSignJwt = "cryptoOptsSignJwt",
+    CryptoOptsSignJwt: "cryptoOptsSignJwt",
 
     /**
      * acquireToken API in the SilentCacheClient class (msal-browser).
      * Used to read access tokens from the cache.
      */
-    SilentCacheClientAcquireToken = "silentCacheClientAcquireToken",
+    SilentCacheClientAcquireToken: "silentCacheClientAcquireToken",
 
     /**
      * acquireToken API in the SilentIframeClient class (msal-browser).
      * Used to acquire a new set of tokens from the authorize endpoint in a hidden iframe.
      */
-    SilentIframeClientAcquireToken = "silentIframeClientAcquireToken",
+    SilentIframeClientAcquireToken: "silentIframeClientAcquireToken",
 
     /**
      * acquireToken API in SilentRereshClient (msal-browser).
      * Used to acquire a new set of tokens from the token endpoint using a refresh token.
      */
-    SilentRefreshClientAcquireToken = "silentRefreshClientAcquireToken",
+    SilentRefreshClientAcquireToken: "silentRefreshClientAcquireToken",
 
     /**
      * ssoSilent API (msal-browser).
      * Used to silently acquire an authorization code and set of tokens using a hidden iframe.
      */
-    SsoSilent = "ssoSilent",
+    SsoSilent: "ssoSilent",
 
     /**
      * getDiscoveredAuthority API in StandardInteractionClient class (msal-browser).
      * Used to load authority metadata for a request.
      */
-    StandardInteractionClientGetDiscoveredAuthority = "standardInteractionClientGetDiscoveredAuthority",
+    StandardInteractionClientGetDiscoveredAuthority: "standardInteractionClientGetDiscoveredAuthority",
 
     /**
      * acquireToken APIs in msal-browser.
      * Used to make an /authorize endpoint call with native brokering enabled.
      */
-    FetchAccountIdWithNativeBroker = "fetchAccountIdWithNativeBroker",
+    FetchAccountIdWithNativeBroker: "fetchAccountIdWithNativeBroker",
 
     /**
      * acquireToken API in NativeInteractionClient class (msal-browser).
      * Used to acquire a token from Native component when native brokering is enabled.
      */
-    NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
+    NativeInteractionClientAcquireToken: "nativeInteractionClientAcquireToken",
     /**
      * Time spent creating default headers for requests to token endpoint
      */
-    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+    BaseClientCreateTokenRequestHeaders: "baseClientCreateTokenRequestHeaders",
     /**
      * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
      */
-    BrokerHandhshake = "brokerHandshake",
+    BrokerHandhshake: "brokerHandshake",
     /**
      * acquireTokenByRefreshToken API in BrokerClientApplication (PW-Broker) .
      */
-    AcquireTokenByRefreshTokenInBroker = "acquireTokenByRefreshTokenInBroker",
+    AcquireTokenByRefreshTokenInBroker: "acquireTokenByRefreshTokenInBroker",
     /**
      * Time taken for token acquisition by broker
      */
-    AcquireTokenByBroker = "acquireTokenByBroker",
+    AcquireTokenByBroker: "acquireTokenByBroker",
 
     /**
      * Time spent on the network for refresh token acquisition
      */
-    RefreshTokenClientExecuteTokenRequest = "refreshTokenClientExecuteTokenRequest",
+    RefreshTokenClientExecuteTokenRequest: "refreshTokenClientExecuteTokenRequest",
 
     /**
      * Time taken for acquiring refresh token , records RT size
      */
-    RefreshTokenClientAcquireToken = "refreshTokenClientAcquireToken",
+    RefreshTokenClientAcquireToken: "refreshTokenClientAcquireToken",
 
     /**
      * Time taken for acquiring cached refresh token
      */
-    RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
+    RefreshTokenClientAcquireTokenWithCachedRefreshToken: "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 
     /**
      * acquireTokenByRefreshToken API in RefreshTokenClient (msal-common).
      */
-    RefreshTokenClientAcquireTokenByRefreshToken = "refreshTokenClientAcquireTokenByRefreshToken",
+    RefreshTokenClientAcquireTokenByRefreshToken: "refreshTokenClientAcquireTokenByRefreshToken",
 
     /**
      * Helper function to create token request body in RefreshTokenClient (msal-common).
      */
-    RefreshTokenClientCreateTokenRequestBody = "refreshTokenClientCreateTokenRequestBody",
+    RefreshTokenClientCreateTokenRequestBody: "refreshTokenClientCreateTokenRequestBody",
 
     /**
      * acquireTokenFromCache (msal-browser).
      * Internal API for acquiring token from cache
      */
-    AcquireTokenFromCache = "acquireTokenFromCache",
+    AcquireTokenFromCache: "acquireTokenFromCache",
 
     /**
      * acquireTokenBySilentIframe (msal-browser).
      * Internal API for acquiring token by silent Iframe
      */
-    AcquireTokenBySilentIframe = "acquireTokenBySilentIframe",
+    AcquireTokenBySilentIframe: "acquireTokenBySilentIframe",
 
     /**
      * Internal API for initializing base request in BaseInteractionClient (msal-browser)
      */
-    InitializeBaseRequest = "initializeBaseRequest",
+    InitializeBaseRequest: "initializeBaseRequest",
 
     /**
      * Internal API for initializing silent request in SilentCacheClient (msal-browser)
      */
-    InitializeSilentRequest = "initializeSilentRequest",
+    InitializeSilentRequest: "initializeSilentRequest",
 
-    InitializeClientApplication = "initializeClientApplication",
+    InitializeClientApplication: "initializeClientApplication",
 
     /**
      * Helper function in SilentIframeClient class (msal-browser).
      */
-    SilentIframeClientTokenHelper = "silentIframeClientTokenHelper",
+    SilentIframeClientTokenHelper: "silentIframeClientTokenHelper",
 
     /**
      * SilentHandler
      */
-    SilentHandlerInitiateAuthRequest = "silentHandlerInitiateAuthRequest",
-    SilentHandlerMonitorIframeForHash = "silentHandlerMonitorIframeForHash",
-    SilentHandlerLoadFrame = "silentHandlerLoadFrame",
+    SilentHandlerInitiateAuthRequest: "silentHandlerInitiateAuthRequest",
+    SilentHandlerMonitorIframeForHash: "silentHandlerMonitorIframeForHash",
+    SilentHandlerLoadFrame: "silentHandlerLoadFrame",
 
     /**
      * Helper functions in StandardInteractionClient class (msal-browser)
      */
-    StandardInteractionClientCreateAuthCodeClient = "standardInteractionClientCreateAuthCodeClient",
-    StandardInteractionClientGetClientConfiguration = "standardInteractionClientGetClientConfiguration",
-    StandardInteractionClientInitializeAuthorizationRequest = "standardInteractionClientInitializeAuthorizationRequest",
-    StandardInteractionClientInitializeAuthorizationCodeRequest = "standardInteractionClientInitializeAuthorizationCodeRequest",
+    StandardInteractionClientCreateAuthCodeClient: "standardInteractionClientCreateAuthCodeClient",
+    StandardInteractionClientGetClientConfiguration: "standardInteractionClientGetClientConfiguration",
+    StandardInteractionClientInitializeAuthorizationRequest: "standardInteractionClientInitializeAuthorizationRequest",
+    StandardInteractionClientInitializeAuthorizationCodeRequest: "standardInteractionClientInitializeAuthorizationCodeRequest",
 
     /**
      * getAuthCodeUrl API (msal-browser and msal-node).
      */
-    GetAuthCodeUrl = "getAuthCodeUrl",
+    GetAuthCodeUrl: "getAuthCodeUrl",
 
     /**
      * Functions from InteractionHandler (msal-browser)
      */
-    HandleCodeResponseFromServer = "handleCodeResponseFromServer",
-    HandleCodeResponseFromHash = "handleCodeResponseFromHash",
-    UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority",
+    HandleCodeResponseFromServer: "handleCodeResponseFromServer",
+    HandleCodeResponseFromHash: "handleCodeResponseFromHash",
+    UpdateTokenEndpointAuthority: "updateTokenEndpointAuthority",
 
     /**
      * APIs in Authorization Code Client (msal-common)
      */
-    AuthClientAcquireToken = "authClientAcquireToken",
-    AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest",
-    AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody",
-    AuthClientCreateQueryString = "authClientCreateQueryString",
+    AuthClientAcquireToken: "authClientAcquireToken",
+    AuthClientExecuteTokenRequest: "authClientExecuteTokenRequest",
+    AuthClientCreateTokenRequestBody: "authClientCreateTokenRequestBody",
+    AuthClientCreateQueryString: "authClientCreateQueryString",
 
     /**
      * Generate functions in PopTokenGenerator (msal-common)
      */
-    PopTokenGenerateCnf = "popTokenGenerateCnf",
-    PopTokenGenerateKid = "popTokenGenerateKid",
+    PopTokenGenerateCnf: "popTokenGenerateCnf",
+    PopTokenGenerateKid: "popTokenGenerateKid",
 
     /**
      * handleServerTokenResponse API in ResponseHandler (msal-common)
      */
-    HandleServerTokenResponse = "handleServerTokenResponse",
+    HandleServerTokenResponse: "handleServerTokenResponse",
 
     /**
      * Authority functions
      */
-    AuthorityFactoryCreateDiscoveredInstance = "authorityFactoryCreateDiscoveredInstance",
-    AuthorityResolveEndpointsAsync = "authorityResolveEndpointsAsync",
-    AuthorityGetCloudDiscoveryMetadataFromNetwork = "authorityGetCloudDiscoveryMetadataFromNetwork",
-    AuthorityUpdateCloudDiscoveryMetadata = "authorityUpdateCloudDiscoveryMetadata",
-    AuthorityGetEndpointMetadataFromNetwork = "authorityGetEndpointMetadataFromNetwork",
-    AuthorityUpdateEndpointMetadata = "authorityUpdateEndpointMetadata",
-    AuthorityUpdateMetadataWithRegionalInformation = "authorityUpdateMetadataWithRegionalInformation",
+    AuthorityFactoryCreateDiscoveredInstance: "authorityFactoryCreateDiscoveredInstance",
+    AuthorityResolveEndpointsAsync: "authorityResolveEndpointsAsync",
+    AuthorityGetCloudDiscoveryMetadataFromNetwork: "authorityGetCloudDiscoveryMetadataFromNetwork",
+    AuthorityUpdateCloudDiscoveryMetadata: "authorityUpdateCloudDiscoveryMetadata",
+    AuthorityGetEndpointMetadataFromNetwork: "authorityGetEndpointMetadataFromNetwork",
+    AuthorityUpdateEndpointMetadata: "authorityUpdateEndpointMetadata",
+    AuthorityUpdateMetadataWithRegionalInformation: "authorityUpdateMetadataWithRegionalInformation",
 
     /**
      * Region Discovery functions
      */
-    RegionDiscoveryDetectRegion = "regionDiscoveryDetectRegion",
-    RegionDiscoveryGetRegionFromIMDS = "regionDiscoveryGetRegionFromIMDS",
-    RegionDiscoveryGetCurrentVersion = "regionDiscoveryGetCurrentVersion",
+    RegionDiscoveryDetectRegion: "regionDiscoveryDetectRegion",
+    RegionDiscoveryGetRegionFromIMDS: "regionDiscoveryGetRegionFromIMDS",
+    RegionDiscoveryGetCurrentVersion: "regionDiscoveryGetCurrentVersion",
 
-    AcquireTokenByCodeAsync = "acquireTokenByCodeAsync",
+    AcquireTokenByCodeAsync: "acquireTokenByCodeAsync",
 
-    GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
-    GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
+    GetEndpointMetadataFromNetwork: "getEndpointMetadataFromNetwork",
+    GetCloudDiscoveryMetadataFromNetworkMeasurement: "getCloudDiscoveryMetadataFromNetworkMeasurement",
 
-    HandleRedirectPromiseMeasurement= "handleRedirectPromiseMeasurement",
+    HandleRedirectPromiseMeasurement: "handleRedirectPromiseMeasurement",
 
-    UpdateCloudDiscoveryMetadataMeasurement = "updateCloudDiscoveryMetadataMeasurement",
+    UpdateCloudDiscoveryMetadataMeasurement: "updateCloudDiscoveryMetadataMeasurement",
 
-    UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken",
+    UsernamePasswordClientAcquireToken: "usernamePasswordClientAcquireToken",
 
-    NativeMessageHandlerHandshake = "nativeMessageHandlerHandshake",
-}
+    NativeMessageHandlerHandshake: "nativeMessageHandlerHandshake",
+} as const;
+export type PerformanceEvents = typeof PerformanceEvents[keyof typeof PerformanceEvents];
 
 /**
  * State of the performance event.
@@ -249,11 +249,12 @@ export enum PerformanceEvents {
  * @export
  * @enum {number}
  */
-export enum PerformanceEventStatus {
-    NotStarted,
-    InProgress,
-    Completed
-}
+export const PerformanceEventStatus = {
+    NotStarted: 0,
+    InProgress: 1,
+    Completed: 2,
+} as const;
+export type PerformanceEventStatus = typeof PerformanceEventStatus[keyof typeof PerformanceEventStatus];
 
 /**
  * Fields whose value will not change throughout a request
@@ -264,14 +265,14 @@ export type StaticFields = {
      *
      * @type {?(number | undefined)}
      */
-    cacheLookupPolicy?: number | undefined,
+    cacheLookupPolicy?: number | undefined;
 
     /**
      * Size of the id token
      *
      * @type {number}
      */
-    idTokenSize?: number,
+    idTokenSize?: number;
 
     /**
      *
@@ -280,7 +281,7 @@ export type StaticFields = {
      * @type {number}
      */
 
-    accessTokenSize?: number,
+    accessTokenSize?: number;
 
     /**
      *
@@ -289,27 +290,27 @@ export type StaticFields = {
      * @type {number}
      */
 
-    refreshTokenSize?: number | undefined,
+    refreshTokenSize?: number | undefined;
 
     /**
      * Application name as specified by the app.
      *
      * @type {?string}
      */
-    appName?: string,
+    appName?: string;
 
     /**
      * Application version as specified by the app.
      *
      * @type {?string}
      */
-    appVersion?: string,
+    appVersion?: string;
 
     /**
      * The following are fields that may be emitted in native broker scenarios
      */
-    extensionId?: string,
-    extensionVersion?: string
+    extensionId?: string;
+    extensionVersion?: string;
     matsBrokerVersion?: string;
     matsAccountJoinOnStart?: string;
     matsAccountJoinOnEnd?: string;
@@ -321,7 +322,7 @@ export type StaticFields = {
     matsSilentBiSubCode?: number;
     matsSilentMessage?: string;
     matsSilentStatus?: number;
-    matsHttpStatus?: number
+    matsHttpStatus?: number;
     matsHttpEventCount?: number;
     httpVerToken?: string;
     httpVerAuthority?: string;
@@ -346,7 +347,7 @@ export type Counters = {
      *
      * @type {?number}
      */
-    queuedCount?: number
+    queuedCount?: number;
     /**
      * Amount of manually completed queue events.
      *
@@ -356,8 +357,8 @@ export type Counters = {
 };
 
 export type SubMeasurement = {
-    name: PerformanceEvents,
-    startTimeMs: number
+    name: PerformanceEvents;
+    startTimeMs: number;
 };
 
 /**
@@ -366,155 +367,156 @@ export type SubMeasurement = {
  * @export
  * @typedef {PerformanceEvent}
  */
-export type PerformanceEvent = StaticFields & Counters & {
-    /**
-     * Unique id for the event
-     *
-     * @type {string}
-     */
-    eventId: string,
+export type PerformanceEvent = StaticFields &
+    Counters & {
+        /**
+         * Unique id for the event
+         *
+         * @type {string}
+         */
+        eventId: string;
 
-    /**
-     * State of the perforance measure.
-     *
-     * @type {PerformanceEventStatus}
-     */
-    status: PerformanceEventStatus,
+        /**
+         * State of the perforance measure.
+         *
+         * @type {PerformanceEventStatus}
+         */
+        status: PerformanceEventStatus;
 
-    /**
-     * Login authority used for the request
-     *
-     * @type {string}
-     */
-    authority: string,
+        /**
+         * Login authority used for the request
+         *
+         * @type {string}
+         */
+        authority: string;
 
-    /**
-     * Client id for the application
-     *
-     * @type {string}
-     */
-    clientId: string
+        /**
+         * Client id for the application
+         *
+         * @type {string}
+         */
+        clientId: string;
 
-    /**
-     * Correlation ID used for the request
-     *
-     * @type {string}
-     */
-    correlationId: string,
+        /**
+         * Correlation ID used for the request
+         *
+         * @type {string}
+         */
+        correlationId: string;
 
-    /**
-     * End-to-end duration in milliseconds.
-     * @date 3/22/2022 - 3:40:05 PM
-     *
-     * @type {number}
-     */
-    durationMs?: number,
+        /**
+         * End-to-end duration in milliseconds.
+         * @date 3/22/2022 - 3:40:05 PM
+         *
+         * @type {number}
+         */
+        durationMs?: number;
 
-    /**
-     * Visibility of the page when the event completed.
-     * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
-     *
-     * @type {?(string | null)}
-     */
-    endPageVisibility?: string | null,
+        /**
+         * Visibility of the page when the event completed.
+         * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
+         *
+         * @type {?(string | null)}
+         */
+        endPageVisibility?: string | null;
 
-    /**
-     * Whether the result was retrieved from the cache.
-     *
-     * @type {(boolean | null)}
-     */
-    fromCache?: boolean | null,
+        /**
+         * Whether the result was retrieved from the cache.
+         *
+         * @type {(boolean | null)}
+         */
+        fromCache?: boolean | null;
 
-    /**
-     * Event name (usually in the form of classNameFunctionName)
-     *
-     * @type {PerformanceEvents}
-     */
-    name: PerformanceEvents,
+        /**
+         * Event name (usually in the form of classNameFunctionName)
+         *
+         * @type {PerformanceEvents}
+         */
+        name: PerformanceEvents;
 
-    /**
-     * Visibility of the page when the event completed.
-     * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
-     *
-     * @type {?(string | null)}
-     */
-    startPageVisibility?: string | null,
+        /**
+         * Visibility of the page when the event completed.
+         * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
+         *
+         * @type {?(string | null)}
+         */
+        startPageVisibility?: string | null;
 
-    /**
-     * Unix millisecond timestamp when the event was initiated.
-     *
-     * @type {number}
-     */
-    startTimeMs: number,
+        /**
+         * Unix millisecond timestamp when the event was initiated.
+         *
+         * @type {number}
+         */
+        startTimeMs: number;
 
-    /**
-     * Whether or the operation completed successfully.
-     *
-     * @type {(boolean | null)}
-     */
-    success?: boolean | null,
+        /**
+         * Whether or the operation completed successfully.
+         *
+         * @type {(boolean | null)}
+         */
+        success?: boolean | null;
 
-    /**
-     * Add specific error code in case of failure
-     *
-     * @type {string}
-     */
-    errorCode?: string,
+        /**
+         * Add specific error code in case of failure
+         *
+         * @type {string}
+         */
+        errorCode?: string;
 
-    /**
-     * Add specific sub error code in case of failure
-     *
-     * @type {string}
-     */
-    subErrorCode?: string,
+        /**
+         * Add specific sub error code in case of failure
+         *
+         * @type {string}
+         */
+        subErrorCode?: string;
 
-    /**
-     * Name of the library used for the operation.
-     *
-     * @type {string}
-     */
-    libraryName: string,
+        /**
+         * Name of the library used for the operation.
+         *
+         * @type {string}
+         */
+        libraryName: string;
 
-    /**
-     * Version of the library used for the operation.
-     *
-     * @type {string}
-     */
-    libraryVersion: string,
+        /**
+         * Version of the library used for the operation.
+         *
+         * @type {string}
+         */
+        libraryVersion: string;
 
-    /**
-     * Whether the response is from a native component (e.g., WAM)
-     *
-     * @type {?boolean}
-     */
-    isNativeBroker?: boolean,
+        /**
+         * Whether the response is from a native component (e.g., WAM)
+         *
+         * @type {?boolean}
+         */
+        isNativeBroker?: boolean;
 
-    /**
-     * Request ID returned from the response
-     *
-     * @type {?string}
-     */
-    requestId?: string
+        /**
+         * Request ID returned from the response
+         *
+         * @type {?string}
+         */
+        requestId?: string;
 
-    /**
-     * Cache lookup policy
-     *
-     * @type {?number}
-     */
-    cacheLookupPolicy?: number | undefined,
+        /**
+         * Cache lookup policy
+         *
+         * @type {?number}
+         */
+        cacheLookupPolicy?: number | undefined;
 
-    /**
-     * Amount of time spent in the JS queue in milliseconds.
-     *
-     * @type {?number}
-     */
-    queuedTimeMs?: number,
+        /**
+         * Amount of time spent in the JS queue in milliseconds.
+         *
+         * @type {?number}
+         */
+        queuedTimeMs?: number;
 
-    /**
-     * Sub-measurements for internal use. To be deleted before flushing.
-     */
-    incompleteSubMeasurements?: Map<string, SubMeasurement>
-};
+        /**
+         * Sub-measurements for internal use. To be deleted before flushing.
+         */
+        incompleteSubMeasurements?: Map<string, SubMeasurement>;
+    };
 
 export const IntFields: ReadonlySet<string> = new Set([
     "accessTokenSize",

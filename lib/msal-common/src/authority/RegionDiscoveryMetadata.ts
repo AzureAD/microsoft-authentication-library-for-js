@@ -5,7 +5,7 @@
 
 import {
     RegionDiscoveryOutcomes,
-    RegionDiscoverySources
+    RegionDiscoverySources,
 } from "../utils/Constants";
 
 export type RegionDiscoveryMetadata = {
