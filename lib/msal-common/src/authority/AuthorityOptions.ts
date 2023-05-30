@@ -15,22 +15,23 @@ export type AuthorityOptions = {
     azureRegionConfiguration?: AzureRegionConfiguration;
 };
 
-export enum AzureCloudInstance {
+export const AzureCloudInstance = {
     // AzureCloudInstance is not specified.
-    None,
+    None: "none",
 
     // Microsoft Azure public cloud
-    AzurePublic = "https://login.microsoftonline.com",
+    AzurePublic: "https://login.microsoftonline.com",
 
     // Microsoft PPE
-    AzurePpe = "https://login.windows-ppe.net",
+    AzurePpe: "https://login.windows-ppe.net",
 
     // Microsoft Chinese national cloud
-    AzureChina = "https://login.chinacloudapi.cn",
+    AzureChina: "https://login.chinacloudapi.cn",
 
     // Microsoft German national cloud ("Black Forest")
-    AzureGermany = "https://login.microsoftonline.de",
+    AzureGermany: "https://login.microsoftonline.de",
 
     // US Government cloud
-    AzureUsGovernment = "https://login.microsoftonline.us",
-}
+    AzureUsGovernment: "https://login.microsoftonline.us",
+} as const;
+export type AzureCloudInstance = typeof AzureCloudInstance[keyof typeof AzureCloudInstance];
