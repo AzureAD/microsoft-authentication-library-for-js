@@ -59,9 +59,7 @@ jobs:
     with:
       path: 'lib'
       lib-name: 'msal-common'
-      should-run: |
-        !failure() && 
-        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-common')
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-common') }}
 
   ci-msal-browser:
     name: msal-browser
@@ -70,9 +68,7 @@ jobs:
     with:
       path: 'lib'
       lib-name: 'msal-browser'
-      should-run: |
-        !failure() && 
-        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-browser')
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-browser') }}
 
   ci-msal-node:
     name: msal-node
@@ -81,9 +77,7 @@ jobs:
     with:
       path: 'lib'
       lib-name: 'msal-node'
-      should-run: |
-        !failure() && 
-        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node')
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node') }}
 
   ci-msal-angular:
     name: msal-angular
@@ -92,9 +86,7 @@ jobs:
     with:
       path: 'lib'
       lib-name: 'msal-angular'
-      should-run: |
-        !failure() && 
-        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-angular')
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-angular') }}
 
   ci-msal-react:
     name: msal-react
@@ -103,9 +95,7 @@ jobs:
     with:
       path: 'lib'
       lib-name: 'msal-react'
-      should-run: |
-        !failure() && 
-        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-react')
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-react') }}
 
   ci-msal-node-extensions:
     name: msal-node-extensions
@@ -115,6 +105,4 @@ jobs:
       path: 'extensions'
       lib-name: 'msal-node-extensions'
       os: 'windows-latest'
-      should-run: |
-        !failure() && 
-        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node-extensions')
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node-extensions') }}
