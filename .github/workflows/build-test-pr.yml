@@ -35,6 +35,7 @@ jobs:
             msal-common: &common
               - 'lib/msal-common/**/**.!(md)'
               - '.github/workflows/build-test-pr.yml'
+              - '.github/workflows/ci-template.yml'
             msal-browser: &browser
               - *common
               - 'lib/msal-browser/**/**.!(md)'
@@ -54,66 +55,66 @@ jobs:
   ci-msal-common:
     name: msal-common
     needs: pre-check
-    if: |
-      !failure() && 
-      contains(fromJSON(needs.pre-check.outputs.packages), 'msal-common')
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
+    uses: ./.github/workflows/ci-template.yml
     with:
       path: 'lib'
       lib-name: 'msal-common'
+      should-run: |
+        !failure() && 
+        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-common')
 
   ci-msal-browser:
     name: msal-browser
     needs: pre-check
-    if: |
-      !failure() && 
-      contains(fromJSON(needs.pre-check.outputs.packages), 'msal-browser')
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
+    uses: ./.github/workflows/ci-template.yml
     with:
       path: 'lib'
       lib-name: 'msal-browser'
+      should-run: |
+        !failure() && 
+        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-browser')
 
   ci-msal-node:
     name: msal-node
     needs: pre-check
-    if: |
-      !failure() && 
-      contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node')
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
+    uses: ./.github/workflows/ci-template.yml
     with:
       path: 'lib'
       lib-name: 'msal-node'
+      should-run: |
+        !failure() && 
+        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node')
 
   ci-msal-angular:
     name: msal-angular
     needs: pre-check
-    if: |
-      !failure() && 
-      contains(fromJSON(needs.pre-check.outputs.packages), 'msal-angular')
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
+    uses: ./.github/workflows/ci-template.yml
     with:
       path: 'lib'
       lib-name: 'msal-angular'
+      should-run: |
+        !failure() && 
+        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-angular')
 
   ci-msal-react:
     name: msal-react
     needs: pre-check
-    if: |
-      !failure() && 
-      contains(fromJSON(needs.pre-check.outputs.packages), 'msal-react')
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
+    uses: ./.github/workflows/ci-template.yml
     with:
       path: 'lib'
       lib-name: 'msal-react'
+      should-run: |
+        !failure() && 
+        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-react')
 
   ci-msal-node-extensions:
     name: msal-node-extensions
     needs: pre-check
-    if: |
-      !failure() && 
-      contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node-extensions')
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/ci-template.yml@dev
+    uses: ./.github/workflows/ci-template.yml
     with:
       path: 'extensions'
       lib-name: 'msal-node-extensions'
       os: 'windows-latest'
+      should-run: |
+        !failure() && 
+        contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node-extensions')
