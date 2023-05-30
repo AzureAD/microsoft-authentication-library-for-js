@@ -1,24 +1,23 @@
-// This script will poll the npm registry for a recently published package and return when it is available
-let execSync = require("child_process").execSync;
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-function getPublishedVersion(packageName) {
-    return execSync(`npm view ${packageName} version`).toString().trim();
-}
-
+const checkPackageAndVersion = require("./checkPackageAndVersion.js");
 const path = require("path");
 const libPath = path.join(__dirname, '..', process.argv[2]);
 
-const packageName = require(`${libPath}/package.json`).name;
-const currentVersion = require(`${libPath}/package.json`).version;
+const { name, version } = require(`${libPath}/package.json`);
 
 let iteration = 0;
 const intervalId = setInterval(() => {
     if (iteration > 12) {
         clearInterval(intervalId);
-        throw new Error(`Timed out waiting for ${packageName} version ${currentVersion}`);
+        throw new Error(`Timed out waiting for ${name} version ${version}`);
     }
-    if (currentVersion === getPublishedVersion(packageName)) {
-        console.log(`${packageName} successfully published version ${currentVersion}`);
+    const versionIsPublished = checkPackageAndVersion(name, version);
+    if (versionIsPublished) {
+        console.log(`${name} successfully published version ${version}`);
         clearInterval(intervalId);
         process.exit(0);
     }

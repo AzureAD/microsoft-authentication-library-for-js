@@ -193,7 +193,7 @@ See [Request and Response Data Types](https://github.com/AzureAD/microsoft-authe
         });
 ```
 
-You can learn further details about MSAL.js functionality documented in the [MSAL Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki) and find complete [code samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
+You can learn further details about MSAL.js functionality documented in the [MSAL Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki) and find complete [code samples for all MSAL libraries](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples) and [code samples for MSAL v1 specifically](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-core-samples).
 
 ## Security Reporting
 
