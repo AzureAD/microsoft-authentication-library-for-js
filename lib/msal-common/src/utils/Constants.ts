@@ -75,99 +75,104 @@ export const OIDC_SCOPES = [...OIDC_DEFAULT_SCOPES, Constants.EMAIL_SCOPE];
 /**
  * Request header names
  */
-export enum HeaderNames {
-    CONTENT_TYPE = "Content-Type",
-    RETRY_AFTER = "Retry-After",
-    CCS_HEADER = "X-AnchorMailbox",
-    WWWAuthenticate = "WWW-Authenticate",
-    AuthenticationInfo = "Authentication-Info",
-    X_MS_REQUEST_ID = "x-ms-request-id",
-    X_MS_HTTP_VERSION = "x-ms-httpver",
-}
+export const HeaderNames = {
+    CONTENT_TYPE: "Content-Type",
+    RETRY_AFTER: "Retry-After",
+    CCS_HEADER: "X-AnchorMailbox",
+    WWWAuthenticate: "WWW-Authenticate",
+    AuthenticationInfo: "Authentication-Info",
+    X_MS_REQUEST_ID: "x-ms-request-id",
+    X_MS_HTTP_VERSION: "x-ms-httpver",
+} as const;
+export type HeaderNames = typeof HeaderNames[keyof typeof HeaderNames];
 
 /**
  * Persistent cache keys MSAL which stay while user is logged in.
  */
-export enum PersistentCacheKeys {
-    ID_TOKEN = "idtoken",
-    CLIENT_INFO = "client.info",
-    ADAL_ID_TOKEN = "adal.idtoken",
-    ERROR = "error",
-    ERROR_DESC = "error.description",
-    ACTIVE_ACCOUNT = "active-account", // Legacy active-account cache key, use new key instead
-    ACTIVE_ACCOUNT_FILTERS = "active-account-filters", // new cache entry for active_account for a more robust version for browser
-}
+export const PersistentCacheKeys = {
+    ID_TOKEN: "idtoken",
+    CLIENT_INFO: "client.info",
+    ADAL_ID_TOKEN: "adal.idtoken",
+    ERROR: "error",
+    ERROR_DESC: "error.description",
+    ACTIVE_ACCOUNT: "active-account", // Legacy active-account cache key, use new key instead
+    ACTIVE_ACCOUNT_FILTERS: "active-account-filters", // new cache entry for active_account for a more robust version for browser
+} as const;
+export type PersistentCacheKeys = typeof PersistentCacheKeys[keyof typeof PersistentCacheKeys];
 
 /**
  * String constants related to AAD Authority
  */
-export enum AADAuthorityConstants {
-    COMMON = "common",
-    ORGANIZATIONS = "organizations",
-    CONSUMERS = "consumers",
-}
+export const AADAuthorityConstants = {
+    COMMON: "common",
+    ORGANIZATIONS: "organizations",
+    CONSUMERS: "consumers",
+} as const;
+export type AADAuthorityConstants = typeof AADAuthorityConstants[keyof typeof AADAuthorityConstants];
 
 /**
  * Keys in the hashParams sent by AAD Server
  */
-export enum AADServerParamKeys {
-    CLIENT_ID = "client_id",
-    REDIRECT_URI = "redirect_uri",
-    RESPONSE_TYPE = "response_type",
-    RESPONSE_MODE = "response_mode",
-    GRANT_TYPE = "grant_type",
-    CLAIMS = "claims",
-    SCOPE = "scope",
-    ERROR = "error",
-    ERROR_DESCRIPTION = "error_description",
-    ACCESS_TOKEN = "access_token",
-    ID_TOKEN = "id_token",
-    REFRESH_TOKEN = "refresh_token",
-    EXPIRES_IN = "expires_in",
-    STATE = "state",
-    NONCE = "nonce",
-    PROMPT = "prompt",
-    SESSION_STATE = "session_state",
-    CLIENT_INFO = "client_info",
-    CODE = "code",
-    CODE_CHALLENGE = "code_challenge",
-    CODE_CHALLENGE_METHOD = "code_challenge_method",
-    CODE_VERIFIER = "code_verifier",
-    CLIENT_REQUEST_ID = "client-request-id",
-    X_CLIENT_SKU = "x-client-SKU",
-    X_CLIENT_VER = "x-client-VER",
-    X_CLIENT_OS = "x-client-OS",
-    X_CLIENT_CPU = "x-client-CPU",
-    X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
-    X_CLIENT_LAST_TELEM = "x-client-last-telemetry",
-    X_MS_LIB_CAPABILITY = "x-ms-lib-capability",
-    X_APP_NAME = "x-app-name",
-    X_APP_VER = "x-app-ver",
-    POST_LOGOUT_URI = "post_logout_redirect_uri",
-    ID_TOKEN_HINT = "id_token_hint",
-    DEVICE_CODE = "device_code",
-    CLIENT_SECRET = "client_secret",
-    CLIENT_ASSERTION = "client_assertion",
-    CLIENT_ASSERTION_TYPE = "client_assertion_type",
-    TOKEN_TYPE = "token_type",
-    REQ_CNF = "req_cnf",
-    OBO_ASSERTION = "assertion",
-    REQUESTED_TOKEN_USE = "requested_token_use",
-    ON_BEHALF_OF = "on_behalf_of",
-    FOCI = "foci",
-    CCS_HEADER = "X-AnchorMailbox",
-    RETURN_SPA_CODE = "return_spa_code",
-    NATIVE_BROKER = "nativebroker",
-    LOGOUT_HINT = "logout_hint",
-}
+export const AADServerParamKeys = {
+    CLIENT_ID: "client_id",
+    REDIRECT_URI: "redirect_uri",
+    RESPONSE_TYPE: "response_type",
+    RESPONSE_MODE: "response_mode",
+    GRANT_TYPE: "grant_type",
+    CLAIMS: "claims",
+    SCOPE: "scope",
+    ERROR: "error",
+    ERROR_DESCRIPTION: "error_description",
+    ACCESS_TOKEN: "access_token",
+    ID_TOKEN: "id_token",
+    REFRESH_TOKEN: "refresh_token",
+    EXPIRES_IN: "expires_in",
+    STATE: "state",
+    NONCE: "nonce",
+    PROMPT: "prompt",
+    SESSION_STATE: "session_state",
+    CLIENT_INFO: "client_info",
+    CODE: "code",
+    CODE_CHALLENGE: "code_challenge",
+    CODE_CHALLENGE_METHOD: "code_challenge_method",
+    CODE_VERIFIER: "code_verifier",
+    CLIENT_REQUEST_ID: "client-request-id",
+    X_CLIENT_SKU: "x-client-SKU",
+    X_CLIENT_VER: "x-client-VER",
+    X_CLIENT_OS: "x-client-OS",
+    X_CLIENT_CPU: "x-client-CPU",
+    X_CLIENT_CURR_TELEM: "x-client-current-telemetry",
+    X_CLIENT_LAST_TELEM: "x-client-last-telemetry",
+    X_MS_LIB_CAPABILITY: "x-ms-lib-capability",
+    X_APP_NAME: "x-app-name",
+    X_APP_VER: "x-app-ver",
+    POST_LOGOUT_URI: "post_logout_redirect_uri",
+    ID_TOKEN_HINT: "id_token_hint",
+    DEVICE_CODE: "device_code",
+    CLIENT_SECRET: "client_secret",
+    CLIENT_ASSERTION: "client_assertion",
+    CLIENT_ASSERTION_TYPE: "client_assertion_type",
+    TOKEN_TYPE: "token_type",
+    REQ_CNF: "req_cnf",
+    OBO_ASSERTION: "assertion",
+    REQUESTED_TOKEN_USE: "requested_token_use",
+    ON_BEHALF_OF: "on_behalf_of",
+    FOCI: "foci",
+    CCS_HEADER: "X-AnchorMailbox",
+    RETURN_SPA_CODE: "return_spa_code",
+    NATIVE_BROKER: "nativebroker",
+    LOGOUT_HINT: "logout_hint",
+} as const;
+export type AADServerParamKeys = typeof AADServerParamKeys[keyof typeof AADServerParamKeys];
 
 /**
  * Claims request keys
  */
-export enum ClaimsRequestKeys {
-    ACCESS_TOKEN = "access_token",
-    XMS_CC = "xms_cc",
-}
+export const ClaimsRequestKeys = {
+    ACCESS_TOKEN: "access_token",
+    XMS_CC: "xms_cc",
+} as const;
+export type ClaimsRequestKeys = typeof ClaimsRequestKeys[keyof typeof ClaimsRequestKeys];
 
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
@@ -186,17 +191,18 @@ export const PromptValue = {
 /**
  * SSO Types - generated to populate hints
  */
-export enum SSOTypes {
-    ACCOUNT = "account",
-    SID = "sid",
-    LOGIN_HINT = "login_hint",
-    ID_TOKEN = "id_token",
-    DOMAIN_HINT = "domain_hint",
-    ORGANIZATIONS = "organizations",
-    CONSUMERS = "consumers",
-    ACCOUNT_ID = "accountIdentifier",
-    HOMEACCOUNT_ID = "homeAccountIdentifier",
-}
+export const SSOTypes = {
+    ACCOUNT: "account",
+    SID: "sid",
+    LOGIN_HINT: "login_hint",
+    ID_TOKEN: "id_token",
+    DOMAIN_HINT: "domain_hint",
+    ORGANIZATIONS: "organizations",
+    CONSUMERS: "consumers",
+    ACCOUNT_ID: "accountIdentifier",
+    HOMEACCOUNT_ID: "homeAccountIdentifier",
+} as const;
+export type SSOTypes = typeof SSOTypes[keyof typeof SSOTypes];
 
 /**
  * allowed values for codeVerifier
@@ -207,79 +213,75 @@ export const CodeChallengeMethodValues = {
 };
 
 /**
- * The method used to encode the code verifier for the code challenge parameter. can be one
- * of plain or s256. if excluded, code challenge is assumed to be plaintext. for more
- * information, see the pkce rcf: https://tools.ietf.org/html/rfc7636
- */
-export const CodeChallengeMethodValuesArray: string[] = [
-    CodeChallengeMethodValues.PLAIN,
-    CodeChallengeMethodValues.S256,
-];
-
-/**
  * allowed values for response_mode
  */
-export enum ResponseMode {
-    QUERY = "query",
-    FRAGMENT = "fragment",
-    FORM_POST = "form_post",
-}
+export const ResponseMode = {
+    QUERY: "query",
+    FRAGMENT: "fragment",
+    FORM_POST: "form_post",
+} as const;
+export type ResponseMode = typeof ResponseMode[keyof typeof ResponseMode];
 
 /**
  * allowed grant_type
  */
-export enum GrantType {
-    IMPLICIT_GRANT = "implicit",
-    AUTHORIZATION_CODE_GRANT = "authorization_code",
-    CLIENT_CREDENTIALS_GRANT = "client_credentials",
-    RESOURCE_OWNER_PASSWORD_GRANT = "password",
-    REFRESH_TOKEN_GRANT = "refresh_token",
-    DEVICE_CODE_GRANT = "device_code",
-    JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer",
-}
+export const GrantType = {
+    IMPLICIT_GRANT: "implicit",
+    AUTHORIZATION_CODE_GRANT: "authorization_code",
+    CLIENT_CREDENTIALS_GRANT: "client_credentials",
+    RESOURCE_OWNER_PASSWORD_GRANT: "password",
+    REFRESH_TOKEN_GRANT: "refresh_token",
+    DEVICE_CODE_GRANT: "device_code",
+    JWT_BEARER: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+} as const;
+export type GrantType = typeof GrantType[keyof typeof GrantType];
 
 /**
  * Account types in Cache
  */
-export enum CacheAccountType {
-    MSSTS_ACCOUNT_TYPE = "MSSTS",
-    ADFS_ACCOUNT_TYPE = "ADFS",
-    MSAV1_ACCOUNT_TYPE = "MSA",
-    GENERIC_ACCOUNT_TYPE = "Generic", // NTLM, Kerberos, FBA, Basic etc
-}
+export const CacheAccountType = {
+    MSSTS_ACCOUNT_TYPE: "MSSTS",
+    ADFS_ACCOUNT_TYPE: "ADFS",
+    MSAV1_ACCOUNT_TYPE: "MSA",
+    GENERIC_ACCOUNT_TYPE: "Generic", // NTLM, Kerberos, FBA, Basic etc
+} as const;
+export type CacheAccountType = typeof CacheAccountType[keyof typeof CacheAccountType];
 
 /**
  * Separators used in cache
  */
-export enum Separators {
-    CACHE_KEY_SEPARATOR = "-",
-    CLIENT_INFO_SEPARATOR = ".",
-}
+export const Separators = {
+    CACHE_KEY_SEPARATOR: "-",
+    CLIENT_INFO_SEPARATOR: ".",
+} as const;
+export type Separators = typeof Separators[keyof typeof Separators];
 
 /**
  * Credential Type stored in the cache
  */
-export enum CredentialType {
-    ID_TOKEN = "IdToken",
-    ACCESS_TOKEN = "AccessToken",
-    ACCESS_TOKEN_WITH_AUTH_SCHEME = "AccessToken_With_AuthScheme",
-    REFRESH_TOKEN = "RefreshToken",
-}
+export const CredentialType = {
+    ID_TOKEN: "IdToken",
+    ACCESS_TOKEN: "AccessToken",
+    ACCESS_TOKEN_WITH_AUTH_SCHEME: "AccessToken_With_AuthScheme",
+    REFRESH_TOKEN: "RefreshToken",
+} as const;
+export type CredentialType = typeof CredentialType[keyof typeof CredentialType];
 
 /**
  * Combine all cache types
  */
-export enum CacheType {
-    ADFS = 1001,
-    MSA = 1002,
-    MSSTS = 1003,
-    GENERIC = 1004,
-    ACCESS_TOKEN = 2001,
-    REFRESH_TOKEN = 2002,
-    ID_TOKEN = 2003,
-    APP_METADATA = 3001,
-    UNDEFINED = 9999,
-}
+export const CacheType = {
+    ADFS: 1001,
+    MSA: 1002,
+    MSSTS: 1003,
+    GENERIC: 1004,
+    ACCESS_TOKEN: 2001,
+    REFRESH_TOKEN: 2002,
+    ID_TOKEN: 2003,
+    APP_METADATA: 3001,
+    UNDEFINED: 9999,
+} as const;
+export type CacheType = typeof CacheType[keyof typeof CacheType];
 
 /**
  * More Cache related constants
@@ -293,12 +295,13 @@ export const AUTHORITY_METADATA_CONSTANTS = {
     REFRESH_TIME_SECONDS: 3600 * 24, // 24 Hours
 };
 
-export enum AuthorityMetadataSource {
-    CONFIG = "config",
-    CACHE = "cache",
-    NETWORK = "network",
-    HARDCODED_VALUES = "hardcoded_values",
-}
+export const AuthorityMetadataSource = {
+    CONFIG: "config",
+    CACHE: "cache",
+    NETWORK: "network",
+    HARDCODED_VALUES: "hardcoded_values",
+} as const;
+export type AuthorityMetadataSource = typeof AuthorityMetadataSource[keyof typeof AuthorityMetadataSource];
 
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 5,
@@ -316,11 +319,12 @@ export const SERVER_TELEM_CONSTANTS = {
 /**
  * Type of the authentication request
  */
-export enum AuthenticationScheme {
-    BEARER = "Bearer",
-    POP = "pop",
-    SSH = "ssh-cert",
-}
+export const AuthenticationScheme = {
+    BEARER: "Bearer",
+    POP: "pop",
+    SSH: "ssh-cert",
+} as const;
+export type AuthenticationScheme = typeof AuthenticationScheme[keyof typeof AuthenticationScheme];
 
 /**
  * Constants related to throttling
@@ -344,52 +348,58 @@ export const Errors = {
 /**
  * Password grant parameters
  */
-export enum PasswordGrantConstants {
-    username = "username",
-    password = "password",
-}
+export const PasswordGrantConstants = {
+    username: "username",
+    password: "password",
+} as const;
+export type PasswordGrantConstants = typeof PasswordGrantConstants[keyof typeof PasswordGrantConstants];
 
 /**
  * Response codes
  */
-export enum ResponseCodes {
-    httpSuccess = 200,
-    httpBadRequest = 400,
-}
+export const ResponseCodes = {
+    httpSuccess: 200,
+    httpBadRequest: 400,
+} as const;
+export type ResponseCodes = typeof ResponseCodes[keyof typeof ResponseCodes];
 
 /**
  * Region Discovery Sources
  */
-export enum RegionDiscoverySources {
-    FAILED_AUTO_DETECTION = "1",
-    INTERNAL_CACHE = "2",
-    ENVIRONMENT_VARIABLE = "3",
-    IMDS = "4",
-}
+export const RegionDiscoverySources = {
+    FAILED_AUTO_DETECTION: "1",
+    INTERNAL_CACHE: "2",
+    ENVIRONMENT_VARIABLE: "3",
+    IMDS: "4",
+} as const;
+export type RegionDiscoverySources = typeof RegionDiscoverySources[keyof typeof RegionDiscoverySources];
 
 /**
  * Region Discovery Outcomes
  */
-export enum RegionDiscoveryOutcomes {
-    CONFIGURED_MATCHES_DETECTED = "1",
-    CONFIGURED_NO_AUTO_DETECTION = "2",
-    CONFIGURED_NOT_DETECTED = "3",
-    AUTO_DETECTION_REQUESTED_SUCCESSFUL = "4",
-    AUTO_DETECTION_REQUESTED_FAILED = "5",
-}
+export const RegionDiscoveryOutcomes = {
+    CONFIGURED_MATCHES_DETECTED: "1",
+    CONFIGURED_NO_AUTO_DETECTION: "2",
+    CONFIGURED_NOT_DETECTED: "3",
+    AUTO_DETECTION_REQUESTED_SUCCESSFUL: "4",
+    AUTO_DETECTION_REQUESTED_FAILED: "5",
+} as const;
+export type RegionDiscoveryOutcomes = typeof RegionDiscoveryOutcomes[keyof typeof RegionDiscoveryOutcomes];
 
-export enum CacheOutcome {
-    NO_CACHE_HIT = "0",
-    FORCE_REFRESH = "1",
-    NO_CACHED_ACCESS_TOKEN = "2",
-    CACHED_ACCESS_TOKEN_EXPIRED = "3",
-    REFRESH_CACHED_ACCESS_TOKEN = "4",
-}
+export const CacheOutcome = {
+    NO_CACHE_HIT: "0",
+    FORCE_REFRESH: "1",
+    NO_CACHED_ACCESS_TOKEN: "2",
+    CACHED_ACCESS_TOKEN_EXPIRED: "3",
+    REFRESH_CACHED_ACCESS_TOKEN: "4",
+} as const;
+export type CacheOutcome = typeof CacheOutcome[keyof typeof CacheOutcome];
 
-export enum JsonTypes {
-    Jwt = "JWT",
-    Jwk = "JWK",
-    Pop = "pop",
-}
+export const JsonTypes = {
+    Jwt: "JWT",
+    Jwk: "JWK",
+    Pop: "pop",
+} as const;
+export type JsonTypes = typeof JsonTypes[keyof typeof JsonTypes];
 
 export const ONE_DAY_IN_MS = 86400000;

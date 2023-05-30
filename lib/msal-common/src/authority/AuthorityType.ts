@@ -6,9 +6,10 @@
 /**
  * Authority types supported by MSAL.
  */
-export enum AuthorityType {
-    Default,
-    Adfs,
-    Dsts,
-    Ciam
-}
+export const AuthorityType = {
+    Default: 0,
+    Adfs: 1,
+    Dsts: 2,
+    Ciam: 3
+} as const;
+export type AuthorityType = typeof AuthorityType[keyof typeof AuthorityType];
