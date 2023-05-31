@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Revert to common as a regular dependency #5985",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

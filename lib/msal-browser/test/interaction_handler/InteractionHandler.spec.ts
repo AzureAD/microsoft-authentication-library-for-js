@@ -313,7 +313,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             );
             browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.CCS_CREDENTIAL,
-                JSON.stringify(CcsCredentialType)
+                CcsCredentialType.UPN
             );
 
             sinon.stub(Authority.prototype, "isAlias").returns(false);
@@ -380,7 +380,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     authorityInstance,
                     authConfig.networkInterface!
                 )
-            ).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
+            ).rejects.toMatchObject(BrowserAuthError.createEmptyHashError());
             //@ts-ignore
             expect(
                 interactionHandler.handleCodeResponseFromHash(
@@ -392,7 +392,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 )
             ).rejects.toMatchObject(
                 //@ts-ignore
-                BrowserAuthError.createEmptyHashError(null)
+                BrowserAuthError.createEmptyHashError()
             );
         });
 
@@ -566,7 +566,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             );
             browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.CCS_CREDENTIAL,
-                JSON.stringify(CcsCredentialType)
+                CcsCredentialType.UPN
             );
             sinon
                 .stub(

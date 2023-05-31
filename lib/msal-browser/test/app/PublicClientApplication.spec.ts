@@ -57,10 +57,13 @@ import {
     BrowserConstants,
     BrowserCacheLocation,
     CacheLookupPolicy,
+    NativeConstants,
 } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
+import { RedirectRequest } from "../../src/request/RedirectRequest";
+import { PopupRequest } from "../../src/request/PopupRequest";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { EventMessage } from "../../src/event/EventMessage";
@@ -93,6 +96,7 @@ import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 
 const cacheConfig = {
+    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     cacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
     secureCookies: false,
@@ -131,6 +135,7 @@ function stubProvider(pca: PublicClientApplication) {
                 pca.getLogger(),
                 2000,
                 perfClient,
+                new CryptoOps(new Logger({})),
                 "test-extensionId"
             );
         });
@@ -175,7 +180,169 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("intialize tests", () => {
+    describe("initialize tests", () => {
+        globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
+
+        beforeEach(() => {
+            sinon.stub(MessageEvent.prototype, "source").get(() => window); // source property not set by jsdom window messaging APIs
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        })
+
+        it("handles concurrent calls", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            };
+            const concurrency = 5;
+
+            const postMessageSpy: sinon.SinonSpy = sinon.spy(window, "postMessage");
+            const initSpy: sinon.SinonSpy = sinon.spy(PublicClientApplication.prototype, "initialize");
+            // @ts-ignore
+            const handshakeSpy: sinon.SinonSpy = sinon.spy(NativeMessageHandler.prototype, "sendHandshakeRequest");
+
+            let ports: Set<MessagePort> = new Set();
+            let handledMessages = 0;
+
+            try {
+                const eventHandler = function (event: MessageEvent) {
+                    event.stopImmediatePropagation();
+                    const request = event.data;
+                    const req = {
+                        channel: NativeConstants.CHANNEL_ID,
+                        extensionId: NativeConstants.PREFERRED_EXTENSION_ID,
+                        responseId: request.responseId,
+                        body: {
+                            method: "HandshakeResponse",
+                            version: 3
+                        }
+                    };
+
+                    // Fan out messages to all registered ports to validate that responses are getting filtered out properly.
+                    for (let spy of postMessageSpy.getCalls()) {
+                        const port = spy.args[2][0];
+                        ports.add(port);
+                        port.postMessage(req);
+                    }
+                    handledMessages++;
+                };
+                window.addEventListener("message", eventHandler, true);
+
+                const apps = [];
+                for (let i = 0; i < concurrency; i++) {
+                    apps.push(new PublicClientApplication(config));
+                }
+
+                const promises = [];
+                for (let i = 0; i < apps.length; i++) {
+                    promises.push(apps[i].initialize());
+                }
+                await Promise.all(promises);
+
+                expect(handledMessages).toEqual(concurrency);
+                expect(handshakeSpy.callCount).toEqual(concurrency);
+                expect(initSpy.callCount).toEqual(concurrency);
+                window.removeEventListener("message", eventHandler, true);
+                for (let i = 0; i < apps.length; i++) {
+                    // @ts-ignore
+                    expect(apps[i].controller.initialized).toBeTruthy();
+                    // @ts-ignore
+                    expect(apps[i].controller.getNativeExtensionProvider()).toBeInstanceOf(NativeMessageHandler);
+                }
+            } finally {
+                for (const port of ports) {
+                    try {
+                        port.close();
+                    } catch {}
+                }
+            }
+        });
+
+        it("handles concurrent calls with native handshake timeouts", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            };
+            const concurrency = 6;
+
+            const postMessageSpy: sinon.SinonSpy = sinon.spy(window, "postMessage");
+            const initSpy: sinon.SinonSpy = sinon.spy(PublicClientApplication.prototype, "initialize");
+            // @ts-ignore
+            const createProviderSpy: sinon.SinonSpy = sinon.spy(NativeMessageHandler, "createProvider");
+
+            let ports: Set<MessagePort> = new Set();
+            let handledMessages = 0;
+
+            try {
+                const eventHandler = function (event: MessageEvent) {
+                    event.stopImmediatePropagation();
+                    const request = event.data;
+                    const req = {
+                        channel: NativeConstants.CHANNEL_ID,
+                        extensionId: NativeConstants.PREFERRED_EXTENSION_ID,
+                        responseId: request.responseId,
+                        body: {
+                            method: "HandshakeResponse",
+                            version: 3
+                        }
+                    };
+
+                    // Time out the second half of the handshakes.
+                    if (handledMessages >= concurrency / 2) {
+                        return;
+                    }
+                    // Fan out messages to all registered ports to validate that responses are getting filtered out properly.
+                    for (let spy of postMessageSpy.getCalls()) {
+                        const port = spy.args[2][0];
+                        ports.add(port);
+                        port.postMessage(req);
+                    }
+                    handledMessages++;
+                };
+                window.addEventListener("message", eventHandler, true);
+
+                const apps = [];
+                for (let i = 0; i < concurrency; i++) {
+                    apps.push(new PublicClientApplication(config));
+                }
+
+                const promises = [];
+                for (let i = 0; i < apps.length; i++) {
+                    promises.push(apps[i].initialize());
+                }
+                await Promise.all(promises);
+
+                expect(handledMessages).toEqual(concurrency / 2);
+                expect(createProviderSpy.callCount).toEqual(concurrency);
+                expect(initSpy.callCount).toEqual(concurrency);
+                window.removeEventListener("message", eventHandler, true);
+                let nativeProviders = 0;
+                for (let i = 0; i < apps.length; i++) {
+                    // @ts-ignore
+                    expect(apps[i].controller.initialized).toBeTruthy();
+                    // @ts-ignore
+                    nativeProviders += apps[i].controller.getNativeExtensionProvider() ? 1 : 0;
+                }
+                expect(nativeProviders).toEqual(concurrency / 2);
+            } finally {
+                for (const port of ports) {
+                    try {
+                        port.close();
+                    } catch {}
+                }
+            }
+        });
+
         it("creates extension provider if allowNativeBroker is true", async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -636,13 +803,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("loginRedirect", () => {
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: RedirectRequest = {
                 scopes: [],
+                onRedirectNavigate: () => false // Skip the navigation
             };
 
-            const result1 = await pca.loginRedirect(request).catch(() => null);
-
-            const result2 = await pca.loginRedirect(request).catch(() => null);
+            await pca.loginRedirect(request).catch(() => null);
+            await pca.loginRedirect(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -933,17 +1100,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: RedirectRequest = {
                 scopes: [],
+                onRedirectNavigate: () => false // Skip the navigation
             };
 
-            const result1 = await pca
-                .acquireTokenRedirect(request)
-                .catch(() => null);
-
-            const result2 = await pca
-                .acquireTokenRedirect(request)
-                .catch(() => null);
+            await pca.acquireTokenRedirect(request).catch(() => null);
+            await pca.acquireTokenRedirect(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1158,13 +1321,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: PopupRequest = {
                 scopes: [],
             };
 
-            const result1 = await pca.loginPopup(request).catch(() => null);
+            jest.spyOn(PopupClient.prototype, "initiateAuthRequest").mockImplementation(() => {
+                throw "Request object has been built at this point, no need to continue";
+            });
 
-            const result2 = await pca.loginPopup(request).catch(() => null);
+            await pca.loginPopup(request).catch(() => null);
+            await pca.loginPopup(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1526,17 +1692,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: PopupRequest = {
                 scopes: [],
             };
 
-            const result1 = await pca
-                .acquireTokenPopup(request)
-                .catch(() => null);
+            jest.spyOn(PopupClient.prototype, "initiateAuthRequest").mockImplementation(() => {
+                throw "Request object has been built at this point, no need to continue";
+            });
 
-            const result2 = await pca
-                .acquireTokenPopup(request)
-                .catch(() => null);
+            await pca.acquireTokenPopup(request).catch(() => null);
+            await pca.acquireTokenPopup(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -1973,9 +2138,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            const result1 = await pca.ssoSilent(request).catch(() => null);
-
-            const result2 = await pca.ssoSilent(request).catch(() => null);
+            await pca.ssoSilent(request).catch(() => null);
+            await pca.ssoSilent(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -2282,11 +2446,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 code: "123",
             };
 
-            const result1 = await pca
+            await pca
                 .acquireTokenByCode(request)
                 .catch(() => null);
 
-            const result2 = await pca
+            await pca
                 .acquireTokenByCode(request)
                 .catch(() => null);
 
@@ -2788,11 +2952,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            const result1 = await pca
+            await pca
                 .acquireTokenSilent(request)
                 .catch(() => null);
 
-            const result2 = await pca
+            await pca
                 .acquireTokenSilent(request)
                 .catch(() => null);
 
@@ -3980,9 +4144,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             const request: EndSessionRequest = {};
 
-            const result1 = await pca.logout(request).catch(() => null);
-
-            const result2 = await pca.logout(request).catch(() => null);
+            await pca.logout(request).catch(() => null);
+            await pca.logout(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -3994,9 +4157,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const request: EndSessionRequest = {};
 
-            const result1 = await pca.logoutRedirect(request).catch(() => null);
-
-            const result2 = await pca.logoutRedirect(request).catch(() => null);
+            await pca.logoutRedirect(request).catch(() => null);
+            await pca.logoutRedirect(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -4025,9 +4187,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const request: EndSessionRequest = {};
 
-            const result1 = await pca.logoutPopup(request).catch(() => null);
-
-            const result2 = await pca.logoutPopup(request).catch(() => null);
+            await pca.logoutPopup(request).catch(() => null);
+            await pca.logoutPopup(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });

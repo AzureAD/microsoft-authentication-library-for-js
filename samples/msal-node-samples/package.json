@@ -10,11 +10,12 @@
         "build:package": "cd ../../lib/msal-node && npm run build:all"
     },
     "devDependencies": {
-        "jest": "^27.0.4",
+        "jest": "^29.5.0",
         "shx": "^0.3.3",
         "yargs": "^16.2.0"
     },
     "dependencies": {
+        "@azure/msal-node": "file:../../lib/msal-node",
         "@types/express": "^4.17.11",
         "express": "^4.17.1"
     }

@@ -19,21 +19,21 @@ import { FileSystemUtils } from '../util/FileSystemUtils';
 
 describe('Persistence Creator', () => {
     afterAll(() => {
-        FileSystemUtils.cleanUpFile("./test.json");
+        FileSystemUtils.cleanUpFile("./creator-test.json");
     });
 
     const persistenceConfig: IPersistenceConfiguration = {
-        cachePath: "./test.json",
+        cachePath: "./creator-test.json",
         dataProtectionScope: DataProtectionScope.CurrentUser,
         serviceName: "serviceName",
         accountName: "accountName",
     };
 
     const emptyPeristenceConfig: IPersistenceConfiguration = {
-        cachePath: null,
-        dataProtectionScope: null,
-        serviceName: null,
-        accountName: null,
+        cachePath: undefined,
+        dataProtectionScope: undefined,
+        serviceName: undefined,
+        accountName: undefined,
     };
 
     test('Creates the FilePersistenceWithDataProtection instance', async () => {
@@ -74,7 +74,7 @@ describe('Persistence Creator', () => {
             await PersistenceCreator.createPersistence(persistenceConfig);
         } catch (e) {
             expect(e).toBeInstanceOf(PersistenceError);
-            expect(e.errorMessage).toBe("Persistence could not be verified");
+            expect((e as PersistenceError).errorMessage).toBe("Persistence could not be verified");
         }
     });
 
@@ -84,7 +84,7 @@ describe('Persistence Creator', () => {
             await PersistenceCreator.createPersistence(emptyPeristenceConfig);
         } catch (e) {
             expect(e).toBeInstanceOf(PersistenceError);
-            expect(e.errorMessage).toBe("Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection cache plugin")
+            expect((e as PersistenceError).errorMessage).toBe("Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection cache plugin")
         }
     });
 
@@ -94,7 +94,7 @@ describe('Persistence Creator', () => {
             await PersistenceCreator.createPersistence(emptyPeristenceConfig);
         } catch (e) {
             expect(e).toBeInstanceOf(PersistenceError);
-            expect(e.errorMessage).toBe("Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin")
+            expect((e as PersistenceError).errorMessage).toBe("Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin")
         }
     });
 
@@ -104,7 +104,7 @@ describe('Persistence Creator', () => {
             await PersistenceCreator.createPersistence(emptyPeristenceConfig);
         } catch (e) {
             expect(e).toBeInstanceOf(PersistenceError);
-            expect(e.errorMessage).toBe("Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin")
+            expect((e as PersistenceError).errorMessage).toBe("Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin")
         }
     });
 });

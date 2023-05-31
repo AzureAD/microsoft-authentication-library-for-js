@@ -75,6 +75,7 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
+    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
     secureCookies: false,
     cacheMigrationEnabled: false,
@@ -1826,6 +1827,8 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
 
+            const eventSpy = sinon.stub(EventHandler.prototype, "emitEvent");
+
             const testLogger = new Logger(loggerOptions);
             const browserCrypto = new CryptoOps(new Logger({}));
             const browserStorage = new BrowserCacheManager(
@@ -1867,6 +1870,7 @@ describe("RedirectClient", () => {
                             )
                         ).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
                         bfCacheCallback({ persisted: true });
+                        expect(eventSpy.calledWith(EventType.RESTORE_FROM_BFCACHE, InteractionType.Redirect)).toBe(true);
                         expect(browserStorage.isInteractionInProgress()).toBe(
                             false
                         );

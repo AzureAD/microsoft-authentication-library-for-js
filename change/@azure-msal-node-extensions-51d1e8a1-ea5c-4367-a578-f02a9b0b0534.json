@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Drop TSDX in favor of using rollup & jest directly #5893",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

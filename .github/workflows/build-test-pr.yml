@@ -4,16 +4,10 @@
 name: Run CI
 # Runs CI on Pull Requests for libraries affected by PR
 
-on:
-  pull_request:
-    paths:
-      - 'lib/**/*'
-      - 'extensions/msal-node-extensions/**/*'
-      - '!**.md'
-      - '.github/workflows/build-test-pr.yml'
-      
+on: pull_request
+
 concurrency:
-  group: ci-${{github.ref}}
+  group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
 
 permissions:
@@ -25,10 +19,9 @@ jobs:
       contents: read  # for dorny/paths-filter to fetch a list of changed files
       pull-requests: read  # for dorny/paths-filter to read pull requests
     runs-on: ubuntu-latest
-    outputs: 
+    outputs:
       # Expose matched filters as job 'packages' output variable
       packages: ${{ steps.lib-filter.outputs.changes }}
-      extensions: ${{ steps.extensions-filter.outputs.node-extensions }}
 
     steps:
       - uses: dorny/paths-filter@v2
@@ -39,12 +32,10 @@ jobs:
           # browser/node filter will match any path under common as well as their own
           # angular/react filter will match any path under common and browser as well as their own
           filters: |
-            msal-core:
-              - 'lib/msal-core/**/**.!(md)'
-              - '.github/workflows/build-test-pr.yml'
             msal-common: &common
               - 'lib/msal-common/**/**.!(md)'
               - '.github/workflows/build-test-pr.yml'
+              - '.github/workflows/ci-template.yml'
             msal-browser: &browser
               - *common
               - 'lib/msal-browser/**/**.!(md)'
@@ -57,123 +48,61 @@ jobs:
             msal-react:
               - *browser
               - 'lib/msal-react/**/**.!(md)'
-            node-token-validation:
+            msal-node-extensions:
               - *common
-              - 'lib/node-token-validation/**/**.!(md)'
-
-      - uses: dorny/paths-filter@v2
-        id: extensions-filter
-        with:
-          filters: |
-            node-extensions:
-              - 'lib/msal-common/**/**.!(md)'
-              - '.github/workflows/build-test-pr.yml'
               - 'extensions/msal-node-extensions/**/**.!(md)'
 
-  lib-build-test:
+  ci-msal-common:
+    name: msal-common
     needs: pre-check
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      path: 'lib'
+      lib-name: 'msal-common'
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-common') }}
 
-    strategy:
-        fail-fast: false
-        matrix:
-          # Parse JSON array containing names of all filters matching any of changed files
-          # e.g. ['package1', 'package2'] if both package folders contains changes
-          library: ${{ fromJSON(needs.pre-check.outputs.packages) }}
-  
-    name: ${{ matrix.library }}
-    
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 16
-
-    - name: Restore node_modules
-      uses: actions/cache@v3
-      id: cache
-      with:
-        path: |
-          node_modules
-          lib/*/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
-
-    - name: Clean Install
-      if: steps.cache.outputs.cache-hit != 'true'
-      env:
-        RUNNING_NODE_CI: 1
-      run: npm ci
-
-    - name: Upload npm logs
-      uses: actions/upload-artifact@v3
-      if: failure()
-      with:
-        name: npm_logs_${{ matrix.library }}
-        path: ~/.npm/_logs/**/*
-        retention-days: 2
-
-    - name: Build packages
-      working-directory: lib/${{ matrix.library }}
-      run: npm run build:all
-
-    - name: Lint
-      working-directory: lib/${{ matrix.library }}
-      run: npm run lint
-
-    - name: Unit Tests with coverage
-      working-directory: lib/${{ matrix.library }}
-      run: npm run test:coverage
-
-    - name: Upload Test Coverage to CodeCov
-      if: success()
-      uses: codecov/codecov-action@v3
-      with:
-        files: lib/${{matrix.library}}/coverage/lcov.info
-        flags: ${{ matrix.library }}
-
-  extensions-build-test:
+  ci-msal-browser:
+    name: msal-browser
     needs: pre-check
-    runs-on: windows-2019
-    if: needs.pre-check.outputs.extensions == 'true'
-  
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      path: 'lib'
+      lib-name: 'msal-browser'
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-browser') }}
+
+  ci-msal-node:
+    name: msal-node
+    needs: pre-check
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      path: 'lib'
+      lib-name: 'msal-node'
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node') }}
+
+  ci-msal-angular:
+    name: msal-angular
+    needs: pre-check
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      path: 'lib'
+      lib-name: 'msal-angular'
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-angular') }}
+
+  ci-msal-react:
+    name: msal-react
+    needs: pre-check
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      path: 'lib'
+      lib-name: 'msal-react'
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-react') }}
+
+  ci-msal-node-extensions:
     name: msal-node-extensions
-    
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-
-    - name: Clean Install
-      env:
-        RUNNING_NODE_CI: 1
-      run: npm ci
-
-    - name: Upload npm logs
-      uses: actions/upload-artifact@v3
-      if: failure()
-      with:
-        name: npm_logs_msal-node-extensions
-        path: ~/npm/cache/_logs/**/*
-        retention-days: 2
-
-    - name: Build packages
-      working-directory: extensions/msal-node-extensions
-      run: npm run build:all
-
-    - name: Lint
-      working-directory: extensions/msal-node-extensions
-      run: npm run lint
-
-    - name: Unit Tests with coverage
-      working-directory: extensions/msal-node-extensions
-      run: npm run test:coverage
-
-    - name: Upload Test Coverage to CodeCov
-      if: success()
-      uses: codecov/codecov-action@v3
-      with:
-        files: extensions/msal-node-extensions/coverage/lcov.info
-        flags: msal-node-extensions
+    needs: pre-check
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      path: 'extensions'
+      lib-name: 'msal-node-extensions'
+      os: 'windows-latest'
+      should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node-extensions') }}

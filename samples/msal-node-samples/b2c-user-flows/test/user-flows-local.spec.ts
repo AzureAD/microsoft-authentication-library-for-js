@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
-
+import * as puppeteer from "puppeteer";
 import {
     Screenshot,
     createFolder,
@@ -12,7 +11,7 @@ import {
     b2cLocalAccountEnterCredentials,
     RETRY_TIMES
 } from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
@@ -22,7 +21,7 @@ import {
     SAMPLE_HOME_URL
 } from "../../testUtils";
 
-import { ConfidentialClientApplication } from "../../../../lib/msal-node/dist";
+import { ConfidentialClientApplication } from "@azure/msal-node";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/../data/b2c-local.cache.json`;
@@ -133,10 +132,8 @@ describe("B2C User Flow Tests", () => {
             await page.click("#editProfile");
             await page.waitForSelector("#attributeVerification");
 
-            await Promise.all([
-                page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
-                page.type("#displayName", `${displayName}`),
-            ]);
+            await page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
+            await page.type("#displayName", `${displayName}`),
 
             await page.click("#continue");
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
+import { AccountInfo ,
     ICrypto,
     AuthError,
     PkceCodes,
@@ -241,26 +241,41 @@ export const TEST_CRYPTO_VALUES = {
     TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE",
 };
 
+export const mockAccountInfo: AccountInfo = {
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID,
+    environment: TEST_CONSTANTS.PREFERRED_CACHE,
+    localAccountId: ID_TOKEN_CLAIMS.oid,
+    tenantId: ID_TOKEN_CLAIMS.tid,
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    idTokenClaims: ID_TOKEN_CLAIMS,
+    name: ID_TOKEN_CLAIMS.name,
+    nativeAccountId: undefined
+};
+
+export const mockNativeAccountInfo: AccountInfo = {
+    ...mockAccountInfo,
+    nativeAccountId: "test-nativeAccountId"
+}
+
 export const mockAuthenticationResult: AuthenticationResult = {
     authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
     uniqueId: TEST_DATA_CLIENT_INFO.TEST_UID,
     tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
     scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-    account: {
-        homeAccountId: TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID,
-        environment: TEST_CONSTANTS.PREFERRED_CACHE,
-        localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
-        tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-        username: ID_TOKEN_CLAIMS.preferred_username,
-    },
+    account: mockAccountInfo,
     idToken: TEST_CONSTANTS.ID_TOKEN,
     idTokenClaims: ID_TOKEN_CLAIMS,
     accessToken: TEST_CONSTANTS.ACCESS_TOKEN,
     fromCache: false,
     expiresOn: new Date(),
     tokenType: "BEARER",
-    correlationId: "test-correlationId",
+    correlationId: "test-correlationId"
 };
+
+export const mockNativeAuthenticationResult: AuthenticationResult = {
+    ...mockAuthenticationResult,
+    account: mockNativeAccountInfo
+}
 
 export type MockedMetadataResponse = {
     tenant_discovery_endpoint: string;

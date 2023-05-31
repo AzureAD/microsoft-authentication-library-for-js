@@ -6,7 +6,6 @@
 import path from "path";
 import { Constants, Platform } from "./Constants";
 import { PersistenceError } from "../error/PersistenceError";
-import { StringUtils } from "@azure/msal-common";
 
 export class Environment {
     static get homeEnvVar(): string {
@@ -30,7 +29,7 @@ export class Environment {
     }
 
     static getEnvironmentVariable(name: string): string {
-        return process.env[name];
+        return process.env[name] || "";
     }
 
     static getEnvironmentPlatform(): string {
@@ -50,10 +49,14 @@ export class Environment {
     }
 
     static isLinuxRootUser(): boolean {
+        if (typeof process.getuid !== "function") {
+            return false;
+        }
+
         return process.getuid() === Constants.LINUX_ROOT_USER_GUID;
     }
 
-    static getUserRootDirectory(): string {
+    static getUserRootDirectory(): string | null {
         return !this.isWindowsPlatform ?
             this.getUserHomeDirOnUnix() :
             this.getUserHomeDirOnWindows();
@@ -69,28 +72,28 @@ export class Environment {
                 "Getting the user home directory for unix is not supported in windows");
         }
 
-        if (!StringUtils.isEmpty(this.homeEnvVar)) {
+        if (this.homeEnvVar) {
             return this.homeEnvVar;
         }
 
         let username = null;
-        if (!StringUtils.isEmpty(this.lognameEnvVar)) {
+        if (this.lognameEnvVar) {
             username = this.lognameEnvVar;
-        } else if (!StringUtils.isEmpty(this.userEnvVar)) {
+        } else if (this.userEnvVar) {
             username = this.userEnvVar;
-        } else if (!StringUtils.isEmpty(this.lnameEnvVar)) {
+        } else if (this.lnameEnvVar) {
             username = this.lnameEnvVar;
-        } else if (!StringUtils.isEmpty(this.usernameEnvVar)) {
+        } else if (this.usernameEnvVar) {
             username = this.usernameEnvVar;
         }
 
         if (this.isMacPlatform()) {
-            return !StringUtils.isEmpty(username) ? path.join("/Users", username) : null;
+            return username ? path.join("/Users", username) : null;
         } else if (this.isLinuxPlatform()) {
             if (this.isLinuxRootUser()) {
                 return "/root";
             } else {
-                return !StringUtils.isEmpty(username) ? path.join("/home", username) : null;
+                return username ? path.join("/home", username) : null;
             }
         } else {
             throw PersistenceError.createNotSupportedError(

@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 import {Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
@@ -19,7 +19,7 @@ import {
     validateCacheLocation,
     SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID} from "../../testUtils";
 
-import { PublicClientApplication, TokenCache } from "../../../../lib/msal-node/dist";
+import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/cache.json`;

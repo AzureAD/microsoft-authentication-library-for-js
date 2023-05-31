@@ -9,238 +9,239 @@
  * @export
  * @enum {number}
  */
-export enum PerformanceEvents {
+export const PerformanceEvents = {
     /**
      * acquireTokenByCode API (msal-browser and msal-node).
      * Used to acquire tokens by trading an authorization code against the token endpoint.
      */
-    AcquireTokenByCode = "acquireTokenByCode",
+    AcquireTokenByCode: "acquireTokenByCode",
 
     /**
      * acquireTokenByRefreshToken API (msal-browser and msal-node).
      * Used to renew an access token using a refresh token against the token endpoint.
      */
-    AcquireTokenByRefreshToken = "acquireTokenByRefreshToken",
+    AcquireTokenByRefreshToken: "acquireTokenByRefreshToken",
 
     /**
      * acquireTokenSilent API (msal-browser and msal-node).
      * Used to silently acquire a new access token (from the cache or the network).
      */
-    AcquireTokenSilent = "acquireTokenSilent",
+    AcquireTokenSilent: "acquireTokenSilent",
 
     /**
      * acquireTokenSilentAsync (msal-browser).
      * Internal API for acquireTokenSilent.
      */
-    AcquireTokenSilentAsync = "acquireTokenSilentAsync",
+    AcquireTokenSilentAsync: "acquireTokenSilentAsync",
 
     /**
      * acquireTokenPopup (msal-browser).
      * Used to acquire a new access token interactively through pop ups
      */
-    AcquireTokenPopup = "acquireTokenPopup",
+    AcquireTokenPopup: "acquireTokenPopup",
 
     /**
      * getPublicKeyThumbprint API in CryptoOpts class (msal-browser).
      * Used to generate a public/private keypair and generate a public key thumbprint for pop requests.
      */
-    CryptoOptsGetPublicKeyThumbprint = "cryptoOptsGetPublicKeyThumbprint",
+    CryptoOptsGetPublicKeyThumbprint: "cryptoOptsGetPublicKeyThumbprint",
 
     /**
      * signJwt API in CryptoOpts class (msal-browser).
      * Used to signed a pop token.
      */
-    CryptoOptsSignJwt = "cryptoOptsSignJwt",
+    CryptoOptsSignJwt: "cryptoOptsSignJwt",
 
     /**
      * acquireToken API in the SilentCacheClient class (msal-browser).
      * Used to read access tokens from the cache.
      */
-    SilentCacheClientAcquireToken = "silentCacheClientAcquireToken",
+    SilentCacheClientAcquireToken: "silentCacheClientAcquireToken",
 
     /**
      * acquireToken API in the SilentIframeClient class (msal-browser).
      * Used to acquire a new set of tokens from the authorize endpoint in a hidden iframe.
      */
-    SilentIframeClientAcquireToken = "silentIframeClientAcquireToken",
+    SilentIframeClientAcquireToken: "silentIframeClientAcquireToken",
 
     /**
      * acquireToken API in SilentRereshClient (msal-browser).
      * Used to acquire a new set of tokens from the token endpoint using a refresh token.
      */
-    SilentRefreshClientAcquireToken = "silentRefreshClientAcquireToken",
+    SilentRefreshClientAcquireToken: "silentRefreshClientAcquireToken",
 
     /**
      * ssoSilent API (msal-browser).
      * Used to silently acquire an authorization code and set of tokens using a hidden iframe.
      */
-    SsoSilent = "ssoSilent",
+    SsoSilent: "ssoSilent",
 
     /**
      * getDiscoveredAuthority API in StandardInteractionClient class (msal-browser).
      * Used to load authority metadata for a request.
      */
-    StandardInteractionClientGetDiscoveredAuthority = "standardInteractionClientGetDiscoveredAuthority",
+    StandardInteractionClientGetDiscoveredAuthority: "standardInteractionClientGetDiscoveredAuthority",
 
     /**
      * acquireToken APIs in msal-browser.
      * Used to make an /authorize endpoint call with native brokering enabled.
      */
-    FetchAccountIdWithNativeBroker = "fetchAccountIdWithNativeBroker",
+    FetchAccountIdWithNativeBroker: "fetchAccountIdWithNativeBroker",
 
     /**
      * acquireToken API in NativeInteractionClient class (msal-browser).
      * Used to acquire a token from Native component when native brokering is enabled.
      */
-    NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
+    NativeInteractionClientAcquireToken: "nativeInteractionClientAcquireToken",
     /**
      * Time spent creating default headers for requests to token endpoint
      */
-    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+    BaseClientCreateTokenRequestHeaders: "baseClientCreateTokenRequestHeaders",
     /**
      * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
      */
-    BrokerHandhshake = "brokerHandshake",
+    BrokerHandhshake: "brokerHandshake",
     /**
      * acquireTokenByRefreshToken API in BrokerClientApplication (PW-Broker) .
      */
-    AcquireTokenByRefreshTokenInBroker = "acquireTokenByRefreshTokenInBroker",
+    AcquireTokenByRefreshTokenInBroker: "acquireTokenByRefreshTokenInBroker",
     /**
      * Time taken for token acquisition by broker
      */
-    AcquireTokenByBroker = "acquireTokenByBroker",
+    AcquireTokenByBroker: "acquireTokenByBroker",
 
     /**
      * Time spent on the network for refresh token acquisition
      */
-    RefreshTokenClientExecuteTokenRequest = "refreshTokenClientExecuteTokenRequest",
+    RefreshTokenClientExecuteTokenRequest: "refreshTokenClientExecuteTokenRequest",
 
     /**
      * Time taken for acquiring refresh token , records RT size
      */
-    RefreshTokenClientAcquireToken = "refreshTokenClientAcquireToken",
+    RefreshTokenClientAcquireToken: "refreshTokenClientAcquireToken",
 
     /**
      * Time taken for acquiring cached refresh token
      */
-    RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
+    RefreshTokenClientAcquireTokenWithCachedRefreshToken: "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 
     /**
      * acquireTokenByRefreshToken API in RefreshTokenClient (msal-common).
      */
-    RefreshTokenClientAcquireTokenByRefreshToken = "refreshTokenClientAcquireTokenByRefreshToken",
+    RefreshTokenClientAcquireTokenByRefreshToken: "refreshTokenClientAcquireTokenByRefreshToken",
 
     /**
      * Helper function to create token request body in RefreshTokenClient (msal-common).
      */
-    RefreshTokenClientCreateTokenRequestBody = "refreshTokenClientCreateTokenRequestBody",
+    RefreshTokenClientCreateTokenRequestBody: "refreshTokenClientCreateTokenRequestBody",
 
     /**
      * acquireTokenFromCache (msal-browser).
      * Internal API for acquiring token from cache
      */
-    AcquireTokenFromCache = "acquireTokenFromCache",
+    AcquireTokenFromCache: "acquireTokenFromCache",
 
     /**
      * acquireTokenBySilentIframe (msal-browser).
      * Internal API for acquiring token by silent Iframe
      */
-    AcquireTokenBySilentIframe = "acquireTokenBySilentIframe",
+    AcquireTokenBySilentIframe: "acquireTokenBySilentIframe",
 
     /**
      * Internal API for initializing base request in BaseInteractionClient (msal-browser)
      */
-    InitializeBaseRequest = "initializeBaseRequest",
+    InitializeBaseRequest: "initializeBaseRequest",
 
     /**
      * Internal API for initializing silent request in SilentCacheClient (msal-browser)
      */
-    InitializeSilentRequest = "initializeSilentRequest",
+    InitializeSilentRequest: "initializeSilentRequest",
 
-    InitializeClientApplication = "initializeClientApplication",
+    InitializeClientApplication: "initializeClientApplication",
 
     /**
      * Helper function in SilentIframeClient class (msal-browser).
      */
-    SilentIframeClientTokenHelper = "silentIframeClientTokenHelper",
+    SilentIframeClientTokenHelper: "silentIframeClientTokenHelper",
 
     /**
      * SilentHandler
      */
-    SilentHandlerInitiateAuthRequest = "silentHandlerInitiateAuthRequest",
-    SilentHandlerMonitorIframeForHash = "silentHandlerMonitorIframeForHash",
-    SilentHandlerLoadFrame = "silentHandlerLoadFrame",
+    SilentHandlerInitiateAuthRequest: "silentHandlerInitiateAuthRequest",
+    SilentHandlerMonitorIframeForHash: "silentHandlerMonitorIframeForHash",
+    SilentHandlerLoadFrame: "silentHandlerLoadFrame",
 
     /**
      * Helper functions in StandardInteractionClient class (msal-browser)
      */
-    StandardInteractionClientCreateAuthCodeClient = "standardInteractionClientCreateAuthCodeClient",
-    StandardInteractionClientGetClientConfiguration = "standardInteractionClientGetClientConfiguration",
-    StandardInteractionClientInitializeAuthorizationRequest = "standardInteractionClientInitializeAuthorizationRequest",
-    StandardInteractionClientInitializeAuthorizationCodeRequest = "standardInteractionClientInitializeAuthorizationCodeRequest",
+    StandardInteractionClientCreateAuthCodeClient: "standardInteractionClientCreateAuthCodeClient",
+    StandardInteractionClientGetClientConfiguration: "standardInteractionClientGetClientConfiguration",
+    StandardInteractionClientInitializeAuthorizationRequest: "standardInteractionClientInitializeAuthorizationRequest",
+    StandardInteractionClientInitializeAuthorizationCodeRequest: "standardInteractionClientInitializeAuthorizationCodeRequest",
 
     /**
      * getAuthCodeUrl API (msal-browser and msal-node).
      */
-    GetAuthCodeUrl = "getAuthCodeUrl",
+    GetAuthCodeUrl: "getAuthCodeUrl",
 
     /**
      * Functions from InteractionHandler (msal-browser)
      */
-    HandleCodeResponseFromServer = "handleCodeResponseFromServer",
-    HandleCodeResponseFromHash = "handleCodeResponseFromHash",
-    UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority",
+    HandleCodeResponseFromServer: "handleCodeResponseFromServer",
+    HandleCodeResponseFromHash: "handleCodeResponseFromHash",
+    UpdateTokenEndpointAuthority: "updateTokenEndpointAuthority",
 
     /**
      * APIs in Authorization Code Client (msal-common)
      */
-    AuthClientAcquireToken = "authClientAcquireToken",
-    AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest",
-    AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody",
-    AuthClientCreateQueryString = "authClientCreateQueryString",
+    AuthClientAcquireToken: "authClientAcquireToken",
+    AuthClientExecuteTokenRequest: "authClientExecuteTokenRequest",
+    AuthClientCreateTokenRequestBody: "authClientCreateTokenRequestBody",
+    AuthClientCreateQueryString: "authClientCreateQueryString",
 
     /**
      * Generate functions in PopTokenGenerator (msal-common)
      */
-    PopTokenGenerateCnf = "popTokenGenerateCnf",
-    PopTokenGenerateKid = "popTokenGenerateKid",
+    PopTokenGenerateCnf: "popTokenGenerateCnf",
+    PopTokenGenerateKid: "popTokenGenerateKid",
 
     /**
      * handleServerTokenResponse API in ResponseHandler (msal-common)
      */
-    HandleServerTokenResponse = "handleServerTokenResponse",
+    HandleServerTokenResponse: "handleServerTokenResponse",
 
     /**
      * Authority functions
      */
-    AuthorityFactoryCreateDiscoveredInstance = "authorityFactoryCreateDiscoveredInstance",
-    AuthorityResolveEndpointsAsync = "authorityResolveEndpointsAsync",
-    AuthorityGetCloudDiscoveryMetadataFromNetwork = "authorityGetCloudDiscoveryMetadataFromNetwork",
-    AuthorityUpdateCloudDiscoveryMetadata = "authorityUpdateCloudDiscoveryMetadata",
-    AuthorityGetEndpointMetadataFromNetwork = "authorityGetEndpointMetadataFromNetwork",
-    AuthorityUpdateEndpointMetadata = "authorityUpdateEndpointMetadata",
-    AuthorityUpdateMetadataWithRegionalInformation = "authorityUpdateMetadataWithRegionalInformation",
+    AuthorityFactoryCreateDiscoveredInstance: "authorityFactoryCreateDiscoveredInstance",
+    AuthorityResolveEndpointsAsync: "authorityResolveEndpointsAsync",
+    AuthorityGetCloudDiscoveryMetadataFromNetwork: "authorityGetCloudDiscoveryMetadataFromNetwork",
+    AuthorityUpdateCloudDiscoveryMetadata: "authorityUpdateCloudDiscoveryMetadata",
+    AuthorityGetEndpointMetadataFromNetwork: "authorityGetEndpointMetadataFromNetwork",
+    AuthorityUpdateEndpointMetadata: "authorityUpdateEndpointMetadata",
+    AuthorityUpdateMetadataWithRegionalInformation: "authorityUpdateMetadataWithRegionalInformation",
 
     /**
      * Region Discovery functions
      */
-    RegionDiscoveryDetectRegion = "regionDiscoveryDetectRegion",
-    RegionDiscoveryGetRegionFromIMDS = "regionDiscoveryGetRegionFromIMDS",
-    RegionDiscoveryGetCurrentVersion = "regionDiscoveryGetCurrentVersion",
+    RegionDiscoveryDetectRegion: "regionDiscoveryDetectRegion",
+    RegionDiscoveryGetRegionFromIMDS: "regionDiscoveryGetRegionFromIMDS",
+    RegionDiscoveryGetCurrentVersion: "regionDiscoveryGetCurrentVersion",
 
-    AcquireTokenByCodeAsync = "acquireTokenByCodeAsync",
+    AcquireTokenByCodeAsync: "acquireTokenByCodeAsync",
 
-    GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
-    GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
+    GetEndpointMetadataFromNetwork: "getEndpointMetadataFromNetwork",
+    GetCloudDiscoveryMetadataFromNetworkMeasurement: "getCloudDiscoveryMetadataFromNetworkMeasurement",
 
-    HandleRedirectPromiseMeasurement = "handleRedirectPromiseMeasurement",
+    HandleRedirectPromiseMeasurement: "handleRedirectPromiseMeasurement",
 
-    UpdateCloudDiscoveryMetadataMeasurement = "updateCloudDiscoveryMetadataMeasurement",
+    UpdateCloudDiscoveryMetadataMeasurement: "updateCloudDiscoveryMetadataMeasurement",
 
-    UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken",
+    UsernamePasswordClientAcquireToken: "usernamePasswordClientAcquireToken",
 
-    NativeMessageHandlerHandshake = "nativeMessageHandlerHandshake",
-}
+    NativeMessageHandlerHandshake: "nativeMessageHandlerHandshake",
+} as const;
+export type PerformanceEvents = typeof PerformanceEvents[keyof typeof PerformanceEvents];
 
 /**
  * State of the performance event.
@@ -248,11 +249,12 @@ export enum PerformanceEvents {
  * @export
  * @enum {number}
  */
-export enum PerformanceEventStatus {
-    NotStarted,
-    InProgress,
-    Completed,
-}
+export const PerformanceEventStatus = {
+    NotStarted: 0,
+    InProgress: 1,
+    Completed: 2,
+} as const;
+export type PerformanceEventStatus = typeof PerformanceEventStatus[keyof typeof PerformanceEventStatus];
 
 /**
  * Fields whose value will not change throughout a request

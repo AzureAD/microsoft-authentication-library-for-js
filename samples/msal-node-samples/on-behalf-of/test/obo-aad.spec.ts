@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
@@ -44,7 +44,7 @@ describe("OBO AAD Tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
-    
+
     let username: string;
     let accountPwd: string;
 
@@ -127,7 +127,7 @@ describe("OBO AAD Tests", () => {
             await page.goto(HOME_ROUTE);
             await enterCredentials(page, screenshot, username, accountPwd);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
-            
+
             const webApiCachedTokens = await NodeCacheTestUtils.waitForTokens(WEB_API_TEST_CACHE_LOCATION, 2000);
             expect(webApiCachedTokens.accessTokens.length).toBe(1);
             expect(webApiCachedTokens.idTokens.length).toBe(1);

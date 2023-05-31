@@ -1,9 +1,9 @@
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import {RETRY_TIMES, retrieveAppConfiguration} from "../../../e2eTestUtils/TestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { validateCacheLocation } from "../../testUtils";
-import { ConfidentialClientApplication } from "../../../../lib/msal-node/";
+import { ConfidentialClientApplication } from "@azure/msal-node";
 import config from "../config/AAD.json";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;

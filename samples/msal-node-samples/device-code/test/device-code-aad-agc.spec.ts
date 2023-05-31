@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 import {Screenshot, createFolder, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import {
     approveRemoteConnect,
     enterCredentials,
@@ -13,7 +13,7 @@ import {
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation
  } from "../../testUtils";
-import { Configuration, PublicClientApplication } from "../../../../lib/msal-node";
+import { Configuration, PublicClientApplication } from "@azure/msal-node";
 import { getKeyVaultSecretClient, getCredentials } from "../../../e2eTestUtils/KeyVaultUtils";
 
 // Set test cache name/location

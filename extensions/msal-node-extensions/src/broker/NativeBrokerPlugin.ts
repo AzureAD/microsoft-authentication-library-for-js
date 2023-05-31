@@ -80,7 +80,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             }
         };
         try {
-            msalNodeRuntime.RegisterLogger(logCallback, loggerOptions.piiLoggingEnabled);
+            msalNodeRuntime.RegisterLogger(logCallback, loggerOptions.piiLoggingEnabled || false);
         } catch (e) {
             const wrappedError = this.wrapError(e);
             if (wrappedError) {
@@ -109,7 +109,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     }
                 }
 
-                const accountInfoResult = [];
+                const accountInfoResult: AccountInfo[] = [];
                 result.accounts.forEach((account: Account) => {
                     accountInfoResult.push(this.generateAccountInfo(account));
                 });
@@ -312,8 +312,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             }
             
             if (request.extraParameters) {
-                Object.keys(request.extraParameters).forEach((key) => {
-                    authParams.SetAdditionalParameter(key, request.extraParameters[key]);
+                Object.entries(request.extraParameters).forEach(([key, value]) => {
+                    authParams.SetAdditionalParameter(key, value);
                 });
             }
         } catch (e) {
@@ -329,7 +329,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     private getAuthenticationResult(request: NativeRequest, authResult: AuthResult): AuthenticationResult {
         this.logger.trace("NativeBrokerPlugin - getAuthenticationResult called", request.correlationId);
         
-        let fromCache: boolean;
+        let fromCache: boolean = false;
         try {
             const telemetryJSON = JSON.parse(authResult.telemetryData);
             fromCache = !!telemetryJSON["is_cache"];
@@ -356,7 +356,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             idTokenClaims: idTokenClaims,
             accessToken: authResult.accessToken,
             fromCache: fromCache,
-            expiresOn: new Date(authResult.expiresOn * 1000),
+            expiresOn: new Date(authResult.expiresOn),
             tokenType: authResult.isPopAuthorization ? AuthenticationScheme.POP : AuthenticationScheme.BEARER,
             correlationId: request.correlationId,
             fromNativeBroker: true
@@ -387,8 +387,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                result.hasOwnProperty("errorTag");
     }
 
-    private wrapError(error: Object): NativeAuthError | Object | null {
-        if (this.isMsalRuntimeError(error)) {
+    private wrapError(error: unknown): NativeAuthError | Object | null {
+        if (error && typeof error === "object" && this.isMsalRuntimeError(error)) {
             const { errorCode, errorStatus, errorContext, errorTag } = error as MsalRuntimeError;
             switch (errorStatus) {
                 case ErrorStatus.InteractionRequired:
@@ -412,7 +412,6 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     return new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag);
             }
         }
-
-        return error;
+        throw error;
     }
 }

@@ -1,6 +1,6 @@
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";
@@ -10,7 +10,7 @@ import {
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
  } from "../../testUtils";
-import { PublicClientApplication } from "../../../../lib/msal-node/";
+import { PublicClientApplication } from "@azure/msal-node";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/adfs.cache.json`;
 

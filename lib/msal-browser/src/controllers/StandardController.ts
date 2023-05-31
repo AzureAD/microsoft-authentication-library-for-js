@@ -224,6 +224,7 @@ export class StandardController implements IController {
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
+            temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
             storeAuthStateInCookie: false,
             secureCookies: false,
             cacheMigrationEnabled: false,
@@ -295,7 +296,8 @@ export class StandardController implements IController {
                     await NativeMessageHandler.createProvider(
                         this.logger,
                         this.config.system.nativeBrokerHandshakeTimeout,
-                        this.performanceClient
+                        this.performanceClient,
+                        this.browserCrypto
                     );
             } catch (e) {
                 this.logger.verbose(e as string);

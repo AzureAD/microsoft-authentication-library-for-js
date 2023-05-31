@@ -25,7 +25,7 @@ import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
 import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
-import { Logger, LogLevel } from "../../src";
+import { Logger, LogLevel, UrlString } from "../../src";
 
 let mockStorage: MockStorageClass;
 
@@ -377,7 +377,86 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
             });
         });
+
+        describe("Switch tenants", () => {
+            const tenant = "51db77ae-2865-4010-bc5d-8f99097f494b";
+            const newTenant = "1d56e21e-b696-410b-83a0-bc2d775d0b39";
+            const tenantDomain = "tenant.domain.onmicrosoft.com";
+            const newTenantDomain = "new.tenant.domain.onmicrosoft.com";
+            const response = { ...DEFAULT_OPENID_CONFIG_RESPONSE.body };
+            const b2cResponse = { ...B2C_OPENID_CONFIG_RESPONSE.body };
+            for (const [key, value] of Object.entries(response)) {
+                if (typeof response[key] === "string") {
+                    // @ts-ignore
+                    response[key] = value.replace('{tenant}', tenant);
+                }
+            }
+
+            it("Returns correct endpoint for AAD", async () => {
+                jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(response);
+
+                const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.authorizationEndpoint).toBe(response.authorization_endpoint);
+
+                const newAuthorityEndpoint = response.authorization_endpoint.replace(tenant, newTenant);
+                const urlComponents = new UrlString(newAuthorityEndpoint).getUrlComponents();
+
+                // Mimic tenant switching
+                // @ts-ignore
+                authority.metadata.authorization_endpoint = newAuthorityEndpoint;
+                jest.spyOn(Authority.prototype, <any>"canonicalAuthorityUrlComponents", "get").mockReturnValue(urlComponents);
+
+                expect(authority.authorizationEndpoint).toBe(response.authorization_endpoint.replace(tenant, newTenant));
+            });
+
+            it("Returns correct endpoint for B2C", async () => {
+                jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(b2cResponse);
+
+                const baseAuthority = `https://msidlabb2c.b2clogin.com/tfp/${tenantDomain}/`;
+                const customAuthority = new Authority(baseAuthority, networkInterface, mockStorage, {
+                    ...authorityOptions,
+                    knownAuthorities: ["msidlabb2c.b2clogin.com"],
+                }, logger);
+                await customAuthority.resolveEndpointsAsync();
+
+                expect(customAuthority.authorizationEndpoint).toBe(b2cResponse.authorization_endpoint);
+
+                const newAuthorityEndpoint = b2cResponse.authorization_endpoint.replace(tenantDomain, newTenantDomain);
+                const urlComponents = new UrlString(newAuthorityEndpoint).getUrlComponents();
+
+                // Mimic tenant switching
+                // @ts-ignore
+                customAuthority.metadata.authorization_endpoint = newAuthorityEndpoint;
+                jest.spyOn(Authority.prototype, <any>"canonicalAuthorityUrlComponents", "get").mockReturnValue(urlComponents);
+
+                expect(customAuthority.authorizationEndpoint).toBe(b2cResponse.authorization_endpoint.replace(tenantDomain, newTenantDomain));
+            });
+
+            it("Returns correct endpoint when AAD cached canonical endpoint contains tenant name", async () => {
+                jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(response);
+
+
+                const customAuthority = new Authority(`https://login.microsoftonline.com/${tenantDomain}/`, networkInterface, mockStorage, authorityOptions, logger);
+                await customAuthority.resolveEndpointsAsync();
+
+                expect(customAuthority.authorizationEndpoint).toBe(response.authorization_endpoint.replace(tenant, tenantDomain));
+
+                const newAuthorityEndpoint = response.authorization_endpoint.replace(tenant, newTenant);
+                const urlComponents = new UrlString(newAuthorityEndpoint).getUrlComponents();
+
+                // Mimic tenant switching
+                // @ts-ignore
+                customAuthority.metadata.authorization_endpoint = newAuthorityEndpoint;
+                jest.spyOn(Authority.prototype, <any>"canonicalAuthorityUrlComponents", "get").mockReturnValue(urlComponents);
+
+                expect(customAuthority.authorizationEndpoint).toBe(response.authorization_endpoint.replace(tenant, newTenant));
+            });
+        });
     });
+
+
 
     describe("Regional authorities", () => {
         const networkInterface: INetworkModule = {
@@ -1880,7 +1959,7 @@ describe("Authority.ts Class Unit Tests", () => {
             );
         });
 
-        it("DSTS authority uses v1 well-known endpoint with common y", async () => {
+        it("DSTS authority uses v2 well-known endpoint with common y", async () => {
             const authorityUrl =
                 "https://login.microsoftonline.com/dstsv2/common/";
             let endpoint = "";
@@ -1902,11 +1981,11 @@ describe("Authority.ts Class Unit Tests", () => {
 
             await authority.resolveEndpointsAsync();
             expect(endpoint).toBe(
-                `${authorityUrl}.well-known/openid-configuration`
+                `${authorityUrl}v2.0/.well-known/openid-configuration`
             );
         });
 
-        it("DSTS authority uses v1 well-known  with tenanted authority", async () => {
+        it("DSTS authority uses v2 well-known  with tenanted authority", async () => {
             const authorityUrl = `https://login.microsoftonline.com/dstsv2/${TEST_CONFIG.TENANT}/`;
             let endpoint = "";
             authority = new Authority(
@@ -1927,7 +2006,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             await authority.resolveEndpointsAsync();
             expect(endpoint).toBe(
-                `${authorityUrl}.well-known/openid-configuration`
+                `${authorityUrl}v2.0/.well-known/openid-configuration`
             );
         });
 

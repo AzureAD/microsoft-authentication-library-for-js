@@ -709,7 +709,7 @@ export abstract class CacheManager implements ICacheManager {
     async removeAccount(accountKey: string): Promise<void> {
         const account = this.getAccount(accountKey);
         if (!account) {
-            throw ClientAuthError.createNoAccountFoundError();
+            return;
         }
         await this.removeAccountContext(account);
         this.removeItem(accountKey);

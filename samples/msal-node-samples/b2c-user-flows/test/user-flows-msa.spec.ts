@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
-
+import * as puppeteer from "puppeteer";
 import {
     Screenshot,
     createFolder,
@@ -12,7 +11,7 @@ import {
     b2cMsaAccountEnterCredentials,
     RETRY_TIMES
 } from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
@@ -22,7 +21,7 @@ import {
     SAMPLE_HOME_URL
 } from "../../testUtils";
 
-import { ConfidentialClientApplication } from "../../../../lib/msal-node/dist";
+import { ConfidentialClientApplication } from "@azure/msal-node";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/../data/b2c-msa.cache.json`;

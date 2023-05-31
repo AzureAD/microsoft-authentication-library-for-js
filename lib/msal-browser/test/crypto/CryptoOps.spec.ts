@@ -429,7 +429,6 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
 
         it("throws if MSR Crypto is available but entropy is not provided", () => {
-            
             jest.spyOn(
                 BrowserCrypto.prototype,
                 // @ts-ignore

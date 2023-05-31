@@ -2,26 +2,14 @@ msal-node:
   - lib/msal-node/**/*
 extensions:
   - extensions/**/*
-adal-node:
-  - maintenance/**/*
 msal-angular:
   - lib/msal-angular/**/*
-angularjs:
-  - maintenance/msal-angularjs/**/*
-msal@1.x:
-  - lib/msal-core/**/*
 msal-common:
   - lib/msal-common/**/*
 msal-browser:
   - lib/msal-browser/**/*
 msal-react:
   - lib/msal-react/**/*
-node-token-validation:
-  - lib/node-token-validation/**/*
-adal.js:
-  - maintenance/adal-angular/**/*
-passport-azure-ad:
-  - maintenance/passport-azure-ad/**/*
 samples:
   - samples/**/*
 documentation:
