@@ -14,6 +14,9 @@ on:
       os:
         default: 'ubuntu-latest'
         type: string
+      arch:
+        default: 'x64'
+        type: string
       should-run: # This ensures check status is reported regardless of whether or not the job was run
         default: true
         type: boolean
@@ -25,7 +28,7 @@ concurrency:
 jobs:
   build-test:
     if: ${{ inputs.should-run }}}
-    runs-on: ${{ inputs.os }}
+    runs-on: [${{ inputs.os }}, ${{ inputs.arch }}]
 
     steps:
     - uses: actions/checkout@v3

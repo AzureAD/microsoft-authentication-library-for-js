@@ -100,9 +100,14 @@ jobs:
   ci-msal-node-extensions:
     name: msal-node-extensions
     needs: pre-check
+    strategy:
+      matrix:
+        os: [ubuntu, windows]
+        arch: [x64, x86, arm64]
     uses: ./.github/workflows/ci-template.yml
     with:
       path: 'extensions'
       lib-name: 'msal-node-extensions'
-      os: 'windows-latest'
+      os: ${{ matrix.os }}-latest
+      arch: ${{ matrix.arch }}
       should-run: ${{ contains(fromJSON(needs.pre-check.outputs.packages), 'msal-node-extensions') }}
