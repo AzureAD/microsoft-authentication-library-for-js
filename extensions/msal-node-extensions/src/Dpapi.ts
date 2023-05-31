@@ -7,5 +7,21 @@ export interface DpapiBindings{
     protectData(dataToEncrypt: Uint8Array, optionalEntropy: Uint8Array|null, scope: string): Uint8Array
     unprotectData(encryptData: Uint8Array, optionalEntropy: Uint8Array|null, scope: string): Uint8Array
 }
-/* eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs */
-export const Dpapi: DpapiBindings = require("../build/Release/dpapi.node");
+
+class defaultDpapi implements DpapiBindings{
+    protectData(dataToEncrypt: Uint8Array, optionalEntropy: Uint8Array|null, scope: string): Uint8Array {
+        throw new Error("Dpapi is not supported on this platform");
+    }
+    unprotectData(encryptData: Uint8Array, optionalEntropy: Uint8Array|null, scope: string): Uint8Array {
+        throw new Error("Dpapi is not supported on this platform");
+    }
+}
+
+let Dpapi: DpapiBindings;
+if (process.platform !== "win32") {
+    Dpapi = new defaultDpapi();
+} else {
+    Dpapi = require(`../bin/${process.arch}/dpapi`);
+}
+
+export { Dpapi };
