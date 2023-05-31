@@ -1,19 +1,19 @@
 const puppeteer = require('puppeteer');
-const NodeEnvironment = require('jest-environment-node');
+const NodeEnvironment = require('jest-environment-node').TestEnvironment;
 
 class PuppeteerEnvironment extends NodeEnvironment {
-    constructor(config) {
-        super(config);
-    }
+	constructor({ globalConfig, projectConfig }, context) {
+		super({ globalConfig, projectConfig }, context);
+	}
 
 	async setup() {
 		await super.setup();
 
 		// connect to puppeteer
 		this.global.__BROWSER__ = await puppeteer.launch({
-            headless: true,
-            ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
-        });
+			headless: true,
+			ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
+		});
 	}
 
 	async teardown() {
