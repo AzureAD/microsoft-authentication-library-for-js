@@ -2,7 +2,6 @@
   "command": {
     "run": {
       "scope": [
-        "msal",
         "@azure/msal-common",
         "@azure/msal-browser",
         "@azure/msal-react",
@@ -12,25 +11,23 @@
       "stream": true
     },
     "exec": {
-        "scope": [
-            "msal",
-            "@azure/msal-browser",
-            "@azure/msal-common",
-            "@azure/msal-node",
-            "@azure/msal-react",
-            "@azure/msal-angular"
-        ],
-        "stream": true
+      "scope": [
+        "@azure/msal-browser",
+        "@azure/msal-common",
+        "@azure/msal-node",
+        "@azure/msal-react",
+        "@azure/msal-angular"
+      ],
+      "stream": true
     },
     "bootstrap": {
-        "scope": [
-            "msal",
-            "@azure/msal-browser",
-            "@azure/msal-common",
-            "@azure/msal-node",
-            "@azure/msal-react",
-            "@azure/msal-angular",
-            "@azure/msal-node-extensions"
+      "scope": [
+        "@azure/msal-browser",
+        "@azure/msal-common",
+        "@azure/msal-node",
+        "@azure/msal-react",
+        "@azure/msal-angular",
+        "@azure/msal-node-extensions"
       ],
       "stream": true
     }

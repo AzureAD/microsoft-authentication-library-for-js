@@ -27,13 +27,6 @@ updates:
       - dependency-name: "caniuse-lite"
 
   - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/lib/msal-core" # Location of package manifests
-    schedule:
-      interval: "monthly"
-    allow:
-      - dependency-name: "caniuse-lite"
-
-  - package-ecosystem: "npm" # See documentation for possible values
     directory: "/lib/msal-node" # Location of package manifests
     schedule:
       interval: "monthly"

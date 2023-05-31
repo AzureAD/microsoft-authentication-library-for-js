@@ -11,7 +11,7 @@ body:
       - [@azure/msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/faq.md)
       - [@azure/msal-angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/FAQ.md)
       - [@azure/msal-react](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md)
-      - [@azure/msal or msal](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/FAQ.md)
+      - [@azure/msal or msal](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-lts/lib/msal-core/docs/FAQ.md)
       
       If you have questions about timelines, please see our [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md). Issues pertaining to timelines may be closed without comment.
 
@@ -23,8 +23,8 @@ body:
 - type: dropdown
   attributes:
     label: Core Library
-    options: 
-      - "MSAL.js v2 (@azure/msal-browser)"
+    options:
+      - "MSAL.js (@azure/msal-browser)"
       - "MSAL.js v1 (@azure/msal or msal)"
       - "MSAL Node (@azure/msal-node)"
       - "Passport Azure AD (passport-azure-ad)"
