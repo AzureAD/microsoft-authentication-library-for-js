@@ -31,10 +31,11 @@ type MsalState = {
     accounts: AccountInfo[];
 };
 
-enum MsalProviderActionType {
-    UNBLOCK_INPROGRESS = "UNBLOCK_INPROGRESS",
-    EVENT = "EVENT",
-}
+const MsalProviderActionType = {
+    UNBLOCK_INPROGRESS: "UNBLOCK_INPROGRESS",
+    EVENT: "EVENT",
+} as const;
+export type MsalProviderActionType = typeof MsalProviderActionType[keyof typeof MsalProviderActionType];
 
 type MsalProviderReducerAction = {
     type: MsalProviderActionType;
