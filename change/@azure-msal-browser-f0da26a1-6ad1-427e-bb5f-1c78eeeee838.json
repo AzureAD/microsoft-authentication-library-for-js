@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Add First Party Wrapper SKU #6078",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
