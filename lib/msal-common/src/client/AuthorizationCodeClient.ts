@@ -656,7 +656,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 const popTokenGenerator = new PopTokenGenerator(
                     this.cryptoUtils
                 );
-                // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
+                // to reduce the URL length, it is recommended to send the short form of `req_cnf`
                 const reqCnfData = await popTokenGenerator.generateCnf(request);
                 parameterBuilder.addPopToken(reqCnfData.reqCnfString);
             }
