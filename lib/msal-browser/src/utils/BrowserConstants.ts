@@ -178,6 +178,7 @@ export const KEY_FORMAT_JWK = "jwk";
 export enum WrapperSKU {
     React = "@azure/msal-react",
     Angular = "@azure/msal-angular",
+    FirstParty = "@azure/msal-javascript-1p"
 }
 
 // DatabaseStorage Constants
