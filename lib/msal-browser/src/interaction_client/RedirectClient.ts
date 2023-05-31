@@ -100,7 +100,10 @@ export class RedirectClient extends StandardInteractionClient {
                     "Page was restored from back/forward cache. Clearing temporary cache."
                 );
                 this.browserStorage.cleanRequestByState(validRequest.state);
-                this.eventHandler.emitEvent(EventType.RESTORE_FROM_BFCACHE, InteractionType.Redirect);
+                this.eventHandler.emitEvent(
+                    EventType.RESTORE_FROM_BFCACHE,
+                    InteractionType.Redirect
+                );
             }
         };
 
@@ -414,7 +417,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.performanceClient,
                 this.nativeMessageHandler,
                 serverParams.accountId,
-                this.browserStorage,
+                this.nativeStorage,
                 cachedRequest.correlationId
             );
             const { userRequestState } = ProtocolUtils.parseRequestState(
@@ -587,3 +590,4 @@ export class RedirectClient extends StandardInteractionClient {
         );
     }
 }
+
