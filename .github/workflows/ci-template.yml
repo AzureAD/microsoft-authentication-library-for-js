@@ -1,0 +1,78 @@
+# This is a template used by the publish-packages workflow
+
+name: CI template workflow
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        required: true
+        type: string
+      lib-name:
+        required: true
+        type: string
+      os:
+        default: 'ubuntu-latest'
+        type: string
+      should-run: # This ensures check status is reported regardless of whether or not the job was run
+        default: true
+        type: boolean
+        
+concurrency:
+  group: ${{github.workflow}}-${{inputs.lib-name}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    if: ${{ inputs.should-run }}}
+    runs-on: ${{ inputs.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    - name: Restore node_modules
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: |
+          node_modules
+          lib/*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+
+    - name: Clean Install
+      if: steps.cache.outputs.cache-hit != 'true'
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+
+    - name: Upload npm logs
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: npm_logs_${{ inputs.lib-name }}
+        path: ~/.npm/_logs/**/*
+        retention-days: 2
+
+    - name: Build packages
+      working-directory: ${{ inputs.path }}/${{ inputs.lib-name }}
+      run: npm run build:all
+
+    - name: Lint
+      working-directory: ${{ inputs.path }}/${{ inputs.lib-name }}
+      run: npm run lint
+
+    - name: Unit Tests with coverage
+      working-directory: ${{ inputs.path }}/${{ inputs.lib-name }}
+      run: npm run test:coverage
+
+    - name: Upload Test Coverage to CodeCov
+      if: success()
+      uses: codecov/codecov-action@v3
+      with:
+        files: ${{ inputs.path }}/${{ inputs.lib-name }}/coverage/lcov.info
+        flags: ${{ inputs.lib-name }}
