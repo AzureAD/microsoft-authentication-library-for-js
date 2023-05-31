@@ -185,7 +185,8 @@ export const KEY_FORMAT_JWK = "jwk";
 // Supported wrapper SKUs
 export const WrapperSKU = {
     React: "@azure/msal-react",
-    Angular: "@azure/msal-angular"
+    Angular: "@azure/msal-angular",
+    FirstParty: "@azure/msal-javascript-1p"
 } as const;
 export type WrapperSKU = typeof WrapperSKU[keyof typeof WrapperSKU];
 
