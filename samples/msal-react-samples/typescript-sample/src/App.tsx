@@ -1,16 +1,14 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 // Material-UI imports
-import Grid from "@mui/material/Grid";
 
 // MSAL imports
-import { MsalProvider } from "@azure/msal-react";
+import { AuthenticatedTemplate, MsalProvider, UnauthenticatedTemplate } from "@azure/msal-react";
 import { IPublicClientApplication } from "@azure/msal-browser";
 import { CustomNavigationClient } from "./utils/NavigationClient";
 
 // Sample app imports
-import { PageLayout } from "./ui-components/PageLayout";
-import { Home } from "./pages/Home";
-import { Profile } from "./pages/Profile";
+import { useEffect } from "react";
+import { Typography } from "@mui/material";
 
 type AppProps = {
     pca: IPublicClientApplication;
@@ -22,23 +20,33 @@ function App({ pca }: AppProps) {
     const navigationClient = new CustomNavigationClient(navigate);
     pca.setNavigationClient(navigationClient);
 
+    useEffect(() => {
+        pca.handleRedirectPromise().then(() => {
+            if (pca.getActiveAccount()) {
+                navigate("/profile");
+            }
+            else {
+                pca.loginPopup().then(() => {
+                    navigate("/profile");
+                }
+                ).catch(() => {
+                    navigate("/");
+                });
+            }
+        });
+    }, [pca, navigate]);
+
     return (
         <MsalProvider instance={pca}>
-            <PageLayout>
-                <Grid container justifyContent="center">
-                    <Pages />
-                </Grid>
-            </PageLayout>
+            <>
+                <AuthenticatedTemplate>
+                    Authenticated
+                </AuthenticatedTemplate>
+                <UnauthenticatedTemplate>
+                    <Typography variant="h6" align="center">Please sign-in to see your profile information.</Typography>
+                </UnauthenticatedTemplate>
+            </>
         </MsalProvider>
-    );
-}
-
-function Pages() {
-    return (
-        <Routes>
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/" element={<Home />} />
-        </Routes>
     );
 }
 
