@@ -6,12 +6,11 @@
 import { DataProtectionScope, FilePersistenceWithDataProtection } from "../../src";
 import { FileSystemUtils } from "../util/FileSystemUtils";
 import { Dpapi } from "../../src/Dpapi";
-import { error } from "console";
-import { PersistenceError } from "src/error/PersistenceError";
+import { PersistenceError } from "../../src/error/PersistenceError";
 
 jest.mock("../../src/Dpapi");
 
-if (process.platform !== "win32") {
+if (process.platform === "win32") {
     describe('Test File Persistence with data protection', () => {
         const filePath = "./dpapi-test.json";
         const dpapiScope = DataProtectionScope.LocalMachine;

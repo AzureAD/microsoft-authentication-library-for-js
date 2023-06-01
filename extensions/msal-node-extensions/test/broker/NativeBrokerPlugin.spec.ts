@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { testMsalRuntimeAccount, testAccountInfo, msalRuntimeExampleError, getTestAuthenticationResult, TEST_CLIENT_ID, TEST_REDIRECTURI } from "../util/TestConstants";
 
-if (process.platform !== "win32") {
+if (process.platform === "win32") {
     describe("NativeBrokerPlugin", () => {
         const testNativeAuthError = new NativeAuthError(ErrorStatus[msalRuntimeExampleError.errorStatus], msalRuntimeExampleError.errorContext, msalRuntimeExampleError.errorCode, msalRuntimeExampleError.errorTag);
 
