@@ -1,15 +1,24 @@
 import Image from "next/image";
 import styles from "./page.module.css";
 import { authProvider } from "~/services/auth";
+import Link from "next/link";
 
 export default async function Home() {
     const account = await authProvider.getAccount();
 
     return (
         <main className={styles.main}>
+            {account ? (
+                <h2>Hello, {account?.name}!</h2>
+            ) : (
+                <h2>You are not logged in.</h2>
+            )}
+
+            <Link href="/forced">Go to Forced login page</Link>
+
             <div className={styles.description}>
                 <p>
-                    Hi again {account?.name}! Get started by editing&nbsp;
+                    Get started by editing&nbsp;
                     <code className={styles.code}>src/app/page.tsx</code>
                 </p>
                 <div>
