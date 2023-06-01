@@ -22,7 +22,7 @@ on:
         type: boolean
         
 concurrency:
-  group: ${{github.workflow}}-${{inputs.lib-name}}-${{github.ref}}
+  group: ${{github.workflow}}-${{inputs.lib-name}}-${{github.ref}}-${{inputs.os}}-${{inputs.arch}}
   cancel-in-progress: true
 
 jobs:
