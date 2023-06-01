@@ -102,8 +102,11 @@ jobs:
     needs: pre-check
     strategy:
       matrix:
-        os: [ubuntu, windows]
+        os: [windows]
         arch: [x64, x86, arm64]
+        include:
+          - os: ubuntu
+            
     uses: ./.github/workflows/ci-template.yml
     with:
       path: 'extensions'
