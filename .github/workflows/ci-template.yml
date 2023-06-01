@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   build-test:
-    if: ${{ inputs.should-run }}}
+    if: inputs.should-run
     runs-on: [${{ inputs.os }}, ${{ inputs.arch }}]
 
     steps:

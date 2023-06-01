@@ -1,9 +1,0 @@
-sudo: required
-dist: trusty
-language: node_js
-node_js:
-  - "12"
-  - "10"
-  - "8"
-before_install: npm install -g grunt-cli
-install: npm install
