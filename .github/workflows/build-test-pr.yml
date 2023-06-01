@@ -101,6 +101,7 @@ jobs:
     name: msal-node-extensions
     needs: pre-check
     strategy:
+      fail-fast: false # continue running jobs even if one combination fails
       matrix:
         os: [windows-latest]
         arch: [x64, x86, arm64]
