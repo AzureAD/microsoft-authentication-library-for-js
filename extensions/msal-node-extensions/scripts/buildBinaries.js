@@ -27,13 +27,13 @@ architectures.forEach(arch => {
 
     const sourceFile = path.join(__dirname, "..", "build", "Release", "dpapi.node");
     const destFile = path.join(archDir, "dpapi.node");
-    fs.copyFile(sourceFile, destFile, (err) => {
-        if (err) {
-            console.log(`Error copying ${sourceFile} to ${destFile}`);
-            throw err;
-        }
+    try {
+        fs.copyFileSync(sourceFile, destFile);
         console.log(`${sourceFile} was successfully copied to ${destFile}`);
-    });
+    } catch (err) {
+        console.log(`Error copying ${sourceFile} to ${destFile}`);
+        throw err;
+    }
 
     // Remove build directory to start clean for the next build
     fs.rmSync(path.join(__dirname, "..", "build"), { recursive: true, force: true });
