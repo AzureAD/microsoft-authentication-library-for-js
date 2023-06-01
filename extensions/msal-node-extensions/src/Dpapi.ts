@@ -9,10 +9,10 @@ export interface DpapiBindings{
 }
 
 class defaultDpapi implements DpapiBindings{
-    protectData(dataToEncrypt: Uint8Array, optionalEntropy: Uint8Array|null, scope: string): Uint8Array {
+    protectData(): Uint8Array {
         throw new Error("Dpapi is not supported on this platform");
     }
-    unprotectData(encryptData: Uint8Array, optionalEntropy: Uint8Array|null, scope: string): Uint8Array {
+    unprotectData(): Uint8Array {
         throw new Error("Dpapi is not supported on this platform");
     }
 }
