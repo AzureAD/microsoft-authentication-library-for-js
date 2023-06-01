@@ -185,8 +185,7 @@ export class StandardController implements IController {
                   this.logger,
                   name,
                   version,
-                  this.config.telemetry.application,
-                  this.config.system.cryptoOptions
+                  this.config.telemetry.application
               )
             : new StubPerformanceClient(
                   this.config.auth.clientId,
@@ -201,8 +200,7 @@ export class StandardController implements IController {
         this.browserCrypto = this.isBrowserEnvironment
             ? new CryptoOps(
                   this.logger,
-                  this.performanceClient,
-                  this.config.system.cryptoOptions
+                  this.performanceClient
               )
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
