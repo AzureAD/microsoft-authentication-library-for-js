@@ -28,7 +28,7 @@ concurrency:
 jobs:
   build-test:
     if: inputs.should-run
-    runs-on: [${{ inputs.os }}, ${{ inputs.arch }}]
+    runs-on: ["${{ inputs.os }}", "${{ inputs.arch }}"]
 
     steps:
     - uses: actions/checkout@v3
