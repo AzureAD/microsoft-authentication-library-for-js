@@ -106,6 +106,7 @@ jobs:
         arch: [x64, x86, arm64]
         include:
           - os: ubuntu-latest
+            arch: x64
 
     uses: ./.github/workflows/ci-template.yml
     with:
