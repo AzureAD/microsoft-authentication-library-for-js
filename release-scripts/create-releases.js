@@ -32,7 +32,6 @@ const defaultLibFolders = [
     "lib/msal-angular",
     "lib/msal-browser",
     "lib/msal-common",
-    "lib/msal-core",
     "lib/msal-node",
     "lib/msal-react",
     "extensions/msal-node-extensions"
@@ -70,7 +69,7 @@ async function closeOldMilestones(name, version) {
         state: "open"
     });
 
-    for (let i=0; i < milestones.data.length; i++) {
+    for (let i = 0; i < milestones.data.length; i++) {
         const milestone = milestones.data[i];
 
         // Find all milestones matching this library
@@ -158,8 +157,10 @@ async function createReleaseForFolder(folderName) {
         body: body.join("\n")
     };
 
-    // Gets latest releases and checks if there is a matching releases for the given library version
-    // TODO: improve check to handle release not being on the first page
+    /*
+     * Gets latest releases and checks if there is a matching releases for the given library version
+     * TODO: improve check to handle release not being on the first page
+     */
     const allReleases = await octokit.repos.listReleases(repoMeta);
     const releaseForTag = allReleases.data.find(existingRelease => existingRelease.name === release.name);
 
