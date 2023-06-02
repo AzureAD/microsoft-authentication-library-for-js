@@ -12,6 +12,7 @@ export const SignOutButton = () => {
   return (
     <div>
       <Avatar
+        style={{ cursor: "pointer" }}
         onClick={(event) => setAnchorEl(event.currentTarget)}
         alt="Profile Picture"
         src="profile/picture"
