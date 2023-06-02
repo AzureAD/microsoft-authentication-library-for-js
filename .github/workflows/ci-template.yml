@@ -72,7 +72,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y gnome-keyring
-        gnome-keyring-daemon --unlock
+        echo 'tests' | gnome-keyring-daemon --unlock
 
     - name: Unit Tests with coverage
       working-directory: ${{ inputs.path }}/${{ inputs.lib-name }}
