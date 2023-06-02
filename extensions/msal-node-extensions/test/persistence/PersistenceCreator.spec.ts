@@ -17,6 +17,9 @@ import { PersistenceError } from "../../src/error/PersistenceError";
 import { FileSystemUtils } from '../util/FileSystemUtils';
 
 describe('Persistence Creator', () => {
+    afterEach(() => {
+        jest.resetAllMocks();
+    })
     afterAll(() => {
         FileSystemUtils.cleanUpFile("./creator-test.json");
     });
