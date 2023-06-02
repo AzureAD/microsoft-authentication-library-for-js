@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix pop format passed to STS in native flows (#6065)",
+  "comment": "Fix pop format passed to STS in native flows #6065",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch"
