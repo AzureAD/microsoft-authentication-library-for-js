@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Switch from enums to object literals to reduce the bundle size #6068",
+  "packageName": "@azure/msal-react",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "prerelease"
+}
