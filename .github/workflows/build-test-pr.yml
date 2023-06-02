@@ -103,7 +103,7 @@ jobs:
     strategy:
       fail-fast: false # continue running jobs even if one combination fails
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
 
     uses: ./.github/workflows/ci-template.yml
     with:
