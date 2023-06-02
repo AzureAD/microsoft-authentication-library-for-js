@@ -7,11 +7,7 @@ import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { ISubtleCrypto } from "./ISubtleCrypto";
 import { ModernBrowserCrypto } from "./ModernBrowserCrypto";
-import { MsrBrowserCrypto } from "./MsrBrowserCrypto";
-import { MsBrowserCrypto } from "./MsBrowserCrypto";
 import { Logger } from "@azure/msal-common";
-import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
-import { CryptoOptions } from "../config/Configuration";
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
@@ -32,11 +28,9 @@ export class BrowserCrypto {
     private keygenAlgorithmOptions: RsaHashedKeyGenParams;
     private subtleCrypto: ISubtleCrypto;
     private logger: Logger;
-    private cryptoOptions?: CryptoOptions;
 
-    constructor(logger: Logger, cryptoOptions?: CryptoOptions) {
+    constructor(logger: Logger) {
         this.logger = logger;
-        this.cryptoOptions = cryptoOptions;
 
         if (this.hasBrowserCrypto()) {
             // Use standard modern web crypto if available
@@ -44,41 +38,11 @@ export class BrowserCrypto {
                 "BrowserCrypto: modern crypto interface available"
             );
             this.subtleCrypto = new ModernBrowserCrypto();
-        } else if (this.hasIECrypto()) {
-            // For IE11, use msCrypto interface
-            this.logger.verbose("BrowserCrypto: MS crypto interface available");
-            this.subtleCrypto = new MsBrowserCrypto();
-        } else if (this.hasMsrCrypto() && this.cryptoOptions?.useMsrCrypto) {
-            // For other browsers, use MSR Crypto if found
-            this.logger.verbose(
-                "BrowserCrypto: MSR crypto interface available"
-            );
-            this.subtleCrypto = new MsrBrowserCrypto();
         } else {
-            if (this.hasMsrCrypto()) {
-                this.logger.info(
-                    "BrowserCrypto: MSR Crypto interface available but system.cryptoOptions.useMsrCrypto not enabled"
-                );
-            }
-            this.logger.error("BrowserCrypto: No crypto interfaces available.");
+            this.logger.error("BrowserCrypto: crypto interface is unavailable");
             throw BrowserAuthError.createCryptoNotAvailableError(
-                "Browser crypto, msCrypto, or msrCrypto interfaces not available."
+                "Browser crypto interface is not available."
             );
-        }
-
-        // Mainly needed for MSR Crypto: https://github.com/microsoft/MSR-JavaScript-Crypto#random-number-generator-prng
-        if (this.subtleCrypto.initPrng) {
-            this.logger.verbose("BrowserCrypto: Interface requires entropy");
-
-            if (!this.cryptoOptions?.entropy) {
-                this.logger.error(
-                    "BrowserCrypto: Interface requires entropy but none provided."
-                );
-                throw BrowserConfigurationAuthError.createEntropyNotProvided();
-            }
-
-            this.logger.verbose("BrowserCrypto: Entropy provided");
-            this.subtleCrypto.initPrng(this.cryptoOptions.entropy);
         }
 
         this.keygenAlgorithmOptions = {
@@ -90,24 +54,10 @@ export class BrowserCrypto {
     }
 
     /**
-     * Check whether IE crypto or other browser cryptography is available.
-     */
-    private hasIECrypto(): boolean {
-        return "msCrypto" in window;
-    }
-
-    /**
      * Check whether browser crypto is available.
      */
     private hasBrowserCrypto(): boolean {
         return "crypto" in window;
-    }
-
-    /**
-     * Check whether MSR crypto polyfill is available
-     */
-    private hasMsrCrypto(): boolean {
-        return "msrCrypto" in window;
     }
 
     /**
@@ -147,7 +97,6 @@ export class BrowserCrypto {
     /**
      * Export key as Json Web Key (JWK)
      * @param key
-     * @param format
      */
     async exportJwk(key: CryptoKey): Promise<JsonWebKey> {
         return this.subtleCrypto.exportKey(key);
@@ -156,7 +105,6 @@ export class BrowserCrypto {
     /**
      * Imports key as Json Web Key (JWK), can set extractable and usages.
      * @param key
-     * @param format
      * @param extractable
      * @param usages
      */

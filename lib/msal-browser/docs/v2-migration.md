@@ -6,7 +6,9 @@ If you are coming from [MSAL v1.x](../../msal-core/), you should check [this gui
 
 If you are coming from [MSAL v2.x](../../msal-browser/), you can follow this guide to update your code to use [MSAL v3.x](../../msal-browser/).
 
-## Update your code
+## Breaking changes
+
+### Application instantiation
 
 In MSAL v2.x, you created an application instance as below:
 
@@ -24,7 +26,7 @@ const msalInstance = new msal.PublicClientApplication(msalConfig);
 
 In MSAL v3.x, you must initialize the application object as well. There are several options at your disposal:
 
-### Option 1
+#### Option 1
 
 Instantiate a `PublicClientApplication` object and initialize it afterwards. The `initialize` function is asynchronous and must resolve before invoking other MSAL.js APIs.
 
@@ -41,7 +43,7 @@ const msalInstance = new msal.PublicClientApplication(msalConfig);
 await msalInstance.initialize();
 ```
 
-### Option 2
+#### Option 2
 
 Invoke the `createPublicClientApplication` static method which returns an initialized `PublicClientApplication` object. Note that this function is asynchronous.
 
@@ -58,6 +60,11 @@ const msalInstance = await msal.PublicClientApplication.createPublicClientApplic
 ```
 
 All other APIs are backward compatible with [MSAL v2.x](../../msal-browser/). It is recommended to take a look at the [default sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0) to see a working example of MSAL v3.0.
+
+### Crypto
+
+MSAL v3.x drops support for IE11 native crypto `window.msCrypto` and Microsoft Research JavaScript Cryptography Library (MSR crypto) `window.msrCrypto` in favor of native browser crypto API `window.crypto`.
+Crypto options `config.system.cryptoOptions` that were used for MSR crypto are no longer supported as well.
 
 ## Key changes
 
