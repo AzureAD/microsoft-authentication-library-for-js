@@ -1,3 +1,3 @@
 "use client";
 
-export { Button, Typography, Link, Toolbar, AppBar } from "@mui/material";
+export { Button, Typography, Link, Toolbar, AppBar, Grid } from "@mui/material";

@@ -1,11 +1,38 @@
+import { redirect } from "next/navigation";
+import { GraphData, ProfileData } from "~/components/ProfileData";
 import { authProvider } from "~/services/auth";
 
-export default async function ProfilePage() {
-  const account = await authProvider.getAccount();
+async function getUserInfo() {
+  const { account, instance } = await authProvider.authenticate();
 
   if (!account) {
-    return <div></div>;
+    return null;
   }
 
-  return <div></div>;
+  const token = await instance.acquireTokenSilent({
+    account,
+    scopes: ["User.Read"],
+  });
+
+  if (!token) {
+    return null;
+  }
+
+  const response = await fetch("https://graph.microsoft.com/v1.0/me", {
+    headers: {
+      Authorization: `Bearer ${token.accessToken}`,
+    },
+  });
+
+  return (await response.json()) as GraphData;
+}
+
+export default async function ProfilePage() {
+  const profile = await getUserInfo();
+
+  if (!profile) {
+    return redirect("/");
+  }
+
+  return <ProfileData graphData={profile} />;
 }

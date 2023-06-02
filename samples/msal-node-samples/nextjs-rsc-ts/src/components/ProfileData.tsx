@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
@@ -9,6 +10,7 @@ import WorkIcon from "@mui/icons-material/Work";
 import MailIcon from "@mui/icons-material/Mail";
 import PhoneIcon from "@mui/icons-material/Phone";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import Paper from "@mui/material/Paper";
 
 export type GraphData = {
   displayName: string;
@@ -20,13 +22,15 @@ export type GraphData = {
 
 export const ProfileData = ({ graphData }: { graphData: GraphData }) => {
   return (
-    <List className="profileData">
-      <NameListItem name={graphData.displayName} />
-      <JobTitleListItem jobTitle={graphData.jobTitle} />
-      <MailListItem mail={graphData.mail} />
-      <PhoneListItem phone={graphData.businessPhones[0]} />
-      <LocationListItem location={graphData.officeLocation} />
-    </List>
+    <Paper>
+      <List className="profileData">
+        <NameListItem name={graphData.displayName} />
+        <JobTitleListItem jobTitle={graphData.jobTitle} />
+        <MailListItem mail={graphData.mail} />
+        <PhoneListItem phone={graphData.businessPhones[0]} />
+        <LocationListItem location={graphData.officeLocation} />
+      </List>
+    </Paper>
   );
 };
 
