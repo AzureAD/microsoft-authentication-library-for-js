@@ -96,7 +96,7 @@ describe('Persistence Creator', () => {
 
     test('Propagate persistence verification error', async () => {
         try {
-            jest.spyOn(LibSecretPersistence.prototype, "verifyPersistence").mockRejectedValue(new Error("Could not verify persistence"));
+            jest.spyOn(LibSecretPersistence.prototype, "verifyPersistence").mockRejectedValue(PersistenceError.createPersistenceNotVerifiedError("Persistence could not be verified"));
 
             await PersistenceCreator.createPersistence(persistenceConfig);
         } catch (e) {
