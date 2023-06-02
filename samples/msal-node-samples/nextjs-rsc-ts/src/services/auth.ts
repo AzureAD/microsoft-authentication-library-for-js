@@ -4,7 +4,7 @@ import RedisCacheClient from "../utils/RedisCacheClient";
 import { redisClient } from "./redis";
 import { AuthProvider } from "~/utils/AuthProvider";
 import { getSession } from "./session";
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 
 const clientId = process.env.AZURE_AD_CLIENT_ID;
 const clientSecret = process.env.AZURE_AD_CLIENT_SECRET;
@@ -29,7 +29,9 @@ export const codeRequest = {
 };
 
 async function partitionManagerFactory() {
-  const session = await getSession(headers().get("Cookie"));
+  const cookie = cookies().get("__session");
+
+  const session = await getSession(`__session=${cookie?.value}`);
 
   return new SessionPartitionManager(session);
 }
