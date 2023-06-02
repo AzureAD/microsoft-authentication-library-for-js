@@ -62,7 +62,7 @@ describe('Persistence Creator', () => {
             }
         });
     } else {
-        test.only('Creates the LibSecretPersistence instance', async () => {
+        test('Creates the LibSecretPersistence instance', async () => {
             expect(await PersistenceCreator.createPersistence(persistenceConfig)).toBeInstanceOf(LibSecretPersistence);
         });
 
