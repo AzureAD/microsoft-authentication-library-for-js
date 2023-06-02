@@ -68,7 +68,7 @@ jobs:
       run: npm run lint
 
     - name: Install Keyring on Linux
-      if: inputs.os == "ubuntu-latest" && inputs.path == "extensions"
+      if: inputs.os == 'ubuntu-latest' && inputs.path == 'extensions'
       run: |
         sudo apt-get update
         sudo apt-get install -y dbus dbus-x11 gnome-keyring
