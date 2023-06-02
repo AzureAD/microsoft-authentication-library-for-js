@@ -1,5 +1,5 @@
 import { AuthError } from "@azure/msal-node";
-import { Typography } from "@mui/material";
+import Typography from "@mui/material/Typography";
 
 export default function ErrorComponent({ error }: { error: AuthError }) {
   return (
