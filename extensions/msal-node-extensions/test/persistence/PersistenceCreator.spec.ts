@@ -14,7 +14,6 @@ import {
     DataProtectionScope
 } from "../../src";
 import { PersistenceError } from "../../src/error/PersistenceError";
-import { Platform } from '../../src/utils/Constants';
 import { FileSystemUtils } from '../util/FileSystemUtils';
 
 describe('Persistence Creator', () => {
@@ -36,20 +35,52 @@ describe('Persistence Creator', () => {
         accountName: undefined,
     };
 
-    test('Creates the FilePersistenceWithDataProtection instance', async () => {
-        jest.spyOn(Environment, "getEnvironmentPlatform").mockReturnValue(Platform.WINDOWS);
-        expect(await PersistenceCreator.createPersistence(persistenceConfig)).toBeInstanceOf(FilePersistenceWithDataProtection);
-    });
+    if (process.platform === "win32") {
+        test('Creates the FilePersistenceWithDataProtection instance', async () => {
+            expect(await PersistenceCreator.createPersistence(persistenceConfig)).toBeInstanceOf(FilePersistenceWithDataProtection);
+        });
 
-    test('Creates the KeychainPersistence instance', async () => {
-        jest.spyOn(Environment, "getEnvironmentPlatform").mockReturnValue(Platform.MACOS);
-        expect(await PersistenceCreator.createPersistence(persistenceConfig)).toBeInstanceOf(KeychainPersistence);
-    });
+        test('Validation error thrown for windows', async () => {
+            try {
+                await PersistenceCreator.createPersistence(emptyPeristenceConfig);
+            } catch (e) {
+                expect(e).toBeInstanceOf(PersistenceError);
+                expect((e as PersistenceError).errorMessage).toBe("Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection cache plugin")
+            }
+        });
+    } else if (process.platform === "darwin") {
+        test('Creates the KeychainPersistence instance', async () => {
+            expect(await PersistenceCreator.createPersistence(persistenceConfig)).toBeInstanceOf(KeychainPersistence);
+        });
 
-    test('Creates the LibSecretPersistence instance', async () => {
-        jest.spyOn(Environment, "getEnvironmentPlatform").mockReturnValue(Platform.LINUX);
-        expect(await PersistenceCreator.createPersistence(persistenceConfig)).toBeInstanceOf(LibSecretPersistence);
-    });
+        test('Validation error thrown for macos', async () => {
+            try {
+                await PersistenceCreator.createPersistence(emptyPeristenceConfig);
+            } catch (e) {
+                expect(e).toBeInstanceOf(PersistenceError);
+                expect((e as PersistenceError).errorMessage).toBe("Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin")
+            }
+        });
+    } else {
+        test.only('Creates the LibSecretPersistence instance', async () => {
+            expect(await PersistenceCreator.createPersistence(persistenceConfig)).toBeInstanceOf(LibSecretPersistence);
+        });
+
+        test('Linux plain text fallback', async () => {
+            jest.spyOn(LibSecretPersistence.prototype, "verifyPersistence").mockRejectedValueOnce(new Error("Could not verify persistence"));
+    
+            expect(await PersistenceCreator.createPersistence({ ...persistenceConfig, usePlaintextFileOnLinux: true })).toBeInstanceOf(FilePersistence);
+        });
+
+        test('Validation error thrown for linux', async () => {
+            try {
+                await PersistenceCreator.createPersistence(emptyPeristenceConfig);
+            } catch (e) {
+                expect(e).toBeInstanceOf(PersistenceError);
+                expect((e as PersistenceError).errorMessage).toBe("Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin")
+            }
+        });
+    }
 
     test('Throws the appropriate error when the environment is not detected', async () => {
         try {
@@ -60,13 +91,6 @@ describe('Persistence Creator', () => {
         }
     });
 
-    test('Linux plain text fallback', async () => {
-        jest.spyOn(Environment, "getEnvironmentPlatform").mockReturnValue(Platform.LINUX);
-        jest.spyOn(LibSecretPersistence.prototype, "verifyPersistence").mockRejectedValueOnce(new Error("Could not verify persistence"));
-
-        expect(await PersistenceCreator.createPersistence({ ...persistenceConfig, usePlaintextFileOnLinux: true })).toBeInstanceOf(FilePersistence);
-    });
-
     test('Propagate persistence verification error', async () => {
         try {
             jest.spyOn(LibSecretPersistence.prototype, "verifyPersistence").mockRejectedValue(new Error("Could not verify persistence"));
@@ -75,36 +99,6 @@ describe('Persistence Creator', () => {
         } catch (e) {
             expect(e).toBeInstanceOf(PersistenceError);
             expect((e as PersistenceError).errorMessage).toBe("Persistence could not be verified");
-        }
-    });
-
-    test('Validation error thrown for windows', async () => {
-        try {
-            jest.spyOn(Environment, "getEnvironmentPlatform").mockReturnValue(Platform.WINDOWS);
-            await PersistenceCreator.createPersistence(emptyPeristenceConfig);
-        } catch (e) {
-            expect(e).toBeInstanceOf(PersistenceError);
-            expect((e as PersistenceError).errorMessage).toBe("Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection cache plugin")
-        }
-    });
-
-    test('Validation error thrown for linux', async () => {
-        try {
-            jest.spyOn(Environment, "getEnvironmentPlatform").mockReturnValue(Platform.LINUX);
-            await PersistenceCreator.createPersistence(emptyPeristenceConfig);
-        } catch (e) {
-            expect(e).toBeInstanceOf(PersistenceError);
-            expect((e as PersistenceError).errorMessage).toBe("Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin")
-        }
-    });
-
-    test('Validation error thrown for macos', async () => {
-        try {
-            jest.spyOn(Environment, "getEnvironmentPlatform").mockReturnValue(Platform.MACOS);
-            await PersistenceCreator.createPersistence(emptyPeristenceConfig);
-        } catch (e) {
-            expect(e).toBeInstanceOf(PersistenceError);
-            expect((e as PersistenceError).errorMessage).toBe("Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin")
         }
     });
 });

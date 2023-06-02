@@ -3,14 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { DataProtectionScope, FilePersistenceWithDataProtection } from "../../src";
+import { DataProtectionScope, FilePersistence, FilePersistenceWithDataProtection } from "../../src";
 import { FileSystemUtils } from "../util/FileSystemUtils";
 import { Dpapi } from "../../src/Dpapi";
-import { PersistenceError } from "../../src/error/PersistenceError";
-
-jest.mock("../../src/Dpapi");
 
 if (process.platform === "win32") {
+    jest.mock("../../src/Dpapi");
     describe('Test File Persistence with data protection', () => {
         const filePath = "./dpapi-test.json";
         const dpapiScope = DataProtectionScope.LocalMachine;
@@ -74,20 +72,29 @@ if (process.platform === "win32") {
         it ("save throws", (done) => {
             FilePersistenceWithDataProtection.create(filePath, dpapiScope).then((persistence) => {
                 const contents = "test";
-                persistence.save(contents).catch((err) => {
-                    expect(err).toBeInstanceOf(PersistenceError);
-                    done();
+                persistence.save(contents).then(() => done("This shouldn't succeed.")).catch((err: Error) => {
+                    try {
+                        expect(err.message).toEqual("Dpapi is not supported on this platform");
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
                 });
-            });
+            }).catch(e => done(e));
         });
 
         it("load throws", (done) => {
+            jest.spyOn(FilePersistence.prototype, "loadBuffer").mockResolvedValueOnce(Buffer.from("encryptedData"));
             FilePersistenceWithDataProtection.create(filePath, dpapiScope).then((persistence) => {
-                persistence.load().catch((err) => {
-                    expect(err).toBeInstanceOf(PersistenceError);
-                    done();
+                persistence.load().then(() => done("This shouldn't succeed.")).catch((err: Error) => {
+                    try {
+                        expect(err.message).toEqual("Dpapi is not supported on this platform");
+                        done();
+                    } catch(e) {
+                        done(e);
+                    }
                 });
-            });
+            }).catch(e => done(e));
         });
     });
 }

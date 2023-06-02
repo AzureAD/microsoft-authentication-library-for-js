@@ -67,6 +67,13 @@ jobs:
       working-directory: ${{ inputs.path }}/${{ inputs.lib-name }}
       run: npm run lint
 
+    - name: Install Keyring on Linux
+      if: inputs.os == "ubuntu-latest" && inputs.path == "extensions"
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y dbus dbus-x11 gnome-keyring
+        gnome-keyring-daemon --unlock
+
     - name: Unit Tests with coverage
       working-directory: ${{ inputs.path }}/${{ inputs.lib-name }}
       run: npm run test:coverage
