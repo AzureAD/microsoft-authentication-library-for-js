@@ -53,7 +53,13 @@ export class PersistenceCreator {
         }
 
         // Initially suppress the error thrown during persistence verification to allow us to fallback to plain text
-        const isPersistenceVerified = await peristence.verifyPersistence().catch(() => false);
+        const isPersistenceVerified = await peristence.verifyPersistence().catch((e) => {
+            if (config.usePlaintextFileOnLinux) {
+                return false;
+            } else {
+                throw e;
+            }
+        });
 
         if (!isPersistenceVerified) {
             if (Environment.isLinuxPlatform() && config.usePlaintextFileOnLinux) {
