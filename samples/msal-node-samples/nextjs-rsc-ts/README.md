@@ -1,7 +1,8 @@
 # @azure/msal-node for Next.js with Server Components
 
 This is a sample showcasing some authentication scenarios in Next.js, that uses `@azure/msal-node` on the server to fully utilize the frameworks capabilities.  
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).  
+This sample assumes some previous knowledge with React Server Components and Next.js.
 
 ## What this sample showcases
 
@@ -37,6 +38,63 @@ The `AuthProvider` implementation stores the `CodeRequest` in the state that is 
 
 The `AuthProvider` works with Server Actions and Route Handlers, but the cache won't work the same way as with react. Therefore, a single call to `AuthProvider.authenticate` is recommended.
 
+## Notable files
+
+- `./src/actions/auth.ts`
+
+Contains Server Actions for logging in, logging out, and additional consent. Usage of them can be seen in `./src/app/page.tsx`, `./src/app/event/page.tsx` and `./src/components/LogoutButton.tsx`
+
+- `./src/middleware.ts`
+- `./src/utils/url.ts`
+
+Injects the current url of the request and makes it available in server components.  
+https://github.com/vercel/next.js/issues/43704#issuecomment-1411186664
+
+### Route Handlers
+
+- `./src/app/auth/callback/route.ts`
+
+The route Azure will redirect back to with a code
+
+- `./src/app/auth/login/route.ts`
+- `./src/app/auth/logout/route.ts`
+- `./src/app/auth/eventConsent/route.ts`
+
+These Route Handlers contain alternatives to the Server Actions. Usage of them can be seen in the `./src/app/page.tsx`, `./src/app/event/page.tsx` and `./src/components/LogoutButton.tsx`.
+
+- `./src/app/profile/picture/route.tsx`
+
+A route handler that returns the Profile Picture of the currently logged in user. This route can be directly used in an img tag, without any more work from the client. The `./src/components/SignOutButton.tsx` uses the `/profile/picture` url for the `<Avatar>` component from Material UI.
+
+### Pages
+
+- `./src/app/page.tsx`
+
+Contains links to the different samples, as well as login and logout buttons via Route Handlers and Server Actions.
+Also showcases how to render different content if a user is logged in or not.
+
+- `./src/app/forced/layout.tsx`
+
+Showcases how to force authentication of a subset of pages. All pages that are accessed under `/forced` will be redirected directly to azure if not authenticated.
+
+- `./src/app/profile/page.tsx`
+
+Shows how to get data from graph in a server component.
+
+- `./src/app/event/page.tsx`
+
+Also shows how to get data from graph, but needs additional consent before it can use the API.
+
+### AuthProvider
+
+- `./src/utils/AuthProvider.ts`
+
+Contains an implementation wrapping the usage of a ConfidentialClientApplication, that accepts an partition manager and a cache client for the [DistributedCachePlugin](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md#web-apps) that will be initialized internally. 
+
+- `./src/services/auth.ts`
+
+Initializes an instance of the AuthProvider, and provides it with a `RedisCacheClient` and a `SessionPartitionManager`.
+
 ## Running the sample
 
 Create an App Registration in the Azure portal with the following:
@@ -66,3 +124,11 @@ npm start
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Remarks
+
+As of writing this sample, App Router in Next.js is stable, but React Server Components are new and not documented by React themselves. Server Actions are considered experimental in Next.js, which is why some alternatives with Route Handlers is included.
+
+The sample uses `createCookieSessionStorage` from `@remix-run/node`, which might sound weird. But the implementation works directly with the cookie header, and therefore works as intended.
+
+Session lifetime has not been handled at all, and the RedisCachePlugin does not evict anything, this should be reviewed when implementing in your own applications.
+
+The `./src/components/mui.tsx` re-exports some components from Material UI, and marks them as Client Components. This allows them to be used from Server Components.
