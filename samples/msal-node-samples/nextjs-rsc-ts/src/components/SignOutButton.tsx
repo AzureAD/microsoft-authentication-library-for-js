@@ -33,7 +33,7 @@ export const SignOutButton = () => {
         onClose={() => setAnchorEl(null)}
       >
         <form action={logout}>
-          <MenuItem component={"button"} type="submit" key="logoutPopup">
+          <MenuItem component={"button"} type="submit" key="logout">
             Logout
           </MenuItem>
         </form>
