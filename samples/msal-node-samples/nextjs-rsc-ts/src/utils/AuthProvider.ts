@@ -17,6 +17,9 @@ type AuthCodeRequestState = {
   request: AuthorizationCodeRequest;
 };
 
+/**
+ * Light wrapper for msal-node's ConfidentialClientApplication.
+ */
 export class AuthProvider {
   configuration: Configuration;
   cacheClient: ICacheClient;
@@ -24,6 +27,13 @@ export class AuthProvider {
   cryptoProvider: CryptoProvider;
   redirectUri: string;
 
+  /**
+   * Initialize the AuthProvider.
+   * @param configuration The msal configuration object
+   * @param redirectUri Uri that authentication requests will redirect back to
+   * @param cacheClient The cache client used to store the token cache
+   * @param partitionManagerFactory Factory that returns a PartitionManager for the current executing context
+   */
   constructor(
     configuration: Configuration,
     redirectUri: string,
@@ -38,6 +48,12 @@ export class AuthProvider {
     this.cryptoProvider = new CryptoProvider();
   }
 
+  /**
+   * Get url for an auth code request
+   * @param request Authorization request to initialize the flow
+   * @param returnTo Where the user should be redirected to after a successful flow
+   * @returns The url to redirect the client to
+   */
   async getAuthCodeUrl(
     request: Omit<AuthorizationUrlRequest, "redirectUri">,
     returnTo: string
@@ -62,6 +78,11 @@ export class AuthProvider {
     });
   }
 
+  /**
+   * Handles token acquisition based on the url that the user was sent to from Azure.
+   * @param url The return url from Azure
+   * @returns An object containing the logged in account, and where the user should be redirected to.
+   */
   async handleAuthCodeCallback(url: URL) {
     const instance = await this.getInstance();
 
@@ -92,6 +113,11 @@ export class AuthProvider {
     };
   }
 
+  /**
+   * Authenticate a user.
+   * @returns The logged in account along with an instance that is configured with a partitioned cache.
+   * @remarks Can safely be called in multiple server components.
+   */
   authenticate = cache(async () => {
     const partitionManager = await this.partitionManagerFactory();
     const homeAccountId = await partitionManager.getKey();
@@ -105,6 +131,12 @@ export class AuthProvider {
     return { account, instance };
   });
 
+  /**
+   * Get the current logged in account.
+   * @returns An account object if a user is logged in, or null if no user is logged in.
+   * @remarks Can safely be called in multiple server components.
+   * @remarks Prefer authenticate() in Server Actions and Route Handlers
+   */
   getAccount = cache(async () => {
     const partitionManager = await this.partitionManagerFactory();
     const homeAccountId = await partitionManager.getKey();
@@ -118,6 +150,12 @@ export class AuthProvider {
     return await instance.getTokenCache().getAccountByHomeId(homeAccountId);
   });
 
+  /**
+   * Get an instance configured with a partitioned cache to the current logged in user.
+   * @returns A ConfidentialClientApplication instance
+   * @remarks Can safely be called in multiple server components.
+   * @remarks Prefer authenticate() in Server Actions and Route Handlers
+   */
   getInstance = cache(async () => {
     const cachePlugin = new DistributedCachePlugin(
       this.cacheClient,
