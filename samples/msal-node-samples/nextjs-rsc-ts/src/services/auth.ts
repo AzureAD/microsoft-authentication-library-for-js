@@ -28,6 +28,10 @@ export const codeRequest = {
   scopes: ["User.Read"],
 };
 
+export const calendarRequest = {
+  scopes: ["Calendars.Read"],
+};
+
 async function partitionManagerFactory() {
   const cookie = cookies().get("__session");
 

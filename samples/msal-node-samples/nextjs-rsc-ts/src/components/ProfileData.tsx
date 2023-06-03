@@ -12,7 +12,7 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import Paper from "@mui/material/Paper";
 
-export type GraphData = {
+export type GraphProfile = {
   displayName: string;
   jobTitle: string;
   mail: string;
@@ -20,7 +20,7 @@ export type GraphData = {
   officeLocation: string;
 };
 
-export const ProfileData = ({ graphData }: { graphData: GraphData }) => {
+export const ProfileData = ({ graphData }: { graphData: GraphProfile }) => {
   return (
     <Paper>
       <List className="profileData">

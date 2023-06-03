@@ -1,12 +1,23 @@
 "use server";
 
+import { AuthorizationUrlRequest } from "@azure/msal-node";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { authProvider, codeRequest } from "~/services/auth";
+import { authProvider, calendarRequest, codeRequest } from "~/services/auth";
 import { getCurrentUrl } from "~/utils/url";
 
+async function acquireToken(
+  request: Omit<AuthorizationUrlRequest, "redirectUri">
+) {
+  redirect(await authProvider.getAuthCodeUrl(request, getCurrentUrl()));
+}
+
+export async function acquireCalendarTokenInteractive() {
+  await acquireToken(calendarRequest);
+}
+
 export async function login() {
-  redirect(await authProvider.getAuthCodeUrl(codeRequest, getCurrentUrl()));
+  await acquireToken(codeRequest);
 }
 
 export async function logout() {

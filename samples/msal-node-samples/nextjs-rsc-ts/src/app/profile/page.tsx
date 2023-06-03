@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { GraphData, ProfileData } from "~/components/ProfileData";
+import { GraphProfile, ProfileData } from "~/components/ProfileData";
 import { authProvider } from "~/services/auth";
 
 async function getUserInfo() {
@@ -24,7 +24,7 @@ async function getUserInfo() {
     },
   });
 
-  return (await response.json()) as GraphData;
+  return (await response.json()) as GraphProfile;
 }
 
 export default async function ProfilePage() {
