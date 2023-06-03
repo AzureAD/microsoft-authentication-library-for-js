@@ -1,6 +1,7 @@
 "use client";
 
 export {
+  ButtonGroup,
   Button,
   Typography,
   Link,
