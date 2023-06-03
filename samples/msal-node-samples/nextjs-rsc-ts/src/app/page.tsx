@@ -3,6 +3,7 @@ import { authProvider } from "~/services/auth";
 import Link from "next/link";
 import { Button, ButtonGroup } from "~/components/mui";
 import { login, logout } from "~/actions/auth";
+import LogoutButton from "~/components/LogoutButton";
 
 export default async function Home() {
   const account = await authProvider.getAccount();
@@ -19,9 +20,17 @@ export default async function Home() {
           >
             Go to forced login page
           </Button>
+          <Button
+            component="a"
+            href="/auth/login"
+            variant="contained"
+            color="primary"
+          >
+            Login using Route Handler
+          </Button>
           <form action={login}>
             <Button variant="contained" color="primary" type="submit">
-              Login using Server Action
+              Login using Server Action (experimental)
             </Button>
           </form>
         </ButtonGroup>
@@ -48,9 +57,10 @@ export default async function Home() {
         >
           Consent extra permissions and fetch event
         </Button>
+        <LogoutButton />
         <form action={logout}>
           <Button variant="contained" color="primary" type="submit">
-            Logout using server action
+            Logout using Server Action (experimental)
           </Button>
         </form>
       </ButtonGroup>
