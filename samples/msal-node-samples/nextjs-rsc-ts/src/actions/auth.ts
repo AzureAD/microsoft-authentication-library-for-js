@@ -3,7 +3,8 @@
 import { AuthorizationUrlRequest } from "@azure/msal-node";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { authProvider, calendarRequest, codeRequest } from "~/services/auth";
+import { calendarRequest, loginRequest } from "~/serverConfig";
+import { authProvider } from "~/services/auth";
 import { getCurrentUrl } from "~/utils/url";
 
 async function acquireToken(
@@ -17,7 +18,7 @@ export async function acquireCalendarTokenInteractive() {
 }
 
 export async function login() {
-  await acquireToken(codeRequest);
+  await acquireToken(loginRequest);
 }
 
 export async function logout() {

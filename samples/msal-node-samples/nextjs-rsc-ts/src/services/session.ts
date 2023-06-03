@@ -1,20 +1,15 @@
 import { createCookieSessionStorage } from "@remix-run/node";
+import { sessionSecret } from "~/serverConfig";
 
 export type SessionData = {
   homeAccountId: string;
 };
 
-const secret = process.env.SESSION_SECRET;
-
-if (!secret) {
-  throw new Error("No session secret provided");
-}
-
 export const { getSession, commitSession, destroySession } =
   createCookieSessionStorage<SessionData>({
     cookie: {
       name: "__session",
-      secrets: [secret],
+      secrets: [sessionSecret],
       sameSite: "lax",
       path: "/",
       httpOnly: true,
