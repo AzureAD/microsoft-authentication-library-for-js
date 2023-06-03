@@ -1,4 +1,5 @@
 import { createClient } from "redis";
+import "server-only";
 
 export const redisClient = createClient();
 
