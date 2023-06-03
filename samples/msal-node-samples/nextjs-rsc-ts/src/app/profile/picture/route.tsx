@@ -1,3 +1,4 @@
+import { graphConfig } from "~/serverConfig";
 import { authProvider } from "~/services/auth";
 
 export async function GET() {
@@ -16,7 +17,7 @@ export async function GET() {
     return new Response(null, { status: 403 });
   }
 
-  return await fetch("https://graph.microsoft.com/v1.0/me/photo/$value", {
+  return await fetch(graphConfig.profilePhotoEndpoint, {
     headers: {
       Authorization: `Bearer ${token.accessToken}`,
     },

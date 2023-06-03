@@ -6,6 +6,7 @@ import "server-only";
 export const graphConfig = {
   meEndpoint: "https://graph.microsoft.com/v1.0/me",
   eventEndpoint: "https://graph.microsoft.com/v1.0/me/calendar/events?$top=1",
+  profilePhotoEndpoint: "https://graph.microsoft.com/v1.0/me/photo/$value",
 };
 
 export const msalConfig: Configuration = {

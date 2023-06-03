@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { GraphProfile, ProfileData } from "~/components/ProfileData";
+import { graphConfig } from "~/serverConfig";
 import { authProvider } from "~/services/auth";
 
 async function getUserInfo() {
@@ -18,7 +19,7 @@ async function getUserInfo() {
     return null;
   }
 
-  const response = await fetch("https://graph.microsoft.com/v1.0/me", {
+  const response = await fetch(graphConfig.meEndpoint, {
     headers: {
       Authorization: `Bearer ${token.accessToken}`,
     },

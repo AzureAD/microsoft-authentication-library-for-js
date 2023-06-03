@@ -2,6 +2,7 @@ import { InteractionRequiredAuthError } from "@azure/msal-node";
 import { acquireCalendarTokenInteractive } from "~/actions/auth";
 import { CalendarEvent, GraphCalendarEvent } from "~/components/CalendarEvent";
 import { Button, Paper, Typography } from "~/components/mui";
+import { graphConfig } from "~/serverConfig";
 import { authProvider } from "~/services/auth";
 
 async function getEvent() {
@@ -20,14 +21,11 @@ async function getEvent() {
     throw new Error("Token null");
   }
 
-  const response = await fetch(
-    "https://graph.microsoft.com/v1.0/me/calendar/events?$top=1",
-    {
-      headers: {
-        Authorization: `Bearer ${token.accessToken}`,
-      },
-    }
-  );
+  const response = await fetch(graphConfig.eventEndpoint, {
+    headers: {
+      Authorization: `Bearer ${token.accessToken}`,
+    },
+  });
 
   const data: { value: GraphCalendarEvent[] } = await response.json();
 
