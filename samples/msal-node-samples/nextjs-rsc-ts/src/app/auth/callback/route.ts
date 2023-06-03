@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { authProvider } from "~/services/auth";
 import { commitSession, getSession } from "~/services/session";
 
+// forcing dynamic because of header/cookie usage
+// if this is not set a build error occurs
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const { account, returnTo } = await authProvider.handleAuthCodeCallback(
