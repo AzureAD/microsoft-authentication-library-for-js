@@ -92,31 +92,23 @@ export class AuthProvider {
 
         const msalInstance = this.getMsalInstance(sessionId);
 
-        try {
-            const authCodeUrl = await msalInstance.getAuthCodeUrl({
-                ...authCodeUrlParameters,
-                state,
-            });
+        const authCodeUrl = await msalInstance.getAuthCodeUrl({
+            ...authCodeUrlParameters,
+            state,
+        });
 
-            return { authCodeUrl, state };
-        } catch (error) {
-            throw error;
-        }
+        return { authCodeUrl, state };
     }
 
     async getTokenInteractive(tokenRequest: AuthorizationCodeRequest, authCodePayLoad: AuthorizationCodePayload, sessionId: string): Promise<AuthenticationResult | null> {
         const msalInstance = this.getMsalInstance(sessionId);
         let tokenResponse = null;
 
-        try {
-            performance.mark("acquireTokenByCode-start");
-            await msalInstance.getTokenCache().getAllAccounts(); // required for triggering beforeCacheACcess
-            tokenResponse = await msalInstance.acquireTokenByCode(tokenRequest, authCodePayLoad);
-            performance.mark("acquireTokenByCode-end");
-            performance.measure("acquireTokenByCode", "acquireTokenByCode-start", "acquireTokenByCode-end");
-        } catch (error) {
-            throw error;
-        }
+        performance.mark("acquireTokenByCode-start");
+        await msalInstance.getTokenCache().getAllAccounts(); // required for triggering beforeCacheACcess
+        tokenResponse = await msalInstance.acquireTokenByCode(tokenRequest, authCodePayLoad);
+        performance.mark("acquireTokenByCode-end");
+        performance.measure("acquireTokenByCode", "acquireTokenByCode-start", "acquireTokenByCode-end");
 
         return tokenResponse;
     }
@@ -125,15 +117,11 @@ export class AuthProvider {
         const msalInstance = this.getMsalInstance(sessionId);
         let tokenResponse = null;
 
-        try {
-            performance.mark("acquireTokenSilent-start");
-            await msalInstance.getTokenCache().getAllAccounts(); // required for triggering beforeCacheACcess
-            tokenResponse = await msalInstance.acquireTokenSilent(silentRequest);
-            performance.mark("acquireTokenSilent-end");
-            performance.measure("acquireTokenSilent", "acquireTokenSilent-start", "acquireTokenSilent-end");
-        } catch (error) {
-            throw error;
-        }
+        performance.mark("acquireTokenSilent-start");
+        await msalInstance.getTokenCache().getAllAccounts(); // required for triggering beforeCacheACcess
+        tokenResponse = await msalInstance.acquireTokenSilent(silentRequest);
+        performance.mark("acquireTokenSilent-end");
+        performance.measure("acquireTokenSilent", "acquireTokenSilent-start", "acquireTokenSilent-end");
 
         return tokenResponse;
     }
