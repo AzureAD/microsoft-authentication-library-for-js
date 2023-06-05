@@ -54,6 +54,7 @@ async function main() {
      */
     app.use(session({
         store: new RedisStore({ client: cacheClient }),
+       // Production apps should use certificates, not secrets. 
         secret: process.env.CLIENT_SECRET || "ENTER_SESSION_SECRET_HERE",
         resave: false,
         saveUninitialized: false,
