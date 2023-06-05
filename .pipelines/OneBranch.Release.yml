@@ -161,6 +161,7 @@ extends:
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalNodeExtensions }}
             testMode: ${{ parameters.testMode }}
+            poolType: 'windows'
 
  
 

@@ -16,6 +16,12 @@ parameters:
   - name: testMode
     type: boolean
     default: false
+  - name: poolType
+    type: string
+    default: linux
+    values:
+      - linux
+      - windows
 
 jobs:
   - job: ${{ parameters.jobName }}
@@ -23,7 +29,7 @@ jobs:
     ${{ if not(eq(parameters.dependsOn, 'none')) }}:
       dependsOn: ${{ parameters.dependsOn }}
     pool:
-      type: linux
+      type: ${{ parameters.poolType }}
     variables:
       repoName: 'msal-javascript-internal'
       publishOverride: ${{ parameters.publishOverride }}
