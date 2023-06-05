@@ -35,7 +35,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
         );
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
-            ...(await this.initializeBaseRequest(request)),
+            ...await this.initializeBaseRequest(request, request.account)
         };
         const acquireTokenMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.SilentRefreshClientAcquireToken,
