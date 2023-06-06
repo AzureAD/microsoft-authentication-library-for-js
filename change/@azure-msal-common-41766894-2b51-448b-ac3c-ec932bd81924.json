@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update req-cnf to short form for native flow #6095",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
