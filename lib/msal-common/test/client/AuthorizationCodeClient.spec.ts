@@ -641,8 +641,6 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
     });
 
-    });
-
     describe("handleFragmentResponse()", () => {
 
         it("returns valid server code response", async () => {
