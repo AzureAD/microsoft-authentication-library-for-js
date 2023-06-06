@@ -2,7 +2,7 @@
 
 `@azure/msal-react` does support both function components and class components. However, you will not be able to use `@azure/msal-react` hooks inside your class components so if you need access to authentication state inside your class component you will need to use `@azure/msal-browser` directly to obtain similar functionality.
 
-For a working example, see [react-router-sample](../../../samples/msal-react-samples/react-router-sample/readme.md#(optional)-msal-react-and-class-components).
+For a working example, see [react-router-sample](../../../samples/msal-react-samples/react-router-sample/README.md#optional-msal-react-and-class-components).
 
 ## Initialization
 
