@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, ClientAuthError, AuthError, CommonSilentFlowRequest, AccountInfo } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, ClientAuthError, AuthError, CommonSilentFlowRequest, AccountInfo, CacheRecord } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -122,7 +122,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.warning("NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided");
             throw ClientAuthError.createNoAccountFoundError();
         }
-        // fetch the account from in-memory cache
+        // fetch the account from browser cache
         const account = this.browserStorage.getAccountInfoFilteredBy({nativeAccountId});
         if (!account) {
             throw ClientAuthError.createNoAccountFoundError();
@@ -252,7 +252,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // cache accounts and tokens in the appropriate storage
         this.cacheAccount(accountEntity);
-        this.cacheNativeTokens(response, request, homeAccountIdentifier, idTokenObj, result.accessToken, result.tenantId, reqTimestamp);
+        this.cacheNativeTokens(response, request, homeAccountIdentifier, accountEntity, idTokenObj, result.accessToken, result.tenantId, reqTimestamp);
         
         return result;
     }
@@ -413,17 +413,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param tenantId 
      * @param reqTimestamp 
      */
-    cacheNativeTokens(response: NativeResponse, request: NativeTokenRequest, homeAccountIdentifier: string, idTokenObj: AuthToken, responseAccessToken: string, tenantId: string, reqTimestamp: number): void {
+    cacheNativeTokens(response: NativeResponse, request: NativeTokenRequest, homeAccountIdentifier: string, accountEntity: AccountEntity, idTokenObj: AuthToken, responseAccessToken: string, tenantId: string, reqTimestamp: number): void {
 
-        // cache idToken in inmemory storage
-        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
-            homeAccountIdentifier,
-            request.authority,
-            response.id_token || Constants.EMPTY_STRING,
-            request.clientId,
-            idTokenObj.claims.tid || Constants.EMPTY_STRING,
-        );
-        this.nativeStorageManager.setIdTokenCredential(idTokenEntity);
+        const cachedIdToken: IdTokenEntity | null =
+            IdTokenEntity.createIdTokenEntity(
+                homeAccountIdentifier,
+                request.authority,
+                response.id_token || Constants.EMPTY_STRING,
+                request.clientId,
+                idTokenObj.claims.tid || Constants.EMPTY_STRING
+            );
 
         // cache accessToken in inmemory storage
         const expiresIn: number = (request.tokenType === AuthenticationScheme.POP)
@@ -435,18 +434,28 @@ export class NativeInteractionClient extends BaseInteractionClient {
             ) || 0;
         const tokenExpirationSeconds = reqTimestamp + expiresIn;
         const responseScopes = this.generateScopes(response, request);
-        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            homeAccountIdentifier,
-            request.authority,
-            responseAccessToken,
-            request.clientId,
-            tenantId,
-            responseScopes.printScopes(),
-            tokenExpirationSeconds,
-            0,
-            this.browserCrypto
+        const cachedAccessToken: AccessTokenEntity | null =
+            AccessTokenEntity.createAccessTokenEntity(
+                homeAccountIdentifier,
+                request.authority,
+                responseAccessToken,
+                request.clientId,
+                idTokenObj
+                    ? idTokenObj.claims.tid || Constants.EMPTY_STRING
+                    : tenantId,
+                responseScopes.printScopes(),
+                tokenExpirationSeconds,
+                0,
+                this.browserCrypto
+            );
+
+        const nativeCacheRecord = new CacheRecord(
+            accountEntity,
+            cachedIdToken,
+            cachedAccessToken
         );
-        this.nativeStorageManager.setAccessTokenCredential(accessTokenEntity);
+
+        this.nativeStorageManager.saveCacheRecord(nativeCacheRecord);
     }
 
     protected addTelemetryFromNativeResponse(response: NativeResponse): MATS | null {
