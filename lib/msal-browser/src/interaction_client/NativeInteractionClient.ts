@@ -620,8 +620,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
             const reqCnfData = await popTokenGenerator.generateCnf(shrParameters);
 
-            // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-            validatedRequest.reqCnf = reqCnfData.reqCnfHash;
+            // to reduce the URL length, it is recommended to send the short form of the req_cnf 
+            validatedRequest.reqCnf = reqCnfData.reqCnfString;
             validatedRequest.keyId = reqCnfData.kid;
         }
 

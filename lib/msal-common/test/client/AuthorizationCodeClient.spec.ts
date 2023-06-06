@@ -583,6 +583,62 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl.includes(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`)).toBe(true);
             expect(loginUrl.includes(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(Constants.S256_CODE_CHALLENGE_METHOD)}`)).toBe(true);
         });
+
+        it("Adds req-cnf as needed", async () => {
+            // Override with alternate authority openid_config
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError(
+                    "configuration cryptoInterface not initialized correctly."
+                );
+            }
+
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.FORM_POST,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: TEST_CONFIG.CODE_CHALLENGE_METHOD,
+                state: TEST_CONFIG.STATE,
+                prompt: PromptValue.LOGIN,
+                loginHint: TEST_CONFIG.LOGIN_HINT,
+                domainHint: TEST_CONFIG.DOMAIN_HINT,
+                claims: TEST_CONFIG.CLAIMS,
+                nonce: TEST_CONFIG.NONCE,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.POP,
+                nativeBroker: true,
+            };
+            const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
+            expect(
+                loginUrl.includes(
+                    `${AADServerParamKeys.NATIVE_BROKER}=${encodeURIComponent(
+                        "1"
+                    )}`
+                )
+            ).toBe(true);
+            expect(
+                loginUrl.includes(
+                    `${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(
+                        TEST_POP_VALUES.ENCODED_REQ_CNF
+                    )}`
+                )
+            ).toBe(true);
+        });
     });
 
     describe("handleFragmentResponse()", () => {

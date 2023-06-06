@@ -468,9 +468,9 @@ export class AuthorizationCodeClient extends BaseClient {
             // pass the req_cnf for POP
             if (request.authenticationScheme === AuthenticationScheme.POP) {
                 const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-                // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
+                // to reduce the URL length, it is recommended to send the short form of the req_cnf
                 const reqCnfData = await popTokenGenerator.generateCnf(request);
-                parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
+                parameterBuilder.addPopToken(reqCnfData.reqCnfString);
             }
         }
 
