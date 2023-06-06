@@ -44,8 +44,7 @@ describe("BrowserPerformanceClient.ts", () => {
             logger,
             name,
             version,
-            applicationTelemetry,
-            cryptoOptions
+            applicationTelemetry
         );
         const eventName = PerformanceEvents.AcquireTokenSilent;
         const correlationId = "test-correlation-id";
@@ -72,8 +71,7 @@ describe("BrowserPerformanceClient.ts", () => {
                 logger,
                 name,
                 version,
-                applicationTelemetry,
-                cryptoOptions
+                applicationTelemetry
             );
 
             expect(typeof browserPerfClient.generateId()).toBe("string");
@@ -87,8 +85,7 @@ describe("BrowserPerformanceClient.ts", () => {
                 logger,
                 name,
                 version,
-                applicationTelemetry,
-                cryptoOptions
+                applicationTelemetry
             );
 
             const measurement = browserPerfClient.startMeasurement(
@@ -112,8 +109,7 @@ describe("BrowserPerformanceClient.ts", () => {
                 logger,
                 name,
                 version,
-                applicationTelemetry,
-                cryptoOptions
+                applicationTelemetry
             );
 
             const measurement = browserPerfClient.startMeasurement(
@@ -137,8 +133,7 @@ describe("BrowserPerformanceClient.ts", () => {
             logger,
             name,
             version,
-            applicationTelemetry,
-            cryptoOptions
+            applicationTelemetry
         );
 
         // @ts-ignore

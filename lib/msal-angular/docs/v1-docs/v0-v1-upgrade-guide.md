@@ -22,7 +22,7 @@ Steps:
 Previously, MSAL Angular accepted one configuration object via `MsalModule.forRoot()`. To more closely align with `msal@1` and to provide more flexibility to MSAL Angular, this has been split into two objects, one for the core library and one for the wrapper.
 
 Steps:
-1. The first argument is the configuration object, which is the [same `Configuration` object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Configuration.ts) you would pass to `msal`.
+1. The first argument is the configuration object, which is the [same `Configuration` object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-lts/lib/msal-core/src/Configuration.ts) you would pass to `msal`.
 2. The second argument is a [`MsalAngularConfiguration object`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v1/lib/msal-angular/src/msal-angular.configuration.ts), containing the values for `consentScopes`, `popUp`, `extraQueryParameters`, and `protectedResourceMap`. `unprotectedResources` has been deprecated.
 
 See the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular6-sample-app/src/app/app.module.ts) for an example of how to pass these configuration objects.
