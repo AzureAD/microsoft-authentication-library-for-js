@@ -73,15 +73,14 @@ export class ClientCredentialClient extends BaseClient {
     ): Promise<AuthenticationResult | null> {
         const cachedAccessToken = this.readAccessTokenFromCache();
 
+        // must refresh due to non-existent access_token
         if (!cachedAccessToken) {
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
             return null;
-        }
-
         // must refresh due to the expires_in value
-        if (
+        } else if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
                 this.config.systemOptions.tokenRenewalOffsetSeconds
@@ -92,10 +91,10 @@ export class ClientCredentialClient extends BaseClient {
             );
 
             return null;
+        // must refresh due to the refresh_in value
         } else if (
             cachedAccessToken.refreshOn &&
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn, 0)
-        // must refresh due to the refresh_in value
         ) {
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
