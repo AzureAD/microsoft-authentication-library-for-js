@@ -1,8 +1,5 @@
 import { TestBed, waitForAsync, ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ElementRef } from '@angular/core';
-
-import { Subject } from 'rxjs';
 
 import { AppComponent } from './app.component';
 import { AppModule } from './app.module';
@@ -35,9 +32,9 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'Angular 14 B2C Sample - MSAL Angular v2'`, () => {
+  it(`should have as title 'Angular 16 B2C Sample - MSAL Angular v3'`, () => {
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('Angular 14 B2C Sample - MSAL Angular v2');
+    expect(app.title).toEqual('Angular 16 B2C Sample - MSAL Angular v3');
   });
 
   it('should render title', () => {
