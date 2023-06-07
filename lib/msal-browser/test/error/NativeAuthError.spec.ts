@@ -43,6 +43,15 @@ describe("NativeAuthError Unit Tests", () => {
                 expect(error.isFatal()).toBe(true);
             });
 
+            it("should return true for isFatal when WAM status is INVALID_METHOD_ERROR", () => {
+                const error = new NativeAuthError(
+                    "OSError",
+                    "Error processing request.",
+                    { error: -2147186943 }
+                );
+                expect(error.isFatal()).toBe(true);
+            });
+
             it("should return true for isFatal when extension throws an error", () => {
                 const error = new NativeAuthError(
                     NativeAuthErrorMessage.extensionError.code,
