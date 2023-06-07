@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Updated ClientCredentialRequest documentation",
+  "packageName": "@azure/msal-node",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
