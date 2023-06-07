@@ -80,6 +80,7 @@ export class ClientCredentialClient extends BaseClient {
             return null;
         }
 
+        // must refresh due to the expires_in value
         if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
@@ -89,6 +90,21 @@ export class ClientCredentialClient extends BaseClient {
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
+
+            return null;
+        } else if (
+            cachedAccessToken.refreshOn &&
+            TimeUtils.isTokenExpired(cachedAccessToken.refreshOn, 0)
+        // must refresh due to the refresh_in value
+        ) {
+            this.serverTelemetryManager?.setCacheOutcome(
+                CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
+            );
+
+            this.logger.info(
+                "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'."
+            );
+
             return null;
         }
 

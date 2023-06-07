@@ -982,6 +982,88 @@ describe("ClientCredentialClient unit tests", () => {
         expect(authResult.state).toHaveLength(0);
     });
 
+    it("re-acquires a token via a network request, because the cached token's refreshOn value is expired", async () => {
+        sinon
+            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
+            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon
+            .stub(
+                ClientCredentialClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            )
+            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+
+        const createTokenRequestBodySpy = sinon.spy(
+            ClientCredentialClient.prototype,
+            <any>"createTokenRequestBody"
+        );
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        };
+
+        const expectedAtEntity: AccessTokenEntity =
+            AccessTokenEntity.createAccessTokenEntity(
+                "",
+                "login.microsoftonline.com",
+                "an_access_token",
+                config.authOptions.clientId,
+                TEST_CONFIG.TENANT,
+                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
+                TimeUtils.nowSeconds() + 4600,
+                TimeUtils.nowSeconds() + 4600,
+                mockCrypto,
+                TimeUtils.nowSeconds() - 4600, // refreshOn
+                AuthenticationScheme.BEARER
+            );
+        console.log(expectedAtEntity);
+
+        sinon
+            .stub(
+                ClientCredentialClient.prototype,
+                <any>"readAccessTokenFromCache"
+            )
+            .returns(expectedAtEntity);
+
+        const authResult = (await client.acquireToken(
+            clientCredentialRequest
+        )) as AuthenticationResult;
+        const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.fromCache).toBe(false);
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.accessToken).toEqual(
+            CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+        );
+        expect(authResult.state).toHaveLength(0);
+
+        expect(
+            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
+        ).toBe(true);
+
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
+        expect(
+            returnVal.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
+        ).toBe(true);
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
+            )
+        ).toBe(true);
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`
+            )
+        ).toBe(true);
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
+            )
+        ).toBe(true);
+    });
+
     it("acquires a token, skipCache = true", async () => {
         sinon
             .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
