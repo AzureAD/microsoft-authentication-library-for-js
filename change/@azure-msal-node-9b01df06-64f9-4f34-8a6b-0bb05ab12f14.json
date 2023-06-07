@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Extend proactive token refresh to client_credentials",
+  "packageName": "@azure/msal-node",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
