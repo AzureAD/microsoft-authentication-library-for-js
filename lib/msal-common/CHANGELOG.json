@@ -2,6 +2,35 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 07 Jun 2023 03:15:51 GMT",
+      "tag": "@azure/msal-common_v13.1.0",
+      "version": "13.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "bce0cb792ffe9f45429a2ee918a9c92ce16a5ee2",
+            "comment": "Support tenant switching for tenant domain names #6011"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "1740fb414c8f8d4fc7abcfe6c364cd42e6e119ef",
+            "comment": "Update req-cnf to short form for native flow #6095"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "2d760213ac9db3c6d9b10f818500c334c1708ad5",
+            "comment": "Added new ClientConfigurationError type for authority mismatch in login request #6002"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 May 2023 20:47:41 GMT",
       "tag": "@azure/msal-common_v13.0.0",
       "version": "13.0.0",

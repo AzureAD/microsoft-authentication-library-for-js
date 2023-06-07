@@ -2,6 +2,45 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 07 Jun 2023 03:15:51 GMT",
+      "tag": "@azure/msal-browser_v2.37.1",
+      "version": "2.37.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5967b69e6e2fa8b396452485e53828c6d0c00b17",
+            "comment": "Fix inProgress state reset when page restored from bfCache #6020"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1740fb414c8f8d4fc7abcfe6c364cd42e6e119ef",
+            "comment": "Update req-cnf to short form for native flows #6095"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "093d8db29c987aaf834e730c46c8099d0185d4c1",
+            "comment": "Fix silent cache bugs in native flow #6096"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2d760213ac9db3c6d9b10f818500c334c1708ad5",
+            "comment": "Added authority check for native and silent flows #6002"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v13.1.0",
+            "commit": "093d8db29c987aaf834e730c46c8099d0185d4c1"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 May 2023 20:47:44 GMT",
       "tag": "@azure/msal-browser_v2.37.0",
       "version": "2.37.0",

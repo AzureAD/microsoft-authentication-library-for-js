@@ -2,6 +2,27 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 07 Jun 2023 03:15:51 GMT",
+      "tag": "@azure/msal-node_v1.17.3",
+      "version": "1.17.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "6c0501a38138d9085491ddffaa6bbc81bb4f6c4f",
+            "comment": "Update maintained node versions to fix tsdx optional chaining #6014"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v13.1.0",
+            "commit": "093d8db29c987aaf834e730c46c8099d0185d4c1"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 May 2023 20:47:44 GMT",
       "tag": "@azure/msal-node_v1.17.2",
       "version": "1.17.2",

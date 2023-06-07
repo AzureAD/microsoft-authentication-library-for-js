@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 01 May 2023 20:47:44 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Jun 2023 03:15:51 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.37.1
+
+Wed, 07 Jun 2023 03:15:51 GMT
+
+### Patches
+
+- Fix inProgress state reset when page restored from bfCache #6020 (thomas.norling@microsoft.com)
+- Update req-cnf to short form for native flows #6095 (sameera.gajjarapu@microsoft.com)
+- Fix silent cache bugs in native flow #6096 (sameera.gajjarapu@microsoft.com)
+- Added authority check for native and silent flows #6002 (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v13.1.0
 
 ## 2.37.0
 
