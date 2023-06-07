@@ -425,7 +425,7 @@ describe("OnBehalfOf unit tests", () => {
             );
         });
 
-        it("acquireToken fails because the cached token's refreshOn value is expired", async () => {
+        it("re-acquires a token via a network request, because the cached token's refreshOn value is expired", async () => {
             const testAccessTokenEntityWithExpiredRefreshOn = testAccessTokenEntity;
             testAccessTokenEntityWithExpiredRefreshOn.refreshOn = (TimeUtils.nowSeconds() - 4600).toString();
 

@@ -123,7 +123,7 @@ export class OnBehalfOfClient extends BaseClient {
                 CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
             );
             this.logger.info(
-                "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'."
+                "OnbehalfofFlow:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'."
             );
             throw ClientAuthError.createRefreshRequiredError();
         }
