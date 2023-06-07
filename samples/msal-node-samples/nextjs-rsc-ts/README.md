@@ -1,4 +1,4 @@
-# @azure/msal-node for Next.js App Router example
+# @azure/msal-node for Next.js with Server Components
 
 This is a sample showcasing some authentication scenarios in Next.js, that uses `@azure/msal-node` on the server to fully utilize the frameworks capabilities.  
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
