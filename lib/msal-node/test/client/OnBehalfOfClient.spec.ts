@@ -57,6 +57,8 @@ testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
 testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
 testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
 testAccessTokenEntity.userAssertionHash = "user_assertion_hash";
+testAccessTokenEntity.expiresOn = (TimeUtils.nowSeconds() + 4600).toString();
+testAccessTokenEntity.extendedExpiresOn = (TimeUtils.nowSeconds() + 4600).toString();
 
 const testIdToken: IdTokenEntity = new IdTokenEntity();
 testIdToken.homeAccountId = "home_account_id";
@@ -421,6 +423,112 @@ describe("OnBehalfOf unit tests", () => {
             expect(authResult.account!.tenantId).toBe(
                 expectedAccountEntity.realm
             );
+        });
+
+        it("acquireToken fails because the cached token's refreshOn value is expired", async () => {
+            const testAccessTokenEntityWithExpiredRefreshOn = testAccessTokenEntity;
+            testAccessTokenEntityWithExpiredRefreshOn.refreshOn = (TimeUtils.nowSeconds() - 4600).toString();
+
+            sinon
+                .stub(
+                    OnBehalfOfClient.prototype,
+                    <any>"executePostToTokenEndpoint"
+                )
+                .resolves(AUTHENTICATION_RESULT);
+
+            const createTokenRequestBodySpy = sinon.spy(
+                OnBehalfOfClient.prototype,
+                <any>"createTokenRequestBody"
+            );
+
+            const oboRequest: CommonOnBehalfOfRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                oboAssertion: "user_assertion_hash",
+                skipCache: false,
+            };
+
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new OnBehalfOfClient(config);
+            const idToken: AuthToken = new AuthToken(
+                TEST_TOKENS.IDTOKEN_V2,
+                config.cryptoInterface!
+            );
+            const expectedAccountEntity: AccountEntity =
+                AccountEntity.createAccount(
+                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    "123-test-uid.456-test-uid",
+                    idToken,
+                    config.authOptions.authority
+                );
+
+            sinon
+                .stub(CacheManager.prototype, <any>"readAccountFromCache")
+                .returns(expectedAccountEntity);
+
+            sinon
+                .stub(CacheManager.prototype, <any>"getAccessTokensByFilter")
+                .returns([testAccessTokenEntityWithExpiredRefreshOn]);
+
+            const authResult = (await client.acquireToken(
+                oboRequest
+            )) as AuthenticationResult;
+            const returnVal = (await createTokenRequestBodySpy
+                .returnValues[0]) as string;
+
+            expect(authResult.fromCache).toBe(false);
+            expect(authResult.accessToken).toEqual(
+                AUTHENTICATION_RESULT.body.access_token
+            );
+            expect(authResult.state).toBe("");
+            expect(createTokenRequestBodySpy.calledWith(oboRequest)).toBe(true);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
+                )
+            ).toBe(true);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                )
+            ).toBe(true);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
+                )
+            ).toBe(true);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
+                )
+            ).toBe(true);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
+                )
+            ).toBe(true);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
+                )
+            ).toBe(true);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
+                )
+            ).toBe(true);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
+                )
+            ).toBe(true);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                )
+            ).toBe(true);
         });
     });
 });

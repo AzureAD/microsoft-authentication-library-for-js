@@ -91,8 +91,8 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.authOptions.clientId,
             request
         );
+        // must refresh due to non-existent access_token
         if (!cachedAccessToken) {
-            // Must refresh due to non-existent access_token.
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
@@ -100,18 +100,30 @@ export class OnBehalfOfClient extends BaseClient {
                 "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties."
             );
             throw ClientAuthError.createRefreshRequiredError();
+        // must refresh due to the expires_in value
         } else if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
                 this.config.systemOptions.tokenRenewalOffsetSeconds
             )
         ) {
-            // Access token expired, will need to renewed
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
             this.logger.info(
                 `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`
+            );
+            throw ClientAuthError.createRefreshRequiredError();
+        // must refresh due to the refresh_in value
+        } else if (
+            cachedAccessToken.refreshOn &&
+            TimeUtils.isTokenExpired(cachedAccessToken.refreshOn, 0)
+        ) {
+            this.serverTelemetryManager?.setCacheOutcome(
+                CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
+            );
+            this.logger.info(
+                "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'."
             );
             throw ClientAuthError.createRefreshRequiredError();
         }
