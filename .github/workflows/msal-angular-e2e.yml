@@ -36,6 +36,7 @@ jobs:
       matrix:
         sample:
         - 'angular15-sample-app'
+        - 'angular16-sample-app'
 
     name: ${{ matrix.sample }}
 
