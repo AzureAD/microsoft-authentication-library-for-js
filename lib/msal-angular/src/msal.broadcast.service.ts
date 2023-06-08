@@ -37,7 +37,7 @@ export class MsalBroadcastService {
       this.authService
         .getLogger()
         .verbose(
-          `BroadcastService - replayPastEvents set on BroadcastConfig, replaying the last ${this.msalBroadcastConfig.eventsToReplay} events`
+          `BroadcastService - eventsToReplay set on BroadcastConfig, replaying the last ${this.msalBroadcastConfig.eventsToReplay} events`
         );
       this._msalSubject = new ReplaySubject<EventMessage>(
         this.msalBroadcastConfig.eventsToReplay
