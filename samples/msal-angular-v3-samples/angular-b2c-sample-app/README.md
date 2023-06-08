@@ -1,8 +1,6 @@
-# Angular 14 B2C Sample using MSAL Angular v2
+# Angular 16 B2C Sample using MSAL Angular v3
 
 This developer sample is used to demonstrate how to use `@azure/msal-angular` on Azure AD B2C.
-
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.x.
 
 ## How to run the sample
 
@@ -49,4 +47,4 @@ Implementing B2C user-flows is a matter of initiating authorization requests aga
 
 ## Common errors
 
-- If your app is running into redirect loops when trying to acquire a token for a resource such as your web API, make sure you have granted **admin consent** to the permissions/scopes required for that resource on App registration portal. See [Using redirects in MSAL Angular v2](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more on redirect experience. See [MSAL Angular v2 Errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md) for other common errors.
+- If your app is running into redirect loops when trying to acquire a token for a resource such as your web API, make sure you have granted **admin consent** to the permissions/scopes required for that resource on App registration portal. See [Using redirects in MSAL Angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more on redirect experience. See [MSAL Angular Errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md) for other common errors.
