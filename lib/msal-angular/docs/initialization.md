@@ -1,4 +1,4 @@
-# Initialization of MSAL Angular v2
+# Initialization of MSAL Angular
 
 Before using `@azure/msal-angular`, [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get your `clientId`.
 
@@ -9,8 +9,6 @@ In this document:
     - [Get tokens for Web API calls](#get-tokens-for-web-api-calls)
     - [Subscribe to events](#subscribe-to-events)
 - [Next Steps](#next-steps)
-
-
 
 ## Include and initialize the MSAL module in your app module
 

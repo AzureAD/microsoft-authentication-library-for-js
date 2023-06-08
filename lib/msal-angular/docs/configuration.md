@@ -1,4 +1,4 @@
-# MSAL Angular v2 Configuration
+# MSAL Angular Configuration
 
 MSAL for Angular can be configured in multiple ways:
 - `MsalModule.forRoot`

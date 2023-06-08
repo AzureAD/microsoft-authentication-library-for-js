@@ -1,4 +1,4 @@
-# Angular Universal SSR with MSAL Angular v2
+# Angular Universal SSR with MSAL Angular
 
 Angular Universal is minimally supported in `@azure/msal-angular`. As `@azure/msal-angular` is a wrapper library for `@azure/msal-browser`, which uses browser-only global objects such as `window` and `location` objects, not all of `@azure/msal-angular`'s features are available when using Angular Universal. While login and token acquisition is not supported server-side, Angular Universal can be used with `@azure/msal-angular` without breaking your app.
 

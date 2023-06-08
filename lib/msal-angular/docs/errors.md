@@ -1,4 +1,4 @@
-# MSAL Angular v2 Errors
+# MSAL Angular Errors
 
 ***
 

@@ -1,4 +1,4 @@
-# Logging in MSAL Angular v2
+# Logging in MSAL Angular
 
 The logger definition has the following properties:
 

@@ -1,4 +1,4 @@
-# Known issues for MSAL Angular v2
+# Known issues for MSAL Angular
 
 ## 2.0.0
 * MSAL Guard's `CanLoad` does not interactively prompt for login. This will be addressed in a future release.
