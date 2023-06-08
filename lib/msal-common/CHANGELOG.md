@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 08 May 2023 20:12:00 GMT and should not be manually modified.
+This log was last generated on Tue, 16 May 2023 22:51:19 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.0.0-alpha.2
+
+Tue, 16 May 2023 22:51:19 GMT
+
+### Changes
+
+- Support tenant switching for tenant domain names #6022 (kshabelko@microsoft.com)
 
 ## 14.0.0-alpha.1
 

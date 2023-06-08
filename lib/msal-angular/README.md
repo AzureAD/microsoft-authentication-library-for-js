@@ -45,7 +45,7 @@ At a minimum, `@azure/msal-angular` will follow the [support schedule of the mai
 
 | MSAL Angular version | MSAL support status     | Supported Angular versions |
 |----------------------|-------------------------|----------------------------|
-| MSAL Angular v3      | Active development      | 15                         |
+| MSAL Angular v3-alpha      | Active development      | 15, 16                     |
 | MSAL Angular v2      | In maintenance          | 9, 10, 11, 12, 13, 14      |
 | MSAL Angular v1      | In maintenance          | 6, 7, 8, 9                 |
 | MSAL Angular v0      | Out of support          | 4, 5                       |
@@ -86,6 +86,8 @@ All documentation for MSAL Angular v1 can be found [here](https://github.com/Azu
 
 ### MSAL Angular v3 Samples
 * [Angular v15](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular15-sample-app)
+* [Angular v16](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular16-sample-app)
+* [Angular v16 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-b2c-sample-app)
 
 ### MSAL Angular v2 Samples
 * [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular9-v2-sample-app)

@@ -8,9 +8,6 @@ parameters:
   - name: dependsOn
     type: string
     default: 'none'
-  - name: cdn
-    type: boolean
-    default: false
   - name: publishFlagName
     type: string
   - name: publishOverride
@@ -63,31 +60,20 @@ jobs:
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           customCommand: 'run link:localDeps --if-present'
 
-  # Publish to CDN
       # KeyVault connection
       - task: AzureKeyVault@2
         inputs:
           azureSubscription: 'MSIDLABKeyVault'
           KeyVaultName: 'ADALTestInfo'
-          SecretsFilter: 'MSALJS-CDN-SAS-EUNO, MSALJS-CDN-SAS-USWE, MSALJSNPMTOKEN, MSALJSGITHUB'
+          SecretsFilter: 'MSALJSNPMTOKEN, MSALJSGITHUB'
           RunAsPreJob: true
 
-      # Publish to CDN 
-      - task: Npm@1
-        displayName: Publish to CDN
-        condition: and(${{ parameters.cdn }}, not(${{ parameters.testMode }}))
-        inputs:
-          command: 'custom'
-          customCommand: 'run cdn'
-          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
+      # Write NPM authToken
+      - script: echo $NPM_TOKEN > .npmrc
+        displayName: Write npm authToken
+        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
         env:
-          CDN_SAS_EUNO: $(MSALJS-CDN-SAS-EUNO)
-          CDN_SAS_USWE: $(MSALJS-CDN-SAS-USWE)
-      - task: CmdLine@2
-        displayName: Publish to CDN (Test Mode)
-        condition: and(${{ parameters.cdn }}, ${{ parameters.testMode }})
-        inputs:
-          script: echo "Publish CDN here"
+          NPM_TOKEN: $(MSALJSNPMTOKEN)
 
       # Publish to npm
       - task: Npm@1
@@ -95,9 +81,9 @@ jobs:
         condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), not(${{ parameters.testMode }}))
         continueOnError: true
         inputs:
+          command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
-          command: 'publish'
-          publishEndpoint: MSALJSNPM
+          customCommand: 'publish --tag alpha' # Remove --tag alpha when ready to GA
       - task: Npm@1
         displayName: Publish to npm - Test Mode
         condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), ${{ parameters.testMode }})
@@ -106,14 +92,6 @@ jobs:
           command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           customCommand: 'pack'
-      
-      # Write NPM authToken
-      - script: echo $NPM_TOKEN > .npmrc
-        displayName: Write npm authToken
-        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
-        condition: eq('${{ parameters.libName }}', 'msal-angular')
-        env:
-          NPM_TOKEN: $(MSALJSNPMTOKEN)
 
       # Deploy to npm (Angular only)
       - task: Npm@1
@@ -122,7 +100,7 @@ jobs:
         inputs:
           command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
-          customCommand: 'run deploy'
+          customCommand: 'run deploy:alpha' # Remove :alpha when ready to GA"
       - task: Npm@1
         displayName: Deploy to npm (Angular only) - Test Mode
         condition: and(eq('${{ parameters.libName }}', 'msal-angular'), ${{ parameters.testMode }})
@@ -134,7 +112,6 @@ jobs:
       # Remove .npmrc file
       - script: rm ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
         displayName: Remove .npmrc file
-        condition: eq('${{ parameters.libName }}', 'msal-angular')
 
       # Install Release Scripts dependencies
       - task: Npm@1

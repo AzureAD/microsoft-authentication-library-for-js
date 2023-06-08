@@ -6,9 +6,6 @@ parameters:
   - name: path
     type: string
     default: 'lib'
-  - name: cdn
-    type: boolean
-    default: false
 
 steps:
   - task: DownloadPipelineArtifact@2
@@ -21,14 +18,8 @@ steps:
       allowFailedBuilds: true
       artifactName: 'drop_publish_publish_msal_${{ parameters.libName }}'
       targetPath: '$(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
+      checkDownloadedFiles: true
     continueOnError: true
-  - task: CmdLine@2
-    displayName: 'Save ${{ parameters.libName }} CDN SRI Hashes'
-    condition: and(succeeded(), eq(${{ parameters.cdn }}, true))
-    inputs:
-      script: |
-        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/README.md ${{ parameters.path}}/msal-${{ parameters.libName }}/README.md
-        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/docs/cdn-usage.md ${{ parameters.path}}/msal-${{ parameters.libName }}/docs/cdn-usage.md
   - task: CmdLine@2
     displayName: 'Remove ${{ parameters.libName }} artifacts directory'
     condition: succeeded()

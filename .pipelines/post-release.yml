@@ -3,11 +3,6 @@
 # Build a general Node.js project with npm.
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
-resources:
-  pipelines:
-    - pipeline: releasePipeline
-      source: msal-javascript-internal-Buddy
-      trigger: true
 pool:
   vmImage: ubuntu-latest
 stages:
@@ -21,37 +16,39 @@ stages:
             inputs:
               versionSpec: '16.x'
               checkLatest: true
+
           # Update each package with artifacts from release
-          - template: custom-templates/post-publish-template.yml
-            parameters:
-              name: 'msal_core'
-              libName: 'core'
-              cdn: true
           - template: custom-templates/post-publish-template.yml
             parameters:
               name: 'msal_common'
               libName: 'common'
+
           - template: custom-templates/post-publish-template.yml
             parameters:
               name: 'msal_browser'
               libName: 'browser'
+
           - template: custom-templates/post-publish-template.yml
             parameters:
               name: 'msal_node'
               libName: 'node'
+
           - template: custom-templates/post-publish-template.yml
             parameters:
               name: 'msal_react'
               libName: 'react'
+
           - template: custom-templates/post-publish-template.yml
             parameters:
               name: 'msal_angular'
               libName: 'angular'
+              
           - template: custom-templates/post-publish-template.yml
             parameters:
               name: 'msal_node_extensions'
               libName: 'node-extensions'
               path: 'extensions'
+
           # Get GitHub PAT
           - task: AzureKeyVault@2
             condition: always()
@@ -61,6 +58,7 @@ stages:
               KeyVaultName: 'ADALTestInfo'
               SecretsFilter: 'MSALJSGITHUB'
               RunAsPreJob: true
+
           # Create Pull Request from post-release-month-year to dev 
           - task: Npm@1
             displayName: Install release scripts dependencies
@@ -69,6 +67,7 @@ stages:
               command: 'custom'
               customCommand: 'ci'
               workingDirectory: 'release-scripts/'
+
           # Get Release Date
           - task: CmdLine@2
             displayName: 'Get Release Date'
@@ -78,6 +77,7 @@ stages:
               workingDirectory: 'release-scripts/'
             env:
               TZ: "America/Los_Angeles"
+
           # Create branch name from release date
           - task: CmdLine@2
             displayName: 'Get branch'
@@ -87,6 +87,7 @@ stages:
               workingDirectory: 'release-scripts/'
             env:
               TZ: "America/Los_Angeles"
+
           # Commit the changes and push to GitHub
           - task: CmdLine@2
             displayName: 'Commit and Push Changes'
@@ -104,6 +105,7 @@ stages:
                 git push upstream post-release-$(branch)
             env:
               GITHUBTOKEN: $(MSALJSGITHUB)
+
           # Create Pull Request through GitHub's REST API
           - script: node pullRequest.js --titleDate=$(releaseDate) --branch=post-release-$(branch)
             displayName: "Post Release Pull Request"
