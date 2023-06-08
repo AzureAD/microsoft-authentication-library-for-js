@@ -42,17 +42,19 @@ Please see [here](https://github.com/AzureAD/microsoft-authentication-library-fo
 
 ### What versions of Angular are supported?
 
-Msal Angular v3 is in alpha and currently supports Angular 15 and 16.
+MSAL Angular v3 is in alpha and currently supports Angular 15 and 16.
 
-Msal Angular v2 supports Angular 9, 10, 11, 12, 13 and 14.
+MSAL Angular v2 supports Angular 9, 10, 11, 12, 13 and 14.
 
 ### Does `@azure/msal-angular` support Server Side Rendering?
 
-Yes, server side rendering is supported through Angular universal. See our doc [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/angular-universal.md) for more information.
+Yes, server side rendering is supported through Angular universal. See our doc [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/angular-universal.md) for more information.
 
 ### Can `@azure/msal-angular` be used with Internet Explorer?
 
-Yes, `@azure/msal-angular` does support IE 11. More information can on configuration can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/ie-support.md).
+MSAL Angular v3 no longer supports Internet Explorer.
+
+MSAL Angular v2 and earlier supports IE 11. More information on configuration can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-lts/lib/msal-angular/docs/v2-docs/ie-support.md).
 
 ## Can `@azure/msal-angular` be used with Microsoft Graph JavaScript SDK?
 
@@ -62,15 +64,15 @@ Yes, `@azure/msal-angular` can be used as a custom authentication provider for t
 
 ### What is the difference between `@azure/msal-angular` v2 and v1?
 
-Please see our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md) for information on the differences between `@azure/msal-angular` v1 and v2, as well as changes to watch out for when upgrading.
+Please see our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v1-v2-upgrade-guide.md) for information on the differences between `@azure/msal-angular` v1 and v2, as well as changes to watch out for when upgrading.
 
 ### How do I add tokens to API calls?
 
 `@azure/msal-angular` provides the `MsalInterceptor` for obtaining tokens and adding them to HTTP requests. You may find the following links helpful:
 
-* [MsalInterceptor doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-interceptor.md) for details on configuration and use
-* [Initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#get-tokens-for-web-api-calls) for basic set up
-* [Configuration doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/configuration.md) for different ways to configure MSAL
+* [MsalInterceptor doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/msal-interceptor.md) for details on configuration and use
+* [Initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/initialization.md#get-tokens-for-web-api-calls) for basic set up
+* [Configuration doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/configuration.md) for different ways to configure MSAL
 * [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/5cc21a95a389c31a0d5e74d37ff297931aeee479/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L47) for examples of usage
 
 Please note that the `MsalInterceptor` is optional. You may wish to explicitly acquire tokens using the acquireToken APIs instead. The `MsalInterceptor` is provided for your convenience and may not fit all use cases. We encourage you to write your own interceptor if you have specific needs that are not addressed by the `MsalInterceptor`. 
@@ -85,13 +87,13 @@ See [below](#how-do-i-log-users-in-when-they-hit-the-application) for additional
 
 There are certain situations where events emitted before a redirect are not able to be subscribed to after the redirect to a new page when using the path location strategy. An example is where an error thrown is caught by the `MsalGuard`, but the error event is not available to be subscribed to once the `MsalGuard` redirects to a `login-failed` route.
 
-The `MsalBroadcastService` has optional configurations which allow the replay of past events. This can be set to replay a number of past events, such as the events before a redirect, when subscribed to on a new page load. See our [Events documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/events.md#optional-msalbroadcastservice-configurations) for configuration details.
+The `MsalBroadcastService` has optional configurations which allow the replay of past events. This can be set to replay a number of past events, such as the events before a redirect, when subscribed to on a new page load. See our [Events documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#optional-msalbroadcastservice-configurations) for configuration details.
 
 ## Authentication
 
 ### How do I log users in when they hit the application?
 
-To log your users in when they hit the application, without using a login button, **do not** call `login` in the `ngOnInit` in `app.component.ts`, as this can cause looping with redirects. Instead, we recommend setting the `MsalGuard` on your initial page, which will prompt users to log in before they reach other pages in your application. Our additional recommendations depend on your routing strategy below. Please all see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md) for more information.
+To log your users in when they hit the application, without using a login button, **do not** call `login` in the `ngOnInit` in `app.component.ts`, as this can cause looping with redirects. Instead, we recommend setting the `MsalGuard` on your initial page, which will prompt users to log in before they reach other pages in your application. Our additional recommendations depend on your routing strategy below. Please all see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/msal-guard.md) for more information.
 
 #### PathLocationStrategy
 
@@ -118,7 +120,7 @@ See our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-
 
 One of the common reasons your app may be looping while logging in with redirects is due to improper usage of the `loginRedirect()` API. We recommend that you do not call `loginRedirect()` in the `ngOnInit` in the `app.component.ts`, as this will attempt to log in with every page load, often before any redirect has finished processing. 
 
-Redirects **must** be handled either with the `MsalRedirectComponent` or with calling `handleRedirectObservable()`. See our docs on redirects [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more information. Additionally, any interaction or account validation should be done after  subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None`. Please see our [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/30b5ff95e2ff2cc827d98118004d92968bb67b3f/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.component.ts#L27) for an example. 
+Redirects **must** be handled either with the `MsalRedirectComponent` or with calling `handleRedirectObservable()`. See our docs on redirects [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/redirects.md) for more information. Additionally, any interaction or account validation should be done after  subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None`. Please see our [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/30b5ff95e2ff2cc827d98118004d92968bb67b3f/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.component.ts#L27) for an example. 
 
 ## How do I implement self-service sign-up?
 MSAL Angular supports self-service sign-up in the auth code flow. Please see our docs [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) for supported prompt values in the request and their expected outcomes, and [here](http://aka.ms/s3u) for an overview of self-service sign-up and configuration changes that need to be made to your Azure tenant. Please note that that self-service sign-up is not available in B2C and test environments.
@@ -127,7 +129,7 @@ MSAL Angular supports self-service sign-up in the auth code flow. Please see our
 
 ### How do I secure routes?
 
-Please see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md) for more information about securing routes with the `MsalGuard`.
+Please see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/msal-guard.md) for more information about securing routes with the `MsalGuard`.
 
 ### How do I get accounts?
 
@@ -155,7 +157,7 @@ Our [Angular 15](https://github.com/AzureAD/microsoft-authentication-library-for
 If you have questions about specific errors you are receiving please see the following documents detailing some of the common errors:
 
 - [`@azure/msal-browser` error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md)
-- [`@azure/msal-angular` error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md)
+- [`@azure/msal-angular` error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/errors.md)
 
 ## What if my question has not been answered?
 
