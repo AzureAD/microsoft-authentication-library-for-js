@@ -11,7 +11,7 @@
     <p>Claims in your ID token are shown below: </p>
 </div>
 
-<table id="idTokenClaims" mat-table [dataSource]="dataSource" class="mat-elevation-z8" *ngIf="loginDisplay">
+<table mat-table id="idTokenClaims" [dataSource]="dataSource" class="mat-elevation-z8" *ngIf="loginDisplay">
 
     <!-- Claim Column -->
     <ng-container matColumnDef="claim">

@@ -14,7 +14,8 @@ import {
     CredentialType,
     TimeUtils,
     CacheManager,
-    Logger
+    Logger,
+    CacheRecord,
 } from "@azure/msal-common";
 import sinon from "sinon";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
@@ -81,6 +82,14 @@ testAccessTokenEntity.expiresOn = `${
 }`;
 testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
 testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
+
+const testCacheRecord: CacheRecord = {
+    account: testAccountEntity,
+    idToken: testIdToken,
+    accessToken: testAccessTokenEntity,
+    refreshToken: null,
+    appMetadata: null,
+};
 
 describe("NativeInteractionClient Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -156,11 +165,10 @@ describe("NativeInteractionClient Tests", () => {
         sinon
             .stub(CacheManager.prototype, "getAccountInfoFilteredBy")
             .returns(testAccountInfo);
+
         sinon
-            .stub(SilentCacheClient.prototype, "acquireToken")
-            .callsFake(() => {
-                return Promise.resolve(response);
-            });
+            .stub(CacheManager.prototype, "readCacheRecord")
+            .returns(testCacheRecord);
 
         it("Tokens found in cache", async () => {
             const response = await nativeInteractionClient.acquireToken({
@@ -849,3 +857,4 @@ describe("NativeInteractionClient Tests", () => {
         });
     });
 });
+

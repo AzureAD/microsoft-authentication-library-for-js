@@ -87,6 +87,7 @@ All documentation for MSAL Angular v1 can be found [here](https://github.com/Azu
 ### MSAL Angular v3 Samples
 * [Angular v15](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular15-sample-app)
 * [Angular v16](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular16-sample-app)
+* [Angular v16 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-b2c-sample-app)
 
 ### MSAL Angular v2 Samples
 * [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular9-v2-sample-app)
