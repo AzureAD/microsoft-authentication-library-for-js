@@ -91,7 +91,7 @@ export class ClientCredentialClient extends BaseClient {
             );
 
             return null;
-        // must refresh due to the refresh_in value
+        // the token is not expired, but it must be refreshed due to the refresh_in value
         } else if (
             cachedAccessToken.refreshOn &&
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn, 0)
@@ -101,10 +101,14 @@ export class ClientCredentialClient extends BaseClient {
             );
 
             this.logger.info(
-                "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'."
+                "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
             );
 
-            return null;
+            // the token's cache key // will be used to remove the token from the cache if necessary
+            const accessTokenCacheKey = cachedAccessToken.generateCredentialKey();
+
+            // start a background request to get a new token
+            this.executeTokenRequest(request, this.authority, accessTokenCacheKey);
         }
 
         return await ResponseHandler.generateAuthenticationResult(
@@ -153,7 +157,8 @@ export class ClientCredentialClient extends BaseClient {
      */
     private async executeTokenRequest(
         request: CommonClientCredentialRequest,
-        authority: Authority
+        authority: Authority,
+        accessTokenCacheKey?: string,
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
@@ -208,6 +213,23 @@ export class ClientCredentialClient extends BaseClient {
                 headers,
                 thumbprint
             );
+
+            // check if a new token is being requested because the cached token needs to be refreshed, not because it's expired
+            if (accessTokenCacheKey) {
+                // check if ESTS is down (status code 429 or 5xx)
+                if ((response.status === 429) || (response.status >= 500)) {
+                    this.logger.warning(
+                        "ClientCredentialClient:executeTokenRequest - AAD is currently unavailable and is unable to refresh the token."
+                    );
+                // ESTS is not down, the cached token is bad and should be removed from the cache
+                } else {
+                    this.logger.error(
+                        "ClientCredentialClient:executeTokenRequest - AAD is currently available but is unable to refresh the token. Returning the unexpired token and removing it from the cache."
+                    );
+                    this.cacheManager.removeAccessToken(accessTokenCacheKey);
+                }
+            }
+        
             serverTokenResponse = response.body;
         }
 
