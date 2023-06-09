@@ -11,6 +11,7 @@
 
 **[Configuration](#configuration)**
 
+1. [What is the difference between `@azure/msal-angular` v3 and v2?](#what-is-the-difference-between-azuremsal-angular-v3-and-v2)
 1. [What is the difference between `@azure/msal-angular` v2 and v1?](#what-is-the-difference-between-azuremsal-angular-v2-and-v1)
 1. [How do I add tokens to API calls?](#how-do-i-add-tokens-to-api-calls)
 1. [How do I use my app with path/hash location strategy?](#how-do-i-use-my-app-with-pathhash-location-strategy)
@@ -62,9 +63,15 @@ Yes, `@azure/msal-angular` can be used as a custom authentication provider for t
 
 ## Configuration
 
+### What is the difference between `@azure/msal-angular` v3 and v2?
+
+Please see our [v2 to v3 upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-v3-upgrade-guide.md) for information on the differences between `@azure/msal-angular` v3 and v2, as well as changes to watch out for when upgrading.
+
+Note that MSAL Angular v3 is currently in alpha and additional features and bug fixes will be added.
+
 ### What is the difference between `@azure/msal-angular` v2 and v1?
 
-Please see our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v1-v2-upgrade-guide.md) for information on the differences between `@azure/msal-angular` v1 and v2, as well as changes to watch out for when upgrading.
+Please see our [v1 to v2 upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v1-v2-upgrade-guide.md) for information on the differences between `@azure/msal-angular` v1 and v2, as well as changes to watch out for when upgrading.
 
 ### How do I add tokens to API calls?
 
