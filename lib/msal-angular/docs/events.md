@@ -101,7 +101,7 @@ export class AppComponent implements OnInit, OnDestroy {
 }
 ```
 
-An example of error handling can also be found on our [MSAL Angular v2 B2C Sample App](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-lts/samples/msal-angular-v2-samples/angular11-b2c-sample/src/app/app.component.ts#L68).
+An example of error handling can also be found on our [MSAL Angular B2C Sample App](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular-b2c-sample-app/src/app/app.component.ts#L129).
 
 ## Syncing logged in state across tabs and windows
 
