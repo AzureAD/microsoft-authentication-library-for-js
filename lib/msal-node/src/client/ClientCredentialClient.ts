@@ -23,6 +23,7 @@ import {
     ResponseHandler,
     ScopeSet,
     ServerAuthorizationTokenResponse,
+    ServerError,
     StringUtils,
     TimeUtils,
     UrlString,
@@ -58,7 +59,20 @@ export class ClientCredentialClient extends BaseClient {
 
         const cachedAuthenticationResult =
             await this.getCachedAuthenticationResult(request);
+
         if (cachedAuthenticationResult) {
+            // if the token is not expired but must be refreshed; get a new one in the background
+            if (this.serverTelemetryManager?.getCacheOutcome()) {
+                this.logger.info(
+                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+                );
+
+                // return the cached token, don't wait for the result of this request
+                const accessTokenRefresh = true;
+                this.executeTokenRequest(request, this.authority, accessTokenRefresh);
+            }
+
+            // otherwise, the token is not expired and does not need to be refreshed
             return cachedAuthenticationResult;
         } else {
             return await this.executeTokenRequest(request, this.authority);
@@ -79,8 +93,10 @@ export class ClientCredentialClient extends BaseClient {
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
             return null;
+        }
+        
         // must refresh due to the expires_in value
-        } else if (
+        if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
                 this.config.systemOptions.tokenRenewalOffsetSeconds
@@ -91,24 +107,16 @@ export class ClientCredentialClient extends BaseClient {
             );
 
             return null;
-        // the token is not expired, but it must be refreshed due to the refresh_in value
-        } else if (
+        }
+
+        // must refresh (in the background) due to the refresh_in value
+        if (
             cachedAccessToken.refreshOn &&
-            TimeUtils.isTokenExpired(cachedAccessToken.refreshOn, 0)
+            TimeUtils.isTokenExpired(cachedAccessToken.refreshOn.toString(), 0)
         ) {
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
             );
-
-            this.logger.info(
-                "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
-            );
-
-            // the token's cache key // will be used to remove the token from the cache if necessary
-            const accessTokenCacheKey = cachedAccessToken.generateCredentialKey();
-
-            // start a background request to get a new token
-            this.executeTokenRequest(request, this.authority, accessTokenCacheKey);
         }
 
         return await ResponseHandler.generateAuthenticationResult(
@@ -158,7 +166,7 @@ export class ClientCredentialClient extends BaseClient {
     private async executeTokenRequest(
         request: CommonClientCredentialRequest,
         authority: Authority,
-        accessTokenCacheKey?: string,
+        accessTokenRefresh?: boolean,
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
@@ -214,23 +222,41 @@ export class ClientCredentialClient extends BaseClient {
                 thumbprint
             );
 
-            // check if a new token is being requested because the cached token needs to be refreshed, not because it's expired
-            if (accessTokenCacheKey) {
-                // check if ESTS is down (status code 429 or 5xx)
-                if ((response.status === 429) || (response.status >= 500)) {
+            serverTokenResponse = response.body;
+
+            // if a new token is being requested due to the refresh_in value
+            if (accessTokenRefresh) {
+                // if AAD is down
+                if (response.status >= 500) {
+                    // log a message to the user and do nothing - the cached access token is not able to be refreshed
                     this.logger.warning(
-                        "ClientCredentialClient:executeTokenRequest - AAD is currently unavailable and is unable to refresh the token."
+                        "ClientCredentialClient:executeTokenRequest - AAD is currently unavailable and the access token is unable to be refreshed."
                     );
-                // ESTS is not down, the cached token is bad and should be removed from the cache
-                } else {
+
+                    return null;
+                }
+
+                // AAD is not down, the cached token is bad and should be removed from the cache, and an exception should be thrown
+                if ((response.status >= 400) && (response.status < 499)) {
                     this.logger.error(
-                        "ClientCredentialClient:executeTokenRequest - AAD is currently available but is unable to refresh the token. Returning the unexpired token and removing it from the cache."
+                        "ClientCredentialClient:executeTokenRequest - AAD is currently available but is unable to refresh the access token. The access token is bad and must be removed from the cache."
                     );
+
+                    // we already know there is a valid cached access token
+                    const cachedAccessToken = this.readAccessTokenFromCache();
+                    // get its cache key
+                    const accessTokenCacheKey = (cachedAccessToken as AccessTokenEntity).generateCredentialKey();
+                    // and remove it from the cache
                     this.cacheManager.removeAccessToken(accessTokenCacheKey);
+
+                    const errString = `${serverTokenResponse.error_codes} - [${serverTokenResponse.timestamp}]: ${serverTokenResponse.error_description} - Correlation ID: ${serverTokenResponse.correlation_id} - Trace ID: ${serverTokenResponse.trace_id}`;
+                    throw new ServerError(
+                        serverTokenResponse.error,
+                        errString,
+                        serverTokenResponse.suberror
+                    );
                 }
             }
-        
-            serverTokenResponse = response.body;
         }
 
         const responseHandler = new ResponseHandler(

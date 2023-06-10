@@ -533,6 +533,7 @@ export class ResponseHandler {
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
+        let refreshOn: Date | null = null;
         let familyId: string = Constants.EMPTY_STRING;
 
         if (cacheRecord.accessToken) {
@@ -563,6 +564,9 @@ export class ResponseHandler {
             );
             extExpiresOn = new Date(
                 Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
+            );
+            refreshOn = new Date(
+                Number(cacheRecord.accessToken.refreshOn) * 1000
             );
         }
 
@@ -597,9 +601,10 @@ export class ResponseHandler {
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
+            extExpiresOn: extExpiresOn,
+            refreshOn: refreshOn,
             correlationId: request.correlationId,
             requestId: requestId || Constants.EMPTY_STRING,
-            extExpiresOn: extExpiresOn,
             familyId: familyId,
             tokenType:
                 cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,
