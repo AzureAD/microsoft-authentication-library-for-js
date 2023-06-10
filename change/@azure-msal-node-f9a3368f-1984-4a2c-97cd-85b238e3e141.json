@@ -3,5 +3,5 @@
   "comment": "Updated ClientCredentialRequest documentation",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "none"
 }
