@@ -7,7 +7,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
-import { MatCardModule } from '@angular/material/card';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -20,8 +19,6 @@ import { IPublicClientApplication, PublicClientApplication, InteractionType, Bro
 import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration, MsalRedirectComponent } from '@azure/msal-angular';
 
 import { environment } from 'src/environments/environment';
-
-const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1; // Remove this line to use Angular Universal
 
 export function loggerCallback(logLevel: LogLevel, message: string) {
   console.log(message);
@@ -37,8 +34,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
       knownAuthorities: [environment.b2cPolicies.authorityDomain]
     },
     cache: {
-      cacheLocation: BrowserCacheLocation.LocalStorage,
-      storeAuthStateInCookie: isIE, // set to true for IE 11
+      cacheLocation: BrowserCacheLocation.LocalStorage
     },
     system: {
       allowNativeBroker: false, // Disables WAM Broker
@@ -88,7 +84,6 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MatListModule,
     MatMenuModule,
     MatTableModule,
-    MatCardModule,
     HttpClientModule,
     MsalModule
   ],
