@@ -3,5 +3,5 @@
   "comment": "Remove unused params in msal-common #6122",
   "packageName": "@azure/msal-common",
   "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "prerelease"
 }
