@@ -16,7 +16,10 @@ export type PartitionManagerFactory = () => Promise<IPartitionManager>;
 
 type AuthCodeRequestState = {
   returnTo: string;
-  request: Pick<AuthorizationCodeRequest, 'correlationId' | 'scopes' | 'claims' | 'azureCloudOptions'>;
+  request: Pick<
+    AuthorizationCodeRequest,
+    "correlationId" | "scopes" | "claims" | "azureCloudOptions"
+  >;
 };
 
 /**
@@ -98,11 +101,14 @@ export class AuthProvider {
       this.cryptoProvider.base64Decode(payload.state)
     );
 
-    const authResult = await instance.acquireTokenByCode({
-      ...state.request,
-      redirectUri: this.redirectUri,
-      code: payload.code,
-    }, payload);
+    const authResult = await instance.acquireTokenByCode(
+      {
+        ...state.request,
+        redirectUri: this.redirectUri,
+        code: payload.code,
+      },
+      payload
+    );
 
     return {
       account: authResult.account,
@@ -166,13 +172,27 @@ export class AuthProvider {
       },
     };
 
+    if (!config.auth.cloudDiscoveryMetadata || !config.auth.authorityMetadata) {
+      const metadata = await this.getMetadata(
+        config.auth.clientId,
+        config.auth.authority ?? "https://login.microsoftonline.com/common"
+      );
+
+      if (metadata) {
+        config.auth.cloudDiscoveryMetadata = metadata.cloudDiscoveryMetadata;
+        config.auth.authorityMetadata = metadata.authorityMetadata;
+      }
+    }
+
     return new ConfidentialClientApplication(config);
   });
 
   // validate that the payload includes required fields
-  private getAuthorizationCodePayload (formData: FormData) {
+  private getAuthorizationCodePayload(formData: FormData) {
     // validate that we only get string entries
-    const stringEntries = Array.from(formData.entries()).filter(([, value]) => typeof value === 'string');
+    const stringEntries = Array.from(formData.entries()).filter(
+      ([, value]) => typeof value === "string"
+    );
 
     const data = Object.fromEntries(stringEntries);
 
@@ -184,6 +204,82 @@ export class AuthProvider {
       throw new Error("No code found in payload.");
     }
 
-    return data as Omit<AuthorizationCodePayload, 'state'> & Required<Pick<AuthorizationCodePayload, 'state'>>;
+    return data as Omit<AuthorizationCodePayload, "state"> &
+      Required<Pick<AuthorizationCodePayload, "state">>;
+  }
+
+  private async getMetadata(clientId: string, authority: string) {
+    const tenantId = authority!.split("/").pop()!;
+
+    try {
+      let [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
+        this.cacheClient.get(`${clientId}.${tenantId}.discovery-metadata`),
+        this.cacheClient.get(`${clientId}.${tenantId}.authority-metadata`),
+      ]);
+
+      if (cloudDiscoveryMetadata && authorityMetadata) {
+        return {
+          cloudDiscoveryMetadata,
+          authorityMetadata,
+        };
+      }
+
+      [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
+        AuthProvider.fetchCloudDiscoveryMetadata(tenantId),
+        AuthProvider.fetchOIDCMetadata(tenantId),
+      ]);
+
+      if (cloudDiscoveryMetadata && authorityMetadata) {
+        await this.cacheClient.set(
+          `${clientId}.${tenantId}.discovery-metadata`,
+          cloudDiscoveryMetadata
+        );
+        await this.cacheClient.set(
+          `${clientId}.${tenantId}.authority-metadata`,
+          authorityMetadata
+        );
+      }
+
+      return {
+        cloudDiscoveryMetadata,
+        authorityMetadata,
+      };
+    } catch (error) {
+      console.log(error);
+
+      return null;
+    }
+  }
+
+  private static async fetchCloudDiscoveryMetadata(tenantId: string) {
+    const endpoint = new URL(
+      "https://login.microsoftonline.com/common/discovery/instance"
+    );
+
+    endpoint.searchParams.set("api-version", "1.1");
+    endpoint.searchParams.set(
+      "authorization_endpoint",
+      `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`
+    );
+
+    const response = await fetch(endpoint);
+
+    if (!response.ok) {
+      throw new Error("Could not fetch cloud discovery metadata from endpoint");
+    }
+
+    return await response.text();
+  }
+
+  private static async fetchOIDCMetadata(tenantId: string) {
+    const endpoint = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration`;
+
+    const response = await fetch(endpoint);
+
+    if (!response.ok) {
+      throw new Error("Could not fetch OIDC metadata from endpoin");
+    }
+
+    return await response.text();
   }
 }
