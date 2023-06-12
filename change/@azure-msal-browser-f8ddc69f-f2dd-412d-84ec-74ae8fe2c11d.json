@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update req-cnf to short form for native flows #6095",
-  "packageName": "@azure/msal-browser",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 01 May 2023 20:47:41 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Jun 2023 03:15:51 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 13.1.0
+
+Wed, 07 Jun 2023 03:15:51 GMT
+
+### Minor changes
+
+- Support tenant switching for tenant domain names #6011 (kshabelko@microsoft.com)
+
+### Patches
+
+- Update req-cnf to short form for native flow #6095 (sameera.gajjarapu@microsoft.com)
+- Added new ClientConfigurationError type for authority mismatch in login request #6002 (lalimasharda@microsoft.com)
 
 ## 13.0.0
 
