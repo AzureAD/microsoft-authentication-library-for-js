@@ -54,7 +54,7 @@ async function main() {
      */
     app.use(session({
         store: new RedisStore({ client: cacheClient }),
-       // Production apps should use certificates, not secrets. 
+       // Production apps should use certificates, not secrets.
         secret: process.env.CLIENT_SECRET || "ENTER_SESSION_SECRET_HERE",
         resave: false,
         saveUninitialized: false,
@@ -80,8 +80,12 @@ async function main() {
         appConfig,
         authProvider,
         protectedResources: {
-            "/call-graph-direct": ["https://graph.microsoft.com/v1.0/me", ["User.Read"]],
-            "/call-graph-on-behalf": ["http://localhost:5000/obo", ["api://ENTER_API_CLIENT_ID_HERE/access_as_user"]],
+            "/call-graph-direct": ["https://graph.microsoft.com/v1.0/me", {
+                scopes: ["User.Read"],
+            }],
+            "/call-graph-on-behalf": ["http://localhost:5000/obo", {
+                scopes: ["api://ENTER_API_CLIENT_ID_HERE/access_as_user"],
+            }],
         }
     }));
 

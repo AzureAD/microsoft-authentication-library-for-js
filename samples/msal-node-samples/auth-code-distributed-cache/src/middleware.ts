@@ -4,17 +4,19 @@
  */
 
 import { UrlString } from '@azure/msal-common';
-import { InteractionRequiredAuthError, ResponseMode } from '@azure/msal-node';
+import { InteractionRequiredAuthError, ResponseMode, AuthorizationCodeRequest } from '@azure/msal-node';
 import express, { Request, Response, NextFunction, Router } from 'express';
 
 import { AppConfig, AuthProvider } from './AuthProvider';
 import UrlUtils from './UrlUtils';
 
+type TokenRequest = Omit<AuthorizationCodeRequest, "code" | "redirectUri">;
+
 export type AuthOptions = {
     appConfig: AppConfig
     authProvider: AuthProvider
     protectedResources: {
-        [route: string]: [string, string[]];
+        [route: string]: [string, TokenRequest];
     }
 };
 
@@ -23,7 +25,6 @@ export const auth = (options: AuthOptions): Router => {
 
     // ensure session is available
     appRouter.use((req: Request, res: Response, next: NextFunction) => {
-
         if (!req.session) {
             throw new Error("Session not found. Please check your session middleware configuration.");
         }
@@ -75,13 +76,17 @@ export const auth = (options: AuthOptions): Router => {
 
     // acquire token for routes calling protected resources
     Object.entries(options.protectedResources).forEach((value) => {
-        const [route, [resource, scopes]] = value;
+        const [route, [resource, tokenRequest]] = value;
 
         appRouter.get(route, async (req: Request, res: Response, next: NextFunction) => {
             try {
+                if (!tokenRequest.authority?.includes(options.appConfig.tenantId)) {
+                    throw new InteractionRequiredAuthError("New authority set requires interaction.");
+                }
+
                 const tokenResponse = await options.authProvider.getTokenSilent({
+                    ...tokenRequest,
                     account: req.session.account!,
-                    scopes: scopes,
                 }, req.session.id);
 
                 req.session.protectedResources = {
@@ -95,15 +100,16 @@ export const auth = (options: AuthOptions): Router => {
                 next();
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
+
                     const { authCodeUrl, state } = await options.authProvider.prepareTokenRequest({
+                        ...tokenRequest,
                         responseMode: ResponseMode.FORM_POST,
-                        redirectUri: options.appConfig.redirectUri,
-                        scopes: scopes,
+                        redirectUri:  options.appConfig.redirectUri,
                     }, req.session.id, route);
 
                     req.session.tokenRequest = {
+                        ...tokenRequest,
                         redirectUri: options.appConfig.redirectUri,
-                        scopes,
                         state,
                         code: ""
                     }; // save token request params to session, which will be used to acquire token after redirect

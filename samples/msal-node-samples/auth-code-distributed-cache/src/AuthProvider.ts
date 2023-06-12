@@ -32,12 +32,14 @@ export type AppConfig = {
 export class AuthProvider {
     private msalConfig: Configuration;
     private cryptoProvider: CryptoProvider;
+    private cacheClient: RedisClientType;
     private cacheClientWrapper: RedisClientWrapper;
 
     private constructor(msalConfig: Configuration, cacheClient: RedisClientType) {
         this.msalConfig = msalConfig;
-        this.cryptoProvider = new CryptoProvider();
+        this.cacheClient = cacheClient;
         this.cacheClientWrapper = new RedisClientWrapper(cacheClient);
+        this.cryptoProvider = new CryptoProvider();
     }
 
     static async initialize(appConfig: AppConfig, cacheClient: RedisClientType): Promise<AuthProvider> {
@@ -80,7 +82,7 @@ export class AuthProvider {
 
         /**
          * MSAL Node allows you to pass your custom state as state parameter in the Request object.
-         * The state parameter can also be used to encode information of the app's state before redirect.
+         * The state parameter can also be used to encode information about the app's state before redirect.
          * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter.
          */
         const state = this.cryptoProvider.base64Encode(
@@ -101,6 +103,11 @@ export class AuthProvider {
     }
 
     async getTokenInteractive(tokenRequest: AuthorizationCodeRequest, authCodePayLoad: AuthorizationCodePayload, sessionId: string): Promise<AuthenticationResult | null> {
+        if (tokenRequest.authority && tokenRequest.authority !== this.msalConfig.auth.authority) {
+            this.msalConfig.auth.authority = tokenRequest.authority;
+            this.msalConfig = await AuthProvider.getMetadata(this.msalConfig, this.cacheClient);
+        }
+
         const msalInstance = this.getMsalInstance(sessionId);
         let tokenResponse = null;
 
@@ -116,7 +123,6 @@ export class AuthProvider {
     async getTokenSilent(silentRequest: SilentFlowRequest, sessionId: string): Promise<AuthenticationResult | null> {
         const msalInstance = this.getMsalInstance(sessionId);
         let tokenResponse = null;
-
         performance.mark("acquireTokenSilent-start");
         await msalInstance.getTokenCache().getAllAccounts(); // required for triggering beforeCacheACcess
         tokenResponse = await msalInstance.acquireTokenSilent(silentRequest);
