@@ -1,4 +1,5 @@
 import {
+  AuthorizationCodePayload,
   AuthorizationCodeRequest,
   AuthorizationUrlRequest,
   ConfidentialClientApplication,
@@ -7,6 +8,7 @@ import {
   DistributedCachePlugin,
   ICacheClient,
   IPartitionManager,
+  ResponseMode,
 } from "@azure/msal-node";
 import { cache } from "react";
 
@@ -55,7 +57,7 @@ export class AuthProvider {
    * @returns The url to redirect the client to
    */
   async getAuthCodeUrl(
-    request: Omit<AuthorizationUrlRequest, "redirectUri">,
+    request: Omit<AuthorizationUrlRequest, "redirectUri" | "responseMode">,
     returnTo: string
   ) {
     const instance = await this.getInstance();
@@ -76,6 +78,7 @@ export class AuthProvider {
 
     return await instance.getAuthCodeUrl({
       ...request,
+      responseMode: ResponseMode.FORM_POST,
       redirectUri: this.redirectUri,
       state: encodedState,
     });
@@ -86,30 +89,20 @@ export class AuthProvider {
    * @param url The return url from Azure
    * @returns An object containing the logged in account, and where the user should be redirected to.
    */
-  async handleAuthCodeCallback(url: URL) {
+  async handleAuthCodeCallback(formData: FormData) {
+    const payload = this.getAuthorizationCodePayload(formData);
+
     const instance = await this.getInstance();
 
-    const encodedState = url.searchParams.get("state");
-
-    if (!encodedState) {
-      throw new Error("No state found.");
-    }
-
     const state: AuthCodeRequestState = JSON.parse(
-      this.cryptoProvider.base64Decode(encodedState)
+      this.cryptoProvider.base64Decode(payload.state)
     );
-
-    const code = url.searchParams.get("code");
-
-    if (!code) {
-      throw new Error("No code found.");
-    }
 
     const authResult = await instance.acquireTokenByCode({
       ...state.request,
       redirectUri: this.redirectUri,
-      code,
-    });
+      code: payload.code,
+    }, payload);
 
     return {
       account: authResult.account,
@@ -175,4 +168,22 @@ export class AuthProvider {
 
     return new ConfidentialClientApplication(config);
   });
+
+  // validate that the payload includes required fields
+  private getAuthorizationCodePayload (formData: FormData) {
+    // validate that we only get string entries
+    const stringEntries = Array.from(formData.entries()).filter(([, value]) => typeof value === 'string');
+
+    const data = Object.fromEntries(stringEntries);
+
+    if (!("state" in data)) {
+      throw new Error("No state found in payload.");
+    }
+
+    if (!("code" in data)) {
+      throw new Error("No code found in payload.");
+    }
+
+    return data as Omit<AuthorizationCodePayload, 'state'> & Required<Pick<AuthorizationCodePayload, 'state'>>;
+  }
 }

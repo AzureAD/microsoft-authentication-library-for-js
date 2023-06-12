@@ -6,10 +6,10 @@ import { commitSession, getSession } from "~/services/session";
 // if this is not set a build error occurs
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const { account, returnTo } = await authProvider.handleAuthCodeCallback(
-      request.nextUrl
+      await request.formData()
     );
 
     if (!account) {
@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     session.set("homeAccountId", account.homeAccountId);
 
     return NextResponse.redirect(returnTo, {
+      status: 303,
       headers: {
         "Set-Cookie": await commitSession(session),
       },
