@@ -14,7 +14,7 @@ export type PartitionManagerFactory = () => Promise<IPartitionManager>;
 
 type AuthCodeRequestState = {
   returnTo: string;
-  request: AuthorizationCodeRequest;
+  request: Pick<AuthorizationCodeRequest, 'correlationId' | 'scopes' | 'claims' | 'azureCloudOptions'>;
 };
 
 /**
@@ -60,21 +60,24 @@ export class AuthProvider {
   ) {
     const instance = await this.getInstance();
 
-    const requestWithRedirectUri = {
-      ...request,
-      redirectUri: this.redirectUri,
+    const state: AuthCodeRequestState = {
+      request: {
+        correlationId: request.correlationId,
+        scopes: request.scopes,
+        claims: request.claims,
+        azureCloudOptions: request.azureCloudOptions,
+      },
+      returnTo,
     };
 
-    const state = this.cryptoProvider.base64Encode(
-      JSON.stringify({
-        request: requestWithRedirectUri,
-        returnTo,
-      })
+    const encodedState = this.cryptoProvider.base64Encode(
+      JSON.stringify(state)
     );
 
     return await instance.getAuthCodeUrl({
-      ...requestWithRedirectUri,
-      state: state,
+      ...request,
+      redirectUri: this.redirectUri,
+      state: encodedState,
     });
   }
 
@@ -86,14 +89,14 @@ export class AuthProvider {
   async handleAuthCodeCallback(url: URL) {
     const instance = await this.getInstance();
 
-    const stateString = url.searchParams.get("state");
+    const encodedState = url.searchParams.get("state");
 
-    if (!stateString) {
+    if (!encodedState) {
       throw new Error("No state found.");
     }
 
     const state: AuthCodeRequestState = JSON.parse(
-      this.cryptoProvider.base64Decode(stateString)
+      this.cryptoProvider.base64Decode(encodedState)
     );
 
     const code = url.searchParams.get("code");
@@ -104,6 +107,7 @@ export class AuthProvider {
 
     const authResult = await instance.acquireTokenByCode({
       ...state.request,
+      redirectUri: this.redirectUri,
       code,
     });
 
