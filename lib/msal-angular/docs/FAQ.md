@@ -42,7 +42,9 @@ Please see [here](https://github.com/AzureAD/microsoft-authentication-library-fo
 
 ### What versions of Angular are supported?
 
-Msal Angular currently supports Angular 9, 10, 11, 12, 13 and 14.
+Msal Angular v3 is in alpha and currently supports Angular 15 and 16.
+
+Msal Angular v2 supports Angular 9, 10, 11, 12, 13 and 14.
 
 ### Does `@azure/msal-angular` support Server Side Rendering?
 

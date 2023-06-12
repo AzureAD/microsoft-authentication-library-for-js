@@ -7,12 +7,14 @@ import { AuthError, InteractionRequiredAuthError } from "@azure/msal-common";
 import { BrowserAuthError } from "./BrowserAuthError";
 
 export type OSError = {
-    error: number;
-    protocol_error: string;
-    properties: object;
-    status: string;
+    error?: number;
+    protocol_error?: string;
+    properties?: object;
+    status?: string;
     retryable?: boolean;
 };
+
+const INVALID_METHOD_ERROR = -2147186943;
 
 export const NativeStatusCode = {
     USER_INTERACTION_REQUIRED: "USER_INTERACTION_REQUIRED",
@@ -59,6 +61,14 @@ export class NativeAuthError extends AuthError {
             this.ext.status &&
             (this.ext.status === NativeStatusCode.PERSISTENT_ERROR ||
                 this.ext.status === NativeStatusCode.DISABLED)
+        ) {
+            return true;
+        }
+
+        if (
+            this.ext &&
+            this.ext.error &&
+            this.ext.error === INVALID_METHOD_ERROR
         ) {
             return true;
         }
