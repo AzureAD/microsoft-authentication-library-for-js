@@ -49,7 +49,7 @@ jobs:
       - task: NodeTool@0
         displayName: Install Node
         inputs:
-          versionSpec: '16.x'
+          versionSpec: '20.x'
           checkLatest: true
       # Install dependencies
       - task: Npm@1
