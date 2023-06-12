@@ -1,6 +1,6 @@
 // https://nextjs.org/docs/getting-started/react-essentials#the-server-only-package
 // importing server-only as this module contains secrets that should not be exposed to the client
-import { Configuration } from "@azure/msal-node";
+import { Configuration, LogLevel } from "@azure/msal-node";
 import "server-only";
 
 export const graphConfig = {
@@ -16,6 +16,31 @@ export const msalConfig: Configuration = {
     authority:
       process.env.AZURE_AD_AUTHORITY ??
       "https://login.microsoftonline.com/common",
+  },
+  system: {
+    loggerOptions: {
+      piiLoggingEnabled: false,
+      logLevel: LogLevel.Verbose,
+      loggerCallback(logLevel, message) {
+        switch (logLevel) {
+          case LogLevel.Error:
+            console.error(message);
+            return;
+          case LogLevel.Info:
+            console.info(message);
+            return;
+          case LogLevel.Verbose:
+            console.debug(message);
+            return;
+          case LogLevel.Warning:
+            console.warn(message);
+            return;
+          default:
+            console.log(message);
+            return;
+        }
+      },
+    },
   },
 };
 
