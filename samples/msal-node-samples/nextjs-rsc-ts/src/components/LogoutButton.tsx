@@ -1,18 +1,11 @@
-"use client";
-
-import Button from "@mui/material/Button";
-
-async function logout() {
-  await fetch("/auth/logout", {
-    method: "POST",
-  });
-  window.location.reload();
-}
+import { Button } from "./mui";
 
 export default function LogoutButton() {
   return (
-    <Button variant="contained" color="primary" onClick={logout}>
-      Logout using Route Handler
-    </Button>
+    <form action="/auth/logout" method="POST">
+      <Button variant="contained" color="primary" type="submit">
+        Logout using Route Handler
+      </Button>
+    </form>
   );
 }
