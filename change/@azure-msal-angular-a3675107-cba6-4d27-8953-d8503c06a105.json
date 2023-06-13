@@ -1,5 +1,5 @@
 {
-  "type": "prerelease",
+  "type": "none",
   "comment": "Changes to MSAL Angular docs and comments for v3 #6008",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
