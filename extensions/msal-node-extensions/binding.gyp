@@ -29,9 +29,6 @@
           'libraries': [
                 '-lcrypt32.lib'
             ],
-        }],
-        ['OS not in ["win"]', {
-            'sources': [ 'src/dpapi-addon/dpapi_not_supported.ccp' ]
         }]
       ]
     }

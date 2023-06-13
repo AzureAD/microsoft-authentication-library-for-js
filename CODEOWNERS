@@ -2,9 +2,7 @@
 
 # MSAL Angular
 /lib/msal-angular/ @jo-arroyo @tnorling @peterzenz
-/samples/msal-angular-samples/ @derisen @jo-arroyo @tnorling @peterzenz
-/samples/msal-angular-v2-samples/ @derisen @jo-arroyo @tnorling @peterzenz
-/samples/msal-angularjs-samples/ @derisen @jo-arroyo @tnorling @peterzenz
+/samples/msal-angular-v3-samples/ @derisen @jo-arroyo @tnorling @peterzenz
 
 # MSAL Browser
 /lib/msal-browser/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
