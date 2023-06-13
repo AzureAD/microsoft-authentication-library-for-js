@@ -1,6 +1,6 @@
 # Acquiring Device Bound Tokens
 
-MSAL Node supports acquiring tokens from the native token broker. Refresh tokens are bound to the device on which they are acquired on and are not accessible by `msal-node` or the application. This provides a higher level of security that cannot be achieved by `msal-node` alone.
+MSAL Node supports acquiring tokens from the native token broker. When using the native broker refresh tokens are bound to the device on which they are acquired on and are not accessible by `msal-node` or the application. This provides a higher level of security that cannot be achieved by `msal-node` alone.
 
 ## Supported Environment
 
@@ -13,7 +13,7 @@ This feature is currently only supported on Windows.
 
 ## Enable the feature
 
-Enabling token brokering requires 2 new lines of code:
+Enabling token brokering requires just 1 new configuration parameter:
 
 ```javascript
 import { PublicClientApplication, Configuration } from "@azure/msal-node";
@@ -57,8 +57,8 @@ pca.acquireTokenInteractive({
 
 ## Differences when using the broker to acquire tokens
 
-There are a few things that may behave a little differently when acquiring tokens through WAM.
+There are a few things that may behave a little differently when acquiring tokens through the native broker.
 
-- The `forceRefresh` parameter for `acquireTokenSilent` calls is not supported by WAM. You may receive a cached token from the broker regardless of what this flag is set to.
+- The `forceRefresh` parameter for `acquireTokenSilent` calls is not supported. You may receive a cached token from the broker regardless of what this flag is set to.
 - If the broker needs to prompt the user for interaction a system prompt will be opened. This is a UX change as authentication will not occur in a browser window.
 - Access token proof-of-possession _is_ supported by the broker but _is not_ supported by the non-brokered flow
