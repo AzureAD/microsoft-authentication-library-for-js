@@ -1,10 +1,8 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
 import { PropsWithChildren } from "react";
 import NavBar from "~/components/NavBar";
 import { Grid, Typography } from "~/components/mui";
-
-const inter = Inter({ subsets: ["latin"] });
+import ThemeRegistry from "~/components/theme/ThemeRegistry";
 
 export const metadata = {
   title: "Create Next App",
@@ -14,19 +12,21 @@ export const metadata = {
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <NavBar />
-        <Typography variant="h5">
-          <center>
-            Welcome to the Microsoft Authentication Library For NextJS App
-            Router Quickstart
-          </center>
-        </Typography>
-        <br />
-        <br />
-        <Grid container justifyContent="center">
-          {children}
-        </Grid>
+      <body>
+        <ThemeRegistry>
+          <NavBar />
+          <Typography variant="h5">
+            <center>
+              Welcome to the Microsoft Authentication Library For NextJS App
+              Router Quickstart
+            </center>
+          </Typography>
+          <br />
+          <br />
+          <Grid container justifyContent="center">
+            {children}
+          </Grid>
+        </ThemeRegistry>
       </body>
     </html>
   );
