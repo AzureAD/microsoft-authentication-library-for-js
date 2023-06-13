@@ -16,6 +16,12 @@ parameters:
   - name: testMode
     type: boolean
     default: false
+  - name: poolType
+    type: string
+    default: linux
+    values:
+      - linux
+      - windows
 
 jobs:
   - job: ${{ parameters.jobName }}
@@ -23,7 +29,7 @@ jobs:
     ${{ if not(eq(parameters.dependsOn, 'none')) }}:
       dependsOn: ${{ parameters.dependsOn }}
     pool:
-      type: linux
+      type: ${{ parameters.poolType }}
     variables:
       repoName: 'msal-javascript-internal'
       publishOverride: ${{ parameters.publishOverride }}
@@ -43,22 +49,14 @@ jobs:
       - task: NodeTool@0
         displayName: Install Node
         inputs:
-          versionSpec: '16.x'
+          versionSpec: '20.x'
           checkLatest: true
       # Install dependencies
       - task: Npm@1
         displayName: Install dependencies
         inputs:
           command: 'install'
-          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           verbose: false
-      # Runs lerna bootstrap scoped to this package and any local dependencies so that npm run build:all commands work
-      - task: Npm@1
-        displayName: Link dependencies
-        inputs:
-          command: 'custom'
-          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
-          customCommand: 'run link:localDeps --if-present'
 
       # KeyVault connection
       - task: AzureKeyVault@2
@@ -110,8 +108,10 @@ jobs:
           customCommand: 'pack'
 
       # Remove .npmrc file
-      - script: rm ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
+      - task: DeleteFiles@1
         displayName: Remove .npmrc file
+        inputs:
+          Contents: ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
 
       # Install Release Scripts dependencies
       - task: Npm@1
