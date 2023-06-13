@@ -27,7 +27,6 @@
     "eslint-plugin-react-hooks": "^4.1.2",
     "eslint-plugin-security": "^1.4.0",
     "gh-pages": "^3.1.0",
-    "lerna": "^6.4.0",
     "npm-run-all": "^4.1.5",
     "prettier": "2.8.7",
     "rimraf": "^3.0.0",
@@ -45,12 +44,6 @@
   "scripts": {
     "audit": "npm audit --production && lerna exec \"npm audit --production\"",
     "audit:prod": "npm audit && lerna exec \"npm audit --production\"",
-    "postinstall": "node build/postinstall.js",
-    "build": "lerna run build",
-    "build:extensions": "cd extensions/msal-node-extensions/ && npm ci && npm run build",
-    "test": "lerna run test",
-    "test:coverage": "npm run clean:coverage && lerna run test:coverage",
-    "test:e2e": "lerna run --concurrency 1 test:e2e",
     "doc": "npm run doc:generate && npm run doc:deploy",
     "doc:generate": "rimraf ./ref/* && typedoc",
     "doc:deploy": "gh-pages -d ref -a -e ref",
@@ -61,13 +54,9 @@
     "lint:node": "eslint lib/msal-node/src --ext .ts",
     "lint:node:extensions": "eslint extensions/msal-node-extensions/src --ext .ts",
     "lint:react": "eslint lib/msal-react/src --ext .ts --ext .tsx",
-    "clean": "lerna run clean --no-private && lerna clean",
-    "clean:coverage": "rimraf ./.nyc_output/*",
     "beachball:check": "beachball check --branch origin/dev",
     "beachball:change": "beachball change --branch origin/dev",
     "beachball:bump": "beachball bump --branch origin/dev --bumpDeps false && node release-scripts/updateVersion.js",
-    "beachball:bumpDeps": "beachball bump",
-    "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
     "beachball:release": "node ./.github/create-releases.js"
   }
 }

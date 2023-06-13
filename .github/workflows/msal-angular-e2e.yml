@@ -48,8 +48,6 @@ jobs:
           node-version: 16
 
     - name: Clean Install
-      env:
-        RUNNING_NODE_CI: 1
       run: npm ci
 
     - name: Build packages

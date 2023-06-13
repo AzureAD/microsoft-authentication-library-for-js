@@ -62,8 +62,6 @@ jobs:
 
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
-      env:
-        RUNNING_NODE_CI: 1
       run: npm ci
 
     - name: Build packages
