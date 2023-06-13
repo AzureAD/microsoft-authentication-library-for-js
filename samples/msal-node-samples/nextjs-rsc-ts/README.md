@@ -89,7 +89,7 @@ Also shows how to get data from graph, but needs additional consent before it ca
 
 - `./src/utils/AuthProvider.ts`
 
-Contains an implementation wrapping the usage of a ConfidentialClientApplication, that accepts an partition manager and a cache client for the [DistributedCachePlugin](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md#web-apps) that will be initialized internally. 
+Contains an implementation wrapping the usage of a ConfidentialClientApplication, that accepts an partition manager and a cache client for the [DistributedCachePlugin](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md#web-apps) that will be initialized internally.
 
 - `./src/services/auth.ts`
 
