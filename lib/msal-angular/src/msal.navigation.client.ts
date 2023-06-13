@@ -16,7 +16,7 @@ import { MsalService } from './msal.service';
 /**
  * Custom navigation used for Angular client-side navigation.
  * See performance doc for details:
- * https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/performance.md
+ * https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/performance.md
  */
 @Injectable()
 export class MsalCustomNavigationClient extends NavigationClient {
