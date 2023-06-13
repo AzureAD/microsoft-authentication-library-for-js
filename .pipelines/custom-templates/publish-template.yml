@@ -108,8 +108,10 @@ jobs:
           customCommand: 'pack'
 
       # Remove .npmrc file
-      - script: rm ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
+      - task: DeleteFiles@1
         displayName: Remove .npmrc file
+        inputs:
+          Contents: ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
 
       # Install Release Scripts dependencies
       - task: Npm@1
