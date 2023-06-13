@@ -58,5 +58,13 @@
     "beachball:change": "beachball change --branch origin/dev",
     "beachball:bump": "beachball bump --branch origin/dev --bumpDeps false && node release-scripts/updateVersion.js",
     "beachball:release": "node ./.github/create-releases.js"
-  }
+  },
+  "workspaces": [
+    "lib/msal-common",
+    "lib/msal-browser",
+    "lib/msal-node",
+    "lib/msal-angular",
+    "lib/msal-react",
+    "extensions/msal-node-extensions"
+  ]
 }
