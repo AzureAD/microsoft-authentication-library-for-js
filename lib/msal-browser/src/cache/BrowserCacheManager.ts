@@ -412,8 +412,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * set account entity in the platform cache
-     * @param key
-     * @param value
+     * @param account
      */
     setAccount(account: AccountEntity): void {
         this.logger.trace("BrowserCacheManager.setAccount called");

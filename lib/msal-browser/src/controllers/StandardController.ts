@@ -1299,11 +1299,13 @@ export class StandardController implements IController {
         // Block redirectUri opened in a popup from calling MSAL APIs
         BrowserUtils.blockAcquireTokenInPopups();
 
-        // Block token acquisition before initialize has been called if native brokering is enabled
-        BrowserUtils.blockNativeBrokerCalledBeforeInitialized(
+        // Block token acquisition before initialize has been called if native brokering is enabled in top-frame
+        if (setInteractionInProgress) {
+            BrowserUtils.blockNativeBrokerCalledBeforeInitialized(
             this.config.system.allowNativeBroker,
             this.initialized
-        );
+            );
+        }
 
         // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
         if (
