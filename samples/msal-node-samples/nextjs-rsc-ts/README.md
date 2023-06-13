@@ -30,7 +30,7 @@ This will redirect the user to azure at the earliest possible time, using HTTP h
 
 This can be useful if your whole app relies on being authenticated.
 
-### Gradual consent
+### Incremental consent
 
 The `AuthProvider` implementation stores the `CodeRequest` in the state that is sent to Azure. This means you can call `getAuthCodeUrl` with different types of request where needed, and the `handleAuthCodeCallback` will extract that request and pass it to `acquireTokenByCode` automatically. This allows you to have a single `auth/callback` url that can handle different token requests, and return the user back to where they where before login/consent was initiated.
 
