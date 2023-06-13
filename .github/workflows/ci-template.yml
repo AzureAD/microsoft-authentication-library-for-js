@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       os:
-        default: 'ubuntu-latest'
+        default: 'ubuntu'
         type: string
       should-run: # This ensures check status is reported regardless of whether or not the job was run
         default: true
@@ -25,7 +25,7 @@ concurrency:
 jobs:
   build-test:
     if: inputs.should-run
-    runs-on: ${{ inputs.os }}
+    runs-on: ${{ format('{0}-latest', inputs.os) }}
 
     steps:
     - uses: actions/checkout@v3
@@ -68,7 +68,7 @@ jobs:
       run: npm run lint
 
     - name: Install Keyring on Linux
-      if: inputs.os == 'ubuntu-latest' && inputs.path == 'extensions'
+      if: inputs.os == 'ubuntu' && inputs.path == 'extensions'
       run: |
         sudo apt-get update
         sudo apt-get install -y gnome-keyring
@@ -83,4 +83,4 @@ jobs:
       uses: codecov/codecov-action@v3
       with:
         files: ${{ inputs.path }}/${{ inputs.lib-name }}/coverage/lcov.info
-        flags: ${{ inputs.lib-name }}
+        flags: ${{ inputs.lib-name }}-${{ inputs.os }}
