@@ -1302,8 +1302,8 @@ export class StandardController implements IController {
         // Block token acquisition before initialize has been called if native brokering is enabled in top-frame
         if (setInteractionInProgress) {
             BrowserUtils.blockNativeBrokerCalledBeforeInitialized(
-            this.config.system.allowNativeBroker,
-            this.initialized
+                this.config.system.allowNativeBroker,
+                this.initialized
             );
         }
 
