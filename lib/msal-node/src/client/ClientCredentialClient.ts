@@ -23,7 +23,6 @@ import {
     ResponseHandler,
     ScopeSet,
     ServerAuthorizationTokenResponse,
-    ServerError,
     StringUtils,
     TimeUtils,
     UrlString,
