@@ -60,5 +60,5 @@ pca.acquireTokenInteractive({
 There are a few things that may behave a little differently when acquiring tokens through the native broker.
 
 - The `forceRefresh` parameter for `acquireTokenSilent` calls is not supported. You may receive a cached token from the broker regardless of what this flag is set to.
-- If the broker needs to prompt the user for interaction a system prompt will be opened. This is a UX change as authentication will not occur in a browser window.
+- If the broker needs to prompt the user for interaction, a system prompt will be opened. This is a UX change as authentication will not occur in a browser window.
 - Access token proof-of-possession _is_ supported by the broker but _is not_ supported by the non-brokered flow

@@ -44,13 +44,13 @@ Supported platforms are Windows, Mac and Linux:
 
 ### Brokering
 
-When using the native broker refresh tokens are bound to the device on which they are acquired on and are not accessible by `msal-node` or the application. This provides a higher level of security that cannot be achieved by `msal-node` alone. More information about token brokering can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs/brokering.md)
+When using the native broker, refresh tokens are bound to the device on which they are acquired on and are not accessible by `msal-node` or the application. This provides a higher level of security that cannot be achieved by `msal-node` alone. More information about token brokering can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs/brokering.md)
 
 ## Prerequisites 
 
 The `msal-node-extensions` library ships with pre-compiled binaries.
 
-> Note: If you are planning to do local development on msal-node-extensions itself you may need to install some additional tools. [node-gyp](https://github.com/nodejs/node-gyp) is used to compile addons for accessing system APIs. Installation requirements are listed on the [node-gyp README](https://github.com/nodejs/node-gyp#installation)
+> Note: If you are planning to do local development on msal-node-extensions itself you may need to install some additional tools. [node-gyp](https://github.com/nodejs/node-gyp) is used to compile [addons](https://nodejs.org/api/addons.html) for accessing system APIs. Installation requirements are listed on the [node-gyp README](https://github.com/nodejs/node-gyp#installation)
 
 On linux, the library uses `libsecret` so you may need to install it. Depending on your distribution, you will need to run the following command:
 
@@ -129,7 +129,7 @@ On Windows and Linux, the token cache is scoped to the user session, i.e. all ap
 
 ## Usage - Brokering
 
-Enabling token brokering requires just 1 new configuration parameter:
+Enabling token brokering requires just one new configuration parameter:
 
 ```javascript
 import { PublicClientApplication, Configuration } from "@azure/msal-node";
@@ -178,7 +178,7 @@ npm test
 ## Samples
 
 - [Auth Code CLI sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions). This can be run on Windows, Mac and Linux.
-- [Electron sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions/electron-webpack)
+- [Electron sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack)
 - [Brokering sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-brokered-app)
 
 ## Security Reporting
