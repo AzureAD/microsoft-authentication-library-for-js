@@ -1277,7 +1277,7 @@ export class StandardController implements IController {
      *
      * @protected
      * @param {InteractionType} interactionType What kind of interaction is being used
-     * @param {boolean} [isEmbeddedApp=false] Whether to set interaction in progress temp cache flag
+     * @param {boolean} [isAppEmbedded=false] Whether to set interaction in progress temp cache flag
      */
     public preflightBrowserEnvironmentCheck(
         interactionType: InteractionType,
