@@ -149,12 +149,12 @@ export class ResponseHandler {
             // check if 500 error
             if (accessTokenRefresh && serverResponse.error_codes?.find(a =>a.charAt(0) === "5")) {
                 this.logger.warning(
-                    "ClientCredentialClient:executeTokenRequest - AAD is currently unavailable and the access token is unable to be refreshed."
+                    "executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed."
                 );
             // check if 400 error
             } else if (accessTokenRefresh && serverResponse.error_codes?.find(a =>a.charAt(0) === "4")) {
                 this.logger.error(
-                    "ClientCredentialClient:executeTokenRequest - AAD is currently available but is unable to refresh the access token."
+                    "executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token."
                 );
             }
 
