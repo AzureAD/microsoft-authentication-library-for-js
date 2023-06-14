@@ -51,11 +51,8 @@ export class PersistenceCreator {
             throw PersistenceError.createNotSupportedError(
                 "The current environment is not supported by msal-node-extensions yet.");
         }
-
-        // Initially suppress the error thrown during persistence verification to allow us to fallback to plain text
-        const isPersistenceVerified = await peristence.verifyPersistence().catch(() => false);
-
-        if (!isPersistenceVerified) {
+        
+        await peristence.verifyPersistence().catch(async (e) => {
             if (Environment.isLinuxPlatform() && config.usePlaintextFileOnLinux) {
                 if (!config.cachePath) {
                     throw PersistenceError.createPersistenceNotValidatedError(
@@ -68,10 +65,12 @@ export class PersistenceCreator {
                 if (isFilePersistenceVerified) {
                     return peristence;
                 }
+    
+                throw PersistenceError.createPersistenceNotVerifiedError("Persistence could not be verified");
+            } else {
+                throw e;
             }
-
-            throw PersistenceError.createPersistenceNotVerifiedError("Persistence could not be verified");
-        }
+        });
 
         return peristence;
     }
