@@ -62,7 +62,7 @@ export class ClientCredentialClient extends BaseClient {
 
         if (cachedAuthenticationResult) {
             // if the token is not expired but must be refreshed; get a new one in the background
-            if (this.serverTelemetryManager?.getCacheOutcome()) {
+            if (this.serverTelemetryManager?.getCacheOutcome() === CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN) {
                 this.logger.info(
                     "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );
@@ -223,40 +223,6 @@ export class ClientCredentialClient extends BaseClient {
             );
 
             serverTokenResponse = response.body;
-
-            // if a new token is being requested due to the refresh_in value
-            if (accessTokenRefresh) {
-                // if AAD is down
-                if (response.status >= 500) {
-                    // log a message to the user and do nothing - the cached access token is not able to be refreshed
-                    this.logger.warning(
-                        "ClientCredentialClient:executeTokenRequest - AAD is currently unavailable and the access token is unable to be refreshed."
-                    );
-
-                    return null;
-                }
-
-                // AAD is not down, the cached token is bad and should be removed from the cache, and an exception should be thrown
-                if ((response.status >= 400) && (response.status < 499)) {
-                    this.logger.error(
-                        "ClientCredentialClient:executeTokenRequest - AAD is currently available but is unable to refresh the access token. The access token is bad and must be removed from the cache."
-                    );
-
-                    // we already know there is a valid cached access token
-                    const cachedAccessToken = this.readAccessTokenFromCache();
-                    // get its cache key
-                    const accessTokenCacheKey = (cachedAccessToken as AccessTokenEntity).generateCredentialKey();
-                    // and remove it from the cache
-                    this.cacheManager.removeAccessToken(accessTokenCacheKey);
-
-                    const errString = `${serverTokenResponse.error_codes} - [${serverTokenResponse.timestamp}]: ${serverTokenResponse.error_description} - Correlation ID: ${serverTokenResponse.correlation_id} - Trace ID: ${serverTokenResponse.trace_id}`;
-                    throw new ServerError(
-                        serverTokenResponse.error,
-                        errString,
-                        serverTokenResponse.suberror
-                    );
-                }
-            }
         }
 
         const responseHandler = new ResponseHandler(
@@ -268,7 +234,7 @@ export class ClientCredentialClient extends BaseClient {
             this.config.persistencePlugin
         );
 
-        responseHandler.validateTokenResponse(serverTokenResponse);
+        responseHandler.validateTokenResponse(serverTokenResponse, accessTokenRefresh);
 
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             serverTokenResponse,

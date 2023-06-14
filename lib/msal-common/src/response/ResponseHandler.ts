@@ -133,9 +133,11 @@ export class ResponseHandler {
     /**
      * Function which validates server authorization token response.
      * @param serverResponse
+     * @param accessTokenRefresh
      */
     validateTokenResponse(
-        serverResponse: ServerAuthorizationTokenResponse
+        serverResponse: ServerAuthorizationTokenResponse,
+        accessTokenRefresh?: boolean
     ): void {
         // Check for error
         if (
@@ -143,6 +145,20 @@ export class ResponseHandler {
             serverResponse.error_description ||
             serverResponse.suberror
         ) {
+
+            // check if 500 error
+            if (accessTokenRefresh && serverResponse.error_codes?.find(a =>a.charAt(0) === "5")) {
+                // log a message to the user and do nothing - the cached access token is not able to be refreshed
+                this.logger.warning(
+                    "ClientCredentialClient:executeTokenRequest - AAD is currently unavailable and the access token is unable to be refreshed."
+                );
+            // check if 400 error
+            } else if (accessTokenRefresh && serverResponse.error_codes?.find(a =>a.charAt(0) === "4")) {
+                this.logger.error(
+                    "ClientCredentialClient:executeTokenRequest - AAD is currently available but is unable to refresh the access token. The access token is bad and must be removed from the cache."
+                );
+            }
+
             if (
                 InteractionRequiredAuthError.isInteractionRequiredError(
                     serverResponse.error,
