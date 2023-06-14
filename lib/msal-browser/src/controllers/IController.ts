@@ -133,7 +133,7 @@ export interface IController {
 
     preflightBrowserEnvironmentCheck(
         interactionType: InteractionType,
-        setInteractionInProgress?: boolean
+        isAppEmbedded?: boolean
     ): void;
 
     canUseNative(

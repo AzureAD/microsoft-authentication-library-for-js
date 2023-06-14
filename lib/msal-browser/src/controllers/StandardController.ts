@@ -1277,11 +1277,11 @@ export class StandardController implements IController {
      *
      * @protected
      * @param {InteractionType} interactionType What kind of interaction is being used
-     * @param {boolean} [setInteractionInProgress=true] Whether to set interaction in progress temp cache flag
+     * @param {boolean} [isEmbeddedApp=false] Whether to set interaction in progress temp cache flag
      */
     public preflightBrowserEnvironmentCheck(
         interactionType: InteractionType,
-        setInteractionInProgress: boolean = true
+        isAppEmbedded: boolean = false
     ): void {
         this.logger.verbose("preflightBrowserEnvironmentCheck started");
         // Block request if not in browser environment
@@ -1299,8 +1299,11 @@ export class StandardController implements IController {
         // Block redirectUri opened in a popup from calling MSAL APIs
         BrowserUtils.blockAcquireTokenInPopups();
 
-        // Block token acquisition before initialize has been called if native brokering is enabled in top-frame
-        if (setInteractionInProgress) {
+        /*
+         * Block token acquisition before initialize has been called if native brokering is enabled in top-frame.
+         * Skip check if application is embedded.
+         */
+        if (!isAppEmbedded) {
             BrowserUtils.blockNativeBrokerCalledBeforeInitialized(
                 this.config.system.allowNativeBroker,
                 this.initialized
@@ -1321,7 +1324,7 @@ export class StandardController implements IController {
             interactionType === InteractionType.Redirect ||
             interactionType === InteractionType.Popup
         ) {
-            this.preflightInteractiveRequest(setInteractionInProgress);
+            this.preflightInteractiveRequest(!isAppEmbedded);
         }
     }
 
