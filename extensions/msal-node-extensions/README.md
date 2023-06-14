@@ -7,15 +7,14 @@
 |--- | --- | --- | --- |
 
 1. [About](#about)
-    - [Goals](#goals)
-    - [Non-Goals](#non-goals)
+    - [Cache Persistence](#cache-persistence)
+    - [Brokering](#brokering)
 1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/extensions/docs/faq.md)
 1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/extensions/msal-node-extensions/CHANGELOG.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
-1. [Usage](#usage)
-    - [Getting Started](#getting-started)
-    - [Security Boundary](#security-boundary)
+1. [Usage - Cache Persistence](#usage---cache-persistence)
+1. [Usage - Brokering](#usage---brokering)
 1. [Build and Test](#build-and-test)
     - [Build package](#building-the-package-locally)
     - [Test package](#running-tests)
@@ -26,7 +25,12 @@
 1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
 
 ## About
-The Microsoft Authentication Extensions for Node offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence. It gives additional support to the Microsoft Authentication Library for Node (MSAL).
+The `msal-node-extensions` library offers optional features to enhance the capabilities of `msal-node`:
+
+- Secure mechanisms for client applications to perform cross-platform token cache serialization and persistence
+- An interface for acquiring tokens from the native token broker, enabling a higher level of security and SSO with other native applications
+
+### Cache Persistence
 
 [MSAL Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) supports an in-memory cache by default and provides the ICachePlugin interface to perform cache serialization, but does not provide a default way of storing the token cache to disk. Microsoft authentication extensions for node is default implementation for persisting cache to disk across different platforms.
 
@@ -38,17 +42,15 @@ Supported platforms are Windows, Mac and Linux:
 
 > Note: It is recommended to use this library for cache persistence support for Public client applications such as Desktop apps only. In web applications, this may lead to scale and performance issues. Web applications are recommended to persist the cache in session.
 
-### Goals
-* Provide a robust, secure and configurable token cache persistence implementation across Windows, Mac and Linux for public client applications (rich clients, CLI applications etc.)
-* Token cache storage can be accessed by multiple processes concurrently.
+### Brokering
 
-### Non Goals
-* This implementation is not suitable for web app / web api scenarios, where storing the cache should be done in memory, Redis, Sql Server etc. Have a look at the [web samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples) for server-side implementations.
+When using the native broker, refresh tokens are bound to the device on which they are acquired on and are not accessible by `msal-node` or the application. This provides a higher level of security that cannot be achieved by `msal-node` alone. More information about token brokering can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs/brokering.md)
 
 ## Prerequisites 
 
-The extensions contain prebuild binaries.
-[node-gyp](https://github.com/nodejs/node-gyp) is used to compile addons for accessing system APIs. Installation requirements are listed on the [node-gyp README](https://github.com/nodejs/node-gyp#installation)
+The `msal-node-extensions` library ships with pre-compiled binaries.
+
+> Note: If you are planning to do local development on msal-node-extensions itself you may need to install some additional tools. [node-gyp](https://github.com/nodejs/node-gyp) is used to compile [addons](https://nodejs.org/api/addons.html) for accessing system APIs. Installation requirements are listed on the [node-gyp README](https://github.com/nodejs/node-gyp#installation)
 
 On linux, the library uses `libsecret` so you may need to install it. Depending on your distribution, you will need to run the following command:
 
@@ -63,7 +65,8 @@ The `msal-node-extensions` package is available on NPM.
 ```bash
 npm i @azure/msal-node-extensions --save
 ```
-## Usage
+## Usage - Cache Persistence
+
 ### Getting started
 Here is a code snippet on how to configure the token cache.
 
@@ -124,34 +127,43 @@ All the arguments for the persistence configuration are explained below:
 ### Security boundary
 On Windows and Linux, the token cache is scoped to the user session, i.e. all applications running on behalf of the user can access the cache. Mac offers a more restricted scope, ensuring that only the application that created the cache can access it, and prompting the user if others apps want access.
 
+## Usage - Brokering
+
+Enabling token brokering requires just one new configuration parameter:
+
+```javascript
+import { PublicClientApplication, Configuration } from "@azure/msal-node";
+import { NativeBrokerPlugin } from "@azure/msal-node-extensions";
+
+const msalConfig: Configuration = {
+    auth: {
+        clientId: "your-client-id"
+    },
+    broker: {
+        nativeBrokerPlugin: new NativeBrokerPlugin()
+    }
+};
+
+const pca = new PublicClientApplication(msalConfig);
+```
+
+More detailed information can be found in the [brokering documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs/brokering.md)
+
 ## Build and Test
 
 If you intend to contribute to the library visit the [`contributing section`](#contributing) for even more information on how.
 
 ### Building the package locally
 
-To build the `@azure/msal-node-extensions` library, you can do the following:
+To build both the `@azure/msal-node-extensions` library and `@azure/msal-common` libraries, run the following commands:
 
 ```bash
 // Install dev dependencies from root of repo
 npm install
 // Change to the msal-node-extensions package directory
-cd extensions/msal-node-extensions 
-// To run build only for node-extensions package
-npm run build
-```
-
-To build both the `@azure/msal-node-extensions` library and `@azure/msal-common` libraries, you can do the following:
-
-```bash
-// Install dev dependencies from root of repo
-npm install
-// Change to the msal-react package directory
 cd lib/msal-node-extensions/
-// To run build for the common package
-npm run build:common
-// To run build for the msal-node-extensions package
-npm run build
+// Build msal-common and msal-node-extensions
+npm run build:all
 ```
 
 ### Running Tests
@@ -164,7 +176,10 @@ npm test
 ```
 
 ## Samples
-Have a look at a [simple auth-code app](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions) using this token cache. We use this for testing on Windows, Mac and Linux.
+
+- [Auth Code CLI sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions). This can be run on Windows, Mac and Linux.
+- [Electron sample with Cache Persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack)
+- [Brokering sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-brokered-app)
 
 ## Security Reporting
 
