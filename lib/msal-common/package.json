@@ -62,7 +62,6 @@
     "@types/jest": "^27.0.0",
     "@types/lodash": "^4.14.182",
     "@types/sinon": "^7.5.0",
-    "husky": "^3.0.9",
     "jest": "^27.0.4",
     "lodash": "^4.17.21",
     "prettier": "2.8.7",
