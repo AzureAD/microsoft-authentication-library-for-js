@@ -42,9 +42,12 @@ export default async function EventPage() {
       return (
         <Paper>
           <Typography>Please consent to see your calendar events.</Typography>
-          <Button component="a" href="/auth/eventConsent">
-            Consent with Route Handler
-          </Button>
+          <form action="/auth/eventConsent" method="POST">
+            <Button type="submit">
+              Consent with Route Handler
+            </Button>
+          </form>
+
           <form action={acquireCalendarTokenInteractive}>
             <Button type="submit">
               Consent with Server Action (experimental)

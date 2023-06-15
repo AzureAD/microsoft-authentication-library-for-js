@@ -20,14 +20,11 @@ export default async function Home() {
           >
             Go to forced login page
           </Button>
-          <Button
-            component="a"
-            href="/auth/login"
-            variant="contained"
-            color="primary"
-          >
-            Login using Route Handler
-          </Button>
+          <form action="/auth/login" method="POST">
+            <Button variant="contained" color="primary" type="submit">
+              Login using Route Handler
+            </Button>
+          </form>
           <form action={login}>
             <Button variant="contained" color="primary" type="submit">
               Login using Server Action (experimental)
