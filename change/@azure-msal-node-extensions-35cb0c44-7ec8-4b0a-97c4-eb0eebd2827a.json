@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Include prebuilt binaries",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
