@@ -38,7 +38,11 @@
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "patch",
+      "minor",
+      "major"
+    ]
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^15.1.5",

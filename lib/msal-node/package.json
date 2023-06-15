@@ -41,7 +41,11 @@
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "patch",
+      "minor",
+      "major"
+    ]
   },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {

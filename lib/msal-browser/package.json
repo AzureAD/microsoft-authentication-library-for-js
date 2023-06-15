@@ -29,7 +29,11 @@
     "node": ">=0.8.0"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "patch",
+      "minor",
+      "major"
+    ]
   },
   "directories": {
     "test": "test"

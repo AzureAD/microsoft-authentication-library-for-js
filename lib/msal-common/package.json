@@ -51,6 +51,13 @@
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
+  "beachball": {
+    "disallowedChangeTypes": [
+      "patch",
+      "minor",
+      "major"
+    ]
+  },
   "devDependencies": {
     "@babel/core": "^7.7.2",
     "@babel/plugin-proposal-class-properties": "^7.7.0",
