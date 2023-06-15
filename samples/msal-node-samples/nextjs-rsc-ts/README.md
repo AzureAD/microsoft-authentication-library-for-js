@@ -108,7 +108,8 @@ Set up a `.env.local` file with the following values
 ```env
 AZURE_AD_CLIENT_ID=YOUR_CLIENT_ID
 AZURE_AD_CLIENT_SECRET=YOUR_CLIENT_SECRET
-AZURE_AD_AUTHORITY=YOUR_AZURE_AD_AUTHORITY
+AZURE_AD_AUTHORITY=YOUR_AZURE_AD_AUTHORITY (optional, defaults to "https://login.microsoftonline.com/common")
+AUTH_CALLBACK_URI=AUTH_CALLBACK_HANDLER (optional, defaults to "http://localhost:3000/auth/callback")
 SESSION_SECRET=SUPER_SECRET_STRING_USED_TO_SIGN_COOKIES
 ```
 

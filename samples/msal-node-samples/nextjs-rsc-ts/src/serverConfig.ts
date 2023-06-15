@@ -52,6 +52,7 @@ export const calendarRequest = {
   scopes: ["Calendars.Read"],
 };
 
-export const authCallbackUri = "http://localhost:3000/auth/callback";
+export const authCallbackUri =
+  process.env.AUTH_CALLBACK_URI ?? "http://localhost:3000/auth/callback";
 
 export const sessionSecret = process.env.SESSION_SECRET!;
