@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Updated ClientCredentialRequest documentation",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "none"
-}
