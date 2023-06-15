@@ -2,8 +2,10 @@ import styles from "./page.module.css";
 import { authProvider } from "~/services/auth";
 import Link from "next/link";
 import { Button, ButtonGroup } from "~/components/mui";
-import { login, logout } from "~/actions/auth";
-import LogoutButton from "~/components/LogoutButton";
+import LoginRouteHandlerButton from "~/components/LoginRouteHandlerButton";
+import LoginServerActionButton from "~/components/LoginServerActionButton";
+import LogoutRouteHandlerButton from "~/components/LogoutRouteHandlerButton";
+import LogoutServerActionButton from "~/components/LogoutServerActionButton";
 
 export default async function Home() {
   const account = await authProvider.getAccount();
@@ -20,16 +22,8 @@ export default async function Home() {
           >
             Go to forced login page
           </Button>
-          <form action="/auth/login" method="POST">
-            <Button variant="contained" color="primary" type="submit">
-              Login using Route Handler
-            </Button>
-          </form>
-          <form action={login}>
-            <Button variant="contained" color="primary" type="submit">
-              Login using Server Action (experimental)
-            </Button>
-          </form>
+          <LoginRouteHandlerButton />
+          <LoginServerActionButton />
         </ButtonGroup>
       </main>
     );
@@ -54,12 +48,8 @@ export default async function Home() {
         >
           Consent extra permissions and fetch event
         </Button>
-        <LogoutButton />
-        <form action={logout}>
-          <Button variant="contained" color="primary" type="submit">
-            Logout using Server Action (experimental)
-          </Button>
-        </form>
+        <LogoutRouteHandlerButton />
+        <LogoutServerActionButton />
       </ButtonGroup>
     </main>
   );

@@ -12,5 +12,16 @@ import Link from "@mui/material/Link";
 import Paper from "@mui/material/Paper";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import Avatar from "@mui/material/Avatar";
 
-export { ButtonGroup, Button, Typography, Link, Toolbar, AppBar, Grid, Paper };
+export {
+  ButtonGroup,
+  Button,
+  Typography,
+  Link,
+  Toolbar,
+  AppBar,
+  Grid,
+  Paper,
+  Avatar,
+};

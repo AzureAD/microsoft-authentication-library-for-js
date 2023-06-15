@@ -1,7 +1,7 @@
 import NextLink from "next/link";
 import { AppBar, Link, Toolbar, Typography } from "./mui";
 import WelcomeName from "./WelcomeName";
-import SignInSignOutButton from "./SignInSignOutButton";
+import ProfilePicture from "./ProfilePicture";
 
 export default function NavBar() {
   return (
@@ -14,7 +14,7 @@ export default function NavBar() {
             </Link>
           </Typography>
           <WelcomeName />
-          <SignInSignOutButton />
+          <ProfilePicture />
         </Toolbar>
       </AppBar>
     </div>
