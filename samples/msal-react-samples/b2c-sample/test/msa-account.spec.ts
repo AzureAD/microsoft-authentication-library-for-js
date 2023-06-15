@@ -81,10 +81,8 @@ describe('B2C user-flow tests (msa account)', () => {
         }
         let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
         await page.waitForSelector("#attributeVerification", {visible: true});
-        await Promise.all([
-            page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
-            page.type("#displayName", `${displayName}`),
-        ]);
+        await page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
+        await page.type("#displayName", `${displayName}`),
         await page.click("#continue");
         await Promise.all([
             page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`),

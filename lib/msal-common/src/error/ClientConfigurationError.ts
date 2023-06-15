@@ -99,8 +99,12 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidAuthenticationHeader: {
         code: "invalid_authentication_header",
-        desc: "Invalid authentication header provided",
+        desc: "Invalid authentication header provided"
     },
+    authorityMismatch: {
+        code: "authority_mismatch",
+        desc: "Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority."
+    }
 };
 
 /**
@@ -350,5 +354,12 @@ export class ClientConfigurationError extends ClientAuthError {
             ClientConfigurationErrorMessage.invalidAuthenticationHeader.code,
             `${ClientConfigurationErrorMessage.invalidAuthenticationHeader.desc}. Invalid header: ${invalidHeaderName}. Details: ${details}`
         );
+    }
+    
+    /**
+     * Create an error when the authority provided in request does not match authority provided in account or MSAL.js configuration.
+     */
+    static createAuthorityMismatchError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.authorityMismatch.code, ClientConfigurationErrorMessage.authorityMismatch.desc);
     }
 }

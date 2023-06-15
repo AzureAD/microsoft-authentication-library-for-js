@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 import {
     Screenshot,
     createFolder,

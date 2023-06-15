@@ -3,58 +3,86 @@
         "Core Library": {
             "labels": {
                 "msal@1.x": {
-                    "searchStrings": ["@azure/msal or msal"]
+                    "searchStrings": [
+                        "@azure/msal or msal"
+                    ]
                 },
                 "msal-browser": {
-                    "searchStrings": ["@azure/msal-browser"]
+                    "searchStrings": [
+                        "@azure/msal-browser"
+                    ]
                 },
                 "msal-node": {
-                    "searchStrings": ["@azure/msal-node"]
+                    "searchStrings": [
+                        "@azure/msal-node"
+                    ]
                 },
                 "adal-node": {
-                    "searchStrings": ["adal-node"]
+                    "searchStrings": [
+                        "adal-node"
+                    ]
                 },
                 "adal.js": {
-                    "searchStrings": ["adal.js"]
+                    "searchStrings": [
+                        "adal.js"
+                    ]
                 },
                 "passport-azure-ad": {
-                    "searchStrings": ["passport-azure-ad"]
+                    "searchStrings": [
+                        "passport-azure-ad"
+                    ]
                 }
             }
         },
         "Wrapper Library": {
             "labels": {
                 "msal-angular": {
-                    "searchStrings": ["@azure/msal-angular"]
+                    "searchStrings": [
+                        "@azure/msal-angular"
+                    ]
                 },
                 "msal-react": {
-                    "searchStrings": ["@azure/msal-react"]
+                    "searchStrings": [
+                        "@azure/msal-react"
+                    ]
                 },
                 "msal-node-extensions": {
-                    "searchStrings": ["@azure/msal-node-extensions"]
+                    "searchStrings": [
+                        "@azure/msal-node-extensions"
+                    ]
                 },
                 "adal-angular": {
-                    "searchStrings": ["adal-angular"]
+                    "searchStrings": [
+                        "adal-angular"
+                    ]
                 }
             }
         },
         "Identity Provider": {
             "labels": {
                 "b2c": {
-                    "searchStrings": ["B2C"]
+                    "searchStrings": [
+                        "B2C"
+                    ]
                 },
                 "adfs": {
-                    "searchStrings": ["ADFS"]
+                    "searchStrings": [
+                        "ADFS"
+                    ]
                 }
             }
         },
         "Public or Confidential Client?": {
             "labels": {
                 "public-client": {
-                    "searchStrings": ["Public"]
+                    "searchStrings": [
+                        "Public"
+                    ]
                 },
                 "confidential-client": {
-                    "searchStrings": ["Confidential"]
+                    "searchStrings": [
+                        "Confidential"
+                    ]
                 }
             }
         }

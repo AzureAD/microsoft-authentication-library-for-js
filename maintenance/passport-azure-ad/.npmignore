@@ -1,6 +1,0 @@
-.idea/
-.vscode/
-test/
-.eslint*
-.travis.yml
-Gruntfile.js

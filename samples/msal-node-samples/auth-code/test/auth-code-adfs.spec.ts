@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";

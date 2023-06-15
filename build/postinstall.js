@@ -4,7 +4,7 @@ if (parseInt(process.env.BEACHBALL)) {
     // do nothing
 } else if (parseInt(process.env.RUNNING_NODE_CI)) {
     console.log("Running scoped bootstrap");
-    exec("lerna --scope @azure/* --scope msal --scope vanilla-js-test* --ignore @azure/msal-angularjs bootstrap", function (error, stdout, stderr) {
+    exec("lerna --scope @azure/* --scope vanilla-js-test* --ignore @azure/msal-angularjs bootstrap", function (error, stdout, stderr) {
         if (stdout) {
             console.log('stdout' + stdout);
         }

@@ -8,7 +8,8 @@ export type CcsCredential = {
     type: CcsCredentialType;
 };
 
-export enum CcsCredentialType {
-    HOME_ACCOUNT_ID = "home_account_id",
-    UPN = "UPN",
-}
+export const CcsCredentialType = {
+    HOME_ACCOUNT_ID: "home_account_id",
+    UPN: "UPN",
+} as const;
+export type CcsCredentialType = typeof CcsCredentialType[keyof typeof CcsCredentialType];

@@ -160,27 +160,9 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     nativeBrokerHandshakeTimeout?: number;
     /**
-     * Options related to browser crypto APIs
-     */
-    cryptoOptions?: CryptoOptions;
-    /**
      * Sets the interval length in milliseconds for polling the location attribute in popup windows (default is 30ms)
      */
     pollIntervalMilliseconds?: number;
-};
-
-export type CryptoOptions = {
-    /**
-     * Enables the application to use the MSR Crypto interface, if available (and other interfaces are not)
-     * @type {?boolean}
-     */
-    useMsrCrypto?: boolean;
-
-    /**
-     * Entropy to seed browser crypto API (needed for MSR Crypto). Must be cryptographically strong random numbers (e.g. crypto.randomBytes(48) from Node)
-     * @type {?Uint8Array}
-     */
-    entropy?: Uint8Array;
 };
 
 /**
@@ -308,11 +290,7 @@ export function buildConfiguration(
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
-        pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
-        cryptoOptions: {
-            useMsrCrypto: false,
-            entropy: undefined,
-        },
+        pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS
     };
 
     const providedSystemOptions: BrowserSystemOptions = {

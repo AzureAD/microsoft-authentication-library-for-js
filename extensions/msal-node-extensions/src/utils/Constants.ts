@@ -18,11 +18,11 @@ export const Constants = {
     ENOENT_ERROR: "ENOENT",
 
     /**
-     * Operation not permitted. An attempt was made to perform an operation that requires 
-     * elevated privileges. 
+     * Operation not permitted. An attempt was made to perform an operation that requires
+     * elevated privileges.
      */
     EPERM_ERROR: "EPERM",
-    
+
     /**
      * Default service name for using MSAL Keytar
      */
@@ -55,14 +55,16 @@ export const Constants = {
     DEFAULT_CACHE_FILE_NAME: "cache.json"
 };
 
-export enum Platform {
-    WINDOWS = "win32",
-    LINUX = "linux",
-    MACOS = "darwin"
-}
+export const Platform = {
+    WINDOWS: "win32",
+    LINUX: "linux",
+    MACOS: "darwin"
+} as const;
+export type Platform = typeof Platform[keyof typeof Platform];
 
-export enum ErrorCodes {
-    INTERATION_REQUIRED_ERROR_CODE = "interaction_required",
-    SERVER_UNAVAILABLE = "server_unavailable",
-    UNKNOWN = "unknown_error",
-}
+export const ErrorCodes = {
+    INTERATION_REQUIRED_ERROR_CODE: "interaction_required",
+    SERVER_UNAVAILABLE: "server_unavailable",
+    UNKNOWN: "unknown_error",
+} as const;
+export type ErrorCodes = typeof ErrorCodes[keyof typeof ErrorCodes];

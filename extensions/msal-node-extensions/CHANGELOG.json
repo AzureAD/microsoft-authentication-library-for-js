@@ -2,6 +2,101 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Thu, 15 Jun 2023 22:19:25 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-beta.0",
+      "version": "1.0.0-beta.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Msal v3 final rebase #5859"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "e17eb91a3fd848b44b76bc65bacf20239a0dc62a",
+            "comment": "Bundle local version of msal-common into msal-node-extensions #5923"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "46ab9fdc01dfe3f6884ef83e9166a6f3d8af0c38",
+            "comment": "Merge LTS changelogs"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "db4f4fa56e8dcec65a9d1a0653af4b128ac3b725",
+            "comment": "Update `msal-common` bundling config for `msal-node-extensions` #5943"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Rebase dev onto v3 #5843"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "85bbdefbd59785a8dd3fc46368409d95472bd2a1",
+            "comment": "Fix prepack hook #5967"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "5103db3b25e67df292175158e722a2bb35d898fd",
+            "comment": "Include prebuilt binaries"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "b4bbf7c584b0943b9edbdbb30e568b30bf6a203a",
+            "comment": "Drop TSDX in favor of using rollup & jest directly #5893"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "3ba0520a2eaaef6a863fe67aabbedbc89d0a354d",
+            "comment": "enable strict type checking"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Bump typescript version to 4.9.5 #5750"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "42dd47713c8c8e362fa3cd54cbf7367140d9fb06",
+            "comment": "Switch from enums to object literals to reduce the bundle size #6068"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "33fb5c38aa2e089080d11d4bb5a941a2b97b5f0a",
+            "comment": "Fix response expiresOn property"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "8788b7d52841f088d330aa881d1196a33e9e6f7a",
+            "comment": "Revert to common as a regular dependency #5985"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.0.0-beta.0",
+            "commit": "c7bd70a0521c2f0a397bed5109bf443db674a8a4"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 May 2023 20:47:42 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.34",
       "version": "1.0.0-alpha.34",

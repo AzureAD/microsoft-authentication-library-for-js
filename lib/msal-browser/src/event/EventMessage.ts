@@ -104,6 +104,7 @@ export class EventMessageUtils {
             case EventType.LOGIN_FAILURE:
             case EventType.ACQUIRE_TOKEN_SUCCESS:
             case EventType.ACQUIRE_TOKEN_FAILURE:
+            case EventType.RESTORE_FROM_BFCACHE:
                 if (
                     message.interactionType === InteractionType.Redirect ||
                     message.interactionType === InteractionType.Popup
