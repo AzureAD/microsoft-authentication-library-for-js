@@ -83,6 +83,11 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | ------ | ----------- | ------ | ------------- |
 | `cachePlugin` | Cache plugin with call backs to reading and writing into the cache persistence (see also: [caching](caching.md)) | [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null
 
+### Broker Config Options
+| Option | Description | Format | Default Value |
+| ------ | ----------- | ------ | ------------- |
+| `nativeBrokerPlugin` | Broker plugin for acquiring tokens via a native token broker (see also: [brokering](brokering.md)) | INativeBrokerPlugin | null
+
 ### System Config Options
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
