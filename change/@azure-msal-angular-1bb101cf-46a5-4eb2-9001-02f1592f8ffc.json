@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Update log to match name change #6036",
-  "packageName": "@azure/msal-angular",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

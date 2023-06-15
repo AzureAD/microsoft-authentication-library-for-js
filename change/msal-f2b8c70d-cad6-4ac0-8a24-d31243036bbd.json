@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Rename BlacklistedEQParams to DisallowedEQParams",
-  "packageName": "msal",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

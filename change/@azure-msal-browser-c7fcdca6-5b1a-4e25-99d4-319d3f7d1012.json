@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Remove legacy MsCrypto and MsrCrypto polyfill to reduce the bundle size #6086",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "prerelease"
-}

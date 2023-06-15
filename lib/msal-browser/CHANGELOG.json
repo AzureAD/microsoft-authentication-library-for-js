@@ -2,6 +2,65 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 15 Jun 2023 22:19:24 GMT",
+      "tag": "@azure/msal-browser_v3.0.0-beta.0",
+      "version": "3.0.0-beta.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2ccd5eb856e05545971f1762c117eedf87740549",
+            "comment": "Treat invalid_method as a fatal error for WAM #6094"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cad79d2a14f7c58819f5e77cddfd08766fa2abb3",
+            "comment": "Added authority check for native and silent flows #6002"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0f84d651552b1fb7fef88a65b74bd743bd381f0f",
+            "comment": "Fix silent cache lookup bugs for native flows #6067"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b416b465f2b7f20be4f0865cd4364319df82830c",
+            "comment": "ignore native broker initialize check if application is not top-frame #6129"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.0-beta.0",
+            "commit": "c7bd70a0521c2f0a397bed5109bf443db674a8a4"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0a3f082508e09a87bb155c25779d6d50ff48133e",
+            "comment": "Switch from enums to object literals to reduce the bundle size #6056"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "85383fb2f35d9c5e02e32d316a6d573ef09a22ed",
+            "comment": "Fix inProgress state reset when page restored from bfCache #6037"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c27d5727a8ab559fc2f1dc6f8ffa6ba6b79a5a8a",
+            "comment": "Remove legacy MsCrypto and MsrCrypto polyfill to reduce the bundle size #6086"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 May 2023 22:51:19 GMT",
       "tag": "@azure/msal-browser_v3.0.0-alpha.2",
       "version": "3.0.0-alpha.2",

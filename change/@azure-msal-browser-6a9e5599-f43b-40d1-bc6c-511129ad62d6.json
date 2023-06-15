@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "ignore native broker initialize check if application is not top-frame #6129",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}

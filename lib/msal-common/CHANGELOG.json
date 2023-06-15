@@ -2,6 +2,35 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 15 Jun 2023 22:19:26 GMT",
+      "tag": "@azure/msal-common_v14.0.0-beta.0",
+      "version": "14.0.0-beta.0",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0a3f082508e09a87bb155c25779d6d50ff48133e",
+            "comment": "Switch from enums to object literals to reduce the bundle size #6056"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "6e184eafecf20a70e6b9dea39161f3a584bd6bfb",
+            "comment": "Remove unused params in msal-common #6122"
+          }
+        ],
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "cad79d2a14f7c58819f5e77cddfd08766fa2abb3",
+            "comment": "Added new ClientConfigurationError type for authority mismatch in login request #6002"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 May 2023 22:51:19 GMT",
       "tag": "@azure/msal-common_v14.0.0-alpha.2",
       "version": "14.0.0-alpha.2",
