@@ -172,6 +172,12 @@ export class AuthProvider {
       },
     };
 
+    /**
+     * If the current msal configuration does not have cloudDiscoveryMetadata or authorityMetadata, we will
+     * make a request to the relevant endpoints to retrieve the metadata. This allows MSAL to avoid making
+     * metadata discovery calls, thereby improving performance of token acquisition process. For more, see:
+     * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/performance.md
+     */
     if (!config.auth.cloudDiscoveryMetadata || !config.auth.authorityMetadata) {
       const metadata = await this.getMetadata(
         config.auth.clientId,
@@ -208,6 +214,12 @@ export class AuthProvider {
       Required<Pick<AuthorizationCodePayload, "state">>;
   }
 
+  /**
+   * Gets the cloud discovery metadata and authority metadata for the given authority
+   * @param clientId Application Client ID
+   * @param authority The authority configured for the application
+   * @returns The cloud discovery metadata and authority metadata
+   */
   private async getMetadata(clientId: string, authority: string) {
     const tenantId = authority!.split("/").pop()!;
 
@@ -251,6 +263,11 @@ export class AuthProvider {
     }
   }
 
+  /**
+   * Fetches the cloud discovery metadata for the given tenant ID
+   * @param tenantId The tenant ID
+   * @returns The cloud discovery metadata as a string
+   */
   private static async fetchCloudDiscoveryMetadata(tenantId: string) {
     const endpoint = new URL(
       "https://login.microsoftonline.com/common/discovery/instance"
@@ -271,13 +288,18 @@ export class AuthProvider {
     return await response.text();
   }
 
+  /**
+   * Fetches the OIDC metadata for the given tenant ID
+   * @param tenantId The tenant ID
+   * @returns The OIDC metadata as a string
+   */
   private static async fetchOIDCMetadata(tenantId: string) {
     const endpoint = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration`;
 
     const response = await fetch(endpoint);
 
     if (!response.ok) {
-      throw new Error("Could not fetch OIDC metadata from endpoin");
+      throw new Error("Could not fetch OIDC metadata from endpoint");
     }
 
     return await response.text();
