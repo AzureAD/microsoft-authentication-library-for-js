@@ -18,6 +18,9 @@ export type GraphCalendarEvent = {
 };
 
 export const CalendarEvent = ({ event }: { event: GraphCalendarEvent }) => {
+  if (!event) {
+    return (<div>Could not found any events</div>);
+  }
   return (
     <Paper>
       <List>
