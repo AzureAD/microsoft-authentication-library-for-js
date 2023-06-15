@@ -56,3 +56,7 @@ export const authCallbackUri =
   process.env.AUTH_CALLBACK_URI ?? "http://localhost:3000/auth/callback";
 
 export const sessionSecret = process.env.SESSION_SECRET!;
+
+// redis[s]://[[username][:password]@][host][:port][/db-number]
+// if undefined it will connect to a local redis server
+export const redisUrl = process.env.REDIS_URL;

@@ -111,9 +111,10 @@ AZURE_AD_CLIENT_SECRET=YOUR_CLIENT_SECRET
 AZURE_AD_AUTHORITY=YOUR_AZURE_AD_AUTHORITY (optional, defaults to "https://login.microsoftonline.com/common")
 AUTH_CALLBACK_URI=AUTH_CALLBACK_HANDLER (optional, defaults to "http://localhost:3000/auth/callback")
 SESSION_SECRET=SUPER_SECRET_STRING_USED_TO_SIGN_COOKIES
+REDIS_URL=redis[s]://[[username][:password]@][host][:port][/db-number] (optional, connects to a local redis server if not set)
 ```
 
-You also need [Redis](https://redis.io/) up and running locally, or modify `src/services/redis.ts` to connect to an external Redis.
+You also need [Redis](https://redis.io/) up and running locally, or set `REDIS_URL` to connect to an external Redis.
 
 Install and run the development server:
 
