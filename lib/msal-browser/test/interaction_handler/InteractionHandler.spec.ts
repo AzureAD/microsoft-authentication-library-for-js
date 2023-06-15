@@ -313,7 +313,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             );
             browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.CCS_CREDENTIAL,
-                JSON.stringify(CcsCredentialType)
+                CcsCredentialType.UPN
             );
 
             sinon.stub(Authority.prototype, "isAlias").returns(false);
@@ -566,7 +566,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             );
             browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.CCS_CREDENTIAL,
-                JSON.stringify(CcsCredentialType)
+                CcsCredentialType.UPN
             );
             sinon
                 .stub(

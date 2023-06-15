@@ -15,7 +15,6 @@ import {
     SubMeasurement,
     PreQueueEvent,
 } from "@azure/msal-common";
-import { CryptoOptions } from "../config/Configuration";
 import { BrowserCrypto } from "../crypto/BrowserCrypto";
 import { GuidGenerator } from "../crypto/GuidGenerator";
 import { BrowserPerformanceMeasurement } from "./BrowserPerformanceMeasurement";
@@ -33,8 +32,7 @@ export class BrowserPerformanceClient
         logger: Logger,
         libraryName: string,
         libraryVersion: string,
-        applicationTelemetry: ApplicationTelemetry,
-        cryptoOptions: CryptoOptions
+        applicationTelemetry: ApplicationTelemetry
     ) {
         super(
             clientId,
@@ -44,7 +42,7 @@ export class BrowserPerformanceClient
             libraryVersion,
             applicationTelemetry
         );
-        this.browserCrypto = new BrowserCrypto(this.logger, cryptoOptions);
+        this.browserCrypto = new BrowserCrypto(this.logger);
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
     }
 

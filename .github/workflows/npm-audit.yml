@@ -55,7 +55,6 @@ jobs:
         fail-fast: false
         matrix:
           library:
-            - msal-core
             - msal-common
             - msal-browser
             - msal-node

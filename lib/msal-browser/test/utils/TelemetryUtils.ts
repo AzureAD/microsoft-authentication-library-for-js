@@ -18,10 +18,6 @@ const applicationTelemetry: ApplicationTelemetry = {
     appName: "Test App",
     appVersion: "1.0.0-test.0",
 };
-const cryptoOptions = {
-    useMsrCrypto: false,
-    entropy: undefined,
-};
 
 export function getDefaultPerformanceClient(): IPerformanceClient {
     return new BrowserPerformanceClient(
@@ -30,7 +26,6 @@ export function getDefaultPerformanceClient(): IPerformanceClient {
         logger,
         name,
         version,
-        applicationTelemetry,
-        cryptoOptions
+        applicationTelemetry
     );
 }

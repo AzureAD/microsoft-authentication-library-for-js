@@ -125,7 +125,7 @@ export class SilentCacheClient extends StandardInteractionClient {
         );
         return {
             ...request,
-            ...(await this.initializeBaseRequest(request)),
+            ...await this.initializeBaseRequest(request, account),
             account: account,
             forceRefresh: request.forceRefresh || false,
         };

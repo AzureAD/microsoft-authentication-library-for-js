@@ -14,7 +14,8 @@
  * application on the computer can unprotect, access, and modify the data.
  *
  */
-export enum DataProtectionScope {
-    CurrentUser = "CurrentUser",
-    LocalMachine = "LocalMachine",
-}
+export const DataProtectionScope = {
+    CurrentUser: "CurrentUser",
+    LocalMachine: "LocalMachine",
+} as const;
+export type DataProtectionScope = typeof DataProtectionScope[keyof typeof DataProtectionScope];

@@ -21,7 +21,6 @@ import { BrowserCrypto } from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { CryptoKeyStore } from "../cache/CryptoKeyStore";
-import { CryptoOptions } from "../config/Configuration";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey;
@@ -54,12 +53,11 @@ export class CryptoOps implements ICrypto {
 
     constructor(
         logger: Logger,
-        performanceClient?: IPerformanceClient,
-        cryptoConfig?: CryptoOptions
+        performanceClient?: IPerformanceClient
     ) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
-        this.browserCrypto = new BrowserCrypto(this.logger, cryptoConfig);
+        this.browserCrypto = new BrowserCrypto(this.logger);
         this.b64Encode = new Base64Encode();
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);

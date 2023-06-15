@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 import { getBrowser, getHomeUrl } from "../../testUtils";
 import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";

@@ -7,6 +7,6 @@
         "preinstall": "cd .. && npm install"
     },
     "devDependencies": {
-        "jest": "^27.0.4"
+        "jest": "^29.5.0"
     }
 }

@@ -7,22 +7,25 @@ import { AuthError, InteractionRequiredAuthError } from "@azure/msal-common";
 import { BrowserAuthError } from "./BrowserAuthError";
 
 export type OSError = {
-    error: number;
-    protocol_error: string;
-    properties: object;
-    status: string;
+    error?: number;
+    protocol_error?: string;
+    properties?: object;
+    status?: string;
     retryable?: boolean;
 };
 
-export enum NativeStatusCode {
-    USER_INTERACTION_REQUIRED = "USER_INTERACTION_REQUIRED",
-    USER_CANCEL = "USER_CANCEL",
-    NO_NETWORK = "NO_NETWORK",
-    TRANSIENT_ERROR = "TRANSIENT_ERROR",
-    PERSISTENT_ERROR = "PERSISTENT_ERROR",
-    DISABLED = "DISABLED",
-    ACCOUNT_UNAVAILABLE = "ACCOUNT_UNAVAILABLE",
-}
+const INVALID_METHOD_ERROR = -2147186943;
+
+export const NativeStatusCode = {
+    USER_INTERACTION_REQUIRED: "USER_INTERACTION_REQUIRED",
+    USER_CANCEL: "USER_CANCEL",
+    NO_NETWORK: "NO_NETWORK",
+    TRANSIENT_ERROR: "TRANSIENT_ERROR",
+    PERSISTENT_ERROR: "PERSISTENT_ERROR",
+    DISABLED: "DISABLED",
+    ACCOUNT_UNAVAILABLE: "ACCOUNT_UNAVAILABLE",
+} as const;
+export type NativeStatusCode = typeof NativeStatusCode[keyof typeof NativeStatusCode];
 
 export const NativeAuthErrorMessage = {
     extensionError: {
@@ -58,6 +61,14 @@ export class NativeAuthError extends AuthError {
             this.ext.status &&
             (this.ext.status === NativeStatusCode.PERSISTENT_ERROR ||
                 this.ext.status === NativeStatusCode.DISABLED)
+        ) {
+            return true;
+        }
+
+        if (
+            this.ext &&
+            this.ext.error &&
+            this.ext.error === INVALID_METHOD_ERROR
         ) {
             return true;
         }
