@@ -20,7 +20,7 @@ export const msalConfig: Configuration = {
   system: {
     loggerOptions: {
       piiLoggingEnabled: false,
-      logLevel: LogLevel.Verbose,
+      logLevel: LogLevel.Info,
       loggerCallback(logLevel, message) {
         switch (logLevel) {
           case LogLevel.Error:
