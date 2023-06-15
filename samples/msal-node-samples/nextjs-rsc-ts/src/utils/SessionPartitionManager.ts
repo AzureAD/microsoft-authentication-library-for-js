@@ -10,7 +10,7 @@ export class SessionPartitionManager implements IPartitionManager {
   }
 
   async getKey() {
-    const homeAccountId = this.session.get("homeAccountId");
+    const homeAccountId = this.session.get("homeAccountId") || "";
 
     return homeAccountId;
   }
