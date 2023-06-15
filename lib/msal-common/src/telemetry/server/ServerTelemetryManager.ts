@@ -266,13 +266,6 @@ export class ServerTelemetryManager {
     }
 
     /**
-     * Get last cache outcome
-     */
-    getCacheOutcome(): string {
-        return this.cacheOutcome;
-    }
-
-    /**
      * Set cache outcome
      */
     setCacheOutcome(cacheOutcome: CacheOutcome): void {

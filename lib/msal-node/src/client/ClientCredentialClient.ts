@@ -240,8 +240,6 @@ export class ClientCredentialClient extends BaseClient {
             this.config.persistencePlugin
         );
 
-        // eslint-disable-next-line no-console
-        console.log("about to call it ******************************************");
         responseHandler.validateTokenResponse(serverTokenResponse, accessTokenRefresh);
 
         const tokenResponse = await responseHandler.handleServerTokenResponse(
