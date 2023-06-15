@@ -147,15 +147,21 @@ export class ResponseHandler {
         ) {
 
             // check if 500 error
-            if (accessTokenRefresh && serverResponse.error_codes?.find(a =>a.charAt(0) === "5")) {
+            if (accessTokenRefresh && serverResponse.status && String(serverResponse.status)[0] === "5") {
                 this.logger.warning(
                     "executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed."
                 );
+                
+                // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
+                return;
             // check if 400 error
-            } else if (accessTokenRefresh && serverResponse.error_codes?.find(a =>a.charAt(0) === "4")) {
-                this.logger.error(
+            } else if (accessTokenRefresh && serverResponse.status && String(serverResponse.status)[0] === "4") {
+                this.logger.warning(
                     "executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token."
                 );
+
+                // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
+                return;
             }
 
             if (

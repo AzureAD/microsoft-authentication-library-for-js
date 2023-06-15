@@ -34,6 +34,7 @@ import {
 export class ClientCredentialClient extends BaseClient {
     private scopeSet: ScopeSet;
     private readonly appTokenProvider?: IAppTokenProvider;
+    private lastCacheOutcome: string;
 
     constructor(
         configuration: ClientConfiguration,
@@ -61,7 +62,7 @@ export class ClientCredentialClient extends BaseClient {
 
         if (cachedAuthenticationResult) {
             // if the token is not expired but must be refreshed; get a new one in the background
-            if (this.serverTelemetryManager?.getCacheOutcome() === CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN) {
+            if (this.lastCacheOutcome === CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN) {
                 this.logger.info(
                     "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );
@@ -70,6 +71,8 @@ export class ClientCredentialClient extends BaseClient {
                 const accessTokenRefresh = true;
                 this.executeTokenRequest(request, this.authority, accessTokenRefresh);
             }
+
+            this.lastCacheOutcome = "";
 
             // otherwise, the token is not expired and does not need to be refreshed
             return cachedAuthenticationResult;
@@ -88,6 +91,7 @@ export class ClientCredentialClient extends BaseClient {
 
         // must refresh due to non-existent access_token
         if (!cachedAccessToken) {
+            this.lastCacheOutcome = CacheOutcome.NO_CACHED_ACCESS_TOKEN;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
@@ -101,6 +105,7 @@ export class ClientCredentialClient extends BaseClient {
                 this.config.systemOptions.tokenRenewalOffsetSeconds
             )
         ) {
+            this.lastCacheOutcome = CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
@@ -113,6 +118,7 @@ export class ClientCredentialClient extends BaseClient {
             cachedAccessToken.refreshOn &&
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn.toString(), 0)
         ) {
+            this.lastCacheOutcome = CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
             );
@@ -222,6 +228,7 @@ export class ClientCredentialClient extends BaseClient {
             );
 
             serverTokenResponse = response.body;
+            serverTokenResponse.status = response.status;
         }
 
         const responseHandler = new ResponseHandler(
@@ -233,6 +240,8 @@ export class ClientCredentialClient extends BaseClient {
             this.config.persistencePlugin
         );
 
+        // eslint-disable-next-line no-console
+        console.log("about to call it ******************************************");
         responseHandler.validateTokenResponse(serverTokenResponse, accessTokenRefresh);
 
         const tokenResponse = await responseHandler.handleServerTokenResponse(

@@ -26,6 +26,7 @@ import { AuthenticationScheme } from "../utils/Constants";
  * - correlation_id: A unique identifier for the request that can help in diagnostics across components.
  */
 export type ServerAuthorizationTokenResponse = {
+    status?: number;
     // Success
     token_type?: AuthenticationScheme;
     scope?: string;
