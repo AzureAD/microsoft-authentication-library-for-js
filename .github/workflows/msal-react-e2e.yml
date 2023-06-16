@@ -64,7 +64,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Clean Install
-      run: npm ci
+      run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-react --workspace=samples --workspace=samples/msal-react-samples/**
 
     - name: Build packages
       working-directory: lib/msal-react

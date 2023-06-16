@@ -64,7 +64,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Clean Install
-      run: npm ci --ignore-engines
+      run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=samples --workspace=samples/msal-node-samples/** --ignore-engines
 
     - name: Build Package
       working-directory: samples/msal-node-samples

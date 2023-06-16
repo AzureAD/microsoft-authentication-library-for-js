@@ -38,7 +38,7 @@ jobs:
           node-version: 18
 
       - name: Install beachball
-        run: npm ci
+        run: npm ci --workspaces=false
 
       # Beachball bump
       - name: bump package versions

@@ -28,6 +28,11 @@ jobs:
       with:
         node-version: 18
 
+    - name: Get npm cache directory
+      id: npm-cache-dir
+      shell: bash
+      run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
+
     - uses: actions/cache@v3
       with:
         path: ${{ steps.npm-cache-dir.outputs.dir }}
@@ -36,7 +41,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Clean Install
-      run: npm ci
+      run: npm ci --workspace=@azure/msal-common
 
     - name: Check metadata
       working-directory: lib/msal-common

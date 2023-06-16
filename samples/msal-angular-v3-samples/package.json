@@ -3,8 +3,7 @@
     "version": "1.0.0",
     "description": "End-to-end test suite for msal-angular-v3",
     "scripts": {
-        "test": "jest",
-        "preinstall": "cd .. && npm install"
+        "test": "jest"
     },
     "devDependencies": {
         "jest": "^29.5.0"

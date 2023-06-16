@@ -47,7 +47,7 @@ jobs:
 
     - name: Install beachball
       if: ${{ steps.filter.outputs.lib == 'true' }}
-      run: npm ci
+      run: npm ci --workspaces=false
 
     - name: Run Beachball Check command
       if: ${{ steps.filter.outputs.lib == 'true' }}

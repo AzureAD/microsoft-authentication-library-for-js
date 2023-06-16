@@ -63,7 +63,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Clean Install
-      run: npm ci
+      run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=samples --workspace=samples/msal-browser-samples/VanillaJSTestApp2.0
 
     - name: Build packages
       working-directory: samples/msal-browser-samples/VanillaJSTestApp2.0
