@@ -42,14 +42,6 @@ This repository is a monorepo for all packages maintained by the MSAL.js team. I
 
 If you would like to build a specific package, you can visit the `README.md` for that specific folder to review the build process. The instructions here are specific to the monorepo. 
 
-After you have cloned the repository, run `npm install` in the root folder. This will install the dependencies for all of the libraries and samples in the repo, create links between packages depend on each other, and run the build process for each of the libraries.
-
-> **NOTE**: This requires the installation of the `lerna` package to successfully run. You can find more information about `lerna` [here](https://www.npmjs.com/package/lerna).
-
-To reset each of the libraries, run `npm run clean` in the root folder, which will remove the `node_modules` folders and build files for each subrepo and sample.
-
-If you run `npm install` in any of the libraries individually, you may find that your packages are no longer referencing the local files, but instead looking for the ones available publicly on `npm`. You can resolve this by running `lerna bootstrap`.
-
 ## Build and Test
 
 ### Build Library
@@ -58,10 +50,12 @@ If you run `npm install` in any of the libraries individually, you may find that
 cd microsoft-authentication-library-for-js/
 // Install npm dependencies and bootstrap packages
 npm install
+// Navigate to package you would like to build
+cd lib/<package-name>
 // Build library
+npm run build:all
+// To run build only for a single package (not its dependencies)
 npm run build
-// To run build only for a single package
-npm run build -- --scope <package-name>
 ```
 
 ### Test and Test Coverage
@@ -78,6 +72,8 @@ Make sure that all previously passing and new tests pass before submitting your 
 cd microsoft-authentication-library-for-js/
 // Install npm dependencies and bootstrap packages
 npm install
+// Navigate to package you would like to build
+cd lib/<package-name>
 // Run test command
 npm test
 ```
@@ -88,6 +84,8 @@ npm test
 cd microsoft-authentication-library-for-js/
 // Install npm dependencies and bootstrap packages
 npm install
+// Navigate to package you would like to build
+cd lib/<package-name>
 // Run test command
 npm run test:coverage
 ```

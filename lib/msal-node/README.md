@@ -126,26 +126,21 @@ Others:
 
 ## Build and Test
 
-- If you don't have [lerna](https://github.com/lerna/lerna) installed, run `npm install -g lerna`
-- Run `lerna bootstrap` from anywhere within `microsoft-authentication-library-for-js.git`.
-- Navigate to `microsoft-authentication-library-for-js/lib/msal-common` and run `npm run build`
-- Navigate to `microsoft-authentication-library-for-js/lib/msal-node` and run `npm run build`
-
 ```javascript
-// to link msal-node and msal-common packages
-lerna bootstrap
+// Install dependencies from root of repo
+npm install
 
 // Change to the msal-node package directory
-cd lib/msal-common/
+cd lib/msal-node
+
+// To run build for common package & node package
+npm run build:all
 
 // To run build only for node package
 npm run build
 
-// Change to the msal-node package directory
-cd lib/msal-node/
-
-// To run build only for node package
-npm run build
+// To run tests
+npm run test
 ```
 
 ### Local Development
@@ -158,8 +153,8 @@ Runs the project in development/watch mode. Your project will be rebuilt upon ch
 Bundles the package to the `dist` folder.
 The package is optimized and bundled with Rollup into multiple formats (CommonJS, UMD, and ES Module).
 
-#### `lerna bootstrap`
-If you are running the project in development/watch mode, or have made changes in `msal-common` and need them reflecting across the project, please run `lerna bootstrap` to link all the symbols. Please note that `npm install` will unlink all the code, hence it is advised to run `lerna bootstrap` post installation.
+#### `npm run build:all`
+Builds both `msal-common` and `msal-node`
 
 #### `npm run lint`
 Runs eslint with Prettier
