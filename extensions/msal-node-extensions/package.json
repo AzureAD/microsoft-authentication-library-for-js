@@ -27,8 +27,7 @@
   },
   "scripts": {
     "build": "node-gyp rebuild && rollup -c --strictDeprecations --bundleConfigAsCjs",
-    "build:common": "cd ../../lib/msal-common && npm run build",
-    "build:all": "npm run build:common && npm run build",
+    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node-extensions",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "lint": "cd ../../ && npm run lint:node:extensions",

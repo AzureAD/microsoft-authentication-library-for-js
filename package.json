@@ -42,8 +42,7 @@
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "scripts": {
-    "audit": "npm audit --production && lerna exec \"npm audit --production\"",
-    "audit:prod": "npm audit && lerna exec \"npm audit --production\"",
+    "audit": "npm audit --production && npm audit --production --workspaces",
     "doc": "npm run doc:generate && npm run doc:deploy",
     "doc:generate": "rimraf ./ref/* && typedoc",
     "doc:deploy": "gh-pages -d ref -a -e ref",
