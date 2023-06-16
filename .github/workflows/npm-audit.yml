@@ -32,6 +32,8 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v3
+      with:
+        node-version: 18
 
     - name: npm audit (root)
       run: npm audit --production
@@ -44,6 +46,8 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v3
+      with:
+        node-version: 18
 
     - name: npm audit (node-extensions)
       working-directory: extensions/msal-node-extensions
@@ -66,6 +70,8 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v3
+      with:
+        node-version: 18
 
     - name: npm audit (lib)
       working-directory: lib/${{ matrix.library }}

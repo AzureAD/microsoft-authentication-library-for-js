@@ -64,6 +64,7 @@
     "lib/msal-node",
     "lib/msal-angular",
     "lib/msal-react",
-    "extensions/msal-node-extensions"
+    "extensions/msal-node-extensions",
+    "samples/**"
   ]
 }

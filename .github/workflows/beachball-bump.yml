@@ -34,6 +34,8 @@ jobs:
       # Install node_modules
       - name: Use Node.js
         uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
       - name: Install beachball
         run: npm ci
