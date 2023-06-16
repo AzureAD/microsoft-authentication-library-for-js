@@ -8,13 +8,12 @@
     "start": "node ./index.js",
     "test": "jest",
     "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "start:build": "npm run build:package && npm start",
-    "install:local": "npm install ../../../lib/msal-node"
+    "start:build": "npm run build:package && npm start"
   },
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "file:../../../lib/msal-node",
+    "@azure/msal-node": "^2.0.0-beta.0",
     "axios": "^0.21.1",
     "express": "^4.17.1",
     "express-handlebars": "^5.3.5",

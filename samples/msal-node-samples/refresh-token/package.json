@@ -6,13 +6,12 @@
     "scripts": {
         "start:msal": "node ./msalApp.js",
         "start:adal": "node ./adalApp.js",
-        "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-        "install:local": "npm install ../../../lib/msal-node"
+        "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build"
     },
     "author": "Microsoft",
     "license": "MIT",
     "dependencies": {
-        "@azure/msal-node": "file:../../../lib/msal-node",
+        "@azure/msal-node": "^2.0.0-beta.0",
         "adal-node": "^0.2.3",
         "cookie-parser": "^1.4.6",
         "express": "^4.17.1",
