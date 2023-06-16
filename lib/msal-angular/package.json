@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "3.0.0-alpha.2",
+  "version": "3.0.0-beta.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -22,7 +22,7 @@
     "build:browser": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
     "build:pack": "npm run build && cd dist && npm pack",
     "deploy": "npm run build:all:prod && npm publish ./dist",
-    "deploy:alpha": "npm run build:all:prod && npm publish ./dist --tag alpha",
+    "deploy:beta": "npm run build:all:prod && npm publish ./dist --tag beta",
     "test": "ng test",
     "test:coverage": "npm test",
     "lint": "cd ../../ && npm run lint:angular",
@@ -36,7 +36,11 @@
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "patch",
+      "minor",
+      "major"
+    ]
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^15.1.5",
@@ -50,7 +54,7 @@
     "@angular/platform-browser": "^15.1.4",
     "@angular/platform-browser-dynamic": "^15.1.4",
     "@angular/router": "^15.1.4",
-    "@azure/msal-browser": "^3.0.0-alpha.2",
+    "@azure/msal-browser": "^3.0.0-beta.0",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
@@ -70,7 +74,7 @@
     "zone.js": "~0.11.8"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^3.0.0-alpha.2",
+    "@azure/msal-browser": "^3.0.0-beta.0",
     "rxjs": "^7.0.0"
   }
 }
