@@ -48,7 +48,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Install Dependencies
-      run: npm ci --ignore-engines
+      run: npm ci --workspace=lib/** --workspace=extensions/** --include-workspace-root
 
     - name: Upload npm logs
       uses: actions/upload-artifact@v3
