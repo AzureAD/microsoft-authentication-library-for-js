@@ -84,7 +84,7 @@ jobs:
           - task: CmdLine@2
             displayName: Check NPM login
             inputs:
-                script: cat .npmrc | ls
+                script: type .npmrc | dir
                 workingDirectory: "${{ parameters.path }}/${{ parameters.libName }}"
 
           # Publish to npm
