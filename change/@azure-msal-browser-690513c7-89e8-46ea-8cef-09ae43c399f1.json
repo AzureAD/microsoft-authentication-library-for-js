@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix silent cache lookup bugs for native flows #6067",
-  "packageName": "@azure/msal-browser",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}
