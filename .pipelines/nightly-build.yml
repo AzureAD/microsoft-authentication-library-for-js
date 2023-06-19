@@ -1,4 +1,5 @@
 trigger: none # Disable push triggers
+pr: none # Disable pull request triggers
 
 variables:
   Codeql.Enabled: true
