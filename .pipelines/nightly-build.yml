@@ -18,6 +18,8 @@ jobs:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
+      - task: CodeQL3000Init@0
+
       - task: NodeTool@0
         displayName: 'Install Node.js'
         inputs:
@@ -39,3 +41,5 @@ jobs:
         inputs:
           command: 'custom'
           customCommand: 'run test'
+      
+      - task: CodeQL3000Finalize@0
