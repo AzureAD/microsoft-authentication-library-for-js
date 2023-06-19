@@ -1,0 +1,40 @@
+trigger: none # Disable push triggers
+
+variables:
+  Codeql.Enabled: true
+
+schedules:
+- cron: ' 0 0 * * *'
+  displayName: Nightly Build
+  branches:
+    include:
+    - dev
+    - add-codeql
+
+jobs:
+  - job: Build
+    displayName: 'Build MSAL.js'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: NodeTool@0
+        displayName: 'Install Node.js'
+        inputs:
+          versionSpec: '20.x'
+
+      - task: Npm@1
+        displayName: 'Install Dependencies'
+        inputs:
+          command: 'ci'
+
+      - task: Npm@1
+        displayName: 'Build Libraries'
+        inputs:
+          command: 'custom'
+          customCommand: 'run build'
+
+      - task: Npm@1
+        displayName: 'Run tests'
+        inputs:
+          command: 'custom'
+          customCommand: 'run test'
