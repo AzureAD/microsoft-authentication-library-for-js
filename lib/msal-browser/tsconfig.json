@@ -15,7 +15,8 @@
         "esModuleInterop": true,
         "resolveJsonModule": true,
         "types": [
-            "jest"
+            "jest",
+            "node"
         ]
     },
     "references": [
