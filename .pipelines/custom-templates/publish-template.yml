@@ -81,12 +81,6 @@ jobs:
             env:
                 NPM_TOKEN: $(MSALJSNPMTOKEN)
 
-          - task: CmdLine@2
-            displayName: Check NPM login
-            inputs:
-                script: type .npmrc | dir
-                workingDirectory: "${{ parameters.path }}/${{ parameters.libName }}"
-
           # Publish to npm
           - task: Npm@1
             displayName: Publish to npm
@@ -121,11 +115,11 @@ jobs:
                 workingDir: "${{ parameters.path }}/${{ parameters.libName }}"
                 customCommand: "pack"
 
-          # Remove .npmrc file
-          - task: DeleteFiles@1
-            displayName: Remove .npmrc file
-            inputs:
-                Contents: ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
+          # # Remove .npmrc file
+          # - task: DeleteFiles@1
+          #   displayName: Remove .npmrc file
+          #   inputs:
+          #       Contents: ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
 
           # Install Release Scripts dependencies
           - task: Npm@1
