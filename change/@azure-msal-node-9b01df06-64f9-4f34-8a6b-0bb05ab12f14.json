@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Extend proactive token refresh to client_credentials",
+  "type": "prerelease",
+  "comment": "Extend proactive token refresh to client_credentials #6102",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"

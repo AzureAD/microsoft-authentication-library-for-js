@@ -28,6 +28,7 @@ import {
     AuthenticationScheme,
     Constants,
     THE_FAMILY_ID,
+    ERROR_CODE_BOUNDS,
 } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
@@ -133,11 +134,11 @@ export class ResponseHandler {
     /**
      * Function which validates server authorization token response.
      * @param serverResponse
-     * @param accessTokenRefresh
+     * @param refreshAccessToken
      */
     validateTokenResponse(
         serverResponse: ServerAuthorizationTokenResponse,
-        accessTokenRefresh?: boolean
+        refreshAccessToken?: boolean
     ): void {
         // Check for error
         if (
@@ -147,7 +148,12 @@ export class ResponseHandler {
         ) {
 
             // check if 500 error
-            if (accessTokenRefresh && serverResponse.status && String(serverResponse.status)[0] === "5") {
+            if (
+                refreshAccessToken &&
+                serverResponse.status &&
+                (serverResponse.status >= ERROR_CODE_BOUNDS.stsErrorLowerLimit) &&
+                (serverResponse.status <= ERROR_CODE_BOUNDS.stsErrorUpperLimit)
+            ) {
                 this.logger.warning(
                     "executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed."
                 );
@@ -155,7 +161,12 @@ export class ResponseHandler {
                 // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
                 return;
             // check if 400 error
-            } else if (accessTokenRefresh && serverResponse.status && String(serverResponse.status)[0] === "4") {
+            } else if (
+                refreshAccessToken &&
+                serverResponse.status &&
+                (serverResponse.status >= ERROR_CODE_BOUNDS.clientErrorLowerLimit) &&
+                (serverResponse.status <= ERROR_CODE_BOUNDS.clientErrorUpperLimit)
+            ) {
                 this.logger.warning(
                     "executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token."
                 );

@@ -64,6 +64,13 @@ export const Constants = {
     INVALID_INSTANCE: "invalid_instance",
 };
 
+export enum ERROR_CODE_BOUNDS {
+    clientErrorLowerLimit = 400,
+    clientErrorUpperLimit = 499,
+    stsErrorLowerLimit = 500,
+    stsErrorUpperLimit = 599,
+  }
+
 export const OIDC_DEFAULT_SCOPES = [
     Constants.OPENID_SCOPE,
     Constants.PROFILE_SCOPE,

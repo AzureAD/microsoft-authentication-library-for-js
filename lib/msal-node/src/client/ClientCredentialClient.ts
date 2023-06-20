@@ -34,7 +34,7 @@ import {
 export class ClientCredentialClient extends BaseClient {
     private scopeSet: ScopeSet;
     private readonly appTokenProvider?: IAppTokenProvider;
-    private lastCacheOutcome: string;
+    private lastCacheOutcome: CacheOutcome;
 
     constructor(
         configuration: ClientConfiguration,
@@ -68,11 +68,12 @@ export class ClientCredentialClient extends BaseClient {
                 );
 
                 // return the cached token, don't wait for the result of this request
-                const accessTokenRefresh = true;
-                this.executeTokenRequest(request, this.authority, accessTokenRefresh);
+                const refreshAccessToken = true;
+                this.executeTokenRequest(request, this.authority, refreshAccessToken);
             }
 
-            this.lastCacheOutcome = "";
+            // reset the last cache outcome
+            this.lastCacheOutcome = CacheOutcome.NO_CACHE_HIT;
 
             // otherwise, the token is not expired and does not need to be refreshed
             return cachedAuthenticationResult;
@@ -171,7 +172,7 @@ export class ClientCredentialClient extends BaseClient {
     private async executeTokenRequest(
         request: CommonClientCredentialRequest,
         authority: Authority,
-        accessTokenRefresh?: boolean,
+        refreshAccessToken?: boolean,
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
@@ -240,7 +241,7 @@ export class ClientCredentialClient extends BaseClient {
             this.config.persistencePlugin
         );
 
-        responseHandler.validateTokenResponse(serverTokenResponse, accessTokenRefresh);
+        responseHandler.validateTokenResponse(serverTokenResponse, refreshAccessToken);
 
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             serverTokenResponse,

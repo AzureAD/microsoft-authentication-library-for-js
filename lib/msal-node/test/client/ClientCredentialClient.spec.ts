@@ -1041,7 +1041,6 @@ describe("ClientCredentialClient unit tests", () => {
         expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).toBe(true);
 
         const returnVal = (await createTokenRequestBodySpy.returnValues[0]) as string;
-        console.log(returnVal);
         expect(
             returnVal.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
         ).toBe(true);
