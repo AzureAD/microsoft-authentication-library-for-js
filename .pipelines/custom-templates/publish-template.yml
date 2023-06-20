@@ -75,7 +75,7 @@ jobs:
                 RunAsPreJob: true
 
           # Write NPM authToken
-          - script: echo $NPM_TOKEN > .npmrc
+          - bash: echo $NPM_TOKEN > .npmrc
             displayName: Write npm authToken
             workingDirectory: "${{ parameters.path }}/${{ parameters.libName }}"
             env:
@@ -115,7 +115,7 @@ jobs:
                 workingDir: "${{ parameters.path }}/${{ parameters.libName }}"
                 customCommand: "pack"
 
-          # # Remove .npmrc file
+          # Remove .npmrc file
           # - task: DeleteFiles@1
           #   displayName: Remove .npmrc file
           #   inputs:
