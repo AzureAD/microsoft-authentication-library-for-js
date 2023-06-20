@@ -1026,9 +1026,26 @@ describe("ClientCredentialClient unit tests", () => {
             )
             .returns(expectedAtEntity);
 
-        const authResult = (await client.acquireToken(
+        // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache.
+        // Therefore, the cache should be empty at this point.
+        let accessTokenKey = config.storageInterface?.getKeys()
+            .find((value) => value.indexOf("accesstoken") >= 0);
+        expect(accessTokenKey).toBeUndefined();
+
+        // Acquire a token (from the cache). The refresh_in value is expired, so there will be an asynchronous network request
+        // to refresh the token. That result will be stored in the cache.
+        const authResult = await (await client.acquireToken(
             clientCredentialRequest
         )) as AuthenticationResult;
+
+        // Check the cache to ensure the refreshed token exists (the network request was successful).
+        // Typically, the network request may not have completed by the time the below code runs.
+        // However, the network requests are mocked in these tests, so the refreshed token should be in the cache at this point.
+        accessTokenKey = config.storageInterface?.getKeys()
+            .find((value) => value.indexOf("accesstoken") >= 0);
+        const accessTokenCacheItem = accessTokenKey ?
+            config.storageInterface?.getAccessTokenCredential(accessTokenKey) : null;
+        expect(accessTokenCacheItem?.clientId).toEqual(expectedAtEntity.clientId);
         
         const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).toEqual(expectedScopes);
