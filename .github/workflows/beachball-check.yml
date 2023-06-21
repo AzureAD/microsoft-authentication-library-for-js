@@ -19,7 +19,7 @@ jobs:
         permissions:
             contents: read # for actions/checkout to fetch code
             pull-requests: read # for dorny/paths-filter to read pull requests
-        if: github.actor != 'dependabot[bot]'
+        if: github.actor != 'dependabot[bot]' && github.head_ref != 'release-staging' && !contains(github.head_ref, 'post-release')
         runs-on: ubuntu-latest
         env:
             BEACHBALL: 1
@@ -34,18 +34,18 @@ jobs:
                         - 'extensions/msal-node-extensions/**/**.!(md)'
 
             - uses: actions/checkout@v3
-              if: ${{ github.head_ref != 'release-staging' && !contains(github.head_ref, 'post-release') }}
+              if: ${{ steps.filter.outputs.lib == 'true' }}
               with:
                   fetch-depth: 0
 
             - name: Use Node.js
-              if: ${{ github.head_ref != 'release-staging' && !contains(github.head_ref, 'post-release') }}
+              if: ${{ steps.filter.outputs.lib == 'true' }}
               uses: actions/setup-node@v3
 
             - name: Install beachball
-              if: ${{ github.head_ref != 'release-staging' && !contains(github.head_ref, 'post-release') }}
+              if: ${{ steps.filter.outputs.lib == 'true' }}
               run: npm ci
 
             - name: Run Beachball Check command
-              if: ${{ github.head_ref != 'release-staging' && !contains(github.head_ref, 'post-release') }}
+              if: ${{ steps.filter.outputs.lib == 'true' }}
               run: npm run beachball:check
