@@ -34,18 +34,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 20
-
-    - name: Get npm cache directory
-      id: npm-cache-dir
-      shell: bash
-      run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
-
-    - uses: actions/cache@v3
-      with:
-        path: ${{ steps.npm-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+        cache: 'npm'
 
     - name: Install Dependencies
       run: npm ci --workspace=lib/** --workspace=extensions/** --include-workspace-root
