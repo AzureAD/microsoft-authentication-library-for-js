@@ -25,19 +25,19 @@ jobs:
         env:
             BEACHBALL: 1
         steps:
-            - uses: dorny/paths-filter@v2
-              id: filter
-              with:
-                  # Will return true if any file is not markdown and any file is in /lib
-                  filters: |
-                      lib:
-                        - 'lib/**/**.!(md)'
-                        - 'extensions/msal-node-extensions/**/**.!(md)'
+            # - uses: dorny/paths-filter@v2
+            #   id: filter
+            #   with:
+            #       # Will return true if any file is not markdown and any file is in /lib
+            #       filters: |
+            #           lib:
+            #             - 'lib/**/**.!(md)'
+            #             - 'extensions/msal-node-extensions/**/**.!(md)'
 
-            - uses: actions/checkout@v3
-              if: ${{ steps.filter.outputs.lib == 'true' }}
-              with:
-                  fetch-depth: 0
+            # - uses: actions/checkout@v3
+            #   if: ${{ steps.filter.outputs.lib == 'true' }}
+            #   with:
+            #       fetch-depth: 0
 
             - name: Use Node.js
               if: ${{ steps.filter.outputs.lib == 'true' }}
