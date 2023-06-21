@@ -234,7 +234,6 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
     });
 
-
     it("createDiscoveredInstance does not transform when there is a PATH", async () => {
         const resolveEndpointsStub = jest.spyOn(Authority.prototype, "resolveEndpointsAsync").mockResolvedValue();
         const authorityInstance = await AuthorityFactory.createDiscoveredInstance("https://test.ciamlogin.com/tenant/", networkInterface, mockStorage, authorityOptions, logger);

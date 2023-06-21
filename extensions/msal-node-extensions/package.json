@@ -31,6 +31,7 @@
     "build:all": "npm run build:common && npm run build",
     "test": "jest",
     "test:coverage": "jest --coverage",
+    "link:localDeps": "npx lerna@6 bootstrap --scope @azure/msal-common --scope @azure/msal-node-extensions",
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
     "prepack": "npm run build:all && node ./scripts/checkBinaries.js"

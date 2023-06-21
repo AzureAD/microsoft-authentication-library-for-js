@@ -35,7 +35,7 @@
     "lint:fix": "npm run lint -- -- --fix",
     "build:all": "npm run build:common && npm run build",
     "build:common": "cd ../msal-common && npm run build",
-    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node",
+    "link:localDeps": "npx lerna@6 bootstrap --scope @azure/msal-common --scope @azure/msal-node",
     "prepack": "npm run build:all",
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"

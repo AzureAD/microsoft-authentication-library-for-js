@@ -56,7 +56,15 @@ jobs:
             displayName: Install dependencies
             inputs:
                 command: "install"
+                workingDir: "${{ parameters.path }}/${{ parameters.libName }}"
                 verbose: false
+          # Runs lerna bootstrap scoped to this package and any local dependencies so that npm run build:all commands work
+          - task: Npm@1
+            displayName: Link dependencies
+            inputs:
+                command: "custom"
+                workingDir: "${{ parameters.path }}/${{ parameters.libName }}"
+                customCommand: "run link:localDeps --if-present"
 
           # KeyVault connection
           - task: AzureKeyVault@2
@@ -67,7 +75,7 @@ jobs:
                 RunAsPreJob: true
 
           # Write NPM authToken
-          - script: echo $NPM_TOKEN > .npmrc
+          - bash: echo $NPM_TOKEN > .npmrc
             displayName: Write npm authToken
             workingDirectory: "${{ parameters.path }}/${{ parameters.libName }}"
             env:
