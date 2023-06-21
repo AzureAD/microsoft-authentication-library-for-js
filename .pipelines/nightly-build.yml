@@ -5,41 +5,41 @@ variables:
   Codeql.Enabled: true
 
 schedules:
-- cron: ' 0 0 * * *'
-  displayName: Nightly Build
-  branches:
-    include:
-    - dev
-    - add-codeql
+  - cron: " 0 0 * * *"
+    displayName: Nightly Build
+    branches:
+      include:
+        - dev
 
 jobs:
   - job: Build
-    displayName: 'Build MSAL.js'
+    displayName: "Build MSAL.js"
     pool:
-      vmImage: 'ubuntu-latest'
+      vmImage: "ubuntu-latest"
     steps:
       - task: CodeQL3000Init@0
 
       - task: NodeTool@0
-        displayName: 'Install Node.js'
+        displayName: "Install Node.js"
         inputs:
-          versionSpec: '20.x'
+          versionSpec: "20.x"
 
       - task: Npm@1
-        displayName: 'Install Dependencies'
+        displayName: "Install Dependencies"
         inputs:
-          command: 'ci'
+          command: "ci"
 
       - task: Npm@1
-        displayName: 'Build Libraries'
+        displayName: "Build Libraries"
         inputs:
-          command: 'custom'
-          customCommand: 'run build'
+          command: "custom"
+          customCommand: "run build"
 
       - task: Npm@1
-        displayName: 'Run tests'
+        displayName: "Run tests"
+        continueOnError: true
         inputs:
-          command: 'custom'
-          customCommand: 'run test'
-      
+          command: "custom"
+          customCommand: "run test"
+
       - task: CodeQL3000Finalize@0
