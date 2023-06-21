@@ -62,7 +62,7 @@
     "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build": "npm run clean && npm run build:modules",
-    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser",
+    "link:localDeps": "npx lerna@6 bootstrap --scope @azure/msal-common --scope @azure/msal-browser",
     "prepack": "npm run build:all",
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
