@@ -26,6 +26,7 @@ import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
 import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
 import { Logger, LogLevel, UrlString } from "../../src";
+import { RegionDiscovery } from "../../src/authority/RegionDiscovery";
 
 let mockStorage: MockStorageClass;
 
@@ -561,6 +562,65 @@ describe("Authority.ts Class Unit Tests", () => {
                 logger
             );
             await authority.resolveEndpointsAsync();
+
+            expect(authority.discoveryComplete()).toBe(true);
+            expect(authority.authorizationEndpoint).toEqual(
+                `${deepCopyOpenIdResponse.body.authorization_endpoint
+                    .replace("{tenant}", "common")
+                    .replace(
+                        "login.microsoftonline.com",
+                        "westus2.login.microsoft.com"
+                    )}/`
+            );
+            expect(authority.tokenEndpoint).toEqual(
+                `${deepCopyOpenIdResponse.body.token_endpoint
+                    .replace("{tenant}", "common")
+                    .replace(
+                        "login.microsoftonline.com",
+                        "westus2.login.microsoft.com"
+                    )}/?allowestsrnonmsi=true`
+            );
+            expect(authority.endSessionEndpoint).toEqual(
+                `${deepCopyOpenIdResponse.body.end_session_endpoint
+                    .replace("{tenant}", "common")
+                    .replace(
+                        "login.microsoftonline.com",
+                        "westus2.login.microsoft.com"
+                    )}/`
+            );
+        });
+
+        it("region is not auto-discovered if a region is provided by the user", async () => {
+            const deepCopyOpenIdResponse = JSON.parse(
+                JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
+            );
+            networkInterface.sendGetRequestAsync = (
+                url: string,
+                options?: NetworkRequestOptions
+            ): any => {
+                return JSON.parse(
+                    JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
+                );
+            };
+
+            const regionDiscoverySpy = jest.spyOn(RegionDiscovery.prototype, <any>"detectRegion");
+
+            const authority = new Authority(
+                Constants.DEFAULT_AUTHORITY,
+                networkInterface,
+                mockStorage,
+                {
+                    ...authorityOptions,
+                    azureRegionConfiguration: {
+                        azureRegion: "westus2",
+                        environmentRegion: "centralus",
+                    },
+                },
+                logger
+            );
+            await authority.resolveEndpointsAsync();
+
+            expect(regionDiscoverySpy).not.toHaveBeenCalled();
 
             expect(authority.discoveryComplete()).toBe(true);
             expect(authority.authorizationEndpoint).toEqual(
