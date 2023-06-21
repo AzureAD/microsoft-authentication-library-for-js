@@ -34,18 +34,18 @@ jobs:
                         - 'extensions/msal-node-extensions/**/**.!(md)'
 
             - uses: actions/checkout@v3
-              if: ${{ steps.filter.outputs.lib == 'true' && github.ref != 'ref/heads/release-staging' && !contains(github.ref, 'post-release') }}
+              if: ${{ github.ref != 'ref/heads/release-staging' && !contains(github.ref, 'post-release') }}
               with:
                   fetch-depth: 0
 
             - name: Use Node.js
-              if: ${{ steps.filter.outputs.lib == 'true' && github.ref != 'ref/heads/release-staging' && !contains(github.ref, 'post-release') }}
+              if: ${{ github.ref != 'ref/heads/release-staging' && !contains(github.ref, 'post-release') }}
               uses: actions/setup-node@v3
 
             - name: Install beachball
-              if: ${{ steps.filter.outputs.lib == 'true' && github.ref != 'ref/heads/release-staging' && !contains(github.ref, 'post-release') }}
+              if: ${{ github.ref != 'ref/heads/release-staging' && !contains(github.ref, 'post-release') }}
               run: npm ci
 
             - name: Run Beachball Check command
-              if: ${{ steps.filter.outputs.lib == 'true'  && github.ref != 'ref/heads/release-staging' && !contains(github.ref, 'post-release') }}
+              if: ${{ github.ref != 'ref/heads/release-staging' && !contains(github.ref, 'post-release') }}
               run: npm run beachball:check
