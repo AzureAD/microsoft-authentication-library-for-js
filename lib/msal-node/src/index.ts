@@ -111,6 +111,7 @@ export {
     IAppTokenProvider,
     AppTokenProviderParameters,
     AppTokenProviderResult,
+    ServerAuthorizationCodeResponse
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
