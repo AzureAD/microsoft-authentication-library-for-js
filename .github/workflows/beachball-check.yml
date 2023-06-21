@@ -20,7 +20,7 @@ jobs:
         permissions:
             contents: read # for actions/checkout to fetch code
             pull-requests: read # for dorny/paths-filter to read pull requests
-        if: ${{!contains(github.ref, 'post-release')}}
+        if: contains(github.ref, 'post-release') != true
         runs-on: ubuntu-latest
         env:
             BEACHBALL: 1
