@@ -67,7 +67,7 @@ jobs:
                 RunAsPreJob: true
 
           # Write NPM authToken
-          - script: echo $NPM_TOKEN > .npmrc
+          - bash: echo $NPM_TOKEN > .npmrc
             displayName: Write npm authToken
             workingDirectory: "${{ parameters.path }}/${{ parameters.libName }}"
             env:
