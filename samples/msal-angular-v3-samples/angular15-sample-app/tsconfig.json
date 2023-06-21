@@ -24,8 +24,13 @@
       "ES2022",
       "dom"
     ],
-    "paths": { 
-      "@angular/*": ["./node_modules/@angular/*"]
+    "paths": {
+      "@angular/*": [
+        "./node_modules/@angular/*"
+      ],
+      "@azure/msal-angular": [
+        "../../../node_modules/@azure/msal-angular/dist"
+      ]
     }
   },
   "angularCompilerOptions": {
