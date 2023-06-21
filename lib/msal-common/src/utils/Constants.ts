@@ -64,12 +64,13 @@ export const Constants = {
     INVALID_INSTANCE: "invalid_instance",
 };
 
-export enum ERROR_CODE_BOUNDS {
-    clientErrorLowerLimit = 400,
-    clientErrorUpperLimit = 499,
-    stsErrorLowerLimit = 500,
-    stsErrorUpperLimit = 599,
-  }
+export const ErrorCodeBounds = {
+    clientErrorLowerLimit: 400,
+    clientErrorUpperLimit: 499,
+    stsErrorLowerLimit: 500,
+    stsErrorUpperLimit: 599,
+} as const;
+export type ErrorCodeBounds = typeof ErrorCodeBounds[keyof typeof ErrorCodeBounds];
 
 export const OIDC_DEFAULT_SCOPES = [
     Constants.OPENID_SCOPE,

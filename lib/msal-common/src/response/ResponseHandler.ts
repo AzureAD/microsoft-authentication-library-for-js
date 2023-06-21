@@ -28,7 +28,7 @@ import {
     AuthenticationScheme,
     Constants,
     THE_FAMILY_ID,
-    ERROR_CODE_BOUNDS,
+    ErrorCodeBounds,
 } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
@@ -151,8 +151,8 @@ export class ResponseHandler {
             if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                (serverResponse.status >= ERROR_CODE_BOUNDS.stsErrorLowerLimit) &&
-                (serverResponse.status <= ERROR_CODE_BOUNDS.stsErrorUpperLimit)
+                (serverResponse.status >= ErrorCodeBounds.stsErrorLowerLimit) &&
+                (serverResponse.status <= ErrorCodeBounds.stsErrorUpperLimit)
             ) {
                 this.logger.warning(
                     "executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed."
@@ -164,8 +164,8 @@ export class ResponseHandler {
             } else if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                (serverResponse.status >= ERROR_CODE_BOUNDS.clientErrorLowerLimit) &&
-                (serverResponse.status <= ERROR_CODE_BOUNDS.clientErrorUpperLimit)
+                (serverResponse.status >= ErrorCodeBounds.clientErrorLowerLimit) &&
+                (serverResponse.status <= ErrorCodeBounds.clientErrorUpperLimit)
             ) {
                 this.logger.warning(
                     "executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token."
