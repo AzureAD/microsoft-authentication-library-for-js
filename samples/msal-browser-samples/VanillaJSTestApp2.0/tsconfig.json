@@ -12,7 +12,11 @@
         "allowUnusedLabels": false,
         "noImplicitReturns": true,
         "esModuleInterop": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "types": [
+            "node",
+            "jest"
+        ]
     },
     "include": [
         "./app/**/test/*.spec.ts",
@@ -20,9 +24,5 @@
     ],
     "exclude": [
         "node_modules"
-    ],
-    "types": [
-        "node",
-        "jest"
-    ],
+    ]
 }

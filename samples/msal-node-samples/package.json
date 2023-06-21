@@ -6,7 +6,7 @@
         "removeScreeshots": "shx rm -rf screenshots",
         "test": "npm run removeScreeshots && jest",
         "test:agc": "npm run removeScreeshots && jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
-        "build:package": "cd ../../lib/msal-node && npm run build:all"
+        "build:package": "cd ../.. && npm run build:all --workspace=lib/msal-node"
     },
     "devDependencies": {
         "jest": "^29.5.0",
