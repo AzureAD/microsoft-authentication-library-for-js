@@ -8,13 +8,13 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'lib/msal-node/**/*'
-      - 'lib/msal-common/**/*'
-      - 'samples/msal-node-samples/**/*'
-      - 'samples/e2eTestUtils/**/*'
-      - 'samples/package-lock.json'
-      - '!**.md'
-      - '.github/workflows/msal-node-e2e.yml'
+      - "lib/msal-node/**/*"
+      - "lib/msal-common/**/*"
+      - "samples/msal-node-samples/**/*"
+      - "samples/e2eTestUtils/**/*"
+      - "samples/package-lock.json"
+      - "!**.md"
+      - ".github/workflows/msal-node-e2e.yml"
   merge_group:
     types: [checks_requested]
 
@@ -32,65 +32,65 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [ 18, 20 ]
+        node: [18, 20]
         sample:
-          - 'auth-code'
-          - 'client-credentials'
-          - 'device-code'
-          - 'silent-flow'
-          - 'b2c-user-flows'
-          - 'on-behalf-of'
+          - "auth-code"
+          - "client-credentials"
+          - "device-code"
+          - "silent-flow"
+          - "b2c-user-flows"
+          - "on-behalf-of"
 
     name: ${{ matrix.sample }} - Node v${{ matrix.node }}
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node }}
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
 
-    - name: Get npm cache directory
-      id: npm-cache-dir
-      shell: bash
-      run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
 
-    - uses: actions/cache@v3
-      with:
-        path: ${{ steps.npm-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+      - uses: actions/cache@v3
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-    - name: Clean Install
-      run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=samples --workspace=samples/msal-node-samples/** --ignore-engines
+      - name: Clean Install
+        run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=samples --workspace=samples/msal-node-samples/** --ignore-engines
 
-    - name: Build Package
-      working-directory: samples/msal-node-samples
-      run: npm run build:package
+      - name: Build Package
+        working-directory: samples/msal-node-samples
+        run: npm run build:package
 
-    - name: E2E Tests
-      working-directory: samples/msal-node-samples/${{ matrix.sample }}
-      timeout-minutes: 10
-      env:
-        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        OBO_WEB_APP_CLIENT_ID: ${{ secrets.OBO_WEB_APP_CLIENT_ID }}
-        OBO_WEB_APP_CLIENT_SECRET: ${{ secrets.OBO_WEB_APP_CLIENT_SECRET }}
-        OBO_WEB_API_CLIENT_ID: ${{ secrets.OBO_WEB_API_CLIENT_ID }}
-        OBO_WEB_API_CLIENT_SECRET: ${{ secrets.OBO_WEB_API_CLIENT_SECRET }}
-        OBO_WEB_API_SCOPE: ${{ secrets.OBO_WEB_API_SCOPE }}
-        OBO_WEB_API_TENANT_ID: ${{ secrets.OBO_WEB_API_TENANT_ID }}
-      run: npm test
+      - name: E2E Tests
+        working-directory: samples/msal-node-samples/${{ matrix.sample }}
+        timeout-minutes: 10
+        env:
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          OBO_WEB_APP_CLIENT_ID: ${{ secrets.OBO_WEB_APP_CLIENT_ID }}
+          OBO_WEB_APP_CLIENT_SECRET: ${{ secrets.OBO_WEB_APP_CLIENT_SECRET }}
+          OBO_WEB_API_CLIENT_ID: ${{ secrets.OBO_WEB_API_CLIENT_ID }}
+          OBO_WEB_API_CLIENT_SECRET: ${{ secrets.OBO_WEB_API_CLIENT_SECRET }}
+          OBO_WEB_API_SCOPE: ${{ secrets.OBO_WEB_API_SCOPE }}
+          OBO_WEB_API_TENANT_ID: ${{ secrets.OBO_WEB_API_TENANT_ID }}
+        run: npm test
 
-    - name: Upload E2E Test Screenshots
-      uses: actions/upload-artifact@v3
-      if: failure()
-      with:
-        name: e2e-test-screenshots
-        path: samples/**/screenshots
+      - name: Upload E2E Test Screenshots
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: e2e-test-screenshots
+          path: samples/**/screenshots
 
   run-electron-e2e:
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group')) && !github.event.pull_request.draft
@@ -100,56 +100,59 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest]
         sample:
-          - 'ElectronSystemBrowserTestApp'
+          - "ElectronSystemBrowserTestApp"
 
     name: ${{ matrix.sample }} - ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-    - name: Get npm cache directory
-      id: npm-cache-dir
-      shell: bash
-      run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
 
-    - uses: actions/cache@v3
-      with:
-        path: ${{ steps.npm-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+      - uses: actions/cache@v3
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-    - name: Build Package
-      working-directory: samples/msal-node-samples
-      run: npm run build:package
+      - name: Clean Install
+        run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=samples --workspace=samples/msal-node-samples/** --ignore-engines
 
-    - name: Install Playwright
-      working-directory: samples/msal-node-samples/${{ matrix.sample }}
-      run: npx playwright install
+      - name: Build Package
+        working-directory: samples/msal-node-samples
+        run: npm run build:package
 
-    - name: Build Sample
-      working-directory: samples/msal-node-samples/${{ matrix.sample }}
-      run: |
-        npm run build
+      - name: Install Playwright
+        working-directory: samples/msal-node-samples/${{ matrix.sample }}
+        run: npx playwright install
 
-    - name: E2E Tests
-      working-directory: samples/msal-node-samples/${{ matrix.sample }}
-      timeout-minutes: 10
-      env:
-        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        DEBUG: pw:browser
-      run: npm test
+      - name: Build Sample
+        working-directory: samples/msal-node-samples/${{ matrix.sample }}
+        run: |
+          npm run build
 
-    - name: Upload E2E Test Screenshots
-      uses: actions/upload-artifact@v3
-      if: failure()
-      with:
-        name: e2e-test-screenshots
-        path: samples/**/screenshots
+      - name: E2E Tests
+        working-directory: samples/msal-node-samples/${{ matrix.sample }}
+        timeout-minutes: 10
+        env:
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          DEBUG: pw:browser
+        run: npm test
+
+      - name: Upload E2E Test Screenshots
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: e2e-test-screenshots
+          path: samples/**/screenshots
