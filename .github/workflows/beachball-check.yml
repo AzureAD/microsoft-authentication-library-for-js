@@ -1,8 +1,7 @@
 # This workflow will do a clean install of node dependencies at the root and check that a beachball change file has been committed.
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Beachball Check
-
+name: Beachball Checode .
 on:
     pull_request:
         branches:
@@ -20,13 +19,14 @@ jobs:
         permissions:
             contents: read # for actions/checkout to fetch code
             pull-requests: read # for dorny/paths-filter to read pull requests
-        if: contains(github.ref, 'post-release') != true
+        if: github.actor != 'dependabot[bot]'
         runs-on: ubuntu-latest
         env:
             BEACHBALL: 1
         steps:
             - uses: dorny/paths-filter@v2
               id: filter
+              if: ${{ !contains(github.ref, 'post-release') }}
               with:
                   # Will return true if any file is not markdown and any file is in /lib
                   filters: |
