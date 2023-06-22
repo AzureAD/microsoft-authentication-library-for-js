@@ -1,12 +1,12 @@
 {
-  "name": "vanilla-js-test-app",
+  "name": "vanilla-js-sample",
   "version": "1.1.0",
   "license": "MIT",
   "private": true,
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build:package": "cd ../../../lib/msal-browser && npm run build:all",
+    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-browser",
     "start:build": "npm run build:package && npm start",
     "test:e2e": "jest --runInBand",
     "generate:certs": "openssl.exe req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7 -nodes -subj /CN=localhost"

@@ -177,7 +177,7 @@ As this function returns a promise you can call `.then` and `.catch`, similar to
 
 Please ensure `handleRedirectPromise` has resolved before invoking any other MSAL method. If your app was not loaded as a result of a redirect operation `handleRedirectPromise` will immediately return `null`.
 
-Please review one of our samples ([for instance](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/default)) to see the redirect flow in action.
+Please review one of our samples ([for instance](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/vanilla-js-sample/app/default)) to see the redirect flow in action.
 
 ## How can I support authentication with personal Microsoft accounts only?
 

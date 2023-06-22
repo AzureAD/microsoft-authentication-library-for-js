@@ -159,4 +159,4 @@ Unlike other cache items, `Access Tokens` are saved to the cache asynchronously.
 
 ## Code samples
 
-* [JavaScript SPA acquiring PoP tokens](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/pop)
+* [JavaScript SPA acquiring PoP tokens](../../../samples/msal-browser-samples/vanilla-js-sample/app/pop)

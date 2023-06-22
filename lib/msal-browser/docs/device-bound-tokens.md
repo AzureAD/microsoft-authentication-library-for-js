@@ -45,7 +45,7 @@ pca.acquireTokenSilent();
 
 No other changes are needed to support this new feature. Any user accessing your app from a supported environment will now be able to acquire device bound tokens. Users in non-supported environments will continue to acquire tokens through the traditional web-based flows.
 
-A working sample can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/wamBroker)
+A working sample can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/vanilla-js-sample/app/wamBroker)
 
 ## Differences when using WAM to acquire tokens
 
