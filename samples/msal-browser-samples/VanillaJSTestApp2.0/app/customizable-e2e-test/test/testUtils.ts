@@ -1,4 +1,4 @@
-import { Screenshot, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, enterCredentials } from "e2e-test-utils/src/TestUtils";
 import { Page } from "puppeteer";
 
 export async function b2cAadPpeEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {

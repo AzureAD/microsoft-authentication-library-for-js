@@ -1,6 +1,3 @@
-// If you need to support IE11 uncomment the imports below
-//import "react-app-polyfill/ie11";
-//import "core-js/stable"; 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from "react-router-dom";
@@ -34,9 +31,9 @@ const container = document.getElementById("root");
 const root = ReactDOM.createRoot(container);
 
 root.render(
-    <Router>
-      <ThemeProvider theme={theme}>
-          <App pca={msalInstance} />
-      </ThemeProvider>
-    </Router>
+  <Router>
+    <ThemeProvider theme={theme}>
+      <App pca={msalInstance} />
+    </ThemeProvider>
+  </Router>
 );

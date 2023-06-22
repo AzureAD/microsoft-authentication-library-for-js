@@ -10,11 +10,11 @@ import {
     setupCredentials,
     b2cLocalAccountEnterCredentials,
     RETRY_TIMES
-} from "../../../e2eTestUtils/TestUtils";
+} from "e2e-test-utils/src/TestUtils";
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
-import { LabClient } from "../../../e2eTestUtils/LabClient";
-import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
+import { LabClient } from "e2e-test-utils/src/LabClient";
+import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
+import { B2cProviders, UserTypes } from "e2e-test-utils/src/Constants";
 import {
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
