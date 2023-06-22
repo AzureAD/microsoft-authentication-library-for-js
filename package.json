@@ -65,6 +65,7 @@
     "lib/msal-angular",
     "lib/msal-react",
     "extensions/msal-node-extensions",
+    "samples/e2eTestUtils",
     "samples/msal-browser-samples/*",
     "samples/msal-angular-v3-samples/*",
     "samples/msal-react-samples/*",
