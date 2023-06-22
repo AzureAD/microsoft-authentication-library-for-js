@@ -1,5 +1,5 @@
 import { PlaywrightTestConfig, devices } from "@playwright/test";
-import { RETRY_TIMES } from '../../e2eTestUtils/TestUtils';
+import { RETRY_TIMES } from 'e2eTestUtils/TestUtils';
 
 const config: PlaywrightTestConfig = {
     testDir: "./tests",
