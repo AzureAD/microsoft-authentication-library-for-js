@@ -53,7 +53,7 @@ jobs:
         cache: 'npm'
 
     - name: Clean Install
-      run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-react --workspace=samples/msal-react-samples/${{matrix.sample}}
+      run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-react --workspace=samples/e2eTestUtils --workspace=samples/msal-react-samples/${{matrix.sample}}
 
     - name: Build packages
       working-directory: lib/msal-react
