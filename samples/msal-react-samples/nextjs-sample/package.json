@@ -6,7 +6,7 @@
     "dev": "next dev",
     "test": "jest",
     "build": "next build",
-    "build:package": "cd ../../../lib/msal-react && npm run build:all",
+    "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react",
     "start": "next start"
   },
   "dependencies": {

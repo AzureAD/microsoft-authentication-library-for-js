@@ -22,15 +22,9 @@
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",
-        "build:package": "cd ../../../lib/msal-react && npm run build:all",
+        "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react",
         "test": "jest",
         "eject": "react-scripts eject"
-    },
-    "eslintConfig": {
-        "extends": [
-            "react-app",
-            "react-app/jest"
-        ]
     },
     "browserslist": {
         "production": [
