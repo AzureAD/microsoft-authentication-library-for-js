@@ -52,7 +52,7 @@ jobs:
         cache: 'npm'
         
     - name: Clean Install
-      run: npm install --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=samples/e2eTestUtils --workspace=samples/msal-browser-samples/VanillaJSTestApp2.0
+      run: npm install --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=e2e-test-utils --workspace=vanilla-js-test-app
 
     - name: Build packages
       working-directory: samples/msal-browser-samples/VanillaJSTestApp2.0
