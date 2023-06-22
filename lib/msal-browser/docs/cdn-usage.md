@@ -15,7 +15,7 @@ In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 * Use the CDN region nearest to your users.
 * Use the `async` or `defer` attributes to not block page rendering.
 * Use the `integrity` attribute to ensure integrity of CDN builds.
-* IE11 support requires a Promise polyfill ([more information](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/vanilla-js-sample/app/ie11-sample) on IE11 support).
+* IE11 support requires a Promise polyfill ([more information](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/ie11-sample) on IE11 support).
 
 ## Basic Usage
 

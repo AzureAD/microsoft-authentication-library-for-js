@@ -10,7 +10,7 @@ on:
     paths:
       - 'lib/msal-browser/**/*'
       - 'lib/msal-common/**/*'
-      - 'samples/msal-browser-samples/vanilla-js-sample/**/*'
+      - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
       - 'samples/e2eTestUtils/**/*'
       - 'samples/package-lock.json'
       - '!**.md'
@@ -52,14 +52,14 @@ jobs:
         cache: 'npm'
         
     - name: Clean Install
-      run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=samples/e2eTestUtils --workspace=samples/msal-browser-samples/vanilla-js-sample
+      run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=samples/e2eTestUtils --workspace=samples/msal-browser-samples/*
 
     - name: Build packages
-      working-directory: samples/msal-browser-samples/vanilla-js-sample
+      working-directory: samples/msal-browser-samples/VanillaJSTestApp2.0
       run: npm run build:package
 
     - name: E2E Tests
-      working-directory: samples/msal-browser-samples/vanilla-js-sample
+      working-directory: samples/msal-browser-samples/VanillaJSTestApp2.0
       timeout-minutes: 10
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}

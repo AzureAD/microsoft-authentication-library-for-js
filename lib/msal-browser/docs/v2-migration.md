@@ -59,7 +59,7 @@ const msalConfig = {
 const msalInstance = await msal.PublicClientApplication.createPublicClientApplication(msalConfig);
 ```
 
-All other APIs are backward compatible with [MSAL v2.x](../../msal-browser/). It is recommended to take a look at the [default sample](../../../samples/msal-browser-samples/vanilla-js-sample) to see a working example of MSAL v3.0.
+All other APIs are backward compatible with [MSAL v2.x](../../msal-browser/). It is recommended to take a look at the [default sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0) to see a working example of MSAL v3.0.
 
 ### Crypto
 

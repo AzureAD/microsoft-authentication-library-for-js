@@ -11,4 +11,4 @@ See also: [Handling a claims challenge with MSAL](./claims-challenge.md)
 
 ## Samples
 
-- [VanillaJS](../../../samples/msal-browser-samples/vanilla-js-sample/app/client-capabilities)
+- [VanillaJS](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/client-capabilities)
