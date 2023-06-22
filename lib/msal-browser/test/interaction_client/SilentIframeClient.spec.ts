@@ -19,7 +19,6 @@ import {
     AccountInfo,
     TokenClaims,
     PromptValue,
-    AuthenticationResult,
     CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
     ResponseMode,
@@ -34,7 +33,7 @@ import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { ApiId } from "../../src";
+import { ApiId, AuthenticationResult } from "../../src";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";

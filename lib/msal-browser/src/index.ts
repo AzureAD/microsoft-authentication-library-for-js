@@ -66,6 +66,7 @@ export { EndSessionRequest } from "./request/EndSessionRequest";
 export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
+export { AuthenticationResult } from "./response/AuthenticationResult";
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache";
@@ -94,8 +95,6 @@ export {
     // Account
     AccountInfo,
     AccountEntity,
-    // Response
-    AuthenticationResult,
     IdTokenClaims,
     // Error
     AuthError,
