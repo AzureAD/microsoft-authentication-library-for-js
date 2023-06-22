@@ -79,6 +79,7 @@ const cacheConfig = {
     storeAuthStateInCookie: false,
     secureCookies: false,
     cacheMigrationEnabled: false,
+    claimsBasedCachingEnabled: true,
 };
 
 const loggerOptions = {
@@ -1870,7 +1871,12 @@ describe("RedirectClient", () => {
                             )
                         ).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
                         bfCacheCallback({ persisted: true });
-                        expect(eventSpy.calledWith(EventType.RESTORE_FROM_BFCACHE, InteractionType.Redirect)).toBe(true);
+                        expect(
+                            eventSpy.calledWith(
+                                EventType.RESTORE_FROM_BFCACHE,
+                                InteractionType.Redirect
+                            )
+                        ).toBe(true);
                         expect(browserStorage.isInteractionInProgress()).toBe(
                             false
                         );

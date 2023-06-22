@@ -108,6 +108,10 @@ export type CacheOptions = {
      * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
      */
     cacheMigrationEnabled?: boolean;
+    /**
+     * Flag that determines whether access tokens are stored based on requested claims
+     */
+    claimsBasedCachingEnabled?: boolean;
 };
 
 export type BrowserSystemOptions = SystemOptions & {
@@ -255,6 +259,7 @@ export function buildConfiguration(
             userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage
                 ? true
                 : false,
+        claimsBasedCachingEnabled: true,
     };
 
     // Default logger options for browser
@@ -290,7 +295,7 @@ export function buildConfiguration(
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
-        pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS
+        pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
     };
 
     const providedSystemOptions: BrowserSystemOptions = {

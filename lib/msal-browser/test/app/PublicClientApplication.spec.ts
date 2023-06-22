@@ -101,6 +101,7 @@ const cacheConfig = {
     storeAuthStateInCookie: false,
     secureCookies: false,
     cacheMigrationEnabled: false,
+    claimsBasedCachingEnabled: true
 };
 
 let testAppConfig = {

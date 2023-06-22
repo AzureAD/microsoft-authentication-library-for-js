@@ -56,6 +56,7 @@ describe("TokenCache tests", () => {
             storeAuthStateInCookie: false,
             secureCookies: false,
             cacheMigrationEnabled: false,
+            claimsBasedCachingEnabled: true,
         };
         logger = new Logger({
             loggerCallback: (

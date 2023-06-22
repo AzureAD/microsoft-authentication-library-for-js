@@ -1891,6 +1891,7 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         storeAuthStateInCookie: false,
         secureCookies: false,
         cacheMigrationEnabled: false,
+        claimsBasedCachingEnabled: true,
     };
     return new BrowserCacheManager(
         clientId,
