@@ -3,5 +3,5 @@
   "comment": "Make account info mandatory for AuthenticationResult and CacheRecord types #6156",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "prerelease"
 }
