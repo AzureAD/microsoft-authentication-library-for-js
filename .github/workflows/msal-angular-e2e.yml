@@ -51,7 +51,7 @@ jobs:
           cache: 'npm'
 
     - name: Clean Install
-      run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-angular --workspace=samples --workspace=samples/msal-angular-v3-samples/**
+      run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-angular --workspace=samples/msal-angular-v3-samples/${{matrix.sample}}
 
     - name: Build packages
       working-directory: lib/msal-angular

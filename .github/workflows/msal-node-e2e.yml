@@ -53,7 +53,7 @@ jobs:
           cache: 'npm'
 
       - name: Clean Install
-        run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=samples --workspace=samples/msal-node-samples/** --ignore-engines
+        run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=samples/msal-node-samples/${{matrix.sample}} --ignore-engines
 
       - name: Build Package
         working-directory: samples/msal-node-samples
@@ -103,7 +103,7 @@ jobs:
           cache: 'npm'
 
       - name: Clean Install
-        run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=samples --workspace=samples/msal-node-samples/** --ignore-engines
+        run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=samples/msal-node-samples/${{matrix.sample}} --ignore-engines
 
       - name: Build Package
         working-directory: samples/msal-node-samples
