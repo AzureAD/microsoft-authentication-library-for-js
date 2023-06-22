@@ -43,6 +43,7 @@
   },
   "scripts": {
     "audit": "npm audit --workspace=lib/** --workspace=extensions/** --include-workspace-root",
+    "clean:nodeModules": "npx npkill -y",
     "doc": "npm run doc:generate && npm run doc:deploy",
     "doc:generate": "rimraf ./ref/* && typedoc",
     "doc:deploy": "gh-pages -d ref -a -e ref",
