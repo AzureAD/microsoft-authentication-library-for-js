@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Screenshot } from "e2eTestUtils/src/TestUtils";
+import { Screenshot } from "e2e-test-utils/src/TestUtils";
 import { Page, HTTPResponse } from "puppeteer";
 import fs from "fs";
 
