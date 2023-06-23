@@ -11,7 +11,7 @@
     "@octokit/graphql": "^4.8.0",
     "@octokit/rest": "^18.12.0",
     "dotenv": "^16.0.0",
-    "semver": "^7.3.5",
+    "semver": "^7.5.2",
     "yargs": "^17.5.1"
   }
 }
