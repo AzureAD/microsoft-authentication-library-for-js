@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "test": "jest",
-    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node",
     "start:build": "npm run build:package && npm start"
   },
   "author": "Microsoft",
