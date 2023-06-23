@@ -161,7 +161,7 @@ export class CustomLoopbackClient implements ILoopbackClient {
      *
      * @param query
      */
-    static queryStringToObject<T>(query: string): T {
+    static queryStringToObject(query: string): ServerAuthorizationCodeResponse {
         const obj: {[key:string]:string} = {};
         const params = query.split("&");
         const decode = (s: string) => decodeURIComponent(s.replace(/\+/g, " "));
@@ -173,7 +173,7 @@ export class CustomLoopbackClient implements ILoopbackClient {
                 }
             }
         });
-        return obj as T;
+        return obj as ServerAuthorizationCodeResponse;
     }
 
     /**
@@ -190,7 +190,7 @@ export class CustomLoopbackClient implements ILoopbackClient {
         const parsedQueryString = this.parseQueryString(query);
         // If ? symbol was not present, above will return empty string, so give original query value
         const deserializedQueryString: ServerAuthorizationCodeResponse =
-            this.queryStringToObject<ServerAuthorizationCodeResponse>(
+            this.queryStringToObject(
                 parsedQueryString || query
             );
         // Check if deserialization didn't work
