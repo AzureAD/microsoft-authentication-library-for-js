@@ -56,7 +56,7 @@ jobs:
         run: npm ci --workspace=samples/msal-node-samples/${{matrix.sample}} --ignore-engines
 
       - name: Build Package
-        working-directory: samples/msal-node-samples
+        working-directory: samples/msal-node-samples/${{matrix.sample}}
         run: npm run build:package
 
       - name: E2E Tests
