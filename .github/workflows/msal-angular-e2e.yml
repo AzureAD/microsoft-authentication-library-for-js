@@ -60,7 +60,7 @@ jobs:
 
     - name: Install Test Tools
       working-directory: samples/e2eTestUtils
-      run: npm ci
+      run: npm install
 
     - name: Install ${{ matrix.sample }}
       working-directory: samples/msal-angular-v3-samples/${{ matrix.sample }}
