@@ -34,7 +34,7 @@ export class BrowserStringUtils {
                     ? 5
                     : 6;
         }
-
+        
         const aBytes = new Uint8Array(nArrLen);
 
         /* transcription... */
@@ -78,19 +78,6 @@ export class BrowserStringUtils {
         }
 
         return aBytes;
-    }
-
-    /**
-     * Converst string to ArrayBuffer
-     * @param dataString
-     */
-    static stringToArrayBuffer(dataString: string): ArrayBuffer {
-        const data = new ArrayBuffer(dataString.length);
-        const dataView = new Uint8Array(data);
-        for (let i: number = 0; i < dataString.length; i++) {
-            dataView[i] = dataString.charCodeAt(i);
-        }
-        return data;
     }
 
     /**

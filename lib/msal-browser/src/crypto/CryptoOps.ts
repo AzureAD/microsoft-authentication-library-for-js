@@ -224,7 +224,7 @@ export class CryptoOps implements ICrypto {
         const tokenString = `${encodedShrHeader}.${encodedPayload}`;
 
         // Sign token
-        const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString);
+        const tokenBuffer = BrowserStringUtils.stringToUtf8Arr(tokenString);
         const signatureBuffer = await this.browserCrypto.sign(
             cachedKeyPair.privateKey,
             tokenBuffer
