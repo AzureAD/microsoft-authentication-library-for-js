@@ -98,7 +98,7 @@ We will automatically run lint as our pre-commit command. Failing to pass lintin
 $ npm run lint
 ```
 
-This will ensure any changes are consistent with the current code style. We uses tslint and you can find a list of linting rules in the tslint.json.
+This will ensure any changes are consistent with the current code style. We uses eslint and you can find a list of linting rules in the .eslintrc.json.
 
 If for some reason you still want to push without fixing the linting errors. You can add the follow option to your commit command to [bypass the pre-commit][]:
 
