@@ -3,6 +3,7 @@ import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { createHash } from "crypto";
 import { AuthToken, Logger } from "@azure/msal-common";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 let mockDatabase = {
     "TestDB.keys": {},
