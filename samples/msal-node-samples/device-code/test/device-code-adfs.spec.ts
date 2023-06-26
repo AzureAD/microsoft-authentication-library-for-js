@@ -4,11 +4,11 @@
  */
 
 import * as puppeteer from "puppeteer";
-import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
-import { LabClient } from "../../../e2eTestUtils/LabClient";
-import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";
+import { LabClient } from "e2e-test-utils/src/LabClient";
+import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
+import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "e2e-test-utils/src/Constants";
 import {
     enterCredentialsADFSWithConsent,
     enterDeviceCode,

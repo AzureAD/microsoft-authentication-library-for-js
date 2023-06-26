@@ -15,7 +15,7 @@
     "@azure/identity": "^1.0.2",
     "axios": "^0.25.0",
     "clear-module": "^4.1.1",
-    "e2eTestUtils": "file:../../.",
+    "e2e-test-utils": "file:../../e2eTestUtils",
     "express": "^4.12.3",
     "jose": "^2.0.2",
     "morgan": "^1.5.2",

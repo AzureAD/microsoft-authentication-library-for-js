@@ -38,6 +38,7 @@
         "@vercel/webpack-asset-relocator-loader": "1.7.3",
         "autoprefixer": "^10.4.13",
         "css-loader": "^6.0.0",
+        "e2e-test-utils": "file:../../e2eTestUtils",
         "electron": "21.2.0",
         "eslint": "^8.0.1",
         "eslint-plugin-import": "^2.25.0",

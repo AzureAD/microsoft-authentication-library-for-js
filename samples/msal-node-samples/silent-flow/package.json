@@ -20,6 +20,7 @@
     "express-promise-router": "^4.0.1"
   },
   "devDependencies": {
+    "e2e-test-utils": "file:../../e2eTestUtils",
     "jest": "^29.5.0"
   }
 }

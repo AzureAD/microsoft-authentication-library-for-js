@@ -19,6 +19,7 @@
     "express": "^4.17.1"
   },
   "devDependencies": {
+    "e2e-test-utils": "file:../../e2eTestUtils",
     "jest": "^29.5.0"
   }
 }

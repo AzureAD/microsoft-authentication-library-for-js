@@ -25,6 +25,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "e2e-test-utils": "file:../../e2eTestUtils",
     "jest": "^29.5.0"
   }
 }

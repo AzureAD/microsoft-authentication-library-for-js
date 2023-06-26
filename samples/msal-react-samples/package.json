@@ -7,6 +7,7 @@
         "preinstall": "cd .. && npm install"
     },
     "devDependencies": {
+        "e2e-test-utils": "file:../../e2eTestUtils",
         "jest": "^29.5.0"
     }
 }

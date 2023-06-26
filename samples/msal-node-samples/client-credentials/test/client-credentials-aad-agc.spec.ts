@@ -6,7 +6,7 @@
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { validateCacheLocation } from "../../testUtils";
 import { ConfidentialClientApplication } from "@azure/msal-node";
-import {RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
+import {RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc.cache.json`;
 

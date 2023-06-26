@@ -15,6 +15,7 @@
         "react-router-dom": "^6.7.0"
     },
     "devDependencies": {
+        "e2e-test-utils": "file:../../e2eTestUtils",
         "jest": "^29.5.0",
         "react-scripts": "5.0.1"
     },
