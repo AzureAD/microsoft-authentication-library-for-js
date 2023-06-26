@@ -79,7 +79,7 @@ const cacheConfig = {
     storeAuthStateInCookie: false,
     secureCookies: false,
     cacheMigrationEnabled: false,
-    claimsBasedCachingEnabled: true,
+    claimsBasedCachingEnabled: false,
 };
 
 const loggerOptions = {

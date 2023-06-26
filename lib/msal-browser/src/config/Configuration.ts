@@ -259,7 +259,7 @@ export function buildConfiguration(
             userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage
                 ? true
                 : false,
-        claimsBasedCachingEnabled: true,
+        claimsBasedCachingEnabled: false,
     };
 
     // Default logger options for browser

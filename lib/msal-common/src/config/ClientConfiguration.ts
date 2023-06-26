@@ -169,7 +169,7 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
 };
 
 const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
-    claimsBasedCachingEnabled: true,
+    claimsBasedCachingEnabled: false,
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {

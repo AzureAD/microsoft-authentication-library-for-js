@@ -223,7 +223,7 @@ export class StandardController implements IController {
             storeAuthStateInCookie: false,
             secureCookies: false,
             cacheMigrationEnabled: false,
-            claimsBasedCachingEnabled: true,
+            claimsBasedCachingEnabled: false,
         };
         this.nativeInternalStorage = new BrowserCacheManager(
             this.config.auth.clientId,

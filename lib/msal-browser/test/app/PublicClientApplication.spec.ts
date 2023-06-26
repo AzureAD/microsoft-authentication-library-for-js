@@ -101,7 +101,7 @@ const cacheConfig = {
     storeAuthStateInCookie: false,
     secureCookies: false,
     cacheMigrationEnabled: false,
-    claimsBasedCachingEnabled: true
+    claimsBasedCachingEnabled: false,
 };
 
 let testAppConfig = {
@@ -190,23 +190,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         afterEach(() => {
             sinon.restore();
-        })
+        });
 
         it("handles concurrent calls", async () => {
             const config = {
                 auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true
-                }
+                    allowNativeBroker: true,
+                },
             };
             const concurrency = 5;
 
-            const postMessageSpy: sinon.SinonSpy = sinon.spy(window, "postMessage");
-            const initSpy: sinon.SinonSpy = sinon.spy(PublicClientApplication.prototype, "initialize");
+            const postMessageSpy: sinon.SinonSpy = sinon.spy(
+                window,
+                "postMessage"
+            );
+            const initSpy: sinon.SinonSpy = sinon.spy(
+                PublicClientApplication.prototype,
+                "initialize"
+            );
             // @ts-ignore
-            const handshakeSpy: sinon.SinonSpy = sinon.spy(NativeMessageHandler.prototype, "sendHandshakeRequest");
+            const handshakeSpy: sinon.SinonSpy = sinon.spy(
+                NativeMessageHandler.prototype,
+                "sendHandshakeRequest"
+            );
 
             let ports: Set<MessagePort> = new Set();
             let handledMessages = 0;
@@ -221,8 +230,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         responseId: request.responseId,
                         body: {
                             method: "HandshakeResponse",
-                            version: 3
-                        }
+                            version: 3,
+                        },
                     };
 
                     // Fan out messages to all registered ports to validate that responses are getting filtered out properly.
@@ -254,7 +263,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // @ts-ignore
                     expect(apps[i].controller.initialized).toBeTruthy();
                     // @ts-ignore
-                    expect(apps[i].controller.getNativeExtensionProvider()).toBeInstanceOf(NativeMessageHandler);
+                    expect(
+                        apps[i].controller.getNativeExtensionProvider()
+                    ).toBeInstanceOf(NativeMessageHandler);
                 }
             } finally {
                 for (const port of ports) {
@@ -268,18 +279,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("handles concurrent calls with native handshake timeouts", async () => {
             const config = {
                 auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true
-                }
+                    allowNativeBroker: true,
+                },
             };
             const concurrency = 6;
 
-            const postMessageSpy: sinon.SinonSpy = sinon.spy(window, "postMessage");
-            const initSpy: sinon.SinonSpy = sinon.spy(PublicClientApplication.prototype, "initialize");
+            const postMessageSpy: sinon.SinonSpy = sinon.spy(
+                window,
+                "postMessage"
+            );
+            const initSpy: sinon.SinonSpy = sinon.spy(
+                PublicClientApplication.prototype,
+                "initialize"
+            );
             // @ts-ignore
-            const createProviderSpy: sinon.SinonSpy = sinon.spy(NativeMessageHandler, "createProvider");
+            const createProviderSpy: sinon.SinonSpy = sinon.spy(
+                NativeMessageHandler,
+                "createProvider"
+            );
 
             let ports: Set<MessagePort> = new Set();
             let handledMessages = 0;
@@ -294,8 +314,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         responseId: request.responseId,
                         body: {
                             method: "HandshakeResponse",
-                            version: 3
-                        }
+                            version: 3,
+                        },
                     };
 
                     // Time out the second half of the handshakes.
@@ -332,7 +352,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // @ts-ignore
                     expect(apps[i].controller.initialized).toBeTruthy();
                     // @ts-ignore
-                    nativeProviders += apps[i].controller.getNativeExtensionProvider() ? 1 : 0;
+                    nativeProviders += apps[
+                        i
+                    ].controller.getNativeExtensionProvider()
+                        ? 1
+                        : 0;
                 }
                 expect(nativeProviders).toEqual(concurrency / 2);
             } finally {
@@ -806,7 +830,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("doesnt mutate request correlation id", async () => {
             const request: RedirectRequest = {
                 scopes: [],
-                onRedirectNavigate: () => false // Skip the navigation
+                onRedirectNavigate: () => false, // Skip the navigation
             };
 
             await pca.loginRedirect(request).catch(() => null);
@@ -1103,7 +1127,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("doesnt mutate request correlation id", async () => {
             const request: RedirectRequest = {
                 scopes: [],
-                onRedirectNavigate: () => false // Skip the navigation
+                onRedirectNavigate: () => false, // Skip the navigation
             };
 
             await pca.acquireTokenRedirect(request).catch(() => null);
@@ -1326,7 +1350,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            jest.spyOn(PopupClient.prototype, "initiateAuthRequest").mockImplementation(() => {
+            jest.spyOn(
+                PopupClient.prototype,
+                "initiateAuthRequest"
+            ).mockImplementation(() => {
                 throw "Request object has been built at this point, no need to continue";
             });
 
@@ -1697,7 +1724,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            jest.spyOn(PopupClient.prototype, "initiateAuthRequest").mockImplementation(() => {
+            jest.spyOn(
+                PopupClient.prototype,
+                "initiateAuthRequest"
+            ).mockImplementation(() => {
                 throw "Request object has been built at this point, no need to continue";
             });
 
@@ -2447,13 +2477,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 code: "123",
             };
 
-            await pca
-                .acquireTokenByCode(request)
-                .catch(() => null);
+            await pca.acquireTokenByCode(request).catch(() => null);
 
-            await pca
-                .acquireTokenByCode(request)
-                .catch(() => null);
+            await pca.acquireTokenByCode(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -2953,13 +2979,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            await pca
-                .acquireTokenSilent(request)
-                .catch(() => null);
+            await pca.acquireTokenSilent(request).catch(() => null);
 
-            await pca
-                .acquireTokenSilent(request)
-                .catch(() => null);
+            await pca.acquireTokenSilent(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });

@@ -61,7 +61,7 @@ describe("BrowserCacheManager tests", () => {
             storeAuthStateInCookie: false,
             secureCookies: false,
             cacheMigrationEnabled: false,
-            claimsBasedCachingEnabled: true,
+            claimsBasedCachingEnabled: false,
         };
         logger = new Logger({
             loggerCallback: (
@@ -248,7 +248,7 @@ describe("BrowserCacheManager tests", () => {
                     storeAuthStateInCookie: false,
                     secureCookies: false,
                     cacheMigrationEnabled: false,
-                    claimsBasedCachingEnabled: true,
+                    claimsBasedCachingEnabled: false,
                 },
                 browserCrypto,
                 logger
@@ -266,7 +266,7 @@ describe("BrowserCacheManager tests", () => {
                     storeAuthStateInCookie: false,
                     secureCookies: false,
                     cacheMigrationEnabled: true,
-                    claimsBasedCachingEnabled: true,
+                    claimsBasedCachingEnabled: false,
                 },
                 browserCrypto,
                 logger
@@ -325,7 +325,7 @@ describe("BrowserCacheManager tests", () => {
                     storeAuthStateInCookie: false,
                     secureCookies: false,
                     cacheMigrationEnabled: true,
-                    claimsBasedCachingEnabled: true,
+                    claimsBasedCachingEnabled: false,
                 },
                 browserCrypto,
                 logger
@@ -360,7 +360,7 @@ describe("BrowserCacheManager tests", () => {
                     storeAuthStateInCookie: false,
                     secureCookies: false,
                     cacheMigrationEnabled: false,
-                    claimsBasedCachingEnabled: true,
+                    claimsBasedCachingEnabled: false,
                 },
                 browserCrypto,
                 logger
@@ -376,7 +376,7 @@ describe("BrowserCacheManager tests", () => {
                     storeAuthStateInCookie: false,
                     secureCookies: false,
                     cacheMigrationEnabled: true,
-                    claimsBasedCachingEnabled: true,
+                    claimsBasedCachingEnabled: false,
                 },
                 browserCrypto,
                 logger
@@ -3100,7 +3100,7 @@ describe("BrowserCacheManager tests", () => {
                 storeAuthStateInCookie: false,
                 secureCookies: false,
                 cacheMigrationEnabled: false,
-                claimsBasedCachingEnabled: true,
+                claimsBasedCachingEnabled: false,
             };
             logger = new Logger({
                 loggerCallback: (
@@ -3302,7 +3302,7 @@ describe("BrowserCacheManager tests", () => {
                 storeAuthStateInCookie: false,
                 secureCookies: false,
                 cacheMigrationEnabled: false,
-                claimsBasedCachingEnabled: true,
+                claimsBasedCachingEnabled: false,
             };
             logger = new Logger({
                 loggerCallback: (
@@ -3508,7 +3508,7 @@ describe("BrowserCacheManager tests", () => {
                 storeAuthStateInCookie: false,
                 secureCookies: false,
                 cacheMigrationEnabled: false,
-                claimsBasedCachingEnabled: true,
+                claimsBasedCachingEnabled: false,
             };
             logger = new Logger({
                 loggerCallback: (
