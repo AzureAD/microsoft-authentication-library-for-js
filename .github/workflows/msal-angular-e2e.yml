@@ -59,7 +59,7 @@ jobs:
       run: npm run build:all
 
     - name: Install Test Tools
-      working-directory: samples
+      working-directory: samples/e2eTestUtils
       run: npm ci
 
     - name: Install ${{ matrix.sample }}
