@@ -38,6 +38,7 @@ export type ClientConfiguration = {
     authOptions: AuthOptions;
     systemOptions?: SystemOptions;
     loggerOptions?: LoggerOptions;
+    cacheOptions?: CacheOptions;
     storageInterface?: CacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
@@ -53,6 +54,7 @@ export type CommonClientConfiguration = {
     authOptions: Required<AuthOptions>;
     systemOptions: Required<SystemOptions>;
     loggerOptions: Required<LoggerOptions>;
+    cacheOptions: CacheOptions;
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
@@ -109,6 +111,15 @@ export type LoggerOptions = {
 };
 
 /**
+ *  Use this to configure credential cache preferences in the ClientConfiguration object
+ *
+ * - claimsBasedCachingEnabled   - Sets whether tokens should be cached based on the claims hash. Default is true.
+ */
+export type CacheOptions = {
+    claimsBasedCachingEnabled?: boolean;
+};
+
+/**
  * Library-specific options
  */
 export type LibraryInfo = {
@@ -155,6 +166,10 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
     correlationId: Constants.EMPTY_STRING,
+};
+
+const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
+    claimsBasedCachingEnabled: true,
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -205,6 +220,7 @@ export function buildClientConfiguration({
     authOptions: userAuthOptions,
     systemOptions: userSystemOptions,
     loggerOptions: userLoggerOption,
+    cacheOptions: userCacheOptions,
     storageInterface: storageImplementation,
     networkInterface: networkImplementation,
     cryptoInterface: cryptoImplementation,
@@ -224,6 +240,7 @@ export function buildClientConfiguration({
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: loggerOptions,
+        cacheOptions: { ...DEFAULT_CACHE_OPTIONS, ...userCacheOptions },
         storageInterface:
             storageImplementation ||
             new DefaultStorageClass(
