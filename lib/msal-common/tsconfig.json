@@ -7,7 +7,11 @@
             "moduleResolution": "node",
             "module": "commonjs",
             "target": "es2020",
-            "lib": ["es2020", "dom", "es2020.promise"],
+            "lib": [
+                "es2020",
+                "dom",
+                "es2020.promise"
+            ],
             "outDir": "./dist",
             "esModuleInterop": true,
             "resolveJsonModule": true,
@@ -45,15 +49,18 @@
         "alwaysStrict": true,
         "noUnusedLocals": true,
         "noUnusedParameters": false,
-        "noFallthroughCasesInSwitch": true
+        "noFallthroughCasesInSwitch": true,
+        "types": [
+            "node",
+            "jest"
+        ]
     },
-    "include": ["src", "test", "scripts"],
+    "include": [
+        "src",
+        "test",
+        "scripts"
+    ],
     "exclude": [
         "node_modules"
-    ],
-    "types": [
-        "node",
-        "jest"
     ]
 }
-

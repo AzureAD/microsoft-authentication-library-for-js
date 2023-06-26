@@ -18,7 +18,7 @@ import { FileSystemUtils } from '../util/FileSystemUtils';
 
 describe('Persistence Creator', () => {
     afterEach(() => {
-        jest.resetAllMocks();
+        jest.restoreAllMocks();
     })
     afterAll(() => {
         FileSystemUtils.cleanUpFile("./creator-test.json");
