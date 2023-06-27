@@ -16,9 +16,12 @@
     },
     "devDependencies": {
         "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+        "@types/jest": "^29.5.0",
+        "e2e-test-utils": "file:../../e2eTestUtils",
         "jest": "^29.5.0",
+        "puppeteer": "^20.7.3",
         "react-scripts": "5.0.1",
-        "e2e-test-utils": "file:../../e2eTestUtils"
+        "ts-jest": "^29.1.0"
     },
     "scripts": {
         "start": "react-scripts start",

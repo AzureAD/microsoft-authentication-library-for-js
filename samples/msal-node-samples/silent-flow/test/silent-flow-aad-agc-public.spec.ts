@@ -4,9 +4,11 @@
  */
 
 import * as puppeteer from "puppeteer";
-import {Screenshot, createFolder, ONE_SECOND_IN_MS, RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
-import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import {
+    Screenshot, 
+    createFolder, 
+    ONE_SECOND_IN_MS, 
+    RETRY_TIMES,
     clickSignIn,
     enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
@@ -14,7 +16,9 @@ import {
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation,
-    SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID} from "../../testUtils";
+    SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID
+} from "e2e-test-utils/src/TestUtils";
+import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 import { getKeyVaultSecretClient, getCredentials } from "e2e-test-utils/src/KeyVaultUtils";
 

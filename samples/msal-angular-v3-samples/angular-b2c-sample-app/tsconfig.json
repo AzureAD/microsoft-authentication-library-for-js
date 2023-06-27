@@ -30,7 +30,10 @@
         "../../../node_modules/@azure/msal-angular/dist"
       ]
     },
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "types": [
+      "jest"
+    ]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
