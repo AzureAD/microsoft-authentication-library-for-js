@@ -28,7 +28,10 @@
       "@angular/*": [
         "./node_modules/@angular/*"
       ]
-    }
+    },
+    "types": [
+      "jest"
+    ]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

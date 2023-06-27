@@ -36,6 +36,7 @@
     "@angular/compiler-cli": "^16.0.4",
     "@types/jasmine": "~4.0.0",
     "@types/jasminewd2": "^2.0.10",
+    "@types/jest": "^29.5.0",
     "@types/node": "^20.2.5",
     "e2e-test-utils": "file:../../e2eTestUtils",
     "jasmine-core": "~4.0.0",
