@@ -17,14 +17,16 @@
         "experimentalDecorators": true,
         "importHelpers": true,
         "noImplicitAny": true,
+        "types": [
+            "node",
+            "jest"
+        ],
     },
-    "include": ["**/test/*.spec.ts"],
+    "include": [
+        "**/test/*.spec.ts"
+    ],
     "exclude": [
         "node_modules"
-    ],
-    "types": [
-        "node",
-        "jest"
     ],
     "compileOnSave": false,
     "buildOnSave": false,
