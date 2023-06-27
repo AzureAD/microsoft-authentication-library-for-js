@@ -3,10 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
-import { validateCacheLocation } from "../../testUtils";
+import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
 import { ConfidentialClientApplication } from "@azure/msal-node";
-import {RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
+import {RETRY_TIMES, validateCacheLocation} from "e2e-test-utils/src/TestUtils";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc.cache.json`;
 

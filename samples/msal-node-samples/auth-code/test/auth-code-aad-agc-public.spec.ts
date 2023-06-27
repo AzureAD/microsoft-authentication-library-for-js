@@ -4,14 +4,16 @@
  */
 
 import * as puppeteer from "puppeteer";
-import {Screenshot, createFolder, RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
-import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import {
+    Screenshot, 
+    createFolder, 
+    RETRY_TIMES, 
     enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL
- } from "../../testUtils";
+} from "e2e-test-utils/src/TestUtils";
+import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
 import { PublicClientApplication } from "@azure/msal-node";
 import { getKeyVaultSecretClient, getCredentials } from "e2e-test-utils/src/KeyVaultUtils";
 

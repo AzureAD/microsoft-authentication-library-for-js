@@ -4,12 +4,19 @@
  */
 
 import * as puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials } from "e2e-test-utils/src/TestUtils";
-import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
+import { 
+    Screenshot, 
+    createFolder, 
+    setupCredentials, 
+    enterCredentials, 
+    SCREENSHOT_BASE_FOLDER_NAME, 
+    validateCacheLocation, 
+    SAMPLE_HOME_URL 
+} from "e2e-test-utils/src/TestUtils";
+import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
 import { LabClient } from "e2e-test-utils/src/LabClient";
 import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "e2e-test-utils/src/Constants";
-import { enterCredentials, SCREENSHOT_BASE_FOLDER_NAME, validateCacheLocation, SAMPLE_HOME_URL } from "../../testUtils";
 import { ConfidentialClientApplication, LogLevel } from "@azure/msal-node";
 import path from "path";
 import * as dotenv from "dotenv";

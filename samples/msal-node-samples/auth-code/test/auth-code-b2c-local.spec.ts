@@ -9,17 +9,14 @@ import {
     createFolder,
     setupCredentials,
     b2cLocalAccountEnterCredentials,
-    RETRY_TIMES
+    RETRY_TIMES, SCREENSHOT_BASE_FOLDER_NAME,
+    validateCacheLocation,
+    SAMPLE_HOME_URL
 } from "e2e-test-utils/src/TestUtils";
-import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
 import { LabClient } from "e2e-test-utils/src/LabClient";
 import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
 import { B2cProviders, UserTypes } from "e2e-test-utils/src/Constants";
-import {
-    SCREENSHOT_BASE_FOLDER_NAME,
-    validateCacheLocation,
-    SAMPLE_HOME_URL
- } from "../../testUtils";
 
 import { PublicClientApplication } from "@azure/msal-node";
 
