@@ -1,5 +1,5 @@
 import React from "react";
-import { AccountInfo } from "@azure/msal-common";
+import { AccountInfo } from "@azure/msal-node";
 import { Navbar, Button, DropdownButton, Dropdown } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { IpcMessages } from "../../Constants";

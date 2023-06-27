@@ -51,8 +51,8 @@
         "noUnusedParameters": false,
         "noFallthroughCasesInSwitch": true,
         "types": [
-            "jest",
-            "node"
+            "node",
+            "jest"
         ]
     },
     "include": [

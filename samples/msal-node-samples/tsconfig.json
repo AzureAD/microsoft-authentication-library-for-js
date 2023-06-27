@@ -21,7 +21,7 @@
         "types": [
             "node",
             "jest"
-        ]
+        ],
     },
     "include": [
         "**/test/*.spec.ts"

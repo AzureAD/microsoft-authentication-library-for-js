@@ -4,8 +4,7 @@
  */
 
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
-import { ServerAuthorizationCodeResponse } from "@azure/msal-node";
-import { ILoopbackClient } from "@azure/msal-node";
+import { ILoopbackClient, ServerAuthorizationCodeResponse } from "@azure/msal-node";
 
 /**
  * Implements ILoopbackClient interface to listen for authZ code response.
@@ -142,6 +141,30 @@ export class CustomLoopbackClient implements ILoopbackClient {
     }
 
     /**
+     * Returns URL query string as server auth code response object.
+     */
+    static getDeserializedQueryString(
+        query: string
+    ): ServerAuthorizationCodeResponse {
+        // Check if given query is empty
+        if (!query) {
+            return {};
+        }
+        // Strip the ? symbol if present
+        const parsedQueryString = this.parseQueryString(query);
+        // If ? symbol was not present, above will return empty string, so give original query value
+        const deserializedQueryString: ServerAuthorizationCodeResponse =
+            this.queryStringToObject(
+                parsedQueryString || query
+            );
+        // Check if deserialization didn't work
+        if (!deserializedQueryString) {
+            throw "Unable to deserialize query string";
+        }
+        return deserializedQueryString;
+    }
+
+    /**
      * Parses query string from given string. Returns empty string if no query symbol is found.
      * @param queryString
      */
@@ -174,29 +197,5 @@ export class CustomLoopbackClient implements ILoopbackClient {
             }
         });
         return obj as ServerAuthorizationCodeResponse;
-    }
-
-    /**
-     * Returns URL query string as server auth code response object.
-     */
-    static getDeserializedQueryString(
-        query: string
-    ): ServerAuthorizationCodeResponse {
-        // Check if given query is empty
-        if (!query) {
-            return {};
-        }
-        // Strip the ? symbol if present
-        const parsedQueryString = this.parseQueryString(query);
-        // If ? symbol was not present, above will return empty string, so give original query value
-        const deserializedQueryString: ServerAuthorizationCodeResponse =
-            this.queryStringToObject(
-                parsedQueryString || query
-            );
-        // Check if deserialization didn't work
-        if (!deserializedQueryString) {
-            throw "Unable to deserialize query string"
-        }
-        return deserializedQueryString;
     }
 }

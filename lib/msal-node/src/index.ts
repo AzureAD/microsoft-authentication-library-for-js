@@ -79,6 +79,7 @@ export {
     AuthorizationCodePayload,
     // Response
     AuthenticationResult,
+    IdTokenClaims,
     // Cache
     AccountInfo,
     ValidCacheType,
