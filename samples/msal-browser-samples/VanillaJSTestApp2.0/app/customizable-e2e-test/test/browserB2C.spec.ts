@@ -4,7 +4,7 @@ import {
     createFolder, 
     setupCredentials, 
     ONE_SECOND_IN_MS,
-    b2cAadPpeEnterCredentials, 
+    b2cAadPpeAccountEnterCredentials, 
     b2cLocalAccountEnterCredentials, 
     clickLoginPopup, 
     clickLoginRedirect, 
@@ -87,7 +87,7 @@ describe("B2C Tests", () => {
                 const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
                 await clickLoginRedirect(screenshot, page);
-                await b2cAadPpeEnterCredentials(page, screenshot, username, accountPwd);
+                await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
                 await waitForReturnToApp(screenshot, page);
 
                 await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
@@ -98,7 +98,7 @@ describe("B2C Tests", () => {
                 const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
                 const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
-                await b2cAadPpeEnterCredentials(popupPage, screenshot, username, accountPwd);
+                await b2cAadPpeAccountEnterCredentials(popupPage, screenshot, username, accountPwd);
                 await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
 
                 await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
@@ -120,7 +120,7 @@ describe("B2C Tests", () => {
                 screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
                 const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
-                await b2cAadPpeEnterCredentials(popupPage, screenshot, username, accountPwd);
+                await b2cAadPpeAccountEnterCredentials(popupPage, screenshot, username, accountPwd);
                 await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
             });
 
