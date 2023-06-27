@@ -11,9 +11,8 @@ import {
 
 import {
     InteractionRequiredAuthError,
-    OIDC_DEFAULT_SCOPES,
     PromptValue
-} from '@azure/msal-common';
+} from '@azure/msal-node';
 
 import {
     ConfidentialClientApplication,
@@ -133,7 +132,7 @@ export class AuthProvider {
 
         const params: AuthCodeParams = {
             authority: this.msalConfig.auth.authority,
-            scopes: OIDC_DEFAULT_SCOPES,
+            scopes: ["openid", "profile"],
             state: state,
             redirect: this.appSettings.settings.redirectUri,
             prompt: PromptValue.SELECT_ACCOUNT,
@@ -200,7 +199,7 @@ export class AuthProvider {
                                  * establishing a session. If this does not apply, the application won't benefit from validating
                                  * the token. For more information, visit: https://learn.microsoft.com/azure/active-directory/develop/access-tokens#validate-tokens
                                  */
-                                const isIdTokenValid = await this.tokenValidator.validateIdToken(tokenResponse.idToken);
+                                const isIdTokenValid = await this.tokenValidator.validateIdToken(tokenResponse.idToken, tokenResponse.idTokenClaims);
 
                                 if (isIdTokenValid) {
 

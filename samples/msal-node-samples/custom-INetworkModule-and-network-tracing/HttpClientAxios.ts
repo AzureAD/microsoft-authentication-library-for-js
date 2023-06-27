@@ -7,7 +7,7 @@ import {
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
-} from "@azure/msal-common";
+} from "@azure/msal-node";
 import axios, { AxiosRequestConfig } from "axios";
 
 enum HttpMethod {

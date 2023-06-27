@@ -1,5 +1,5 @@
 import React from "react";
-import { AccountInfo } from "@azure/msal-common";
+import { AccountInfo } from "@azure/msal-node";
 import { NavigationBar } from "./NavigationBar";
 
 type PageLayoutProps = {

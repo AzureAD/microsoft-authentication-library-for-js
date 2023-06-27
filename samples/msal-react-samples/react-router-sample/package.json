@@ -9,9 +9,7 @@
     "@emotion/styled": "^11.10.5",
     "@mui/icons-material": "^5.10.16",
     "@mui/material": "^5.10.17",
-    "core-js": "^3.8.3",
     "react": "file:../../../lib/msal-react/node_modules/react",
-    "react-app-polyfill": "^2.0.0",
     "react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
     "react-router-dom": "^6.7.0",
     "react-scripts": "^5.0.1"
@@ -22,14 +20,8 @@
     "build": "react-scripts build",
     "build:package": "cd ../../../lib/msal-react & npm run build:all",
     "eject": "react-scripts eject",
-    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
+    "install:local": "npm install ../../../lib/msal-browser ../../../lib/msal-react && npm install ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom",
     "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [
@@ -40,11 +32,11 @@
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
-      "last 1 safari version",
-      "ie 11"
+      "last 1 safari version"
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/jest": "^29.5.0",
     "e2e-test-utils": "file:../../e2eTestUtils",
     "env-cmd": "^10.1.0",
