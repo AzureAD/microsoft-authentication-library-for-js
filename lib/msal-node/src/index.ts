@@ -79,6 +79,7 @@ export {
     AuthorizationCodePayload,
     // Response
     AuthenticationResult,
+    ServerAuthorizationCodeResponse,
     IdTokenClaims,
     // Cache
     AccountInfo,
@@ -111,8 +112,7 @@ export {
     // IAppTokenProvider
     IAppTokenProvider,
     AppTokenProviderParameters,
-    AppTokenProviderResult,
-    ServerAuthorizationCodeResponse
+    AppTokenProviderResult
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
