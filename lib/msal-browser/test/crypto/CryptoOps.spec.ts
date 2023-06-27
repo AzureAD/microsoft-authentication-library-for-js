@@ -6,37 +6,11 @@ import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { BrowserAuthError } from "../../src";
 import { ModernBrowserCrypto } from "../../src/crypto/ModernBrowserCrypto";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 let mockDatabase = {
     "TestDB.keys": {},
 };
-
-// Mock DatabaseStorage
-jest.mock("../../src/cache/DatabaseStorage", () => {
-    return {
-        DatabaseStorage: jest.fn().mockImplementation(() => {
-            return {
-                dbName: "TestDB",
-                version: 1,
-                tableName: "TestDB.keys",
-                open: () => {},
-                getItem: (kid: string) => {
-                    return mockDatabase["TestDB.keys"][kid];
-                },
-                setItem: (kid: string, payload: any) => {
-                    mockDatabase["TestDB.keys"][kid] = payload;
-                    return mockDatabase["TestDB.keys"][kid];
-                },
-                removeItem: (kid: string) => {
-                    delete mockDatabase["TestDB.keys"][kid];
-                },
-                containsKey: (kid: string) => {
-                    return !!mockDatabase["TestDB.keys"][kid];
-                },
-            };
-        }),
-    };
-});
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
@@ -45,6 +19,22 @@ describe("CryptoOps.ts Unit Tests", () => {
     beforeEach(() => {
         browserCrypto = new BrowserCrypto(new Logger({}));
         cryptoObj = new CryptoOps(new Logger({}));
+
+        // Mock DatabaseStorage
+        jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async () => {});
+        jest.spyOn(DatabaseStorage.prototype, "getItem").mockImplementation(async (kid: string) => {
+            return mockDatabase["TestDB.keys"][kid];
+        });
+        jest.spyOn(DatabaseStorage.prototype, "setItem").mockImplementation(async (kid: string, payload: any) => {
+            mockDatabase["TestDB.keys"][kid] = payload;
+            return mockDatabase["TestDB.keys"][kid];
+        });
+        jest.spyOn(DatabaseStorage.prototype, "removeItem").mockImplementation(async (kid: string) => {
+            delete mockDatabase["TestDB.keys"][kid];
+        });
+        jest.spyOn(DatabaseStorage.prototype, "containsKey").mockImplementation(async (kid: string) => {
+            return !!mockDatabase["TestDB.keys"][kid];
+        });
     });
 
     afterEach(() => {

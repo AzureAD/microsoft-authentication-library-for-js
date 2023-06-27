@@ -96,6 +96,7 @@ export {
     AccountEntity,
     // Response
     AuthenticationResult,
+    IdTokenClaims,
     // Error
     AuthError,
     AuthErrorMessage,
@@ -116,6 +117,7 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
+    PromptValue,
     // Server Response
     ExternalTokenResponse,
     // Utils

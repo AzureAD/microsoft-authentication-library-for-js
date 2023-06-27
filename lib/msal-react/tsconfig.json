@@ -25,7 +25,11 @@
     "moduleResolution": "node",
     "baseUrl": "./",
     "jsx": "react",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": [
+      "jest",
+      "react"
+    ]
   },
   "references": [
     {
