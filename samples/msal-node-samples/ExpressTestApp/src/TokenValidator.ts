@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { TokenClaims, TimeUtils, AuthToken } from "@azure/msal-common";
-import { CryptoProvider } from "@azure/msal-node";
+import { CryptoProvider, IdTokenClaims } from "@azure/msal-node";
 import { AuthorityConstants, AuthorityStrings } from "./Constants";
 import { AppSettings } from "./Types";
 
@@ -47,7 +46,7 @@ export class TokenValidator {
      * @param {string} rawIdToken: raw Id token
      * @returns {Promise}
      */
-    async validateIdToken(rawIdToken: string): Promise<boolean> {
+    async validateIdToken(rawIdToken: string, idTokenClaims: IdTokenClaims): Promise<boolean> {
 
         /**
          * A JWT token validation is a 2-step process comprising of: (1) signature validation, (2) claims validation
@@ -61,8 +60,7 @@ export class TokenValidator {
                 return false;
             }
 
-            const decodedIdTokenPayload = new AuthToken(rawIdToken, this.cryptoProvider).claims;
-            return this.validateIdTokenClaims(decodedIdTokenPayload);
+            return this.validateIdTokenClaims(idTokenClaims);
         } catch (error) {
             console.log(error);
             return false;
@@ -74,8 +72,8 @@ export class TokenValidator {
      * @param {IdTokenClaims} idTokenClaims: decoded id token claims
      * @returns {boolean}
      */
-    validateIdTokenClaims(idTokenClaims: TokenClaims): boolean {
-        const now = TimeUtils.nowSeconds(); // current time in seconds
+    validateIdTokenClaims(idTokenClaims: IdTokenClaims): boolean {
+        const now = Math.round(new Date().getTime() / 1000.0); // current time in seconds
 
         /**
          * if a multi-tenant application only allows sign-in from specific tenants who have signed up

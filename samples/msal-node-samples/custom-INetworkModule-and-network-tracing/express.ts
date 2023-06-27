@@ -1,5 +1,5 @@
 import * as msal from "@azure/msal-node";
-// import { INetworkModule, } from "@azure/msal-common";
+// import { INetworkModule, } from "@azure/msal-node";
 import express from "express";
 /**
  * After "npx tsc" is executed via the "npm run start" script, app.ts and HttpClientCurrent.ts are compiled to .js and stored in the /dist folder
