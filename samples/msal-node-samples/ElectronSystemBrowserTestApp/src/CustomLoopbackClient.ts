@@ -185,7 +185,7 @@ export class CustomLoopbackClient implements ILoopbackClient {
      * @param query
      */
     static queryStringToObject(query: string): ServerAuthorizationCodeResponse {
-        const obj: ServerAuthorizationCodeResponse = {};
+        const obj: {[key:string]:string} = {};
         const params = query.split("&");
         const decode = (s: string) => decodeURIComponent(s.replace(/\+/g, " "));
         params.forEach((pair) => {
@@ -196,6 +196,6 @@ export class CustomLoopbackClient implements ILoopbackClient {
                 }
             }
         });
-        return obj;
+        return obj as ServerAuthorizationCodeResponse;
     }
 }
