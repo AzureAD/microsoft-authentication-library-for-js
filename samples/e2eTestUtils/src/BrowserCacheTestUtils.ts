@@ -1,8 +1,8 @@
 import * as puppeteer from "puppeteer";
 
 import { LabConfig } from "./LabConfig";
-import { Configuration } from "../../lib/msal-browser";
-import { ServerTelemetryEntity } from "../../lib/msal-common";
+import { Configuration } from "@azure/msal-browser";
+import { ServerTelemetryEntity } from "@azure/msal-common";
 
 export type tokenMap = {
     idTokens: string[],

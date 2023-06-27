@@ -1,8 +1,5 @@
 import fs from "fs";
-import { IdTokenEntity } from "../../lib/msal-common/src/cache/entities/IdTokenEntity";
-import { AccessTokenEntity } from "../../lib/msal-common/src/cache/entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../../lib/msal-common/src/cache/entities/RefreshTokenEntity";
-
+import { IdTokenEntity, AccessTokenEntity, RefreshTokenEntity } from "@azure/msal-common";
 import { InMemoryCache, internals } from "@azure/msal-node";
 
 export type tokenMap = {

@@ -69,23 +69,13 @@ jobs:
       run: npx lerna --scope @azure/msal-node --scope @azure/msal-common bootstrap
 
     - name: Build Package
-      working-directory: samples/msal-node-samples
-      run: npm run build:package
-
-    - name: Restore node_modules for test tools
-      if: matrix.node == '10' || matrix.node == '12'
-      uses: actions/cache@v3
-      id: test-tools-cache
-      with:
-        path: |
-          samples/node_modules
-          samples/.cache/puppeteer
-        key: ${{ runner.os }}-node-test-tools-${{ matrix.node }}-${{ hashFiles('samples/package-lock.json') }}
+      working-directory: lib/msal-node
+      run: npm run build:all
 
     - name: Install Test Tools
       if: steps.test-tools-cache.outputs.cache-hit != 'true'
-      working-directory: samples
-      run: npm ci
+      working-directory: samples/e2eTestUtils
+      run: npm install
 
     - name: Restore node_modules for sample
       uses: actions/cache@v3
@@ -160,20 +150,13 @@ jobs:
       run: npm ci
 
     - name: Build Package
-      working-directory: samples/msal-node-samples
-      run: npm run build:package
-
-    - name: Restore node_modules for test tools
-      uses: actions/cache@v3
-      id: test-tools-cache
-      with:
-        path: samples/node_modules
-        key: ${{ runner.os }}-node-test-tools-${{ hashFiles('samples/package-lock.json') }}
+      working-directory: lib/msal-node
+      run: npm run build:all
 
     - name: Install Test Tools
       if: steps.test-tools-cache.outputs.cache-hit != 'true'
-      working-directory: samples
-      run: npm ci
+      working-directory: samples/e2eTestUtils
+      run: npm install
       env:
         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         PLAYWRIGHT_BROWSERS_PATH: 0

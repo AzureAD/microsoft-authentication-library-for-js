@@ -1,11 +1,137 @@
-/*
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License.
- */
+import * as fs from "fs";
+import{ Page, HTTPResponse, Browser } from "puppeteer";
+import { LabConfig } from "./LabConfig";
+import { LabClient } from "./LabClient";
 
-import { Screenshot } from "../e2eTestUtils/TestUtils";
-import { Page, HTTPResponse } from "puppeteer";
-import fs from "fs";
+export const ONE_SECOND_IN_MS = 1000;
+export const RETRY_TIMES = 5;
+
+export class Screenshot {
+    private folderName: string;
+    private screenshotNum: number;
+
+    constructor (foldername: string) {
+        this.folderName = foldername;
+        this.screenshotNum = 0;
+        createFolder(this.folderName);
+    }
+
+    async takeScreenshot(page: Page, screenshotName: string): Promise<void> {
+        await page.screenshot({ path: `${this.folderName}/${++this.screenshotNum}_${screenshotName}.png` });
+    }
+}
+
+export function createFolder(foldername: string) {
+    if (!fs.existsSync(foldername)) {
+        fs.mkdirSync(foldername, { recursive: true });
+    }
+}
+
+export async function storagePoller(callback: ()=>Promise<void>, timeoutMs: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        let lastError: Error;
+        const interval = setInterval(async () => {
+            if ((Date.now() - startTime) > timeoutMs) {
+                clearInterval(interval);
+                console.error(lastError);
+                reject(new Error("Timed out while polling storage"));
+            }
+            await callback().then(() => {
+                // If callback resolves - success
+                clearInterval(interval);
+                resolve();
+            }).catch((e: Error)=>{
+                // If callback throws storage hasn't been updated yet - check again on next interval
+                lastError = e;
+            });
+        }, 200);
+    });
+};
+
+export async function retrieveAppConfiguration(labConfig: LabConfig, labClient: LabClient, isConfidentialClient: boolean): Promise<[string, string, string]> {
+    let clientID = "";
+    let clientSecret = "";
+    let authority = "";
+
+    if (labConfig.app.appId) {
+        clientID = labConfig.app.appId;
+    }
+
+    if (labConfig.lab.authority && labConfig.lab.tenantId) {
+        authority = `${labConfig.lab.authority}${labConfig.lab.tenantId}`;
+    }
+
+    if (isConfidentialClient) {
+        if (!(labConfig.lab.labName && labConfig.app.appName)) {
+            throw Error("No Labname and/or Appname provided!");
+        }
+
+        let secretAppName =`${labConfig.lab.labName}-${labConfig.app.appName}`;
+
+        // Reformat the secret app name to kebab case from snake case
+        while (secretAppName.includes("_")) secretAppName = secretAppName.replace("_", "-");
+
+        const appClientSecret = await labClient.getSecret(secretAppName);
+
+        clientSecret = appClientSecret.value;
+
+        if (!clientSecret) {
+            throw Error("Unable to get the client secret");
+        }
+    }
+
+    return [clientID, clientSecret, authority];
+}
+
+export async function setupCredentials(labConfig: LabConfig, labClient: LabClient): Promise<[string, string]> {
+    let username = "";
+    let accountPwd = "";
+
+    if (labConfig.user.upn) {
+        username = labConfig.user.upn;
+    }
+
+    if (!labConfig.lab.labName) {
+        throw Error("No Labname provided!");
+    }
+
+    const testPwdSecret = await labClient.getSecret(labConfig.lab.labName);
+
+    accountPwd = testPwdSecret.value;
+
+    if (!accountPwd) {
+        throw "Unable to get account password!";
+    }
+
+    return [username, accountPwd];
+}
+
+export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {
+    await page.waitForSelector("#logonIdentifier");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    await page.type("#logonIdentifier", username);
+    await page.type("#password", accountPwd);
+    await page.click("#next");
+}
+
+export async function b2cAadPpeAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForSelector("#MSIDLAB4_AzureAD");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    // Select Lab Provider
+    await page.click("#MSIDLAB4_AzureAD");
+    // Enter credentials
+    await enterCredentials(page, screenshot, username, accountPwd);
+}
+
+export async function b2cMsaAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForSelector("#MicrosoftAccountExchange");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    // Select Lab Provider
+    await page.click("#MicrosoftAccountExchange");
+    // Enter credentials
+    await enterCredentials(page, screenshot, username, accountPwd);
+}
 
 // Constants
 export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
@@ -230,4 +356,76 @@ export async function validateCacheLocation(cacheLocation: string): Promise<void
 export function checkTimeoutError(output: string): boolean {
     const timeoutErrorRegex = /user_timeout_reached/;
     return timeoutErrorRegex.test(output);
+}
+
+export async function clickLoginRedirect(screenshot: Screenshot, page: Page): Promise<void> {
+    // Home Page
+    await screenshot.takeScreenshot(page, "samplePageInit");
+    // Click Sign In
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signInClicked");
+    // Click Sign In With Redirect
+    await page.click("#redirect");
+}
+
+export async function clickLogoutRedirect(screenshot: Screenshot, page: Page): Promise<void> {
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signOutClicked");
+    // Click Sign Out With Redirect
+    await page.click("#redirect");
+}
+
+export async function clickLoginPopup(screenshot: Screenshot, page: Page): Promise<[Page, Promise<void>]> {
+    // Home Page
+    await screenshot.takeScreenshot(page, "samplePageInit");
+    // Click Sign In
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signInClicked");
+    // Click Sign In With Popup
+    const newPopupWindowPromise = new Promise<Page>(resolve => page.once("popup", resolve));
+    await page.click("#popup");
+    const popupPage = await newPopupWindowPromise;
+    const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+
+    return [popupPage, popupWindowClosed];
+}
+
+export async function clickLogoutPopup(screenshot: Screenshot, page: Page): Promise<[Page, Promise<void>]> {
+
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signOutClicked");
+    // Click Sign Out With Popup
+    const newPopupWindowPromise = new Promise<Page>(resolve => page.once("popup", resolve));
+    await page.click("#popup");
+    const popupPage = await newPopupWindowPromise;
+    const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+
+    return [popupPage, popupWindowClosed];
+}
+
+export async function waitForReturnToApp(screenshot: Screenshot, page: Page, popupPage?: Page, popupWindowClosed?: Promise<void>): Promise<void> {
+    if (popupPage && popupWindowClosed) {
+        // Wait until popup window closes and see that we are logged in
+        await popupWindowClosed;
+    }
+
+    // Wait for token acquisition
+    await page.waitForSelector("#scopes-acquired");
+    await screenshot.takeScreenshot(page, "samplePageLoggedIn");
+}
+
+/**
+ * Returns an instance of {@link puppeteer.Browser}.
+ */
+export async function getBrowser(): Promise<Browser> {
+    // @ts-ignore
+    return global.__BROWSER__;
+}
+
+/**
+ * Returns a host url.
+ */
+export function getHomeUrl(): string {
+    // @ts-ignore
+    return `http://localhost:${global.__PORT__}/`;
 }
