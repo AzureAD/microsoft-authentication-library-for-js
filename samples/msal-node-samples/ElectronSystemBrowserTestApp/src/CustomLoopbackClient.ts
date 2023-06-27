@@ -4,8 +4,7 @@
  */
 
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
-import { Constants as CommonConstants, UrlString, ServerAuthorizationCodeResponse } from "@azure/msal-common";
-import { ILoopbackClient } from "@azure/msal-node";
+import { ILoopbackClient, ServerAuthorizationCodeResponse } from "@azure/msal-node";
 
 /**
  * Implements ILoopbackClient interface to listen for authZ code response.
@@ -59,12 +58,12 @@ export class CustomLoopbackClient implements ILoopbackClient {
                     res.end(errorTemplate || "Error occurred loading redirectUrl");
                     reject(new Error('Loopback server callback was invoked without a url. This is unexpected.'));
                     return;
-                } else if (url === CommonConstants.FORWARD_SLASH) {
+                } else if (url === "/") {
                     res.end(successTemplate || "Auth code was successfully acquired. You can close this window now.");
                     return;
                 }
 
-                const authCodeResponse = UrlString.getDeserializedQueryString(url);
+                const authCodeResponse = CustomLoopbackClient.getDeserializedQueryString(url);
                 if (authCodeResponse.code) {
                     const redirectUri = await this.getRedirectUri();
                     res.writeHead(302, { location: redirectUri }); // Prevent auth code from being saved in the browser history
@@ -139,5 +138,64 @@ export class CustomLoopbackClient implements ILoopbackClient {
                     resolve(false);
                 });
         });
+    }
+
+    /**
+     * Returns URL query string as server auth code response object.
+     */
+    static getDeserializedQueryString(
+        query: string
+    ): ServerAuthorizationCodeResponse {
+        // Check if given query is empty
+        if (!query) {
+            return {};
+        }
+        // Strip the ? symbol if present
+        const parsedQueryString = this.parseQueryString(query);
+        // If ? symbol was not present, above will return empty string, so give original query value
+        const deserializedQueryString: ServerAuthorizationCodeResponse =
+            this.queryStringToObject(
+                parsedQueryString || query
+            );
+        // Check if deserialization didn't work
+        if (!deserializedQueryString) {
+            throw "Unable to deserialize query string";
+        }
+        return deserializedQueryString;
+    }
+
+    /**
+     * Parses query string from given string. Returns empty string if no query symbol is found.
+     * @param queryString
+     */
+    static parseQueryString(queryString: string): string {
+        const queryIndex1 = queryString.indexOf("?");
+        const queryIndex2 = queryString.indexOf("/?");
+        if (queryIndex2 > -1) {
+            return queryString.substring(queryIndex2 + 2);
+        } else if (queryIndex1 > -1) {
+            return queryString.substring(queryIndex1 + 1);
+        }
+        return "";
+    }
+
+    /**
+     * Parses string into an object.
+     *
+     * @param query
+     */
+    static queryStringToObject(query: string): ServerAuthorizationCodeResponse {
+        const obj: {[key:string]:string} = {};
+        const params = query.split("&");
+        const decode = (s: string) => decodeURIComponent(s.replace(/\+/g, " "));
+        params.forEach((pair) => {
+            if (pair.trim()) {
+                const [key, value] = pair.split(/=(.+)/g, 2); // Split on the first occurence of the '=' character
+                if (key && value) {
+                    obj[decode(key)] = decode(value);
+                }
+            }
+        });
+        return obj as ServerAuthorizationCodeResponse;
     }
 }
