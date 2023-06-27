@@ -156,7 +156,7 @@ jobs:
     - name: Install Test Tools
       if: steps.test-tools-cache.outputs.cache-hit != 'true'
       working-directory: samples/e2eTestUtils
-      run: npm ci
+      run: npm install
       env:
         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         PLAYWRIGHT_BROWSERS_PATH: 0
