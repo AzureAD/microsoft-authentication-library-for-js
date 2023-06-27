@@ -536,6 +536,11 @@ export type PerformanceEvent = {
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
+
+    /**
+     * Nested App Auth Fields
+     */
+    nestedAppAuthRequest?: boolean;
 };
 
 export const IntFields: ReadonlySet<string> = new Set([

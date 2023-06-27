@@ -14,6 +14,7 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
+    PerformanceEvents,
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -38,6 +39,7 @@ import { NestedAppAuthError } from "../error/NestedAppAuthError";
 import { EventHandler } from "../event/EventHandler";
 import { EventType } from "../event/EventType";
 import { EventCallbackFunction, EventError } from "../event/EventMessage";
+import { BridgeError } from "../naa/BridgeError";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -138,6 +140,13 @@ export class NestedAppAuthController implements IController {
             request
         );
 
+        const atPopupMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.AcquireTokenPopup,
+            request.correlationId
+        );
+
+        atPopupMeasurement?.addStaticFields({ nestedAppAuthRequest: true });
+
         try {
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(request);
@@ -154,15 +163,34 @@ export class NestedAppAuthController implements IController {
                 InteractionType.Popup,
                 result
             );
+
+            atPopupMeasurement.addStaticFields({
+                accessTokenSize: result.accessToken.length,
+                idTokenSize: result.idToken.length,
+            });
+
+            atPopupMeasurement.endMeasurement({
+                success: true,
+                requestId: result.requestId,
+            });
+
             return result;
         } catch (e) {
+            const error = this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Popup,
                 null,
                 e as EventError
             );
-            throw e;
+
+            atPopupMeasurement.endMeasurement({
+                errorCode: error.errorCode,
+                subErrorCode: error.subError,
+                success: false,
+            });
+
+            throw error;
         }
     }
 
@@ -174,6 +202,19 @@ export class NestedAppAuthController implements IController {
             InteractionType.Silent,
             request
         );
+
+        const ssoSilentMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.SsoSilent,
+            request.correlationId
+        );
+
+        ssoSilentMeasurement?.increment({
+            visibilityChangeCount: 0,
+        });
+
+        ssoSilentMeasurement?.addStaticFields({
+            nestedAppAuthRequest: true,
+        });
 
         try {
             const naaRequest =
@@ -190,15 +231,29 @@ export class NestedAppAuthController implements IController {
                 InteractionType.Silent,
                 result
             );
+            ssoSilentMeasurement?.addStaticFields({
+                accessTokenSize: result.accessToken.length,
+                idTokenSize: result.idToken.length,
+            });
+            ssoSilentMeasurement?.endMeasurement({
+                success: true,
+                requestId: result.requestId,
+            });
             return result;
         } catch (e) {
+            const error = this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Silent,
                 null,
                 e as EventError
             );
-            throw e;
+            ssoSilentMeasurement?.endMeasurement({
+                errorCode: error.errorCode,
+                subErrorCode: error.subError,
+                success: false,
+            });
+            throw error;
         }
     }
 
@@ -338,7 +393,7 @@ export class NestedAppAuthController implements IController {
     handleRedirectPromise(
         hash?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult | null> {
-        throw new Error("Method not implemented.");
+        throw NestedAppAuthError.createUnsupportedError();
     }
     loginPopup(
         request?: PopupRequest | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -380,7 +435,7 @@ export class NestedAppAuthController implements IController {
             >
         >
     ): Promise<AuthenticationResult> {
-        throw NestedAppAuthError.createUnsupportedError();
+        return this.acquireTokenSilentInternal(request as SilentRequest);
     }
     getTokenCache(): ITokenCache {
         throw NestedAppAuthError.createUnsupportedError();
@@ -407,6 +462,7 @@ export class NestedAppAuthController implements IController {
          * StandardController uses this to allow the developer to set the active account
          * in the nested app auth scenario the active account is controlled by the app hosting the nested app
          */
+        this.logger.warning("nestedAppAuth does not support setActiveAccount");
         return;
     }
     getActiveAccount(): AccountInfo | null {
@@ -427,7 +483,9 @@ export class NestedAppAuthController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setNavigationClient(navigationClient: INavigationClient): void {
-        throw NestedAppAuthError.createUnsupportedError();
+        this.logger.warning(
+            "setNavigationClient is not supported in nested app auth"
+        );
     }
     getConfiguration(): BrowserConfiguration {
         return this.config;

@@ -34,23 +34,23 @@ export class ControllerFactory {
             teamsApp.initialize(),
         ];
 
-        return Promise.all(operatingContexts).then(async () => {
-            if (
-                teamsApp.isAvailable() &&
-                teamsApp.getConfig().auth.supportsNestedAppAuth
-            ) {
-                const controller = await import("./NestedAppAuthController");
-                return await controller.NestedAppAuthController.createController(
-                    teamsApp
-                );
-            } else if (standard.isAvailable()) {
-                const controller = await import("./StandardController");
-                return await controller.StandardController.createController(
-                    standard
-                );
-            }
+        await Promise.all(operatingContexts);
 
-            throw new Error("No controller found.");
-        });
+        if (
+            teamsApp.isAvailable() &&
+            teamsApp.getConfig().auth.supportsNestedAppAuth
+        ) {
+            const controller = await import("./NestedAppAuthController");
+            return await controller.NestedAppAuthController.createController(
+                teamsApp
+            );
+        } else if (standard.isAvailable()) {
+            const controller = await import("./StandardController");
+            return await controller.StandardController.createController(
+                standard
+            );
+        }
+
+        throw new Error("No controller found.");
     }
 }

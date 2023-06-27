@@ -180,7 +180,7 @@ export class NestedAppAuthAdapter {
      * @returns AuthError, ClientAuthError, ClientConfigurationError, ServerError, InteractionRequiredError
      */
     public fromBridgeError(
-        error: BridgeError
+        error: unknown
     ):
         | AuthError
         | ClientAuthError
