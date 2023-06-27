@@ -1,6 +1,13 @@
 import * as puppeteer from "puppeteer";
-import { getBrowser, getHomeUrl } from "../../testUtils";
-import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "e2e-test-utils/src/TestUtils";
+import { 
+    Screenshot, 
+    createFolder, 
+    setupCredentials, 
+    enterCredentials, 
+    ONE_SECOND_IN_MS,
+    getBrowser, 
+    getHomeUrl
+} from "e2e-test-utils/src/TestUtils";
 import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";

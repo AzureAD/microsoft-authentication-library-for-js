@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import{ Page, HTTPResponse } from "puppeteer";
+import{ Page, HTTPResponse, Browser } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
@@ -356,4 +356,76 @@ export async function validateCacheLocation(cacheLocation: string): Promise<void
 export function checkTimeoutError(output: string): boolean {
     const timeoutErrorRegex = /user_timeout_reached/;
     return timeoutErrorRegex.test(output);
+}
+
+export async function clickLoginRedirect(screenshot: Screenshot, page: Page): Promise<void> {
+    // Home Page
+    await screenshot.takeScreenshot(page, "samplePageInit");
+    // Click Sign In
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signInClicked");
+    // Click Sign In With Redirect
+    await page.click("#redirect");
+}
+
+export async function clickLogoutRedirect(screenshot: Screenshot, page: Page): Promise<void> {
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signOutClicked");
+    // Click Sign Out With Redirect
+    await page.click("#redirect");
+}
+
+export async function clickLoginPopup(screenshot: Screenshot, page: Page): Promise<[Page, Promise<void>]> {
+    // Home Page
+    await screenshot.takeScreenshot(page, "samplePageInit");
+    // Click Sign In
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signInClicked");
+    // Click Sign In With Popup
+    const newPopupWindowPromise = new Promise<Page>(resolve => page.once("popup", resolve));
+    await page.click("#popup");
+    const popupPage = await newPopupWindowPromise;
+    const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+
+    return [popupPage, popupWindowClosed];
+}
+
+export async function clickLogoutPopup(screenshot: Screenshot, page: Page): Promise<[Page, Promise<void>]> {
+
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signOutClicked");
+    // Click Sign Out With Popup
+    const newPopupWindowPromise = new Promise<Page>(resolve => page.once("popup", resolve));
+    await page.click("#popup");
+    const popupPage = await newPopupWindowPromise;
+    const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+
+    return [popupPage, popupWindowClosed];
+}
+
+export async function waitForReturnToApp(screenshot: Screenshot, page: Page, popupPage?: Page, popupWindowClosed?: Promise<void>): Promise<void> {
+    if (popupPage && popupWindowClosed) {
+        // Wait until popup window closes and see that we are logged in
+        await popupWindowClosed;
+    }
+
+    // Wait for token acquisition
+    await page.waitForSelector("#scopes-acquired");
+    await screenshot.takeScreenshot(page, "samplePageLoggedIn");
+}
+
+/**
+ * Returns an instance of {@link puppeteer.Browser}.
+ */
+export async function getBrowser(): Promise<Browser> {
+    // @ts-ignore
+    return global.__BROWSER__;
+}
+
+/**
+ * Returns a host url.
+ */
+export function getHomeUrl(): string {
+    // @ts-ignore
+    return `http://localhost:${global.__PORT__}/`;
 }

@@ -1,14 +1,25 @@
 import * as puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "e2e-test-utils/src/TestUtils";
+import { 
+    Screenshot, 
+    createFolder, 
+    setupCredentials, 
+    enterCredentials, 
+    ONE_SECOND_IN_MS,
+    clickLoginPopup, 
+    clickLoginRedirect, 
+    clickLogoutPopup, 
+    clickLogoutRedirect, 
+    waitForReturnToApp,
+    getBrowser, 
+    getHomeUrl 
+} from "e2e-test-utils/src/TestUtils";
 import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
 import { LabClient } from "e2e-test-utils/src/LabClient";
 import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfigs/aadAuthConfig.json";
-import { clickLoginPopup, clickLoginRedirect, clickLogoutPopup, clickLogoutRedirect, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
 import { RedirectRequest } from "../../../../../../lib/msal-browser/src";
-import {getBrowser, getHomeUrl} from "../../testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 let sampleHomeUrl = "";

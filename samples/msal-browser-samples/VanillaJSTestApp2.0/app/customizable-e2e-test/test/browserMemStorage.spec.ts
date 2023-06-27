@@ -1,13 +1,22 @@
 import * as puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "e2e-test-utils/src/TestUtils";
+import { 
+    Screenshot, 
+    createFolder, 
+    setupCredentials, 
+    enterCredentials, 
+    ONE_SECOND_IN_MS,
+    clickLoginPopup, 
+    clickLoginRedirect, 
+    waitForReturnToApp, 
+    getBrowser, 
+    getHomeUrl 
+} from "e2e-test-utils/src/TestUtils";
 import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
 import { LabClient } from "e2e-test-utils/src/LabClient";
 import { msalConfig as memStorageConfig, request as memStorageTokenRequest } from "../authConfigs/memStorageAuthConfig.json";
-import { clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
-import {getBrowser, getHomeUrl} from "../../testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/memStorage`;
 
