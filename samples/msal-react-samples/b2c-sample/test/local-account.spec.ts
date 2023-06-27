@@ -1,9 +1,9 @@
 import * as puppeteer from "puppeteer";
-import {Screenshot, setupCredentials, b2cLocalAccountEnterCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { LabClient } from "../../../e2eTestUtils/LabClient";
-import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { UserTypes, B2cProviders } from "../../../e2eTestUtils/Constants";
-import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
+import {Screenshot, setupCredentials, b2cLocalAccountEnterCredentials, RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
+import { LabClient } from "e2e-test-utils/src/LabClient";
+import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
+import { UserTypes, B2cProviders } from "e2e-test-utils/src/Constants";
+import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/local-account-tests`;
 
