@@ -69,8 +69,8 @@ jobs:
       run: npx lerna --scope @azure/msal-node --scope @azure/msal-common bootstrap
 
     - name: Build Package
-      working-directory: samples/msal-node-samples
-      run: npm run build:package
+      working-directory: lib/msal-node
+      run: npm run build:all
 
     - name: Install Test Tools
       if: steps.test-tools-cache.outputs.cache-hit != 'true'
