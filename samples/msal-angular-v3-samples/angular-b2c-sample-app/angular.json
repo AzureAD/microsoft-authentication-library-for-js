@@ -60,6 +60,11 @@
               "outputHashing": "all"
             },
             "e2e": {
+              "optimization": {
+                "styles": {
+                  "inlineCritical": false // Causes setAttribute errors
+                }
+              },
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -125,5 +130,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
