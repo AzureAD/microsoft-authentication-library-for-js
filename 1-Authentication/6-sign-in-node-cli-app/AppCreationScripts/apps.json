@@ -1,0 +1,47 @@
+{
+    "Sample": {
+        "Title": "A Node.js console application using MSAL Node to authenticate users against Azure AD for Customers",
+        "Client": "NodeConsoleApp",
+        "Level": 100
+    },
+    "AppRegistrations": [
+        {
+            "x-ms-id": "ciam-node-cli",
+            "x-ms-name": "ms-identity-ciam-node-cli",
+            "x-ms-version": "2.0",
+            "replyUrlsWithType": [
+                {
+                    "url": "http://localhost",
+                    "type": "InstalledClient"
+                }
+            ],
+            "requiredResourceAccess": [
+                {
+                    "x-ms-resourceAppName": "Microsoft Graph",
+                    "resourceAppId": "00000003-0000-0000-c000-000000000000",
+                    "resourceAccess": [
+                        {
+                            "id": "37f7f235-527c-4136-accd-4a02d197296e",
+                            "type": "Scope",
+                            "x-ms-name": "openid"
+                        },
+                        {
+                            "id": "7427e0e9-2fba-42fe-b0c0-848c9e6a8182",
+                            "type": "Scope",
+                            "x-ms-name": "offline_access"
+                        }
+                    ]
+                }
+            ],
+            "codeConfigurations": [
+                {
+                    "settingFile": "/App/authConfig.js",
+                    "replaceTokens": {
+                        "appId": "Enter_the_Application_Id_Here",
+                        "tenantName": "Enter_the_Tenant_Subdomain_Here"
+                    }
+                }
+            ]
+        }
+    ]
+}
