@@ -21,7 +21,6 @@ Review our [scenario docs](https://docs.microsoft.com/azure/active-directory/dev
 | [client-credentials](./client-credentials/README.md)       | console/daemon app (confidential client) | client credentials                  |
 | [b2c-user-flows](./b2c-user-flows/README.md)                 | web app (confidential client)     | authorization code                  |
 | [ElectronTestApp](./ElectronTestApp/README.md)             | desktop app (public client)       | authorization code with PKCE        |
-| [ExpressTestApp](./ExpressTestApp/README.md)               | web app (confidential client)     | authorization code                  |
 
 For in-depth tutorials, see:
 
