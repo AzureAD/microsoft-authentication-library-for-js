@@ -36,8 +36,9 @@ For in-depth tutorials, see:
 
 ### Other samples
 
-These samples use either MSAL Node or passport-azure-ad in a variety of scenarios:
+These samples use either MSAL Node variety of scenarios:
 
+- [React SPA with Express web app using the Backend For Frontend (BFF) Proxy architecture to authenticate users with Azure AD and call Microsoft Graph](https://github.com/Azure-Samples/ms-identity-javascript-nodejs-tutorial/tree/main/5-AdvancedScenarios/1-call-graph-bff): Sample illustrating the BFF pattern to acquire tokens in a secure backend and share authentication state with a React single-page application.
 - [B2C user management sample](https://github.com/Azure-Samples/ms-identity-b2c-javascript-nodejs-management/tree/main/Chapter2): Command line app using OAuth 2.0 client credentials flow for performing user management operations in an Azure AD B2C tenant
 - [Function API sample deployed to Azure Static Web Apps](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/4-Deployment/2-deploy-static): Azure Function web API using on-behalf-of flow
 - [Teams Tab SSO sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs): Teams tab app demonstrating how integrate MSAL React and MSAL Node to achieve single sign-on
