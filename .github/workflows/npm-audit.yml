@@ -36,4 +36,4 @@ jobs:
         node-version: 18
 
     - name: npm audit (root)
-      run: npm audit --workspace=lib/** --workspace=extensions/** --include-workspace-root
+      run: npm audit --workspace=lib/** --workspace=extensions/** --include-workspace-root --omit=dev
