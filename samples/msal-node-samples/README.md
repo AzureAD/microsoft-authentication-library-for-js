@@ -12,21 +12,27 @@ Review our [scenario docs](https://docs.microsoft.com/azure/active-directory/dev
 | [auth-code-pkce](./auth-code-pkce/README.md)               | web app (public client) (typescript)           | authorization code with PKCE in typescript      |
 | [auth-code-with-certs](./auth-code-with-certs/README.md)   | web app (confidential client)     | authorization code                  |
 | [auth-code-key-vault](./auth-code-key-vault/README.md)     | web app (confidential client)     | authorization code                  |
+| [auth-code-distributed-cache](./auth-code-distributed-cache/README.md)     | web app (confidential client) (typescript)     | authorization code                  |
+| [auth-code-cli-app](./auth-code-cli-app/README.md)     | console app (public client)     | authorization code                  |
+| [auth-code-cli-brokered-app](./auth-code-cli-brokered-app/README.md)     | console app (public client)     | authorization code                  |
 | [silent-flow](./silent-flow/README.md)                     | web app (confidential client)     | authorization code                  |
-| [on-behalf-of](./on-behalf-of/README.md)                   | web app (confidential client)     | on-behalf-of                        |
+| [on-behalf-of](./on-behalf-of/README.md)                   | web API (confidential client)     | on-behalf-of                        |
+| [on-behalf-of-distributed-cache](./on-behalf-of-distributed-cache/README.md)                   | web API (confidential client) (typescript)     | on-behalf-of                        |
 | [refresh-token](./refresh-token/README.md)                 | web app (confidential client)     | refresh token                       |
-| [username-password](./username-password/README.md)         | console/daemon app (public client)       | resource owner password credentials |
-| [username-password-cca](./username-password-cca/README.md) | console/daemon app (confidential client) | resource owner password credentials |
-| [device-code](./device-code/README.md)                     | headless app (public client)      | device code                         |
-| [client-credentials](./client-credentials/README.md)       | console/daemon app (confidential client) | client credentials                  |
+| [username-password](./username-password/README.md)         | console app (public client)       | resource owner password credentials |
+| [username-password-cca](./username-password-cca/README.md) | console app (confidential client) | resource owner password credentials |
+| [device-code](./device-code/README.md)                     | browserless app (public client)      | device code                         |
+| [client-credentials](./client-credentials/README.md)       | daemon app (confidential client) | client credentials                  |
+| [client-credentials-distributed-cache](./client-credentials-distributed-cache/README.md)       | daemon app (confidential client) (typescript) | client credentials                  |
 | [b2c-user-flows](./b2c-user-flows/README.md)                 | web app (confidential client)     | authorization code                  |
 | [ElectronTestApp](./ElectronTestApp/README.md)             | desktop app (public client)       | authorization code with PKCE        |
 
 For in-depth tutorials, see:
 
 - [Developing a web app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-webapp-msal)
-- [Developing a console app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-console)
+- [Developing a daemon app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-console)
 - [Developing a desktop app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-desktop)
+- [Tutorial: Enable your Express web app to sign-in users and call APIs with the Microsoft identity platform](https://github.com/Azure-Samples/ms-identity-javascript-nodejs-tutorial)
 
 ### Other samples
 
