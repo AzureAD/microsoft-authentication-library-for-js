@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from "react-router-dom";
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from "./styles/theme";
@@ -22,23 +22,23 @@ msalInstance.enableAccountStorageEvents();
 
 msalInstance.addEventCallback((event) => {
   if (event.eventType === EventType.LOGIN_SUCCESS
-      ||
-      event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS
-      ||
-      event.eventType === EventType.SSO_SILENT_SUCCESS
-    ) {
+    ||
+    event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS
+    ||
+    event.eventType === EventType.SSO_SILENT_SUCCESS
+  ) {
     const account = event.payload.account;
     msalInstance.setActiveAccount(account);
   }
 });
 
-ReactDOM.render(
-  <React.StrictMode>
-      <Router>
-          <ThemeProvider theme={theme}>
-              <App pca={msalInstance} />
-          </ThemeProvider>
-      </Router>
-  </React.StrictMode>,
-  document.getElementById('root')
+const container = document.getElementById("root");
+const root = ReactDOM.createRoot(container);
+
+root.render(
+  <Router>
+    <ThemeProvider theme={theme}>
+      <App pca={msalInstance} />
+    </ThemeProvider>
+  </Router>
 );
