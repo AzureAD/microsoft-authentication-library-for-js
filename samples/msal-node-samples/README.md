@@ -33,12 +33,7 @@ For in-depth tutorials, see:
 These samples use either MSAL Node or passport-azure-ad in a variety of scenarios:
 
 - [B2C user management sample](https://github.com/Azure-Samples/ms-identity-b2c-javascript-nodejs-management/tree/main/Chapter2): Command line app using OAuth 2.0 client credentials flow for performing user management operations in an Azure AD B2C tenant
-- [Conditional Access sample](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/4-AdvancedGrants/2-call-api-api-ca) Web API handling conditional access challenges
-- [Groups overage sample](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/5-AccessControl/2-call-api-groups) Web API calling Microsoft Graph to handle groups overage scenario
 - [Function API sample deployed to Azure Static Web Apps](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/4-Deployment/2-deploy-static): Azure Function web API using on-behalf-of flow
-- [Passport Azure Function sample](https://github.com/Azure-Samples/ms-identity-nodejs-webapi-azurefunctions): Azure Function web API validating access tokens using the passport-azure-ad Bearer strategy
-- [Passport web app sample](https://github.com/AzureADQuickStarts/AppModelv2-WebApp-OpenIDConnect-nodejs): Web app signing in users and acquiring tokens using the passport-azure-ad OIDC strategy
-- [PoP tokens validation sample](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/6-AdvancedScenarios/2-call-api-pop) Web API parsing and validating PoP tokens
 - [Teams Tab SSO sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs): Teams tab app demonstrating how integrate MSAL React and MSAL Node to achieve single sign-on
 
 ## How to run the samples?

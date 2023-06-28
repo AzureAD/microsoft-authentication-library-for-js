@@ -117,7 +117,6 @@ AAD samples:
 B2C samples:
 
 - [b2c-user-flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/b2c-user-flows): Express app using OAuth2.0 authorization code flow.
-- [ms-identity-b2c-javascript-nodejs-management](https://github.com/Azure-Samples/ms-identity-b2c-javascript-nodejs-management/tree/main/Chapter2): Command line app using OAuth 2.0 client credentials flow for performing user management operations on an Azure AD / Azure AD B2C tenant
 
 Others:
 
