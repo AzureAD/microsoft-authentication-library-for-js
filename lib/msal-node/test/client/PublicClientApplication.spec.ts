@@ -21,7 +21,7 @@ import {
     ServerAuthorizationCodeResponse,
     InteractionRequiredAuthError,
     AccountEntity,
-    IdToken
+    IdToken,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -237,12 +237,12 @@ describe("PublicClientApplication", () => {
                 account: mockAccountInfo,
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             };
-    
+
             const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
             jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
                 (config) => new silentFlowClient(config)
             );
-    
+
             const authApp = new PublicClientApplication(appConfig);
             await authApp.acquireTokenSilent(request);
             expect(SilentFlowClient).toHaveBeenCalledTimes(1);
@@ -255,60 +255,70 @@ describe("PublicClientApplication", () => {
             const authApp = new PublicClientApplication({
                 ...appConfig,
                 broker: {
-                    nativeBrokerPlugin: new MockNativeBrokerPlugin()
-                }
+                    nativeBrokerPlugin: new MockNativeBrokerPlugin(),
+                },
             });
 
             const request: SilentFlowRequest = {
                 account: mockNativeAccountInfo,
-                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             };
-            const brokerSpy = jest.spyOn(MockNativeBrokerPlugin.prototype, "acquireTokenSilent");
+            const brokerSpy = jest.spyOn(
+                MockNativeBrokerPlugin.prototype,
+                "acquireTokenSilent"
+            );
             const response = await authApp.acquireTokenSilent(request);
             expect(brokerSpy).toHaveBeenCalled();
-            expect(response.idToken).toEqual(mockNativeAuthenticationResult.idToken);
-            expect(response.accessToken).toEqual(mockNativeAuthenticationResult.accessToken);
-            expect(response.account).toEqual(mockNativeAuthenticationResult.account);
+            expect(response.idToken).toEqual(
+                mockNativeAuthenticationResult.idToken
+            );
+            expect(response.accessToken).toEqual(
+                mockNativeAuthenticationResult.accessToken
+            );
+            expect(response.account).toEqual(
+                mockNativeAuthenticationResult.account
+            );
         });
 
         test("acquireTokenSilent - calls into NativeBrokerPlugin and throws", (done) => {
             const authApp = new PublicClientApplication({
                 ...appConfig,
                 broker: {
-                    nativeBrokerPlugin: new MockNativeBrokerPlugin()
-                }
+                    nativeBrokerPlugin: new MockNativeBrokerPlugin(),
+                },
             });
 
             const request: SilentFlowRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-                account: mockNativeAccountInfo
+                account: mockNativeAccountInfo,
             };
 
-            const testError = new InteractionRequiredAuthError("interaction_required", );
-            const brokerSpy = jest.spyOn(MockNativeBrokerPlugin.prototype, "acquireTokenSilent").mockImplementation(() => {
-                return Promise.reject(testError);
-            });
-            authApp.acquireTokenSilent(request).catch(e => {
+            const testError = new InteractionRequiredAuthError(
+                "interaction_required"
+            );
+            const brokerSpy = jest
+                .spyOn(MockNativeBrokerPlugin.prototype, "acquireTokenSilent")
+                .mockImplementation(() => {
+                    return Promise.reject(testError);
+                });
+            authApp.acquireTokenSilent(request).catch((e) => {
                 expect(brokerSpy).toHaveBeenCalled();
                 expect(e).toBe(testError);
                 done();
             });
         });
-
     });
 
-
     describe("acquireTokenInteractive tests", () => {
-
         test("acquireTokenInteractive succeeds", async () => {
             const authApp = new PublicClientApplication(appConfig);
-    
+
             let redirectUri: string;
-    
+
             const openBrowser = (url: string) => {
-                expect(url.startsWith("https://login.microsoftonline.com")).toBe(
-                    true
-                );
+                expect(
+                    url.startsWith("https://login.microsoftonline.com")
+                ).toBe(true);
                 http.get(
                     `${redirectUri}?code=${TEST_CONSTANTS.AUTHORIZATION_CODE}`
                 );
@@ -318,13 +328,16 @@ describe("PublicClientApplication", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 openBrowser: openBrowser,
             };
-    
+
             const MockAuthorizationCodeClient =
                 getMsalCommonAutoMock().AuthorizationCodeClient;
-            jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            jest.spyOn(
+                msalCommon,
+                "AuthorizationCodeClient"
+            ).mockImplementation(
                 (config) => new MockAuthorizationCodeClient(config)
             );
-    
+
             jest.spyOn(
                 MockAuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
@@ -332,7 +345,7 @@ describe("PublicClientApplication", () => {
                 redirectUri = req.redirectUri;
                 return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
             });
-    
+
             jest.spyOn(
                 MockAuthorizationCodeClient.prototype,
                 "acquireToken"
@@ -343,7 +356,7 @@ describe("PublicClientApplication", () => {
                 ]);
                 return Promise.resolve(mockAuthenticationResult);
             });
-    
+
             const response = await authApp.acquireTokenInteractive(request);
             expect(response.idToken).toEqual(mockAuthenticationResult.idToken);
             expect(response.accessToken).toEqual(
@@ -351,49 +364,56 @@ describe("PublicClientApplication", () => {
             );
             expect(response.account).toEqual(mockAuthenticationResult.account);
         });
-    
+
         test("acquireTokenInteractive - with custom loopback client succeeds", async () => {
             const authApp = new PublicClientApplication(appConfig);
-    
+
             const openBrowser = (url: string) => {
-                expect(url.startsWith("https://login.microsoftonline.com")).toBe(
-                    true
-                );
+                expect(
+                    url.startsWith("https://login.microsoftonline.com")
+                ).toBe(true);
                 return Promise.resolve();
             };
-    
+
             const testServerCodeResponse: ServerAuthorizationCodeResponse = {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
                 state: "123",
             };
-    
+
             const mockListenForAuthCode = jest.fn(() => {
-                return new Promise<ServerAuthorizationCodeResponse>((resolve) => {
-                    resolve(testServerCodeResponse);
-                });
+                return new Promise<ServerAuthorizationCodeResponse>(
+                    (resolve) => {
+                        resolve(testServerCodeResponse);
+                    }
+                );
             });
-            const mockGetRedirectUri = jest.fn(() => TEST_CONSTANTS.REDIRECT_URI);
+            const mockGetRedirectUri = jest.fn(
+                () => TEST_CONSTANTS.REDIRECT_URI
+            );
             const mockCloseServer = jest.fn(() => {});
-    
+
             const customLoopbackClient: ILoopbackClient = {
                 listenForAuthCode: mockListenForAuthCode,
                 getRedirectUri: mockGetRedirectUri,
                 closeServer: mockCloseServer,
             };
-    
+
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 openBrowser: openBrowser,
                 loopbackClient: customLoopbackClient,
             };
-    
+
             const MockAuthorizationCodeClient =
                 getMsalCommonAutoMock().AuthorizationCodeClient;
-            jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            jest.spyOn(
+                msalCommon,
+                "AuthorizationCodeClient"
+            ).mockImplementation(
                 (config) => new MockAuthorizationCodeClient(config)
             );
-    
+
             jest.spyOn(
                 MockAuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
@@ -401,7 +421,7 @@ describe("PublicClientApplication", () => {
                 expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
                 return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
             });
-    
+
             jest.spyOn(
                 MockAuthorizationCodeClient.prototype,
                 "acquireToken"
@@ -412,7 +432,7 @@ describe("PublicClientApplication", () => {
                 ]);
                 return Promise.resolve(mockAuthenticationResult);
             });
-    
+
             const response = await authApp.acquireTokenInteractive(request);
             expect(response.idToken).toEqual(mockAuthenticationResult.idToken);
             expect(response.accessToken).toEqual(
@@ -428,50 +448,68 @@ describe("PublicClientApplication", () => {
             const authApp = new PublicClientApplication({
                 ...appConfig,
                 broker: {
-                    nativeBrokerPlugin: new MockNativeBrokerPlugin()
-                }
+                    nativeBrokerPlugin: new MockNativeBrokerPlugin(),
+                },
             });
 
             const openBrowser = (url: string) => {
-                expect(url.startsWith("https://login.microsoftonline.com")).toBe(true);
+                expect(
+                    url.startsWith("https://login.microsoftonline.com")
+                ).toBe(true);
                 return Promise.resolve();
             };
 
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-                openBrowser
+                openBrowser,
             };
-            const brokerSpy = jest.spyOn(MockNativeBrokerPlugin.prototype, "acquireTokenInteractive");
+            const brokerSpy = jest.spyOn(
+                MockNativeBrokerPlugin.prototype,
+                "acquireTokenInteractive"
+            );
             const response = await authApp.acquireTokenInteractive(request);
             expect(brokerSpy).toHaveBeenCalled();
-            expect(response.idToken).toEqual(mockNativeAuthenticationResult.idToken);
-            expect(response.accessToken).toEqual(mockNativeAuthenticationResult.accessToken);
-            expect(response.account).toEqual(mockNativeAuthenticationResult.account);
+            expect(response.idToken).toEqual(
+                mockNativeAuthenticationResult.idToken
+            );
+            expect(response.accessToken).toEqual(
+                mockNativeAuthenticationResult.accessToken
+            );
+            expect(response.account).toEqual(
+                mockNativeAuthenticationResult.account
+            );
         });
 
         test("acquireTokenInteractive - calls into NativeBrokerPlugin and throws", (done) => {
             const authApp = new PublicClientApplication({
                 ...appConfig,
                 broker: {
-                    nativeBrokerPlugin: new MockNativeBrokerPlugin()
-                }
+                    nativeBrokerPlugin: new MockNativeBrokerPlugin(),
+                },
             });
 
             const openBrowser = (url: string) => {
-                expect(url.startsWith("https://login.microsoftonline.com")).toBe(true);
+                expect(
+                    url.startsWith("https://login.microsoftonline.com")
+                ).toBe(true);
                 return Promise.resolve();
             };
 
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-                openBrowser
+                openBrowser,
             };
 
             const testError = ClientAuthError.createUserCanceledError();
-            const brokerSpy = jest.spyOn(MockNativeBrokerPlugin.prototype, "acquireTokenInteractive").mockImplementation(() => {
-                return Promise.reject(testError);
-            });
-            authApp.acquireTokenInteractive(request).catch(e => {
+            const brokerSpy = jest
+                .spyOn(
+                    MockNativeBrokerPlugin.prototype,
+                    "acquireTokenInteractive"
+                )
+                .mockImplementation(() => {
+                    return Promise.reject(testError);
+                });
+            authApp.acquireTokenInteractive(request).catch((e) => {
                 expect(brokerSpy).toHaveBeenCalled();
                 expect(e).toBe(testError);
                 done();
@@ -482,14 +520,14 @@ describe("PublicClientApplication", () => {
     describe("signOut tests", () => {
         test("signOut clears account from local cache", async () => {
             const authApp = new PublicClientApplication({
-                ...appConfig
+                ...appConfig,
             });
 
             const cryptoProvider = new CryptoProvider();
             const accountEntity: AccountEntity = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, 
-                mockAccountInfo.homeAccountId, 
-                new IdToken(mockAuthenticationResult.idToken, cryptoProvider), 
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                mockAccountInfo.homeAccountId,
+                new IdToken(mockAuthenticationResult.idToken, cryptoProvider),
                 fakeAuthority
             );
 
@@ -508,14 +546,17 @@ describe("PublicClientApplication", () => {
             const authApp = new PublicClientApplication({
                 ...appConfig,
                 broker: {
-                    nativeBrokerPlugin: new MockNativeBrokerPlugin()
-                }
+                    nativeBrokerPlugin: new MockNativeBrokerPlugin(),
+                },
             });
 
             const request: SignOutRequest = {
-                account: mockNativeAccountInfo
+                account: mockNativeAccountInfo,
             };
-            const brokerSpy = jest.spyOn(MockNativeBrokerPlugin.prototype, "signOut");
+            const brokerSpy = jest.spyOn(
+                MockNativeBrokerPlugin.prototype,
+                "signOut"
+            );
             await authApp.signOut(request);
             expect(brokerSpy).toHaveBeenCalled();
         });
@@ -524,17 +565,19 @@ describe("PublicClientApplication", () => {
             const authApp = new PublicClientApplication({
                 ...appConfig,
                 broker: {
-                    nativeBrokerPlugin: new MockNativeBrokerPlugin()
-                }
+                    nativeBrokerPlugin: new MockNativeBrokerPlugin(),
+                },
             });
 
             const request: SignOutRequest = {
-                account: mockNativeAccountInfo
+                account: mockNativeAccountInfo,
             };
             const testError = ClientAuthError.createNoAccountFoundError();
-            const brokerSpy = jest.spyOn(MockNativeBrokerPlugin.prototype, "signOut").mockImplementation(() => {
-                return Promise.reject(testError);
-            });
+            const brokerSpy = jest
+                .spyOn(MockNativeBrokerPlugin.prototype, "signOut")
+                .mockImplementation(() => {
+                    return Promise.reject(testError);
+                });
             authApp.signOut(request).catch((e) => {
                 expect(brokerSpy).toHaveBeenCalled();
                 expect(e).toBe(testError);
@@ -546,14 +589,14 @@ describe("PublicClientApplication", () => {
     describe("getAllAccounts tests", () => {
         test("getAllAccounts returns an array of accounts found in the cache", async () => {
             const authApp = new PublicClientApplication({
-                ...appConfig
+                ...appConfig,
             });
 
             const cryptoProvider = new CryptoProvider();
             const accountEntity: AccountEntity = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, 
-                mockAccountInfo.homeAccountId, 
-                new IdToken(mockAuthenticationResult.idToken, cryptoProvider), 
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                mockAccountInfo.homeAccountId,
+                new IdToken(mockAuthenticationResult.idToken, cryptoProvider),
                 fakeAuthority
             );
 
@@ -568,11 +611,14 @@ describe("PublicClientApplication", () => {
             const authApp = new PublicClientApplication({
                 ...appConfig,
                 broker: {
-                    nativeBrokerPlugin: new MockNativeBrokerPlugin()
-                }
+                    nativeBrokerPlugin: new MockNativeBrokerPlugin(),
+                },
             });
 
-            const brokerSpy = jest.spyOn(MockNativeBrokerPlugin.prototype, "getAllAccounts");
+            const brokerSpy = jest.spyOn(
+                MockNativeBrokerPlugin.prototype,
+                "getAllAccounts"
+            );
             const accounts = await authApp.getAllAccounts();
             expect(brokerSpy).toHaveBeenCalled();
             expect(accounts).toStrictEqual([mockNativeAccountInfo]);
@@ -582,14 +628,16 @@ describe("PublicClientApplication", () => {
             const authApp = new PublicClientApplication({
                 ...appConfig,
                 broker: {
-                    nativeBrokerPlugin: new MockNativeBrokerPlugin()
-                }
+                    nativeBrokerPlugin: new MockNativeBrokerPlugin(),
+                },
             });
 
             const testError = ClientAuthError.createNoAccountFoundError();
-            const brokerSpy = jest.spyOn(MockNativeBrokerPlugin.prototype, "getAllAccounts").mockImplementation(() => {
-                return Promise.reject(testError);
-            });
+            const brokerSpy = jest
+                .spyOn(MockNativeBrokerPlugin.prototype, "getAllAccounts")
+                .mockImplementation(() => {
+                    return Promise.reject(testError);
+                });
             authApp.getAllAccounts().catch((e) => {
                 expect(brokerSpy).toHaveBeenCalled();
                 expect(e).toBe(testError);
@@ -598,7 +646,47 @@ describe("PublicClientApplication", () => {
         });
     });
 
-    test("initializeBaseRequest passes a claims hash to acquireToken", async () => {
+    test("initializeBaseRequest passes a claims hash to acquireToken when claimsBasedHashing is enabled", async () => {
+        const account: AccountInfo = {
+            homeAccountId: "",
+            environment: "",
+            tenantId: "",
+            username: "",
+            localAccountId: "",
+            name: "",
+            idTokenClaims: ID_TOKEN_CLAIMS,
+        };
+        const request: SilentFlowRequest = {
+            account: account,
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            claims: TEST_CONSTANTS.CLAIMS,
+        };
+
+        const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+        jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+            (config) => new silentFlowClient(config)
+        );
+
+        const acquireTokenSpy = jest.spyOn(
+            silentFlowClient.prototype,
+            "acquireToken"
+        );
+        const authApp = new PublicClientApplication({
+            ...appConfig,
+            cache: { claimsBasedCachingEnabled: true },
+        });
+        await authApp.acquireTokenSilent(request);
+        expect(silentFlowClient.prototype.acquireToken).toHaveBeenCalledWith(
+            expect.objectContaining({ requestedClaimsHash: expect.any(String) })
+        );
+
+        const submittedRequest = acquireTokenSpy.mock.calls[0][0];
+        expect(
+            (submittedRequest as any)?.requestedClaimsHash?.length
+        ).toBeGreaterThan(0);
+    });
+
+    test("initializeBaseRequest doesn't pass a claims hash to acquireToken when claimsBasedHashing is disabled by default", async () => {
         const account: AccountInfo = {
             homeAccountId: "",
             environment: "",
@@ -626,13 +714,13 @@ describe("PublicClientApplication", () => {
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenSilent(request);
         expect(silentFlowClient.prototype.acquireToken).toHaveBeenCalledWith(
-            expect.objectContaining({ requestedClaimsHash: expect.any(String) })
+            expect.not.objectContaining({
+                requestedClaimsHash: expect.any(String),
+            })
         );
 
         const submittedRequest = acquireTokenSpy.mock.calls[0][0];
-        expect(
-            (submittedRequest as any)?.requestedClaimsHash?.length
-        ).toBeGreaterThan(0);
+        expect((submittedRequest as any)?.requestedClaimsHash).toBe(undefined);
     });
 
     test("create AuthorizationCode URL", async () => {
