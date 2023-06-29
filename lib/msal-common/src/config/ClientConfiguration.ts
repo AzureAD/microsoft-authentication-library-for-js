@@ -54,7 +54,7 @@ export type CommonClientConfiguration = {
     authOptions: Required<AuthOptions>;
     systemOptions: Required<SystemOptions>;
     loggerOptions: Required<LoggerOptions>;
-    cacheOptions: CacheOptions;
+    cacheOptions: Required<CacheOptions>;
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
