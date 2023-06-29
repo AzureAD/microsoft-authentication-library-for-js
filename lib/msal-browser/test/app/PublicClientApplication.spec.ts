@@ -93,7 +93,7 @@ import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest"
 import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
-import { AuthenticationResult } from "../../src";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
