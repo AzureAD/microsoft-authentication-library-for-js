@@ -6,7 +6,7 @@ languages:
  - javascript
  - typescript
 products:
- - azure-active-directory
+ - entra-external-id
  - msal-angular
 urlFragment: ms-identity-ciam-javascript-tutorial-2-sign-in-angular
 extensions:

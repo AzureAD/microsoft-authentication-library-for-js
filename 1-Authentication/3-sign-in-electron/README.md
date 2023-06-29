@@ -1,11 +1,11 @@
 ---
 page_type: sample
-name: An Electron desktop application secured by MSAL Node on Microsoft identity platform
-description: An Electron desktop application secured by MSAL Node on Microsoft identity platform
+name: An Electron desktop application secured by MSAL Node on Microsoft Entra External ID
+description: An Electron desktop application secured by MSAL Node on Microsoft Entra External ID
 languages:
  - javascript
 products:
- - azure-active-directory
+ - entra-external-id
  - msal-js
  - msal-node
 urlFragment: ms-identity-ciam-javascript-tutorial-3-sign-in-electron

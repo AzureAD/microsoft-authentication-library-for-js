@@ -1,12 +1,12 @@
 ---
 page_type: sample
-name: React single-page application using MSAL React to authentication users against Azure AD for Customers
-description: React single-page application using MSAL React to authentication users against Azure Active Directory Customer Identity Access Management (Azure AD for Customers)
+name: React single-page application using MSAL React to authenticate users against Azure AD for Customers
+description: React single-page application using MSAL React to authenticate users against Azure Active Directory Customer Identity Access Management (Azure AD for Customers)
 languages:
  - javascript
 products:
- - azure-active-directory
- - msal-js
+ - entra-external-id
+ - msal-react
 urlFragment: ms-identity-ciam-javascript-tutorial-1-sign-in-react
 extensions:
     services: 

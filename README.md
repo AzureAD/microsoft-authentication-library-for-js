@@ -6,6 +6,8 @@ languages:
 products:
 - msal-angular
 - msal-node
+- msal-react
+- entra-external-id
 description: "Tutorial: Enable your JavaScript application to sign-in users and call APIs with Azure AD for Customers"
 urlFragment: "ms-identity-ciam-javascript-tutorial"
 ---

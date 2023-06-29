@@ -6,7 +6,7 @@ languages:
  - javascript
  - csharp
 products:
- - azure-active-directory
+ - entra-external-id
  - aspnet-core
  - msal-js
  - microsoft-identity-web
