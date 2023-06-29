@@ -13,19 +13,22 @@
         "allowUnusedLabels": false,
         "noImplicitReturns": true,
         "esModuleInterop": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "types": [
+            "node",
+            "jest"
+        ]
     },
     "references": [
         {
             "path": "../msal-common"
         }
     ],
-    "include": ["src", "test"],
+    "include": [
+        "src",
+        "test"
+    ],
     "exclude": [
         "node_modules"
-    ],
-    "types": [
-        "node",
-        "jest"
     ]
 }

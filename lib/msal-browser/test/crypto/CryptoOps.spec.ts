@@ -6,57 +6,35 @@ import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { BrowserAuthError } from "../../src";
 import { ModernBrowserCrypto } from "../../src/crypto/ModernBrowserCrypto";
-import { MsBrowserCrypto } from "../../src/crypto/MsBrowserCrypto";
-import { MsrBrowserCrypto } from "../../src/crypto/MsrBrowserCrypto";
-import nodeCrypto from "crypto";
-
-const msrCrypto = require("../polyfills/msrcrypto.min");
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 let mockDatabase = {
     "TestDB.keys": {},
 };
 
-// Mock DatabaseStorage
-jest.mock("../../src/cache/DatabaseStorage", () => {
-    return {
-        DatabaseStorage: jest.fn().mockImplementation(() => {
-            return {
-                dbName: "TestDB",
-                version: 1,
-                tableName: "TestDB.keys",
-                open: () => {},
-                getItem: (kid: string) => {
-                    return mockDatabase["TestDB.keys"][kid];
-                },
-                setItem: (kid: string, payload: any) => {
-                    mockDatabase["TestDB.keys"][kid] = payload;
-                    return mockDatabase["TestDB.keys"][kid];
-                },
-                removeItem: (kid: string) => {
-                    delete mockDatabase["TestDB.keys"][kid];
-                },
-                containsKey: (kid: string) => {
-                    return !!mockDatabase["TestDB.keys"][kid];
-                },
-            };
-        }),
-    };
-});
-
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
     let browserCrypto: BrowserCrypto;
-    let oldWindowCrypto = window.crypto;
 
     beforeEach(() => {
         browserCrypto = new BrowserCrypto(new Logger({}));
         cryptoObj = new CryptoOps(new Logger({}));
-        oldWindowCrypto = window.crypto;
-        //@ts-ignore
-        window.crypto = {
-            ...oldWindowCrypto,
-            ...msrCrypto,
-        };
+
+        // Mock DatabaseStorage
+        jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async () => {});
+        jest.spyOn(DatabaseStorage.prototype, "getItem").mockImplementation(async (kid: string) => {
+            return mockDatabase["TestDB.keys"][kid];
+        });
+        jest.spyOn(DatabaseStorage.prototype, "setItem").mockImplementation(async (kid: string, payload: any) => {
+            mockDatabase["TestDB.keys"][kid] = payload;
+            return mockDatabase["TestDB.keys"][kid];
+        });
+        jest.spyOn(DatabaseStorage.prototype, "removeItem").mockImplementation(async (kid: string) => {
+            delete mockDatabase["TestDB.keys"][kid];
+        });
+        jest.spyOn(DatabaseStorage.prototype, "containsKey").mockImplementation(async (kid: string) => {
+            return !!mockDatabase["TestDB.keys"][kid];
+        });
     });
 
     afterEach(() => {
@@ -64,8 +42,6 @@ describe("CryptoOps.ts Unit Tests", () => {
         mockDatabase = {
             "TestDB.keys": {},
         };
-        //@ts-ignore
-        window.crypto = oldWindowCrypto;
     });
 
     it("createNewGuid()", () => {
@@ -347,107 +323,23 @@ describe("CryptoOps.ts Unit Tests", () => {
     });
 
     describe("Browser Crypto Interfaces", () => {
-        beforeAll(() => {
-            // Ensure MSR Crypto is only used when the other interfaces arent present, even if MSR Crypto is loaded
-            window.msrCrypto = msrCrypto;
-        });
-
-        afterAll(() => {
-            // @ts-ignore
-            window.msrCrypto = undefined;
-        });
-
         it("uses modern crypto if available", () => {
             const crypto = new BrowserCrypto(new Logger({}));
             // @ts-ignore
             expect(crypto.subtleCrypto).toBeInstanceOf(ModernBrowserCrypto);
         });
 
-        it("uses MS crypto if available", () => {
+        it("throws if crypto is unavailable", () => {
             jest.spyOn(
                 BrowserCrypto.prototype,
                 // @ts-ignore
                 "hasBrowserCrypto"
                 // @ts-ignore
             ).mockReturnValue(false);
-
-            // @ts-ignore
-            jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(
-                // @ts-ignore
-                true
-            );
-
-            const crypto = new BrowserCrypto(new Logger({}));
-            // @ts-ignore
-            expect(crypto.subtleCrypto).toBeInstanceOf(MsBrowserCrypto);
-        });
-
-        it("uses MSR crypto if available", () => {
-            jest.spyOn(
-                BrowserCrypto.prototype,
-                // @ts-ignore
-                "hasBrowserCrypto"
-                // @ts-ignore
-            ).mockReturnValue(false);
-
-            // @ts-ignore
-            jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(
-                // @ts-ignore
-                false
-            );
-
-            const crypto = new BrowserCrypto(new Logger({}), {
-                useMsrCrypto: true,
-                entropy: nodeCrypto.randomBytes(48),
-            });
-
-            // @ts-ignore
-            expect(crypto.subtleCrypto).toBeInstanceOf(MsrBrowserCrypto);
-        });
-
-        it("throws if MSR Crypto is available but useMsrCrypto is not enabled", () => {
-            jest.spyOn(
-                BrowserCrypto.prototype,
-                // @ts-ignore
-                "hasBrowserCrypto"
-                // @ts-ignore
-            ).mockReturnValue(false);
-
-            // @ts-ignore
-            jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(
-                // @ts-ignore
-                false
-            );
 
             expect(
                 () =>
-                    new BrowserCrypto(new Logger({}), {
-                        useMsrCrypto: false,
-                        entropy: nodeCrypto.randomBytes(48),
-                    })
-            ).toThrow();
-        });
-
-        it("throws if MSR Crypto is available but entropy is not provided", () => {
-            jest.spyOn(
-                BrowserCrypto.prototype,
-                // @ts-ignore
-                "hasBrowserCrypto"
-                // @ts-ignore
-            ).mockReturnValue(false);
-
-            // @ts-ignore
-            jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(
-                // @ts-ignore
-                false
-            );
-
-            expect(
-                () =>
-                    new BrowserCrypto(new Logger({}), {
-                        useMsrCrypto: true,
-                        entropy: undefined,
-                    })
+                    new BrowserCrypto(new Logger({}))
             ).toThrow();
         });
     });

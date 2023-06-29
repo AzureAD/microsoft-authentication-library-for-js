@@ -53,8 +53,8 @@
         "typescript": "~4.5.4"
     },
     "dependencies": {
-        "@azure/msal-node": "^1.14.3",
-        "@azure/msal-node-extensions": "file:../../msal-node-extensions",
+        "@azure/msal-node": "^2.0.0-beta.0",
+        "@azure/msal-node-extensions": "^1.0.0-beta.0",
         "bootstrap": "^4.6.2",
         "electron-squirrel-startup": "^1.0.0"
     }

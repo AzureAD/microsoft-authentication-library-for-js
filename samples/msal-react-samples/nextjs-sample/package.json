@@ -12,8 +12,8 @@
     "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
   },
   "dependencies": {
-    "@azure/msal-browser": "^2.31.0",
-    "@azure/msal-react": "^1.4.10",
+    "@azure/msal-browser": "^3.0.0-beta.0",
+    "@azure/msal-react": "^2.0.0-beta.0",
     "@emotion/cache": "^11.10.5",
     "@emotion/react": "^11.10.5",
     "@emotion/server": "^11.10.0",
@@ -25,6 +25,10 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "jest": "^27.0.4"
+    "@types/jest": "^29.5.2",
+    "e2e-test-utils": "file:../../e2eTestUtils",
+    "jest": "^29.5.0",
+    "puppeteer": "^20.7.3",
+    "ts-jest": "^29.1.0"
   }
 }

@@ -3,10 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
-import {Screenshot, createFolder, ONE_SECOND_IN_MS, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
+import * as puppeteer from "puppeteer";
 import {
+    Screenshot, 
+    createFolder, 
+    ONE_SECOND_IN_MS, 
+    RETRY_TIMES,
     clickSignIn,
     enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
@@ -14,9 +16,11 @@ import {
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation,
-    SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID} from "../../testUtils";
+    SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID
+} from "e2e-test-utils/src/TestUtils";
+import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
 import { ConfidentialClientApplication, TokenCache } from "@azure/msal-node";
-import { getKeyVaultSecretClient, getCredentials } from "../../../e2eTestUtils/KeyVaultUtils";
+import { getKeyVaultSecretClient, getCredentials } from "e2e-test-utils/src/KeyVaultUtils";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc-confidential.cache.json`;

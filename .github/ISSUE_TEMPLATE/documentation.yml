@@ -21,7 +21,7 @@ body:
     label: Core Library
     multiple: true
     options: 
-      - "MSAL.js v2 (@azure/msal-browser)"
+      - "MSAL.js (@azure/msal-browser)"
       - "MSAL.js v1 (@azure/msal or msal)"
       - "MSAL Node (@azure/msal-node)"
       - "Passport Azure AD (passport-azure-ad)"

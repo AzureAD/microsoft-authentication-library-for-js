@@ -1,10 +1,17 @@
-import puppeteer from "puppeteer";
-import { getBrowser, getHomeUrl } from "../../testUtils";
-import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
-import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
-import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
-import { LabClient } from "../../../../../e2eTestUtils/LabClient";
+import * as puppeteer from "puppeteer";
+import { 
+    Screenshot, 
+    createFolder, 
+    setupCredentials, 
+    enterCredentials, 
+    ONE_SECOND_IN_MS,
+    getBrowser, 
+    getHomeUrl
+} from "e2e-test-utils/src/TestUtils";
+import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
+import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
+import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
+import { LabClient } from "e2e-test-utils/src/LabClient";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let sampleHomeUrl = "";

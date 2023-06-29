@@ -1,9 +1,9 @@
 import * as puppeteer from "puppeteer";
-import {Screenshot, setupCredentials, b2cMsaAccountEnterCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { LabClient } from "../../../e2eTestUtils/LabClient";
-import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { UserTypes, B2cProviders } from "../../../e2eTestUtils/Constants";
-import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
+import {Screenshot, setupCredentials, b2cMsaAccountEnterCredentials, RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
+import { LabClient } from "e2e-test-utils/src/LabClient";
+import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
+import { UserTypes, B2cProviders } from "e2e-test-utils/src/Constants";
+import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/msa-account-tests`;
 
@@ -81,10 +81,8 @@ describe('B2C user-flow tests (msa account)', () => {
         }
         let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
         await page.waitForSelector("#attributeVerification", {visible: true});
-        await Promise.all([
-            page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
-            page.type("#displayName", `${displayName}`),
-        ]);
+        await page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
+        await page.type("#displayName", `${displayName}`),
         await page.click("#continue");
         await Promise.all([
             page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`),

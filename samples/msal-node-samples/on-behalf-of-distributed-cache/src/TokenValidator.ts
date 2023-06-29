@@ -5,12 +5,11 @@
 
 import jwt from "jsonwebtoken";
 import jwksClient, { JwksClient } from "jwks-rsa";
-import { TokenClaims, TimeUtils, AuthToken, StringUtils } from "@azure/msal-common";
-import { CryptoProvider } from "@azure/msal-node";
+import { CryptoProvider, IdTokenClaims } from "@azure/msal-node";
 
 import { AppConfig } from "./AuthProvider";
 
-type AccessTokenClaims = TokenClaims & {
+type AccessTokenClaims = IdTokenClaims & {
     scp?: string[];
 };
 
@@ -42,7 +41,7 @@ class TokenValidator {
      * @param {string} rawAccessToken
      * @returns {Promise}
      */
-    async validateAccessToken(rawAccessToken: string): Promise<boolean> {
+    async validateAccessToken(rawAccessToken: string, idTokenClaims: IdTokenClaims): Promise<boolean> {
 
         /**
          * A JWT token validation is a 2-step process comprising of:
@@ -59,8 +58,7 @@ class TokenValidator {
                 return false;
             }
 
-            const decodedAccessTokenPayload = new AuthToken(rawAccessToken, this.cryptoProvider).claims;
-            return this.validateAccessTokenClaims(decodedAccessTokenPayload);
+            return this.validateAccessTokenClaims(idTokenClaims);
         } catch (error) {
             console.log(error);
             return false;
@@ -73,7 +71,7 @@ class TokenValidator {
      * @returns {boolean}
      */
     private validateAccessTokenClaims(accessTokenClaims: AccessTokenClaims): boolean {
-        const now = TimeUtils.nowSeconds(); // current time in seconds
+        const now = Math.round(new Date().getTime() / 1000.0); // current time in seconds
 
         /**
          * if a multi-tenant application only allows sign-in from specific tenants who have signed up
@@ -104,7 +102,7 @@ class TokenValidator {
      * @returns {Promise}
      */
     private async validateTokenSignature(rawAuthToken: string): Promise<boolean> {
-        if (StringUtils.isEmpty(rawAuthToken)) {
+        if (!rawAuthToken) {
             return false;
         }
 

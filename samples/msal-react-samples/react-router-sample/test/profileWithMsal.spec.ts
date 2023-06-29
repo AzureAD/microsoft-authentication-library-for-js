@@ -1,9 +1,9 @@
-import puppeteer from "puppeteer";
-import {Screenshot, setupCredentials, enterCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { LabClient } from "../../../e2eTestUtils/LabClient";
-import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
-import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
+import * as puppeteer from "puppeteer";
+import {Screenshot, setupCredentials, enterCredentials, RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
+import { LabClient } from "e2e-test-utils/src/LabClient";
+import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
+import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
+import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/profileWithMsal-tests`;
 

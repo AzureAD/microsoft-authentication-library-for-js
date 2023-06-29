@@ -12,20 +12,29 @@
         "noImplicitReturns": true,
         "esModuleInterop": true,
         "resolveJsonModule": true,
-        "suppressImplicitAnyIndexErrors": true,
         "sourceMap": true,
         "experimentalDecorators": true,
         "importHelpers": true,
         "noImplicitAny": true,
+        "types": [
+            "node",
+            "jest"
+        ],
+        "jsx": "preserve",
+        "isolatedModules": true,
+        "allowJs": true,
+        "skipLibCheck": true,
+        "strict": false,
+        "forceConsistentCasingInFileNames": true,
+        "noEmit": true,
+        "incremental": true
     },
-    "include": ["**/test/*.spec.ts"],
+    "include": [
+        "**/test/*.spec.ts"
+    ],
     "exclude": [
         "node_modules"
     ],
-    "types": [
-        "node",
-        "jest"
-    ],
     "compileOnSave": false,
-    "buildOnSave": false,
+    "buildOnSave": false
 }

@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
-import {Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
-import { LabClient } from "../../../e2eTestUtils/LabClient";
-import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
+import * as puppeteer from "puppeteer";
 import {
+    Screenshot, 
+    createFolder, 
+    setupCredentials, 
+    ONE_SECOND_IN_MS, 
+    RETRY_TIMES,
     clickSignIn,
     enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
@@ -17,7 +17,12 @@ import {
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation,
-    SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID} from "../../testUtils";
+    SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID
+} from "e2e-test-utils/src/TestUtils";
+import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
+import { LabClient } from "e2e-test-utils/src/LabClient";
+import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
+import { AppTypes, AzureEnvironments } from "e2e-test-utils/src/Constants";
 
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 

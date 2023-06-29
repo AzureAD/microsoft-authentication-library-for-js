@@ -3,8 +3,8 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "@azure/msal-browser": "^2.32.1",
-        "@azure/msal-react": "^1.5.1",
+        "@azure/msal-browser": "^3.0.0-beta.0",
+        "@azure/msal-react": "^2.0.0-beta.0",
         "@emotion/react": "^11.10.5",
         "@emotion/styled": "^11.10.5",
         "@mui/icons-material": "^5.10.16",
@@ -28,12 +28,6 @@
         "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
         "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
     },
-    "eslintConfig": {
-        "extends": [
-            "react-app",
-            "react-app/jest"
-        ]
-    },
     "browserslist": {
         "production": [
             ">0.2%",
@@ -47,7 +41,11 @@
         ]
     },
     "devDependencies": {
-        "@types/jest": "^26.0.23",
-        "jest": "^27.0.4"
+        "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+        "@types/jest": "^29.5.0",
+        "e2e-test-utils": "file:../../e2eTestUtils",
+        "jest": "^29.5.0",
+        "puppeteer": "^20.7.3",
+        "ts-jest": "^29.1.0"
     }
 }
