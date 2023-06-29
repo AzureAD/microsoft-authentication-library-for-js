@@ -7,7 +7,6 @@ import {
     ICrypto,
     INetworkModule,
     Logger,
-    AuthenticationResult,
     AccountInfo,
     AccountEntity,
     BaseAuthRequest,
@@ -35,6 +34,7 @@ import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;

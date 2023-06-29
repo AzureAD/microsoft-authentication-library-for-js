@@ -25,7 +25,6 @@ import {
     Constants,
     AccountInfo,
     TokenClaims,
-    AuthenticationResult,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     AuthToken,
@@ -72,6 +71,7 @@ import { EventType } from "../../src/event/EventType";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
