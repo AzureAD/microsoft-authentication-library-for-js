@@ -5,7 +5,6 @@
 
 import {
     UrlString,
-    StringUtils,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     Constants,

@@ -5,7 +5,6 @@
 
 import {
     AuthorizationCodePayload,
-    StringUtils,
     CommonAuthorizationCodeRequest,
     AuthenticationResult,
     AuthorizationCodeClient,

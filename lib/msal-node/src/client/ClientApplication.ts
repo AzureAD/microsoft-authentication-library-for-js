@@ -28,7 +28,6 @@ import {
     AuthError,
     AzureCloudOptions,
     AuthorizationCodePayload,
-    StringUtils,
     ClientAuthError,
     Constants,
 } from "@azure/msal-common";

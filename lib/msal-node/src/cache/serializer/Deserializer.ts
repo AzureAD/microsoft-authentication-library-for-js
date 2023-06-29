@@ -4,7 +4,6 @@
  */
 
 import {
-    StringUtils,
     AccountCache,
     IdTokenCache,
     AccessTokenCache,

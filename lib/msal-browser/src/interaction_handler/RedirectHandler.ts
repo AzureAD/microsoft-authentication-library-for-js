@@ -5,7 +5,6 @@
 
 import {
     AuthorizationCodeClient,
-    StringUtils,
     CommonAuthorizationCodeRequest,
     ICrypto,
     AuthenticationResult,

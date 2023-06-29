@@ -16,7 +16,6 @@ import {
     ServerTelemetryManager,
     ServerTelemetryRequest,
     ClientConfigurationError,
-    StringUtils,
     Authority,
     AuthorityOptions,
     AuthorityFactory,

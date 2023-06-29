@@ -5,7 +5,6 @@
 
 import { NodeStorage } from "./NodeStorage";
 import {
-    StringUtils,
     AccountEntity,
     AccountInfo,
     Logger,

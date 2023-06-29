@@ -5,7 +5,6 @@
 
 import { InteractionType } from "./BrowserConstants";
 import {
-    StringUtils,
     ClientAuthError,
     ICrypto,
     RequestStateObject,

@@ -16,7 +16,6 @@ import {
     ProtocolUtils,
     ServerAuthorizationCodeResponse,
     PerformanceEvents,
-    StringUtils,
     IPerformanceClient,
     Logger,
     ICrypto,

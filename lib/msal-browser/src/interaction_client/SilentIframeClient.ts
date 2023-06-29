@@ -7,7 +7,6 @@ import {
     AuthenticationResult,
     ICrypto,
     Logger,
-    StringUtils,
     PromptValue,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,

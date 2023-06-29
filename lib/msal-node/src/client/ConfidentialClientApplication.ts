@@ -17,7 +17,6 @@ import {
     CommonClientCredentialRequest,
     CommonOnBehalfOfRequest,
     AuthenticationResult,
-    StringUtils,
     ClientAuthError,
     AzureRegionConfiguration,
     AuthError,
