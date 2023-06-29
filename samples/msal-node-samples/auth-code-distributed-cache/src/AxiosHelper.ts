@@ -24,7 +24,7 @@ class AxiosHelper {
             throw new Error(`Response: ${response.status}`);
         }
 
-        return (await response.data);
+        return response.data;
     }
 }
 
