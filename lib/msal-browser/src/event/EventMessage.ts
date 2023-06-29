@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     AuthError,
     AccountInfo,
 } from "@azure/msal-common";
@@ -16,6 +15,7 @@ import {
     SilentRequest,
     SsoSilentRequest,
     EndSessionRequest,
+    AuthenticationResult,
 } from "..";
 
 export type EventMessage = {

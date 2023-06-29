@@ -9,7 +9,6 @@ import {
     AccountInfo,
     Constants,
     INetworkModule,
-    AuthenticationResult,
     Logger,
     CommonSilentFlowRequest,
     ICrypto,
@@ -72,6 +71,7 @@ import { StandardOperatingContext } from "../operatingcontext/StandardOperatingC
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { version, name } from "../packageMetadata";
 import { IController } from "./IController";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class StandardController implements IController {
     // OperatingContext

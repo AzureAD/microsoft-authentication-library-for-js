@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     ThrottlingUtils,
@@ -45,6 +44,7 @@ import {
 } from "../interaction_handler/InteractionHandler";
 import { PopupWindowAttributes } from "../request/PopupWindowAttributes";
 import { EventError } from "../event/EventMessage";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export type PopupParams = InteractionParams & {
     popup?: Window | null;
