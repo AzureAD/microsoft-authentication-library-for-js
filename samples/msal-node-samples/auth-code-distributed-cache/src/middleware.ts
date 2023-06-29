@@ -12,6 +12,8 @@ import UrlUtils from './UrlUtils';
 
 type TokenRequest = Omit<AuthorizationCodeRequest, "code" | "redirectUri">;
 
+const EMPTY_STRING = "";
+
 export type AuthOptions = {
     appConfig: AppConfig
     authProvider: AuthProvider
@@ -65,7 +67,7 @@ export const auth = (options: AuthOptions): Router => {
                 redirectUri: options.appConfig.redirectUri,
                 scopes: [],
                 state,
-                code: ""
+                code: EMPTY_STRING
             }; // save token request params to session, which will be used to acquire token after redirect
 
             return res.redirect(authCodeUrl);
@@ -111,7 +113,7 @@ export const auth = (options: AuthOptions): Router => {
                         ...tokenRequest,
                         redirectUri: options.appConfig.redirectUri,
                         state,
-                        code: ""
+                        code: EMPTY_STRING
                     }; // save token request params to session, which will be used to acquire token after redirect
 
                     return res.redirect(authCodeUrl);

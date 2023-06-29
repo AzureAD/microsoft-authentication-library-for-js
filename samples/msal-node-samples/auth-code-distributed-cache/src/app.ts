@@ -65,12 +65,12 @@ async function main() {
     }));
 
     // view engine setup
-    app.set('views', path.join(__dirname, 'views'));
-    app.set('view engine', 'hbs');
+    app.set("views", path.join(__dirname, "views"));
+    app.set("view engine", "hbs");
 
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
-    app.use(express.static(path.join(__dirname, 'public')));
+    app.use(express.static(path.join(__dirname, "public")));
 
     /**
      * Custom middleware to handle authentication and authorization
@@ -89,35 +89,35 @@ async function main() {
         }
     }));
 
-    app.get('/call-graph-direct', async (req: Request, res: Response, next: NextFunction) => {
+    app.get("/call-graph-direct", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const graphResponse = await AxiosHelper.callDownstreamApi(
                 "https://graph.microsoft.com/v1.0/me",
                 req.session.protectedResources ? req.session.protectedResources["https://graph.microsoft.com/v1.0/me"].accessToken : undefined
             );
 
-            res.render('profile', { profile: graphResponse })
+            res.render("profile", { profile: graphResponse })
         } catch (error) {
             next(error);
         }
     });
 
-    app.get('/call-graph-on-behalf', async (req: Request, res: Response, next: NextFunction) => {
+    app.get("/call-graph-on-behalf", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const graphResponse = await AxiosHelper.callDownstreamApi(
                 "http://localhost:5000/obo",
                 req.session.protectedResources ? req.session.protectedResources["http://localhost:5000/obo"].accessToken : undefined
             );
 
-            res.render('profile', { profile: graphResponse })
+            res.render("profile", { profile: graphResponse })
         } catch (error) {
             next(error);
         }
     });
 
-    app.get('/', (req: Request, res: Response) => {
-        res.render('index', {
-            title: 'MSAL Node & Express Web App',
+    app.get("/", (req: Request, res: Response) => {
+        res.render("index", {
+            title: "MSAL Node & Express Web App",
             isAuthenticated: req.session.isAuthenticated,
             username: req.session.account?.username,
         });
@@ -126,11 +126,11 @@ async function main() {
     app.use((err: any, req: Request, res: Response, next: NextFunction) => {
         // set locals, only providing error in development
         res.locals.message = err.message;
-        res.locals.error = req.app.get('env') === 'development' ? err : {};
+        res.locals.error = req.app.get("env") === "development" ? err : {};
 
         // render the error page
         res.status(err.status || 500);
-        res.render('error');
+        res.render("error");
     });
 
     app.listen(port, () => {
