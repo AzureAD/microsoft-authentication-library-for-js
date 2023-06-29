@@ -646,7 +646,7 @@ describe("PublicClientApplication", () => {
         });
     });
 
-    test("initializeBaseRequest passes a claims hash to acquireToken when claimsBasedHashing is enabled", async () => {
+    test("initializeBaseRequest passes a requested claims hash to acquireToken when claimsBasedHashing is enabled", async () => {
         const account: AccountInfo = {
             homeAccountId: "",
             environment: "",
