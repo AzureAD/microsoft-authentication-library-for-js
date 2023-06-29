@@ -34,7 +34,7 @@ export const auth = (options: AuthOptions): Router => {
         next();
     });
 
-    // handle redirect response from service
+    // handle redirect response from AAD
     appRouter.post(UrlUtils.getPathFromUrl(options.appConfig.redirectUri), async (req: Request, res: Response, next: NextFunction) => {
         try {
             const tokenResponse = await options.authProvider.getTokenInteractive({
@@ -82,8 +82,8 @@ export const auth = (options: AuthOptions): Router => {
 
         appRouter.get(route, async (req: Request, res: Response, next: NextFunction) => {
             try {
-                if (!tokenRequest.authority?.includes(options.appConfig.tenantId)) {
-                    throw new InteractionRequiredAuthError("New authority set requires interaction.");
+                if (tokenRequest.authority && !tokenRequest.authority.includes(options.appConfig.tenantId)) {
+                    throw new InteractionRequiredAuthError("New authority set - requires interaction.");
                 }
 
                 const tokenResponse = await options.authProvider.getTokenSilent({
