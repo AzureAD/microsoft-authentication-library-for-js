@@ -7,7 +7,6 @@ import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResp
 import { buildClientInfo } from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
@@ -201,8 +200,7 @@ export class ResponseHandler {
 
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (
-                authCodePayload &&
-                !StringUtils.isEmpty(authCodePayload.nonce)
+                authCodePayload && authCodePayload.nonce
             ) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
                     throw ClientAuthError.createNonceMismatchError();
@@ -335,7 +333,7 @@ export class ResponseHandler {
         authCodePayload?: AuthorizationCodePayload
     ): CacheRecord {
         const env = authority.getPreferredCache();
-        if (StringUtils.isEmpty(env)) {
+        if (!env) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
@@ -343,7 +341,7 @@ export class ResponseHandler {
         let cachedIdToken: IdTokenEntity | undefined;
         let cachedAccount: AccountEntity | undefined;
         if (
-            !StringUtils.isEmpty(serverTokenResponse.id_token) &&
+            serverTokenResponse.id_token &&
             !!idTokenObj
         ) {
             cachedIdToken = IdTokenEntity.createIdTokenEntity(
@@ -364,7 +362,7 @@ export class ResponseHandler {
 
         // AccessToken
         let cachedAccessToken: AccessTokenEntity | null = null;
-        if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
+        if (serverTokenResponse.access_token) {
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope
                 ? ScopeSet.fromString(serverTokenResponse.scope)
@@ -418,7 +416,7 @@ export class ResponseHandler {
 
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
-        if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
+        if (serverTokenResponse.refresh_token) {
             cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
                 env,
@@ -431,7 +429,7 @@ export class ResponseHandler {
 
         // appMetadata
         let cachedAppMetadata: AppMetadataEntity | null = null;
-        if (!StringUtils.isEmpty(serverTokenResponse.foci)) {
+        if (serverTokenResponse.foci) {
             cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(
                 this.clientId,
                 env,
@@ -484,7 +482,7 @@ export class ResponseHandler {
 
         // This fallback applies to B2C as well as they fall under an AAD account type.
         if (
-            StringUtils.isEmpty(serverTokenResponse.client_info) &&
+            !serverTokenResponse.client_info &&
             authority.protocolMode === "AAD"
         ) {
             throw ClientAuthError.createClientInfoEmptyError();

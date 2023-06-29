@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils } from "../utils/StringUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PromptValue, CodeChallengeMethodValues } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
@@ -17,7 +16,7 @@ export class RequestValidator {
      * @param redirectUri
      */
     static validateRedirectUri(redirectUri: string): void {
-        if (StringUtils.isEmpty(redirectUri)) {
+        if (!redirectUri) {
             throw ClientConfigurationError.createRedirectUriEmptyError();
         }
     }
@@ -56,8 +55,8 @@ export class RequestValidator {
         codeChallengeMethod: string
     ): void {
         if (
-            StringUtils.isEmpty(codeChallenge) ||
-            StringUtils.isEmpty(codeChallengeMethod)
+            !codeChallenge ||
+            !codeChallengeMethod
         ) {
             throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
         } else {

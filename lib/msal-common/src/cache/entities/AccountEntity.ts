@@ -13,7 +13,6 @@ import { Authority } from "../../authority/Authority";
 import { AuthToken } from "../../account/AuthToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
-import { StringUtils } from "../../utils/StringUtils";
 import { AccountInfo } from "../../account/AccountInfo";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { AuthorityType } from "../../authority/AuthorityType";
@@ -277,8 +276,8 @@ export class AccountEntity {
             try {
                 const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
                 if (
-                    !StringUtils.isEmpty(clientInfo.uid) &&
-                    !StringUtils.isEmpty(clientInfo.utid)
+                    clientInfo.uid &&
+                    clientInfo.utid
                 ) {
                     return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
                 }

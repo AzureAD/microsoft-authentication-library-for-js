@@ -456,7 +456,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         }
 
         // Check for ADAL/MSAL v1 SSO
-        if (StringUtils.isEmpty(validatedRequest.loginHint) && !account) {
+        if (!validatedRequest.loginHint && !account) {
             const legacyLoginHint = this.browserStorage.getLegacyLoginHint();
             if (legacyLoginHint) {
                 validatedRequest.loginHint = legacyLoginHint;

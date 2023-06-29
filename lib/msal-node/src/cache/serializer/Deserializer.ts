@@ -36,7 +36,7 @@ export class Deserializer {
      * @param cachedJson
      */
     static deserializeJSONBlob(jsonFile: string): JsonCache {
-        const deserializedCache = StringUtils.isEmpty(jsonFile)
+        const deserializedCache = !jsonFile
             ? {}
             : JSON.parse(jsonFile);
         return deserializedCache;

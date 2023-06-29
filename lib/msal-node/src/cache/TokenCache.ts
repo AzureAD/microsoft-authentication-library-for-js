@@ -77,7 +77,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         );
 
         // if cacheSnapshot not null or empty, merge
-        if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+        if (this.cacheSnapshot) {
             this.logger.trace("Reading cache snapshot from disk");
             finalState = this.mergeState(
                 JSON.parse(this.cacheSnapshot),
@@ -99,7 +99,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         this.logger.trace("Deserializing JSON to in-memory cache");
         this.cacheSnapshot = cache;
 
-        if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+        if (this.cacheSnapshot) {
             this.logger.trace("Reading cache snapshot from disk");
             const deserializedCache = Deserializer.deserializeAllCache(
                 this.overlayDefaults(JSON.parse(this.cacheSnapshot))
@@ -147,7 +147,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     ): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
         if (
-            !StringUtils.isEmpty(homeAccountId) &&
+            homeAccountId &&
             allAccounts &&
             allAccounts.length
         ) {
@@ -172,7 +172,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     ): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
         if (
-            !StringUtils.isEmpty(localAccountId) &&
+            localAccountId &&
             allAccounts &&
             allAccounts.length
         ) {
