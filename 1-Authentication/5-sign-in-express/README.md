@@ -5,7 +5,7 @@ description: This sample demonstrates a Node.js & Express web app authenticating
 languages:
  - javascript
 products:
- - azure-active-directory
+ - entra-external-id
  - msal-node
 urlFragment: ms-identity-ciam-javascript-tutorial-5-sign-in-express
 extensions:

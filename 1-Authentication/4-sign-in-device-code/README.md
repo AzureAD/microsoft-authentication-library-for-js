@@ -1,11 +1,11 @@
 ---
 page_type: sample
-name: A Node headless application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)
-description: A Node headless application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)
+name: A Node headless application using MSAL Node to authenticate users with the device code flow against Customer Identity Access Management (CIAM)
+description: A Node headless application using MSAL Node to authenticate users with the device code flow against Customer Identity Access Management (CIAM)
 languages:
  - javascript
 products:
- - azure-active-directory
+ - entra-external-id
  - msal-js
  - msal-node
 urlFragment: ms-identity-ciam-javascript-tutorial-4-sign-in-device-code
@@ -22,7 +22,7 @@ extensions:
     - Node headless application
 ---
 
-# A Node headless application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)
+# A Node headless application using MSAL Node to authenticate users with the device code flow against Customer Identity Access Management (CIAM)
 
 * [Overview](#overview)
 * [Scenario](#scenario)

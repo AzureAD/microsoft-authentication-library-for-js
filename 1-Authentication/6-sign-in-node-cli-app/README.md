@@ -5,7 +5,7 @@ description: A Node Command Line Interface (CLI) application using MSAL Node to 
 languages:
  - javascript
 products:
- - azure-active-directory
+ - entra-external-id
  - msal-js
  - msal-node
 urlFragment: ms-identity-ciam-javascript-tutorial-6-sign-in-node-cli-app

@@ -5,7 +5,7 @@ description: This sample demonstrates a Vanilla JavaScript single-page applicati
 languages:
  - javascript
 products:
- - azure-active-directory
+ - entra-external-id
  - msal-js
 urlFragment: ms-identity-ciam-javascript-tutorial-0-sign-in-vanillajs
 extensions:
