@@ -507,7 +507,8 @@ export abstract class ClientApplication {
         if (
             this.config.cache.claimsBasedCachingEnabled &&
             authRequest.claims &&
-            !StringUtils.isEmpty(authRequest.claims)
+            // Checks for empty stringified object "{}" which doesn't qualify as requested claims
+            !StringUtils.isEmptyObj(authRequest.claims)
         ) {
             authRequest.requestedClaimsHash =
                 await this.cryptoProvider.hashString(authRequest.claims);

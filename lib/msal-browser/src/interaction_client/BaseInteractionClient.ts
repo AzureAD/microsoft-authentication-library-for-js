@@ -182,7 +182,8 @@ export abstract class BaseInteractionClient {
         if (
             this.config.cache.claimsBasedCachingEnabled &&
             request.claims &&
-            !StringUtils.isEmpty(request.claims)
+            // Checks for empty stringified object "{}" which doesn't qualify as requested claims
+            !StringUtils.isEmptyObj(request.claims)
         ) {
             validatedRequest.requestedClaimsHash =
                 await this.browserCrypto.hashString(request.claims);
