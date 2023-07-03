@@ -45,7 +45,8 @@ const msalConfig = {
         }
     },
     cache: {
-        cachePlugin // your implementation of cache plugin
+        cachePlugin // your implementation of cache plugin,
+        claimsBasedCachingEnabled: true
     },
     system: {
         loggerOptions: {
@@ -81,7 +82,8 @@ const msalInstance = new PublicClientApplication(msalConfig);
 ### Cache Config Options
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
-| `cachePlugin` | Cache plugin with call backs to reading and writing into the cache persistence (see also: [caching](caching.md)) | [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null
+| `cachePlugin` | Cache plugin with call backs to reading and writing into the cache persistence (see also: [caching](caching.md)) | [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null |
+| `claimsBasedCachingEnabled` | If `true`, access tokens will be cached under a key containing the hash of the requested claims string, resulting in a cache miss and new network token request when the same token request is made with different or missing claims. If set to `false`, tokens will be cached without claims, but all requests containing claims will go to the network and overwrite any previously cached token with the same scopes. | boolean | `true` |
 
 ### System Config Options
 | Option | Description | Format | Default Value |
