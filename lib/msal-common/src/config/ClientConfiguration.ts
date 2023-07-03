@@ -113,7 +113,7 @@ export type LoggerOptions = {
 /**
  *  Use this to configure credential cache preferences in the ClientConfiguration object
  *
- * - claimsBasedCachingEnabled   - Sets whether tokens should be cached based on the claims hash. Default is true.
+ * - claimsBasedCachingEnabled   - Sets whether tokens should be cached based on the claims hash. Default is false.
  */
 export type CacheOptions = {
     claimsBasedCachingEnabled?: boolean;
