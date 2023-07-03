@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+import { Constants, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
 import { PopupRequest } from "../request/PopupRequest";
 import { RedirectRequest } from "../request/RedirectRequest";
 
@@ -11,6 +11,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
  * Constants
  */
 export const BrowserConstants = {
+    ...Constants,
     /**
      * Interaction in progress cache value
      */
