@@ -47,6 +47,7 @@ export {
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
+export { OIDCOptions, ServerResponseType } from "./authority/OIDCOptions";
 // Broker
 export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 // Cache

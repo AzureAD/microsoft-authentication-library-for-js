@@ -23,6 +23,7 @@ import {
     AzureCloudOptions,
     PerformanceEvents,
     AuthError,
+    ServerResponseType,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -350,6 +351,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             );
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
+            OIDCOptions: this.config.auth.OIDCOptions,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
@@ -433,12 +435,22 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             PerformanceEvents.InitializeBaseRequest,
             this.correlationId
         );
+
+        var configResponseMode = null;
+        if(!this.config.auth.OIDCOptions || 
+            this.config.auth.OIDCOptions.serverResponseType.includes(ServerResponseType.HASH)) {
+            configResponseMode = ResponseMode.FRAGMENT;
+        }
+        else {
+            configResponseMode = ResponseMode.QUERY;
+        }
+
         const validatedRequest: AuthorizationUrlRequest = {
             ...(await this.initializeBaseRequest(request)),
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),
-            responseMode: ResponseMode.FRAGMENT,
+            responseMode: configResponseMode,
         };
 
         const account =

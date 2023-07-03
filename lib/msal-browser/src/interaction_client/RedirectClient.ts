@@ -17,6 +17,7 @@ import {
     Logger,
     IPerformanceClient,
     PerformanceEvents,
+    ProtocolMode,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
@@ -195,7 +196,6 @@ export class RedirectClient extends StandardInteractionClient {
                 );
                 return null;
             }
-
             const responseHash = this.getRedirectResponseHash(
                 hash || window.location.hash
             );
@@ -506,6 +506,33 @@ export class RedirectClient extends StandardInteractionClient {
                 logoutRequest && logoutRequest.authority
             );
             this.logger.verbose("Auth code client created");
+
+            try { // must fix, is there a prettier way to write it?
+                authClient.authority.endSessionEndpoint;
+            } catch {
+                if (validLogoutRequest.account?.homeAccountId && validLogoutRequest.postLogoutRedirectUri && authClient.authority.protocolMode == ProtocolMode.OIDC){
+                    this.browserStorage.removeAccount(validLogoutRequest.account?.homeAccountId);
+                    this.browserStorage.removeAccessToken(validLogoutRequest.account?.homeAccountId);
+                    this.browserStorage.removeIdToken(validLogoutRequest.account?.homeAccountId);
+                    this.browserStorage.removeRefreshToken(validLogoutRequest.account?.homeAccountId);
+                    
+                    this.eventHandler.emitEvent(
+                        EventType.LOGOUT_SUCCESS,
+                        InteractionType.Redirect,
+                        validLogoutRequest
+                    );
+    
+                    if (!this.browserStorage.getInteractionInProgress()) {
+                        this.browserStorage.setInteractionInProgress(true);
+                    }
+                    await this.navigationClient.navigateExternal(
+                        validLogoutRequest.postLogoutRedirectUri,
+                        navigationOptions
+                    );
+    
+                    return;
+                }
+            }
 
             // Create logout string and navigate user window to logout.
             const logoutUri: string =

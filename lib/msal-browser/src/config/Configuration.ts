@@ -10,6 +10,7 @@ import {
     DEFAULT_SYSTEM_OPTIONS,
     Constants,
     ProtocolMode,
+    OIDCOptions,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
@@ -74,6 +75,10 @@ export type BrowserAuthOptions = {
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
     protocolMode?: ProtocolMode;
+     /**
+     * Enum that configures options for the OIDC protocol mode.
+     */
+     OIDCOptions?: OIDCOptions | null;
     /**
      * Enum that represents the Azure Cloud to use.
      */
@@ -236,6 +241,7 @@ export function buildConfiguration(
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
+        OIDCOptions: null,
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
             tenant: Constants.EMPTY_STRING,

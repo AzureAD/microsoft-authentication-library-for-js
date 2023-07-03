@@ -255,6 +255,7 @@ export abstract class BaseInteractionClient {
         this.logger.verbose("getDiscoveredAuthority called");
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
+            OIDCOptions: this.config.auth.OIDCOptions,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,

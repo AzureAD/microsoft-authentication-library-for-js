@@ -24,6 +24,10 @@ import {
     InProgressPerformanceEvent,
     RequestThumbprint,
     ServerError,
+    ClientConfigurationError,
+    ProtocolMode,
+    ServerResponseType,
+    OIDC_DEFAULT_SCOPES,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -325,6 +329,23 @@ export class StandardController implements IController {
             this.config.system.allowNativeBroker,
             this.initialized
         );
+
+        if(this.config.auth.protocolMode == ProtocolMode.OIDC && 
+            this.config.auth.OIDCOptions &&
+            this.config.auth.OIDCOptions.serverResponseType.includes(ServerResponseType.QUERY) && 
+            !this.config.auth.OIDCOptions.serverResponseType.includes(ServerResponseType.HASH)) {
+                 /*
+                     * Check from ?code to make sure we don't get a random query string
+                     * until # since some IDPs add stuff that doesn't concern MSAL after the # 
+                 */
+                 let url = window.location.href;
+                 hash = url.substring(url.indexOf("?code") + 1, url.indexOf("#"));
+         }
+         // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
+         else if(this.config.auth.protocolMode != ProtocolMode.OIDC && 
+                 this.config.auth.OIDCOptions) {
+                     throw ClientConfigurationError.createCannotSetOIDCOptionsError();
+         }
 
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {

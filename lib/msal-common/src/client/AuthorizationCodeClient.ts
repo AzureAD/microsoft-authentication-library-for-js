@@ -40,6 +40,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { ServerResponseType } from "../authority/OIDCOptions";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -67,7 +68,9 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(
         request: CommonAuthorizationUrlRequest
-    ): Promise<string> {
+    ): 
+        
+        Promise<string> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.GetAuthCodeUrl,
             request.correlationId
@@ -200,8 +203,13 @@ export class AuthorizationCodeClient extends BaseClient {
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         // Deserialize hash fragment response parameters.
-        const serverParams: ServerAuthorizationCodeResponse =
-            UrlString.getDeserializedHash(hashUrlString.getHash());
+        var serverParams : ServerAuthorizationCodeResponse;
+        if(this.config.authOptions.authority.options.OIDCOptions?.serverResponseType.includes(ServerResponseType.QUERY)) {
+            serverParams = UrlString.getDeserializedHash(hashFragment);
+        }
+        else{
+            serverParams = UrlString.getDeserializedHash(hashUrlString.getHash());
+        }
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
@@ -336,7 +344,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add scope array, parameter builder will add default scopes and dedupe
-        parameterBuilder.addScopes(request.scopes);
+        parameterBuilder.addScopes(request.scopes, this.config.authOptions.authority.options.OIDCOptions?.defaultScopes);
 
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
@@ -496,7 +504,7 @@ export class AuthorizationCodeClient extends BaseClient {
             ...(request.scopes || []),
             ...(request.extraScopesToConsent || []),
         ];
-        parameterBuilder.addScopes(requestScopes);
+        parameterBuilder.addScopes(requestScopes, this.config.authOptions.authority.options.OIDCOptions?.defaultScopes);
 
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);

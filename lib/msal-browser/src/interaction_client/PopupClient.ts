@@ -19,6 +19,8 @@ import {
     IPerformanceClient,
     Logger,
     ICrypto,
+    ProtocolMode,
+    ServerResponseType,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { EventType } from "../event/EventType";
@@ -413,6 +415,49 @@ export class PopupClient extends StandardInteractionClient {
             );
             this.logger.verbose("Auth code client created");
 
+            try { // must fix, is there a prettier way to write it?
+                authClient.authority.endSessionEndpoint;
+            } catch {
+                if (validRequest.account?.homeAccountId && validRequest.postLogoutRedirectUri && authClient.authority.protocolMode == ProtocolMode.OIDC){
+                    this.browserStorage.removeAccount(validRequest.account?.homeAccountId);
+                    this.browserStorage.removeAccessToken(validRequest.account?.homeAccountId);
+                    this.browserStorage.removeIdToken(validRequest.account?.homeAccountId);
+                    this.browserStorage.removeRefreshToken(validRequest.account?.homeAccountId);
+                    
+                    this.eventHandler.emitEvent(
+                        EventType.LOGOUT_SUCCESS,
+                        InteractionType.Popup,
+                        validRequest
+                    );
+
+                    const popupWindow = this.openPopup(window.location.href, {
+                        popupName,
+                        popupWindowAttributes,
+                        popup,
+                    });
+
+                    if(mainWindowRedirectUri){
+                        const navigationOptions: NavigationOptions = {
+                            apiId: ApiId.logoutPopup,
+                            timeout: this.config.system.redirectNavigationTimeout,
+                            noHistory: false,
+                        };
+                        const absoluteUrl = UrlString.getAbsoluteUrl(
+                            mainWindowRedirectUri,
+                            BrowserUtils.getCurrentUri()
+                        );
+                        await this.navigationClient.navigateInternal(
+                            absoluteUrl,
+                            navigationOptions
+                        );
+                    }
+
+                    this.cleanPopup(popupWindow);
+
+                    return;
+                }
+            }
+
             // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
 
@@ -540,16 +585,29 @@ export class PopupClient extends StandardInteractionClient {
                     return;
                 }
 
-                let href: string = Constants.EMPTY_STRING;
-                let hash: string = Constants.EMPTY_STRING;
-                try {
+                var href = popupWindow.location.href;
+                var hash;
+                if(this.config.auth.protocolMode == ProtocolMode.OIDC && 
+                    this.config.auth.OIDCOptions &&
+                    this.config.auth.OIDCOptions.serverResponseType.includes(ServerResponseType.QUERY) && 
+                    !this.config.auth.OIDCOptions.serverResponseType.includes(ServerResponseType.HASH)) {
+                    /*
+                        * Check from ?code to make sure we don't get a random query string
+                        * until # since some IDPs add stuff that doesn't concern MSAL after the # 
+                        */
+                    hash = href.substring(href.indexOf("?code") + 1, href.indexOf("#"));
+                }
+                else {
+                    hash = popupWindow.location.hash;
+                }
+                try { // must fix, is there a prettier way to do this?
                     /*
                      * Will throw if cross origin,
                      * which should be caught and ignored
                      * since we need the interval to keep running while on STS UI.
                      */
-                    href = popupWindow.location.href;
-                    hash = popupWindow.location.hash;
+                    popupWindow.location.href;
+                    popupWindow.location.hash;
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain

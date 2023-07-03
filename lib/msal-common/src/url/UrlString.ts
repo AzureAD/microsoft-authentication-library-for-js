@@ -307,7 +307,7 @@ export class UrlString {
             // Hash doesn't contain key/value pairs
             return false;
         }
-
+        
         const parameters: ServerAuthorizationCodeResponse =
             UrlString.getDeserializedHash(hash);
         return !!(

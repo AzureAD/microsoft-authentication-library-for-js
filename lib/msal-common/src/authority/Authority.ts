@@ -362,6 +362,7 @@ export class Authority {
         let metadataEntity = this.cacheManager.getAuthorityMetadataByAlias(
             this.hostnameAndPort
         );
+
         if (!metadataEntity) {
             metadataEntity = new AuthorityMetadataEntity();
             metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
@@ -385,7 +386,6 @@ export class Authority {
         const endpointSource = await this.updateEndpointMetadata(
             metadataEntity
         );
-
         if (
             cloudDiscoverySource !== AuthorityMetadataSource.CACHE &&
             endpointSource !== AuthorityMetadataSource.CACHE
@@ -413,13 +413,11 @@ export class Authority {
             PerformanceEvents.AuthorityUpdateEndpointMetadata,
             this.correlationId
         );
-
         let metadata = this.getEndpointMetadataFromConfig();
         if (metadata) {
             metadataEntity.updateEndpointMetadata(metadata, false);
             return AuthorityMetadataSource.CONFIG;
         }
-
         if (
             this.isAuthoritySameType(metadataEntity) &&
             metadataEntity.endpointsFromNetwork &&
@@ -570,7 +568,6 @@ export class Authority {
 
     /**
      * Update the retrieved metadata with regional information.
-     * User selected Azure region will be used if configured.
      */
     private async updateMetadataWithRegionalInformation(
         metadata: OpenIdConfigResponse
@@ -580,38 +577,47 @@ export class Authority {
             this.correlationId
         );
 
-        const userConfiguredAzureRegion = this.authorityOptions.azureRegionConfiguration?.azureRegion;
+        this.performanceClient?.setPreQueueTime(
+            PerformanceEvents.RegionDiscoveryDetectRegion,
+            this.correlationId
+        );
+        const autodetectedRegionName = await this.regionDiscovery.detectRegion(
+            this.authorityOptions.azureRegionConfiguration?.environmentRegion,
+            this.regionDiscoveryMetadata
+        );
 
-        if (userConfiguredAzureRegion) {
-            if (userConfiguredAzureRegion !== Constants.AZURE_REGION_AUTO_DISCOVER_FLAG) {
-                this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
-                this.regionDiscoveryMetadata.region_used = userConfiguredAzureRegion;
-                return Authority.replaceWithRegionalInformation(
-                    metadata, 
-                    userConfiguredAzureRegion
-                );
-            }
-    
-            this.performanceClient?.setPreQueueTime(
-                PerformanceEvents.RegionDiscoveryDetectRegion,
-                this.correlationId
-            );
-    
-            const autodetectedRegionName = await this.regionDiscovery.detectRegion(
-                this.authorityOptions.azureRegionConfiguration?.environmentRegion,
-                this.regionDiscoveryMetadata
-            );
-    
+        const azureRegion =
+            this.authorityOptions.azureRegionConfiguration?.azureRegion ===
+            Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
+                ? autodetectedRegionName
+                : this.authorityOptions.azureRegionConfiguration?.azureRegion;
+
+        if (
+            this.authorityOptions.azureRegionConfiguration?.azureRegion ===
+            Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
+        ) {
+            this.regionDiscoveryMetadata.region_outcome = autodetectedRegionName
+                ? RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL
+                : RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
+        } else {
             if (autodetectedRegionName) {
-                this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL;
-                this.regionDiscoveryMetadata.region_used = autodetectedRegionName;
-                return Authority.replaceWithRegionalInformation(
-                    metadata, 
-                    autodetectedRegionName
-                );
+                this.regionDiscoveryMetadata.region_outcome =
+                    this.authorityOptions.azureRegionConfiguration
+                        ?.azureRegion === autodetectedRegionName
+                        ? RegionDiscoveryOutcomes.CONFIGURED_MATCHES_DETECTED
+                        : RegionDiscoveryOutcomes.CONFIGURED_NOT_DETECTED;
+            } else {
+                this.regionDiscoveryMetadata.region_outcome =
+                    RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
             }
-    
-            this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
+        }
+
+        if (azureRegion) {
+            this.regionDiscoveryMetadata.region_used = azureRegion;
+            return Authority.replaceWithRegionalInformation(
+                metadata,
+                azureRegion
+            );
         }
 
         return metadata;
