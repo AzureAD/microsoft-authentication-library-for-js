@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Export additional internal classes for the 1p #6186",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
