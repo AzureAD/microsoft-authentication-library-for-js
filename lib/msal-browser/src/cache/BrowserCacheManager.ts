@@ -1392,7 +1392,8 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger):
         temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
         storeAuthStateInCookie: false,
         secureCookies: false,
-        cacheMigrationEnabled: false
+        cacheMigrationEnabled: false,
+        claimsBasedCachingEnabled: true
     };
     return new BrowserCacheManager(clientId, cacheOptions, DEFAULT_CRYPTO_IMPLEMENTATION, logger);
 };
