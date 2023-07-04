@@ -42,7 +42,7 @@ line3
 line4
 -----END CERTIFICATE-----
     `,
-    CLAIMS: 'claim1 claim2',
+    CLAIMS: "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"c1\"}}}",
     SNI_CERTIFICATE:
         `-----BEGIN PRIVATE KEY-----\r
 line1\r
@@ -196,7 +196,7 @@ export const TEST_DATA_CLIENT_INFO = {
 // Test Crypto Values
 export const TEST_CRYPTO_VALUES = {
     TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE"
-}
+};
 
 export const mockAuthenticationResult: AuthenticationResult = {
     authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
@@ -217,11 +217,11 @@ export const mockAuthenticationResult: AuthenticationResult = {
     expiresOn: new Date(),
     tokenType: "BEARER",
     correlationId: "test-correlationId"
-}
+};
 
 export type MockedMetadataResponse = {
     tenant_discovery_endpoint: string,
     token_endpoint: string,
     authorization_endpoint: string,
     device_authorization_endpoint: string
-}
+};

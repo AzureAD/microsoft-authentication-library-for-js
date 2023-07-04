@@ -316,7 +316,7 @@ describe('PublicClientApplication', () => {
         expect(mockCloseServer).toHaveBeenCalledTimes(1);
     });
 
-    test('initializeBaseRequest passes a claims hash to acquireToken', async () => {
+    test('initializeBaseRequest passes a requested claims hash to acquireToken with default cache config', async () => {
         const account: AccountInfo = {
             homeAccountId: "",
             environment: "",
@@ -346,7 +346,44 @@ describe('PublicClientApplication', () => {
         const submittedRequest = mocked(silentFlowClient.prototype.acquireToken).mock.calls[0][0];
         expect((submittedRequest as any)?.requestedClaimsHash?.length)
             .toBeGreaterThan(0);
-    })
+    });
+
+    test('initializeBaseRequest does not pass a requested claims hash to acquireToken when claimsBasedCachingEnabled is set to false', async () => {
+        const account: AccountInfo = {
+            homeAccountId: "",
+            environment: "",
+            tenantId: "",
+            username: "",
+            localAccountId: "",
+            name: "",
+            idTokenClaims: ID_TOKEN_CLAIMS
+
+        };
+        const request: SilentFlowRequest = {
+            account: account,
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            claims: TEST_CONSTANTS.CLAIMS,
+        };
+
+        const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+        jest.spyOn(msalCommon, 'SilentFlowClient')
+            .mockImplementation((config) => new silentFlowClient(config));
+
+
+        const authApp = new PublicClientApplication({
+            ...appConfig,
+            cache: {
+                claimsBasedCachingEnabled: false
+            }
+        });
+
+        await authApp.acquireTokenSilent(request);
+        expect(silentFlowClient.prototype.acquireToken)
+            .not.toHaveBeenCalledWith(expect.objectContaining({ requestedClaimsHash: expect.any(String) }))
+
+        const submittedRequest = mocked(silentFlowClient.prototype.acquireToken).mock.calls[0][0];
+        expect((submittedRequest as any)?.requestedClaimsHash).toBe(undefined);
+    });
 
 
     test('create AuthorizationCode URL', async () => {
