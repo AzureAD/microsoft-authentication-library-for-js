@@ -196,6 +196,116 @@ describe("SilentFlowClient unit tests", () => {
             expect(response.state).toBe("");
         });
 
+        it("acquireCachedToken does not throw when given valid claims with default configuration", async () => {
+            const testScopes = [
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
+                ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            ];
+            testAccessTokenEntity.target = testScopes.join(" ");
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon
+                .stub(AuthToken, "extractTokenClaims")
+                .returns(ID_TOKEN_CLAIMS);
+            sinon
+                .stub(CacheManager.prototype, "readAccountFromCache")
+                .returns(testAccountEntity);
+            sinon
+                .stub(CacheManager.prototype, "getIdToken")
+                .returns(testIdToken);
+            sinon
+                .stub(CacheManager.prototype, "getAccessToken")
+                .returns(testAccessTokenEntity);
+            sinon
+                .stub(CacheManager.prototype, "getRefreshToken")
+                .returns(testRefreshTokenEntity);
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config, stubPerformanceClient);
+            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                claims: `{ "access_token": { "xms_cc":{"values":["cp1"] } }}`,
+            };
+
+            const response = await client.acquireCachedToken(silentFlowRequest);
+            expect(response.authority).toEqual(`${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.scopes).toEqual(testScopes);
+            expect(response.account).toEqual(testAccount);
+            expect(response.idToken).toEqual(testIdToken.secret);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.accessToken).toEqual(testAccessTokenEntity.secret);
+            expect(response.state).toBe("");
+        });
+
+        it("acquireCachedToken throws when given valid claims with claimsBasedCachingEnabled = false", async () => {
+            const testScopes = [
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
+                ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            ];
+            testAccessTokenEntity.target = testScopes.join(" ");
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon
+                .stub(AuthToken, "extractTokenClaims")
+                .returns(ID_TOKEN_CLAIMS);
+            sinon
+                .stub(CacheManager.prototype, "readAccountFromCache")
+                .returns(testAccountEntity);
+            sinon
+                .stub(CacheManager.prototype, "getIdToken")
+                .returns(testIdToken);
+            sinon
+                .stub(CacheManager.prototype, "getAccessToken")
+                .returns(testAccessTokenEntity);
+            sinon
+                .stub(CacheManager.prototype, "getRefreshToken")
+                .returns(testRefreshTokenEntity);
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(
+                {
+                    ...config,
+                    cacheOptions: { 
+                        claimsBasedCachingEnabled: false
+                    }
+                },
+                stubPerformanceClient);
+            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                claims: `{ "access_token": { "xms_cc":{"values":["cp1"] } }}`,
+            };
+
+            await expect(
+                client.acquireCachedToken(silentFlowRequest)
+            ).rejects.toMatchObject(
+                ClientAuthError.createRefreshRequiredError()
+            );
+        });
+
 
         it("acquireCachedToken returns correct token when max age is provided and has not transpired yet", async () => {
             const testScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE];
