@@ -503,7 +503,7 @@ export abstract class ClientApplication {
 
         authRequest.authenticationScheme = AuthenticationScheme.BEARER;
 
-        // // Set requested claims hash if claims-based caching is enabled and claims were requested
+        // Set requested claims hash if claims-based caching is enabled and claims were requested
         if (
             this.config.cache.claimsBasedCachingEnabled &&
             authRequest.claims &&
