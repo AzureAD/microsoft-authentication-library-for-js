@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "fix: msal-node now references the right index.esm.ja",
+  "packageName": "@azure/msal-node",
+  "email": "joshua.head@envoryat.com",
+  "dependentChangeType": "patch"
+}
