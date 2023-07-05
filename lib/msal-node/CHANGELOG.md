@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 07 Jun 2023 03:15:51 GMT and should not be manually modified.
+This log was last generated on Wed, 05 Jul 2023 22:05:09 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.18.0
+
+Wed, 05 Jul 2023 22:05:09 GMT
+
+### Minor changes
+
+- Make claims-based caching configurable [LTS] #6187 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v13.2.0
 
 ## 1.17.3
 

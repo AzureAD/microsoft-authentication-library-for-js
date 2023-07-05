@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 05 Jul 2023 22:05:08 GMT",
+      "tag": "@azure/msal-common_v13.2.0",
+      "version": "13.2.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "db1d92f1ee3939a026f4923fe94812753f879264",
+            "comment": "Make claims-based caching configurable [LTS] #6187"
+          }
+        ],
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ae82bb72e9d9f6fec07a5f77096b9c5ebd582ae6",
+            "comment": "Fix performance bug with regional authority detection for MSAL v2 #6152"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Jun 2023 03:15:51 GMT",
       "tag": "@azure/msal-common_v13.1.0",
       "version": "13.1.0",
