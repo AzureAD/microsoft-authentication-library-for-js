@@ -437,6 +437,10 @@ export abstract class ClientApplication {
                     this.config.system.loggerOptions.piiLoggingEnabled,
                 correlationId: requestCorrelationId,
             },
+            cacheOptions: {
+                claimsBasedCachingEnabled:
+                    this.config.cache.claimsBasedCachingEnabled,
+            },
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system.networkClient,
             storageInterface: this.storage,
@@ -499,8 +503,13 @@ export abstract class ClientApplication {
 
         authRequest.authenticationScheme = AuthenticationScheme.BEARER;
 
-        // Set requested claims hash if claims were requested
-        if (authRequest.claims && !StringUtils.isEmpty(authRequest.claims)) {
+        // Set requested claims hash if claims-based caching is enabled and claims were requested
+        if (
+            this.config.cache.claimsBasedCachingEnabled &&
+            authRequest.claims &&
+            // Checks for empty stringified object "{}" which doesn't qualify as requested claims
+            !StringUtils.isEmptyObj(authRequest.claims)
+        ) {
             authRequest.requestedClaimsHash =
                 await this.cryptoProvider.hashString(authRequest.claims);
         }
