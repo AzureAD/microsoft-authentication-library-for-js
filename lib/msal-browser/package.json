@@ -21,10 +21,20 @@
     "msal",
     "oauth"
   ],
+  "type": "module",
   "sideEffects": false,
-  "main": "./lib/msal-browser.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "module": "./dist/index.js",
+      "import": "./dist/index.js",
+      "require": "./lib/msal-browser.cjs.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "engines": {
     "node": ">=0.8.0"
   },
