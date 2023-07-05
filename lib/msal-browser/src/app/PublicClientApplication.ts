@@ -245,6 +245,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     if ((!isServerError ||
                             !isInvalidGrantError ||
                             isInteractionRequiredError ||
+                            this.config.auth.attemptSSO ||
                             requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
                             requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
                         && (requestWithCLP.cacheLookupPolicy !== CacheLookupPolicy.Skip)
