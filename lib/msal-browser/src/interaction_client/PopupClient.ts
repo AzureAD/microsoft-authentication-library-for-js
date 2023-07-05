@@ -588,9 +588,8 @@ export class PopupClient extends StandardInteractionClient {
                 var href = popupWindow.location.href;
                 var hash;
                 if(this.config.auth.protocolMode == ProtocolMode.OIDC && 
-                    this.config.auth.OIDCOptions &&
-                    this.config.auth.OIDCOptions.serverResponseType.includes(ServerResponseType.QUERY) && 
-                    !this.config.auth.OIDCOptions.serverResponseType.includes(ServerResponseType.HASH)) {
+                    this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.QUERY) && 
+                    !this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.HASH)) {
                     /*
                         * Check from ?code to make sure we don't get a random query string
                         * until # since some IDPs add stuff that doesn't concern MSAL after the # 

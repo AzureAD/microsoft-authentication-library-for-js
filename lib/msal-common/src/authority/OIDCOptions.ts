@@ -7,8 +7,8 @@
  * Options for the OIDC protocol mode.
  */
 export type OIDCOptions = {
-    serverResponseType: Array<string>;
-    defaultScopes: Array<string>;
+    serverResponseType?: Array<string>;
+    defaultScopes?: Array<string>;
 };
 
 export const ServerResponseType = {

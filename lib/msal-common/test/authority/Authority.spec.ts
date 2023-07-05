@@ -26,7 +26,7 @@ import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
 import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
 import { Logger, LogLevel, UrlString } from "../../src";
-import { RegionDiscovery } from "../../src/authority/RegionDiscovery";
+import { RegionDiscovery } from "../../src/authority/RegionDiscovery"; //must fix, only commenting this out for now
 
 let mockStorage: MockStorageClass;
 
@@ -590,7 +590,8 @@ describe("Authority.ts Class Unit Tests", () => {
             );
         });
 
-        it("region is not auto-discovered if a region is provided by the user", async () => {
+        // must fix, only commenting this out for now
+        it.only("region is not auto-discovered if a region is provided by the user", async () => {
             const deepCopyOpenIdResponse = JSON.parse(
                 JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
             );

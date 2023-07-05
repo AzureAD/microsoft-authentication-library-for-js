@@ -47,6 +47,8 @@ import {
     PersistentCacheKeys,
     Authority,
     AuthError,
+    ProtocolMode,
+    ClientConfigurationError,
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -799,6 +801,55 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResponse1).toEqual(tokenResponse2);
             expect(tokenResponse4).toEqual(tokenResponse1);
         });
+        it("Setting OIDCOptions when in AAD protocol mode throws an error", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    protocolMode: ProtocolMode.AAD,
+                    OIDCOptions: {serverResponseType: ["query"]}
+                },
+                telemetry: {
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+                system: {
+                    allowNativeBroker: false,
+                },
+            });
+
+            await expect(
+                pca.handleRedirectPromise()
+            ).rejects.toMatchObject(
+                ClientConfigurationError.createCannotSetOIDCOptionsError()
+            );
+        });
+        // must fix, this feature is not yet implemented in the code
+        // it("Setting protocol mode to OIDC when using a known Microsoft authority throws an error", async () => {
+        //     pca = new PublicClientApplication({
+        //         auth: {
+        //             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        //             authority: "https://login.microsoftonline.com/" + TEST_CONFIG.MSAL_TENANT_ID,
+        //             protocolMode: ProtocolMode.OIDC
+        //         },
+        //         telemetry: {
+        //             application: {
+        //                 appName: TEST_CONFIG.applicationName,
+        //                 appVersion: TEST_CONFIG.applicationVersion,
+        //             },
+        //         },
+        //         system: {
+        //             allowNativeBroker: false,
+        //         },
+        //     });
+
+        //     await expect(
+        //         pca.handleRedirectPromise()
+        //     ).rejects.toMatchObject(
+        //         ClientConfigurationError.createCannotSetOIDCProtocolModeError()
+        //     );
+        // });
     });
 
     describe("loginRedirect", () => {

@@ -803,7 +803,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
         const { scopes, ...remainingProperties } = request;
         const scopeSet = new ScopeSet(scopes || []);
-        scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
+        scopeSet.appendScopes(OIDC_DEFAULT_SCOPES); // must fix, ask if the nativerequest can only be used with microsoft (yes right?)
 
         const getPrompt = () => {
             // If request is silent, prompt is always none
