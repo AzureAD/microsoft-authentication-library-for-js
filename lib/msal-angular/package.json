@@ -35,7 +35,6 @@
     "format:check": "npx prettier --ignore-path .gitignore --check src",
     "format:fix": "npx prettier --ignore-path .gitignore --write src"
   },
-  "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
     "disallowedChangeTypes": [

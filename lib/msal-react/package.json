@@ -46,7 +46,7 @@
     "@azure/msal-browser": "^3.0.0-beta.0",
     "react": "^16.8.0 || ^17 || ^18"
   },
-  "module": "dist/msal-react.esm.js",
+  "module": "dist/index.js",
   "devDependencies": {
     "@azure/msal-browser": "^3.0.0-beta.0",
     "@testing-library/jest-dom": "^5.11.5",
