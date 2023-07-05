@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Remove unused main field in package.json #6190",
+  "packageName": "@azure/msal-angular",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
