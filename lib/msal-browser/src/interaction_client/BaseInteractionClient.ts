@@ -111,8 +111,8 @@ export abstract class BaseInteractionClient {
             this.logger.verbose(`Authentication Scheme set to "${validatedRequest.authenticationScheme}" as configured in Auth request`);
         }
 
-        // Set requested claims hash if claims were requested
-        if (request.claims && !StringUtils.isEmpty(request.claims)) {
+        // Set requested claims hash if claims were requested and claims-based caching is enabled
+        if (this.config.cache.claimsBasedCachingEnabled && request.claims && !StringUtils.isEmptyObj(request.claims)) {
             validatedRequest.requestedClaimsHash = await this.browserCrypto.hashString(request.claims);
         }
 

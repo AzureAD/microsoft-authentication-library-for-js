@@ -93,6 +93,10 @@ export type CacheOptions = {
      * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
      */
     cacheMigrationEnabled?: boolean;
+    /**
+     * Flag that determines whether access tokens are stored based on requested claims
+     */
+    claimsBasedCachingEnabled?: boolean;
 };
 
 export type BrowserSystemOptions = SystemOptions & {
@@ -247,7 +251,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         storeAuthStateInCookie: false,
         secureCookies: false,
         // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
-        cacheMigrationEnabled: userInputCache && userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage ? true : false
+        cacheMigrationEnabled: userInputCache && userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage ? true : false,
+        claimsBasedCachingEnabled: true
     };
 
     // Default logger options for browser

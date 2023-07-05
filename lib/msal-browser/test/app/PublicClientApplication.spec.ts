@@ -64,7 +64,8 @@ const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
     secureCookies: false,
-    cacheMigrationEnabled: false
+    cacheMigrationEnabled: false,
+    claimsBasedCachingEnabled: true
 };
 
 let testAppConfig = {

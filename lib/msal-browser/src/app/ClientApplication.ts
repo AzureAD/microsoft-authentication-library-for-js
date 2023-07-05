@@ -153,7 +153,8 @@ export abstract class ClientApplication {
             temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
             storeAuthStateInCookie: false,
             secureCookies: false,
-            cacheMigrationEnabled: false
+            cacheMigrationEnabled: false,
+            claimsBasedCachingEnabled: true
         };
         this.nativeInternalStorage = new BrowserCacheManager(this.config.auth.clientId, nativeCacheOptions, this.browserCrypto, this.logger);
 

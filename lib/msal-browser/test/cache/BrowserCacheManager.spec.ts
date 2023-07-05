@@ -25,7 +25,8 @@ describe("BrowserCacheManager tests", () => {
             cacheLocation: BrowserCacheLocation.SessionStorage,
             storeAuthStateInCookie: false,
             secureCookies: false,
-            cacheMigrationEnabled: false
+            cacheMigrationEnabled: false,
+            claimsBasedCachingEnabled: true
         };
         logger = new Logger({
             loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => { },
@@ -117,13 +118,13 @@ describe("BrowserCacheManager tests", () => {
             window.localStorage.setItem(testRefreshToken.generateCredentialKey(), JSON.stringify(testRefreshToken));
 
             // Validate that tokens are not added to token key map when cacheMigration is false
-            const initialStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, temporaryCacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: false}, browserCrypto, logger);
+            const initialStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, temporaryCacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: false, claimsBasedCachingEnabled: true}, browserCrypto, logger);
             expect(initialStorage.getTokenKeys().idToken.length).toBe(0);
             expect(initialStorage.getTokenKeys().accessToken.length).toBe(0);
             expect(initialStorage.getTokenKeys().refreshToken.length).toBe(0);
 
             // Validate that tokens are added to token key map when cacheMigration is true
-            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, temporaryCacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true}, browserCrypto, logger);
+            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, temporaryCacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true, claimsBasedCachingEnabled: true}, browserCrypto, logger);
             expect(migrationStorage.getTokenKeys().idToken.length).toBe(1);
             expect(migrationStorage.getTokenKeys().accessToken.length).toBe(1);
             expect(migrationStorage.getTokenKeys().refreshToken.length).toBe(1);
@@ -139,7 +140,7 @@ describe("BrowserCacheManager tests", () => {
             window.localStorage.setItem(testRefreshToken.generateCredentialKey(), JSON.stringify(testRefreshToken));
 
             // Validate that tokens are added to token key map when cacheMigration is true
-            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, temporaryCacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true}, browserCrypto, logger);
+            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, temporaryCacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true, claimsBasedCachingEnabled: true}, browserCrypto, logger);
             expect(migrationStorage.getTokenKeys().idToken.length).toBe(0);
             expect(migrationStorage.getTokenKeys().accessToken.length).toBe(0);
             expect(migrationStorage.getTokenKeys().refreshToken.length).toBe(0);
@@ -151,11 +152,11 @@ describe("BrowserCacheManager tests", () => {
             window.localStorage.setItem(testAccount.generateAccountKey(), JSON.stringify(testAccount));
 
             // Validate that accounts are not added to account key map when cacheMigration is false
-            const initialStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, temporaryCacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: false}, browserCrypto, logger);
+            const initialStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, temporaryCacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: false, claimsBasedCachingEnabled: true}, browserCrypto, logger);
             expect(initialStorage.getAccountKeys().length).toBe(0);
 
             // Validate that accounts are added to account key map when cacheMigration is true
-            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, temporaryCacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true}, browserCrypto, logger);
+            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, temporaryCacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true, claimsBasedCachingEnabled: true}, browserCrypto, logger);
             expect(migrationStorage.getAccountKeys().length).toBe(1);
         });
     });
@@ -1739,7 +1740,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheLocation: BrowserCacheLocation.SessionStorage,
                 storeAuthStateInCookie: false,
                 secureCookies: false,
-                cacheMigrationEnabled: false
+                cacheMigrationEnabled: false,
+                claimsBasedCachingEnabled: true
             };
             logger = new Logger({
                 loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => { },
@@ -1869,7 +1871,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheLocation: BrowserCacheLocation.SessionStorage,
                 storeAuthStateInCookie: false,
                 secureCookies: false,
-                cacheMigrationEnabled: false
+                cacheMigrationEnabled: false,
+                claimsBasedCachingEnabled: true
             };
             logger = new Logger({
                 loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => { },

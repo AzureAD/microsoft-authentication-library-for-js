@@ -53,10 +53,12 @@ export type NodeAuthOptions = {
  * Use this to configure the below cache configuration options:
  *
  * - cachePlugin   - Plugin for reading and writing token cache to disk.
+ * - claimsBasedCachingEnabled - Flag to enable/disable claims based caching. Set to true by default.
  * @public
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
+    claimsBasedCachingEnabled?: boolean;
 };
 
 /**
@@ -128,7 +130,9 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     skipAuthorityMetadataCache: false,
 };
 
-const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
+const DEFAULT_CACHE_OPTIONS: CacheOptions = {
+    claimsBasedCachingEnabled: true
+};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (): void => {

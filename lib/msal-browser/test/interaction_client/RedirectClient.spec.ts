@@ -30,7 +30,8 @@ const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
     secureCookies: false,
-    cacheMigrationEnabled: false
+    cacheMigrationEnabled: false,
+    claimsBasedCachingEnabled: true
 };
 
 const loggerOptions = {
