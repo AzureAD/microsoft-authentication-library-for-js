@@ -30,7 +30,7 @@
       "types": "./dist/index.d.ts",
       "module": "./dist/index.js",
       "import": "./dist/index.js",
-      "require": "./lib/index.cjs.js",
+      "require": "./dist/index.cjs.js",
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
