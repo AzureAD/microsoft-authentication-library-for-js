@@ -2,6 +2,27 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 05 Jul 2023 22:59:07 GMT",
+      "tag": "@azure/msal-angular_v3.0.0-beta.1",
+      "version": "3.0.0-beta.1",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "faae9defff0424799bfa540fdb2c2f309b34db3a",
+            "comment": "Remove unused main field in package.json #6190"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.0.0-beta.1",
+            "commit": "faae9defff0424799bfa540fdb2c2f309b34db3a"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 15 Jun 2023 22:19:25 GMT",
       "tag": "@azure/msal-angular_v3.0.0-beta.0",
       "version": "3.0.0-beta.0",

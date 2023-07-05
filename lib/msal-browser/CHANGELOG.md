@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 15 Jun 2023 22:19:24 GMT and should not be manually modified.
+This log was last generated on Wed, 05 Jul 2023 22:59:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.0.0-beta.1
+
+Wed, 05 Jul 2023 22:59:07 GMT
+
+### Changes
+
+- Make account info mandatory for AuthenticationResult and CacheRecord types #6156 (kshabelko@microsoft.com)
+- Update string conversion function (thomas.norling@microsoft.com)
+- Export IdTokenClaims & PromptValue types (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.0.0-beta.1
 
 ## 3.0.0-beta.0
 

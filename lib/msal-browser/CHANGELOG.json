@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 05 Jul 2023 22:59:07 GMT",
+      "tag": "@azure/msal-browser_v3.0.0-beta.1",
+      "version": "3.0.0-beta.1",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9939c2767634aabe878fa613060084c581e621d2",
+            "comment": "Make account info mandatory for AuthenticationResult and CacheRecord types #6156"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2b17b3cc0485be1eaca97a15de06c846557921a",
+            "comment": "Update string conversion function"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5ecb611181d878b533ddb43f4774b064d63f8f3a",
+            "comment": "Export IdTokenClaims & PromptValue types"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.0-beta.1",
+            "commit": "faae9defff0424799bfa540fdb2c2f309b34db3a"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f714b51f03eb87ccd0102d886c814b3dab2b5cc9",
+            "comment": "DevDependency updates"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 15 Jun 2023 22:19:24 GMT",
       "tag": "@azure/msal-browser_v3.0.0-beta.0",
       "version": "3.0.0-beta.0",
