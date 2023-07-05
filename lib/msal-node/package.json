@@ -48,7 +48,7 @@
       "major"
     ]
   },
-  "module": "dist/msal-node.esm.js",
+  "module": "dist/index.esm.js",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.19.4",
     "@rollup/plugin-node-resolve": "^15.0.1",
