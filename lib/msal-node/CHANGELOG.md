@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 15 Jun 2023 22:19:26 GMT and should not be manually modified.
+This log was last generated on Wed, 05 Jul 2023 23:44:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-beta.1
+
+Wed, 05 Jul 2023 23:44:48 GMT
+
+### Changes
+
+- fix: msal-node now references the right index.esm.ja (joshua.head@envoryat.com)
+- Export IdTokenClaims & ServerAuthorizationCodeResponse types (thomas.norling@microsoft.com)
+- Make claims-based caching configurable #6163 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.0.0-beta.1
 
 ## 2.0.0-beta.0
 

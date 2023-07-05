@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 15 Jun 2023 22:19:26 GMT and should not be manually modified.
+This log was last generated on Wed, 05 Jul 2023 23:44:49 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.0.0-beta.1
+
+Wed, 05 Jul 2023 23:44:49 GMT
+
+### Changes
+
+- Fix performance bug with regional authority detection #6139 (joarroyo@microsoft.com)
+- Make claims-based caching configurable #6163 (hemoral@microsoft.com)
 
 ## 14.0.0-beta.0
 
