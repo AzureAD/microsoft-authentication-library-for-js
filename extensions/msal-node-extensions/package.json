@@ -6,8 +6,19 @@
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "license": "MIT",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "type": "module",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "module": "./dist/index.esm.js",
+      "import": "./dist/index.esm.js",
+      "require": "./lib/index.js",
+      "default": "./dist/index.esm.js"
+    },
+    "./package.json": "./package.json"
+  },
   "keywords": [
     "js",
     "ts",
@@ -41,7 +52,6 @@
     "email": "nugetaad@microsoft.com",
     "url": "https://www.microsoft.com"
   },
-  "module": "dist/msal-node-extensions.esm.js",
   "beachball": {
     "disallowedChangeTypes": [
       "patch",
