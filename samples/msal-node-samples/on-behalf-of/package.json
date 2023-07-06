@@ -13,7 +13,7 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "file:../../../lib/msal-node",
+    "@azure/msal-node": "^2.0.0-beta.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
@@ -21,6 +21,10 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "jest": "^29.5.0"
+    "@types/jest": "^29.5.0",
+    "e2e-test-utils": "file:../../e2eTestUtils",
+    "jest": "^29.5.0",
+    "puppeteer": "^20.7.3",
+    "ts-jest": "^29.1.0"
   }
 }

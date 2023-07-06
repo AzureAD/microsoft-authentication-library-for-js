@@ -2,6 +2,47 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 06 Jul 2023 00:01:33 GMT",
+      "tag": "@azure/msal-node_v2.0.0-beta.1",
+      "version": "2.0.0-beta.1",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "f714b51f03eb87ccd0102d886c814b3dab2b5cc9",
+            "comment": "DevDependency updates"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "joshua.head@envoryat.com",
+            "package": "@azure/msal-node",
+            "commit": "32df7b975cbfca687f6d5ddd620ca19a545f39d3",
+            "comment": "fix: msal-node now references the right index.esm.ja"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5ecb611181d878b533ddb43f4774b064d63f8f3a",
+            "comment": "Export IdTokenClaims & ServerAuthorizationCodeResponse types"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4ccef1b8a11ca5643c11eb9586e45f8e45398e8c",
+            "comment": "Make claims-based caching configurable #6163"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.0.0-beta.1",
+            "commit": "4ccef1b8a11ca5643c11eb9586e45f8e45398e8c"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 15 Jun 2023 22:19:26 GMT",
       "tag": "@azure/msal-node_v2.0.0-beta.0",
       "version": "2.0.0-beta.0",

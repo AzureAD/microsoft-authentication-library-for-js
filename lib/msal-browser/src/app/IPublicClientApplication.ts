@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     AccountInfo,
     Logger,
     PerformanceCallbackFunction,
@@ -21,6 +20,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export interface IPublicClientApplication {
     initialize(): Promise<void>;

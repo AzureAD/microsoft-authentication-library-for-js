@@ -6,7 +6,6 @@
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
     CommonSilentFlowRequest,
-    AuthenticationResult,
     ServerTelemetryManager,
     RefreshTokenClient,
     AuthError,
@@ -15,6 +14,7 @@ import {
 } from "@azure/msal-common";
 import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**
@@ -58,6 +58,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
         );
         return refreshTokenClient
             .acquireTokenByRefreshToken(silentRequest)
+            .then((result) => result as AuthenticationResult)
             .then((result: AuthenticationResult) => {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,

@@ -13,13 +13,17 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.1",
-    "axios": "^0.25.0",
+    "@azure/msal-node": "^1.0.0-beta.0",
+    "axios": "^1.4.0",
     "express": "^4.17.1",
     "express-handlebars": "^5.3.5",
     "express-promise-router": "^4.0.1"
   },
   "devDependencies": {
-    "jest": "^29.5.0"
+    "@types/jest": "^29.5.0",
+    "e2e-test-utils": "file:../../e2eTestUtils",
+    "jest": "^29.5.0",
+    "puppeteer": "^20.7.3",
+    "ts-jest": "^29.1.0"
   }
 }

@@ -17,7 +17,6 @@ import {
 import {
     AccountInfo,
     TokenClaims,
-    AuthenticationResult,
     AuthorizationCodeClient,
     AuthenticationScheme,
 } from "@azure/msal-common";
@@ -25,7 +24,7 @@ import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
-import { ApiId, AuthorizationCodeRequest } from "../../src";
+import { ApiId, AuthorizationCodeRequest, AuthenticationResult } from "../../src";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;

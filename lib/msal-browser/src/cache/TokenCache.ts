@@ -16,8 +16,6 @@ import {
     AuthToken,
     RefreshTokenEntity,
     AuthorityType,
-    CacheRecord,
-    AuthenticationResult,
     Constants,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -25,6 +23,8 @@ import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
 import { ITokenCache } from "./ITokenCache";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { AuthenticationResult } from "../response/AuthenticationResult";
+import { CacheRecord } from "./entities/CacheRecord";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -84,7 +84,7 @@ export class TokenCache implements ITokenCache {
 
         const idToken = new AuthToken(response.id_token, this.cryptoObj);
 
-        let cacheRecord: CacheRecord | undefined;
+        let cacheRecord: CacheRecord;
         let authority: Authority | undefined;
 
         if (request.account) {
@@ -435,7 +435,7 @@ export class TokenCache implements ITokenCache {
     private generateAuthenticationResult(
         request: SilentRequest,
         idTokenObj: AuthToken,
-        cacheRecord?: CacheRecord,
+        cacheRecord: CacheRecord,
         authority?: Authority
     ): AuthenticationResult {
         let accessToken: string = Constants.EMPTY_STRING;
@@ -469,9 +469,7 @@ export class TokenCache implements ITokenCache {
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes,
-            account: cacheRecord?.account
-                ? cacheRecord.account.getAccountInfo()
-                : null,
+            account: cacheRecord.account.getAccountInfo(),
             idToken: idTokenObj ? idTokenObj.rawToken : Constants.EMPTY_STRING,
             idTokenClaims: idTokenObj ? idTokenObj.claims : {},
             accessToken: accessToken,
