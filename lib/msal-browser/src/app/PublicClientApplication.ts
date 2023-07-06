@@ -251,8 +251,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         && (requestWithCLP.cacheLookupPolicy !== CacheLookupPolicy.Skip)
                         && !attemptSsoRTNotFound
                     ) {
-                        // eslint-disable-next-line no-console
-                        console.log("acquireTokenSilentAsync: retrieving refresh token failed.");
                         throw refreshTokenError;
                     }
 
