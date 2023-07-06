@@ -587,7 +587,6 @@ export class PopupClient extends StandardInteractionClient {
 
                 var href = popupWindow.location.href;
                 var hash;
-                console.log(this.config.auth.protocolMode == ProtocolMode.OIDC);
                 if(this.config.auth.protocolMode == ProtocolMode.OIDC && 
                     this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.QUERY) && 
                     !this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.HASH)) {
