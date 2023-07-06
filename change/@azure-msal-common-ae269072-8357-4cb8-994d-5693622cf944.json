@@ -1,7 +1,7 @@
 {
   "type": "prerelease",
-  "comment": "Moved reachCacheToMemory logic to CacheManager",
+  "comment": "ClientCredentials: Fixed bug where user-supplied cache is loaded into memory only after network request #6218",
   "packageName": "@azure/msal-common",
-  "email": "rgins16@gmail.com",
+  "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
 }
