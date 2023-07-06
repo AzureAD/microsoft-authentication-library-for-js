@@ -340,7 +340,6 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        // must fix, can you just set the second optional param?
         parameterBuilder.addScopes(request.scopes, true, this.config.authOptions.authority.options.OIDCOptions?.defaultScopes);
 
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);

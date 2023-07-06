@@ -415,7 +415,7 @@ export class PopupClient extends StandardInteractionClient {
             );
             this.logger.verbose("Auth code client created");
 
-            try { // must fix, is there a prettier way to write it?
+            try {
                 authClient.authority.endSessionEndpoint;
             } catch {
                 if (validRequest.account?.homeAccountId && validRequest.postLogoutRedirectUri && authClient.authority.protocolMode == ProtocolMode.OIDC){
@@ -587,6 +587,7 @@ export class PopupClient extends StandardInteractionClient {
 
                 var href = popupWindow.location.href;
                 var hash;
+                console.log(this.config.auth.protocolMode == ProtocolMode.OIDC);
                 if(this.config.auth.protocolMode == ProtocolMode.OIDC && 
                     this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.QUERY) && 
                     !this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.HASH)) {
@@ -594,12 +595,19 @@ export class PopupClient extends StandardInteractionClient {
                         * Check from ?code to make sure we don't get a random query string
                         * until # since some IDPs add stuff that doesn't concern MSAL after the # 
                         */
-                    hash = href.substring(href.indexOf("?code") + 1, href.indexOf("#"));
+                    if(href.indexOf("?code") > -1) {
+                        if(href.indexOf("#") > -1) {
+                            hash = href.substring(href.indexOf("?code") + 1, href.indexOf("#"));
+                        }
+                        else {
+                            hash = href.substring(href.indexOf("?code") + 1);
+                        }
+                    }
                 }
                 else {
                     hash = popupWindow.location.hash;
                 }
-                try { // must fix, is there a prettier way to do this?
+                try {
                     /*
                      * Will throw if cross origin,
                      * which should be caught and ignored

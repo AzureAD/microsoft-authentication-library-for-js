@@ -335,11 +335,6 @@ export class StandardController implements IController {
             this.config.auth.OIDCOptions) {
                 throw ClientConfigurationError.createCannotSetOIDCOptionsError();
         }
-        // Throw an error if user has set OIDC compliance mode with a known microsoft server // must fix, how do you know this?
-        // else if(this.config.auth.protocolMode == ProtocolMode.OIDC &&
-        //         this.config.auth.) {
-        //              throw ClientConfigurationError.createCannotSetOIDCOptionsError();
-        //}
 
         if(this.config.auth.protocolMode == ProtocolMode.OIDC && 
             this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.QUERY) && 
@@ -348,9 +343,16 @@ export class StandardController implements IController {
                      * Check from ?code to make sure we don't get a random query string
                      * until # since some IDPs add stuff that doesn't concern MSAL after the # 
                  */
-                 let url = window.location.href;
-                 hash = url.substring(url.indexOf("?code") + 1, url.indexOf("#"));
-         }
+                let url = window.location.href;
+                if(url.indexOf("?code") > -1) {
+                    if(url.indexOf("#") > -1) {
+                        hash = url.substring(url.indexOf("?code") + 1, url.indexOf("#"));
+                    }
+                    else {
+                        hash = url.substring(url.indexOf("?code") + 1);
+                    }
+                }
+        }
 
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {

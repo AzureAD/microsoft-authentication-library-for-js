@@ -85,7 +85,7 @@ export class RequestParameterBuilder {
      */
     addScopes(scopes: string[], addOidcScopes: boolean = true, defaultScopes: Array<string> = OIDC_DEFAULT_SCOPES): void {
         // Always add openid to the scopes.
-        if(!defaultScopes.includes("openid")){
+        if(addOidcScopes && !defaultScopes.includes("openid") && !scopes.includes("openid")){
             defaultScopes.push("openid");
         }
         const requestScopes = addOidcScopes

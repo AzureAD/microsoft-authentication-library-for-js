@@ -35,7 +35,9 @@ import {
     Authority,
     CommonAuthorizationCodeRequest,
     AuthError,
-    Logger
+    Logger,
+    ProtocolMode,
+    ServerResponseType,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -1580,6 +1582,58 @@ describe("PopupClient", () => {
             // @ts-ignore
             popupClient.monitorPopupForHash(popup).then((hash: string) => {
                 expect(hash).toEqual("#code=hello");
+                done();
+            });
+        });
+
+        it("returns hash in query form when serverResponseType in OIDCOptions is query", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    protocolMode: ProtocolMode.OIDC,
+                    OIDCOptions: { "serverResponseType": [ServerResponseType.QUERY] }
+                },
+            });
+    
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            popupClient = new PopupClient(
+                //@ts-ignore
+                pca.config,
+                //@ts-ignore
+                pca.browserStorage,
+                //@ts-ignore
+                pca.browserCrypto,
+                //@ts-ignore
+                pca.logger,
+                //@ts-ignore
+                pca.eventHandler,
+                //@ts-ignore
+                pca.navigationClient,
+                //@ts-ignore
+                pca.performanceClient,
+                //@ts-ignore
+                pca.nativeInternalStorage,
+                undefined,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const popup = {
+                location: {
+                    href: "http://localhost/?code=hello",
+                },
+                history: {
+                    replaceState: () => {
+                        return;
+                    },
+                },
+                close: () => {},
+            };
+
+            // @ts-ignore
+            popupClient.monitorPopupForHash(popup).then((hash: string) => {
+                expect(hash).toEqual("code=hello");
                 done();
             });
         });

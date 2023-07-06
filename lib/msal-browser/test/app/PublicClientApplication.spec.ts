@@ -49,6 +49,7 @@ import {
     AuthError,
     ProtocolMode,
     ClientConfigurationError,
+    ServerResponseType
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -96,6 +97,7 @@ import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { UrlString } from "@azure/msal-common";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -806,7 +808,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     protocolMode: ProtocolMode.AAD,
-                    OIDCOptions: {serverResponseType: ["query"]}
+                    OIDCOptions: { serverResponseType: [ServerResponseType.QUERY] }
                 },
                 telemetry: {
                     application: {
@@ -825,31 +827,38 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ClientConfigurationError.createCannotSetOIDCOptionsError()
             );
         });
-        // must fix, this feature is not yet implemented in the code
-        // it("Setting protocol mode to OIDC when using a known Microsoft authority throws an error", async () => {
-        //     pca = new PublicClientApplication({
-        //         auth: {
-        //             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-        //             authority: "https://login.microsoftonline.com/" + TEST_CONFIG.MSAL_TENANT_ID,
-        //             protocolMode: ProtocolMode.OIDC
-        //         },
-        //         telemetry: {
-        //             application: {
-        //                 appName: TEST_CONFIG.applicationName,
-        //                 appVersion: TEST_CONFIG.applicationVersion,
-        //             },
-        //         },
-        //         system: {
-        //             allowNativeBroker: false,
-        //         },
-        //     });
+        it("Looks for hash in query param if OIDCOptions.serverResponseType is set to query", async () => {
+            /**
+             * The testing environment does not accept query params, so instead we see that it ignores a hash fragment.
+             * That means handleRedirectPromise is looking for a hash in a query param instead of a hash fragment.
+             */
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    protocolMode: ProtocolMode.OIDC,
+                    OIDCOptions: { serverResponseType: [ServerResponseType.QUERY] }
+                },
+                telemetry: {
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+                system: {
+                    allowNativeBroker: false,
+                },
+            });
 
-        //     await expect(
-        //         pca.handleRedirectPromise()
-        //     ).rejects.toMatchObject(
-        //         ClientConfigurationError.createCannotSetOIDCProtocolModeError()
-        //     );
-        // });
+            sinon
+                .stub(RedirectClient.prototype, "handleRedirectPromise")
+                .callsFake(async (hash): Promise<AuthenticationResult | null> => {
+                    expect(hash).toBe(undefined);
+                    return null;
+                });
+            
+            window.location.hash = "#code=hello";
+            await pca.handleRedirectPromise();
+        });
     });
 
     describe("loginRedirect", () => {
