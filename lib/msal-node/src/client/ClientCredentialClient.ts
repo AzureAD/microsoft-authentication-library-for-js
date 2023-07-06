@@ -25,7 +25,6 @@ import {
     ServerAuthorizationTokenResponse,
     StringUtils,
     TimeUtils,
-    TokenCacheContext,
     UrlString,
 } from "@azure/msal-common";
 
