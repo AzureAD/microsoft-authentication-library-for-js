@@ -39,6 +39,9 @@ import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
+import { ISerializableTokenCache } from "./interface/ISerializableTokenCache";
+import { ICachePlugin } from "./interface/ICachePlugin";
+import { TokenCacheContext } from "./persistence/TokenCacheContext";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -215,6 +218,25 @@ export abstract class CacheManager implements ICacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string;
+
+    /**
+     * Read the user-supplied cache into memory, if applicable
+     * @param serializableCache 
+     * @param persistencePlugin 
+     */
+    async readUserDefinedCacheIntoMemory(
+        serializableCache: ISerializableTokenCache | null,
+        persistencePlugin: ICachePlugin | null
+    ): Promise<void> {
+        if (serializableCache && persistencePlugin) {
+            const cacheContext = new TokenCacheContext(
+                serializableCache,
+                true,
+            );
+
+            await persistencePlugin.beforeCacheAccess(cacheContext);
+        }
+    }
 
     /**
      * Returns all accounts in cache

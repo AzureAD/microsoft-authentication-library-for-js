@@ -73,14 +73,7 @@ export class ClientCredentialClient extends BaseClient {
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
         // read the user-supplied cache into memory, if applicable
-        if (this.config.serializableCache && this.config.persistencePlugin) {
-            const cacheContext = new TokenCacheContext(
-                this.config.serializableCache,
-                true,
-            );
-
-            await this.config.persistencePlugin.beforeCacheAccess(cacheContext);
-        }
+        await this.cacheManager.readUserDefinedCacheIntoMemory(this.config.serializableCache, this.config.persistencePlugin);
         
         const cachedAccessToken = this.readAccessTokenFromCache();
 
