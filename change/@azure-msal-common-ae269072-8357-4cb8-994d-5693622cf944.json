@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Moved reachCacheToMemory logic to CacheManager",
+  "packageName": "@azure/msal-common",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
