@@ -2,6 +2,35 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Thu, 06 Jul 2023 00:01:32 GMT",
+      "tag": "@azure/msal-react_v2.0.0-beta.1",
+      "version": "2.0.0-beta.1",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "f714b51f03eb87ccd0102d886c814b3dab2b5cc9",
+            "comment": "DevDependency updates"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "faae9defff0424799bfa540fdb2c2f309b34db3a",
+            "comment": "Fix module field in package.json #6190"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v3.0.0-beta.1",
+            "commit": "4ccef1b8a11ca5643c11eb9586e45f8e45398e8c"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 15 Jun 2023 22:19:25 GMT",
       "tag": "@azure/msal-react_v2.0.0-beta.0",
       "version": "2.0.0-beta.0",
