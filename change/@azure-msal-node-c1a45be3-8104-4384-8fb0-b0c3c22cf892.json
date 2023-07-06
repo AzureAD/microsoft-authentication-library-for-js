@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Fixed bug where user-supplied cache is loaded into memory before looking into the cache",
+  "packageName": "@azure/msal-node",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
