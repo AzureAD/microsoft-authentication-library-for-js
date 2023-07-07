@@ -1,13 +1,3 @@
-// Browser check variables
-// If you support IE, our recommendation is that you sign-in using Redirect APIs
-// If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check
-const ua = window.navigator.userAgent;
-const msie = ua.indexOf("MSIE ");
-const msie11 = ua.indexOf("Trident/");
-const msedge = ua.indexOf("Edge/");
-const isIE = msie > 0 || msie11 > 0;
-const isEdge = msedge > 0;
-
 let signInType;
 let accountId = "";
 
@@ -44,7 +34,7 @@ function handleResponse(resp) {
 }
 
 async function signIn(method) {
-    signInType = isIE ? "redirect" : method;
+    signInType = method;
     if (signInType === "popup") {
         return myMSALObj.loginPopup({
             ...loginRequest,
@@ -88,7 +78,6 @@ async function getTokenPopup(request, account) {
         });
 }
 
-// This function can be removed if you do not need to support IE
 async function getTokenRedirect(request, account) {
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");

@@ -4,7 +4,6 @@ const signInButton = document.getElementById("SignIn");
 const popupButton = document.getElementById("popup");
 const redirectButton = document.getElementById("redirect");
 const cardDiv = document.getElementById("card-div");
-const mailButton = document.getElementById("readMail");
 const profileButton = document.getElementById("seeProfile");
 const profileDiv = document.getElementById("profile-div");
 

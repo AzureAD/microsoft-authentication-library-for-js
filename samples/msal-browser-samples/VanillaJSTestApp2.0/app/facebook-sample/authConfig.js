@@ -9,7 +9,7 @@ const msalConfig = {
         authorityMetadata: '{ "issuer": "https://www.facebook.com", "authorization_endpoint": "https://facebook.com/dialog/oauth/", "token_endpoint": "https://graph.facebook.com/oauth/access_token", "jwks_uri": "https://www.facebook.com/.well-known/oauth/openid/jwks/" }',
         cache: {
             cacheLocation: "sessionStorage", // This configures where your cache will be stored
-            storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
+            storeAuthStateInCookie: false,
         },
         system: {
             allowNativeBroker: false,
