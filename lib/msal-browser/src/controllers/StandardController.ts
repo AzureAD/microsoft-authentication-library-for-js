@@ -27,7 +27,6 @@ import {
     ClientConfigurationError,
     ProtocolMode,
     ServerResponseType,
-    OIDC_DEFAULT_SCOPES,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -331,25 +330,26 @@ export class StandardController implements IController {
         );
 
         // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
-        if(this.config.auth.protocolMode != ProtocolMode.OIDC && 
+        if(this.config.auth.protocolMode !== ProtocolMode.OIDC && 
             this.config.auth.OIDCOptions) {
                 throw ClientConfigurationError.createCannotSetOIDCOptionsError();
         }
 
-        if(this.config.auth.protocolMode == ProtocolMode.OIDC && 
-            this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.QUERY) && 
-            !this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.HASH)) {
-                 /*
-                     * Check from ?code to make sure we don't get a random query string
-                     * until # since some IDPs add stuff that doesn't concern MSAL after the # 
+        var found_hash = hash;
+        
+        if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
+            this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
+                /**
+                 * Check from ?code to make sure we don't get a random query string
+                 * until # since some IDPs add stuff that doesn't concern MSAL after the # 
                  */
-                let url = window.location.href;
+                const url = window.location.href;
                 if(url.indexOf("?code") > -1) {
                     if(url.indexOf("#") > -1) {
-                        hash = url.substring(url.indexOf("?code") + 1, url.indexOf("#"));
+                        found_hash = url.substring(url.indexOf("?code") + 1, url.indexOf("#"));
                     }
                     else {
-                        hash = url.substring(url.indexOf("?code") + 1);
+                        found_hash = url.substring(url.indexOf("?code") + 1);
                     }
                 }
         }
@@ -361,7 +361,7 @@ export class StandardController implements IController {
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
-            const redirectResponseKey = hash || Constants.EMPTY_STRING;
+            const redirectResponseKey = found_hash || Constants.EMPTY_STRING;
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
                 this.eventHandler.emitEvent(
@@ -383,7 +383,7 @@ export class StandardController implements IController {
                         this.nativeExtensionProvider
                     ) &&
                     this.nativeExtensionProvider &&
-                    !hash
+                    !found_hash
                 ) {
                     this.logger.trace(
                         "handleRedirectPromise - acquiring token from native platform"
@@ -415,7 +415,7 @@ export class StandardController implements IController {
                     const redirectClient =
                         this.createRedirectClient(correlationId);
                     redirectResponse =
-                        redirectClient.handleRedirectPromise(hash);
+                        redirectClient.handleRedirectPromise(found_hash);
                 }
 
                 response = redirectResponse

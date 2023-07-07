@@ -11,6 +11,7 @@ import {
     AzureCloudInstance,
     Authority,
     ProtocolMode,
+    ServerResponseType
 } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient";
@@ -189,7 +190,7 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 protocolMode: ProtocolMode.OIDC,
-                OIDCOptions: {serverResponseType: ["query"]}
+                OIDCOptions: {serverResponseType: ServerResponseType.QUERY}
             }
         });
 

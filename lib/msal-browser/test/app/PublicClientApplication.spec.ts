@@ -808,7 +808,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     protocolMode: ProtocolMode.AAD,
-                    OIDCOptions: { serverResponseType: [ServerResponseType.QUERY] }
+                    OIDCOptions: { serverResponseType: "query" }
                 },
                 telemetry: {
                     application: {
@@ -836,7 +836,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     protocolMode: ProtocolMode.OIDC,
-                    OIDCOptions: { serverResponseType: [ServerResponseType.QUERY] }
+                    OIDCOptions: { serverResponseType: ServerResponseType.QUERY }
                 },
                 telemetry: {
                     application: {

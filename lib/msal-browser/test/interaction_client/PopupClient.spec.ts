@@ -1591,7 +1591,7 @@ describe("PopupClient", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     protocolMode: ProtocolMode.OIDC,
-                    OIDCOptions: { "serverResponseType": [ServerResponseType.QUERY] }
+                    OIDCOptions: { "serverResponseType": "query" }
                 },
             });
     

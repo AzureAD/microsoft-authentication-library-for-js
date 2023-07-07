@@ -7,7 +7,7 @@
  * Options for the OIDC protocol mode.
  */
 export type OIDCOptions = {
-    serverResponseType?: Array<string>;
+    serverResponseType?: ServerResponseType;
     defaultScopes?: Array<string>;
 };
 
@@ -15,3 +15,4 @@ export const ServerResponseType = {
     QUERY: "query",
     HASH: "hash",
 } as const;
+export type ServerResponseType = typeof ServerResponseType[keyof typeof ServerResponseType];

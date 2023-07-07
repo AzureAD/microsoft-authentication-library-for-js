@@ -507,7 +507,7 @@ export class RedirectClient extends StandardInteractionClient {
             );
             this.logger.verbose("Auth code client created");
 
-            if(authClient.authority.protocolMode == ProtocolMode.OIDC) {
+            if(authClient.authority.protocolMode === ProtocolMode.OIDC) {
                 try { 
                     authClient.authority.endSessionEndpoint;
                 } catch {

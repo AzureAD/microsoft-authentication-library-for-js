@@ -436,10 +436,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
 
-        var configResponseMode = null;
+        let configResponseMode = null;
         if(!this.config.auth.OIDCOptions || 
             (this.config.auth.OIDCOptions.serverResponseType &&
-            this.config.auth.OIDCOptions.serverResponseType.includes(ServerResponseType.HASH))) {
+            this.config.auth.OIDCOptions.serverResponseType === ServerResponseType.HASH)) {
             configResponseMode = ResponseMode.FRAGMENT;
         }
         else {

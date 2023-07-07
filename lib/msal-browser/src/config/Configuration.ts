@@ -75,10 +75,10 @@ export type BrowserAuthOptions = {
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
     protocolMode?: ProtocolMode;
-     /**
+    /**
      * Enum that configures options for the OIDC protocol mode.
      */
-     OIDCOptions?: OIDCOptions | null;
+    OIDCOptions?: OIDCOptions | null;
     /**
      * Enum that represents the Azure Cloud to use.
      */

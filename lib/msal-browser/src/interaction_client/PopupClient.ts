@@ -418,7 +418,7 @@ export class PopupClient extends StandardInteractionClient {
             try {
                 authClient.authority.endSessionEndpoint;
             } catch {
-                if (validRequest.account?.homeAccountId && validRequest.postLogoutRedirectUri && authClient.authority.protocolMode == ProtocolMode.OIDC){
+                if (validRequest.account?.homeAccountId && validRequest.postLogoutRedirectUri && authClient.authority.protocolMode === ProtocolMode.OIDC){
                     this.browserStorage.removeAccount(validRequest.account?.homeAccountId);
                     this.browserStorage.removeAccessToken(validRequest.account?.homeAccountId);
                     this.browserStorage.removeIdToken(validRequest.account?.homeAccountId);
@@ -585,15 +585,14 @@ export class PopupClient extends StandardInteractionClient {
                     return;
                 }
 
-                var href = popupWindow.location.href;
-                var hash;
-                if(this.config.auth.protocolMode == ProtocolMode.OIDC && 
-                    this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.QUERY) && 
-                    !this.config.auth.OIDCOptions?.serverResponseType?.includes(ServerResponseType.HASH)) {
-                    /*
-                        * Check from ?code to make sure we don't get a random query string
-                        * until # since some IDPs add stuff that doesn't concern MSAL after the # 
-                        */
+                let href = popupWindow.location.href;
+                let hash;
+                if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
+                    this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
+                    /**
+                     * Check from ?code to make sure we don't get a random query string
+                     * until # since some IDPs add stuff that doesn't concern MSAL after the # 
+                     */
                     if(href.indexOf("?code") > -1) {
                         if(href.indexOf("#") > -1) {
                             hash = href.substring(href.indexOf("?code") + 1, href.indexOf("#"));
