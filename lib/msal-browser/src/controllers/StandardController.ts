@@ -335,7 +335,7 @@ export class StandardController implements IController {
                 throw ClientConfigurationError.createCannotSetOIDCOptionsError();
         }
 
-        var found_hash = hash;
+        let found_hash = hash;
         
         if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
             this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
