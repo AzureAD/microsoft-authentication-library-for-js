@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     UrlString,
@@ -39,6 +38,7 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EventError } from "../event/EventMessage";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class RedirectClient extends StandardInteractionClient {
     protected nativeStorage: BrowserCacheManager;
