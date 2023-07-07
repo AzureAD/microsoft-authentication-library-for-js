@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "2.0.0-beta.0",
+  "version": "2.0.0-beta.1",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -43,12 +43,12 @@
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^3.0.0-beta.0",
+    "@azure/msal-browser": "^3.0.0-beta.1",
     "react": "^16.8.0 || ^17 || ^18"
   },
-  "module": "dist/msal-react.esm.js",
+  "module": "dist/index.js",
   "devDependencies": {
-    "@azure/msal-browser": "^3.0.0-beta.0",
+    "@azure/msal-browser": "^3.0.0-beta.1",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^13.4.0",
     "@types/jest": "^29.5.0",

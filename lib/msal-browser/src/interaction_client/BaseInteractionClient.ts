@@ -178,8 +178,13 @@ export abstract class BaseInteractionClient {
             );
         }
 
-        // Set requested claims hash if claims were requested
-        if (request.claims && !StringUtils.isEmpty(request.claims)) {
+        // Set requested claims hash if claims-based caching is enabled and claims were requested
+        if (
+            this.config.cache.claimsBasedCachingEnabled &&
+            request.claims &&
+            // Checks for empty stringified object "{}" which doesn't qualify as requested claims
+            !StringUtils.isEmptyObj(request.claims)
+        ) {
             validatedRequest.requestedClaimsHash =
                 await this.browserCrypto.hashString(request.claims);
         }
@@ -210,10 +215,15 @@ export abstract class BaseInteractionClient {
      * If authority provided in the request does not match environment/authority specified
      * in the account or MSAL config, we throw an error.
      */
-    async validateRequestAuthority(authority: string, account: AccountInfo): Promise<void> {
-        const discoveredAuthority = await this.getDiscoveredAuthority(authority);
+    async validateRequestAuthority(
+        authority: string,
+        account: AccountInfo
+    ): Promise<void> {
+        const discoveredAuthority = await this.getDiscoveredAuthority(
+            authority
+        );
 
-        if(!discoveredAuthority.isAlias(account.environment)) {
+        if (!discoveredAuthority.isAlias(account.environment)) {
             throw ClientConfigurationError.createAuthorityMismatchError();
         }
     }

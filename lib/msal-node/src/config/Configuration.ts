@@ -57,6 +57,7 @@ export type NodeAuthOptions = {
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
+    claimsBasedCachingEnabled?: boolean;
 };
 
 /**
@@ -128,7 +129,9 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     skipAuthorityMetadataCache: false,
 };
 
-const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
+const DEFAULT_CACHE_OPTIONS: CacheOptions = {
+    claimsBasedCachingEnabled: false,
+};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (): void => {
