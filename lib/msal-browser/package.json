@@ -69,7 +69,7 @@
     "@babel/preset-env": "^7.7.1",
     "@babel/preset-typescript": "^7.7.2",
     "@rollup/plugin-node-resolve": "^11.2.1",
-    "@types/jest": "^26.0.23",
+    "@types/jest": "^27.5.2",
     "@types/sinon": "^7.5.0",
     "dotenv": "^8.2.0",
     "fake-indexeddb": "^3.1.3",
