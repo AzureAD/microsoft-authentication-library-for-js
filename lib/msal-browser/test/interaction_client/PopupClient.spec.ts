@@ -23,7 +23,6 @@ import {
     Constants,
     AccountInfo,
     TokenClaims,
-    AuthenticationResult,
     CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
     ResponseMode,
@@ -56,6 +55,7 @@ import {
 import { FetchClient } from "../../src/network/FetchClient";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,

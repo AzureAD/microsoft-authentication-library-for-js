@@ -7,7 +7,6 @@ import {
     AuthorizationCodeClient,
     CommonAuthorizationCodeRequest,
     ICrypto,
-    AuthenticationResult,
     Authority,
     INetworkModule,
     ClientAuthError,
@@ -24,6 +23,7 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationOptions } from "../navigation/NavigationOptions";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export type RedirectParams = InteractionParams & {
     navigationClient: INavigationClient;
@@ -216,7 +216,7 @@ export class RedirectHandler extends InteractionHandler {
         const tokenResponse = await this.authModule.acquireToken(
             this.authCodeRequest,
             authCodeResponse
-        );
+        ) as AuthenticationResult;
 
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;

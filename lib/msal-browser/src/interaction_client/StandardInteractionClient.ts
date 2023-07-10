@@ -277,6 +277,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 logLevel: logger.logLevel,
                 correlationId: this.correlationId,
             },
+            cacheOptions: {
+                claimsBasedCachingEnabled:
+                    this.config.cache.claimsBasedCachingEnabled,
+            },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,

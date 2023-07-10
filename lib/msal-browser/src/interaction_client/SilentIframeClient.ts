@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     ICrypto,
     Logger,
     PromptValue,
@@ -30,6 +29,7 @@ import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { NativeInteractionClient } from "./NativeInteractionClient";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;

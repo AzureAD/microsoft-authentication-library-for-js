@@ -41,10 +41,12 @@ jobs:
             - name: Use Node.js
               if: ${{ steps.filter.outputs.lib == 'true' }}
               uses: actions/setup-node@v3
+              with:
+                node-version: 18
 
             - name: Install beachball
               if: ${{ steps.filter.outputs.lib == 'true' }}
-              run: npm ci
+              run: npm ci --workspaces=false
 
             - name: Run Beachball Check command
               if: ${{ steps.filter.outputs.lib == 'true' }}

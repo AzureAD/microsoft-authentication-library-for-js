@@ -59,6 +59,25 @@ const msalConfig = {
 const msalInstance = await msal.PublicClientApplication.createPublicClientApplication(msalConfig);
 ```
 
+### Claims-based caching
+
+In MSAL v2.x, adding claims to a request will result in a hash of the requested claims string being added to the token cache key by default. This implies that MSAL 2.x caches and matches tokens based on claims by default. In MSAL v3.x, this behavior is no longer the default. MSAL v3.x default behavior is to go to the network to refresh a token every time claims are requested, regardless of whether the token has been cached previously and is still valid. Then, after going to the network, the token received overwrites the cached token in case a silent request without claims is executed later. In order to enable claims-based caching in MSAL v3.x to maintain the same behavior as in MSAL v2.x, developers must use the `cacheOptions.claimsBasedCachingEnabled` configuration flag set to true in the Client Application configuration object:
+
+```typescript
+const msalConfig = {
+    auth: {
+        ...
+    },
+    ...
+    cache: {
+        claimsBasedCachingEnabled: true
+    }
+}
+
+const msalInstance = new msal.PublicClientApplication(msalConfig);
+await msalInstance.initialize();
+```
+
 All other APIs are backward compatible with [MSAL v2.x](../../msal-browser/). It is recommended to take a look at the [default sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0) to see a working example of MSAL v3.0.
 
 ### Crypto

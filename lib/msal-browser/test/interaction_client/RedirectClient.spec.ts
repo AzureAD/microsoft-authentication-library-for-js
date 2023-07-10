@@ -25,7 +25,6 @@ import {
     Constants,
     AccountInfo,
     TokenClaims,
-    AuthenticationResult,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     AuthToken,
@@ -72,6 +71,7 @@ import { EventType } from "../../src/event/EventType";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -79,6 +79,7 @@ const cacheConfig = {
     storeAuthStateInCookie: false,
     secureCookies: false,
     cacheMigrationEnabled: false,
+    claimsBasedCachingEnabled: false,
 };
 
 const loggerOptions = {
@@ -1870,7 +1871,12 @@ describe("RedirectClient", () => {
                             )
                         ).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
                         bfCacheCallback({ persisted: true });
-                        expect(eventSpy.calledWith(EventType.RESTORE_FROM_BFCACHE, InteractionType.Redirect)).toBe(true);
+                        expect(
+                            eventSpy.calledWith(
+                                EventType.RESTORE_FROM_BFCACHE,
+                                InteractionType.Redirect
+                            )
+                        ).toBe(true);
                         expect(browserStorage.isInteractionInProgress()).toBe(
                             false
                         );
