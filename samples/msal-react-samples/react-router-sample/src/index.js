@@ -1,4 +1,3 @@
-// If you need to support IE11 uncomment the imports below
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from "react-router-dom";
