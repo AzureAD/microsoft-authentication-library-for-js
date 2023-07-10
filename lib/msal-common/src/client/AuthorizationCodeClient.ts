@@ -344,7 +344,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add scope array, parameter builder will add default scopes and dedupe
-        parameterBuilder.addScopes(request.scopes, true, this.config.authOptions.authority.options.OIDCOptions?.defaultScopes);
+        parameterBuilder.addScopes(request.scopes, undefined, this.config.authOptions.authority.options.OIDCOptions?.defaultScopes);
 
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
@@ -504,7 +504,7 @@ export class AuthorizationCodeClient extends BaseClient {
             ...(request.scopes || []),
             ...(request.extraScopesToConsent || []),
         ];
-        parameterBuilder.addScopes(requestScopes, true, this.config.authOptions.authority.options.OIDCOptions?.defaultScopes);
+        parameterBuilder.addScopes(requestScopes, undefined, this.config.authOptions.authority.options.OIDCOptions?.defaultScopes);
 
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);
