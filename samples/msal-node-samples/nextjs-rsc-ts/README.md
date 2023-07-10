@@ -136,3 +136,5 @@ Session lifetime has not been handled at all, and the RedisCachePlugin does not 
 The `./src/components/mui.tsx` re-exports some components from Material UI, and marks them as Client Components. This allows them to be used from Server Components.
 
 The `middleware.ts` currently exposes the currently accessed url so that it can be retrieved in server components. This allows you to send the user back to where they originally were dynamically. If your application is hosted behind a proxy, you'd have to compute the url based on [forwarded headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded), depending on what your hosting platform exposes.
+
+The `AuthProvider` interface uses the `state` parameter to store and retrieve required parameters from the triggering token request. It is highly recommended to store such information in the session instead, to avoid the risk of exposing sensitive info, as the `state` parameter will be stored in the browser history.
