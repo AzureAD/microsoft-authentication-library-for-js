@@ -67,10 +67,6 @@ export type BrowserAuthOptions = {
      * Flag of whether to use the local metadata cache
      */
     skipAuthorityMetadataCache?: boolean;
-    /**
-     * Flag to attempt SSOSilent when tokens not found for ATSilent
-     */
-    attemptSSO?: boolean;
 };
 
 /**
@@ -245,8 +241,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             azureCloudInstance: AzureCloudInstance.None,
             tenant: Constants.EMPTY_STRING
         },
-        skipAuthorityMetadataCache: false,
-        attemptSSO: false
+        skipAuthorityMetadataCache: false,  
     };
 
     // Default cache options for browser

@@ -2404,7 +2404,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("Calls SilentIframeClient.acquireToken and returns its response if cache lookup throws and refresh token is not found in cache", async () => {
 
-            pca.getConfiguration().auth.attemptSSO = true;
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,

@@ -240,7 +240,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
                     const isServerError = refreshTokenError instanceof ServerError;
                     const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
-                    const attemptSsoRTNotFound = (refreshTokenError.errorCode === BrowserConstants.NO_TOKENS_FOUND_ERROR) && this.config.auth.attemptSSO;
+                    const attemptSsoRTNotFound = (refreshTokenError.errorCode === BrowserConstants.NO_TOKENS_FOUND_ERROR);
                     const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
 
                     if ((!isServerError ||

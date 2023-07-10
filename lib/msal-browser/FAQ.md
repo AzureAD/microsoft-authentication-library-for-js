@@ -23,7 +23,7 @@
 
 1. [How to get single sign-on in my application with MSAL.js?](#how-to-get-single-sign-on-in-my-application-with-msaljs)
 1. [How can my application recognize a user after sign-in? How do I correlate users between applications?](#how-can-my-application-recognize-a-user-after-sign-in-how-do-i-correlate-users-between-applications)
-1. [How can I SSO when I have multiple MSAL instances running?](#how-can-i-sso-when-i-have-multiple-msal-instances-running)
+1. [Is SSO enabled when I have multiple MSAL instances running?](#is-sso-enabled-when-i-have-multiple-msal-instances-running)
 
 **[Accounts](#Accounts)**
 
@@ -213,22 +213,10 @@ loginPopup().then((response) => {
 })
 ```
 
-## How can I SSO when I have multiple MSAL instances running?
+## Is SSO enabled when I have multiple MSAL instances running?
 
-For use cases where applications run multiple msal instances in a single window and expect SSO, please enable `attemptSSO: true` in authOptions in the Configuration. 
+Yes. We try to SSO by default unless the cache policies say otherwise.
 
-```javascript
-const config = {
-    auth: {
-        clientId: "your-client-id",
-        authority: "https://yourApp.b2clogin.com/yourApp.onmicrosoft.com/your_policy",
-        attemptSSO: true;
-    }
-}
-const pca = new PublicClientApplication(config);
-```
-
-Please note that this will be default to `true` in v3 and applications that do not want SSO attempted can set the cache policies accordingly.
 
 # Accounts
 
