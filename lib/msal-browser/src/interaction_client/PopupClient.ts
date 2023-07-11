@@ -590,8 +590,7 @@ export class PopupClient extends StandardInteractionClient {
                 if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
                     this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
                     /**
-                     * Check from ?code to make sure we don't get a random query string
-                     * until # since some IDPs add stuff that doesn't concern MSAL after the # 
+                     * Extract hash between '?code=' and '#' if trailing '# is present.
                      */
                     if(href.indexOf("?code") > -1) {
                         if(href.indexOf("#") > -1) {
