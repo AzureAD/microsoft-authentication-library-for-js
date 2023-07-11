@@ -75,6 +75,7 @@ import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { version, name } from "../packageMetadata";
 import { IController } from "./IController";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { UrlString } from "..";
 
 export class StandardController implements IController {
     // OperatingContext
@@ -331,16 +332,8 @@ export class StandardController implements IController {
         
         if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
             this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
-                // Extract hash between '?code=' and '#' if trailing '# is present.
                 const url = window.location.href;
-                if(url.indexOf("?code") > -1) {
-                    if(url.indexOf("#") > -1) {
-                        foundServerResponse = url.substring(url.indexOf("?code") + 1, url.indexOf("#"));
-                    }
-                    else {
-                        foundServerResponse = url.substring(url.indexOf("?code") + 1);
-                    }
-                }
+                foundServerResponse = UrlString.parseQueryServerResponse(url);
         }
 
         const loggedInAccounts = this.getAllAccounts();

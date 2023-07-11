@@ -582,15 +582,7 @@ export class PopupClient extends StandardInteractionClient {
                 let hash;
                 if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
                     this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
-                    // Extract hash between '?code=' and '#' if trailing '# is present.
-                    if(href.indexOf("?code") > -1) {
-                        if(href.indexOf("#") > -1) {
-                            hash = href.substring(href.indexOf("?code") + 1, href.indexOf("#"));
-                        }
-                        else {
-                            hash = href.substring(href.indexOf("?code") + 1);
-                        }
-                    }
+                    hash = UrlString.parseQueryServerResponse(href);
                 }
                 else {
                     hash = popupWindow.location.hash;
