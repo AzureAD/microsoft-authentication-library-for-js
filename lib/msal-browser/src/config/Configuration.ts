@@ -16,6 +16,7 @@ import {
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
+    ClientConfigurationError
 } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import {
@@ -322,5 +323,12 @@ export function buildConfiguration(
         system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
+
+    // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
+    if(overlayedConfig.auth.protocolMode !== ProtocolMode.OIDC && 
+        overlayedConfig.auth.OIDCOptions) {
+            throw ClientConfigurationError.createCannotSetOIDCOptionsError();
+    }
+    
     return overlayedConfig;
 }

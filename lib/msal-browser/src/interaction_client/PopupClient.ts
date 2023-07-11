@@ -420,9 +420,6 @@ export class PopupClient extends StandardInteractionClient {
             } catch {
                 if (validRequest.account?.homeAccountId && validRequest.postLogoutRedirectUri && authClient.authority.protocolMode === ProtocolMode.OIDC){
                     this.browserStorage.removeAccount(validRequest.account?.homeAccountId);
-                    this.browserStorage.removeAccessToken(validRequest.account?.homeAccountId);
-                    this.browserStorage.removeIdToken(validRequest.account?.homeAccountId);
-                    this.browserStorage.removeRefreshToken(validRequest.account?.homeAccountId);
                     
                     this.eventHandler.emitEvent(
                         EventType.LOGOUT_SUCCESS,
@@ -430,13 +427,7 @@ export class PopupClient extends StandardInteractionClient {
                         validRequest
                     );
 
-                    const popupWindow = this.openPopup(window.location.href, {
-                        popupName,
-                        popupWindowAttributes,
-                        popup,
-                    });
-
-                    if(mainWindowRedirectUri){
+                    if (mainWindowRedirectUri){
                         const navigationOptions: NavigationOptions = {
                             apiId: ApiId.logoutPopup,
                             timeout: this.config.system.redirectNavigationTimeout,
@@ -452,7 +443,9 @@ export class PopupClient extends StandardInteractionClient {
                         );
                     }
 
-                    this.cleanPopup(popupWindow);
+                    if (popup) {
+                        popup.close();
+                    }
 
                     return;
                 }

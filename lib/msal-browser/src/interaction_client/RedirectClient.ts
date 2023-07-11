@@ -513,9 +513,6 @@ export class RedirectClient extends StandardInteractionClient {
                 } catch {
                     if (validLogoutRequest.account?.homeAccountId && validLogoutRequest.postLogoutRedirectUri){
                         this.browserStorage.removeAccount(validLogoutRequest.account?.homeAccountId);
-                        this.browserStorage.removeAccessToken(validLogoutRequest.account?.homeAccountId);
-                        this.browserStorage.removeIdToken(validLogoutRequest.account?.homeAccountId);
-                        this.browserStorage.removeRefreshToken(validLogoutRequest.account?.homeAccountId);
                         
                         this.eventHandler.emitEvent(
                             EventType.LOGOUT_SUCCESS,

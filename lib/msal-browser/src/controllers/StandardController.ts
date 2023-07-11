@@ -327,13 +327,7 @@ export class StandardController implements IController {
             this.initialized
         );
 
-        // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
-        if(this.config.auth.protocolMode !== ProtocolMode.OIDC && 
-            this.config.auth.OIDCOptions) {
-                throw ClientConfigurationError.createCannotSetOIDCOptionsError();
-        }
-
-        let found_hash = hash;
+        let foundServerResponse = hash;
         
         if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
             this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
@@ -341,10 +335,10 @@ export class StandardController implements IController {
                 const url = window.location.href;
                 if(url.indexOf("?code") > -1) {
                     if(url.indexOf("#") > -1) {
-                        found_hash = url.substring(url.indexOf("?code") + 1, url.indexOf("#"));
+                        foundServerResponse = url.substring(url.indexOf("?code") + 1, url.indexOf("#"));
                     }
                     else {
-                        found_hash = url.substring(url.indexOf("?code") + 1);
+                        foundServerResponse = url.substring(url.indexOf("?code") + 1);
                     }
                 }
         }
@@ -356,7 +350,7 @@ export class StandardController implements IController {
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
-            const redirectResponseKey = found_hash || Constants.EMPTY_STRING;
+            const redirectResponseKey = foundServerResponse || Constants.EMPTY_STRING;
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
                 this.eventHandler.emitEvent(
@@ -378,7 +372,7 @@ export class StandardController implements IController {
                         this.nativeExtensionProvider
                     ) &&
                     this.nativeExtensionProvider &&
-                    !found_hash
+                    !foundServerResponse
                 ) {
                     this.logger.trace(
                         "handleRedirectPromise - acquiring token from native platform"
@@ -410,7 +404,7 @@ export class StandardController implements IController {
                     const redirectClient =
                         this.createRedirectClient(correlationId);
                     redirectResponse =
-                        redirectClient.handleRedirectPromise(found_hash);
+                        redirectClient.handleRedirectPromise(foundServerResponse);
                 }
 
                 response = redirectResponse

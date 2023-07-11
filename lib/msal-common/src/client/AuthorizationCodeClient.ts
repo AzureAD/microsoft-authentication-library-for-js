@@ -205,7 +205,7 @@ export class AuthorizationCodeClient extends BaseClient {
         // Deserialize hash fragment response parameters.
         let serverParams : ServerAuthorizationCodeResponse;
         if(this.config.authOptions.authority.options.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
-            serverParams = UrlString.getDeserializedHash(hashFragment);
+            serverParams = UrlString.getDeserializedQueryString(hashFragment);
         }
         else{
             serverParams = UrlString.getDeserializedHash(hashUrlString.getHash());
