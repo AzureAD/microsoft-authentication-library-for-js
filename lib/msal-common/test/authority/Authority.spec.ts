@@ -27,6 +27,7 @@ import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetad
 import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
 import { Logger, LogLevel, UrlString } from "../../src";
 import { RegionDiscovery } from "../../src/authority/RegionDiscovery";
+import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata";
 
 let mockStorage: MockStorageClass;
 
@@ -1647,7 +1648,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 }
             });
 
-            describe.only("Metadata sources", () => {
+            describe("Metadata sources", () => {
                 let getCloudDiscoveryMetadataFromConfigSpy: jest.SpyInstance;
                 let getCloudDiscoveryMetadataFromHarcodedValuesSpy: jest.SpyInstance;
                 let getCloudDiscoveryMetadataFromNetworkSpy: jest.SpyInstance;
@@ -1680,11 +1681,20 @@ describe("Authority.ts Class Unit Tests", () => {
                  * 4. Network call to instance discovery endpoint
                  */
                 it("Sets instance metadata from cloudDiscoveryMetadata config source", async () => {
+                    const tenantDiscoveryResponseBody =
+                        DEFAULT_TENANT_DISCOVERY_RESPONSE.body;
+
+                    const expectedCloudDiscoveryMetadata =
+                        tenantDiscoveryResponseBody.metadata[0];
+
+                    const configAliases =
+                        expectedCloudDiscoveryMetadata.aliases;
+
                     const authorityOptions: AuthorityOptions = {
                         protocolMode: ProtocolMode.AAD,
                         knownAuthorities: [],
                         cloudDiscoveryMetadata: JSON.stringify(
-                            DEFAULT_TENANT_DISCOVERY_RESPONSE.body
+                            tenantDiscoveryResponseBody
                         ),
                         authorityMetadata: "",
                     };
@@ -1713,6 +1723,20 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(
                         getCloudDiscoveryMetadataFromNetworkSpy
                     ).not.toHaveBeenCalled();
+
+                    expect(authority.isAlias(configAliases[0])).toBe(true);
+                    expect(authority.isAlias(configAliases[1])).toBe(true);
+                    expect(authority.isAlias(configAliases[2])).toBe(true);
+                    expect(authority.isAlias(configAliases[3])).toBe(true);
+
+                    expect(authority.getPreferredCache()).toBe(
+                        expectedCloudDiscoveryMetadata.preferred_cache
+                    );
+                    expect(
+                        authority.canonicalAuthority.includes(
+                            expectedCloudDiscoveryMetadata.preferred_network
+                        )
+                    ).toBe(true);
                 });
 
                 it("Sets instance metadata from cache when not present in configuration", async () => {
@@ -1723,10 +1747,19 @@ describe("Authority.ts Class Unit Tests", () => {
                         authorityMetadata: "",
                     };
 
+                    const tenantDiscoveryResponseBody =
+                        DEFAULT_TENANT_DISCOVERY_RESPONSE.body;
+
+                    const expectedCloudDiscoveryMetadata =
+                        tenantDiscoveryResponseBody.metadata[0];
+
+                    const configAliases =
+                        expectedCloudDiscoveryMetadata.aliases;
+
                     const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
                     const value = new AuthorityMetadataEntity();
                     value.updateCloudDiscoveryMetadata(
-                        DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0],
+                        expectedCloudDiscoveryMetadata,
                         true
                     );
                     value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
@@ -1744,17 +1777,15 @@ describe("Authority.ts Class Unit Tests", () => {
                     );
 
                     await authority.resolveEndpointsAsync();
-                    expect(authority.isAlias("login.microsoftonline.com")).toBe(
-                        true
-                    );
-                    expect(authority.isAlias("login.windows.net")).toBe(true);
-                    expect(authority.isAlias("sts.windows.net")).toBe(true);
+                    expect(authority.isAlias(configAliases[0])).toBe(true);
+                    expect(authority.isAlias(configAliases[1])).toBe(true);
+                    expect(authority.isAlias(configAliases[2])).toBe(true);
                     expect(authority.getPreferredCache()).toBe(
-                        "sts.windows.net"
+                        expectedCloudDiscoveryMetadata.preferred_cache
                     );
                     expect(
                         authority.canonicalAuthority.includes(
-                            "login.windows.net"
+                            expectedCloudDiscoveryMetadata.preferred_network
                         )
                     ).toBe(true);
 
@@ -1767,19 +1798,19 @@ describe("Authority.ts Class Unit Tests", () => {
                         );
                     } else {
                         expect(cachedAuthorityMetadata.aliases).toContain(
-                            "login.microsoftonline.com"
+                            configAliases[0]
                         );
                         expect(cachedAuthorityMetadata.aliases).toContain(
-                            "login.windows.net"
+                            configAliases[1]
                         );
                         expect(cachedAuthorityMetadata.aliases).toContain(
-                            "sts.windows.net"
+                            configAliases[2]
                         );
                         expect(cachedAuthorityMetadata.preferred_cache).toBe(
-                            "sts.windows.net"
+                            expectedCloudDiscoveryMetadata.preferred_cache
                         );
                         expect(cachedAuthorityMetadata.preferred_network).toBe(
-                            "login.windows.net"
+                            expectedCloudDiscoveryMetadata.preferred_network
                         );
                         expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(
                             true
@@ -1804,6 +1835,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         cloudDiscoveryMetadata: "",
                         authorityMetadata: "",
                     };
+
                     networkInterface.sendGetRequestAsync = (
                         url: string,
                         options?: NetworkRequestOptions
@@ -1819,7 +1851,28 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger
                     );
 
+                    const hardcodedCloudDiscoveryMetadata =
+                        InstanceDiscoveryMetadata[Constants.DEFAULT_AUTHORITY];
+
+                    const expectedCloudDiscoveryMetadata =
+                        hardcodedCloudDiscoveryMetadata.metadata[0];
+
+                    const configAliases =
+                        expectedCloudDiscoveryMetadata.aliases;
+
                     await authority.resolveEndpointsAsync();
+                    expect(authority.isAlias(configAliases[0])).toBe(true);
+                    expect(authority.isAlias(configAliases[1])).toBe(true);
+                    expect(authority.isAlias(configAliases[2])).toBe(true);
+                    expect(authority.getPreferredCache()).toBe(
+                        expectedCloudDiscoveryMetadata.preferred_cache
+                    );
+                    expect(
+                        authority.canonicalAuthority.includes(
+                            expectedCloudDiscoveryMetadata.preferred_network
+                        )
+                    ).toBe(true);
+
                     expect(
                         getCloudDiscoveryMetadataFromConfigSpy
                     ).toHaveBeenCalled();
@@ -1842,7 +1895,11 @@ describe("Authority.ts Class Unit Tests", () => {
                         url: string,
                         options?: NetworkRequestOptions
                     ): any => {
-                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                        if (url.includes("discovery/instance")) {
+                            return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                        } else {
+                            return DEFAULT_OPENID_CONFIG_RESPONSE;
+                        }
                     };
 
                     authority = new Authority(
@@ -1896,14 +1953,23 @@ describe("Authority.ts Class Unit Tests", () => {
                         url: string,
                         options?: NetworkRequestOptions
                     ): any => {
-                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                        if (url.includes("discovery/instance")) {
+                            return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                        } else {
+                            return DEFAULT_OPENID_CONFIG_RESPONSE;
+                        }
                     };
+
                     authority = new Authority(
                         Constants.DEFAULT_AUTHORITY,
                         networkInterface,
                         mockStorage,
                         authorityOptions,
                         logger
+                    );
+
+                    getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
+                        null
                     );
 
                     await authority.resolveEndpointsAsync();
@@ -1958,76 +2024,6 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(
                         getCloudDiscoveryMetadataFromNetworkSpy
                     ).toHaveBeenCalled();
-                });
-
-                it("Sets instance metadata from network", async () => {
-                    const authorityOptions: AuthorityOptions = {
-                        protocolMode: ProtocolMode.AAD,
-                        knownAuthorities: [],
-                        cloudDiscoveryMetadata: "",
-                        authorityMetadata: "",
-                    };
-                    networkInterface.sendGetRequestAsync = (
-                        url: string,
-                        options?: NetworkRequestOptions
-                    ): any => {
-                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
-                    };
-                    jest.spyOn(
-                        Authority.prototype,
-                        <any>"updateEndpointMetadata"
-                    ).mockResolvedValue("cache");
-                    authority = new Authority(
-                        Constants.DEFAULT_AUTHORITY,
-                        networkInterface,
-                        mockStorage,
-                        authorityOptions,
-                        logger
-                    );
-
-                    await authority.resolveEndpointsAsync();
-                    expect(authority.isAlias("login.microsoftonline.com")).toBe(
-                        true
-                    );
-                    expect(authority.isAlias("login.windows.net")).toBe(true);
-                    expect(authority.isAlias("sts.windows.net")).toBe(true);
-                    expect(authority.getPreferredCache()).toBe(
-                        "sts.windows.net"
-                    );
-                    expect(
-                        authority.canonicalAuthority.includes(
-                            "login.windows.net"
-                        )
-                    ).toBe(true);
-
-                    // Test that the metadata is cached
-                    const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
-                    const cachedAuthorityMetadata =
-                        mockStorage.getAuthorityMetadata(key);
-                    if (!cachedAuthorityMetadata) {
-                        throw Error(
-                            "Cached AuthorityMetadata should not be null!"
-                        );
-                    } else {
-                        expect(cachedAuthorityMetadata.aliases).toContain(
-                            "login.microsoftonline.com"
-                        );
-                        expect(cachedAuthorityMetadata.aliases).toContain(
-                            "login.windows.net"
-                        );
-                        expect(cachedAuthorityMetadata.aliases).toContain(
-                            "sts.windows.net"
-                        );
-                        expect(cachedAuthorityMetadata.preferred_cache).toBe(
-                            "sts.windows.net"
-                        );
-                        expect(cachedAuthorityMetadata.preferred_network).toBe(
-                            "login.windows.net"
-                        );
-                        expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(
-                            true
-                        );
-                    }
                 });
 
                 it("Sets metadata from host if network call succeeds but does not explicitly include the host", async () => {

@@ -749,7 +749,7 @@ export class Authority {
         );
 
         metadata = await this.getCloudDiscoveryMetadataFromNetwork();
-        console.log(metadata);
+
         if (metadata) {
             this.logger.verbose(
                 "cloud discovery metadata was successfully returned from getCloudDiscoveryMetadataFromNetwork()"
@@ -852,7 +852,6 @@ export class Authority {
                 | CloudInstanceDiscoveryResponse
                 | CloudInstanceDiscoveryErrorResponse
             >(instanceDiscoveryEndpoint, options);
-            console.log(response);
             let typedResponseBody:
                 | CloudInstanceDiscoveryResponse
                 | CloudInstanceDiscoveryErrorResponse;
@@ -940,7 +939,14 @@ export class Authority {
      */
     private getCloudDiscoveryMetadataFromHardcodedValues(): CloudDiscoveryMetadata | null {
         if (this.canonicalAuthority in InstanceDiscoveryMetadata) {
-            return InstanceDiscoveryMetadata[this.canonicalAuthority];
+            const hardcodedMetadataResponse =
+                InstanceDiscoveryMetadata[this.canonicalAuthority];
+            const metadata =
+                Authority.getCloudDiscoveryMetadataFromNetworkResponse(
+                    hardcodedMetadataResponse.metadata,
+                    this.hostnameAndPort
+                );
+            return metadata;
         }
 
         return null;
