@@ -24,7 +24,6 @@ import {
     InProgressPerformanceEvent,
     RequestThumbprint,
     ServerError,
-    ClientConfigurationError,
     ProtocolMode,
     ServerResponseType,
 } from "@azure/msal-common";
