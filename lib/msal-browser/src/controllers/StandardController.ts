@@ -1438,8 +1438,6 @@ export class StandardController implements IController {
     public getNativeAccountId(
         request: RedirectRequest | PopupRequest | SsoSilentRequest
     ): string {
-        // Block token acquisition before initialize has been called
-        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         const account =
             request.account ||
             this.browserStorage.getAccountInfoByHints(
