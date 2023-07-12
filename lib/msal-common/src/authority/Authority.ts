@@ -433,53 +433,38 @@ export class Authority {
             PerformanceEvents.AuthorityUpdateEndpointMetadata,
             this.correlationId
         );
-
+        this.logger.verbose(
+            "Attempting to get endpoint metadata from authority configuration"
+        );
         let metadata = this.getEndpointMetadataFromConfig();
         if (metadata) {
+            this.logger.verbose(
+                "Found endpoint metadata in authority configuration"
+            );
             metadataEntity.updateEndpointMetadata(metadata, false);
             return AuthorityMetadataSource.CONFIG;
         }
 
-        if (
-            this.isAuthoritySameType(metadataEntity) &&
-            metadataEntity.endpointsFromNetwork &&
-            !metadataEntity.isExpired()
-        ) {
-            // No need to update
-            return AuthorityMetadataSource.CACHE;
-        }
-
-        this.performanceClient?.setPreQueueTime(
-            PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork,
-            this.correlationId
+        this.logger.verbose(
+            "Did not find endpoint metadata in the config... Attempting to get endpoint metadata from the hardcoded values."
         );
-        metadata = await this.getEndpointMetadataFromNetwork();
-        if (metadata) {
-            // If the user prefers to use an azure region replace the global endpoints with regional information.
-            if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
-                this.performanceClient?.setPreQueueTime(
-                    PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
-                    this.correlationId
-                );
-                metadata = await this.updateMetadataWithRegionalInformation(
-                    metadata
-                );
-            }
-
-            metadataEntity.updateEndpointMetadata(metadata, true);
-            return AuthorityMetadataSource.NETWORK;
-        }
 
         let hardcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         if (
             hardcodedMetadata &&
             !this.authorityOptions.skipAuthorityMetadataCache
         ) {
+            this.logger.verbose(
+                "Found endpoint metadata from hardcoded values."
+            );
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
                 this.performanceClient?.setPreQueueTime(
                     PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
                     this.correlationId
+                );
+                this.logger.verbose(
+                    "Found azure region configuration. Updating endpoints with regional information."
                 );
                 hardcodedMetadata =
                     await this.updateMetadataWithRegionalInformation(
@@ -489,7 +474,59 @@ export class Authority {
 
             metadataEntity.updateEndpointMetadata(hardcodedMetadata, false);
             return AuthorityMetadataSource.HARDCODED_VALUES;
+        }
+
+        this.logger.verbose(
+            "Did not find endpoint metadata in hardcoded values... Attempting to get endpoint metadata from the cache."
+        );
+
+        const metadataEntityExpired = metadataEntity.isExpired();
+        if (
+            this.isAuthoritySameType(metadataEntity) &&
+            metadataEntity.endpointsFromNetwork &&
+            !metadataEntityExpired
+        ) {
+            // No need to update
+            this.logger.verbose("Found endpoint metadata in the cache.");
+            return AuthorityMetadataSource.CACHE;
+        } else if (metadataEntityExpired) {
+            this.logger.verbose("The metadata entity is expired.");
+        }
+
+        this.logger.verbose(
+            "Did not find endpoint metadata in the cache... Attempting to get endpoint metadata from the network."
+        );
+
+        this.performanceClient?.setPreQueueTime(
+            PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork,
+            this.correlationId
+        );
+        metadata = await this.getEndpointMetadataFromNetwork();
+        if (metadata) {
+            this.logger.verbose(
+                "Endpoint metadata was successfully returned from getEndpointMetadataFromNetwork()"
+            );
+            // If the user prefers to use an azure region replace the global endpoints with regional information.
+            if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
+                this.performanceClient?.setPreQueueTime(
+                    PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
+                    this.correlationId
+                );
+                this.logger.verbose(
+                    "Found azure region configuration. Updating endpoints with regional information."
+                );
+                metadata = await this.updateMetadataWithRegionalInformation(
+                    metadata
+                );
+            }
+
+            metadataEntity.updateEndpointMetadata(metadata, true);
+            return AuthorityMetadataSource.NETWORK;
         } else {
+            // Metadata could not be obtained from the config, cache, network or hardcoded values
+            this.logger.error(
+                "Did not find endpoint metadata from network... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error."
+            );
             throw ClientAuthError.createUnableToGetOpenidConfigError(
                 this.defaultOpenIdConfigurationEndpoint
             );
@@ -678,7 +715,7 @@ export class Authority {
             this.correlationId
         );
         this.logger.verbose(
-            "Attempting to get cloud discovery metadata in the config"
+            "Attempting to get cloud discovery metadata  from authority configuration"
         );
         this.logger.verbosePii(
             `Known Authorities: ${
@@ -700,7 +737,7 @@ export class Authority {
         let metadata = this.getCloudDiscoveryMetadataFromConfig();
         if (metadata) {
             this.logger.verbose(
-                "Found cloud discovery metadata in the config."
+                "Found cloud discovery metadata in authority configuration"
             );
             metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
             return AuthorityMetadataSource.CONFIG;
@@ -1104,27 +1141,29 @@ export class Authority {
         metadata: OpenIdConfigResponse,
         azureRegion: string
     ): OpenIdConfigResponse {
-        metadata.authorization_endpoint =
+        const regionalMetadata = { ...metadata };
+        regionalMetadata.authorization_endpoint =
             Authority.buildRegionalAuthorityString(
-                metadata.authorization_endpoint,
+                regionalMetadata.authorization_endpoint,
                 azureRegion
             );
         // TODO: Enquire on whether we should leave the query string or remove it before releasing the feature
-        metadata.token_endpoint = Authority.buildRegionalAuthorityString(
-            metadata.token_endpoint,
-            azureRegion,
-            Constants.REGIONAL_AUTH_NON_MSI_QUERY_STRING
-        );
+        regionalMetadata.token_endpoint =
+            Authority.buildRegionalAuthorityString(
+                regionalMetadata.token_endpoint,
+                azureRegion,
+                Constants.REGIONAL_AUTH_NON_MSI_QUERY_STRING
+            );
 
-        if (metadata.end_session_endpoint) {
-            metadata.end_session_endpoint =
+        if (regionalMetadata.end_session_endpoint) {
+            regionalMetadata.end_session_endpoint =
                 Authority.buildRegionalAuthorityString(
-                    metadata.end_session_endpoint,
+                    regionalMetadata.end_session_endpoint,
                     azureRegion
                 );
         }
 
-        return metadata;
+        return regionalMetadata;
     }
 
     /**
