@@ -890,6 +890,31 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
         describe("Endpoint Metadata", () => {
+            let getEndpointMetadataFromConfigSpy: jest.SpyInstance;
+            let getEndpointMetadataFromHarcodedValuesSpy: jest.SpyInstance;
+            let getEndpointMetadataFromNetworkSpy: jest.SpyInstance;
+
+            beforeEach(() => {
+                getEndpointMetadataFromConfigSpy = jest.spyOn(
+                    Authority.prototype as any,
+                    "getEndpointMetadataFromConfig"
+                );
+
+                getEndpointMetadataFromHarcodedValuesSpy = jest.spyOn(
+                    Authority.prototype as any,
+                    "getEndpointMetadataFromHardcodedValues"
+                );
+
+                getEndpointMetadataFromNetworkSpy = jest.spyOn(
+                    Authority.prototype as any,
+                    "getEndpointMetadataFromNetwork"
+                );
+            });
+
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
+
             it("Gets endpoints from config", async () => {
                 const options = {
                     protocolMode: ProtocolMode.AAD,
@@ -964,6 +989,14 @@ describe("Authority.ts Class Unit Tests", () => {
                         false
                     );
                 }
+
+                expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromHarcodedValuesSpy
+                ).not.toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromNetworkSpy
+                ).not.toHaveBeenCalled();
             });
 
             it("Throws error if authorityMetadata cannot be parsed to json", (done) => {
@@ -990,7 +1023,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 });
             });
 
-            it("Throws error if authority does not containn end_session_endpoint but calls logout", async () => {
+            it("Throws error if authority does not contain end_session_endpoint but calls logout", async () => {
                 const authorityJson = {
                     ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
                     end_session_endpoint: undefined,
@@ -1016,251 +1049,6 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
             });
 
-            it("Gets endpoints from cache", async () => {
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
-                const value = new AuthorityMetadataEntity();
-                value.updateCloudDiscoveryMetadata(
-                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0],
-                    true
-                );
-                value.updateEndpointMetadata(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
-                    true
-                );
-                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
-                mockStorage.setAuthorityMetadata(key, value);
-
-                authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
-                    networkInterface,
-                    mockStorage,
-                    authorityOptions,
-                    logger
-                );
-                await authority.resolveEndpointsAsync();
-
-                expect(authority.discoveryComplete()).toBe(true);
-                expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.deviceCodeEndpoint).toBe(
-                    authority.tokenEndpoint.replace("/token", "/devicecode")
-                );
-                expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-
-                // Test that the metadata is cached
-                const cachedAuthorityMetadata =
-                    mockStorage.getAuthorityMetadata(key);
-                if (!cachedAuthorityMetadata) {
-                    throw Error("Cached AuthorityMetadata should not be null!");
-                } else {
-                    expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body
-                            .authorization_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.token_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.issuer).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
-                    );
-                    expect(cachedAuthorityMetadata.jwks_uri).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
-                    );
-                    expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
-                        true
-                    );
-                }
-            });
-
-            it("Gets endpoints from network if cached metadata is expired", async () => {
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
-                const value = new AuthorityMetadataEntity();
-                value.updateCloudDiscoveryMetadata(
-                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0],
-                    true
-                );
-                value.updateEndpointMetadata(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
-                    true
-                );
-                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
-                mockStorage.setAuthorityMetadata(key, value);
-
-                jest.spyOn(
-                    AuthorityMetadataEntity.prototype,
-                    "isExpired"
-                ).mockReturnValue(true);
-
-                networkInterface.sendGetRequestAsync = (
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): any => {
-                    return DEFAULT_OPENID_CONFIG_RESPONSE;
-                };
-                authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
-                    networkInterface,
-                    mockStorage,
-                    authorityOptions,
-                    logger
-                );
-                await authority.resolveEndpointsAsync();
-
-                expect(authority.discoveryComplete()).toBe(true);
-                expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.deviceCodeEndpoint).toBe(
-                    authority.tokenEndpoint.replace("/token", "/devicecode")
-                );
-                expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-
-                // Test that the metadata is cached
-                const cachedAuthorityMetadata =
-                    mockStorage.getAuthorityMetadata(key);
-                if (!cachedAuthorityMetadata) {
-                    throw Error("Cached AuthorityMetadata should not be null!");
-                } else {
-                    expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body
-                            .authorization_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.token_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.issuer).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
-                    );
-                    expect(cachedAuthorityMetadata.jwks_uri).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
-                    );
-                    expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
-                        true
-                    );
-                }
-            });
-
-            it("Gets endpoints from network", async () => {
-                networkInterface.sendGetRequestAsync = (
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): any => {
-                    return DEFAULT_OPENID_CONFIG_RESPONSE;
-                };
-                authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
-                    networkInterface,
-                    mockStorage,
-                    authorityOptions,
-                    logger
-                );
-                await authority.resolveEndpointsAsync();
-
-                expect(authority.discoveryComplete()).toBe(true);
-                expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.deviceCodeEndpoint).toBe(
-                    authority.tokenEndpoint.replace("/token", "/devicecode")
-                );
-                expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-
-                // Test that the metadata is cached
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
-                const cachedAuthorityMetadata =
-                    mockStorage.getAuthorityMetadata(key);
-                if (!cachedAuthorityMetadata) {
-                    throw Error("Cached AuthorityMetadata should not be null!");
-                } else {
-                    expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body
-                            .authorization_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.token_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.issuer).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
-                    );
-                    expect(cachedAuthorityMetadata.jwks_uri).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
-                    );
-                    expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
-                        true
-                    );
-                }
-            });
-
             it("Gets endpoints from hardcoded values", async () => {
                 const customAuthorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
@@ -1284,6 +1072,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     customAuthorityOptions,
                     logger
                 );
+
                 await authority.resolveEndpointsAsync();
 
                 expect(authority.discoveryComplete()).toBe(true);
@@ -1315,47 +1104,13 @@ describe("Authority.ts Class Unit Tests", () => {
                     )
                 );
 
-                // Test that the metadata is cached
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
-                const cachedAuthorityMetadata =
-                    mockStorage.getAuthorityMetadata(key);
-                if (!cachedAuthorityMetadata) {
-                    throw Error("Cached AuthorityMetadata should not be null!");
-                } else {
-                    expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
-                            "{tenant}",
-                            "common"
-                        )
-                    );
-                    expect(cachedAuthorityMetadata.token_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
-                            "{tenant}",
-                            "common"
-                        )
-                    );
-                    expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
-                            "{tenant}",
-                            "common"
-                        )
-                    );
-                    expect(cachedAuthorityMetadata.issuer).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                            "{tenant}",
-                            "{tenantid}"
-                        )
-                    );
-                    expect(cachedAuthorityMetadata.jwks_uri).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri.replace(
-                            "{tenant}",
-                            "common"
-                        )
-                    );
-                    expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
-                        false
-                    );
-                }
+                expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromHarcodedValuesSpy
+                ).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromNetworkSpy
+                ).not.toHaveBeenCalled();
             });
 
             it("Gets endpoints from hardcoded values with regional information", async () => {
@@ -1425,6 +1180,253 @@ describe("Authority.ts Class Unit Tests", () => {
                     )
                 );
 
+                expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromHarcodedValuesSpy
+                ).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromNetworkSpy
+                ).not.toHaveBeenCalled();
+            });
+
+            it("Gets endpoints from cache if not present in configuration or hardcoded metadata", async () => {
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const value = new AuthorityMetadataEntity();
+                value.updateCloudDiscoveryMetadata(
+                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0],
+                    true
+                );
+                value.updateEndpointMetadata(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                    true
+                );
+                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
+                mockStorage.setAuthorityMetadata(key, value);
+
+                authority = new Authority(
+                    Constants.DEFAULT_AUTHORITY,
+                    networkInterface,
+                    mockStorage,
+                    authorityOptions,
+                    logger
+                );
+
+                // Force hardcoded metadata to return null
+                getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(null);
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).toBe(true);
+                expect(authority.authorizationEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+                expect(authority.tokenEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+                expect(authority.deviceCodeEndpoint).toBe(
+                    authority.tokenEndpoint.replace("/token", "/devicecode")
+                );
+                expect(authority.endSessionEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+                expect(authority.selfSignedJwtAudience).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+
+                // Test that the metadata is cached
+                const cachedAuthorityMetadata =
+                    mockStorage.getAuthorityMetadata(key);
+                if (!cachedAuthorityMetadata) {
+                    throw Error("Cached AuthorityMetadata should not be null!");
+                } else {
+                    expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body
+                            .authorization_endpoint
+                    );
+                    expect(cachedAuthorityMetadata.token_endpoint).toBe(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
+                    );
+                    expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
+                    );
+                    expect(cachedAuthorityMetadata.issuer).toBe(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
+                    );
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
+                    );
+                    expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
+                        true
+                    );
+                }
+
+                expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromHarcodedValuesSpy
+                ).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromNetworkSpy
+                ).not.toHaveBeenCalled();
+            });
+
+            it("Gets endpoints from network if cached metadata is expired and metadata was not included in configuration or hardcoded values", async () => {
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const value = new AuthorityMetadataEntity();
+                value.updateCloudDiscoveryMetadata(
+                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0],
+                    true
+                );
+                value.updateEndpointMetadata(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                    true
+                );
+                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
+                mockStorage.setAuthorityMetadata(key, value);
+
+                jest.spyOn(
+                    AuthorityMetadataEntity.prototype,
+                    "isExpired"
+                ).mockReturnValue(true);
+
+                networkInterface.sendGetRequestAsync = (
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): any => {
+                    return DEFAULT_OPENID_CONFIG_RESPONSE;
+                };
+                authority = new Authority(
+                    Constants.DEFAULT_AUTHORITY,
+                    networkInterface,
+                    mockStorage,
+                    authorityOptions,
+                    logger
+                );
+
+                // Force hardcoded metadata to return null
+                getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(null);
+
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).toBe(true);
+                expect(authority.authorizationEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+                expect(authority.tokenEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+                expect(authority.deviceCodeEndpoint).toBe(
+                    authority.tokenEndpoint.replace("/token", "/devicecode")
+                );
+                expect(authority.endSessionEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+                expect(authority.selfSignedJwtAudience).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+
+                // Test that the metadata is cached
+                const cachedAuthorityMetadata =
+                    mockStorage.getAuthorityMetadata(key);
+                if (!cachedAuthorityMetadata) {
+                    throw Error("Cached AuthorityMetadata should not be null!");
+                } else {
+                    expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body
+                            .authorization_endpoint
+                    );
+                    expect(cachedAuthorityMetadata.token_endpoint).toBe(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
+                    );
+                    expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
+                    );
+                    expect(cachedAuthorityMetadata.issuer).toBe(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
+                    );
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
+                    );
+                    expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
+                        true
+                    );
+                }
+
+                expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromHarcodedValuesSpy
+                ).toHaveBeenCalled();
+                expect(getEndpointMetadataFromNetworkSpy).toHaveBeenCalled();
+            });
+
+            it("Gets endpoints from network", async () => {
+                networkInterface.sendGetRequestAsync = (
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): any => {
+                    return DEFAULT_OPENID_CONFIG_RESPONSE;
+                };
+                authority = new Authority(
+                    Constants.DEFAULT_AUTHORITY,
+                    networkInterface,
+                    mockStorage,
+                    authorityOptions,
+                    logger
+                );
+
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).toBe(true);
+                expect(authority.authorizationEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+                expect(authority.tokenEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+                expect(authority.deviceCodeEndpoint).toBe(
+                    authority.tokenEndpoint.replace("/token", "/devicecode")
+                );
+                expect(authority.endSessionEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+                expect(authority.selfSignedJwtAudience).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
+                        "{tenant}",
+                        "common"
+                    )
+                );
+
                 // Test that the metadata is cached
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
                 const cachedAuthorityMetadata =
@@ -1433,24 +1435,31 @@ describe("Authority.ts Class Unit Tests", () => {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
                     expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
-                        expectedHardcodedRegionalValues.authorization_endpoint
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body
+                            .authorization_endpoint
                     );
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(
-                        expectedHardcodedRegionalValues.token_endpoint
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
                     );
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
-                        expectedHardcodedRegionalValues.end_session_endpoint
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
                     );
                     expect(cachedAuthorityMetadata.issuer).toBe(
-                        expectedHardcodedRegionalValues.issuer
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
                     );
                     expect(cachedAuthorityMetadata.jwks_uri).toBe(
-                        expectedHardcodedRegionalValues.jwks_uri
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
                     );
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
-                        false
+                        true
                     );
                 }
+
+                expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromHarcodedValuesSpy
+                ).toHaveBeenCalled();
+                expect(getEndpointMetadataFromNetworkSpy).toHaveBeenCalled();
             });
 
             it("Throws error if openid-configuration network call fails", (done) => {
