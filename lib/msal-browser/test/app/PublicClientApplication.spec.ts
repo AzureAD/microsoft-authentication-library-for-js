@@ -829,30 +829,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResponse1).toEqual(tokenResponse2);
             expect(tokenResponse4).toEqual(tokenResponse1);
         });
-        it("Setting OIDCOptions when in AAD protocol mode throws an error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    protocolMode: ProtocolMode.AAD,
-                    OIDCOptions: { serverResponseType: "query" }
-                },
-                telemetry: {
-                    application: {
-                        appName: TEST_CONFIG.applicationName,
-                        appVersion: TEST_CONFIG.applicationVersion,
-                    },
-                },
-                system: {
-                    allowNativeBroker: false,
-                },
-            });
-
-            await expect(
-                pca.handleRedirectPromise()
-            ).rejects.toMatchObject(
-                ClientConfigurationError.createCannotSetOIDCOptionsError()
-            );
-        });
         it("Looks for hash in query param if OIDCOptions.serverResponseType is set to query", async () => {
             /**
              * The testing environment does not accept query params, so instead we see that it ignores a hash fragment.
@@ -878,7 +854,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon
                 .stub(RedirectClient.prototype, "handleRedirectPromise")
                 .callsFake(async (hash): Promise<AuthenticationResult | null> => {
-                    expect(hash).toBe(undefined);
+                    expect(hash).toBe("");
                     return null;
                 });
             

@@ -511,7 +511,7 @@ export class RedirectClient extends StandardInteractionClient {
                 try { 
                     authClient.authority.endSessionEndpoint;
                 } catch {
-                    if (validLogoutRequest.account?.homeAccountId && validLogoutRequest.postLogoutRedirectUri){
+                    if (validLogoutRequest.account?.homeAccountId){
                         this.browserStorage.removeAccount(validLogoutRequest.account?.homeAccountId);
                         
                         this.eventHandler.emitEvent(
@@ -523,10 +523,6 @@ export class RedirectClient extends StandardInteractionClient {
                         if (!this.browserStorage.getInteractionInProgress()) {
                             this.browserStorage.setInteractionInProgress(true);
                         }
-                        await this.navigationClient.navigateExternal(
-                            validLogoutRequest.postLogoutRedirectUri,
-                            navigationOptions
-                        );
         
                         return;
                     }

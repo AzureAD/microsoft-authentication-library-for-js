@@ -15,6 +15,7 @@ import {
     Separators,
     AADServerParamKeys,
     HeaderNames,
+    ServerResponseType,
 } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
@@ -40,7 +41,6 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { ServerResponseType } from "../authority/OIDCOptions";
 
 /**
  * Oauth2.0 Authorization Code client

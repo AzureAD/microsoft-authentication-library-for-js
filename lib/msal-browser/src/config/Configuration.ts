@@ -25,6 +25,7 @@ import {
 } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
+import { ServerResponseType } from "@azure/msal-common";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -79,7 +80,7 @@ export type BrowserAuthOptions = {
     /**
      * Enum that configures options for the OIDC protocol mode.
      */
-    OIDCOptions?: OIDCOptions | null;
+    OIDCOptions?: OIDCOptions;
     /**
      * Enum that represents the Azure Cloud to use.
      */
@@ -246,7 +247,10 @@ export function buildConfiguration(
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
-        OIDCOptions: null,
+        OIDCOptions: { 
+            serverResponseType: ServerResponseType.FRAGMENT, 
+            defaultScopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
+        },
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
             tenant: Constants.EMPTY_STRING,
@@ -317,18 +321,19 @@ export function buildConfiguration(
         },
     };
 
+    // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
+    if(userInputAuth &&
+        (!userInputAuth.protocolMode || userInputAuth.protocolMode !== ProtocolMode.OIDC) && 
+        userInputAuth.OIDCOptions) {
+            throw ClientConfigurationError.createCannotSetOIDCOptionsError();
+    }
+
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
-
-    // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
-    if(overlayedConfig.auth.protocolMode !== ProtocolMode.OIDC && 
-        overlayedConfig.auth.OIDCOptions) {
-            throw ClientConfigurationError.createCannotSetOIDCOptionsError();
-    }
     
     return overlayedConfig;
 }
