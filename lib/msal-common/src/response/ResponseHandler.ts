@@ -83,15 +83,33 @@ export class ResponseHandler {
         cryptoObj: ICrypto
     ): void {
         if (!serverResponseHash.state || !cachedState) {
-            throw !serverResponseHash.state
-                ? ClientAuthError.createStateNotFoundError("Server State")
-                : ClientAuthError.createStateNotFoundError("Cached State");
+            throw serverResponseHash.state
+                ? ClientAuthError.createStateNotFoundError("Cached State")
+                : ClientAuthError.createStateNotFoundError("Server State");
         }
 
-        if (
-            decodeURIComponent(serverResponseHash.state) !==
-            decodeURIComponent(cachedState)
-        ) {
+        let decodedServerResponseHash: string;
+        let decodedCachedState: string;
+
+        try {
+            decodedServerResponseHash = decodeURIComponent(serverResponseHash.state);
+        } catch (e) {
+            throw ClientAuthError.createInvalidStateError(
+                serverResponseHash.state,
+                `Server response hash URI could not be decoded`
+            );
+        }
+
+        try {
+            decodedCachedState = decodeURIComponent(cachedState);
+        } catch (e) {
+            throw ClientAuthError.createInvalidStateError(
+                serverResponseHash.state,
+                `Cached state URI could not be decoded`
+            );
+        }
+
+        if (decodedServerResponseHash !== decodedCachedState) {
             throw ClientAuthError.createStateMismatchError();
         }
 

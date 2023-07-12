@@ -6,10 +6,7 @@
     "build": "npx tsc",
     "start:app": "npm run build && node dist/app.js",
     "start:express": "npm run build && node dist/express.js",
-    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "install:common": "npm install ../../../lib/msal-common",
-    "install:node": "npm install ../../../lib/msal-node",
-    "install:all": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build"
+    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build"
   },
   "type": "module",
   "author": "",

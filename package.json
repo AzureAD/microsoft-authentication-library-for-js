@@ -13,7 +13,6 @@
     "@octokit/graphql": "^4.6.0",
     "@octokit/rest": "^18.2.1",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
-    "@typescript-eslint/eslint-plugin-tslint": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",
     "beachball": "^2.22.4",
     "dotenv": "^8.2.0",
@@ -27,7 +26,6 @@
     "eslint-plugin-react-hooks": "^4.1.2",
     "eslint-plugin-security": "^1.4.0",
     "gh-pages": "^3.1.0",
-    "lerna": "^6.4.0",
     "npm-run-all": "^4.1.5",
     "prettier": "2.8.7",
     "rimraf": "^3.0.0",
@@ -41,14 +39,8 @@
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "scripts": {
-    "audit": "npm audit --production && lerna exec \"npm audit --production\"",
-    "audit:prod": "npm audit && lerna exec \"npm audit --production\"",
-    "postinstall": "node build/postinstall.js",
-    "build": "lerna run build",
-    "build:extensions": "cd extensions/msal-node-extensions/ && npm ci && npm run build",
-    "test": "lerna run test",
-    "test:coverage": "npm run clean:coverage && lerna run test:coverage",
-    "test:e2e": "lerna run --concurrency 1 test:e2e",
+    "audit": "npm audit --workspace=lib/** --workspace=extensions/** --include-workspace-root",
+    "clean:nodeModules": "npx npkill -y",
     "doc": "npm run doc:generate && npm run doc:deploy",
     "doc:generate": "rimraf ./ref/* && typedoc",
     "doc:deploy": "gh-pages -d ref -a -e ref",
@@ -59,13 +51,22 @@
     "lint:node": "eslint lib/msal-node/src --ext .ts",
     "lint:node:extensions": "eslint extensions/msal-node-extensions/src --ext .ts",
     "lint:react": "eslint lib/msal-react/src --ext .ts --ext .tsx",
-    "clean": "lerna run clean --no-private && lerna clean",
-    "clean:coverage": "rimraf ./.nyc_output/*",
     "beachball:check": "beachball check --branch origin/dev",
     "beachball:change": "beachball change --branch origin/dev",
     "beachball:bump": "beachball bump --branch origin/dev --bumpDeps false && node release-scripts/updateVersion.js",
-    "beachball:bumpDeps": "beachball bump",
-    "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
     "beachball:release": "node ./.github/create-releases.js"
-  }
+  },
+  "workspaces": [
+    "lib/msal-common",
+    "lib/msal-browser",
+    "lib/msal-node",
+    "lib/msal-angular",
+    "lib/msal-react",
+    "extensions/msal-node-extensions",
+    "samples/e2eTestUtils",
+    "samples/msal-browser-samples/*",
+    "samples/msal-angular-v3-samples/*",
+    "samples/msal-react-samples/*",
+    "samples/msal-node-samples/*"
+  ]
 }

@@ -5,9 +5,7 @@
     "start": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "serve": "vite preview",
-    "build:package": "cd ../../../lib/msal-browser && npm run build:all",
-    "install:local": "npm install ../../../lib/msal-browser",
-    "install:published": "npm install @azure/msal-browser@latest"
+    "build:package": "cd ../../../lib/msal-browser && npm run build:all"
   },
   "dependencies": {
     "@azure/msal-browser": "^3.0.0-beta.0",
