@@ -330,6 +330,7 @@ export function buildConfiguration(
 
     // Throw an error if user has set allowNativeBroker to true without being in AAD protocol mode
     if(userInputAuth &&
+        userInputAuth.protocolMode &&
         userInputAuth.protocolMode !== ProtocolMode.AAD && 
         providedSystemOptions &&
         providedSystemOptions.allowNativeBroker) {
