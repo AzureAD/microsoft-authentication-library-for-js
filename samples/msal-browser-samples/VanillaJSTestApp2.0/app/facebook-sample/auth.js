@@ -58,6 +58,7 @@ function signOut(interactionType) {
         });
     } else {
         myMSALObj.logoutRedirect(logoutRequest);
+        window.location.reload();
     }
 }
 

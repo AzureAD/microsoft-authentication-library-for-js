@@ -5,7 +5,7 @@ const msalConfig = {
         authority: "https://www.facebook.com",
         knownAuthorities: ["www.facebook.com"],
         protocolMode: msal.ProtocolMode.OIDC,
-        OIDCOptions: { "serverResponseType": "query", "defaultScopes": ["openid"] },
+        OIDCOptions: { "serverResponseType": msal.ServerResponseType.QUERY, "defaultScopes": ["openid"] },
         authorityMetadata: '{ "issuer": "https://www.facebook.com", "authorization_endpoint": "https://facebook.com/dialog/oauth/", "token_endpoint": "https://graph.facebook.com/oauth/access_token", "jwks_uri": "https://www.facebook.com/.well-known/oauth/openid/jwks/" }',
         cache: {
             cacheLocation: "sessionStorage", // This configures where your cache will be stored
