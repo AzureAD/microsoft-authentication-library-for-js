@@ -23,7 +23,6 @@
 
 1. [How to get single sign-on in my application with MSAL.js?](#how-to-get-single-sign-on-in-my-application-with-msaljs)
 1. [How can my application recognize a user after sign-in? How do I correlate users between applications?](#how-can-my-application-recognize-a-user-after-sign-in-how-do-i-correlate-users-between-applications)
-1. [Is SSO enabled when I have multiple MSAL instances running?](#is-sso-enabled-when-i-have-multiple-msal-instances-running)
 
 **[Accounts](#Accounts)**
 
@@ -212,12 +211,6 @@ loginPopup().then((response) => {
     const uniqueID = response.account.homeAccountId;
 })
 ```
-
-## Is SSO enabled when I have multiple MSAL instances running?
-
-Yes. We try to SSO by default unless the cache policies say otherwise.
-
-
 # Accounts
 
 ## In what scenarios will `getAllAccounts` return multiple accounts?
