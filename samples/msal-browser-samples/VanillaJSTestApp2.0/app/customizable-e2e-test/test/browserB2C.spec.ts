@@ -1,13 +1,23 @@
 import * as puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
-import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
-import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments, AppTypes, UserTypes, B2cProviders } from "../../../../../e2eTestUtils/Constants";
-import { LabClient } from "../../../../../e2eTestUtils/LabClient";
+import { 
+    Screenshot, 
+    createFolder, 
+    setupCredentials, 
+    ONE_SECOND_IN_MS,
+    b2cAadPpeAccountEnterCredentials, 
+    b2cLocalAccountEnterCredentials, 
+    clickLoginPopup, 
+    clickLoginRedirect, 
+    waitForReturnToApp,
+    getBrowser, 
+    getHomeUrl 
+} from "e2e-test-utils/src/TestUtils";
+import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
+import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
+import { AzureEnvironments, AppTypes, UserTypes, B2cProviders } from "e2e-test-utils/src/Constants";
+import { LabClient } from "e2e-test-utils/src/LabClient";
 import { msalConfig as b2cMsalConfig, request as b2cTokenRequest } from "../authConfigs/b2cAuthConfig.json";
-import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
-import {getBrowser, getHomeUrl} from "../../testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 let sampleHomeUrl = "";
@@ -77,7 +87,7 @@ describe("B2C Tests", () => {
                 const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
                 await clickLoginRedirect(screenshot, page);
-                await b2cAadPpeEnterCredentials(page, screenshot, username, accountPwd);
+                await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
                 await waitForReturnToApp(screenshot, page);
 
                 await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
@@ -88,7 +98,7 @@ describe("B2C Tests", () => {
                 const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
                 const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
-                await b2cAadPpeEnterCredentials(popupPage, screenshot, username, accountPwd);
+                await b2cAadPpeAccountEnterCredentials(popupPage, screenshot, username, accountPwd);
                 await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
 
                 await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
@@ -110,7 +120,7 @@ describe("B2C Tests", () => {
                 screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
                 const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
-                await b2cAadPpeEnterCredentials(popupPage, screenshot, username, accountPwd);
+                await b2cAadPpeAccountEnterCredentials(popupPage, screenshot, username, accountPwd);
                 await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
             });
 

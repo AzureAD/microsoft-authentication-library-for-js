@@ -7,7 +7,6 @@ import {
     AuthorizationCodePayload,
     StringUtils,
     CommonAuthorizationCodeRequest,
-    AuthenticationResult,
     AuthorizationCodeClient,
     AuthorityFactory,
     Authority,
@@ -26,6 +25,7 @@ import {
     BrowserAuthErrorMessage,
 } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export type InteractionParams = {};
 
@@ -185,7 +185,7 @@ export class InteractionHandler {
         const tokenResponse = await this.authModule.acquireToken(
             this.authCodeRequest,
             authCodeResponse
-        );
+        ) as AuthenticationResult;
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }

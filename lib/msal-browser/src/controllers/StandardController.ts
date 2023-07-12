@@ -9,7 +9,6 @@ import {
     AccountInfo,
     Constants,
     INetworkModule,
-    AuthenticationResult,
     Logger,
     CommonSilentFlowRequest,
     ICrypto,
@@ -72,6 +71,7 @@ import { StandardOperatingContext } from "../operatingcontext/StandardOperatingC
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { version, name } from "../packageMetadata";
 import { IController } from "./IController";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class StandardController implements IController {
     // OperatingContext
@@ -198,10 +198,7 @@ export class StandardController implements IController {
 
         // Initialize the crypto class.
         this.browserCrypto = this.isBrowserEnvironment
-            ? new CryptoOps(
-                  this.logger,
-                  this.performanceClient
-              )
+            ? new CryptoOps(this.logger, this.performanceClient)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
@@ -226,6 +223,7 @@ export class StandardController implements IController {
             storeAuthStateInCookie: false,
             secureCookies: false,
             cacheMigrationEnabled: false,
+            claimsBasedCachingEnabled: false,
         };
         this.nativeInternalStorage = new BrowserCacheManager(
             this.config.auth.clientId,

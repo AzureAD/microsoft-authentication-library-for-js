@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Thu, 15 Jun 2023 22:19:25 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Jul 2023 00:01:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-beta.1
+
+Thu, 06 Jul 2023 00:01:32 GMT
+
+### Changes
+
+- Fix module field in package.json #6190 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v3.0.0-beta.1
 
 ## 2.0.0-beta.0
 

@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICachePlugin, TokenCacheContext } from "@azure/msal-common";
-import { ICacheClient } from "@azure/msal-node";
+import { ICacheClient, ICachePlugin, TokenCacheContext } from "@azure/msal-node";
 import { performance } from "perf_hooks";
 
 /**

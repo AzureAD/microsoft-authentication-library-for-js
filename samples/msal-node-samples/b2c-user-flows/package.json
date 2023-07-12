@@ -14,13 +14,17 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "file:../../../lib/msal-node",
-    "axios": "^0.21.1",
+    "@azure/msal-node": "^2.0.0-beta.0",
+    "axios": "^1.4.0",
     "express": "^4.17.1",
     "express-handlebars": "^5.3.5",
     "express-session": "^1.17.2"
   },
   "devDependencies": {
-    "jest": "^29.5.0"
+    "@types/jest": "^29.5.0",
+    "e2e-test-utils": "file:../../e2eTestUtils",
+    "jest": "^29.5.0",
+    "puppeteer": "^20.7.3",
+    "ts-jest": "^29.1.0"
   }
 }

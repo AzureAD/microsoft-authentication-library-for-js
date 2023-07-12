@@ -7,7 +7,6 @@ import {
     ICrypto,
     INetworkModule,
     Logger,
-    AuthenticationResult,
     AccountInfo,
     AccountEntity,
     BaseAuthRequest,
@@ -35,6 +34,7 @@ import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -178,8 +178,13 @@ export abstract class BaseInteractionClient {
             );
         }
 
-        // Set requested claims hash if claims were requested
-        if (request.claims && !StringUtils.isEmpty(request.claims)) {
+        // Set requested claims hash if claims-based caching is enabled and claims were requested
+        if (
+            this.config.cache.claimsBasedCachingEnabled &&
+            request.claims &&
+            // Checks for empty stringified object "{}" which doesn't qualify as requested claims
+            !StringUtils.isEmptyObj(request.claims)
+        ) {
             validatedRequest.requestedClaimsHash =
                 await this.browserCrypto.hashString(request.claims);
         }
@@ -207,13 +212,18 @@ export abstract class BaseInteractionClient {
     }
 
     /*
-     * If authority provided in the request does not match environment/authority specified 
+     * If authority provided in the request does not match environment/authority specified
      * in the account or MSAL config, we throw an error.
      */
-    async validateRequestAuthority(authority: string, account: AccountInfo): Promise<void> {
-        const discoveredAuthority = await this.getDiscoveredAuthority(authority);
-        
-        if(!discoveredAuthority.isAlias(account.environment)) {
+    async validateRequestAuthority(
+        authority: string,
+        account: AccountInfo
+    ): Promise<void> {
+        const discoveredAuthority = await this.getDiscoveredAuthority(
+            authority
+        );
+
+        if (!discoveredAuthority.isAlias(account.environment)) {
             throw ClientConfigurationError.createAuthorityMismatchError();
         }
     }

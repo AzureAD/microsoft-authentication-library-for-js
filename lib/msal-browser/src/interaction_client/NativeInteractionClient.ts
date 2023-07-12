@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     Logger,
     ICrypto,
     PromptValue,
@@ -27,7 +26,6 @@ import {
     AuthError,
     CommonSilentFlowRequest,
     AccountInfo,
-    CacheRecord,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -54,6 +52,8 @@ import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
+import { AuthenticationResult } from "../response/AuthenticationResult";
+import { CacheRecord } from "../cache/entities/CacheRecord";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;

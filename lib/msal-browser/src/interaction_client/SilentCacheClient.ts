@@ -6,7 +6,6 @@
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
     CommonSilentFlowRequest,
-    AuthenticationResult,
     SilentFlowClient,
     ServerTelemetryManager,
     AccountInfo,
@@ -20,6 +19,7 @@ import {
     BrowserAuthError,
     BrowserAuthErrorMessage,
 } from "../error/BrowserAuthError";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -48,7 +48,7 @@ export class SilentCacheClient extends StandardInteractionClient {
         try {
             const cachedToken = await silentAuthClient.acquireCachedToken(
                 silentRequest
-            );
+            ) as AuthenticationResult;
 
             acquireTokenMeasurement.endMeasurement({
                 success: true,
