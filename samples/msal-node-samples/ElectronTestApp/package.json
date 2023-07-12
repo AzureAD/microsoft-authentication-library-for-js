@@ -8,8 +8,7 @@
     "build": "tsc",
     "start": "npm run build && electron dist/app.js",
     "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "start:build": "npm run build:package && npm start",
-    "install:local": "npm install ../../../lib/msal-node"
+    "start:build": "npm run build:package && npm start"
   },
   "keywords": [
     "msal-node",
