@@ -109,6 +109,10 @@ export const ClientConfigurationErrorMessage = {
         code: "cannot_set_OIDCOptions",
         desc: "Cannot set OIDCOptions parameter. Please change the protocol mode to OIDC or use a non-Microsoft authority.",
     },
+    cannotAllowNativeBroker:{
+        code: "cannot_allow_native_broker",
+        desc: "Cannot set allowNativeBroker parameter to true when not in AAD protocol mode.",
+    },
     authorityMismatch: {
         code: "authority_mismatch",
         desc: "Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority."
@@ -381,6 +385,16 @@ export class ClientConfigurationError extends ClientAuthError {
         return new ClientConfigurationError(
             ClientConfigurationErrorMessage.cannotSetOIDCOptions.code,
             ClientConfigurationErrorMessage.cannotSetOIDCOptions.desc
+        );
+    }
+
+    /**
+     * Throws error when allowNativeBroker is set to true when not in AAD protocol mode
+     */
+    static createCannotAllowNativeBrokerError(): ClientConfigurationError {
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.cannotAllowNativeBroker.code,
+            ClientConfigurationErrorMessage.cannotAllowNativeBroker.desc
         );
     }
 

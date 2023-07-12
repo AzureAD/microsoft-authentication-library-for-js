@@ -328,6 +328,14 @@ export function buildConfiguration(
             throw ClientConfigurationError.createCannotSetOIDCOptionsError();
     }
 
+    // Throw an error if user has set allowNativeBroker to true without being in AAD protocol mode
+    if(userInputAuth &&
+        userInputAuth.protocolMode !== ProtocolMode.AAD && 
+        providedSystemOptions &&
+        providedSystemOptions.allowNativeBroker) {
+            throw ClientConfigurationError.createCannotAllowNativeBrokerError();
+    }
+
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
