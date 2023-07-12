@@ -449,37 +449,45 @@ export class Authority {
             "Did not find endpoint metadata in the config... Attempting to get endpoint metadata from the hardcoded values."
         );
 
-        let hardcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
-        if (
-            hardcodedMetadata &&
-            !this.authorityOptions.skipAuthorityMetadataCache
-        ) {
+        // skipAuthorityMetadataCache is used to bypass hardcoded authority metadata and force a network metadata cache lookup and network metadata request if no cached response is available.
+        if (this.authorityOptions.skipAuthorityMetadataCache) {
             this.logger.verbose(
-                "Found endpoint metadata from hardcoded values."
+                "Skipping hardcoded metadata cache since skipAuthorityMetadataCache is set to true. Attempting to get endpoint metadata from the network metadata cache."
             );
-            // If the user prefers to use an azure region replace the global endpoints with regional information.
-            if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
-                this.performanceClient?.setPreQueueTime(
-                    PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
-                    this.correlationId
-                );
+        } else {
+            let hardcodedMetadata =
+                this.getEndpointMetadataFromHardcodedValues();
+            if (hardcodedMetadata) {
                 this.logger.verbose(
-                    "Found azure region configuration. Updating endpoints with regional information."
+                    "Found endpoint metadata from hardcoded values."
                 );
-                hardcodedMetadata =
-                    await this.updateMetadataWithRegionalInformation(
-                        hardcodedMetadata
+                // If the user prefers to use an azure region replace the global endpoints with regional information.
+                if (
+                    this.authorityOptions.azureRegionConfiguration?.azureRegion
+                ) {
+                    this.performanceClient?.setPreQueueTime(
+                        PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
+                        this.correlationId
                     );
-            }
+                    this.logger.verbose(
+                        "Found azure region configuration. Updating endpoints with regional information."
+                    );
+                    hardcodedMetadata =
+                        await this.updateMetadataWithRegionalInformation(
+                            hardcodedMetadata
+                        );
+                }
 
-            metadataEntity.updateEndpointMetadata(hardcodedMetadata, false);
-            return AuthorityMetadataSource.HARDCODED_VALUES;
+                metadataEntity.updateEndpointMetadata(hardcodedMetadata, false);
+                return AuthorityMetadataSource.HARDCODED_VALUES;
+            } else {
+                this.logger.verbose(
+                    "Did not find endpoint metadata in hardcoded values... Attempting to get endpoint metadata from the network metadata cache."
+                );
+            }
         }
 
-        this.logger.verbose(
-            "Did not find endpoint metadata in hardcoded values... Attempting to get endpoint metadata from the cache."
-        );
-
+        // Check cached metadata entity expiration status
         const metadataEntityExpired = metadataEntity.isExpired();
         if (
             this.isAuthoritySameType(metadataEntity) &&
@@ -494,7 +502,7 @@ export class Authority {
         }
 
         this.logger.verbose(
-            "Did not find endpoint metadata in the cache... Attempting to get endpoint metadata from the network."
+            "Did not find cached endpoint metadata... Attempting to get endpoint metadata from the network."
         );
 
         this.performanceClient?.setPreQueueTime(
@@ -748,22 +756,28 @@ export class Authority {
             "Did not find cloud discovery metadata in the config... Attempting to get cloud discovery metadata from the hardcoded values."
         );
 
-        const hardcodedMetadata =
-            this.getCloudDiscoveryMetadataFromHardcodedValues();
-        if (hardcodedMetadata && !this.options.skipAuthorityMetadataCache) {
+        if (this.options.skipAuthorityMetadataCache) {
             this.logger.verbose(
-                "Found cloud discovery metadata from hardcoded values."
+                "Skipping hardcoded cloud discovery metadata cache since skipAuthorityMetadataCache is set to true. Attempting to get cloud discovery metadata from the network metadata cache."
             );
-            metadataEntity.updateCloudDiscoveryMetadata(
-                hardcodedMetadata,
-                false
-            );
-            return AuthorityMetadataSource.HARDCODED_VALUES;
-        }
+        } else {
+            const hardcodedMetadata =
+                this.getCloudDiscoveryMetadataFromHardcodedValues();
+            if (hardcodedMetadata) {
+                this.logger.verbose(
+                    "Found cloud discovery metadata from hardcoded values."
+                );
+                metadataEntity.updateCloudDiscoveryMetadata(
+                    hardcodedMetadata,
+                    false
+                );
+                return AuthorityMetadataSource.HARDCODED_VALUES;
+            }
 
-        this.logger.verbose(
-            "Did not find cloud discovery metadata in hardcoded values... Attempting to get cloud discovery metadata from the cache."
-        );
+            this.logger.verbose(
+                "Did not find cloud discovery metadata in hardcoded values... Attempting to get cloud discovery metadata from the network metadata cache."
+            );
+        }
 
         const metadataEntityExpired = metadataEntity.isExpired();
         if (
