@@ -240,7 +240,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
                     const isServerError = refreshTokenError instanceof ServerError;
                     const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
-                    const attemptSsoRTNotFound = (refreshTokenError.errorCode === BrowserConstants.NO_TOKENS_FOUND_ERROR);
+                    const rtNotFound = (refreshTokenError.errorCode === BrowserConstants.NO_TOKENS_FOUND_ERROR);
                     const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
 
                     if ((!isServerError ||
@@ -249,7 +249,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                             requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
                             requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
                         && (requestWithCLP.cacheLookupPolicy !== CacheLookupPolicy.Skip)
-                        && !attemptSsoRTNotFound
+                        && !rtNotFound
                     ) {
                         throw refreshTokenError;
                     }
