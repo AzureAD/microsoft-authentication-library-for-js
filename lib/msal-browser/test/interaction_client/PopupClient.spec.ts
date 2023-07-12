@@ -35,7 +35,7 @@ import {
     Authority,
     CommonAuthorizationCodeRequest,
     AuthError,
-    Logger
+    Logger,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -68,7 +68,7 @@ describe("PopupClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let popupClient: PopupClient;
     let pca: PublicClientApplication;
-    beforeEach(() => {
+    beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -77,6 +77,7 @@ describe("PopupClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
+        await pca.initialize();
 
         //@ts-ignore
         popupClient = new PopupClient(
@@ -721,7 +722,9 @@ describe("PopupClient", () => {
                 "create_logout_url_error",
                 "Error in creating a logout url"
             );
-            sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").throws(testError);
+            sinon
+                .stub(AuthorizationCodeClient.prototype, "getLogoutUri")
+                .throws(testError);
 
             try {
                 await popupClient.logout();
