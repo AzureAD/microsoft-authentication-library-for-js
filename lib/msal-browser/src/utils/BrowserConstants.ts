@@ -20,10 +20,6 @@ export const BrowserConstants = {
      */
     INVALID_GRANT_ERROR: "invalid_grant",
     /**
-     * No tokens found error code
-     */
-    NO_TOKENS_FOUND_ERROR: "no_tokens_found",
-    /**
      * Default popup window width
      */
     POPUP_WIDTH: 483,

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, ServerError, InteractionRequiredAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, ServerError, InteractionRequiredAuthError, InProgressPerformanceEvent, InteractionRequiredAuthErrorMessage } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType, ApiId, CacheLookupPolicy, BrowserConstants } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -240,7 +240,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
                     const isServerError = refreshTokenError instanceof ServerError;
                     const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
-                    const rtNotFound = (refreshTokenError.errorCode === BrowserConstants.NO_TOKENS_FOUND_ERROR);
+                    const rtNotFound = (refreshTokenError.errorCode === InteractionRequiredAuthErrorMessage.noTokensFoundError.code);
                     const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
 
                     if ((!isServerError ||
