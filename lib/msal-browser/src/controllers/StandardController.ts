@@ -318,11 +318,8 @@ export class StandardController implements IController {
         hash?: string
     ): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
-        // Block token acquisition before initialize has been called if native brokering is enabled
-        BrowserUtils.blockNativeBrokerCalledBeforeInitialized(
-            this.config.system.allowNativeBroker,
-            this.initialized
-        );
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
 
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
@@ -1142,6 +1139,8 @@ export class StandardController implements IController {
      */
     getAllAccounts(): AccountInfo[] {
         this.logger.verbose("getAllAccounts called");
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         return this.isBrowserEnvironment
             ? this.browserStorage.getAllAccounts()
             : [];
@@ -1157,6 +1156,8 @@ export class StandardController implements IController {
      */
     getAccountByUsername(username: string): AccountInfo | null {
         this.logger.trace("getAccountByUsername called");
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         if (!username) {
             this.logger.warning("getAccountByUsername: No username provided");
             return null;
@@ -1189,6 +1190,8 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         this.logger.trace("getAccountByHomeId called");
         if (!homeAccountId) {
             this.logger.warning(
@@ -1224,6 +1227,8 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         this.logger.trace("getAccountByLocalId called");
         if (!localAccountId) {
             this.logger.warning(
@@ -1256,6 +1261,8 @@ export class StandardController implements IController {
      * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         this.browserStorage.setActiveAccount(account);
     }
 
@@ -1263,6 +1270,8 @@ export class StandardController implements IController {
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         return this.browserStorage.getActiveAccount();
     }
 
@@ -1297,16 +1306,8 @@ export class StandardController implements IController {
         // Block redirectUri opened in a popup from calling MSAL APIs
         BrowserUtils.blockAcquireTokenInPopups();
 
-        /*
-         * Block token acquisition before initialize has been called if native brokering is enabled in top-frame.
-         * Skip check if application is embedded.
-         */
-        if (!isAppEmbedded) {
-            BrowserUtils.blockNativeBrokerCalledBeforeInitialized(
-                this.config.system.allowNativeBroker,
-                this.initialized
-            );
-        }
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
 
         // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
         if (
@@ -1437,6 +1438,8 @@ export class StandardController implements IController {
     public getNativeAccountId(
         request: RedirectRequest | PopupRequest | SsoSilentRequest
     ): string {
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         const account =
             request.account ||
             this.browserStorage.getAccountInfoByHints(
