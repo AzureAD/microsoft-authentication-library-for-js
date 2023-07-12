@@ -11,6 +11,7 @@ import {
     Constants,
     ProtocolMode,
     OIDCOptions,
+    ServerResponseType,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
@@ -25,7 +26,6 @@ import {
 } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
-import { ServerResponseType } from "@azure/msal-common";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
