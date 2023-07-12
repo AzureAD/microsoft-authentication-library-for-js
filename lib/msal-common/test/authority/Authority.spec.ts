@@ -1676,8 +1676,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 /**
                  * Order of precedence for cloud discovery metadata:
                  * 1. Metadata passed in as authorityMetadata config
-                 * 2. Cached metadata
-                 * 3. Hardcoded Metadata
+                 * 2. Hardcoded Metadata
+                 * 3. Cached metadata previously obtained from network
                  * 4. Network call to instance discovery endpoint
                  */
                 it("Sets instance metadata from cloudDiscoveryMetadata config source", async () => {
@@ -1739,96 +1739,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     ).toBe(true);
                 });
 
-                it("Sets instance metadata from cache when not present in configuration", async () => {
-                    const authorityOptions: AuthorityOptions = {
-                        protocolMode: ProtocolMode.AAD,
-                        knownAuthorities: [],
-                        cloudDiscoveryMetadata: "",
-                        authorityMetadata: "",
-                    };
-
-                    const tenantDiscoveryResponseBody =
-                        DEFAULT_TENANT_DISCOVERY_RESPONSE.body;
-
-                    const expectedCloudDiscoveryMetadata =
-                        tenantDiscoveryResponseBody.metadata[0];
-
-                    const configAliases =
-                        expectedCloudDiscoveryMetadata.aliases;
-
-                    const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
-                    const value = new AuthorityMetadataEntity();
-                    value.updateCloudDiscoveryMetadata(
-                        expectedCloudDiscoveryMetadata,
-                        true
-                    );
-                    value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
-                    mockStorage.setAuthorityMetadata(key, value);
-                    jest.spyOn(
-                        Authority.prototype,
-                        <any>"updateEndpointMetadata"
-                    ).mockResolvedValue("cache");
-                    authority = new Authority(
-                        Constants.DEFAULT_AUTHORITY,
-                        networkInterface,
-                        mockStorage,
-                        authorityOptions,
-                        logger
-                    );
-
-                    await authority.resolveEndpointsAsync();
-                    expect(authority.isAlias(configAliases[0])).toBe(true);
-                    expect(authority.isAlias(configAliases[1])).toBe(true);
-                    expect(authority.isAlias(configAliases[2])).toBe(true);
-                    expect(authority.getPreferredCache()).toBe(
-                        expectedCloudDiscoveryMetadata.preferred_cache
-                    );
-                    expect(
-                        authority.canonicalAuthority.includes(
-                            expectedCloudDiscoveryMetadata.preferred_network
-                        )
-                    ).toBe(true);
-
-                    // Test that the metadata is cached
-                    const cachedAuthorityMetadata =
-                        mockStorage.getAuthorityMetadata(key);
-                    if (!cachedAuthorityMetadata) {
-                        throw Error(
-                            "Cached AuthorityMetadata should not be null!"
-                        );
-                    } else {
-                        expect(cachedAuthorityMetadata.aliases).toContain(
-                            configAliases[0]
-                        );
-                        expect(cachedAuthorityMetadata.aliases).toContain(
-                            configAliases[1]
-                        );
-                        expect(cachedAuthorityMetadata.aliases).toContain(
-                            configAliases[2]
-                        );
-                        expect(cachedAuthorityMetadata.preferred_cache).toBe(
-                            expectedCloudDiscoveryMetadata.preferred_cache
-                        );
-                        expect(cachedAuthorityMetadata.preferred_network).toBe(
-                            expectedCloudDiscoveryMetadata.preferred_network
-                        );
-                        expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(
-                            true
-                        );
-                    }
-
-                    expect(
-                        getCloudDiscoveryMetadataFromConfigSpy
-                    ).toHaveBeenCalled();
-                    expect(
-                        getCloudDiscoveryMetadataFromHarcodedValuesSpy
-                    ).not.toHaveBeenCalled();
-                    expect(
-                        getCloudDiscoveryMetadataFromNetworkSpy
-                    ).not.toHaveBeenCalled();
-                });
-
-                it("sets instance metadata from hardcoded values if not present in cache or config", async () => {
+                it("sets instance metadata from hardcoded values if not present in config", async () => {
                     const authorityOptions: AuthorityOptions = {
                         protocolMode: ProtocolMode.AAD,
                         knownAuthorities: [],
@@ -1884,7 +1795,100 @@ describe("Authority.ts Class Unit Tests", () => {
                     ).not.toHaveBeenCalled();
                 });
 
-                it("sets instance metadata from network if not present in config, cache or hardcoded values", async () => {
+                it("Sets instance metadata from cache when not present in configuration or hardcoded values", async () => {
+                    const authorityOptions: AuthorityOptions = {
+                        protocolMode: ProtocolMode.AAD,
+                        knownAuthorities: [],
+                        cloudDiscoveryMetadata: "",
+                        authorityMetadata: "",
+                    };
+
+                    const tenantDiscoveryResponseBody =
+                        DEFAULT_TENANT_DISCOVERY_RESPONSE.body;
+
+                    const expectedCloudDiscoveryMetadata =
+                        tenantDiscoveryResponseBody.metadata[0];
+
+                    const configAliases =
+                        expectedCloudDiscoveryMetadata.aliases;
+
+                    const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
+                    const value = new AuthorityMetadataEntity();
+                    value.updateCloudDiscoveryMetadata(
+                        expectedCloudDiscoveryMetadata,
+                        true
+                    );
+                    value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
+                    mockStorage.setAuthorityMetadata(key, value);
+                    jest.spyOn(
+                        Authority.prototype,
+                        <any>"updateEndpointMetadata"
+                    ).mockResolvedValue("cache");
+                    authority = new Authority(
+                        Constants.DEFAULT_AUTHORITY,
+                        networkInterface,
+                        mockStorage,
+                        authorityOptions,
+                        logger
+                    );
+
+                    getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
+                        null
+                    );
+
+                    await authority.resolveEndpointsAsync();
+                    expect(authority.isAlias(configAliases[0])).toBe(true);
+                    expect(authority.isAlias(configAliases[1])).toBe(true);
+                    expect(authority.isAlias(configAliases[2])).toBe(true);
+                    expect(authority.getPreferredCache()).toBe(
+                        expectedCloudDiscoveryMetadata.preferred_cache
+                    );
+                    expect(
+                        authority.canonicalAuthority.includes(
+                            expectedCloudDiscoveryMetadata.preferred_network
+                        )
+                    ).toBe(true);
+
+                    // Test that the metadata is cached
+                    const cachedAuthorityMetadata =
+                        mockStorage.getAuthorityMetadata(key);
+                    if (!cachedAuthorityMetadata) {
+                        throw Error(
+                            "Cached AuthorityMetadata should not be null!"
+                        );
+                    } else {
+                        expect(cachedAuthorityMetadata.aliases).toContain(
+                            configAliases[0]
+                        );
+                        expect(cachedAuthorityMetadata.aliases).toContain(
+                            configAliases[1]
+                        );
+                        expect(cachedAuthorityMetadata.aliases).toContain(
+                            configAliases[2]
+                        );
+                        expect(cachedAuthorityMetadata.preferred_cache).toBe(
+                            expectedCloudDiscoveryMetadata.preferred_cache
+                        );
+                        expect(cachedAuthorityMetadata.preferred_network).toBe(
+                            expectedCloudDiscoveryMetadata.preferred_network
+                        );
+                        expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(
+                            true
+                        );
+                    }
+
+                    expect(
+                        getCloudDiscoveryMetadataFromConfigSpy
+                    ).toHaveBeenCalled();
+                    expect(
+                        getCloudDiscoveryMetadataFromHarcodedValuesSpy
+                    ).toHaveBeenCalled();
+                    expect(
+                        getCloudDiscoveryMetadataFromNetworkSpy
+                    ).not.toHaveBeenCalled();
+                });
+
+                it("sets instance metadata from network if not present in config, hardcoded values or cache", async () => {
                     const authorityOptions: AuthorityOptions = {
                         protocolMode: ProtocolMode.AAD,
                         knownAuthorities: [],

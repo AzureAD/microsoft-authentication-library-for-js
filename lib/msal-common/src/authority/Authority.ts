@@ -706,29 +706,9 @@ export class Authority {
             return AuthorityMetadataSource.CONFIG;
         }
 
-        // If the cached metadata came from config but that config was not passed to this instance, we must go to the network
+        // If the cached metadata came from config but that config was not passed to this instance, we must go to hardcoded values
         this.logger.verbose(
-            "Did not find cloud discovery metadata in the config... Attempting to get cloud discovery metadata from the cache."
-        );
-        const metadataEntityExpired = metadataEntity.isExpired();
-        if (
-            this.isAuthoritySameType(metadataEntity) &&
-            metadataEntity.aliasesFromNetwork &&
-            !metadataEntityExpired
-        ) {
-            this.logger.verbose("Found metadata in the cache.");
-            // No need to update
-            return AuthorityMetadataSource.CACHE;
-        } else if (metadataEntityExpired) {
-            this.logger.verbose("The metadata entity is expired.");
-        }
-
-        this.logger.verbose(
-            "Did not find cloud discovery metadata in the cache... Attempting to get cloud discovery metadata from the hardcoded values."
-        );
-        this.performanceClient?.setPreQueueTime(
-            PerformanceEvents.AuthorityGetCloudDiscoveryMetadataFromNetwork,
-            this.correlationId
+            "Did not find cloud discovery metadata in the config... Attempting to get cloud discovery metadata from the hardcoded values."
         );
 
         const hardcodedMetadata =
@@ -745,9 +725,30 @@ export class Authority {
         }
 
         this.logger.verbose(
-            "Did not find cloud discovery metadata in hardcoded values... Attempting to get cloud discovery metadata from the network."
+            "Did not find cloud discovery metadata in hardcoded values... Attempting to get cloud discovery metadata from the cache."
         );
 
+        const metadataEntityExpired = metadataEntity.isExpired();
+        if (
+            this.isAuthoritySameType(metadataEntity) &&
+            metadataEntity.aliasesFromNetwork &&
+            !metadataEntityExpired
+        ) {
+            this.logger.verbose("Found cloud discovery metadata in the cache.");
+            // No need to update
+            return AuthorityMetadataSource.CACHE;
+        } else if (metadataEntityExpired) {
+            this.logger.verbose("The metadata entity is expired.");
+        }
+
+        this.logger.verbose(
+            "Did not find cloud discovery metadata in the cache... Attempting to get cloud discovery metadata from the network."
+        );
+
+        this.performanceClient?.setPreQueueTime(
+            PerformanceEvents.AuthorityGetCloudDiscoveryMetadataFromNetwork,
+            this.correlationId
+        );
         metadata = await this.getCloudDiscoveryMetadataFromNetwork();
 
         if (metadata) {
@@ -760,7 +761,7 @@ export class Authority {
 
         // Metadata could not be obtained from the config, cache, network or hardcoded values
         this.logger.error(
-            "Did not find cloud discovery metadata from hardcoded values... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error."
+            "Did not find cloud discovery metadata from network... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error."
         );
         throw ClientConfigurationError.createUntrustedAuthorityError();
     }
