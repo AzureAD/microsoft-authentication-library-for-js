@@ -380,7 +380,8 @@ export enum CacheOutcome {
     FORCE_REFRESH = "1",
     NO_CACHED_ACCESS_TOKEN = "2",
     CACHED_ACCESS_TOKEN_EXPIRED = "3",
-    REFRESH_CACHED_ACCESS_TOKEN = "4"
+    REFRESH_CACHED_ACCESS_TOKEN = "4",
+    CLAIMS_REQUESTED_CACHE_SKIPPED = "5"
 }
 
 export enum JsonTypes {
