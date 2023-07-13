@@ -16,8 +16,15 @@ export default function NavBar() {
               MS Identity Platform
             </Link>
           </Typography>
-          <WelcomeName />
-          <ProfilePicture />
+          {/*
+            Toolbar expects children to be ReactNode.
+            Even though Server Component works, they do not satisfy ReactNode.
+            Wrapping in div fixes console error.
+          */}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <WelcomeName />
+            <ProfilePicture />
+          </div>
         </Toolbar>
       </AppBar>
     </div>
