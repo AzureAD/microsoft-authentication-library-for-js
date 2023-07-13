@@ -836,7 +836,7 @@ describe("ClientCredentialClient unit tests", () => {
 
         // Check the cache to ensure the refreshed token still does not exist (the network request was unsuccessful).
         // Typically, the network request may not have completed by the time the below code runs.
-        // However, the network requests are mocked in these tests, so the refreshed token should be in the cache at this point.
+        // However, the network requests are mocked in these tests, so the refreshed token should (not) be in the cache at this point.
         accessTokenKey = config.storageInterface?.getKeys()
             .find((value) => value.indexOf("accesstoken") >= 0);
         expect(accessTokenKey).toBeUndefined();
