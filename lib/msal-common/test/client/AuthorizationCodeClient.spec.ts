@@ -1016,9 +1016,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromHardcodedValues"
                 )
-                .resolves({
+                .returns({
                     token_endpoint:
                         "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
                     issuer: "https://login.windows.net/{tenantid}/v2.0",
@@ -3456,9 +3456,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromHardcodedValues"
                 )
-                .resolves({
+                .returns({
                     token_endpoint:
                         "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
                     issuer: "https://login.windows.net/{tenantid}/v2.0",
