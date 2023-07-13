@@ -441,9 +441,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         );
 
         let configResponseMode = null;
-        if(!this.config.auth.OIDCOptions || 
-            (this.config.auth.OIDCOptions.serverResponseType &&
-            this.config.auth.OIDCOptions.serverResponseType === ServerResponseType.FRAGMENT)) {
+        if(this.config.auth.OIDCOptions.serverResponseType === ServerResponseType.FRAGMENT) {
             configResponseMode = ResponseMode.FRAGMENT;
         }
         else {
