@@ -4,6 +4,9 @@
  */
 
 import {
+    AADServerParamKeys,
+    GrantType,
+    ThrottlingConstants,
     ServerTelemetryEntity,
     CacheManager,
     ClientConfiguration,
@@ -327,3 +330,163 @@ export class ClientTestUtils {
         };
     }
 }
+
+interface checks {
+    dstsScope?: boolean | undefined,
+    graphScope?: boolean | undefined,
+    clientId?: boolean | undefined,
+    grantType?: boolean | undefined,
+    clientSecret?: boolean | undefined,
+    clientSku?: boolean | undefined,
+    clientVersion?: boolean | undefined,
+    clientOs?: boolean | undefined,
+    clientCpu?: boolean | undefined,
+    appName?: boolean | undefined,
+    appVersion?: boolean | undefined,
+    msLibraryCapability?: boolean | undefined,
+    claims?: boolean | undefined,
+    testConfigAssertion?: boolean | undefined,
+    testRequestAssertion?: boolean | undefined,
+    testAssertionType?: boolean | undefined,
+}
+
+export const checkMockedNetworkRequest = (
+    returnVal: string,
+    checks: checks,
+): void => {
+    if (checks.dstsScope !== undefined) {
+        expect(
+            returnVal.includes(
+                encodeURIComponent(TEST_CONFIG.DSTS_TEST_SCOPE[0])
+            )
+        ).toBe(checks.dstsScope);
+    }
+
+    if (checks.graphScope !== undefined) {
+        expect(
+            returnVal.includes(
+                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`
+            )
+        ).toBe(checks.graphScope);
+    }
+
+    if (checks.clientId !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
+            )
+        ).toBe(checks.clientId);
+    }
+
+    if (checks.grantType !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`
+            )
+        ).toBe(checks.grantType);
+    }
+
+    if (checks.clientSecret !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
+            )
+        ).toBe(checks.clientSecret);
+    }
+
+    if (checks.clientSku !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
+            )
+        ).toBe(checks.clientSku);
+    }
+
+    if (checks.clientVersion !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
+            )
+        ).toBe(checks.clientVersion);
+    }
+
+    if (checks.clientOs !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
+            )
+        ).toBe(checks.clientOs);
+    }
+
+    if (checks.clientCpu !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
+            )
+        ).toBe(checks.clientCpu);
+    }
+
+    if (checks.appName !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
+            )
+        ).toBe(checks.appName);
+    }
+
+    if (checks.appVersion !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
+            )
+        ).toBe(checks.appVersion);
+    }
+
+    if (checks.msLibraryCapability !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+            )
+        ).toBe(checks.msLibraryCapability);
+    }
+
+    if (checks.claims !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
+                    TEST_CONFIG.CLAIMS
+                )}`
+            )
+        ).toBe(checks.claims);
+    }
+
+    if (checks.testConfigAssertion !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent(
+                    TEST_CONFIG.TEST_CONFIG_ASSERTION
+                )}`
+            )
+        ).toBe(checks.testConfigAssertion);
+    }
+
+    if (checks.testRequestAssertion !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent(
+                    TEST_CONFIG.TEST_REQUEST_ASSERTION
+                )}`
+            )
+        ).toBe(checks.testRequestAssertion);
+    }
+
+    if (checks.testAssertionType !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.CLIENT_ASSERTION_TYPE}=${encodeURIComponent(
+                    TEST_CONFIG.TEST_ASSERTION_TYPE
+                )}`
+            )
+        ).toBe(checks.testAssertionType);
+    }
+};

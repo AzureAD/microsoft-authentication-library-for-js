@@ -95,13 +95,14 @@ export class ClientCredentialClient extends BaseClient {
             cacheContext = new TokenCacheContext(this.config.serializableCache, false);
             await this.config.persistencePlugin.beforeCacheAccess(cacheContext);
         }
-        
+
         const cachedAccessToken = this.readAccessTokenFromCache();
-          
+
         if (this.config.serializableCache && this.config.persistencePlugin && cacheContext) {
             await this.config.persistencePlugin.afterCacheAccess(cacheContext);
         }
-          
+
+        // must refresh due to non-existent access_token
         if (!cachedAccessToken) {
             this.lastCacheOutcome = CacheOutcome.NO_CACHED_ACCESS_TOKEN;
             this.serverTelemetryManager?.setCacheOutcome(
