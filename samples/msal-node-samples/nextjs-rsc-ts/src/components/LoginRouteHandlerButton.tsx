@@ -1,4 +1,4 @@
-import { Button } from "./mui";
+import Button from "@mui/material/Button";
 
 // calls src/app/auth/login/route.ts
 export default function LoginRouteHandlerButton() {

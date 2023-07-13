@@ -1,5 +1,5 @@
 import { authProvider } from "~/services/auth";
-import { Typography } from "./mui";
+import Typography from "@mui/material/Typography";
 
 export default async function WelcomeName() {
   const account = await authProvider.getAccount();

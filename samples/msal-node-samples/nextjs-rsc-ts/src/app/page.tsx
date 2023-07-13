@@ -1,7 +1,8 @@
 import styles from "./page.module.css";
 import { authProvider } from "~/services/auth";
 import Link from "next/link";
-import { Button, ButtonGroup } from "~/components/mui";
+import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
 import LoginRouteHandlerButton from "~/components/LoginRouteHandlerButton";
 import LoginServerActionButton from "~/components/LoginServerActionButton";
 import LogoutRouteHandlerButton from "~/components/LogoutRouteHandlerButton";

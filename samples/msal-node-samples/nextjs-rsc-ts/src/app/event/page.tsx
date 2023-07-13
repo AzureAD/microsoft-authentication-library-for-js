@@ -2,7 +2,8 @@ import { InteractionRequiredAuthError } from "@azure/msal-node";
 import { CalendarEvent, GraphCalendarEvent } from "~/components/CalendarEvent";
 import ConsentRouteHandlerButton from "~/components/ConsentRouteHandlerButton";
 import ConsentServerActionButton from "~/components/ConsentServerActionButton";
-import { Paper, Typography } from "~/components/mui";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 import { graphConfig } from "~/serverConfig";
 import { authProvider } from "~/services/auth";
 

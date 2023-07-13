@@ -1,7 +1,8 @@
 import "./globals.css";
 import { PropsWithChildren } from "react";
 import NavBar from "~/components/NavBar";
-import { Grid, Typography } from "~/components/mui";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 import ThemeRegistry from "~/components/theme/ThemeRegistry";
 
 export const metadata = {
@@ -14,7 +15,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en">
       <body>
-        <ThemeRegistry>
+        <ThemeRegistry options={{ key: "mui" }}>
           <NavBar />
           <Typography variant="h5">
             <center>

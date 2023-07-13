@@ -1,5 +1,8 @@
 import NextLink from "next/link";
-import { AppBar, Link, Toolbar, Typography } from "./mui";
+import AppBar from "@mui/material/AppBar";
+import Link from "@mui/material/Link";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
 import WelcomeName from "./WelcomeName";
 import ProfilePicture from "./ProfilePicture";
 

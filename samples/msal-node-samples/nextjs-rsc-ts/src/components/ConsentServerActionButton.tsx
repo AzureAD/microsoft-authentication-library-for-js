@@ -1,5 +1,5 @@
 import { acquireCalendarTokenInteractive } from "~/actions/auth";
-import { Button } from "./mui";
+import Button from "@mui/material/Button";
 
 export default function ConsentServerActionButton() {
   return (
