@@ -83,7 +83,6 @@ export class AuthProvider {
 
         try {
             performance.mark("acquireTokenByClientCredential-start");
-            await cca.getTokenCache().getAllAccounts(); // required for triggering cache read
             tokenResponse = await cca.acquireTokenByClientCredential(tokenRequest);
             performance.mark("acquireTokenByClientCredential-end");
             performance.measure(

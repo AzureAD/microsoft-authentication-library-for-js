@@ -32,8 +32,6 @@ This sample was bootstrapped with the [Gatsby Hello World Starter](https://githu
 
 #### Install npm dependencies for sample
 
-##### Installing @azure/msal-react and @azure/msal-browser from local builds
-
 ```bash
 # Install dev dependencies for msal-react and msal-browser from root of repo
 npm install
@@ -43,34 +41,6 @@ cd samples/msal-react-samples/gatsby-sample
 
 # Build packages locally
 npm run build:package
-
-# Install local libs
-npm run install:local
-
-# Install sample dependencies
-npm install
-```
-
-Note: If you suspect you are not using the local builds check that the `package.json` file shows the following dependencies:
-
-```
-"@azure/msal-react": "file:../../../lib/msal-react",
-"@azure/msal-browser": "file:../../../lib/msal-browser",
-"react": "file:../../../lib/msal-react/node_modules/react",
-"react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
-```
-
-##### Installing @azure/msal-react and @azure/msal-browser from released versions available on npm
-
-```bash
-# Change directory to sample directory
-cd samples/msal-react-samples/gatsby-sample
-
-# Install packages from npm
-npm run install:published
-
-# Install rest of dependencies
-npm install
 ```
 
 #### Running the sample development server
