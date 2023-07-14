@@ -269,7 +269,6 @@ export const mockAuthenticationResult: AuthenticationResult = {
     accessToken: TEST_CONSTANTS.ACCESS_TOKEN,
     fromCache: false,
     expiresOn: new Date(),
-    refreshOn: new Date(Date.now() + 86400000), // one day in the future
     tokenType: "BEARER",
     correlationId: "test-correlationId",
 };

@@ -28,7 +28,7 @@ import {
     AuthenticationScheme,
     Constants,
     THE_FAMILY_ID,
-    ErrorCodeBounds,
+    HttpStatus,
 } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
@@ -169,8 +169,8 @@ export class ResponseHandler {
             if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                (serverResponse.status >= ErrorCodeBounds.stsErrorLowerLimit) &&
-                (serverResponse.status <= ErrorCodeBounds.stsErrorUpperLimit)
+                (serverResponse.status >= HttpStatus.SERVER_ERROR_RANGE_START) &&
+                (serverResponse.status <= HttpStatus.SERVER_ERROR_RANGE_END)
             ) {
                 this.logger.warning(
                     "executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed."
@@ -182,8 +182,8 @@ export class ResponseHandler {
             } else if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                (serverResponse.status >= ErrorCodeBounds.clientErrorLowerLimit) &&
-                (serverResponse.status <= ErrorCodeBounds.clientErrorUpperLimit)
+                (serverResponse.status >= HttpStatus.CLIENT_ERROR_RANGE_START) &&
+                (serverResponse.status <= HttpStatus.CLIENT_ERROR_RANGE_END)
             ) {
                 this.logger.warning(
                     "executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token."
@@ -583,7 +583,7 @@ export class ResponseHandler {
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
-        let refreshOn: Date | null = null;
+        let refreshOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
 
         if (cacheRecord.accessToken) {
@@ -615,9 +615,11 @@ export class ResponseHandler {
             extExpiresOn = new Date(
                 Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
             );
-            refreshOn = new Date(
-                Number(cacheRecord.accessToken.refreshOn) * 1000
-            );
+            if (cacheRecord.accessToken.refreshOn) {
+                refreshOn = new Date(
+                    Number(cacheRecord.accessToken.refreshOn) * 1000
+                );
+            }
         }
 
         if (cacheRecord.appMetadata) {

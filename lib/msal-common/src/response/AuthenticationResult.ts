@@ -34,7 +34,7 @@ export type AuthenticationResult = {
     fromCache: boolean;
     expiresOn: Date | null;
     extExpiresOn?: Date;
-    refreshOn: Date | null;
+    refreshOn?: Date;
     tokenType: string;
     correlationId: string;
     requestId?: string;

@@ -110,7 +110,6 @@ const testServerTokenResponse = {
         scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
         expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-        refresh_in: TEST_TOKEN_LIFETIMES.DEFAULT_REFESH_IN,
         access_token: TEST_TOKENS.ACCESS_TOKEN,
         refresh_token: TEST_TOKENS.REFRESH_TOKEN,
         id_token: TEST_TOKENS.IDTOKEN_V2,
@@ -266,9 +265,6 @@ describe("ResponseHandler.ts", () => {
                 expiresOn: new Date(
                     Date.now() + testServerTokenResponse.body.expires_in * 1000
                 ),
-                refreshOn: new Date(
-                    Date.now() + testServerTokenResponse.body.refresh_in * 1000
-                ), // one day in the future
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -335,9 +331,6 @@ describe("ResponseHandler.ts", () => {
                 expiresOn: new Date(
                     Date.now() + testServerTokenResponse.body.expires_in * 1000
                 ),
-                refreshOn: new Date(
-                    Date.now() + testServerTokenResponse.body.refresh_in * 1000
-                ), // one day in the future
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -403,9 +396,6 @@ describe("ResponseHandler.ts", () => {
                 expiresOn: new Date(
                     Date.now() + testServerTokenResponse.body.expires_in * 1000
                 ),
-                refreshOn: new Date(
-                    Date.now() + testServerTokenResponse.body.refresh_in * 1000
-                ), // one day in the future
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

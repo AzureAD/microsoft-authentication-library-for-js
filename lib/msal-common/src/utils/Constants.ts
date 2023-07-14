@@ -64,13 +64,16 @@ export const Constants = {
     INVALID_INSTANCE: "invalid_instance",
 };
 
-export const ErrorCodeBounds = {
-    clientErrorLowerLimit: 400,
-    clientErrorUpperLimit: 499,
-    stsErrorLowerLimit: 500,
-    stsErrorUpperLimit: 599,
+export const HttpStatus = {
+    SUCCESS_RANGE_START: 200,
+    SUCCESS_RANGE_END: 299,
+    REDIRECT: 302,
+    CLIENT_ERROR_RANGE_START: 400,
+    CLIENT_ERROR_RANGE_END: 499,
+    SERVER_ERROR_RANGE_START: 500,
+    SERVER_ERROR_RANGE_END: 599,
 } as const;
-export type ErrorCodeBounds = typeof ErrorCodeBounds[keyof typeof ErrorCodeBounds];
+export type HttpStatus = typeof HttpStatus[keyof typeof HttpStatus];
 
 export const OIDC_DEFAULT_SCOPES = [
     Constants.OPENID_SCOPE,

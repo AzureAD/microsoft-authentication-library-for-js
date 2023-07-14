@@ -7,11 +7,11 @@ import {
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
+    HttpStatus,
 } from "@azure/msal-common";
 import {
     HttpMethod,
     Constants,
-    HttpStatus,
     ProxyStatus,
 } from "../utils/Constants";
 import { NetworkUtils } from "../utils/NetworkUtils";
