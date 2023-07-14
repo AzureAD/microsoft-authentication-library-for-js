@@ -68,45 +68,43 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
 }
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    HomeComponent,
-    ProfileComponent,
-    FailedComponent
-  ],
-  imports: [
-    BrowserModule,
-    NoopAnimationsModule, // Animations cause delay which interfere with E2E tests
-    AppRoutingModule,
-    MatButtonModule,
-    MatToolbarModule,
-    MatListModule,
-    MatMenuModule,
-    HttpClientModule,
-    MsalModule
-  ],
-  providers: [
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: MsalInterceptor,
-      multi: true
-    },
-    {
-      provide: MSAL_INSTANCE,
-      useFactory: MSALInstanceFactory
-    },
-    {
-      provide: MSAL_GUARD_CONFIG,
-      useFactory: MSALGuardConfigFactory
-    },
-    {
-      provide: MSAL_INTERCEPTOR_CONFIG,
-      useFactory: MSALInterceptorConfigFactory
-    },
-    MsalService,
-    MsalGuard,
-    MsalBroadcastService
-  ],
-  bootstrap: [AppComponent, MsalRedirectComponent]
+    declarations: [AppComponent],
+    imports: [
+        BrowserModule,
+        NoopAnimationsModule,
+        AppRoutingModule,
+        MatButtonModule,
+        MatToolbarModule,
+        MatListModule,
+        MatMenuModule,
+        HttpClientModule,
+        MsalModule,
+        HomeComponent,
+        ProfileComponent,
+        FailedComponent
+    ],
+    providers: [
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: MsalInterceptor,
+            multi: true
+        },
+        {
+            provide: MSAL_INSTANCE,
+            useFactory: MSALInstanceFactory
+        },
+        {
+            provide: MSAL_GUARD_CONFIG,
+            useFactory: MSALGuardConfigFactory
+        },
+        {
+            provide: MSAL_INTERCEPTOR_CONFIG,
+            useFactory: MSALInterceptorConfigFactory
+        },
+        MsalService,
+        MsalGuard,
+        MsalBroadcastService
+    ],
+    bootstrap: [AppComponent, MsalRedirectComponent]
 })
 export class AppModule { }
