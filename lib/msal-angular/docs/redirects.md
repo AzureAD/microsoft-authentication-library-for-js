@@ -37,7 +37,7 @@ index.html
 ```js 
 <body>
   <app-root></app-root>
-  <app-redirect></app-redirect> // Selector for additional bootstrapped component
+  <app-redirect></app-redirect> <!-- Selector for additional bootstrapped component -->
 </body>
 ```
 
