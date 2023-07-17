@@ -322,18 +322,15 @@ export function buildConfiguration(
     };
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
-    if(userInputAuth &&
-        (!userInputAuth.protocolMode || userInputAuth.protocolMode !== ProtocolMode.OIDC) && 
+    if(userInputAuth?.protocolMode !== ProtocolMode.OIDC && 
         userInputAuth.OIDCOptions) {
             throw ClientConfigurationError.createCannotSetOIDCOptionsError();
     }
 
     // Throw an error if user has set allowNativeBroker to true without being in AAD protocol mode
-    if(userInputAuth &&
-        userInputAuth.protocolMode &&
-        userInputAuth.protocolMode !== ProtocolMode.AAD && 
-        providedSystemOptions &&
-        providedSystemOptions.allowNativeBroker) {
+    if(userInputAuth?.protocolMode &&
+        userInputAuth.protocolMode !== ProtocolMode.AAD &&
+        providedSystemOptions?.allowNativeBroker) {
             throw ClientConfigurationError.createCannotAllowNativeBrokerError();
     }
 

@@ -579,13 +579,13 @@ export class PopupClient extends StandardInteractionClient {
                 }
 
                 const href = popupWindow.location.href;
-                let hash;
+                let serverResponseString;
                 if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
                     this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
-                    hash = UrlString.parseQueryServerResponse(href);
+                        serverResponseString = UrlString.parseQueryServerResponse(href);
                 }
                 else {
-                    hash = popupWindow.location.hash;
+                    serverResponseString = popupWindow.location.hash;
                 }
                 try {
                     /*
@@ -612,24 +612,24 @@ export class PopupClient extends StandardInteractionClient {
                  */
                 ticks++;
 
-                if (hash) {
+                if (serverResponseString) {
                     this.logger.verbose(
                         "PopupHandler.monitorPopupForHash - found hash in url"
                     );
                     clearInterval(intervalId);
                     this.cleanPopup(popupWindow);
 
-                    if (UrlString.hashContainsKnownProperties(hash)) {
+                    if (UrlString.hashContainsKnownProperties(serverResponseString)) {
                         this.logger.verbose(
                             "PopupHandler.monitorPopupForHash - hash contains known properties, returning."
                         );
-                        resolve(hash);
+                        resolve(serverResponseString);
                     } else {
                         this.logger.error(
                             "PopupHandler.monitorPopupForHash - found hash in url but it does not contain known properties. Check that your router is not changing the hash prematurely."
                         );
                         this.logger.errorPii(
-                            `PopupHandler.monitorPopupForHash - hash found: ${hash}`
+                            `PopupHandler.monitorPopupForHash - hash found: ${serverResponseString}`
                         );
                         reject(
                             BrowserAuthError.createHashDoesNotContainKnownPropertiesError()

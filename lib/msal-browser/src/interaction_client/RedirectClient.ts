@@ -520,10 +520,6 @@ export class RedirectClient extends StandardInteractionClient {
                             validLogoutRequest
                         );
         
-                        if (!this.browserStorage.getInteractionInProgress()) {
-                            this.browserStorage.setInteractionInProgress(true);
-                        }
-        
                         return;
                     }
                 }

@@ -26,6 +26,7 @@ import {
     ServerError,
     ProtocolMode,
     ServerResponseType,
+    UrlString
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -74,7 +75,6 @@ import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { version, name } from "../packageMetadata";
 import { IController } from "./IController";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { UrlString } from "..";
 
 export class StandardController implements IController {
     // OperatingContext
