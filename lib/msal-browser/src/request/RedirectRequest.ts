@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
+import {
+    CommonAuthorizationUrlRequest,
+    StoreInCache,
+} from "@azure/msal-common";
 
 /**
  * RedirectRequest: Request object passed by user to retrieve a Code from the
@@ -41,9 +44,11 @@ export type RedirectRequest = Partial<
         | "codeChallengeMethod"
         | "requestedClaimsHash"
         | "nativeBroker"
+        | "storeInCache"
     >
 > & {
     scopes: Array<string>;
     redirectStartPage?: string;
     onRedirectNavigate?: (url: string) => boolean | void;
+    storeInCache?: StoreInCache;
 };

@@ -3,12 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationCodeRequest } from "@azure/msal-common";
+import {
+    CommonAuthorizationCodeRequest,
+    StoreInCache,
+} from "@azure/msal-common";
 
 export type AuthorizationCodeRequest = Partial<
     Omit<
         CommonAuthorizationCodeRequest,
-        "code" | "enableSpaAuthorizationCode" | "requestedClaimsHash"
+        | "code"
+        | "enableSpaAuthorizationCode"
+        | "requestedClaimsHash"
+        | "storeInCache"
     >
 > & {
     code?: string;
@@ -16,4 +22,5 @@ export type AuthorizationCodeRequest = Partial<
     cloudGraphHostName?: string;
     msGraphHost?: string;
     cloudInstanceHostName?: string;
+    storeInCache?: StoreInCache;
 };

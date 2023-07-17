@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
+import {
+    CommonAuthorizationUrlRequest,
+    StoreInCache,
+} from "@azure/msal-common";
 import { PopupWindowAttributes } from "./PopupWindowAttributes";
 
 /**
@@ -42,8 +45,10 @@ export type PopupRequest = Partial<
         | "codeChallengeMethod"
         | "requestedClaimsHash"
         | "nativeBroker"
+        | "storeInCache"
     >
 > & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
+    storeInCache?: StoreInCache;
 };

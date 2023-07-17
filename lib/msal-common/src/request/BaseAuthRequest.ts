@@ -6,6 +6,7 @@
 import { AuthenticationScheme } from "../utils/Constants";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
 import { StringDict } from "../utils/MsalTypes";
+import { StoreInCache } from "./StoreInCache";
 
 /**
  * BaseAuthRequest
@@ -28,6 +29,7 @@ export type BaseAuthRequest = {
     authority: string;
     correlationId: string;
     scopes: Array<string>;
+    storeInCache: Required<StoreInCache>;
     authenticationScheme?: AuthenticationScheme;
     claims?: string;
     shrClaims?: string;
