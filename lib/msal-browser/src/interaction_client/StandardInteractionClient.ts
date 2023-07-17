@@ -23,7 +23,6 @@ import {
     AzureCloudOptions,
     PerformanceEvents,
     AuthError,
-    ServerResponseType,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
