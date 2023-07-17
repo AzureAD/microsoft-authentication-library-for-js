@@ -323,7 +323,7 @@ export function buildConfiguration(
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
     if(userInputAuth?.protocolMode !== ProtocolMode.OIDC && 
-        userInputAuth.OIDCOptions) {
+        userInputAuth?.OIDCOptions) {
             throw ClientConfigurationError.createCannotSetOIDCOptionsError();
     }
 
