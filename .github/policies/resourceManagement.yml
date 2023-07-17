@@ -46,18 +46,6 @@ configuration:
       - hourly:
           hour: 12
       filters:
-      - not: isOpen
-      - noActivitySince:
-          days: 7
-      - isIssue
-      - isUnlocked
-      actions:
-      - lockIssue
-    - description: 
-      frequencies:
-      - hourly:
-          hour: 12
-      filters:
       - isOpen
       - isIssue
       - hasLabel:
