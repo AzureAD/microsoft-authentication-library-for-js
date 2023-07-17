@@ -440,13 +440,15 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
 
-        let configResponseMode = null;
-        if(this.config.auth.OIDCOptions.serverResponseType === ServerResponseType.FRAGMENT) {
-            configResponseMode = ResponseMode.FRAGMENT;
-        }
-        else {
-            configResponseMode = ResponseMode.QUERY;
-        }
+        // let configResponseMode = null;
+        // if(this.config.auth.OIDCOptions.serverResponseType === ServerResponseType.FRAGMENT) {
+        //     configResponseMode = ResponseMode.FRAGMENT;
+        // }
+        // else {
+        //     configResponseMode = ResponseMode.QUERY;
+        // }
+
+        const configResponseMode: ResponseMode = this.config.auth.OIDCOptions.serverResponseType;
 
         const validatedRequest: AuthorizationUrlRequest = {
             ...(await this.initializeBaseRequest(request)),

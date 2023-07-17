@@ -91,6 +91,10 @@ export type BrowserAuthOptions = {
     skipAuthorityMetadataCache?: boolean;
 };
 
+export type InternalAuthOptions = Required<BrowserAuthOptions> & {
+    OIDCOptions: Required<OIDCOptions>;
+};
+
 /**
  * Use this to configure the below cache configuration options:
  */
@@ -211,7 +215,7 @@ export type Configuration = {
 };
 
 export type BrowserConfiguration = {
-    auth: Required<BrowserAuthOptions>;
+    auth: Required<InternalAuthOptions>;
     cache: Required<CacheOptions>;
     system: Required<BrowserSystemOptions>;
     telemetry: Required<BrowserTelemetryOptions>;
@@ -236,7 +240,7 @@ export function buildConfiguration(
     isBrowserEnvironment: boolean
 ): BrowserConfiguration {
     // Default auth options for browser
-    const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
+    const DEFAULT_AUTH_OPTIONS: Required<InternalAuthOptions> = {
         clientId: Constants.EMPTY_STRING,
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
@@ -335,7 +339,7 @@ export function buildConfiguration(
     }
 
     const overlayedConfig: BrowserConfiguration = {
-        auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
+        auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth as InternalAuthOptions },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
