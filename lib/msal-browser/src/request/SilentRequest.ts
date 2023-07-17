@@ -7,7 +7,6 @@ import {
     AccountInfo,
     CommonSilentFlowRequest,
     StringDict,
-    StoreInCache,
 } from "@azure/msal-common";
 import { CacheLookupPolicy } from "../utils/BrowserConstants";
 
@@ -36,7 +35,6 @@ export type SilentRequest = Omit<
     | "forceRefresh"
     | "account"
     | "requestedClaimsHash"
-    | "storeInCache"
 > & {
     redirectUri?: string;
     extraQueryParameters?: StringDict;
@@ -46,5 +44,4 @@ export type SilentRequest = Omit<
     forceRefresh?: boolean;
     cacheLookupPolicy?: CacheLookupPolicy;
     prompt?: string;
-    storeInCache?: StoreInCache;
 };

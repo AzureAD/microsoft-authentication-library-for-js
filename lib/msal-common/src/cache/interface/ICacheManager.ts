@@ -14,6 +14,7 @@ import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
+import { StoreInCache } from "../../request/StoreInCache";
 
 export interface ICacheManager {
     /**
@@ -164,7 +165,7 @@ export interface ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    saveCacheRecord(cacheRecord: CacheRecord): Promise<void>;
+    saveCacheRecord(cacheRecord: CacheRecord, storeInCache?: StoreInCache): Promise<void>;
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts

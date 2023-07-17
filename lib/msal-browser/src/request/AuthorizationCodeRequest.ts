@@ -4,8 +4,7 @@
  */
 
 import {
-    CommonAuthorizationCodeRequest,
-    StoreInCache,
+    CommonAuthorizationCodeRequest
 } from "@azure/msal-common";
 
 export type AuthorizationCodeRequest = Partial<
@@ -14,7 +13,6 @@ export type AuthorizationCodeRequest = Partial<
         | "code"
         | "enableSpaAuthorizationCode"
         | "requestedClaimsHash"
-        | "storeInCache"
     >
 > & {
     code?: string;
@@ -22,5 +20,4 @@ export type AuthorizationCodeRequest = Partial<
     cloudGraphHostName?: string;
     msGraphHost?: string;
     cloudInstanceHostName?: string;
-    storeInCache?: StoreInCache;
 };

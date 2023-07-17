@@ -29,7 +29,6 @@ export type BaseAuthRequest = {
     authority: string;
     correlationId: string;
     scopes: Array<string>;
-    storeInCache: Required<StoreInCache>;
     authenticationScheme?: AuthenticationScheme;
     claims?: string;
     shrClaims?: string;
@@ -42,4 +41,5 @@ export type BaseAuthRequest = {
     requestedClaimsHash?: string;
     maxAge?: number;
     tokenQueryParameters?: StringDict;
+    storeInCache?: StoreInCache;
 };

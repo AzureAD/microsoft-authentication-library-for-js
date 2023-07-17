@@ -5,7 +5,6 @@
 
 import {
     CommonAuthorizationUrlRequest,
-    StoreInCache,
 } from "@azure/msal-common";
 
 /**
@@ -40,8 +39,5 @@ export type SsoSilentRequest = Partial<
         | "codeChallengeMethod"
         | "requestedClaimsHash"
         | "nativeBroker"
-        | "storeInCache"
     >
-> & {
-    storeInCache?: StoreInCache;
-};
+>;

@@ -4,8 +4,7 @@
  */
 
 import {
-    CommonAuthorizationUrlRequest,
-    StoreInCache,
+    CommonAuthorizationUrlRequest
 } from "@azure/msal-common";
 import { PopupWindowAttributes } from "./PopupWindowAttributes";
 
@@ -45,10 +44,8 @@ export type PopupRequest = Partial<
         | "codeChallengeMethod"
         | "requestedClaimsHash"
         | "nativeBroker"
-        | "storeInCache"
     >
 > & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
-    storeInCache?: StoreInCache;
 };

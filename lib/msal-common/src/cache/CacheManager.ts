@@ -39,6 +39,7 @@ import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
+import { StoreInCache } from "../request/StoreInCache";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -281,7 +282,7 @@ export abstract class CacheManager implements ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    async saveCacheRecord(cacheRecord: CacheRecord): Promise<void> {
+    async saveCacheRecord(cacheRecord: CacheRecord, storeInCache?: StoreInCache): Promise<void> {
         if (!cacheRecord) {
             throw ClientAuthError.createNullOrUndefinedCacheRecord();
         }
@@ -290,15 +291,15 @@ export abstract class CacheManager implements ICacheManager {
             this.setAccount(cacheRecord.account);
         }
 
-        if (!!cacheRecord.idToken) {
+        if (!!cacheRecord.idToken && storeInCache?.idToken !== false) {
             this.setIdTokenCredential(cacheRecord.idToken);
         }
 
-        if (!!cacheRecord.accessToken) {
+        if (!!cacheRecord.accessToken && storeInCache?.accessToken !== false) {
             await this.saveAccessToken(cacheRecord.accessToken);
         }
 
-        if (!!cacheRecord.refreshToken) {
+        if (!!cacheRecord.refreshToken && storeInCache?.refreshToken !== false) {
             this.setRefreshTokenCredential(cacheRecord.refreshToken);
         }
 

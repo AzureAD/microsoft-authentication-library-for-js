@@ -4,8 +4,8 @@
  */
 
 export type StoreInCache = {
-    accessToken?: boolean;
-    idToken?: boolean;
-    refreshToken?: boolean;
+    accessToken: boolean;
+    idToken: boolean;
+    refreshToken: boolean;
 };
 
