@@ -59,24 +59,19 @@ configuration:
       frequencies:
       - weekday:
           day: Monday
-          time: 8:0
+          time: 8:00
       filters:
       - isOpen
       - isNotDraftPullRequest
       - isPullRequest
       - noActivitySince:
-          days: 7
+          days: 14
       - isNotLabeledWith:
           label: 'Needs: Attention :wave:'
       actions:
       - addReply:
           reply: >-
-            Reminder: The next release is scheduled for next week and this PR appears to be stale :( 
-
-
-            If changes have been requested please address feedback. 
-
-            If this PR is still a work in progress please mark as draft.
+            Reminder: This PR appears to be stale. If this PR is still a work in progress please mark as draft.
       - addLabel:
           label: 'Needs: Attention :wave:'
     eventResponderTasks:
