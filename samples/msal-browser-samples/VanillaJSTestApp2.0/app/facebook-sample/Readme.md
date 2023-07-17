@@ -15,5 +15,5 @@ This developer sample is used to demonstrate how to configure an app for use wit
         - `ServerResponseType.QUERY` (for a query parameter). We recommend using `ServerResponseType.QUERY` only if the identity provider does not support sending server responses in a hash fragment.
     - The `defaultScopes` parameter provides the option to override the default scopes sent by MSAL. If not set, it defaults to ["openid", "profile", "offline_access"]. If `defaultScopes` does not include "openid", MSAL will automatically add it for OIDC compliance.
 - You have the option to manually configure endpoints used by the identity provider. If not set, MSAL will attempt to discover the endpoints. Manual endpoint configuration should be passed in a stringified JSON object and include issuer, authorization_endpoint, token_endpoint, jwks_uri, and (if available) end_session_endpoint.
-- You must set allowNativeBroker to false when using a non-Microsoft identity provider.
+- You must not set allowNativeBroker to true when using a non-Microsoft identity provider.
 - If the identity provider does not have an end_session_endpoint, MSAL will not automatically redirect the page upon logout.
