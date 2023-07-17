@@ -242,12 +242,12 @@ configuration:
       - isActivitySender:
           issueAuthor: true
       - hasLabel:
-            label: 'Needs: Author Feedback'
+          label: 'Needs: Author Feedback'
       then:
         - removeLabel:
-          label: 'Needs: Author Feedback'
+            label: 'Needs: Author Feedback'
         - addLabel:
-          label: 'Needs: Attention :wave:'
+            label: 'Needs: Attention :wave:'
       description: "Removes the 'Needs: Author Feedback' label and adds the 'Needs: Attention :wave:' label when the issue author comments on an issue"
     - if:
       - payloadType: Issue_Comment
@@ -256,7 +256,7 @@ configuration:
           issueAuthor: true
       then:
         - addLabel:
-          label: 'Needs: Attention :wave:'
+            label: 'Needs: Attention :wave:'
         - reopenIssue
       description: "If author comments on closed issue, reopen"
 
