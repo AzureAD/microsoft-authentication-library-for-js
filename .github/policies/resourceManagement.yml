@@ -46,6 +46,18 @@ configuration:
       - hourly:
           hour: 12
       filters:
+      - not: isOpen
+      - noActivitySince:
+          days: 7
+      - isIssue
+      - isUnlocked
+      actions:
+      - lockIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 12
+      filters:
       - isOpen
       - isIssue
       - hasLabel:
@@ -223,5 +235,42 @@ configuration:
           primary: True
           secondary: False
       description: 
+    - if:
+      - payloadType: Issue_Comment
+      - isOpen
+      - activitySenderHasAssociation:
+          association: Member
+      - hasLabel:
+          label: 'Needs: Attention :wave:'
+      then:
+        - removeLabel:
+            label: 'Needs: Attention :wave:'
+        - addLabel:
+            label: 'Needs: Author Feedback'
+      description: "Removes the 'Needs: Attention :wave:' label and adds the 'Needs: Author Feedback' label when a team member comments on an issue"
+    - if:
+      - payloadType: Issue_Comment
+      - isOpen
+      - isActivitySender:
+          issueAuthor: true
+      - hasLabel:
+            label: 'Needs: Author Feedback'
+      then:
+        - removeLabel:
+          label: 'Needs: Author Feedback'
+        - addLabel:
+          label: 'Needs: Attention :wave:'
+      description: "Removes the 'Needs: Author Feedback' label and adds the 'Needs: Attention :wave:' label when the issue author comments on an issue"
+    - if:
+      - payloadType: Issue_Comment
+      - not: isOpen
+      - isActivitySender:
+          issueAuthor: true
+      then:
+        - addLabel:
+          label: 'Needs: Attention :wave:'
+        - reopenIssue
+      description: "If author comments on closed issue, reopen"
+
 onFailure: 
 onSuccess: 
