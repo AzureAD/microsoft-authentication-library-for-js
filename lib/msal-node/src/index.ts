@@ -112,8 +112,7 @@ export {
     // IAppTokenProvider
     IAppTokenProvider,
     AppTokenProviderParameters,
-    AppTokenProviderResult,
-    StoreInCache
+    AppTokenProviderResult
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
