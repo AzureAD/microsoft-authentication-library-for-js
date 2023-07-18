@@ -554,7 +554,7 @@ describe("SilentIframeClient", () => {
         describe("storeInCache tests", () => {
             beforeEach(() => {
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(TEST_STATE_VALUES.TEST_STATE_SILENT);
-                jest.spyOn(SilentHandler.prototype, "monitorIframeForHash").mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+                jest.spyOn(SilentHandler.prototype, "monitorIframeForHash").mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
                 jest.spyOn(NetworkManager.prototype, "sendPostRequest").mockResolvedValue(TEST_TOKEN_RESPONSE);
             });
 
