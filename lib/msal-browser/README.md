@@ -130,27 +130,6 @@ We also provide samples for addin/plugin scenarios:
 
 See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information.
 
-### Linking local package dependencies
-
-If you are having issues with `lerna` and wish to use the local version of the `@azure/msal-common` library (to reflect changes made in both repositories) you can run do the following:
-
-```bash
-// Change to the msal-browser package directory
-cd lib/msal-browser/
-// Install package dependencies
-npm install
-// Change to the msal-common package directory
-cd ../msal-common/
-// Install package dependencies
-npm install
-// Prepare the local msal-common package for linking
-npm link
-// Change back to the msal-browser package directory
-cd ../msal-browser/
-// Link to the local build of msal-common
-npm link @azure/msal-common
-```
-
 ### Building the package
 
 To build the `@azure/msal-browser` library, you can do the following:
