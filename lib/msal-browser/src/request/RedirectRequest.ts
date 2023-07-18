@@ -3,9 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    CommonAuthorizationUrlRequest,
-} from "@azure/msal-common";
+import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
 
 /**
  * RedirectRequest: Request object passed by user to retrieve a Code from the
