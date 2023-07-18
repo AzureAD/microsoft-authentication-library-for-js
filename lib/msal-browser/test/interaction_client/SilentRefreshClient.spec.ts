@@ -11,6 +11,7 @@ import {
     TEST_DATA_CLIENT_INFO,
     TEST_TOKEN_LIFETIMES,
     RANDOM_TEST_GUID,
+    TEST_TOKEN_RESPONSE,
 } from "../utils/StringConstants";
 import {
     Constants,
@@ -20,13 +21,37 @@ import {
     AuthenticationScheme,
     RefreshTokenClient,
     CommonSilentFlowRequest,
+    NetworkManager,
+    RefreshTokenEntity,
+    AccountEntity,
 } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
+import { BrowserCacheManager } from "../../src/internals";
+import { CLIENT_INFO } from "@azure/msal-common/dist/utils/Constants";
+
+const testIdTokenClaims: TokenClaims = {
+    ver: "2.0",
+    iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+    sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+    name: "Abe Lincoln",
+    preferred_username: "AbeLi@microsoft.com",
+    oid: "00000000-0000-0000-66f3-3332eca7ea81",
+    tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+    nonce: "123523",
+};
+const testAccount: AccountInfo = {
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+    environment: "login.windows.net",
+    tenantId: testIdTokenClaims.tid || "",
+    username: testIdTokenClaims.preferred_username || "",
+};
 
 describe("SilentRefreshClient", () => {
     let silentRefreshClient: SilentRefreshClient;
+    let browserCacheManager: BrowserCacheManager
 
     beforeEach(() => {
         let pca = new PublicClientApplication({
@@ -37,6 +62,9 @@ describe("SilentRefreshClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
+
+        //@ts-ignore
+        browserCacheManager = pca.browserStorage;
 
         sinon
             .stub(CryptoOps.prototype, "createNewGuid")
@@ -61,6 +89,7 @@ describe("SilentRefreshClient", () => {
     });
 
     afterEach(() => {
+        jest.restoreAllMocks();
         sinon.restore();
         window.location.hash = "";
         window.sessionStorage.clear();
@@ -77,23 +106,6 @@ describe("SilentRefreshClient", () => {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-            };
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -137,6 +149,86 @@ describe("SilentRefreshClient", () => {
             );
             expect(silentATStub.calledWith(expectedTokenRequest)).toBeTruthy();
             expect(tokenResp).toEqual(testTokenResponse);
+        });
+
+        describe("storeInCache tests", () => {
+            beforeEach(() => {
+                const rtEntity = new RefreshTokenEntity();
+                rtEntity.secret = TEST_TOKEN_RESPONSE.body.refresh_token!;
+                const accountEntity = new AccountEntity();
+                jest.spyOn(BrowserCacheManager.prototype, "getAccount").mockReturnValue(accountEntity);
+                jest.spyOn(BrowserCacheManager.prototype, "getRefreshToken").mockReturnValue(rtEntity);
+                jest.spyOn(NetworkManager.prototype, "sendPostRequest").mockResolvedValue(TEST_TOKEN_RESPONSE);
+            });
+
+            it("does not store idToken if storeInCache.idToken = false", async () => {
+                const tokenResp = await silentRefreshClient.acquireToken({
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    account: testAccount,
+                    forceRefresh: true,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        idToken: false
+                    }
+                });
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
+                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(0);
+                expect(tokenKeys.accessToken).toHaveLength(1);
+                expect(tokenKeys.refreshToken).toHaveLength(1);
+            });
+
+            it("does not store accessToken if storeInCache.accessToken = false", async () => {
+                const tokenResp = await silentRefreshClient.acquireToken({
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    account: testAccount,
+                    forceRefresh: true,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        accessToken: false
+                    }
+                });
+                
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
+                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(1);
+                expect(tokenKeys.accessToken).toHaveLength(0);
+                expect(tokenKeys.refreshToken).toHaveLength(1);
+            });
+
+            it("does not store refreshToken if storeInCache.refreshToken = false", async () => {
+                const tokenResp = await silentRefreshClient.acquireToken({
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    account: testAccount,
+                    forceRefresh: true,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        refreshToken: false
+                    }
+                });
+                
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
+                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(1);
+                expect(tokenKeys.accessToken).toHaveLength(1);
+                expect(tokenKeys.refreshToken).toHaveLength(0);
+            });
         });
     });
 

@@ -7,6 +7,8 @@ import {
     AuthenticationScheme,
     Constants,
     NetworkResponse,
+    OIDC_DEFAULT_SCOPES,
+    ServerAuthorizationTokenResponse,
 } from "@azure/msal-common";
 import { version } from "../../src/packageMetadata";
 
@@ -352,6 +354,22 @@ export const ALTERNATE_OPENID_CONFIG_RESPONSE = {
         rbac_url: "https://pas.windows.net",
     },
 };
+
+export const TEST_TOKEN_RESPONSE: NetworkResponse<ServerAuthorizationTokenResponse> = {
+    headers: {
+
+    },
+    body: {
+        token_type: AuthenticationScheme.BEARER,
+        scope: OIDC_DEFAULT_SCOPES.join(", "),
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        access_token: TEST_TOKENS.ACCESS_TOKEN,
+        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+        id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
+    },
+    status: 200
+}
 
 export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(
     `${TEST_CONFIG.MSAL_CLIENT_ID}`
