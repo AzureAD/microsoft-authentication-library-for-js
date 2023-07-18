@@ -8,7 +8,7 @@ import { CommonAuthorizationCodeRequest } from "@azure/msal-common";
 export type AuthorizationCodeRequest = Partial<
     Omit<
         CommonAuthorizationCodeRequest,
-        | "code" | "enableSpaAuthorizationCode" | "requestedClaimsHash"
+        "code" | "enableSpaAuthorizationCode" | "requestedClaimsHash"
     >
 > & {
     code?: string;
