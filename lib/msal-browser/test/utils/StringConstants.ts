@@ -34,6 +34,7 @@ export const TEST_URIS = {
     TEST_AZURE_CHINA_INSTANCE: "https://login.chinacloudapi.cn/",
     TEST_AZURE_GERMANY_INSTANCE: "https://login.microsoftonline.de/",
     TEST_AZURE_USGOV_INSTANCE: "https://login.microsoftonline.us/",
+    TEST_QUERY_CODE_RESPONSE: "http://localhost/?code=hello",
 };
 
 // Test MSAL config params

@@ -439,14 +439,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
 
-        const configResponseMode: ResponseMode = this.config.auth.OIDCOptions.serverResponseType;
-
         const validatedRequest: AuthorizationUrlRequest = {
             ...(await this.initializeBaseRequest(request)),
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),
-            responseMode: configResponseMode,
+            responseMode: this.config.auth.OIDCOptions.serverResponseType as ResponseMode,
         };
 
         const account =

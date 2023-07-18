@@ -1586,7 +1586,7 @@ describe("PopupClient", () => {
             });
         });
 
-        it("returns hash in query form when serverResponseType in OIDCOptions is query", (done) => {
+        it("returns server code response in query form when serverResponseType in OIDCOptions is query", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1621,7 +1621,7 @@ describe("PopupClient", () => {
 
             const popup = {
                 location: {
-                    href: "http://localhost/?code=hello",
+                    href: TEST_URIS.TEST_QUERY_CODE_RESPONSE,
                 },
                 history: {
                     replaceState: () => {

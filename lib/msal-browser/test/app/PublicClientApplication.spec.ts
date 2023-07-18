@@ -48,7 +48,6 @@ import {
     Authority,
     AuthError,
     ProtocolMode,
-    ClientConfigurationError,
     ServerResponseType
 } from "@azure/msal-common";
 import {
@@ -829,11 +828,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResponse1).toEqual(tokenResponse2);
             expect(tokenResponse4).toEqual(tokenResponse1);
         });
-        it("Looks for hash in query param if OIDCOptions.serverResponseType is set to query", async () => {
-            /**
-             * The testing environment does not accept query params, so instead we see that it ignores a hash fragment.
-             * That means handleRedirectPromise is looking for a hash in a query param instead of a hash fragment.
-             */
+    });
+    describe("OIDC Protocol Mode tests", () => {
+        beforeEach(() => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -850,7 +847,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: false,
                 },
             });
-
+        });
+        it("Looks for server code response in query param if OIDCOptions.serverResponseType is set to query", async () => {
+            /**
+             * The testing environment does not accept query params, so instead we see that it ignores a hash fragment.
+             * That means handleRedirectPromise is looking for a hash in a query param instead of a hash fragment.
+             */
             sinon
                 .stub(RedirectClient.prototype, "handleRedirectPromise")
                 .callsFake(async (hash): Promise<AuthenticationResult | null> => {

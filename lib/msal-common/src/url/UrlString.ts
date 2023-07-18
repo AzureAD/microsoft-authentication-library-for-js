@@ -8,7 +8,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
-import { AADAuthorityConstants, Constants } from "../utils/Constants";
+import { AADAuthorityConstants, Constants, ServerResponseType } from "../utils/Constants";
 
 /**
  * Url object class which can perform various transformations on url strings.
@@ -319,6 +319,24 @@ export class UrlString {
             );
         }
         return deserializedQueryString;
+    }
+    /**
+     * Returns either deserialized query string or deserialized hash, depending on the serverResponseType
+     * as a server auth code response object.
+     */
+    static getDeserializedCodeResponse(
+        serverResponseType: ServerResponseType | undefined,
+        hashFragment: string
+    ): ServerAuthorizationCodeResponse {
+        const hashUrlString = new UrlString(hashFragment);
+        let serverParams : ServerAuthorizationCodeResponse;
+        if(serverResponseType === ServerResponseType.QUERY) {
+            serverParams = UrlString.getDeserializedQueryString(hashFragment);
+        }
+        else{
+            serverParams = UrlString.getDeserializedHash(hashUrlString.getHash());
+        }
+        return serverParams;
     }
 
     /**

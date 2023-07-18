@@ -579,14 +579,7 @@ export class PopupClient extends StandardInteractionClient {
                 }
 
                 const href = popupWindow.location.href;
-                let serverResponseString;
-                if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
-                    this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
-                        serverResponseString = UrlString.parseQueryServerResponse(href);
-                }
-                else {
-                    serverResponseString = popupWindow.location.hash;
-                }
+                const serverResponseString = this.extractServerResponseStringFromPopup(popupWindow, href);
                 try {
                     /*
                      * Will throw if cross origin,
@@ -877,5 +870,23 @@ export class PopupClient extends StandardInteractionClient {
     generateLogoutPopupName(request: CommonEndSessionRequest): string {
         const homeAccountId = request.account && request.account.homeAccountId;
         return `${BrowserConstants.POPUP_NAME_PREFIX}.${this.config.auth.clientId}.${homeAccountId}.${this.correlationId}`;
+    }
+
+    /** 
+     * Extracts the server response from the popup window
+     */
+    extractServerResponseStringFromPopup(
+        popupWindow: Window,
+        href: string
+    ): string {
+        let serverResponseString;
+        if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
+            this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
+                serverResponseString = UrlString.parseQueryServerResponse(href);
+        }
+        else {
+            serverResponseString = popupWindow.location.hash;
+        }
+        return serverResponseString;
     }
 }
