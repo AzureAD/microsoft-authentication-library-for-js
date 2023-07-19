@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import{ Page, HTTPResponse, Browser } from "puppeteer";
+import { Page, HTTPResponse, Browser } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
@@ -10,14 +10,17 @@ export class Screenshot {
     private folderName: string;
     private screenshotNum: number;
 
-    constructor (foldername: string) {
+    constructor(foldername: string) {
         this.folderName = foldername;
         this.screenshotNum = 0;
         createFolder(this.folderName);
     }
 
     async takeScreenshot(page: Page, screenshotName: string): Promise<void> {
-        await page.screenshot({ path: `${this.folderName}/${++this.screenshotNum}_${screenshotName}.png` });
+        await page.screenshot({
+            path: `${this.folderName}/${++this
+                .screenshotNum}_${screenshotName}.png`,
+        });
     }
 }
 
@@ -27,29 +30,69 @@ export function createFolder(foldername: string) {
     }
 }
 
-export async function storagePoller(callback: ()=>Promise<void>, timeoutMs: number): Promise<void> {
+export async function storagePoller(
+    callback: () => Promise<void>,
+    timeoutMs: number
+): Promise<void> {
     return new Promise((resolve, reject) => {
         const startTime = Date.now();
         let lastError: Error;
         const interval = setInterval(async () => {
-            if ((Date.now() - startTime) > timeoutMs) {
+            if (Date.now() - startTime > timeoutMs) {
                 clearInterval(interval);
                 console.error(lastError);
                 reject(new Error("Timed out while polling storage"));
             }
-            await callback().then(() => {
+            await callback()
+                .then(() => {
+                    // If callback resolves - success
+                    clearInterval(interval);
+                    resolve();
+                })
+                .catch((e: Error) => {
+                    // If callback throws storage hasn't been updated yet - check again on next interval
+                    lastError = e;
+                });
+        }, 200);
+    });
+}
+
+export async function pcaInitializedPoller(
+    page: Page,
+    timeoutMs: number
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        let lastError: Error;
+        const interval = setInterval(async () => {
+            if (Date.now() - startTime > timeoutMs) {
+                clearInterval(interval);
+                console.error(lastError);
+                reject(
+                    new Error(
+                        "Timed out while waiting for PublicClientApplication to be initialized"
+                    )
+                );
+            }
+            await page.waitForSelector("#pca-initialized");
+            const initializedText = await page.$eval(
+                "#pca-initialized",
+                (el) => el.textContent
+            );
+            if (initializedText === "true") {
                 // If callback resolves - success
                 clearInterval(interval);
                 resolve();
-            }).catch((e: Error)=>{
-                // If callback throws storage hasn't been updated yet - check again on next interval
-                lastError = e;
-            });
+            }
         }, 200);
     });
-};
+}
 
-export async function retrieveAppConfiguration(labConfig: LabConfig, labClient: LabClient, isConfidentialClient: boolean): Promise<[string, string, string]> {
+export async function retrieveAppConfiguration(
+    labConfig: LabConfig,
+    labClient: LabClient,
+    isConfidentialClient: boolean
+): Promise<[string, string, string]> {
     let clientID = "";
     let clientSecret = "";
     let authority = "";
@@ -67,10 +110,11 @@ export async function retrieveAppConfiguration(labConfig: LabConfig, labClient: 
             throw Error("No Labname and/or Appname provided!");
         }
 
-        let secretAppName =`${labConfig.lab.labName}-${labConfig.app.appName}`;
+        let secretAppName = `${labConfig.lab.labName}-${labConfig.app.appName}`;
 
         // Reformat the secret app name to kebab case from snake case
-        while (secretAppName.includes("_")) secretAppName = secretAppName.replace("_", "-");
+        while (secretAppName.includes("_"))
+            secretAppName = secretAppName.replace("_", "-");
 
         const appClientSecret = await labClient.getSecret(secretAppName);
 
@@ -84,7 +128,10 @@ export async function retrieveAppConfiguration(labConfig: LabConfig, labClient: 
     return [clientID, clientSecret, authority];
 }
 
-export async function setupCredentials(labConfig: LabConfig, labClient: LabClient): Promise<[string, string]> {
+export async function setupCredentials(
+    labConfig: LabConfig,
+    labClient: LabClient
+): Promise<[string, string]> {
     let username = "";
     let accountPwd = "";
 
@@ -107,7 +154,12 @@ export async function setupCredentials(labConfig: LabConfig, labClient: LabClien
     return [username, accountPwd];
 }
 
-export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {
+export async function b2cLocalAccountEnterCredentials(
+    page: Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+) {
     await page.waitForSelector("#logonIdentifier");
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     await page.type("#logonIdentifier", username);
@@ -115,7 +167,12 @@ export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Sc
     await page.click("#next");
 }
 
-export async function b2cAadPpeAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+export async function b2cAadPpeAccountEnterCredentials(
+    page: Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+): Promise<void> {
     await page.waitForSelector("#MSIDLAB4_AzureAD");
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     // Select Lab Provider
@@ -124,7 +181,12 @@ export async function b2cAadPpeAccountEnterCredentials(page: Page, screenshot: S
     await enterCredentials(page, screenshot, username, accountPwd);
 }
 
-export async function b2cMsaAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+export async function b2cMsaAccountEnterCredentials(
+    page: Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+): Promise<void> {
     await page.waitForSelector("#MicrosoftAccountExchange");
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     // Select Lab Provider
@@ -140,21 +202,32 @@ export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
 export const SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID = "token-acquired-silently";
 export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
 
-export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+export async function enterCredentials(
+    page: Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+): Promise<void> {
     await Promise.all([
-        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}).catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page
+            .waitForNavigation({
+                waitUntil: ["load", "domcontentloaded", "networkidle0"],
+            })
+            .catch(() => {}), // Wait for navigation but don't throw due to timeout
         page.waitForSelector("#i0116"),
-        page.waitForSelector("#idSIButton9")
+        page.waitForSelector("#idSIButton9"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
     await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
-    await screenshot.takeScreenshot(page, "loginPageUsernameFilled")
+    await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
     await Promise.all([
-        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"] }),
-        page.click("#idSIButton9")
+        page.waitForNavigation({
+            waitUntil: ["load", "domcontentloaded", "networkidle0"],
+        }),
+        page.click("#idSIButton9"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -162,11 +235,13 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
 
     // agce: which type of account do you want to use
     try {
-        await page.waitForSelector('#aadTile', {timeout: 1000});
+        await page.waitForSelector("#aadTile", { timeout: 1000 });
         await screenshot.takeScreenshot(page, "accountType");
         await Promise.all([
-            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
-            page.click("#aadTile")
+            page.waitForNavigation({
+                waitUntil: ["load", "domcontentloaded", "networkidle0"],
+            }),
+            page.click("#aadTile"),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
@@ -186,9 +261,15 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
 
         // Wait either for another navigation to Keep me signed in page or back to redirectUri
         Promise.race([
-            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"] }),
-            page.waitForResponse((response: HTTPResponse) => response.url().startsWith(SAMPLE_HOME_URL), { timeout: 0 })
-        ])
+            page.waitForNavigation({
+                waitUntil: ["load", "domcontentloaded", "networkidle0"],
+            }),
+            page.waitForResponse(
+                (response: HTTPResponse) =>
+                    response.url().startsWith(SAMPLE_HOME_URL),
+                { timeout: 0 }
+            ),
+        ]),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -197,24 +278,27 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     if (page.url().startsWith(SAMPLE_HOME_URL)) {
         return;
     }
-    await screenshot.takeScreenshot(page, "passwordSubmitted")
+    await screenshot.takeScreenshot(page, "passwordSubmitted");
 
     // agce: check if the "help us protect your account" dialog appears
     try {
-        const selector = "#lightbox > div:nth-child(3) > div > div.pagination-view.has-identity-banner.animate.slide-in-next > div > div:nth-child(3) > a";
-        await page.waitForSelector(selector, {timeout: 1000});
+        const selector =
+            "#lightbox > div:nth-child(3) > div > div.pagination-view.has-identity-banner.animate.slide-in-next > div > div:nth-child(3) > a";
+        await page.waitForSelector(selector, { timeout: 1000 });
         await page.click(selector);
-    } catch(e) {
+    } catch (e) {
         // continue
     }
 
     // keep me signed in page
     try {
-        await page.waitForSelector('#idSIButton9', {timeout: 1000});
+        await page.waitForSelector("#idSIButton9", { timeout: 1000 });
         await screenshot.takeScreenshot(page, "keepMeSignedInPage");
         await Promise.all([
-            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
-            page.click("#idSIButton9")
+            page.waitForNavigation({
+                waitUntil: ["load", "domcontentloaded", "networkidle0"],
+            }),
+            page.click("#idSIButton9"),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
@@ -225,11 +309,13 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
 
     // agce: private tenant sign in page
     try {
-        await page.waitForSelector('#idSIButton9', {timeout: 1000});
+        await page.waitForSelector("#idSIButton9", { timeout: 1000 });
         await screenshot.takeScreenshot(page, "privateTenantSignInPage");
         await Promise.all([
-            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
-            page.click("#idSIButton9")
+            page.waitForNavigation({
+                waitUntil: ["load", "domcontentloaded", "networkidle0"],
+            }),
+            page.click("#idSIButton9"),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
@@ -239,14 +325,19 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     }
 }
 
-export async function approveRemoteConnect(page: Page, screenshot: Screenshot): Promise<void> {
+export async function approveRemoteConnect(
+    page: Page,
+    screenshot: Screenshot
+): Promise<void> {
     try {
         await page.waitForSelector("#remoteConnectDescription");
         await page.waitForSelector("#remoteConnectSubmit");
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
-            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
-            page.click("#remoteConnectSubmit")
+            page.waitForNavigation({
+                waitUntil: ["load", "domcontentloaded", "networkidle0"],
+            }),
+            page.click("#remoteConnectSubmit"),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
@@ -256,29 +347,44 @@ export async function approveRemoteConnect(page: Page, screenshot: Screenshot): 
     }
 }
 
-export async function enterCredentialsADFSWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+export async function enterCredentialsADFSWithConsent(
+    page: Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+): Promise<void> {
     await enterCredentialsADFS(page, screenshot, username, accountPwd);
     await approveConsent(page, screenshot);
 }
 
-export async function approveConsent(page: Page, screenshot: Screenshot): Promise<void> {
+export async function approveConsent(
+    page: Page,
+    screenshot: Screenshot
+): Promise<void> {
     await page.waitForSelector("#idSIButton9");
     await Promise.all([
-        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
-        page.click("#idSIButton9")
+        page.waitForNavigation({
+            waitUntil: ["load", "domcontentloaded", "networkidle0"],
+        }),
+        page.click("#idSIButton9"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
-    await screenshot.takeScreenshot(page, 'consentApproved');
+    await screenshot.takeScreenshot(page, "consentApproved");
 }
 
-export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
-    await page.waitForSelector("#SignIn")
+export async function clickSignIn(
+    page: Page,
+    screenshot: Screenshot
+): Promise<void> {
+    await page.waitForSelector("#SignIn");
     await screenshot.takeScreenshot(page, "samplePageInit");
     await Promise.all([
-        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
-        page.click("#SignIn")
+        page.waitForNavigation({
+            waitUntil: ["load", "domcontentloaded", "networkidle0"],
+        }),
+        page.click("#SignIn"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -286,11 +392,20 @@ export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<v
     await screenshot.takeScreenshot(page, "signInClicked");
 }
 
-export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+export async function enterCredentialsADFS(
+    page: Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+): Promise<void> {
     await Promise.all([
-        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}).catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page
+            .waitForNavigation({
+                waitUntil: ["load", "domcontentloaded", "networkidle0"],
+            })
+            .catch(() => {}), // Wait for navigation but don't throw due to timeout
         page.waitForSelector("#i0116"),
-        page.waitForSelector("#idSIButton9")
+        page.waitForSelector("#idSIButton9"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -299,8 +414,10 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
     await page.type("#i0116", username);
     await screenshot.takeScreenshot(page, "usernameEntered");
     await Promise.all([
-        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
-        page.click("#idSIButton9")
+        page.waitForNavigation({
+            waitUntil: ["load", "domcontentloaded", "networkidle0"],
+        }),
+        page.click("#idSIButton9"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -310,8 +427,10 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
     await page.type("#passwordInput", accountPwd);
     await screenshot.takeScreenshot(page, "passwordEntered");
     await Promise.all([
-        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
-        page.click("#submitButton")
+        page.waitForNavigation({
+            waitUntil: ["load", "domcontentloaded", "networkidle0"],
+        }),
+        page.click("#submitButton"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -319,22 +438,33 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
     await screenshot.takeScreenshot(page, "pwdSubmitted");
 }
 
-export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: string, deviceCodeUrl: string): Promise<void> {
-    await page.goto(deviceCodeUrl, {waitUntil: ["load", "domcontentloaded", "networkidle0"]});
+export async function enterDeviceCode(
+    page: Page,
+    screenshot: Screenshot,
+    code: string,
+    deviceCodeUrl: string
+): Promise<void> {
+    await page.goto(deviceCodeUrl, {
+        waitUntil: ["load", "domcontentloaded", "networkidle0"],
+    });
     await page.waitForSelector("#otc");
     await page.waitForSelector("#idSIButton9");
-    await screenshot.takeScreenshot(page, 'deviceCodePage');
+    await screenshot.takeScreenshot(page, "deviceCodePage");
     await page.type("#otc", code);
     await Promise.all([
-        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
-        page.click("#idSIButton9")
+        page.waitForNavigation({
+            waitUntil: ["load", "domcontentloaded", "networkidle0"],
+        }),
+        page.click("#idSIButton9"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
 }
 
-export async function validateCacheLocation(cacheLocation: string): Promise<void> {
+export async function validateCacheLocation(
+    cacheLocation: string
+): Promise<void> {
     return new Promise((resolve, reject) => {
         fs.readFile(cacheLocation, "utf-8", (err, data) => {
             if (err || data === "") {
@@ -358,7 +488,10 @@ export function checkTimeoutError(output: string): boolean {
     return timeoutErrorRegex.test(output);
 }
 
-export async function clickLoginRedirect(screenshot: Screenshot, page: Page): Promise<void> {
+export async function clickLoginRedirect(
+    screenshot: Screenshot,
+    page: Page
+): Promise<void> {
     // Home Page
     await screenshot.takeScreenshot(page, "samplePageInit");
     // Click Sign In
@@ -368,42 +501,63 @@ export async function clickLoginRedirect(screenshot: Screenshot, page: Page): Pr
     await page.click("#redirect");
 }
 
-export async function clickLogoutRedirect(screenshot: Screenshot, page: Page): Promise<void> {
+export async function clickLogoutRedirect(
+    screenshot: Screenshot,
+    page: Page
+): Promise<void> {
     await page.click("#SignIn");
     await screenshot.takeScreenshot(page, "signOutClicked");
     // Click Sign Out With Redirect
     await page.click("#redirect");
 }
 
-export async function clickLoginPopup(screenshot: Screenshot, page: Page): Promise<[Page, Promise<void>]> {
+export async function clickLoginPopup(
+    screenshot: Screenshot,
+    page: Page
+): Promise<[Page, Promise<void>]> {
     // Home Page
     await screenshot.takeScreenshot(page, "samplePageInit");
     // Click Sign In
     await page.click("#SignIn");
     await screenshot.takeScreenshot(page, "signInClicked");
     // Click Sign In With Popup
-    const newPopupWindowPromise = new Promise<Page>(resolve => page.once("popup", resolve));
+    const newPopupWindowPromise = new Promise<Page>((resolve) =>
+        page.once("popup", resolve)
+    );
     await page.click("#popup");
     const popupPage = await newPopupWindowPromise;
-    const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+    const popupWindowClosed = new Promise<void>((resolve) =>
+        popupPage.once("close", resolve)
+    );
 
     return [popupPage, popupWindowClosed];
 }
 
-export async function clickLogoutPopup(screenshot: Screenshot, page: Page): Promise<[Page, Promise<void>]> {
-
+export async function clickLogoutPopup(
+    screenshot: Screenshot,
+    page: Page
+): Promise<[Page, Promise<void>]> {
     await page.click("#SignIn");
     await screenshot.takeScreenshot(page, "signOutClicked");
     // Click Sign Out With Popup
-    const newPopupWindowPromise = new Promise<Page>(resolve => page.once("popup", resolve));
+    const newPopupWindowPromise = new Promise<Page>((resolve) =>
+        page.once("popup", resolve)
+    );
     await page.click("#popup");
     const popupPage = await newPopupWindowPromise;
-    const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+    const popupWindowClosed = new Promise<void>((resolve) =>
+        popupPage.once("close", resolve)
+    );
 
     return [popupPage, popupWindowClosed];
 }
 
-export async function waitForReturnToApp(screenshot: Screenshot, page: Page, popupPage?: Page, popupWindowClosed?: Promise<void>): Promise<void> {
+export async function waitForReturnToApp(
+    screenshot: Screenshot,
+    page: Page,
+    popupPage?: Page,
+    popupWindowClosed?: Promise<void>
+): Promise<void> {
     if (popupPage && popupWindowClosed) {
         // Wait until popup window closes and see that we are logged in
         await popupWindowClosed;

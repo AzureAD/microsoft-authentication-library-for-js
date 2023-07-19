@@ -13,12 +13,18 @@ async function initializeMsal() {
     }).then(json => {
         authConfig = json;
         myMSALObj = new msal.PublicClientApplication(json.msalConfig);
-        myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
-            console.error(err);
-    });
+        myMSALObj.initialize().then(() => {
+            setInitializedFlagTrue(); // Used as a flag in the test to ensure that MSAL has been initialized
+            myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+                console.error(err);
+            });
+        });
     });
 }
 
+function setInitializedFlagTrue() {
+    document.getElementById("pca-initialized").innerHTML = "true";
+}
 function handleResponse(resp) {
     if (resp !== null) {
         homeAccountId = resp.account.homeAccountId;
