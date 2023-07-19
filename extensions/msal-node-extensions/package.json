@@ -6,7 +6,6 @@
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "license": "MIT",
-  "type": "module",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "exports": {
