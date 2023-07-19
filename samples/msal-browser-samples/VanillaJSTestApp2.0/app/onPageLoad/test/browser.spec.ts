@@ -49,7 +49,6 @@ describe("On Page Load tests", function () {
         page = await context.newPage();
         page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
-        await pcaInitializedPoller(page, 5000);
     });
 
     afterEach(async () => {
@@ -63,6 +62,7 @@ describe("On Page Load tests", function () {
 
     it("Performs loginRedirect on page load", async () => {
         await page.goto(sampleHomeUrl);
+        await pcaInitializedPoller(page, 5000);
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(
             `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
