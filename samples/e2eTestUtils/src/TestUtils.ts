@@ -30,9 +30,10 @@ export function createFolder(foldername: string) {
     }
 }
 
-export async function storagePoller(
+async function poller(
     callback: () => Promise<void>,
-    timeoutMs: number
+    timeoutMs: number,
+    errorMessage: string
 ): Promise<void> {
     return new Promise((resolve, reject) => {
         const startTime = Date.now();
@@ -41,7 +42,7 @@ export async function storagePoller(
             if (Date.now() - startTime > timeoutMs) {
                 clearInterval(interval);
                 console.error(lastError);
-                reject(new Error("Timed out while polling storage"));
+                reject(new Error(errorMessage));
             }
             await callback()
                 .then(() => {
@@ -57,35 +58,33 @@ export async function storagePoller(
     });
 }
 
+export async function storagePoller(
+    callback: () => Promise<void>,
+    timeoutMs: number
+): Promise<void> {
+    await poller(callback, timeoutMs, "Timed out while waiting for storage");
+}
+
 export async function pcaInitializedPoller(
     page: Page,
     timeoutMs: number
 ): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const startTime = Date.now();
-        let lastError: Error;
-        const interval = setInterval(async () => {
-            if (Date.now() - startTime > timeoutMs) {
-                clearInterval(interval);
-                console.error(lastError);
-                reject(
-                    new Error(
-                        "Timed out while waiting for PublicClientApplication to be initialized"
-                    )
+    await poller(
+        () => {
+            return new Promise(async (resolve, reject) => {
+                await page.waitForSelector("#pca-initialized");
+                const initializedText = await page.$eval(
+                    "#pca-initialized",
+                    (el) => el.textContent
                 );
-            }
-            await page.waitForSelector("#pca-initialized");
-            const initializedText = await page.$eval(
-                "#pca-initialized",
-                (el) => el.textContent
-            );
-            if (initializedText === "true") {
-                // If callback resolves - success
-                clearInterval(interval);
-                resolve();
-            }
-        }, 200);
-    });
+                if (initializedText === "true") {
+                    resolve();
+                }
+            });
+        },
+        timeoutMs,
+        "Timed out while waiting for PublicClientApplication to be initialized"
+    );
 }
 
 export async function retrieveAppConfiguration(

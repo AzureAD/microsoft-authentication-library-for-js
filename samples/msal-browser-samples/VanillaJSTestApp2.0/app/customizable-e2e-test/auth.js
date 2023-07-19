@@ -25,6 +25,7 @@ async function initializeMsal() {
 function setInitializedFlagTrue() {
     document.getElementById("pca-initialized").innerHTML = "true";
 }
+
 function handleResponse(resp) {
     if (resp !== null) {
         homeAccountId = resp.account.homeAccountId;
