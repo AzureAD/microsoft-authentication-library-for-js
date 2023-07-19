@@ -25,10 +25,10 @@ export const AzureCloudInstance = {
     // Microsoft PPE
     AzurePpe: "https://login.windows-ppe.net",
 
-    // Microsoft Chinese national cloud
+    // Microsoft Chinese national/regional cloud
     AzureChina: "https://login.chinacloudapi.cn",
 
-    // Microsoft German national cloud ("Black Forest")
+    // Microsoft German national/regional cloud ("Black Forest")
     AzureGermany: "https://login.microsoftonline.de",
 
     // US Government cloud
