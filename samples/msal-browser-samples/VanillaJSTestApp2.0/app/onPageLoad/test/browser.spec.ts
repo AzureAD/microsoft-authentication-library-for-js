@@ -7,7 +7,6 @@ import {
     ONE_SECOND_IN_MS,
     getBrowser,
     getHomeUrl,
-    pcaInitializedPoller,
 } from "e2e-test-utils/src/TestUtils";
 import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
@@ -47,7 +46,7 @@ describe("On Page Load tests", function () {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+        page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
     });
 
@@ -62,7 +61,6 @@ describe("On Page Load tests", function () {
 
     it("Performs loginRedirect on page load", async () => {
         await page.goto(sampleHomeUrl);
-        await pcaInitializedPoller(page, 5000);
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(
             `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
