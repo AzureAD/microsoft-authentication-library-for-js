@@ -19,10 +19,17 @@ let accountId = "";
  */
 const myMSALObj = new msal.PublicClientApplication(msalConfig); 
 
-// Register Callbacks for Redirect flow
-myMSALObj.handleRedirectPromise().then(handleResponse).catch((error) => {
-    console.log(error);
+myMSALObj.initialize().then(() => {
+    setInitializedFlagTrue(); // Used as a flag in the test to ensure that MSAL has been initialized
+    // Register Callbacks for Redirect flow
+    myMSALObj.handleRedirectPromise().then(handleResponse).catch((error) => {
+        console.log(error);
+    });
 });
+
+function setInitializedFlagTrue() {
+    document.getElementById("pca-initialized").innerHTML = "true";
+};
 
 function handleResponse(resp) {
     if (resp !== null) {
