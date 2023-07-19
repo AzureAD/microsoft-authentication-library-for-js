@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { TenantProfile } from "./TenantProfile";
 import { TokenClaims } from "./TokenClaims";
 /**
  * Account object with the following signature:
@@ -16,6 +17,7 @@ import { TokenClaims } from "./TokenClaims";
  * - idTokenClaims          - Object contains claims from ID token
  * - localAccountId         - The user's account ID
  * - nativeAccountId        - The user's native account ID
+ * - tenantProfiles         - The tenant profiles available for the account in a multi-tenant context
  */
 export type AccountInfo = {
     homeAccountId: string;
@@ -27,6 +29,7 @@ export type AccountInfo = {
     idToken?: string;
     idTokenClaims?: TokenClaims & { [key: string]: string | number | string[] | object | undefined | unknown };
     nativeAccountId?: string;
+    tenantProfiles?: Map<String, TenantProfile>;
 };
 
 export type ActiveAccountFilters = {
