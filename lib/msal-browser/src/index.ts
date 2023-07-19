@@ -20,7 +20,6 @@ export { PublicClientApplication } from "./app/PublicClientApplication";
 export {
     Configuration,
     BrowserAuthOptions,
-    InternalAuthOptions,
     CacheOptions,
     BrowserSystemOptions,
     BrowserConfiguration,

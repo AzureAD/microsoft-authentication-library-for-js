@@ -578,16 +578,16 @@ export class PopupClient extends StandardInteractionClient {
                     return;
                 }
 
-                const href = popupWindow.location.href;
-                const serverResponseString = this.extractServerResponseStringFromPopup(popupWindow, href);
+                let href = Constants.EMPTY_STRING;
+                let serverResponseString = Constants.EMPTY_STRING;
                 try {
                     /*
                      * Will throw if cross origin,
                      * which should be caught and ignored
                      * since we need the interval to keep running while on STS UI.
                      */
-                    popupWindow.location.href;
-                    popupWindow.location.hash;
+                    href = popupWindow.location.href;
+                    serverResponseString = this.extractServerResponseStringFromPopup(popupWindow, href);
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain

@@ -215,7 +215,7 @@ export type Configuration = {
 };
 
 export type BrowserConfiguration = {
-    auth: Required<InternalAuthOptions>;
+    auth: InternalAuthOptions;
     cache: Required<CacheOptions>;
     system: Required<BrowserSystemOptions>;
     telemetry: Required<BrowserTelemetryOptions>;
@@ -240,7 +240,7 @@ export function buildConfiguration(
     isBrowserEnvironment: boolean
 ): BrowserConfiguration {
     // Default auth options for browser
-    const DEFAULT_AUTH_OPTIONS: Required<InternalAuthOptions> = {
+    const DEFAULT_AUTH_OPTIONS: InternalAuthOptions = {
         clientId: Constants.EMPTY_STRING,
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
@@ -337,9 +337,13 @@ export function buildConfiguration(
         providedSystemOptions?.allowNativeBroker) {
             throw ClientConfigurationError.createCannotAllowNativeBrokerError();
     }
-
+    
     const overlayedConfig: BrowserConfiguration = {
-        auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth as InternalAuthOptions },
+        auth: {
+            ...DEFAULT_AUTH_OPTIONS, 
+            ...userInputAuth, 
+            OIDCOptions: { ...DEFAULT_AUTH_OPTIONS.OIDCOptions, ...userInputAuth?.OIDCOptions }
+           },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
