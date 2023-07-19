@@ -44,7 +44,7 @@ The correct authority URL that you need pass to MSAL is ultimately determined by
 
 The authority domain for the global Azure AD instance is `login.microsoftonline.com`. This domain has several aliases (e.g. `login.microsoft.com`) published on the [discovery endpoint](https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize). For resiliency and performance, MSAL keeps a record of these in cache (see: [AuthorityMetadata.ts](../src/authority/AuthorityMetadata.ts)). MSAL trusts authority URLs with any of these aliases by default.
 
-> :warning: The authority domain differs for national Azure deployments, such as Azure China. See [National clouds](https://docs.microsoft.com/azure/active-directory/develop/authentication-national-cloud) for more.
+> :warning: The authority domain differs for national/regional Azure deployments, such as Azure China. See [National clouds](https://docs.microsoft.com/azure/active-directory/develop/authentication-national-cloud) for more.
 
 The authority domain should be followed by a tenant identifier. The tenant identifier controls the [sign-in audience](https://docs.microsoft.com/azure/active-directory/develop/v2-supported-account-types) for your app (see also: [Tenancy in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps)). It can take one of the values below:
 
@@ -133,11 +133,11 @@ MSAL can be configured to acquire tokens from any OIDC-compliant IdP. See [initi
 
 - You can obtain the authority URL required for your app via the **Endpoints** panel on the Azure portal [App Registration](https://aka.ms/appregistrations) experience.
 - You can improve MSAL's performance during token acquisition by providing authority information out-of-band. See [Performance](./performance.md) for how to do so.
-- When working with national clouds, consider using the [instance-aware](../../msal-browser/docs/instance-aware.md) flow, which indicates the particular instance the tokens are obtained from and Microsoft Graph hosts that they can be used with.
+- When working with national/regional clouds, consider using the [instance-aware](../../msal-browser/docs/instance-aware.md) flow, which indicates the particular instance the tokens are obtained from and Microsoft Graph hosts that they can be used with.
 
 ## More information
 
 - [OAuth 2.0 and OpenID Connect (OIDC) in the Microsoft identity platform](https://docs.microsoft.com/azure/active-directory/develop/active-directory-v2-protocols)
 - [Microsoft identity platform and OpenID Connect protocol](https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc)
-- [Use MSAL in a national cloud environment](https://docs.microsoft.com/azure/active-directory/develop/msal-national-cloud?tabs=javascript)
-- [National Graph deployments](https://docs.microsoft.com/graph/deployments)
+- [Use MSAL in a national/regional cloud environment](https://docs.microsoft.com/azure/active-directory/develop/msal-national-cloud?tabs=javascript)
+- [National/Regional Graph deployments](https://docs.microsoft.com/graph/deployments)
