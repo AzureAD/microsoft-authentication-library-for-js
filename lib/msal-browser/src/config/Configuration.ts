@@ -11,6 +11,7 @@ import {
     Constants,
     ProtocolMode,
     OIDCOptions,
+    CompareOIDCOptions,
     ServerResponseType,
     LogLevel,
     StubbedNetworkModule,
@@ -327,7 +328,8 @@ export function buildConfiguration(
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
     if(userInputAuth?.protocolMode !== ProtocolMode.OIDC && 
-        userInputAuth?.OIDCOptions) {
+        userInputAuth?.OIDCOptions &&
+        !CompareOIDCOptions(userInputAuth.OIDCOptions, DEFAULT_AUTH_OPTIONS.OIDCOptions)) {
             throw ClientConfigurationError.createCannotSetOIDCOptionsError();
     }
 
@@ -337,7 +339,7 @@ export function buildConfiguration(
         providedSystemOptions?.allowNativeBroker) {
             throw ClientConfigurationError.createCannotAllowNativeBrokerError();
     }
-    
+
     const overlayedConfig: BrowserConfiguration = {
         auth: {
             ...DEFAULT_AUTH_OPTIONS, 
