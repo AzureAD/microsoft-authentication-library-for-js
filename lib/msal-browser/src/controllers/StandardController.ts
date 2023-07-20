@@ -329,10 +329,9 @@ export class StandardController implements IController {
 
         let foundServerResponse = hash;
         
-        if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
-            this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
-                const url = window.location.href;
-                foundServerResponse = UrlString.parseQueryServerResponse(url);
+        if(this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
+            const url = window.location.href;
+            foundServerResponse = UrlString.parseQueryServerResponse(url);
         }
 
         const loggedInAccounts = this.getAllAccounts();

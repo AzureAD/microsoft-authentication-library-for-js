@@ -880,9 +880,8 @@ export class PopupClient extends StandardInteractionClient {
         href: string
     ): string {
         let serverResponseString;
-        if(this.config.auth.protocolMode === ProtocolMode.OIDC && 
-            this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
-                serverResponseString = UrlString.parseQueryServerResponse(href);
+        if(this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
+            serverResponseString = UrlString.parseQueryServerResponse(href);
         }
         else {
             serverResponseString = popupWindow.location.hash;
