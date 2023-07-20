@@ -20,9 +20,8 @@ import { CustomNavigationClient } from "../src/utils/NavigationClient";
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
 
-export const msalInstance = new PublicClientApplication(msalConfig);
-
-msalInstance.initialize().then(() => {
+// createPublicClientApplication asynchronously instantiates and initializes the MSAL object
+export const msalInstance = PublicClientApplication.createPublicClientApplication(msalConfig).then((msalInstance) => {
   // Account selection logic is app dependent. Adjust as needed for different use cases.
   const accounts = msalInstance.getAllAccounts();
   if (accounts.length > 0) {
@@ -35,6 +34,7 @@ msalInstance.initialize().then(() => {
       msalInstance.setActiveAccount(account);
     }
   });
+  return msalInstance;
 });
 
 export default function MyApp({ Component, emotionCache = clientSideEmotionCache, pageProps }) {

@@ -14,8 +14,8 @@ import {
 } from "@azure/msal-browser";
 import { msalConfig } from "./authConfig";
 
-export const msalInstance = new PublicClientApplication(msalConfig);
-await msalInstance.initialize();
+export const msalInstance =
+    await PublicClientApplication.createPublicClientApplication(msalConfig);
 
 // Account selection logic is app dependent. Adjust as needed for different use cases.
 const accounts = msalInstance.getAllAccounts();
