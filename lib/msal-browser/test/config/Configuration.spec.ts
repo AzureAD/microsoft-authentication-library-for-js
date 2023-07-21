@@ -268,21 +268,19 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(true);
         expect(newConfig.system?.asyncPopups).toBe(true);
     });
-    it("Setting OIDCOptions when in AAD protocol mode throws an error", async () => {
-        expect(() =>
-            buildConfiguration(
-                {
-                    auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        authority: TEST_CONFIG.validAuthority,
-                        protocolMode: ProtocolMode.AAD,
-                        OIDCOptions: { serverResponseType: ServerResponseType.QUERY },
-                    },
+    it("Setting OIDCOptions when in AAD protocol mode logs a warning", async () => {
+        jest.spyOn(global.console, 'warn').mockImplementation()
+        buildConfiguration(
+            {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    protocolMode: ProtocolMode.AAD,
+                    OIDCOptions: { serverResponseType: ServerResponseType.QUERY },
                 },
-                true
-            )
-        ).toThrowError(
-            ClientConfigurationError
+            },
+            true
         );
+        expect(console.warn).toBeCalled();
     });
 });

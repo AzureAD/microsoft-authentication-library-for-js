@@ -11,7 +11,6 @@ import {
     Constants,
     ProtocolMode,
     OIDCOptions,
-    CompareOIDCOptions,
     ServerResponseType,
     LogLevel,
     StubbedNetworkModule,
@@ -328,9 +327,8 @@ export function buildConfiguration(
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
     if(userInputAuth?.protocolMode !== ProtocolMode.OIDC && 
-        userInputAuth?.OIDCOptions &&
-        !CompareOIDCOptions(userInputAuth.OIDCOptions, DEFAULT_AUTH_OPTIONS.OIDCOptions)) {
-            throw ClientConfigurationError.createCannotSetOIDCOptionsError();
+        userInputAuth?.OIDCOptions) {
+            console.warn(ClientConfigurationError.createCannotSetOIDCOptionsError());
     }
 
     // Throw an error if user has set allowNativeBroker to true without being in AAD protocol mode

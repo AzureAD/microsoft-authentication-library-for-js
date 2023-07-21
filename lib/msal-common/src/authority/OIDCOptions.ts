@@ -12,8 +12,3 @@ export type OIDCOptions = {
     serverResponseType?: ServerResponseType;
     defaultScopes?: Array<string>;
 };
-
-export function CompareOIDCOptions(first: OIDCOptions, second: OIDCOptions): boolean {
-    return (first.serverResponseType === second.serverResponseType &&
-        first.defaultScopes === second.defaultScopes);
-};
