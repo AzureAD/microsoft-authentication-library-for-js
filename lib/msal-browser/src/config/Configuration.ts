@@ -328,6 +328,8 @@ export function buildConfiguration(
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
     if(userInputAuth?.protocolMode !== ProtocolMode.OIDC && 
         userInputAuth?.OIDCOptions) {
+            // Logger has not been created yet
+            // eslint-disable-next-line no-console
             console.warn(ClientConfigurationError.createCannotSetOIDCOptionsError());
     }
 

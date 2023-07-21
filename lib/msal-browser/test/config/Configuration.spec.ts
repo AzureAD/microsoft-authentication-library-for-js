@@ -5,7 +5,7 @@ import {
     DEFAULT_IFRAME_TIMEOUT_MS,
 } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
-import { LogLevel, Constants, AzureCloudInstance, ProtocolMode, ServerResponseType, ClientConfigurationError } from "@azure/msal-common";
+import { LogLevel, Constants, AzureCloudInstance, ProtocolMode, ServerResponseType } from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 
