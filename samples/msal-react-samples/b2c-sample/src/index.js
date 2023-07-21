@@ -9,8 +9,9 @@ import App from './App';
 import { PublicClientApplication, EventType } from "@azure/msal-browser";
 import { msalConfig } from "./authConfig";
 
-// createPublicClientApplication asynchronously instantiates and initializes the MSAL object
-PublicClientApplication.createPublicClientApplication(msalConfig).then((msalInstance) => {
+export const msalInstance = new PublicClientApplication(msalConfig);
+
+msalInstance.initialize().then(() => {
   // Default to using the first account if no account is active on page load
   if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
     // Account selection logic is app dependent. Adjust as needed for different use cases.

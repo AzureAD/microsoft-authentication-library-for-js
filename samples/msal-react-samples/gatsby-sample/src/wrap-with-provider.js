@@ -8,8 +8,9 @@ import { CustomNavigationClient } from "./utils/NavigationClient";
 
 
 export default ({element}) => {
-    // createPublicClientApplication asynchronously instantiates and initializes the MSAL object
-    PublicClientApplication.createPublicClientApplication(msalConfig).then((msalInstance) => {
+    const msalInstance = new PublicClientApplication(msalConfig);
+
+    msalInstance.initialize().then(() => {
         // The next 2 lines are optional. This is how you configure MSAL to take advantage of the router's navigate functions when MSAL redirects between pages in your app
         const navigationClient = new CustomNavigationClient();
         msalInstance.setNavigationClient(navigationClient);
