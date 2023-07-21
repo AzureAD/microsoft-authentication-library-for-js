@@ -19,6 +19,8 @@ import {
     IPerformanceClient,
     Logger,
     ICrypto,
+    ProtocolMode,
+    ServerResponseType,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { EventType } from "../event/EventType";
@@ -413,6 +415,42 @@ export class PopupClient extends StandardInteractionClient {
             );
             this.logger.verbose("Auth code client created");
 
+            try {
+                authClient.authority.endSessionEndpoint;
+            } catch {
+                if (validRequest.account?.homeAccountId && validRequest.postLogoutRedirectUri && authClient.authority.protocolMode === ProtocolMode.OIDC){
+                    this.browserStorage.removeAccount(validRequest.account?.homeAccountId);
+                    
+                    this.eventHandler.emitEvent(
+                        EventType.LOGOUT_SUCCESS,
+                        InteractionType.Popup,
+                        validRequest
+                    );
+
+                    if (mainWindowRedirectUri){
+                        const navigationOptions: NavigationOptions = {
+                            apiId: ApiId.logoutPopup,
+                            timeout: this.config.system.redirectNavigationTimeout,
+                            noHistory: false,
+                        };
+                        const absoluteUrl = UrlString.getAbsoluteUrl(
+                            mainWindowRedirectUri,
+                            BrowserUtils.getCurrentUri()
+                        );
+                        await this.navigationClient.navigateInternal(
+                            absoluteUrl,
+                            navigationOptions
+                        );
+                    }
+
+                    if (popup) {
+                        popup.close();
+                    }
+
+                    return;
+                }
+            }
+
             // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
 
@@ -540,8 +578,8 @@ export class PopupClient extends StandardInteractionClient {
                     return;
                 }
 
-                let href: string = Constants.EMPTY_STRING;
-                let hash: string = Constants.EMPTY_STRING;
+                let href = Constants.EMPTY_STRING;
+                let serverResponseString = Constants.EMPTY_STRING;
                 try {
                     /*
                      * Will throw if cross origin,
@@ -549,7 +587,7 @@ export class PopupClient extends StandardInteractionClient {
                      * since we need the interval to keep running while on STS UI.
                      */
                     href = popupWindow.location.href;
-                    hash = popupWindow.location.hash;
+                    serverResponseString = this.extractServerResponseStringFromPopup(popupWindow, href);
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain
@@ -567,24 +605,24 @@ export class PopupClient extends StandardInteractionClient {
                  */
                 ticks++;
 
-                if (hash) {
+                if (serverResponseString) {
                     this.logger.verbose(
                         "PopupHandler.monitorPopupForHash - found hash in url"
                     );
                     clearInterval(intervalId);
                     this.cleanPopup(popupWindow);
 
-                    if (UrlString.hashContainsKnownProperties(hash)) {
+                    if (UrlString.hashContainsKnownProperties(serverResponseString)) {
                         this.logger.verbose(
                             "PopupHandler.monitorPopupForHash - hash contains known properties, returning."
                         );
-                        resolve(hash);
+                        resolve(serverResponseString);
                     } else {
                         this.logger.error(
                             "PopupHandler.monitorPopupForHash - found hash in url but it does not contain known properties. Check that your router is not changing the hash prematurely."
                         );
                         this.logger.errorPii(
-                            `PopupHandler.monitorPopupForHash - hash found: ${hash}`
+                            `PopupHandler.monitorPopupForHash - hash found: ${serverResponseString}`
                         );
                         reject(
                             BrowserAuthError.createHashDoesNotContainKnownPropertiesError()
@@ -832,5 +870,22 @@ export class PopupClient extends StandardInteractionClient {
     generateLogoutPopupName(request: CommonEndSessionRequest): string {
         const homeAccountId = request.account && request.account.homeAccountId;
         return `${BrowserConstants.POPUP_NAME_PREFIX}.${this.config.auth.clientId}.${homeAccountId}.${this.correlationId}`;
+    }
+
+    /** 
+     * Extracts the server response from the popup window
+     */
+    extractServerResponseStringFromPopup(
+        popupWindow: Window,
+        href: string
+    ): string {
+        let serverResponseString;
+        if(this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
+            serverResponseString = UrlString.parseQueryServerResponse(href);
+        }
+        else {
+            serverResponseString = popupWindow.location.hash;
+        }
+        return serverResponseString;
     }
 }
