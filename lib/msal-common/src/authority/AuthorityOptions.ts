@@ -4,10 +4,12 @@
  */
 
 import { ProtocolMode } from "./ProtocolMode";
+import { OIDCOptions } from "./OIDCOptions";
 import { AzureRegionConfiguration } from "./AzureRegionConfiguration";
 
 export type AuthorityOptions = {
     protocolMode: ProtocolMode;
+    OIDCOptions?: OIDCOptions | null;
     knownAuthorities: Array<string>;
     cloudDiscoveryMetadata: string;
     authorityMetadata: string;

@@ -47,12 +47,14 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 export class AuthorizationCodeClient extends BaseClient {
     // Flag to indicate if client is for hybrid spa auth code redemption
     protected includeRedirectUri: boolean = true;
+    private oidcDefaultScopes;
 
     constructor(
         configuration: ClientConfiguration,
         performanceClient?: IPerformanceClient
     ) {
         super(configuration, performanceClient);
+        this.oidcDefaultScopes = this.config.authOptions.authority.options.OIDCOptions?.defaultScopes;
     }
 
     /**
@@ -67,7 +69,9 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(
         request: CommonAuthorizationUrlRequest
-    ): Promise<string> {
+    ): 
+        
+        Promise<string> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.GetAuthCodeUrl,
             request.correlationId
@@ -197,11 +201,7 @@ export class AuthorizationCodeClient extends BaseClient {
             null
         );
 
-        // Deserialize hash fragment response parameters.
-        const hashUrlString = new UrlString(hashFragment);
-        // Deserialize hash fragment response parameters.
-        const serverParams: ServerAuthorizationCodeResponse =
-            UrlString.getDeserializedHash(hashUrlString.getHash());
+        const serverParams : ServerAuthorizationCodeResponse = UrlString.getDeserializedCodeResponse(this.config.authOptions.authority.options.OIDCOptions?.serverResponseType, hashFragment);
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
@@ -336,7 +336,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add scope array, parameter builder will add default scopes and dedupe
-        parameterBuilder.addScopes(request.scopes);
+        parameterBuilder.addScopes(request.scopes, true, this.oidcDefaultScopes);
 
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
@@ -496,7 +496,7 @@ export class AuthorizationCodeClient extends BaseClient {
             ...(request.scopes || []),
             ...(request.extraScopesToConsent || []),
         ];
-        parameterBuilder.addScopes(requestScopes);
+        parameterBuilder.addScopes(requestScopes, true, this.oidcDefaultScopes);
 
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);

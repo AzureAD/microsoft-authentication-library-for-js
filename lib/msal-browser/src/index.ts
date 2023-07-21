@@ -116,6 +116,7 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
+    ServerResponseType,
     PromptValue,
     // Server Response
     ExternalTokenResponse,
