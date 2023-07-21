@@ -17,7 +17,8 @@ import {
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
-    ClientConfigurationError
+    ClientConfigurationError,
+    rawMetdataJSON
 } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import {
@@ -338,6 +339,14 @@ export function buildConfiguration(
         userInputAuth.protocolMode !== ProtocolMode.AAD &&
         providedSystemOptions?.allowNativeBroker) {
             throw ClientConfigurationError.createCannotAllowNativeBrokerError();
+    }
+
+    // Throw an error if using a known Microsoft authority with OIDC compliance mode
+    if(userInputAuth?.authority && userInputAuth?.protocolMode === ProtocolMode.OIDC) {
+        const knownMSAuthorities = Object.keys(rawMetdataJSON.endpointMetadata);
+        if(knownMSAuthorities.includes(userInputAuth.authority)) {
+            throw ClientConfigurationError.createCannotSetOIDCProtocolModeError();
+        }
     }
 
     const overlayedConfig: BrowserConfiguration = {

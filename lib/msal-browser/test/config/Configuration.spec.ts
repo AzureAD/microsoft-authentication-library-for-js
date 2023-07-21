@@ -5,7 +5,7 @@ import {
     DEFAULT_IFRAME_TIMEOUT_MS,
 } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
-import { LogLevel, Constants, AzureCloudInstance, ProtocolMode, ServerResponseType } from "@azure/msal-common";
+import { LogLevel, Constants, AzureCloudInstance, ProtocolMode, ServerResponseType, ClientConfigurationError } from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 
@@ -282,5 +282,21 @@ describe("Configuration.ts Class Unit Tests", () => {
             true
         );
         expect(console.warn).toBeCalled();
+    });
+    it("Setting ProtocolMode to OIDC when using a known Microsoft authority throws an error", async () => {
+        expect(() =>
+            buildConfiguration(
+                {
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        authority: TEST_CONFIG.validAuthority,
+                        protocolMode: ProtocolMode.OIDC
+                    },
+                },
+                true
+            )
+        ).toThrowError(
+            ClientConfigurationError
+        );
     });
 });
