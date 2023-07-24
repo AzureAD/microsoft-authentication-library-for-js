@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "none",
   "comment": "Address `semver` CVE-2022-25883 and other moderate severity vulnerabilities #9657",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
