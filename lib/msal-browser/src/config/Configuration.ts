@@ -10,11 +10,14 @@ import {
     DEFAULT_SYSTEM_OPTIONS,
     Constants,
     ProtocolMode,
+    OIDCOptions,
+    ServerResponseType,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
+    ClientConfigurationError
 } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import {
@@ -75,6 +78,10 @@ export type BrowserAuthOptions = {
      */
     protocolMode?: ProtocolMode;
     /**
+     * Enum that configures options for the OIDC protocol mode.
+     */
+    OIDCOptions?: OIDCOptions;
+    /**
      * Enum that represents the Azure Cloud to use.
      */
     azureCloudOptions?: AzureCloudOptions;
@@ -82,6 +89,10 @@ export type BrowserAuthOptions = {
      * Flag of whether to use the local metadata cache
      */
     skipAuthorityMetadataCache?: boolean;
+};
+
+export type InternalAuthOptions = Required<BrowserAuthOptions> & {
+    OIDCOptions: Required<OIDCOptions>;
 };
 
 /**
@@ -204,7 +215,7 @@ export type Configuration = {
 };
 
 export type BrowserConfiguration = {
-    auth: Required<BrowserAuthOptions>;
+    auth: InternalAuthOptions;
     cache: Required<CacheOptions>;
     system: Required<BrowserSystemOptions>;
     telemetry: Required<BrowserTelemetryOptions>;
@@ -229,7 +240,7 @@ export function buildConfiguration(
     isBrowserEnvironment: boolean
 ): BrowserConfiguration {
     // Default auth options for browser
-    const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
+    const DEFAULT_AUTH_OPTIONS: InternalAuthOptions = {
         clientId: Constants.EMPTY_STRING,
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
@@ -240,6 +251,10 @@ export function buildConfiguration(
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
+        OIDCOptions: { 
+            serverResponseType: ServerResponseType.FRAGMENT, 
+            defaultScopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
+        },
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
             tenant: Constants.EMPTY_STRING,
@@ -310,11 +325,31 @@ export function buildConfiguration(
         },
     };
 
+    // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
+    if(userInputAuth?.protocolMode !== ProtocolMode.OIDC && 
+        userInputAuth?.OIDCOptions) {
+            // Logger has not been created yet
+            // eslint-disable-next-line no-console
+            console.warn(ClientConfigurationError.createCannotSetOIDCOptionsError());
+    }
+
+    // Throw an error if user has set allowNativeBroker to true without being in AAD protocol mode
+    if(userInputAuth?.protocolMode &&
+        userInputAuth.protocolMode !== ProtocolMode.AAD &&
+        providedSystemOptions?.allowNativeBroker) {
+            throw ClientConfigurationError.createCannotAllowNativeBrokerError();
+    }
+
     const overlayedConfig: BrowserConfiguration = {
-        auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
+        auth: {
+            ...DEFAULT_AUTH_OPTIONS, 
+            ...userInputAuth, 
+            OIDCOptions: { ...DEFAULT_AUTH_OPTIONS.OIDCOptions, ...userInputAuth?.OIDCOptions }
+           },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
+    
     return overlayedConfig;
 }

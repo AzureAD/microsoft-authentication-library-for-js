@@ -213,12 +213,19 @@ export const CodeChallengeMethodValues = {
 };
 
 /**
+ * allowed values for server response type
+ */
+export const ServerResponseType = {
+    QUERY: "query",
+    FRAGMENT: "fragment",
+} as const;
+export type ServerResponseType = typeof ServerResponseType[keyof typeof ServerResponseType];
+
+/**
  * allowed values for response_mode
  */
 export const ResponseMode = {
-    QUERY: "query",
-    FRAGMENT: "fragment",
-    FORM_POST: "form_post",
+    ...ServerResponseType, FORM_POST: "form_post"
 } as const;
 export type ResponseMode = typeof ResponseMode[keyof typeof ResponseMode];
 
