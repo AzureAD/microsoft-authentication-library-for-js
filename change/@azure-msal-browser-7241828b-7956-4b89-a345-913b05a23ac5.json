@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Throws error when using OIDC protocol mode with a known Microsoft authority",
+  "packageName": "@azure/msal-browser",
+  "email": "shylasummers@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}
