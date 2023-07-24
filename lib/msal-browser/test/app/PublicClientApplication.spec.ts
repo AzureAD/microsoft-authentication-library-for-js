@@ -47,6 +47,8 @@ import {
     PersistentCacheKeys,
     Authority,
     AuthError,
+    ProtocolMode,
+    ServerResponseType
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -94,6 +96,7 @@ import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { UrlString } from "@azure/msal-common";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -824,6 +827,41 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(tokenResponse1).toEqual(tokenResponse2);
             expect(tokenResponse4).toEqual(tokenResponse1);
+        });
+    });
+    describe("OIDC Protocol Mode tests", () => {
+        beforeEach(() => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    protocolMode: ProtocolMode.OIDC,
+                    OIDCOptions: { serverResponseType: ServerResponseType.QUERY }
+                },
+                telemetry: {
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+                system: {
+                    allowNativeBroker: false,
+                },
+            });
+        });
+        it("Looks for server code response in query param if OIDCOptions.serverResponseType is set to query", async () => {
+            /**
+             * The testing environment does not accept query params, so instead we see that it ignores a hash fragment.
+             * That means handleRedirectPromise is looking for a hash in a query param instead of a hash fragment.
+             */
+            sinon
+                .stub(RedirectClient.prototype, "handleRedirectPromise")
+                .callsFake(async (hash): Promise<AuthenticationResult | null> => {
+                    expect(hash).toBe("");
+                    return null;
+                });
+            
+            window.location.hash = "#code=hello";
+            await pca.handleRedirectPromise();
         });
     });
 
