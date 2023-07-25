@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-export const rawMetdataJSON = {
+export const rawMetadataJSON = {
     endpointMetadata: {
         "https://login.microsoftonline.com/common/": {
             token_endpoint:
@@ -939,6 +939,6 @@ export const rawMetdataJSON = {
     },
 };
 
-export const EndpointMetadata = rawMetdataJSON.endpointMetadata;
+export const EndpointMetadata = rawMetadataJSON.endpointMetadata;
 export const InstanceDiscoveryMetadata =
-    rawMetdataJSON.instanceDiscoveryMetadata;
+    rawMetadataJSON.instanceDiscoveryMetadata;

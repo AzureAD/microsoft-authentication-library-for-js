@@ -18,7 +18,7 @@ import {
     AzureCloudOptions,
     ApplicationTelemetry,
     ClientConfigurationError,
-    rawMetdataJSON
+    rawMetadataJSON
 } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import {
@@ -343,7 +343,7 @@ export function buildConfiguration(
 
     // Throw an error if using a known Microsoft authority with OIDC compliance mode
     if(userInputAuth?.authority && userInputAuth?.protocolMode === ProtocolMode.OIDC) {
-        const knownMSAuthorities = Object.keys(rawMetdataJSON.endpointMetadata);
+        const knownMSAuthorities = Object.keys(rawMetadataJSON.endpointMetadata);
         if(knownMSAuthorities.includes(userInputAuth.authority)) {
             throw ClientConfigurationError.createCannotSetOIDCProtocolModeError();
         }

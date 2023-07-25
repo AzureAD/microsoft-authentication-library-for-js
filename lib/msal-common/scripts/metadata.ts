@@ -40,7 +40,7 @@ async function metadataWatch() {
     }
 
     const {
-        rawMetdataJSON: metadataJson,
+        rawMetadataJSON: metadataJson,
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     } = require(`../${METADATA_TYPESCRIPT_LOCATION}`);
 
@@ -216,10 +216,10 @@ function updateMetadataInformation(metadata: any) {
  * Licensed under the MIT License.
  */
 
-export const rawMetdataJSON = ${JSON.stringify(metadata)};
+export const rawMetadataJSON = ${JSON.stringify(metadata)};
 
-export const EndpointMetadata = rawMetdataJSON.endpointMetadata;
-export const InstanceDiscoveryMetadata = rawMetdataJSON.instanceDiscoveryMetadata;
+export const EndpointMetadata = rawMetadataJSON.endpointMetadata;
+export const InstanceDiscoveryMetadata = rawMetadataJSON.instanceDiscoveryMetadata;
 
 `
     );
