@@ -105,6 +105,7 @@ testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
 
 describe("SilentFlowClient unit tests", () => {
     const testAccount: AccountInfo = {
+        authorityType: "MSSTS",
         homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
         environment: "login.windows.net",
         tenantId: ID_TOKEN_CLAIMS.tid,
@@ -112,6 +113,7 @@ describe("SilentFlowClient unit tests", () => {
         localAccountId: ID_TOKEN_CLAIMS.oid,
         idTokenClaims: ID_TOKEN_CLAIMS,
         name: ID_TOKEN_CLAIMS.name,
+        nativeAccountId: undefined
     };
 
     afterEach(() => {
@@ -764,6 +766,7 @@ describe("SilentFlowClient unit tests", () => {
         let config: ClientConfiguration;
         let client: SilentFlowClient;
         const testAccount: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
@@ -771,6 +774,7 @@ describe("SilentFlowClient unit tests", () => {
             name: ID_TOKEN_CLAIMS.name,
             localAccountId: ID_TOKEN_CLAIMS.oid,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined
         };
 
         let extractTokenClaims: SinonStub;
