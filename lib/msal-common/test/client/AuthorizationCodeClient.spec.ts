@@ -3396,6 +3396,185 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
     });
 
+    describe("Telemetry protocol mode tests", () => {
+        it("Does add telemetry headers to token request in AAD protocol mode", async () => {
+            let config = await ClientTestUtils.createTestClientConfigurationTelem();
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const createTokenRequestBodySpy = sinon.spy(
+                AuthorizationCodeClient.prototype,
+                <any>"createTokenRequestBody"
+            );
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError(
+                    "configuration cryptoInterface not initialized correctly."
+                );
+            }
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addStaticFields: jest.fn(),
+                incrementCounters: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasurement: jest.fn(),
+                generateId: jest.fn(),
+                calculateQueuedTime: jest.fn(),
+                addQueueMeasurement: jest.fn(),
+                setPreQueueTime: jest.fn(),
+            };
+            performanceClient.startMeasurement.mockImplementation(() => {
+                return performanceClient;
+            });
+            const client = new AuthorizationCodeClient(
+                config,
+                performanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+            };
+            try { 
+                await client.acquireToken(authCodeRequest, {
+                    code: authCodeRequest.code,
+                    nonce: idTokenClaims.nonce,
+                });
+            } catch {};
+            expect(
+                createTokenRequestBodySpy.calledWith(authCodeRequest)
+            ).toBeTruthy();
+
+            const returnVal = (await createTokenRequestBodySpy
+                .returnValues[0]) as string;
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.X_CLIENT_CURR_TELEM}`
+                )
+            ).toBe(true);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.X_CLIENT_LAST_TELEM}`
+                )
+            ).toBe(true);
+        });
+        it("Does not add telemetry headers to token request in OIDC protocol mode", async () => {
+            let config = await ClientTestUtils.createTestClientConfigurationOidcTelem();
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const createTokenRequestBodySpy = sinon.spy(
+                AuthorizationCodeClient.prototype,
+                <any>"createTokenRequestBody"
+            );
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError(
+                    "configuration cryptoInterface not initialized correctly."
+                );
+            }
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addStaticFields: jest.fn(),
+                incrementCounters: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasurement: jest.fn(),
+                generateId: jest.fn(),
+                calculateQueuedTime: jest.fn(),
+                addQueueMeasurement: jest.fn(),
+                setPreQueueTime: jest.fn(),
+            };
+            performanceClient.startMeasurement.mockImplementation(() => {
+                return performanceClient;
+            });
+            const client = new AuthorizationCodeClient(
+                config,
+                performanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+            };
+            try { 
+                await client.acquireToken(authCodeRequest, {
+                    code: authCodeRequest.code,
+                    nonce: idTokenClaims.nonce,
+                });
+            } catch {};
+            expect(
+                createTokenRequestBodySpy.calledWith(authCodeRequest)
+            ).toBeTruthy();
+
+            const returnVal = (await createTokenRequestBodySpy
+                .returnValues[0]) as string;
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.X_CLIENT_CURR_TELEM}`
+                )
+            ).toBe(false);
+            expect(
+                returnVal.includes(
+                    `${AADServerParamKeys.X_CLIENT_LAST_TELEM}`
+                )
+            ).toBe(false);
+        });
+    });
+
     describe("getLogoutUri()", () => {
         it("Returns a uri", async () => {
             sinon

@@ -35,6 +35,7 @@ import {
 } from "../error/InteractionRequiredAuthError";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { ProtocolMode } from "../authority/ProtocolMode";
 /**
  * OAuth2.0 refresh token client
  */
@@ -352,7 +353,7 @@ export class RefreshTokenClient extends BaseClient {
         );
         parameterBuilder.addThrottling();
 
-        if (this.serverTelemetryManager) {
+        if (this.serverTelemetryManager && !(this.config.authOptions.authority.options.protocolMode === ProtocolMode.OIDC)) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 

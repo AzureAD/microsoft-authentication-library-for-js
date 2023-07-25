@@ -40,6 +40,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { ProtocolMode } from "../authority/ProtocolMode";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -348,7 +349,7 @@ export class AuthorizationCodeClient extends BaseClient {
         );
         parameterBuilder.addThrottling();
 
-        if (this.serverTelemetryManager) {
+        if (this.serverTelemetryManager && !(this.config.authOptions.authority.options.protocolMode === ProtocolMode.OIDC)) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 
@@ -515,9 +516,11 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // add library info parameters
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        parameterBuilder.addApplicationTelemetry(
-            this.config.telemetry.application
-        );
+        if (!(this.config.authOptions.authority.options.protocolMode === ProtocolMode.OIDC)) {
+            parameterBuilder.addApplicationTelemetry(
+                this.config.telemetry.application
+            );
+        }
 
         // add client_info=1
         parameterBuilder.addClientInfo();
