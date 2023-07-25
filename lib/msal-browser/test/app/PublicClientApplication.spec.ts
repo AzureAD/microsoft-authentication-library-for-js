@@ -48,7 +48,7 @@ import {
     Authority,
     AuthError,
     ProtocolMode,
-    ServerResponseType
+    ServerResponseType,
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -831,12 +831,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
     describe("OIDC Protocol Mode tests", () => {
-        beforeEach(() => {
+        beforeEach(async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     protocolMode: ProtocolMode.OIDC,
-                    OIDCOptions: { serverResponseType: ServerResponseType.QUERY }
+                    OIDCOptions: {
+                        serverResponseType: ServerResponseType.QUERY,
+                    },
                 },
                 telemetry: {
                     application: {
@@ -848,7 +850,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: false,
                 },
             });
+
+            await pca.initialize();
         });
+
         it("Looks for server code response in query param if OIDCOptions.serverResponseType is set to query", async () => {
             /**
              * The testing environment does not accept query params, so instead we see that it ignores a hash fragment.
@@ -856,11 +861,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
              */
             sinon
                 .stub(RedirectClient.prototype, "handleRedirectPromise")
-                .callsFake(async (hash): Promise<AuthenticationResult | null> => {
-                    expect(hash).toBe("");
-                    return null;
-                });
-            
+                .callsFake(
+                    async (hash): Promise<AuthenticationResult | null> => {
+                        expect(hash).toBe("");
+                        return null;
+                    }
+                );
+
             window.location.hash = "#code=hello";
             await pca.handleRedirectPromise();
         });
@@ -4848,17 +4855,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.sessionStorage.clear();
         });
 
-        it("getAllAccounts throws an error if initialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-            expect(() => pca.getAllAccounts()).toThrow(
-                BrowserAuthError.createUninitializedPublicClientApplication()
-            );
-        });
-
         it("getAllAccounts returns all signed in accounts", () => {
             const accounts = pca.getAllAccounts();
             expect(accounts).toHaveLength(2);
@@ -4870,17 +4866,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.sessionStorage.clear();
             const accounts = pca.getAllAccounts();
             expect(accounts).toEqual([]);
-        });
-
-        it("getAccountByUsername throws an error if initialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-            expect(() => pca.getAccountByUsername("")).toThrow(
-                BrowserAuthError.createUninitializedPublicClientApplication()
-            );
         });
 
         it("getAccountByUsername returns account specified", () => {
@@ -4914,17 +4899,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).toBe(null);
         });
 
-        it("getAccountByHomeId throws an error if initialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-            expect(() => pca.getAccountByHomeId("")).toThrow(
-                BrowserAuthError.createUninitializedPublicClientApplication()
-            );
-        });
-
         it("getAccountByHomeId returns account specified", () => {
             const account = pca.getAccountByHomeId(
                 TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
@@ -4942,17 +4916,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // @ts-ignore
             const account = pca.getAccountByHomeId(null);
             expect(account).toBe(null);
-        });
-
-        it("getAccountByLocalId throws an error if initialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-            expect(() => pca.getAccountByLocalId("")).toThrow(
-                BrowserAuthError.createUninitializedPublicClientApplication()
-            );
         });
 
         it("getAccountByLocalId returns account specified", () => {
@@ -5087,31 +5050,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         describe("activeAccount getter and setter tests", () => {
-            it("getActiveAccount throws an error if initialize was not called prior", async () => {
-                pca = new PublicClientApplication({
-                    auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    },
-                });
-                expect(() => pca.getActiveAccount()).toThrow(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
-                );
-            });
-
             it("active account is initialized as null", () => {
                 // Public client should initialze with active account set to null.
                 expect(pca.getActiveAccount()).toBe(null);
-            });
-
-            it("setActiveAccount throws an error if initialize was not called prior", async () => {
-                pca = new PublicClientApplication({
-                    auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    },
-                });
-                expect(() => pca.setActiveAccount(testAccountInfo1)).toThrow(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
-                );
             });
 
             it("setActiveAccount() sets the active account local id value correctly", () => {
