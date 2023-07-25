@@ -321,7 +321,7 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
         // Block token acquisition before initialize has been called
-        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
 
         let foundServerResponse = hash;
 
@@ -1310,7 +1310,7 @@ export class StandardController implements IController {
         BrowserUtils.blockAcquireTokenInPopups();
 
         // Block token acquisition before initialize has been called
-        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
 
         // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
         if (

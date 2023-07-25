@@ -149,7 +149,7 @@ export class BrowserUtils {
      * Throws error if initialize hasn't been called
      * @param initialized
      */
-    static blockCallsBeforeInitialize(initialized: boolean): void {
+    static blockAPICallsBeforeInitialize(initialized: boolean): void {
         if (!initialized) {
             throw BrowserAuthError.createUninitializedPublicClientApplication();
         }
