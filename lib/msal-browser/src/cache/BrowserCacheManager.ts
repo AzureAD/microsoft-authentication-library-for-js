@@ -48,6 +48,7 @@ import { IWindowStorage } from "./IWindowStorage";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { SilentRequest } from "../request/SilentRequest";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1886,13 +1887,11 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Builds credential entities from AuthenticationResult object and saves the resulting credentials to the cache
      * @param result 
-     * @param keyId
-     * @param requestedClaims
+     * @param request
      */
-    async hydrateCacheFromAuthenticationResult(
+    async hydrateCache(
         result: AuthenticationResult, 
-        keyId?: string, 
-        requestedClaims?: string): Promise<void> 
+        request: SilentRequest): Promise<void> 
     {
         const accountEntity = AccountEntity.createFromAccountInfo(result.account, result.cloudGraphHostName, result.msGraphHost);
 
@@ -1905,8 +1904,8 @@ export class BrowserCacheManager extends CacheManager {
         );
 
         let claimsHash;
-        if (requestedClaims) {
-            claimsHash = await this.cryptoImpl.hashString(requestedClaims);
+        if (request.claims) {
+            claimsHash = await this.cryptoImpl.hashString(request.claims);
         }
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             result.account?.homeAccountId,
@@ -1921,8 +1920,8 @@ export class BrowserCacheManager extends CacheManager {
             undefined, // refreshOn
             result.tokenType as AuthenticationScheme,
             undefined, // userAssertionHash
-            keyId,
-            requestedClaims,
+            request.sshKid,
+            request.claims,
             claimsHash
         );
 

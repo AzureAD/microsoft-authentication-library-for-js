@@ -1271,20 +1271,18 @@ export class StandardController implements IController {
     /**
      * Hydrates the cache with the tokens from an AuthenticationResult
      * @param result 
-     * @param keyId 
-     * @param requestedClaims 
+     * @param request
      * @returns 
      */
-    async hydrateCacheFromAuthenticationResult(
+    async hydrateCache(
         result: AuthenticationResult, 
-        keyId?: string, 
-        requestedClaims?: string
+        request: SilentRequest
     ): Promise<void> {
         if (result.fromNativeBroker) {
             // Tokens from native broker are stored in-memory
-            return this.nativeInternalStorage.hydrateCacheFromAuthenticationResult(result, keyId, requestedClaims);
+            return this.nativeInternalStorage.hydrateCache(result, request);
         } else {
-            return this.browserStorage.hydrateCacheFromAuthenticationResult(result, keyId, requestedClaims);
+            return this.browserStorage.hydrateCache(result, request);
         }
     }
 
