@@ -12,8 +12,16 @@
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "description": "Microsoft Authentication Library for React",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "type": "module",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],
@@ -43,7 +51,6 @@
     "@azure/msal-browser": "^3.0.0-beta.1",
     "react": "^16.8.0 || ^17 || ^18"
   },
-  "module": "dist/index.js",
   "devDependencies": {
     "@azure/msal-browser": "^3.0.0-beta.1",
     "@testing-library/jest-dom": "^5.11.5",
