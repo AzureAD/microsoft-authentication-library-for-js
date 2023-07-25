@@ -375,7 +375,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // Get the preferred_cache domain for the given authority
         const authority = await this.getDiscoveredAuthority(request.authority);
-        const authorityPreferredCache = authority.getPreferredCache();
 
         // generate identifiers
         const idTokenObj = this.createIdTokenObj(response);
@@ -383,11 +382,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             idTokenObj
         );
-        const accountEntity = this.createAccountEntity(
-            response,
+        const accountEntity = AccountEntity.createAccount(
             homeAccountIdentifier,
             idTokenObj,
-            authorityPreferredCache
+            authority,
+            undefined,
+            undefined,
+            undefined,
+            response.account.id
         );
 
         // generate authenticationResult
@@ -448,32 +450,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
 
         return homeAccountIdentifier;
-    }
-
-    /**
-     * Creates account entity
-     * @param response
-     * @param homeAccountIdentifier
-     * @param idTokenObj
-     * @param authority
-     * @returns
-     */
-    protected createAccountEntity(
-        response: NativeResponse,
-        homeAccountIdentifier: string,
-        idTokenObj: AuthToken,
-        authority: string
-    ): AccountEntity {
-        return AccountEntity.createAccount(
-            response.client_info,
-            homeAccountIdentifier,
-            idTokenObj,
-            undefined,
-            undefined,
-            undefined,
-            authority,
-            response.account.id
-        );
     }
 
     /**

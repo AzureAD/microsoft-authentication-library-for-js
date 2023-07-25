@@ -374,4 +374,15 @@ export class PublicClientApplication implements IPublicClientApplication {
     getConfiguration(): BrowserConfiguration {
         return this.controller.getConfiguration();
     }
+
+    /**
+     * Hydrates cache with the tokens and account in the AuthenticationResult object
+     * @param result 
+     * @param requestedClaims - The claims requested for claims based caching
+     * @param keyId - Key ID for Proof of Possession 
+     * @returns 
+     */
+    protected async hydrateCacheFromAuthenticationResult(result: AuthenticationResult, requestedClaims?: string, keyId?: string) : Promise<void> {
+        return this.controller.hydrateCacheFromAuthenticationResult(result, requestedClaims, keyId);
+    }
 }

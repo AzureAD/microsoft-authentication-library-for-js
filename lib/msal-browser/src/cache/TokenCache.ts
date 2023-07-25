@@ -15,7 +15,6 @@ import {
     AccountEntity,
     AuthToken,
     RefreshTokenEntity,
-    AuthorityType,
     Constants,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -88,13 +87,7 @@ export class TokenCache implements ITokenCache {
         let authority: Authority | undefined;
 
         if (request.account) {
-            const cacheRecordAccount = this.loadAccount(
-                idToken,
-                request.account.environment,
-                undefined,
-                undefined,
-                request.account.homeAccountId
-            );
+            const cacheRecordAccount = AccountEntity.createFromAccountInfo(request.account);
             cacheRecord = new CacheRecord(
                 cacheRecordAccount,
                 this.loadIdToken(
@@ -144,9 +137,8 @@ export class TokenCache implements ITokenCache {
                 this.logger.trace("TokenCache - homeAccountId from options");
                 const cacheRecordAccount = this.loadAccount(
                     idToken,
-                    authority.hostnameAndPort,
-                    options.clientInfo,
-                    authority.authorityType
+                    authority,
+                    options.clientInfo
                 );
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
@@ -175,9 +167,8 @@ export class TokenCache implements ITokenCache {
                 this.logger.trace("TokenCache - homeAccountId from response");
                 const cacheRecordAccount = this.loadAccount(
                     idToken,
-                    authority.hostnameAndPort,
-                    response.client_info,
-                    authority.authorityType
+                    authority,
+                    response.client_info
                 );
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
@@ -232,18 +223,17 @@ export class TokenCache implements ITokenCache {
      */
     private loadAccount(
         idToken: AuthToken,
-        environment: string,
+        authority: Authority,
         clientInfo?: string,
-        authorityType?: AuthorityType,
         requestHomeAccountId?: string
     ): AccountEntity {
         let homeAccountId;
         if (requestHomeAccountId) {
             homeAccountId = requestHomeAccountId;
-        } else if (authorityType !== undefined && clientInfo) {
+        } else if (authority.authorityType !== undefined && clientInfo) {
             homeAccountId = AccountEntity.generateHomeAccountId(
                 clientInfo,
-                authorityType,
+                authority.authorityType,
                 this.logger,
                 this.cryptoObj,
                 idToken
@@ -256,23 +246,13 @@ export class TokenCache implements ITokenCache {
             );
         }
 
-        const accountEntity = clientInfo
-            ? AccountEntity.createAccount(
-                  clientInfo,
+        const accountEntity = AccountEntity.createAccount(
                   homeAccountId,
                   idToken,
+                  authority,
                   undefined,
                   undefined,
-                  undefined,
-                  environment
-              )
-            : AccountEntity.createGenericAccount(
-                  homeAccountId,
-                  idToken,
-                  undefined,
-                  undefined,
-                  undefined,
-                  environment
+                  authority.hostnameAndPort
               );
 
         if (this.isBrowserEnvironment) {
