@@ -33,13 +33,13 @@ jobs:
         displayName: "Build Libraries"
         inputs:
           command: "custom"
-          customCommand: "run build"
+          customCommand: "run build --workspace=lib/** --workspace=extensions/**"
 
       - task: Npm@1
         displayName: "Run tests"
         continueOnError: true
         inputs:
           command: "custom"
-          customCommand: "run test"
+          customCommand: "run test --workspace=lib/** --workspace=extensions/**"
 
       - task: CodeQL3000Finalize@0
