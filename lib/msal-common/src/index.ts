@@ -47,7 +47,7 @@ export {
 } from "./authority/AuthorityOptions";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
-export { rawMetadataJSON } from "./authority/AuthorityMetadata";
+export { rawMetdataJSON } from "./authority/AuthorityMetadata";
 export { ProtocolMode } from "./authority/ProtocolMode";
 export { OIDCOptions } from "./authority/OIDCOptions";
 // Broker
