@@ -25,7 +25,7 @@ import {
     RequestThumbprint,
     ServerError,
     ServerResponseType,
-    UrlString
+    UrlString,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -324,8 +324,11 @@ export class StandardController implements IController {
         BrowserUtils.blockCallsBeforeInitialize(this.initialized);
 
         let foundServerResponse = hash;
-        
-        if(this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
+
+        if (
+            this.config.auth.OIDCOptions?.serverResponseType ===
+            ServerResponseType.QUERY
+        ) {
             const url = window.location.href;
             foundServerResponse = UrlString.parseQueryServerResponse(url);
         }
@@ -337,7 +340,8 @@ export class StandardController implements IController {
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
-            const redirectResponseKey = foundServerResponse || Constants.EMPTY_STRING;
+            const redirectResponseKey =
+                foundServerResponse || Constants.EMPTY_STRING;
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
                 this.eventHandler.emitEvent(
@@ -391,7 +395,9 @@ export class StandardController implements IController {
                     const redirectClient =
                         this.createRedirectClient(correlationId);
                     redirectResponse =
-                        redirectClient.handleRedirectPromise(foundServerResponse);
+                        redirectClient.handleRedirectPromise(
+                            foundServerResponse
+                        );
                 }
 
                 response = redirectResponse
@@ -1148,8 +1154,6 @@ export class StandardController implements IController {
      */
     getAllAccounts(): AccountInfo[] {
         this.logger.verbose("getAllAccounts called");
-        // Block token acquisition before initialize has been called
-        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         return this.isBrowserEnvironment
             ? this.browserStorage.getAllAccounts()
             : [];
@@ -1165,8 +1169,6 @@ export class StandardController implements IController {
      */
     getAccountByUsername(username: string): AccountInfo | null {
         this.logger.trace("getAccountByUsername called");
-        // Block token acquisition before initialize has been called
-        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         if (!username) {
             this.logger.warning("getAccountByUsername: No username provided");
             return null;
@@ -1199,8 +1201,6 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        // Block token acquisition before initialize has been called
-        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         this.logger.trace("getAccountByHomeId called");
         if (!homeAccountId) {
             this.logger.warning(
@@ -1236,8 +1236,6 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        // Block token acquisition before initialize has been called
-        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         this.logger.trace("getAccountByLocalId called");
         if (!localAccountId) {
             this.logger.warning(
@@ -1270,8 +1268,6 @@ export class StandardController implements IController {
      * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
-        // Block token acquisition before initialize has been called
-        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         this.browserStorage.setActiveAccount(account);
     }
 
@@ -1279,8 +1275,6 @@ export class StandardController implements IController {
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        // Block token acquisition before initialize has been called
-        BrowserUtils.blockCallsBeforeInitialize(this.initialized);
         return this.browserStorage.getActiveAccount();
     }
 

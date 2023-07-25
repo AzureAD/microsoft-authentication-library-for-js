@@ -6,21 +6,18 @@ import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "./styles/theme";
 import { CustomNavigationClient } from "./utils/NavigationClient";
 
+const msalInstance = new PublicClientApplication(msalConfig);
 
 export default ({element}) => {
-    const msalInstance = new PublicClientApplication(msalConfig);
+    // The next 2 lines are optional. This is how you configure MSAL to take advantage of the router's navigate functions when MSAL redirects between pages in your app
+    const navigationClient = new CustomNavigationClient();
+    msalInstance.setNavigationClient(navigationClient);
 
-    msalInstance.initialize().then(() => {
-        // The next 2 lines are optional. This is how you configure MSAL to take advantage of the router's navigate functions when MSAL redirects between pages in your app
-        const navigationClient = new CustomNavigationClient();
-        msalInstance.setNavigationClient(navigationClient);
-
-        return (
-            <ThemeProvider theme={theme}>
-                <MsalProvider instance={msalInstance}>
-                    {element}
-                </MsalProvider>
-            </ThemeProvider>
-        );
-    });
+    return (
+        <ThemeProvider theme={theme}>
+            <MsalProvider instance={msalInstance}>
+                {element}
+            </MsalProvider>
+        </ThemeProvider>
+    );
 }
