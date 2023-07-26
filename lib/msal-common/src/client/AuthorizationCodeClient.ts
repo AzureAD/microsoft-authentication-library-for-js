@@ -16,7 +16,7 @@ import {
     AADServerParamKeys,
     HeaderNames,
 } from "../utils/Constants";
-import { ClientConfiguration } from "../config/ClientConfiguration";
+import { ClientConfiguration, oidcModeEnabled } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ResponseHandler } from "../response/ResponseHandler";
@@ -40,7 +40,6 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { ProtocolMode } from "../authority/ProtocolMode";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -349,7 +348,7 @@ export class AuthorizationCodeClient extends BaseClient {
         );
         parameterBuilder.addThrottling();
 
-        if (this.serverTelemetryManager && !(this.config.authOptions.authority.options.protocolMode === ProtocolMode.OIDC)) {
+        if (this.serverTelemetryManager && !oidcModeEnabled(this.config)) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 
@@ -516,7 +515,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // add library info parameters
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        if (!(this.config.authOptions.authority.options.protocolMode === ProtocolMode.OIDC)) {
+        if (!oidcModeEnabled(this.config)) {
             parameterBuilder.addApplicationTelemetry(
                 this.config.telemetry.application
             );

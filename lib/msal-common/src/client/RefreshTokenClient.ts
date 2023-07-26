@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration } from "../config/ClientConfiguration";
+import { ClientConfiguration, oidcModeEnabled } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest";
 import { Authority } from "../authority/Authority";
@@ -35,7 +35,6 @@ import {
 } from "../error/InteractionRequiredAuthError";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { ProtocolMode } from "../authority/ProtocolMode";
 /**
  * OAuth2.0 refresh token client
  */
@@ -353,7 +352,7 @@ export class RefreshTokenClient extends BaseClient {
         );
         parameterBuilder.addThrottling();
 
-        if (this.serverTelemetryManager && !(this.config.authOptions.authority.options.protocolMode === ProtocolMode.OIDC)) {
+        if (this.serverTelemetryManager && !oidcModeEnabled(this.config)) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 

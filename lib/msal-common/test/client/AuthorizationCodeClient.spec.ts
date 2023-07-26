@@ -3397,7 +3397,7 @@ describe("AuthorizationCodeClient unit tests", () => {
     });
 
     describe("Telemetry protocol mode tests", () => {
-        it("Does add telemetry headers to token request in AAD protocol mode", async () => {
+        it("Adds telemetry headers to token request in AAD protocol mode", async () => {
             let config = await ClientTestUtils.createTestClientConfigurationTelem();
             sinon
                 .stub(

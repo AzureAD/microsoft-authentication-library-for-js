@@ -1286,7 +1286,7 @@ describe("RefreshTokenClient unit tests", () => {
             correlationId: TEST_CONFIG.CORRELATION_ID,
             authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
         };
-        it("Does add telemetry headers to token request in AAD protocol mode", async () => {
+        it("Adds telemetry headers to token request in AAD protocol mode", async () => {
             const createTokenRequestBodySpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 <any>"createTokenRequestBody"
