@@ -4,7 +4,12 @@
  */
 
 import sinon from "sinon";
-import { AccountInfo, AccountEntity, TokenClaims, ClientConfigurationError } from "@azure/msal-common";
+import {
+    AccountInfo,
+    AccountEntity,
+    TokenClaims,
+    ClientConfigurationError,
+} from "@azure/msal-common";
 import { TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "../utils/StringConstants";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { EndSessionRequest, PublicClientApplication } from "../../src";
@@ -138,21 +143,20 @@ describe("BaseInteractionClient", () => {
             ).toMatchObject(testAccountInfo2);
             expect(pca.getActiveAccount()).toBe(null);
         });
-
     });
     describe("validateRequestAuthority()", () => {
         let testAccountInfo1: AccountInfo;
 
         beforeEach(() => {
             const testIdTokenClaims: TokenClaims = {
-                "ver": "2.0",
-                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523",
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
             };
 
             testAccountInfo1 = {
@@ -160,7 +164,7 @@ describe("BaseInteractionClient", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || ""
+                username: testIdTokenClaims.preferred_username || "",
             };
 
             pca.setActiveAccount(testAccountInfo1);
@@ -173,30 +177,41 @@ describe("BaseInteractionClient", () => {
         it("Throw error when authority in request or MSAL config does not match with environment set for account", async () => {
             let loginRequest = {
                 authority: "https://login.windows-ppe.net/common",
-                account: testAccountInfo1
+                account: testAccountInfo1,
             };
 
-            await testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
+            await testClient
+                .validateRequestAuthority(
+                    loginRequest.authority,
+                    loginRequest.account
+                )
                 .then(() => {
                     throw "This is unexpected. This call should have failed.";
                 })
-                .catch(error => {
-                    expect(error).toStrictEqual(ClientConfigurationError.createAuthorityMismatchError());
-            });
+                .catch((error) => {
+                    expect(error).toStrictEqual(
+                        ClientConfigurationError.createAuthorityMismatchError()
+                    );
+                });
         });
 
         it("Does not throw error when authority in request or MSAL config matches with environment set for account", (done) => {
             let loginRequest = {
                 authority: "https://login.microsoftonline.com/common",
-                account: testAccountInfo1
+                account: testAccountInfo1,
             };
 
-            testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
-                .then(() => { 
+            testClient
+                .validateRequestAuthority(
+                    loginRequest.authority,
+                    loginRequest.account
+                )
+                .then(() => {
                     done();
-                }).catch(error => {
+                })
+                .catch((error) => {
                     done(error);
-            });
+                });
         });
     });
 });

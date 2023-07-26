@@ -5,7 +5,13 @@ import {
     DEFAULT_IFRAME_TIMEOUT_MS,
 } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
-import { LogLevel, Constants, AzureCloudInstance, ProtocolMode, ServerResponseType } from "@azure/msal-common";
+import {
+    LogLevel,
+    Constants,
+    AzureCloudInstance,
+    ProtocolMode,
+    ServerResponseType,
+} from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 
@@ -269,14 +275,16 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.asyncPopups).toBe(true);
     });
     it("Setting OIDCOptions when in AAD protocol mode logs a warning", async () => {
-        jest.spyOn(global.console, 'warn').mockImplementation()
+        jest.spyOn(global.console, "warn").mockImplementation();
         buildConfiguration(
             {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     authority: TEST_CONFIG.validAuthority,
                     protocolMode: ProtocolMode.AAD,
-                    OIDCOptions: { serverResponseType: ServerResponseType.QUERY },
+                    OIDCOptions: {
+                        serverResponseType: ServerResponseType.QUERY,
+                    },
                 },
             },
             true

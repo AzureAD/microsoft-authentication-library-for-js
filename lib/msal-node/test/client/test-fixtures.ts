@@ -61,7 +61,7 @@ export const fakeAuthority: Authority = {
     },
     getPreferredCache: () => {
         return TEST_CONSTANTS.PREFERRED_CACHE;
-    }
+    },
 } as unknown as Authority;
 
 export const setupAuthorityFactory_createDiscoveredInstance_mock = (

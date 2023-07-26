@@ -444,7 +444,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),
-            responseMode: this.config.auth.OIDCOptions.serverResponseType as ResponseMode,
+            responseMode: this.config.auth.OIDCOptions
+                .serverResponseType as ResponseMode,
         };
 
         const account =

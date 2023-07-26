@@ -80,7 +80,8 @@ export const PerformanceEvents = {
      * getDiscoveredAuthority API in StandardInteractionClient class (msal-browser).
      * Used to load authority metadata for a request.
      */
-    StandardInteractionClientGetDiscoveredAuthority: "standardInteractionClientGetDiscoveredAuthority",
+    StandardInteractionClientGetDiscoveredAuthority:
+        "standardInteractionClientGetDiscoveredAuthority",
 
     /**
      * acquireToken APIs in msal-browser.
@@ -113,7 +114,8 @@ export const PerformanceEvents = {
     /**
      * Time spent on the network for refresh token acquisition
      */
-    RefreshTokenClientExecuteTokenRequest: "refreshTokenClientExecuteTokenRequest",
+    RefreshTokenClientExecuteTokenRequest:
+        "refreshTokenClientExecuteTokenRequest",
 
     /**
      * Time taken for acquiring refresh token , records RT size
@@ -123,17 +125,20 @@ export const PerformanceEvents = {
     /**
      * Time taken for acquiring cached refresh token
      */
-    RefreshTokenClientAcquireTokenWithCachedRefreshToken: "refreshTokenClientAcquireTokenWithCachedRefreshToken",
+    RefreshTokenClientAcquireTokenWithCachedRefreshToken:
+        "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 
     /**
      * acquireTokenByRefreshToken API in RefreshTokenClient (msal-common).
      */
-    RefreshTokenClientAcquireTokenByRefreshToken: "refreshTokenClientAcquireTokenByRefreshToken",
+    RefreshTokenClientAcquireTokenByRefreshToken:
+        "refreshTokenClientAcquireTokenByRefreshToken",
 
     /**
      * Helper function to create token request body in RefreshTokenClient (msal-common).
      */
-    RefreshTokenClientCreateTokenRequestBody: "refreshTokenClientCreateTokenRequestBody",
+    RefreshTokenClientCreateTokenRequestBody:
+        "refreshTokenClientCreateTokenRequestBody",
 
     /**
      * acquireTokenFromCache (msal-browser).
@@ -174,10 +179,14 @@ export const PerformanceEvents = {
     /**
      * Helper functions in StandardInteractionClient class (msal-browser)
      */
-    StandardInteractionClientCreateAuthCodeClient: "standardInteractionClientCreateAuthCodeClient",
-    StandardInteractionClientGetClientConfiguration: "standardInteractionClientGetClientConfiguration",
-    StandardInteractionClientInitializeAuthorizationRequest: "standardInteractionClientInitializeAuthorizationRequest",
-    StandardInteractionClientInitializeAuthorizationCodeRequest: "standardInteractionClientInitializeAuthorizationCodeRequest",
+    StandardInteractionClientCreateAuthCodeClient:
+        "standardInteractionClientCreateAuthCodeClient",
+    StandardInteractionClientGetClientConfiguration:
+        "standardInteractionClientGetClientConfiguration",
+    StandardInteractionClientInitializeAuthorizationRequest:
+        "standardInteractionClientInitializeAuthorizationRequest",
+    StandardInteractionClientInitializeAuthorizationCodeRequest:
+        "standardInteractionClientInitializeAuthorizationCodeRequest",
 
     /**
      * getAuthCodeUrl API (msal-browser and msal-node).
@@ -213,13 +222,18 @@ export const PerformanceEvents = {
     /**
      * Authority functions
      */
-    AuthorityFactoryCreateDiscoveredInstance: "authorityFactoryCreateDiscoveredInstance",
+    AuthorityFactoryCreateDiscoveredInstance:
+        "authorityFactoryCreateDiscoveredInstance",
     AuthorityResolveEndpointsAsync: "authorityResolveEndpointsAsync",
-    AuthorityGetCloudDiscoveryMetadataFromNetwork: "authorityGetCloudDiscoveryMetadataFromNetwork",
-    AuthorityUpdateCloudDiscoveryMetadata: "authorityUpdateCloudDiscoveryMetadata",
-    AuthorityGetEndpointMetadataFromNetwork: "authorityGetEndpointMetadataFromNetwork",
+    AuthorityGetCloudDiscoveryMetadataFromNetwork:
+        "authorityGetCloudDiscoveryMetadataFromNetwork",
+    AuthorityUpdateCloudDiscoveryMetadata:
+        "authorityUpdateCloudDiscoveryMetadata",
+    AuthorityGetEndpointMetadataFromNetwork:
+        "authorityGetEndpointMetadataFromNetwork",
     AuthorityUpdateEndpointMetadata: "authorityUpdateEndpointMetadata",
-    AuthorityUpdateMetadataWithRegionalInformation: "authorityUpdateMetadataWithRegionalInformation",
+    AuthorityUpdateMetadataWithRegionalInformation:
+        "authorityUpdateMetadataWithRegionalInformation",
 
     /**
      * Region Discovery functions
@@ -231,17 +245,20 @@ export const PerformanceEvents = {
     AcquireTokenByCodeAsync: "acquireTokenByCodeAsync",
 
     GetEndpointMetadataFromNetwork: "getEndpointMetadataFromNetwork",
-    GetCloudDiscoveryMetadataFromNetworkMeasurement: "getCloudDiscoveryMetadataFromNetworkMeasurement",
+    GetCloudDiscoveryMetadataFromNetworkMeasurement:
+        "getCloudDiscoveryMetadataFromNetworkMeasurement",
 
     HandleRedirectPromiseMeasurement: "handleRedirectPromiseMeasurement",
 
-    UpdateCloudDiscoveryMetadataMeasurement: "updateCloudDiscoveryMetadataMeasurement",
+    UpdateCloudDiscoveryMetadataMeasurement:
+        "updateCloudDiscoveryMetadataMeasurement",
 
     UsernamePasswordClientAcquireToken: "usernamePasswordClientAcquireToken",
 
     NativeMessageHandlerHandshake: "nativeMessageHandlerHandshake",
 } as const;
-export type PerformanceEvents = typeof PerformanceEvents[keyof typeof PerformanceEvents];
+export type PerformanceEvents =
+    (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
 
 /**
  * State of the performance event.
@@ -254,7 +271,8 @@ export const PerformanceEventStatus = {
     InProgress: 1,
     Completed: 2,
 } as const;
-export type PerformanceEventStatus = typeof PerformanceEventStatus[keyof typeof PerformanceEventStatus];
+export type PerformanceEventStatus =
+    (typeof PerformanceEventStatus)[keyof typeof PerformanceEventStatus];
 
 /**
  * Fields whose value will not change throughout a request

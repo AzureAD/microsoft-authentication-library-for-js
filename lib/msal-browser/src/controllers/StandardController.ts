@@ -25,7 +25,7 @@ import {
     RequestThumbprint,
     ServerError,
     ServerResponseType,
-    UrlString
+    UrlString,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -327,8 +327,11 @@ export class StandardController implements IController {
         );
 
         let foundServerResponse = hash;
-        
-        if(this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
+
+        if (
+            this.config.auth.OIDCOptions?.serverResponseType ===
+            ServerResponseType.QUERY
+        ) {
             const url = window.location.href;
             foundServerResponse = UrlString.parseQueryServerResponse(url);
         }
@@ -340,7 +343,8 @@ export class StandardController implements IController {
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
-            const redirectResponseKey = foundServerResponse || Constants.EMPTY_STRING;
+            const redirectResponseKey =
+                foundServerResponse || Constants.EMPTY_STRING;
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
                 this.eventHandler.emitEvent(
@@ -394,7 +398,9 @@ export class StandardController implements IController {
                     const redirectClient =
                         this.createRedirectClient(correlationId);
                     redirectResponse =
-                        redirectClient.handleRedirectPromise(foundServerResponse);
+                        redirectClient.handleRedirectPromise(
+                            foundServerResponse
+                        );
                 }
 
                 response = redirectResponse

@@ -301,7 +301,9 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addScopes([], true, ["openid", "profile"]);
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
-            requestQueryString.includes(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`)
+            requestQueryString.includes(
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`
+            )
         ).toBe(true);
         expect(
             requestQueryString.includes(`${Constants.OFFLINE_ACCESS_SCOPE}`)
@@ -313,7 +315,9 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addScopes([], true, []);
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
-            requestQueryString.includes(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}`)
+            requestQueryString.includes(
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}`
+            )
         ).toBe(true);
     });
 

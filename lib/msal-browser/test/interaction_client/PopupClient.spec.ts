@@ -723,7 +723,9 @@ describe("PopupClient", () => {
                 "create_logout_url_error",
                 "Error in creating a logout url"
             );
-            sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").throws(testError);
+            sinon
+                .stub(AuthorizationCodeClient.prototype, "getLogoutUri")
+                .throws(testError);
 
             try {
                 await popupClient.logout();
@@ -1591,10 +1593,10 @@ describe("PopupClient", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     protocolMode: ProtocolMode.OIDC,
-                    OIDCOptions: { "serverResponseType": "query" }
+                    OIDCOptions: { serverResponseType: "query" },
                 },
             });
-    
+
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 

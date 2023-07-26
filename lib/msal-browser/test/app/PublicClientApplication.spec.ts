@@ -48,7 +48,7 @@ import {
     Authority,
     AuthError,
     ProtocolMode,
-    ServerResponseType
+    ServerResponseType,
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -835,7 +835,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     protocolMode: ProtocolMode.OIDC,
-                    OIDCOptions: { serverResponseType: ServerResponseType.QUERY }
+                    OIDCOptions: {
+                        serverResponseType: ServerResponseType.QUERY,
+                    },
                 },
                 telemetry: {
                     application: {
@@ -855,11 +857,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
              */
             sinon
                 .stub(RedirectClient.prototype, "handleRedirectPromise")
-                .callsFake(async (hash): Promise<AuthenticationResult | null> => {
-                    expect(hash).toBe("");
-                    return null;
-                });
-            
+                .callsFake(
+                    async (hash): Promise<AuthenticationResult | null> => {
+                        expect(hash).toBe("");
+                        return null;
+                    }
+                );
+
             window.location.hash = "#code=hello";
             await pca.handleRedirectPromise();
         });

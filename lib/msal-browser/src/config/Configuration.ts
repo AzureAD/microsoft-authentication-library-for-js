@@ -17,7 +17,7 @@ import {
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
-    ClientConfigurationError
+    ClientConfigurationError,
 } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import {
@@ -251,9 +251,13 @@ export function buildConfiguration(
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
-        OIDCOptions: { 
-            serverResponseType: ServerResponseType.FRAGMENT, 
-            defaultScopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
+        OIDCOptions: {
+            serverResponseType: ServerResponseType.FRAGMENT,
+            defaultScopes: [
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
+                Constants.OFFLINE_ACCESS_SCOPE,
+            ],
         },
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
@@ -326,30 +330,39 @@ export function buildConfiguration(
     };
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
-    if(userInputAuth?.protocolMode !== ProtocolMode.OIDC && 
-        userInputAuth?.OIDCOptions) {
-            // Logger has not been created yet
-            // eslint-disable-next-line no-console
-            console.warn(ClientConfigurationError.createCannotSetOIDCOptionsError());
+    if (
+        userInputAuth?.protocolMode !== ProtocolMode.OIDC &&
+        userInputAuth?.OIDCOptions
+    ) {
+        // Logger has not been created yet
+        // eslint-disable-next-line no-console
+        console.warn(
+            ClientConfigurationError.createCannotSetOIDCOptionsError()
+        );
     }
 
     // Throw an error if user has set allowNativeBroker to true without being in AAD protocol mode
-    if(userInputAuth?.protocolMode &&
+    if (
+        userInputAuth?.protocolMode &&
         userInputAuth.protocolMode !== ProtocolMode.AAD &&
-        providedSystemOptions?.allowNativeBroker) {
-            throw ClientConfigurationError.createCannotAllowNativeBrokerError();
+        providedSystemOptions?.allowNativeBroker
+    ) {
+        throw ClientConfigurationError.createCannotAllowNativeBrokerError();
     }
 
     const overlayedConfig: BrowserConfiguration = {
         auth: {
-            ...DEFAULT_AUTH_OPTIONS, 
-            ...userInputAuth, 
-            OIDCOptions: { ...DEFAULT_AUTH_OPTIONS.OIDCOptions, ...userInputAuth?.OIDCOptions }
-           },
+            ...DEFAULT_AUTH_OPTIONS,
+            ...userInputAuth,
+            OIDCOptions: {
+                ...DEFAULT_AUTH_OPTIONS.OIDCOptions,
+                ...userInputAuth?.OIDCOptions,
+            },
+        },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
-    
+
     return overlayedConfig;
 }

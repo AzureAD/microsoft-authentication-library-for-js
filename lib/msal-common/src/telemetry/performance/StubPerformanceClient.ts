@@ -8,9 +8,15 @@ import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceClient } from "./PerformanceClient";
 
 export class StubPerformanceMeasurement implements IPerformanceMeasurement {
-    startMeasurement(): void { return; }
-    endMeasurement(): void { return; }
-    flushMeasurement(): number | null { return null; }
+    startMeasurement(): void {
+        return;
+    }
+    endMeasurement(): void {
+        return;
+    }
+    flushMeasurement(): number | null {
+        return null;
+    }
 }
 
 export class StubPerformanceClient
@@ -29,7 +35,11 @@ export class StubPerformanceClient
         return 0;
     }
 
-    addQueueMeasurement(): void { return; }
+    addQueueMeasurement(): void {
+        return;
+    }
 
-    setPreQueueTime(): void { return; }
+    setPreQueueTime(): void {
+        return;
+    }
 }

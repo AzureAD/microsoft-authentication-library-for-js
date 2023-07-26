@@ -11,7 +11,7 @@ import {
     AzureCloudInstance,
     Authority,
     ProtocolMode,
-    ServerResponseType
+    ServerResponseType,
 } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient";
@@ -38,7 +38,10 @@ class testStandardInteractionClient extends StandardInteractionClient {
         return super.initializeAuthorizationCodeRequest(request);
     }
 
-    async initializeAuthorizationRequest(request: RedirectRequest, interactionType: InteractionType) {
+    async initializeAuthorizationRequest(
+        request: RedirectRequest,
+        interactionType: InteractionType
+    ) {
         return super.initializeAuthorizationRequest(request, interactionType);
     }
 
@@ -190,8 +193,8 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 protocolMode: ProtocolMode.OIDC,
-                OIDCOptions: {serverResponseType: ServerResponseType.QUERY}
-            }
+                OIDCOptions: { serverResponseType: ServerResponseType.QUERY },
+            },
         });
 
         //Implementation of PCA was moved to controller.
@@ -239,8 +242,8 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
     afterEach(() => {
         sinon.restore();
     });
-    
-    it("initializeAuthorizationRequest calls for a query response when OIDCOptions.serverResponseType is set to query", async () => {  
+
+    it("initializeAuthorizationRequest calls for a query response when OIDCOptions.serverResponseType is set to query", async () => {
         const request: RedirectRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
@@ -253,8 +256,10 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
                 TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
         };
 
-        const authCodeRequest =
-            await testClient.initializeAuthorizationRequest(request, InteractionType.Redirect);
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
         expect(authCodeRequest.responseMode).toBe(ResponseMode.QUERY);
     });
 });
