@@ -278,6 +278,6 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
  * Returns true if config has protocolMode set to ProtocolMode.OIDC, false otherwise
  * @param ClientConfiguration
  */
-export function oidcModeEnabled(config: ClientConfiguration): boolean {
+export function isOidcProtocolMode(config: ClientConfiguration): boolean {
     return (config.authOptions.authority.options.protocolMode === ProtocolMode.OIDC);
 }

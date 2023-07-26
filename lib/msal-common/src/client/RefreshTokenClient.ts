@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, oidcModeEnabled } from "../config/ClientConfiguration";
+import { ClientConfiguration, isOidcProtocolMode } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest";
 import { Authority } from "../authority/Authority";
@@ -352,7 +352,7 @@ export class RefreshTokenClient extends BaseClient {
         );
         parameterBuilder.addThrottling();
 
-        if (this.serverTelemetryManager && !oidcModeEnabled(this.config)) {
+        if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 

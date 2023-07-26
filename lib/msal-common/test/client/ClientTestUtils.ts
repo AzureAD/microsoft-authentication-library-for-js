@@ -330,46 +330,7 @@ export class ClientTestUtils {
     }
     
     static async createTestClientConfigurationTelem(): Promise<ClientConfiguration> {
-        const mockStorage = new MockStorageClass(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            mockCrypto,
-            new Logger({})
-        );
-
-        const testLoggerCallback = (): void => {
-            return;
-        };
-
-        const mockHttpClient = {
-            sendGetRequestAsync<T>(): T {
-                return {} as T;
-            },
-            sendPostRequestAsync<T>(): T {
-                return {} as T;
-            },
-        };
-
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: ProtocolMode.AAD,
-            knownAuthorities: [TEST_CONFIG.validAuthority],
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-        };
-
-        const loggerOptions = {
-            loggerCallback: (): void => {},
-            piiLoggingEnabled: true,
-            logLevel: LogLevel.Verbose,
-        };
-        const logger = new Logger(loggerOptions);
-
-        const authority = AuthorityFactory.createInstance(
-            TEST_CONFIG.validAuthority,
-            mockHttpClient,
-            mockStorage,
-            authorityOptions,
-            logger
-        );
+        let config = await this.createTestClientConfiguration();
 
         const serverTelemetryManager = new ServerTelemetryManager(
             {
@@ -377,133 +338,20 @@ export class ClientTestUtils {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 apiId: 866,
             },
-            mockStorage
+            // @ts-ignore
+            config.storageInterface
         );
 
-        await authority.resolveEndpointsAsync().catch((error) => {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
-        });
+        config.serverTelemetryManager = serverTelemetryManager;
 
-        return {
-            authOptions: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: authority,
-            },
-            storageInterface: mockStorage,
-            networkInterface: mockHttpClient,
-            cryptoInterface: mockCrypto,
-            loggerOptions: {
-                loggerCallback: testLoggerCallback,
-            },
-            systemOptions: {
-                tokenRenewalOffsetSeconds:
-                    TEST_CONFIG.DEFAULT_TOKEN_RENEWAL_OFFSET,
-            },
-            clientCredentials: {
-                clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
-            },
-            libraryInfo: {
-                sku: Constants.SKU,
-                version: TEST_CONFIG.TEST_VERSION,
-                os: TEST_CONFIG.TEST_OS,
-                cpu: TEST_CONFIG.TEST_CPU,
-            },
-            telemetry: {
-                application: {
-                    appName: TEST_CONFIG.applicationName,
-                    appVersion: TEST_CONFIG.applicationVersion,
-                },
-            },
-            serverTelemetryManager: serverTelemetryManager
-        };
+        return config;
     }
 
     static async createTestClientConfigurationOidcTelem(): Promise<ClientConfiguration> {
-        const mockStorage = new MockStorageClass(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            mockCrypto,
-            new Logger({})
-        );
+        let config = await this.createTestClientConfigurationTelem();
 
-        const testLoggerCallback = (): void => {
-            return;
-        };
+        config.authOptions.authority.options.protocolMode = ProtocolMode.OIDC;
 
-        const mockHttpClient = {
-            sendGetRequestAsync<T>(): T {
-                return {} as T;
-            },
-            sendPostRequestAsync<T>(): T {
-                return {} as T;
-            },
-        };
-
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: ProtocolMode.OIDC,
-            knownAuthorities: [TEST_CONFIG.validAuthority],
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-        };
-
-        const loggerOptions = {
-            loggerCallback: (): void => {},
-            piiLoggingEnabled: true,
-            logLevel: LogLevel.Verbose,
-        };
-        const logger = new Logger(loggerOptions);
-
-        const authority = AuthorityFactory.createInstance(
-            TEST_CONFIG.validAuthority,
-            mockHttpClient,
-            mockStorage,
-            authorityOptions,
-            logger
-        );
-
-        const serverTelemetryManager = new ServerTelemetryManager(
-            {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                apiId: 866,
-            },
-            mockStorage
-        );
-
-        await authority.resolveEndpointsAsync().catch((error) => {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
-        });
-
-        return {
-            authOptions: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: authority,
-            },
-            storageInterface: mockStorage,
-            networkInterface: mockHttpClient,
-            cryptoInterface: mockCrypto,
-            loggerOptions: {
-                loggerCallback: testLoggerCallback,
-            },
-            systemOptions: {
-                tokenRenewalOffsetSeconds:
-                    TEST_CONFIG.DEFAULT_TOKEN_RENEWAL_OFFSET,
-            },
-            clientCredentials: {
-                clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
-            },
-            libraryInfo: {
-                sku: Constants.SKU,
-                version: TEST_CONFIG.TEST_VERSION,
-                os: TEST_CONFIG.TEST_OS,
-                cpu: TEST_CONFIG.TEST_CPU,
-            },
-            telemetry: {
-                application: {
-                    appName: TEST_CONFIG.applicationName,
-                    appVersion: TEST_CONFIG.applicationVersion,
-                },
-            },
-            serverTelemetryManager: serverTelemetryManager
-        };
+        return config;
     }
 }

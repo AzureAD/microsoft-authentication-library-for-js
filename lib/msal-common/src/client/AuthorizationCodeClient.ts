@@ -16,7 +16,7 @@ import {
     AADServerParamKeys,
     HeaderNames,
 } from "../utils/Constants";
-import { ClientConfiguration, oidcModeEnabled } from "../config/ClientConfiguration";
+import { ClientConfiguration, isOidcProtocolMode } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ResponseHandler } from "../response/ResponseHandler";
@@ -348,7 +348,7 @@ export class AuthorizationCodeClient extends BaseClient {
         );
         parameterBuilder.addThrottling();
 
-        if (this.serverTelemetryManager && !oidcModeEnabled(this.config)) {
+        if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 
@@ -515,7 +515,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // add library info parameters
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        if (!oidcModeEnabled(this.config)) {
+        if (!isOidcProtocolMode(this.config)) {
             parameterBuilder.addApplicationTelemetry(
                 this.config.telemetry.application
             );
