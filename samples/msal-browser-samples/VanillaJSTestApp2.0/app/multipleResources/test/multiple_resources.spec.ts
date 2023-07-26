@@ -1,12 +1,13 @@
 import * as puppeteer from "puppeteer";
-import { 
-    Screenshot, 
-    createFolder, 
-    setupCredentials, 
-    enterCredentials, 
-    ONE_SECOND_IN_MS, 
-    getBrowser, 
-    getHomeUrl 
+import {
+    Screenshot,
+    createFolder,
+    setupCredentials,
+    enterCredentials,
+    ONE_SECOND_IN_MS,
+    getBrowser,
+    getHomeUrl,
+    pcaInitializedPoller,
 } from "e2e-test-utils/src/TestUtils";
 import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
@@ -26,12 +27,17 @@ describe("Browser tests", function () {
 
         const labApiParams: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD
+            appType: AppTypes.CLOUD,
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParams
+        );
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
     });
 
     let context: puppeteer.BrowserContext;
@@ -40,9 +46,10 @@ describe("Browser tests", function () {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+        page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(sampleHomeUrl);
+        await pcaInitializedPoller(page, 5000);
     });
 
     afterEach(async () => {
@@ -55,7 +62,9 @@ describe("Browser tests", function () {
     });
 
     it("Performs loginRedirect and acquires 2 tokens", async () => {
-        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/multipleResources`);
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/multipleResources`
+        );
         // Home Page
         await screenshot.takeScreenshot(page, "samplePageInit");
         // Click Sign In
@@ -73,7 +82,9 @@ describe("Browser tests", function () {
         expect(tokenStore.idTokens).toHaveLength(1);
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        expect(BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
+        expect(
+            BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+        ).toBeDefined();
 
         // acquire First Access Token
         await BrowserCache.removeTokens(tokenStore.accessTokens);
@@ -84,8 +95,15 @@ describe("Browser tests", function () {
         expect(tokenStore.idTokens).toHaveLength(1);
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
-        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "User.Read"])).toBeTruthy();
+        expect(
+            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+        ).toBeDefined();
+        expect(
+            await BrowserCache.accessTokenForScopesExists(
+                tokenStore.accessTokens,
+                ["openid", "profile", "User.Read"]
+            )
+        ).toBeTruthy();
 
         // acquire Second Access Token
         await page.click("#secondToken");
@@ -95,8 +113,20 @@ describe("Browser tests", function () {
         expect(tokenStore.idTokens).toHaveLength(1);
         expect(tokenStore.accessTokens).toHaveLength(2);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
-        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "User.Read"])).toBeTruthy();
-        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["https://msidlab0.spoppe.com/User.Read"])).toBeTruthy();
+        expect(
+            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+        ).toBeDefined();
+        expect(
+            await BrowserCache.accessTokenForScopesExists(
+                tokenStore.accessTokens,
+                ["openid", "profile", "User.Read"]
+            )
+        ).toBeTruthy();
+        expect(
+            await BrowserCache.accessTokenForScopesExists(
+                tokenStore.accessTokens,
+                ["https://msidlab0.spoppe.com/User.Read"]
+            )
+        ).toBeTruthy();
     });
 });
