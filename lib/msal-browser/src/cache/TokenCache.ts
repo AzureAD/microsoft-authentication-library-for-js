@@ -250,6 +250,7 @@ export class TokenCache implements ITokenCache {
                   homeAccountId,
                   idToken,
                   authority,
+                  clientInfo,
                   undefined,
                   undefined,
                   authority.hostnameAndPort

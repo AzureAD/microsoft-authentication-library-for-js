@@ -3543,6 +3543,7 @@ describe("RedirectClient", () => {
             };
 
             const testAccountInfo: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",

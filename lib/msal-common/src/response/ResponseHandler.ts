@@ -375,6 +375,7 @@ export class ResponseHandler {
                 this.homeAccountIdentifier,
                 idTokenObj,
                 authority,
+                serverTokenResponse.client_info,
                 authCodePayload?.cloud_graph_host_name,
                 authCodePayload?.msgraph_host
             );

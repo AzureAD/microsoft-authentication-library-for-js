@@ -381,10 +381,10 @@ describe("OnBehalfOf unit tests", () => {
             );
             const expectedAccountEntity: AccountEntity =
                 AccountEntity.createAccount(
-                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                     "123-test-uid.456-test-uid",
                     idToken,
-                    config.authOptions.authority
+                    config.authOptions.authority,
+                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 );
 
             sinon

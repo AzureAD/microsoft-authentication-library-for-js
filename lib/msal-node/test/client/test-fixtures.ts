@@ -7,6 +7,7 @@ import {
     ServerTelemetryManager,
     Authority,
     AuthorityFactory,
+    ProtocolMode,
 } from "@azure/msal-common";
 
 import * as msalCommon from "@azure/msal-common";
@@ -46,6 +47,7 @@ export const setupServerTelemetryManagerMock = () => {
 };
 
 export const fakeAuthority: Authority = {
+    protocolMode: ProtocolMode.AAD,
     regionDiscoveryMetadata: {
         region_used: undefined,
         region_source: undefined,

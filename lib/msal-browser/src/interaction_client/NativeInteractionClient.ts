@@ -386,6 +386,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             homeAccountIdentifier,
             idTokenObj,
             authority,
+            response.client_info,
             undefined,
             undefined,
             undefined,

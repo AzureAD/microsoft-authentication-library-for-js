@@ -4571,6 +4571,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("getAccount tests", () => {
         // Account 1
         const testAccountInfo1: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
@@ -4579,6 +4580,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined
         };
 
         const testAccount1: AccountEntity = new AccountEntity();
@@ -4603,6 +4605,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         // Account 2
         const testAccountInfo2: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId: "different-home-account-id",
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
@@ -4611,6 +4614,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined
         };
 
         const testAccount2: AccountEntity = new AccountEntity();
@@ -4758,6 +4762,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("activeAccount API tests", () => {
         // Account 1
         const testAccountInfo1: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
@@ -4797,6 +4802,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         // Account 2
         const testAccountInfo2: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId:
                 TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow2",
             environment: "login.windows.net",

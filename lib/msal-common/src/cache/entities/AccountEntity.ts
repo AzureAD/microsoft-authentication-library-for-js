@@ -49,6 +49,7 @@ export class AccountEntity {
     localAccountId: string;
     username: string;
     authorityType: string;
+    clientInfo?: string;
     name?: string;
     lastModificationTime?: string;
     lastModificationApp?: string;
@@ -120,6 +121,7 @@ export class AccountEntity {
         homeAccountId: string,
         idToken: AuthToken,
         authority: Authority,
+        clientInfo?: string,
         cloudGraphHostName?: string,
         msGraphHost?: string,
         environment?: string,
@@ -135,6 +137,7 @@ export class AccountEntity {
             account.authorityType = CacheAccountType.GENERIC_ACCOUNT_TYPE;
         }
 
+        account.clientInfo = clientInfo;
         account.homeAccountId = homeAccountId;
         account.nativeAccountId = nativeAccountId;
 

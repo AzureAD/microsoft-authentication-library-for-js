@@ -134,10 +134,11 @@ describe("Event API tests", () => {
                 realm: "test-tenantId-1",
                 name: "name-1",
                 idTokenClaims: {},
-                authorityType: "AAD",
+                authorityType: "MSSTS",
             };
 
             const account: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: accountEntity.homeAccountId,
                 localAccountId: accountEntity.localAccountId,
                 username: accountEntity.username,
@@ -145,6 +146,7 @@ describe("Event API tests", () => {
                 tenantId: accountEntity.realm,
                 name: accountEntity.name,
                 idTokenClaims: accountEntity.idTokenClaims,
+                nativeAccountId: undefined
             };
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
@@ -178,10 +180,11 @@ describe("Event API tests", () => {
                 realm: "test-tenantId-1",
                 name: "name-1",
                 idTokenClaims: {},
-                authorityType: "AAD",
+                authorityType: "MSSTS",
             };
 
             const account: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: accountEntity.homeAccountId,
                 localAccountId: accountEntity.localAccountId,
                 username: accountEntity.username,
@@ -189,6 +192,7 @@ describe("Event API tests", () => {
                 tenantId: accountEntity.realm,
                 name: accountEntity.name,
                 idTokenClaims: accountEntity.idTokenClaims,
+                nativeAccountId: undefined
             };
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);

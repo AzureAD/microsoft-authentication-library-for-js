@@ -525,10 +525,10 @@ describe("PublicClientApplication", () => {
 
             const cryptoProvider = new CryptoProvider();
             const accountEntity: AccountEntity = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 mockAccountInfo.homeAccountId,
                 new IdToken(mockAuthenticationResult.idToken, cryptoProvider),
-                fakeAuthority
+                fakeAuthority,
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             );
 
             // @ts-ignore
@@ -594,10 +594,10 @@ describe("PublicClientApplication", () => {
 
             const cryptoProvider = new CryptoProvider();
             const accountEntity: AccountEntity = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 mockAccountInfo.homeAccountId,
                 new IdToken(mockAuthenticationResult.idToken, cryptoProvider),
-                fakeAuthority
+                fakeAuthority,
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             );
 
             // @ts-ignore

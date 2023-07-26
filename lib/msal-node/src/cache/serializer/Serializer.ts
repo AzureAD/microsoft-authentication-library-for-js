@@ -47,6 +47,7 @@ export class Serializer {
                 username: accountEntity.username,
                 authority_type: accountEntity.authorityType,
                 name: accountEntity.name,
+                client_info: accountEntity.clientInfo,
                 last_modification_time: accountEntity.lastModificationTime,
                 last_modification_app: accountEntity.lastModificationApp,
             };
