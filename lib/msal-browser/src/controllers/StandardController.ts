@@ -16,7 +16,6 @@ import {
     AuthError,
     PerformanceEvents,
     PerformanceCallbackFunction,
-    StubPerformanceClient,
     IPerformanceClient,
     BaseAuthRequest,
     PromptValue,
@@ -68,10 +67,8 @@ import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
-import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
-import { version, name } from "../packageMetadata";
 import { IController } from "./IController";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 
