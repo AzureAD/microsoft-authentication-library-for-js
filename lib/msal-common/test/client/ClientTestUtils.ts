@@ -250,7 +250,10 @@ export const mockCrypto = {
 };
 
 export class ClientTestUtils {
-    static async createTestClientConfiguration(): Promise<ClientConfiguration> {
+    static async createTestClientConfiguration(
+        telem: boolean = false, 
+        protocolMode: ProtocolMode = ProtocolMode.AAD
+    ): Promise<ClientConfiguration> {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
@@ -271,7 +274,7 @@ export class ClientTestUtils {
         };
 
         const authorityOptions: AuthorityOptions = {
-            protocolMode: ProtocolMode.AAD,
+            protocolMode: protocolMode,
             knownAuthorities: [TEST_CONFIG.validAuthority],
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
@@ -295,6 +298,19 @@ export class ClientTestUtils {
         await authority.resolveEndpointsAsync().catch((error) => {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
         });
+
+        let serverTelemetryManager = null;
+
+        if (telem) {
+            serverTelemetryManager = new ServerTelemetryManager(
+                {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    apiId: 866,
+                },
+                mockStorage
+            );
+        }
 
         return {
             authOptions: {
@@ -326,32 +342,7 @@ export class ClientTestUtils {
                     appVersion: TEST_CONFIG.applicationVersion,
                 },
             },
+            serverTelemetryManager: serverTelemetryManager
         };
-    }
-    
-    static async createTestClientConfigurationTelem(): Promise<ClientConfiguration> {
-        let config = await this.createTestClientConfiguration();
-
-        const serverTelemetryManager = new ServerTelemetryManager(
-            {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                apiId: 866,
-            },
-            // @ts-ignore
-            config.storageInterface
-        );
-
-        config.serverTelemetryManager = serverTelemetryManager;
-
-        return config;
-    }
-
-    static async createTestClientConfigurationOidcTelem(): Promise<ClientConfiguration> {
-        let config = await this.createTestClientConfigurationTelem();
-
-        config.authOptions.authority.options.protocolMode = ProtocolMode.OIDC;
-
-        return config;
     }
 }

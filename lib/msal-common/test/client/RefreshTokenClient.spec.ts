@@ -48,6 +48,7 @@ import { CcsCredentialType } from "../../src/account/CcsCredential";
 import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { Logger } from "../../src/logger/Logger";
+import { ProtocolMode } from "../../src/authority/ProtocolMode";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -1292,7 +1293,7 @@ describe("RefreshTokenClient unit tests", () => {
                 <any>"createTokenRequestBody"
             );
             const config =
-                await ClientTestUtils.createTestClientConfigurationTelem();
+                await ClientTestUtils.createTestClientConfiguration(true);
             const client = new RefreshTokenClient(config, stubPerformanceClient);
             try { 
                 await client.acquireToken(refreshTokenRequest)
@@ -1320,7 +1321,7 @@ describe("RefreshTokenClient unit tests", () => {
                 <any>"createTokenRequestBody"
             );
             const config =
-                await ClientTestUtils.createTestClientConfigurationOidcTelem();
+                await ClientTestUtils.createTestClientConfiguration(true, ProtocolMode.OIDC);
             const client = new RefreshTokenClient(config, stubPerformanceClient);
             try { 
                 await client.acquireToken(refreshTokenRequest)

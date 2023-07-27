@@ -42,6 +42,7 @@ import { AuthToken } from "../../src/account/AuthToken";
 import { ICrypto } from "../../src/crypto/ICrypto";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { CcsCredentialType, ClientConfigurationError } from "../../src";
+import { ProtocolMode } from "../../src/authority/ProtocolMode";
 
 describe("AuthorizationCodeClient unit tests", () => {
     afterEach(() => {
@@ -3398,7 +3399,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
     describe("Telemetry protocol mode tests", () => {
         it("Adds telemetry headers to token request in AAD protocol mode", async () => {
-            let config = await ClientTestUtils.createTestClientConfigurationTelem();
+            let config = await ClientTestUtils.createTestClientConfiguration(true);
             sinon
                 .stub(
                     Authority.prototype,
@@ -3486,7 +3487,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
         });
         it("Does not add telemetry headers to token request in OIDC protocol mode", async () => {
-            let config = await ClientTestUtils.createTestClientConfigurationOidcTelem();
+            let config = await ClientTestUtils.createTestClientConfiguration(true, ProtocolMode.OIDC);
             sinon
                 .stub(
                     Authority.prototype,
