@@ -58,6 +58,7 @@ export class AuthorityFactory {
                 PerformanceEvents.AuthorityResolveEndpointsAsync,
                 correlationId
             );
+            
             await acquireTokenAuthority.resolveEndpointsAsync();
             return acquireTokenAuthority;
         } catch (e) {

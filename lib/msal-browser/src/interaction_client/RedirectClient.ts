@@ -17,6 +17,7 @@ import {
     Logger,
     IPerformanceClient,
     PerformanceEvents,
+    ProtocolMode,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
@@ -195,7 +196,6 @@ export class RedirectClient extends StandardInteractionClient {
                 );
                 return null;
             }
-
             const responseHash = this.getRedirectResponseHash(
                 hash || window.location.hash
             );
@@ -506,6 +506,24 @@ export class RedirectClient extends StandardInteractionClient {
                 logoutRequest && logoutRequest.authority
             );
             this.logger.verbose("Auth code client created");
+
+            if(authClient.authority.protocolMode === ProtocolMode.OIDC) {
+                try { 
+                    authClient.authority.endSessionEndpoint;
+                } catch {
+                    if (validLogoutRequest.account?.homeAccountId){
+                        this.browserStorage.removeAccount(validLogoutRequest.account?.homeAccountId);
+                        
+                        this.eventHandler.emitEvent(
+                            EventType.LOGOUT_SUCCESS,
+                            InteractionType.Redirect,
+                            validLogoutRequest
+                        );
+        
+                        return;
+                    }
+                }
+            }   
 
             // Create logout string and navigate user window to logout.
             const logoutUri: string =
