@@ -26,6 +26,7 @@ import {
     AuthError,
     CommonSilentFlowRequest,
     AccountInfo,
+    CacheRecord
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -53,7 +54,6 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { CacheRecord } from "../cache/entities/CacheRecord";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -230,7 +230,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const result = await this.silentCacheClient.acquireToken(
                 silentRequest
             );
-            return result;
+            return {
+                ...result,
+                account
+            };
         } catch (e) {
             throw e;
         }
@@ -409,7 +412,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             request,
             homeAccountIdentifier,
-            accountEntity,
             idTokenObj,
             result.accessToken,
             result.tenantId,
@@ -618,7 +620,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
         response: NativeResponse,
         request: NativeTokenRequest,
         homeAccountIdentifier: string,
-        accountEntity: AccountEntity,
         idTokenObj: AuthToken,
         responseAccessToken: string,
         tenantId: string,
@@ -659,7 +660,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             );
 
         const nativeCacheRecord = new CacheRecord(
-            accountEntity,
+            undefined,
             cachedIdToken,
             cachedAccessToken
         );
