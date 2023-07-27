@@ -442,7 +442,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param fields {string[]}
      * @param correlationId {string} correlation identifier
      */
-    incrementFields(fields: { [key: string]: {} | undefined; }, correlationId: string): void {
+    incrementFields(fields: { [key: string]: number | undefined; }, correlationId: string): void {
         this.logger.trace("PerformanceClient: Updating counters");
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
