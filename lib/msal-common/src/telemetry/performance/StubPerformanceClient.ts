@@ -6,6 +6,7 @@
 import { IPerformanceClient } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceClient } from "./PerformanceClient";
+import { PerformanceEvent } from "./PerformanceEvent";
 
 export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     startMeasurement(): void { return; }
@@ -13,23 +14,23 @@ export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     flushMeasurement(): number | null { return null; }
 }
 
+const stubPerformanceMeasurement = new StubPerformanceMeasurement();
+
 export class StubPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
 {
-    generateId(): string {
-        return "callback-id";
-    }
-
-    startPerformanceMeasurement(): IPerformanceMeasurement {
-        return new StubPerformanceMeasurement();
-    }
-
-    calculateQueuedTime(): number {
-        return 0;
-    }
-
+    endMeasurement(): PerformanceEvent | null { return null; }
+    discardMeasurements(): void { return; }
+    removePerformanceCallback(): boolean { return true; };
+    addPerformanceCallback(): string { return ''; }
+    emitEvents(): void { return; }
+    startPerformanceMeasurement(): IPerformanceMeasurement { return stubPerformanceMeasurement }
+    generateId(): string { return "callback-id"; }
+    calculateQueuedTime(): number { return 0; }
     addQueueMeasurement(): void { return; }
-
     setPreQueueTime(): void { return; }
+    addFields(): void { return; }
+    incrementFields(): void { return; }
+    cacheEventByCorrelationId(): void { return; }
 }

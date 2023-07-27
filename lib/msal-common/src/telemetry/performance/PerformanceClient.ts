@@ -13,12 +13,10 @@ import {
 } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import {
-    Counters,
     IntFields,
     PerformanceEvent,
     PerformanceEvents,
-    PerformanceEventStatus,
-    StaticFields,
+    PerformanceEventStatus
 } from "./PerformanceEvent";
 
 export interface PreQueueEvent {
@@ -58,6 +56,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     protected queueMeasurements: Map<string, Array<QueueMeasurement>>;
 
+    protected intFields: Set<string>;
+
     /**
      * Creates an instance of PerformanceClient,
      * an abstract class containing core performance telemetry logic.
@@ -68,6 +68,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {Logger} logger Logger used by the application
      * @param {string} libraryName Name of the library
      * @param {string} libraryVersion Version of the library
+     * @param {ApplicationTelemetry} applicationTelemetry application name and version
+     * @param {Set<String>} intFields integer fields to be truncated
      */
     constructor(
         clientId: string,
@@ -75,7 +77,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         logger: Logger,
         libraryName: string,
         libraryVersion: string,
-        applicationTelemetry: ApplicationTelemetry
+        applicationTelemetry: ApplicationTelemetry,
+        intFields?: Set<string>
     ) {
         this.authority = authority;
         this.libraryName = libraryName;
@@ -87,6 +90,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.eventsByCorrelationId = new Map();
         this.queueMeasurements = new Map();
         this.preQueueTimeByCorrelationId = new Map();
+        this.intFields = intFields || new Set();
+        for (const item of IntFields) {
+            this.intFields.add(item);
+        }
     }
 
     /**
@@ -124,14 +131,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         eventName: PerformanceEvents,
         correlationId?: string
     ): void;
-
-    /**
-     * Get integral fields.
-     * Override to change the set.
-     */
-    getIntFields(): ReadonlySet<string> {
-        return IntFields;
-    }
 
     /**
      * Gets map of pre-queue times by correlation Id
@@ -260,7 +259,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {InProgressPerformanceEvent}
      */
     startMeasurement(
-        measureName: PerformanceEvents,
+        measureName: string,
         correlationId?: string
     ): InProgressPerformanceEvent {
         // Generate a placeholder correlation if the request does not provide one
@@ -301,7 +300,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
-            endMeasurement: (
+            end: (
                 event?: Partial<PerformanceEvent>
             ): PerformanceEvent | null => {
                 return this.endMeasurement(
@@ -314,17 +313,17 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     performanceMeasurement
                 );
             },
-            discardMeasurement: () => {
+            discard: () => {
                 return this.discardMeasurements(inProgressEvent.correlationId);
             },
-            addStaticFields: (fields: StaticFields) => {
-                return this.addStaticFields(
+            add: (fields: { [key: string]: {} | undefined; }) => {
+                return this.addFields(
                     fields,
                     inProgressEvent.correlationId
                 );
             },
-            increment: (counters: Counters) => {
-                return this.increment(counters, inProgressEvent.correlationId);
+            increment: (fields: { [key: string]: number | undefined; }) => {
+                return this.incrementFields(fields, inProgressEvent.correlationId);
             },
             measurement: performanceMeasurement,
             event: inProgressEvent,
@@ -411,7 +410,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount,
         };
-        this.truncateIntegralFields(finalEvent, this.getIntFields());
+        this.truncateIntegralFields(finalEvent);
         this.emitEvents([finalEvent], event.correlationId);
 
         return finalEvent;
@@ -422,7 +421,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param fields
      * @param correlationId
      */
-    addStaticFields(fields: StaticFields, correlationId: string): void {
+    addFields(fields: { [key: string]: {} | undefined; }, correlationId: string): void {
         this.logger.trace("PerformanceClient: Updating static fields");
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
@@ -440,18 +439,20 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Increment counters to be emitted when the measurements are flushed
-     * @param counters {Counters}
+     * @param fields {string[]}
      * @param correlationId {string} correlation identifier
      */
-    increment(counters: Counters, correlationId: string): void {
+    incrementFields(fields: { [key: string]: number | undefined; }, correlationId: string): void {
         this.logger.trace("PerformanceClient: Updating counters");
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
-            for (const counter in counters) {
+            for (const counter in fields) {
                 if (!event.hasOwnProperty(counter)) {
                     event[counter] = 0;
+                } else if (isNaN(Number(event[counter]))) {
+                    return;
                 }
-                event[counter] += counters[counter];
+                event[counter] += fields[counter];
             }
         } else {
             this.logger.trace(
@@ -470,7 +471,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @private
      * @param {PerformanceEvent} event
      */
-    private cacheEventByCorrelationId(event: PerformanceEvent) {
+    protected cacheEventByCorrelationId(event: PerformanceEvent): void {
         const rootEvent = this.eventsByCorrelationId.get(event.correlationId);
         if (rootEvent) {
             this.logger.trace(
@@ -622,10 +623,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {Set<string>} intFields integral fields.
      */
     private truncateIntegralFields(
-        event: PerformanceEvent,
-        intFields: ReadonlySet<string>
+        event: PerformanceEvent
     ): void {
-        intFields.forEach((key) => {
+        this.intFields.forEach((key) => {
             if (key in event && typeof event[key] === "number") {
                 event[key] = Math.floor(event[key]);
             }

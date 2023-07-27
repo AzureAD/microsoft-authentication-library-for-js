@@ -151,16 +151,16 @@ describe("PerformanceClient.spec.ts", () => {
             PerformanceEvents.AcquireTokenSilentAsync,
             correlationId
         );
-        subMeasurement.endMeasurement({
+        subMeasurement.end({
             success: true,
         });
 
-        topLevelEvent.endMeasurement({
+        topLevelEvent.end({
             success: true,
         });
     });
 
-    it("adds static fields", (done) => {
+    it("adds fields", (done) => {
         const mockPerfClient = new MockPerformanceClient();
 
         const correlationId = "test-correlation-id";
@@ -179,16 +179,16 @@ describe("PerformanceClient.spec.ts", () => {
             PerformanceEvents.AcquireTokenSilent,
             correlationId
         );
-        topLevelEvent.addStaticFields({
+        topLevelEvent.add({
             httpVerAuthority: authority,
             extensionId: extensionId,
         });
-        topLevelEvent.endMeasurement({
+        topLevelEvent.end({
             success: true,
         });
     });
 
-    it("increments counters", (done) => {
+    it("increments", (done) => {
         const mockPerfClient = new MockPerformanceClient();
 
         const correlationId = "test-correlation-id";
@@ -207,7 +207,7 @@ describe("PerformanceClient.spec.ts", () => {
         );
         topLevelEvent.increment({ visibilityChangeCount: 5 });
         topLevelEvent.increment({ visibilityChangeCount: 3 });
-        topLevelEvent.endMeasurement({
+        topLevelEvent.end({
             success: true,
         });
     });
@@ -241,16 +241,16 @@ describe("PerformanceClient.spec.ts", () => {
                 PerformanceEvents.AcquireTokenSilentAsync,
                 correlationId
             )
-            .endMeasurement({ status: PerformanceEventStatus.Completed });
+            .end({ status: PerformanceEventStatus.Completed });
         mockPerfClient
             .startMeasurement(
                 PerformanceEvents.SilentIframeClientAcquireToken,
                 correlationId
             )
-            .endMeasurement({ status: PerformanceEventStatus.Completed });
+            .end({ status: PerformanceEventStatus.Completed });
 
         // End top level event without ending submeasurement
-        topLevelEvent.endMeasurement({
+        topLevelEvent.end({
             success: true,
         });
     });
@@ -289,14 +289,14 @@ describe("PerformanceClient.spec.ts", () => {
                 PerformanceEvents.SilentIframeClientAcquireToken,
                 correlationId
             )
-            .endMeasurement({ status: PerformanceEventStatus.Completed });
+            .end({ status: PerformanceEventStatus.Completed });
         mockPerfClient.startMeasurement(
             PerformanceEvents.SilentCacheClientAcquireToken,
             correlationId
         );
 
         // End top level event without ending submeasurement
-        topLevelEvent.endMeasurement({
+        topLevelEvent.end({
             success: true,
         });
     });
@@ -327,7 +327,7 @@ describe("PerformanceClient.spec.ts", () => {
             PerformanceEvents.AcquireTokenSilentAsync,
             correlationId
         );
-        subMeasure1.endMeasurement({
+        subMeasure1.end({
             success: true,
         });
 
@@ -335,12 +335,12 @@ describe("PerformanceClient.spec.ts", () => {
             PerformanceEvents.AcquireTokenSilentAsync,
             correlationId
         );
-        subMeasure2.endMeasurement({
+        subMeasure2.end({
             success: true,
             durationMs: 1,
         });
 
-        topLevelEvent.endMeasurement({
+        topLevelEvent.end({
             success: true,
         });
     });
@@ -359,7 +359,7 @@ describe("PerformanceClient.spec.ts", () => {
             PerformanceEvents.AcquireTokenSilent,
             correlationId
         );
-        const result = measure.endMeasurement({
+        const result = measure.end({
             success: true,
         });
 
@@ -394,11 +394,11 @@ describe("PerformanceClient.spec.ts", () => {
             correlationId
         );
 
-        topLevelEvent2.endMeasurement({
+        topLevelEvent2.end({
             success: true,
             startTimeMs: topLevelEvent1.event.startTimeMs + 5,
         });
-        topLevelEvent1.endMeasurement({
+        topLevelEvent1.end({
             success: false,
         });
     });
@@ -431,12 +431,12 @@ describe("PerformanceClient.spec.ts", () => {
             PerformanceEvents.AcquireTokenSilent,
             correlationId
         );
-        topLevelEvent.addStaticFields({
+        topLevelEvent.add({
             accessTokenSize,
             refreshTokenSize,
             idTokenSize,
         });
-        topLevelEvent.endMeasurement({
+        topLevelEvent.end({
             success: true,
         });
     });
@@ -484,7 +484,7 @@ describe("PerformanceClient.spec.ts", () => {
             true
         );
 
-        topLevelEvent.endMeasurement({
+        topLevelEvent.end({
             success: true,
         });
     });

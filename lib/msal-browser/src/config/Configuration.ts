@@ -12,12 +12,15 @@ import {
     ProtocolMode,
     OIDCOptions,
     ServerResponseType,
+    Logger,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
-    ClientConfigurationError
+    ClientConfigurationError,
+    IPerformanceClient,
+    StubPerformanceClient
 } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import {
@@ -26,6 +29,7 @@ import {
 } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
+import { name, version } from "../packageMetadata";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -190,6 +194,8 @@ export type BrowserTelemetryOptions = {
      * - appVersion: Version of the application using MSAL
      */
     application?: ApplicationTelemetry;
+
+    client?: IPerformanceClient;
 };
 
 /**
@@ -251,8 +257,8 @@ export function buildConfiguration(
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
-        OIDCOptions: { 
-            serverResponseType: ServerResponseType.FRAGMENT, 
+        OIDCOptions: {
+            serverResponseType: ServerResponseType.FRAGMENT,
             defaultScopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
         },
         azureCloudOptions: {
@@ -323,10 +329,21 @@ export function buildConfiguration(
             appName: Constants.EMPTY_STRING,
             appVersion: Constants.EMPTY_STRING,
         },
+        client: new StubPerformanceClient(
+            DEFAULT_AUTH_OPTIONS.clientId,
+            DEFAULT_AUTH_OPTIONS.authority,
+            new Logger(DEFAULT_LOGGER_OPTIONS, name, version),
+            name,
+            version,
+            {
+                appName: Constants.EMPTY_STRING,
+                appVersion: Constants.EMPTY_STRING
+            }
+        )
     };
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
-    if(userInputAuth?.protocolMode !== ProtocolMode.OIDC && 
+    if(userInputAuth?.protocolMode !== ProtocolMode.OIDC &&
         userInputAuth?.OIDCOptions) {
             // Logger has not been created yet
             // eslint-disable-next-line no-console
@@ -342,14 +359,14 @@ export function buildConfiguration(
 
     const overlayedConfig: BrowserConfiguration = {
         auth: {
-            ...DEFAULT_AUTH_OPTIONS, 
-            ...userInputAuth, 
+            ...DEFAULT_AUTH_OPTIONS,
+            ...userInputAuth,
             OIDCOptions: { ...DEFAULT_AUTH_OPTIONS.OIDCOptions, ...userInputAuth?.OIDCOptions }
            },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
-    
+
     return overlayedConfig;
 }
