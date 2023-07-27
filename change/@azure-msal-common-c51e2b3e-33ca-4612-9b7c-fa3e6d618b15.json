@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Simplify account generation #6271",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
