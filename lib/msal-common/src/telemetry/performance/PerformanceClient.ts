@@ -322,7 +322,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     inProgressEvent.correlationId
                 );
             },
-            increment: (fields: { [key: string]: {} | undefined; }) => {
+            increment: (fields: { [key: string]: number | undefined; }) => {
                 return this.incrementFields(fields, inProgressEvent.correlationId);
             },
             measurement: performanceMeasurement,
