@@ -310,7 +310,7 @@ export class PopupClient extends StandardInteractionClient {
                 );
                 // end measurement for server call with native brokering enabled
                 if (fetchNativeAccountIdMeasurement) {
-                    fetchNativeAccountIdMeasurement.endMeasurement({
+                    fetchNativeAccountIdMeasurement.end({
                         success: true,
                         isNativeBroker: true,
                     });
@@ -420,7 +420,7 @@ export class PopupClient extends StandardInteractionClient {
             } catch {
                 if (validRequest.account?.homeAccountId && validRequest.postLogoutRedirectUri && authClient.authority.protocolMode === ProtocolMode.OIDC){
                     this.browserStorage.removeAccount(validRequest.account?.homeAccountId);
-                    
+
                     this.eventHandler.emitEvent(
                         EventType.LOGOUT_SUCCESS,
                         InteractionType.Popup,
@@ -872,7 +872,7 @@ export class PopupClient extends StandardInteractionClient {
         return `${BrowserConstants.POPUP_NAME_PREFIX}.${this.config.auth.clientId}.${homeAccountId}.${this.correlationId}`;
     }
 
-    /** 
+    /**
      * Extracts the server response from the popup window
      */
     extractServerResponseStringFromPopup(

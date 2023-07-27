@@ -49,6 +49,7 @@ import {
     AuthError,
     ProtocolMode,
     ServerResponseType,
+    ApplicationTelemetry
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -85,6 +86,7 @@ import {
     AuthorizationCodeRequest,
     BrowserConfigurationAuthError,
     EndSessionRequest,
+    version,
 } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
@@ -97,6 +99,8 @@ import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { UrlString } from "@azure/msal-common";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
+import { name } from "../../src/packageMetadata";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -105,6 +109,14 @@ const cacheConfig = {
     secureCookies: false,
     cacheMigrationEnabled: false,
     claimsBasedCachingEnabled: false,
+};
+
+const clientId = "test-client-id";
+const authority = "https://login.microsoftonline.com";
+const logger = new Logger({});
+const applicationTelemetry: ApplicationTelemetry = {
+    appName: "Test App",
+    appVersion: "1.0.0-test.0",
 };
 
 let testAppConfig = {
@@ -154,6 +166,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
             telemetry: {
+                client: new BrowserPerformanceClient(
+                    clientId,
+                    authority,
+                    logger,
+                    name,
+                    version,
+                    applicationTelemetry
+                ),
                 application: {
                     appName: TEST_CONFIG.applicationName,
                     appVersion: TEST_CONFIG.applicationVersion,
@@ -1008,6 +1028,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 system: {
                     allowNativeBroker: true,
                 },
+                telemetry: {
+                    client: new BrowserPerformanceClient(
+                        clientId,
+                        authority,
+                        logger,
+                        name,
+                        version,
+                        applicationTelemetry
+                    )
+                }
             });
 
             const callbackId = pca.addPerformanceCallback((events) => {

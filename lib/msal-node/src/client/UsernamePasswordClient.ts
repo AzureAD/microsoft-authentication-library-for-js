@@ -53,7 +53,7 @@ export class UsernamePasswordClient extends BaseClient {
         );
 
         const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
-        atsMeasurement?.addStaticFields({
+        atsMeasurement?.add({
             httpVerToken,
         });
 

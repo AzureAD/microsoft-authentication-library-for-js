@@ -93,7 +93,7 @@ describe("BrowserPerformanceClient.ts", () => {
                 correlationId
             );
 
-            const result = measurement.endMeasurement();
+            const result = measurement.end();
 
             expect(result?.durationMs).toBe(50);
         });
@@ -117,7 +117,7 @@ describe("BrowserPerformanceClient.ts", () => {
                 correlationId
             );
 
-            const result = measurement.endMeasurement();
+            const result = measurement.end();
 
             expect(result?.startPageVisibility).toBe("visible");
             expect(result?.endPageVisibility).toBe("visible");

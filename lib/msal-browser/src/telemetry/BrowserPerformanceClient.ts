@@ -32,7 +32,8 @@ export class BrowserPerformanceClient
         logger: Logger,
         libraryName: string,
         libraryVersion: string,
-        applicationTelemetry: ApplicationTelemetry
+        applicationTelemetry: ApplicationTelemetry,
+        intFields?: Set<string>
     ) {
         super(
             clientId,
@@ -40,7 +41,8 @@ export class BrowserPerformanceClient
             logger,
             libraryName,
             libraryVersion,
-            applicationTelemetry
+            applicationTelemetry,
+            intFields
         );
         this.browserCrypto = new BrowserCrypto(this.logger);
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
@@ -114,10 +116,10 @@ export class BrowserPerformanceClient
 
         return {
             ...inProgressEvent,
-            endMeasurement: (
+            end: (
                 event?: Partial<PerformanceEvent>
             ): PerformanceEvent | null => {
-                const res = inProgressEvent.endMeasurement({
+                const res = inProgressEvent.end({
                     startPageVisibility,
                     endPageVisibility: this.getPageVisibility(),
                     ...event,
@@ -126,8 +128,8 @@ export class BrowserPerformanceClient
 
                 return res;
             },
-            discardMeasurement: () => {
-                inProgressEvent.discardMeasurement();
+            discard: () => {
+                inProgressEvent.discard();
                 this.deleteIncompleteSubMeasurements(inProgressEvent);
                 inProgressEvent.measurement.flushMeasurement();
             },
