@@ -5410,6 +5410,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             cacheLookupPolicy: CacheLookupPolicy.AccessToken // Only perform cache lookup during validation
         }
         it("hydrates cache with the provided id and access tokens", async () => {
+            await pca.initialize();
             await pca.acquireTokenSilent(request).then(() => {
                 throw "This is unexpected. Cache should be empty to start";
             }).catch(e => {
