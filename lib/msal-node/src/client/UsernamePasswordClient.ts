@@ -11,7 +11,6 @@ import {
     ClientConfiguration,
     CommonUsernamePasswordRequest,
     GrantType,
-    HeaderNames,
     NetworkResponse,
     RequestParameterBuilder,
     RequestThumbprint,
@@ -39,11 +38,6 @@ export class UsernamePasswordClient extends BaseClient {
     async acquireToken(
         request: CommonUsernamePasswordRequest
     ): Promise<AuthenticationResult | null> {
-        const atsMeasurement = this.performanceClient?.startMeasurement(
-            // @ts-ignore
-            "UsernamePasswordClientAcquireToken",
-            request.correlationId
-        );
         this.logger.info("in acquireToken call in username-password client");
 
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -51,11 +45,6 @@ export class UsernamePasswordClient extends BaseClient {
             this.authority,
             request
         );
-
-        const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
-        atsMeasurement?.add({
-            httpVerToken,
-        });
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
