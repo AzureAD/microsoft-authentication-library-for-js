@@ -19,9 +19,11 @@ let accountId = "";
  */
 const myMSALObj = new msal.PublicClientApplication(msalConfig); 
 
-// Register Callbacks for Redirect flow
-myMSALObj.handleRedirectPromise().then(handleResponse).catch((error) => {
-    console.log(error);
+myMSALObj.initialize().then(() => {
+    // Register Callbacks for Redirect flow
+    myMSALObj.handleRedirectPromise().then(handleResponse).catch((error) => {
+        console.log(error);
+    });
 });
 
 function handleResponse(resp) {
