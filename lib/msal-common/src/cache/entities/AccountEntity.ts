@@ -194,6 +194,7 @@ export class AccountEntity {
         account.authorityType = accountInfo.authorityType || CacheAccountType.GENERIC_ACCOUNT_TYPE;
         account.homeAccountId = accountInfo.homeAccountId;
         account.localAccountId = accountInfo.localAccountId;
+        account.nativeAccountId = accountInfo.nativeAccountId;
         
         account.realm = accountInfo.tenantId;
         account.environment = accountInfo.environment;

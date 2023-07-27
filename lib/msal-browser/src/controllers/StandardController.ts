@@ -24,6 +24,7 @@ import {
     InProgressPerformanceEvent,
     RequestThumbprint,
     ServerError,
+    AccountEntity,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -1278,7 +1279,14 @@ export class StandardController implements IController {
         result: AuthenticationResult, 
         request: SilentRequest
     ): Promise<void> {
+        this.logger.verbose("hydrateCache called");
+
+        // Account gets saved to browser storage regardless of native or not
+        const accountEntity = AccountEntity.createFromAccountInfo(result.account, result.cloudGraphHostName, result.msGraphHost);
+        this.browserStorage.setAccount(accountEntity);
+
         if (result.fromNativeBroker) {
+            this.logger.verbose("Response was from native broker, storing in-memory")
             // Tokens from native broker are stored in-memory
             return this.nativeInternalStorage.hydrateCache(result, request);
         } else {

@@ -1893,8 +1893,6 @@ export class BrowserCacheManager extends CacheManager {
         result: AuthenticationResult, 
         request: SilentRequest): Promise<void> 
     {
-        const accountEntity = AccountEntity.createFromAccountInfo(result.account, result.cloudGraphHostName, result.msGraphHost);
-
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
             result.account?.homeAccountId,
             result.account?.environment,
@@ -1913,7 +1911,7 @@ export class BrowserCacheManager extends CacheManager {
             result.accessToken,
             this.clientId,
             result.tenantId,
-            result.scopes.join(", "),
+            result.scopes.join(" "),
             result.expiresOn?.getTime() || 0,
             result.extExpiresOn?.getTime() || 0,
             this.cryptoImpl,
@@ -1925,8 +1923,8 @@ export class BrowserCacheManager extends CacheManager {
             claimsHash
         );
 
-        const cacheRecord = new CacheRecord(accountEntity, idTokenEntity, accessTokenEntity);
-        this.saveCacheRecord(cacheRecord);
+        const cacheRecord = new CacheRecord(undefined, idTokenEntity, accessTokenEntity);
+        return this.saveCacheRecord(cacheRecord);
     }
 }
 
