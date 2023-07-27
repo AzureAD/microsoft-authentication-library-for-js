@@ -320,11 +320,8 @@ export class StandardController implements IController {
         hash?: string
     ): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
-        // Block token acquisition before initialize has been called if native brokering is enabled
-        BrowserUtils.blockNativeBrokerCalledBeforeInitialized(
-            this.config.system.allowNativeBroker,
-            this.initialized
-        );
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
 
         let foundServerResponse = hash;
 
@@ -1312,16 +1309,8 @@ export class StandardController implements IController {
         // Block redirectUri opened in a popup from calling MSAL APIs
         BrowserUtils.blockAcquireTokenInPopups();
 
-        /*
-         * Block token acquisition before initialize has been called if native brokering is enabled in top-frame.
-         * Skip check if application is embedded.
-         */
-        if (!isAppEmbedded) {
-            BrowserUtils.blockNativeBrokerCalledBeforeInitialized(
-                this.config.system.allowNativeBroker,
-                this.initialized
-            );
-        }
+        // Block token acquisition before initialize has been called
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
 
         // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
         if (

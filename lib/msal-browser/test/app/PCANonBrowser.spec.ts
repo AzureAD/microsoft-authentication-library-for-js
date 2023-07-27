@@ -136,24 +136,24 @@ describe("Non-browser environment", () => {
         });
     });
 
-    it("getAllAccounts returns empty array", () => {
+    it("getAllAccounts returns empty array", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
-
+        await instance.initialize();
         const accounts = instance.getAllAccounts();
         expect(accounts).toEqual([]);
     });
 
-    it("getAccountByUsername returns null", () => {
+    it("getAccountByUsername returns null", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
-
+        await instance.initialize();
         const account = instance.getAccountByUsername("example@test.com");
         expect(account).toEqual(null);
     });
@@ -167,10 +167,11 @@ describe("Non-browser environment", () => {
                 allowNativeBroker: false,
             },
         });
-
-        instance.handleRedirectPromise().then((result) => {
-            expect(result).toBeNull();
-            done();
+        instance.initialize().then(() => {
+            instance.handleRedirectPromise().then((result) => {
+                expect(result).toBeNull();
+                done();
+            });
         });
     });
 

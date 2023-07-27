@@ -1,11 +1,12 @@
 import * as puppeteer from "puppeteer";
-import { 
-    Screenshot, 
-    createFolder, 
-    setupCredentials, 
+import {
+    Screenshot,
+    createFolder,
+    setupCredentials,
     enterCredentials,
-    getBrowser, 
-    getHomeUrl
+    getBrowser,
+    getHomeUrl,
+    pcaInitializedPoller,
 } from "e2e-test-utils/src/TestUtils";
 import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
@@ -27,12 +28,17 @@ describe("Browser tests", function () {
 
         const labApiParams: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD
+            appType: AppTypes.CLOUD,
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParams
+        );
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
     });
 
     let context: puppeteer.BrowserContext;
@@ -43,6 +49,7 @@ describe("Browser tests", function () {
         page = await context.newPage();
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(sampleHomeUrl);
+        await pcaInitializedPoller(page, 5000);
     });
 
     afterEach(async () => {
@@ -56,7 +63,9 @@ describe("Browser tests", function () {
 
     it("Performs loginRedirect, acquires and validates PoP token", async () => {
         const testName = "redirectBaseCase";
-        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
         // Home Page
         await page.waitForSelector("#SignIn");
         await screenshot.takeScreenshot(page, "samplePageInit");
@@ -78,12 +87,20 @@ describe("Browser tests", function () {
         // One Bearer Token and one PoP token
         expect(tokenStore.accessTokens).toHaveLength(2);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        const cachedAccount = await BrowserCache.getAccountFromCache(tokenStore.idTokens[0]);
-        const defaultCachedToken = await BrowserCache.popAccessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"]);
+        const cachedAccount = await BrowserCache.getAccountFromCache(
+            tokenStore.idTokens[0]
+        );
+        const defaultCachedToken =
+            await BrowserCache.popAccessTokenForScopesExists(
+                tokenStore.accessTokens,
+                ["openid", "profile", "user.read"]
+            );
         expect(cachedAccount).toBeDefined();
         expect(defaultCachedToken).toBeTruthy();
         // Check pop token
-        const token: string = await page.evaluate(() => window.eval("popToken"));
+        const token: string = await page.evaluate(() =>
+            window.eval("popToken")
+        );
         const decodedToken: any = JWT.decode(token);
         const pubKey = decodedToken.cnf.jwk;
         const pubKeyJwk = JWK.asKey(pubKey);

@@ -146,16 +146,12 @@ export class BrowserUtils {
     }
 
     /**
-     * Throws error if native brokering is enabled but initialize hasn't been called
-     * @param allowNativeBroker
+     * Throws error if initialize hasn't been called
      * @param initialized
      */
-    static blockNativeBrokerCalledBeforeInitialized(
-        allowNativeBroker: boolean,
-        initialized: boolean
-    ): void {
-        if (allowNativeBroker && !initialized) {
-            throw BrowserAuthError.createNativeBrokerCalledBeforeInitialize();
+    static blockAPICallsBeforeInitialize(initialized: boolean): void {
+        if (!initialized) {
+            throw BrowserAuthError.createUninitializedPublicClientApplication();
         }
     }
 

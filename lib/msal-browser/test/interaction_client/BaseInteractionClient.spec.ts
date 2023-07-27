@@ -27,7 +27,7 @@ class testInteractionClient extends BaseInteractionClient {
 describe("BaseInteractionClient", () => {
     let pca: PublicClientApplication;
     let testClient: testInteractionClient;
-    beforeEach(() => {
+    beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -36,7 +36,7 @@ describe("BaseInteractionClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
-
+        await pca.initialize();
         // @ts-ignore
         testClient = new testInteractionClient(
             // @ts-ignore
@@ -62,7 +62,7 @@ describe("BaseInteractionClient", () => {
         let testAccountInfo1: AccountInfo;
         let testAccountInfo2: AccountInfo;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             const testIdTokenClaims: TokenClaims = {
                 ver: "2.0",
                 iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
@@ -147,7 +147,7 @@ describe("BaseInteractionClient", () => {
     describe("validateRequestAuthority()", () => {
         let testAccountInfo1: AccountInfo;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             const testIdTokenClaims: TokenClaims = {
                 ver: "2.0",
                 iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",

@@ -70,7 +70,7 @@ describe("PopupClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let popupClient: PopupClient;
     let pca: PublicClientApplication;
-    beforeEach(() => {
+    beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -79,6 +79,7 @@ describe("PopupClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
+        await pca.initialize();
 
         //@ts-ignore
         popupClient = new PopupClient(
