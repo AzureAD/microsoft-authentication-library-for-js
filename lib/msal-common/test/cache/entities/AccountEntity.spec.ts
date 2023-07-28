@@ -160,13 +160,14 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken
+            idToken.claims
         );
 
-        const acc = AccountEntity.createAccount(
-            homeAccountId,
-            idToken,
-            authority
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
+            authority,
         );
 
         expect(acc.generateAccountKey()).toEqual(
@@ -200,14 +201,15 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken
+            idToken.claims
         );
 
-        const acc = AccountEntity.createAccount(
+        const acc = AccountEntity.createAccount({
             homeAccountId,
-            idToken,
-            authority
-        );
+            idTokenClaims: idToken.claims,
+        },
+        authority,
+    );
 
         expect(acc.generateAccountKey()).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
@@ -241,14 +243,15 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken
+            idToken.claims
         );
 
-        const acc = AccountEntity.createAccount(
+        const acc = AccountEntity.createAccount({
             homeAccountId,
-            idToken,
-            authority
-        );
+            idTokenClaims: idToken.claims,
+        },
+        authority,
+    );
         expect(acc.generateAccountKey()).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
@@ -288,14 +291,15 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken
+            idToken.claims
         );
 
-        const acc = AccountEntity.createAccount(
+        const acc = AccountEntity.createAccount({
             homeAccountId,
-            idToken,
-            authority
-        );
+            idTokenClaims: idToken.claims,
+        },
+        authority,
+    );
 
         expect(acc.generateAccountKey()).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
@@ -338,10 +342,11 @@ describe("AccountEntity.ts Unit Tests", () => {
 
         const homeAccountId =
             "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
-        const acc = AccountEntity.createAccount(
-            homeAccountId,
-            idToken,
-            authority
+            const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
+            authority,
         );
 
         expect(acc.generateAccountKey()).toEqual(
@@ -392,14 +397,15 @@ describe("AccountEntity.ts Unit Tests", () => {
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
-                idToken
+                idToken.claims
             );
 
-            acc = AccountEntity.createAccount(
+            acc = AccountEntity.createAccount({
                 homeAccountId,
-                idToken,
-                authority
-            );
+                idTokenClaims: idToken.claims,
+            },
+            authority,
+        );
         });
 
         it("returns true if two account info objects have the same values", () => {
@@ -615,10 +621,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
 
         const homeAccountId =
             "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
-        const acc = AccountEntity.createAccount(
-            homeAccountId,
-            idToken,
-            authority
+            const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
+            authority,
         );
 
         expect(acc.generateAccountKey()).toEqual(
@@ -664,10 +671,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
 
         const homeAccountId =
             "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
-        const acc = AccountEntity.createAccount(
-            homeAccountId,
-            idToken,
-            authority
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
+            authority,
         );
 
         expect(acc.generateAccountKey()).toEqual(

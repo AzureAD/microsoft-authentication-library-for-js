@@ -355,14 +355,13 @@ describe("BrowserCacheManager tests", () => {
                 logger
             );
             // Pre-populate localstorage with accounts
-            const testAccount = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto),
+            const testAccount = AccountEntity.createAccount({
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    idTokenClaims: new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto).claims,
+                    clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    environment: "environment"
+                },
                 authority,
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                undefined,
-                undefined,
-                "environment"
             );
             window.localStorage.setItem(
                 testAccount.generateAccountKey(),
@@ -556,14 +555,13 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccount returns AccountEntity", () => {
-                    const testAccount = AccountEntity.createAccount(
-                        "homeAccountId",
-                        new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto),
-                        authority,
-                        TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                        "oboAssertion",
-                        "cloudGraphHost",
-                        "msGraphHost"
+                    const testAccount = AccountEntity.createAccount({
+                            homeAccountId: "homeAccountId",
+                            idTokenClaims: new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto).claims,
+                            clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                            cloudGraphHostName: "cloudGraphHost",
+                            msGraphHost: "msGraphHost"
+                        }, authority,
                     );
 
                     browserLocalStorage.setAccount(testAccount);
@@ -1538,14 +1536,13 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccount returns AccountEntity", () => {
-                    const testAccount = AccountEntity.createAccount(
-                        "homeAccountId",
-                        new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto),
-                        authority,
-                        TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                        "oboAssertion",
-                        "cloudGraphHost",
-                        "msGraphHost"
+                    const testAccount = AccountEntity.createAccount({
+                            homeAccountId: "homeAccountId",
+                            idTokenClaims: new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto).claims,
+                            clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                            cloudGraphHostName: "cloudGraphHost",
+                            msGraphHost: "msGraphHost"
+                        }, authority,
                     );
 
                     browserLocalStorage.setAccount(testAccount);

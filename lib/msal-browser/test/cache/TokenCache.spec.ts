@@ -116,7 +116,7 @@ describe("TokenCache tests", () => {
                 AuthorityType.Default,
                 logger,
                 cryptoObj,
-                testIdAuthToken
+                testIdAuthToken.claims
             );
 
             idTokenEntity = IdTokenEntity.createIdTokenEntity(

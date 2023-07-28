@@ -9,7 +9,6 @@ import {
     Constants,
 } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
-import { AuthToken } from "../../account/AuthToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
@@ -112,21 +111,17 @@ export class AccountEntity {
 
     /**
      * Build Account cache from IdToken, clientInfo and authority/policy. Associated with AAD.
-     * @param clientInfo
-     * @param authority
-     * @param idToken
-     * @param policy
+     * @param accountDetails
      */
-    static createAccount(
+    static createAccount(accountDetails: {
         homeAccountId: string,
-        idToken: AuthToken,
-        authority: Authority,
+        idTokenClaims: TokenClaims,
         clientInfo?: string,
         cloudGraphHostName?: string,
         msGraphHost?: string,
         environment?: string,
         nativeAccountId?: string
-    ): AccountEntity {
+    }, authority: Authority): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         if (authority.authorityType === AuthorityType.Adfs) {
@@ -137,11 +132,11 @@ export class AccountEntity {
             account.authorityType = CacheAccountType.GENERIC_ACCOUNT_TYPE;
         }
 
-        account.clientInfo = clientInfo;
-        account.homeAccountId = homeAccountId;
-        account.nativeAccountId = nativeAccountId;
+        account.clientInfo = accountDetails.clientInfo;
+        account.homeAccountId = accountDetails.homeAccountId;
+        account.nativeAccountId = accountDetails.nativeAccountId;
 
-        const env = environment || (authority && authority.getPreferredCache());
+        const env = accountDetails.environment || (authority && authority.getPreferredCache());
 
         if (!env) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -149,34 +144,32 @@ export class AccountEntity {
 
         account.environment = env;
         // non AAD scenarios can have empty realm
-        account.realm = idToken?.claims?.tid || Constants.EMPTY_STRING;
+        account.realm = accountDetails.idTokenClaims.tid || Constants.EMPTY_STRING;
 
-        if (idToken) {
-            account.idTokenClaims = idToken.claims;
+        account.idTokenClaims = accountDetails.idTokenClaims;
 
-            // How do you account for MSA CID here?
-            account.localAccountId =
-                idToken?.claims?.oid ||
-                idToken?.claims?.sub ||
-                Constants.EMPTY_STRING;
+        // How do you account for MSA CID here?
+        account.localAccountId =
+            accountDetails.idTokenClaims.oid ||
+            accountDetails.idTokenClaims.sub ||
+            Constants.EMPTY_STRING;
 
-            /*
-             * In B2C scenarios the emails claim is used instead of preferred_username and it is an array.
-             * In most cases it will contain a single email. This field should not be relied upon if a custom
-             * policy is configured to return more than 1 email.
-             */
-            const preferredUsername = idToken?.claims?.preferred_username || idToken?.claims?.upn;
-            const email = idToken?.claims?.emails
-                ? idToken.claims.emails[0]
-                : null;
+        /*
+            * In B2C scenarios the emails claim is used instead of preferred_username and it is an array.
+            * In most cases it will contain a single email. This field should not be relied upon if a custom
+            * policy is configured to return more than 1 email.
+            */
+        const preferredUsername = accountDetails.idTokenClaims.preferred_username || accountDetails.idTokenClaims.upn;
+        const email = accountDetails.idTokenClaims.emails
+            ? accountDetails.idTokenClaims.emails[0]
+            : null;
 
-            account.username =
-                preferredUsername || email || Constants.EMPTY_STRING;
-            account.name = idToken?.claims?.name;
-        }
+        account.username =
+            preferredUsername || email || Constants.EMPTY_STRING;
+        account.name = accountDetails.idTokenClaims.name;
 
-        account.cloudGraphHostName = cloudGraphHostName;
-        account.msGraphHost = msGraphHost;
+        account.cloudGraphHostName = accountDetails.cloudGraphHostName;
+        account.msGraphHost = accountDetails.msGraphHost;
 
         return account;
     }
@@ -219,10 +212,10 @@ export class AccountEntity {
         authType: AuthorityType,
         logger: Logger,
         cryptoObj: ICrypto,
-        idToken?: AuthToken
+        idTokenClaims?: TokenClaims
     ): string {
-        const accountId = idToken?.claims?.sub
-            ? idToken.claims.sub
+        const accountId = idTokenClaims?.sub
+            ? idTokenClaims.sub
             : Constants.EMPTY_STRING;
 
         // since ADFS does not have tid and does not set client_info

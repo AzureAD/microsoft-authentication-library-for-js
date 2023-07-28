@@ -238,7 +238,7 @@ export class TokenCache implements ITokenCache {
                 authority.authorityType,
                 this.logger,
                 this.cryptoObj,
-                idToken
+                idToken.claims
             );
         }
 
@@ -248,15 +248,14 @@ export class TokenCache implements ITokenCache {
             );
         }
 
-        const accountEntity = AccountEntity.createAccount(
-                  homeAccountId,
-                  idToken,
-                  authority,
-                  clientInfo,
-                  undefined,
-                  undefined,
-                  authority.hostnameAndPort
-              );
+        const accountEntity = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+                clientInfo,
+                environment: authority.hostnameAndPort
+            },
+            authority,
+        );
 
         if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading account");

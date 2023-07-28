@@ -385,15 +385,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             idTokenObj
         );
-        const accountEntity = AccountEntity.createAccount(
-            homeAccountIdentifier,
-            idTokenObj,
+        const accountEntity = AccountEntity.createAccount({
+                homeAccountId: homeAccountIdentifier,
+                idTokenClaims: idTokenObj.claims,
+                clientInfo: response.client_info,
+                nativeAccountId: response.account.id
+            }, 
             authority,
-            response.client_info,
-            undefined,
-            undefined,
-            undefined,
-            response.account.id
         );
 
         // generate authenticationResult
@@ -449,7 +447,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             AuthorityType.Default,
             this.logger,
             this.browserCrypto,
-            idTokenObj
+            idTokenObj.claims
         );
 
         return homeAccountIdentifier;
