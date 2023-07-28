@@ -28,20 +28,21 @@ export class BrowserPerformanceClient
     private browserCrypto: BrowserCrypto;
     private guidGenerator: GuidGenerator;
 
-    constructor(
-        configuration: Configuration,
-        intFields?: Set<string>
-    ) {
+    constructor(configuration: Configuration, intFields?: Set<string>) {
         super(
             configuration.auth.clientId,
             configuration.auth.authority || `${Constants.DEFAULT_AUTHORITY}`,
             new Logger(
                 configuration.system?.loggerOptions || {},
                 name,
-                version),
+                version
+            ),
             name,
             version,
-            configuration.telemetry?.application || { appName: '', appVersion: '' },
+            configuration.telemetry?.application || {
+                appName: "",
+                appVersion: "",
+            },
             intFields
         );
         this.browserCrypto = new BrowserCrypto(this.logger);
