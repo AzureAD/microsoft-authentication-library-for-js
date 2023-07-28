@@ -85,6 +85,7 @@ import {
     AuthorizationCodeRequest,
     BrowserConfigurationAuthError,
     EndSessionRequest,
+    version,
 } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
@@ -96,7 +97,7 @@ import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import { UrlString } from "@azure/msal-common";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -154,6 +155,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
             telemetry: {
+                client: new BrowserPerformanceClient(testAppConfig),
                 application: {
                     appName: TEST_CONFIG.applicationName,
                     appVersion: TEST_CONFIG.applicationVersion,
@@ -1008,6 +1010,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 system: {
                     allowNativeBroker: true,
                 },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                }
             });
 
             const callbackId = pca.addPerformanceCallback((events) => {

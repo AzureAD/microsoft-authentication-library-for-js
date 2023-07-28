@@ -390,14 +390,14 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.correlationId
         )
             .then((result: Authority) => {
-                getAuthorityMeasurement.endMeasurement({
+                getAuthorityMeasurement.end({
                     success: true,
                 });
 
                 return result;
             })
             .catch((error: AuthError) => {
-                getAuthorityMeasurement.endMeasurement({
+                getAuthorityMeasurement.end({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
                     success: false,

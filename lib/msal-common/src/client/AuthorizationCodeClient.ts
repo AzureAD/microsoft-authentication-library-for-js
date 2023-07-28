@@ -69,8 +69,8 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(
         request: CommonAuthorizationUrlRequest
-    ): 
-        
+    ):
+
         Promise<string> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.GetAuthCodeUrl,
@@ -129,7 +129,7 @@ export class AuthorizationCodeClient extends BaseClient {
         const httpVerAuthority =
             response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         if (httpVerAuthority) {
-            atsMeasurement?.addStaticFields({
+            atsMeasurement?.add({
                 httpVerAuthority,
             });
         }
@@ -163,7 +163,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 requestId
             )
             .then((result: AuthenticationResult) => {
-                atsMeasurement?.endMeasurement({
+                atsMeasurement?.end({
                     success: true,
                 });
                 return result;
@@ -173,7 +173,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     "Error in fetching token in ACC",
                     request.correlationId
                 );
-                atsMeasurement?.endMeasurement({
+                atsMeasurement?.end({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
                     success: false,
