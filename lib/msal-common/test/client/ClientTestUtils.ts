@@ -22,7 +22,7 @@ import {
     Logger,
     LogLevel,
     TokenKeys,
-    ServerTelemetryManager
+    ServerTelemetryManager,
 } from "../../src";
 import {
     AUTHENTICATION_RESULT,
@@ -251,7 +251,7 @@ export const mockCrypto = {
 
 export class ClientTestUtils {
     static async createTestClientConfiguration(
-        telem: boolean = false, 
+        telem: boolean = false,
         protocolMode: ProtocolMode = ProtocolMode.AAD
     ): Promise<ClientConfiguration> {
         const mockStorage = new MockStorageClass(
@@ -342,7 +342,7 @@ export class ClientTestUtils {
                     appVersion: TEST_CONFIG.applicationVersion,
                 },
             },
-            serverTelemetryManager: serverTelemetryManager
+            serverTelemetryManager: serverTelemetryManager,
         };
     }
 }
