@@ -11,13 +11,15 @@ import {
     PerformanceClient,
     IPerformanceMeasurement,
     InProgressPerformanceEvent,
-    ApplicationTelemetry,
     SubMeasurement,
     PreQueueEvent,
+    Constants,
 } from "@azure/msal-common";
 import { BrowserCrypto } from "../crypto/BrowserCrypto";
 import { GuidGenerator } from "../crypto/GuidGenerator";
 import { BrowserPerformanceMeasurement } from "./BrowserPerformanceMeasurement";
+import { Configuration } from "../config/Configuration";
+import { name, version } from "../packageMetadata";
 
 export class BrowserPerformanceClient
     extends PerformanceClient
@@ -27,20 +29,25 @@ export class BrowserPerformanceClient
     private guidGenerator: GuidGenerator;
 
     constructor(
-        clientId: string,
-        authority: string,
-        logger: Logger,
-        libraryName: string,
-        libraryVersion: string,
-        applicationTelemetry: ApplicationTelemetry
+        configuration: Configuration,
+        logger?: Logger,
+        libraryName?: string,
+        libraryVersion?: string,
+        intFields?: Set<string>
     ) {
+        const libName = libraryName || name;
+        const libVersion = libraryVersion || version;
         super(
-            clientId,
-            authority,
-            logger,
-            libraryName,
-            libraryVersion,
-            applicationTelemetry
+            configuration.auth.clientId,
+            configuration.auth.authority || `${Constants.DEFAULT_AUTHORITY}`,
+            logger || new Logger(
+                configuration.system?.loggerOptions || {},
+                libName,
+                libVersion),
+            libName,
+            libVersion,
+            configuration.telemetry?.application || { appName: '', appVersion: '' },
+            intFields
         );
         this.browserCrypto = new BrowserCrypto(this.logger);
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
@@ -114,10 +121,10 @@ export class BrowserPerformanceClient
 
         return {
             ...inProgressEvent,
-            endMeasurement: (
+            end: (
                 event?: Partial<PerformanceEvent>
             ): PerformanceEvent | null => {
-                const res = inProgressEvent.endMeasurement({
+                const res = inProgressEvent.end({
                     startPageVisibility,
                     endPageVisibility: this.getPageVisibility(),
                     ...event,
@@ -126,8 +133,8 @@ export class BrowserPerformanceClient
 
                 return res;
             },
-            discardMeasurement: () => {
-                inProgressEvent.discardMeasurement();
+            discard: () => {
+                inProgressEvent.discard();
                 this.deleteIncompleteSubMeasurements(inProgressEvent);
                 inProgressEvent.measurement.flushMeasurement();
             },

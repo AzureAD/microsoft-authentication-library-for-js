@@ -50,7 +50,7 @@ export class SilentCacheClient extends StandardInteractionClient {
                 silentRequest
             )) as AuthenticationResult;
 
-            acquireTokenMeasurement.endMeasurement({
+            acquireTokenMeasurement.end({
                 success: true,
                 fromCache: true,
             });
@@ -65,7 +65,7 @@ export class SilentCacheClient extends StandardInteractionClient {
                     "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair."
                 );
             }
-            acquireTokenMeasurement.endMeasurement({
+            acquireTokenMeasurement.end({
                 errorCode:
                     (error instanceof AuthError && error.errorCode) ||
                     undefined,

@@ -145,7 +145,7 @@ export class CryptoOps implements ICrypto {
         });
 
         if (publicKeyThumbMeasurement) {
-            publicKeyThumbMeasurement.endMeasurement({
+            publicKeyThumbMeasurement.end({
                 success: true,
             });
         }
@@ -233,7 +233,7 @@ export class CryptoOps implements ICrypto {
         const signedJwt = `${tokenString}.${encodedSignature}`;
 
         if (signJwtMeasurement) {
-            signJwtMeasurement.endMeasurement({
+            signJwtMeasurement.end({
                 success: true,
             });
         }

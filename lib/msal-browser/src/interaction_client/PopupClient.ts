@@ -310,7 +310,7 @@ export class PopupClient extends StandardInteractionClient {
                 );
                 // end measurement for server call with native brokering enabled
                 if (fetchNativeAccountIdMeasurement) {
-                    fetchNativeAccountIdMeasurement.endMeasurement({
+                    fetchNativeAccountIdMeasurement.end({
                         success: true,
                         isNativeBroker: true,
                     });

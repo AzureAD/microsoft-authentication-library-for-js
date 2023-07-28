@@ -6,6 +6,7 @@
 import { IPerformanceClient } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceClient } from "./PerformanceClient";
+import { PerformanceEvent } from "./PerformanceEvent";
 
 export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     startMeasurement(): void {
@@ -18,6 +19,8 @@ export class StubPerformanceMeasurement implements IPerformanceMeasurement {
         return null;
     }
 }
+
+const stubPerformanceMeasurement = new StubPerformanceMeasurement();
 
 export class StubPerformanceClient
     extends PerformanceClient
@@ -41,5 +44,37 @@ export class StubPerformanceClient
 
     setPreQueueTime(): void {
         return;
+    }
+  
+    endMeasurement(): PerformanceEvent | null { 
+      return null; 
+    }
+  
+    discardMeasurements(): void { 
+      return; 
+    }
+  
+    removePerformanceCallback(): boolean { 
+      return true; 
+    }
+  
+    addPerformanceCallback(): string { 
+      return ''; 
+    }
+  
+    emitEvents(): void { 
+      return; 
+    }
+  
+    addFields(): void { 
+      return; 
+    }
+  
+    incrementFields(): void { 
+      return;
+    }
+  
+    cacheEventByCorrelationId(): void { 
+      return; 
     }
 }

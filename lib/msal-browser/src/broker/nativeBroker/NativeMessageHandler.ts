@@ -149,7 +149,7 @@ export class NativeMessageHandler {
                 method: NativeExtensionMethod.HandshakeRequest,
             },
         };
-        this.handshakeEvent.addStaticFields({
+        this.handshakeEvent.add({
             extensionId: this.extensionId,
             extensionHandshakeTimeoutMs: this.handshakeTimeoutMs,
         });
@@ -174,7 +174,7 @@ export class NativeMessageHandler {
                 );
                 this.messageChannel.port1.close();
                 this.messageChannel.port2.close();
-                this.handshakeEvent.endMeasurement({
+                this.handshakeEvent.end({
                     extensionHandshakeTimedOut: true,
                     success: false,
                 });
@@ -233,7 +233,7 @@ export class NativeMessageHandler {
             this.messageChannel.port1.close();
             this.messageChannel.port2.close();
             window.removeEventListener("message", this.windowListener, false);
-            this.handshakeEvent.endMeasurement({
+            this.handshakeEvent.end({
                 success: false,
                 extensionInstalled: false,
             });
@@ -319,7 +319,7 @@ export class NativeMessageHandler {
                 this.logger.verbose(
                     `NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`
                 );
-                this.handshakeEvent.endMeasurement({
+                this.handshakeEvent.end({
                     extensionInstalled: true,
                     success: true,
                 });

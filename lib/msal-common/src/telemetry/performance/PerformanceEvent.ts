@@ -256,6 +256,8 @@ export const PerformanceEvents = {
     UsernamePasswordClientAcquireToken: "usernamePasswordClientAcquireToken",
 
     NativeMessageHandlerHandshake: "nativeMessageHandlerHandshake",
+
+    NativeGenerateAuthResult: "nativeGenerateAuthResult"
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -274,108 +276,8 @@ export const PerformanceEventStatus = {
 export type PerformanceEventStatus =
     (typeof PerformanceEventStatus)[keyof typeof PerformanceEventStatus];
 
-/**
- * Fields whose value will not change throughout a request
- */
-export type StaticFields = {
-    /**
-     * The Silent Token Cache Lookup Policy
-     *
-     * @type {?(number | undefined)}
-     */
-    cacheLookupPolicy?: number | undefined;
-
-    /**
-     * Size of the id token
-     *
-     * @type {number}
-     */
-    idTokenSize?: number;
-
-    /**
-     *
-     * Size of the access token
-     *
-     * @type {number}
-     */
-
-    accessTokenSize?: number;
-
-    /**
-     *
-     * Size of the refresh token
-     *
-     * @type {number}
-     */
-
-    refreshTokenSize?: number | undefined;
-
-    /**
-     * Application name as specified by the app.
-     *
-     * @type {?string}
-     */
-    appName?: string;
-
-    /**
-     * Application version as specified by the app.
-     *
-     * @type {?string}
-     */
-    appVersion?: string;
-
-    /**
-     * The following are fields that may be emitted in native broker scenarios
-     */
-    extensionId?: string;
-    extensionVersion?: string;
-    matsBrokerVersion?: string;
-    matsAccountJoinOnStart?: string;
-    matsAccountJoinOnEnd?: string;
-    matsDeviceJoin?: string;
-    matsPromptBehavior?: string;
-    matsApiErrorCode?: number;
-    matsUiVisible?: boolean;
-    matsSilentCode?: number;
-    matsSilentBiSubCode?: number;
-    matsSilentMessage?: string;
-    matsSilentStatus?: number;
-    matsHttpStatus?: number;
-    matsHttpEventCount?: number;
-    httpVerToken?: string;
-    httpVerAuthority?: string;
-
-    /**
-     * Native broker fields
-     */
-    allowNativeBroker?: boolean;
-    extensionInstalled?: boolean;
-    extensionHandshakeTimeoutMs?: number;
-    extensionHandshakeTimedOut?: boolean;
-};
-
-/**
- * Fields whose value may change throughout a request
- */
-export type Counters = {
-    visibilityChangeCount?: number;
-    incompleteSubsCount?: number;
-    /**
-     * Amount of times queued in the JS event queue.
-     *
-     * @type {?number}
-     */
-    queuedCount?: number;
-    /**
-     * Amount of manually completed queue events.
-     *
-     * @type {?number}
-     */
-    queuedManuallyCompletedCount?: number;
-};
-
 export type SubMeasurement = {
-    name: PerformanceEvents;
+    name: string;
     startTimeMs: number;
 };
 
@@ -385,8 +287,7 @@ export type SubMeasurement = {
  * @export
  * @typedef {PerformanceEvent}
  */
-export type PerformanceEvent = StaticFields &
-    Counters & {
+export type PerformanceEvent = {
         /**
          * Unique id for the event
          *
@@ -448,9 +349,9 @@ export type PerformanceEvent = StaticFields &
         /**
          * Event name (usually in the form of classNameFunctionName)
          *
-         * @type {PerformanceEvents}
+         * @type {string}
          */
-        name: PerformanceEvents;
+        name: string;
 
         /**
          * Visibility of the page when the event completed.
@@ -534,6 +435,89 @@ export type PerformanceEvent = StaticFields &
          * Sub-measurements for internal use. To be deleted before flushing.
          */
         incompleteSubMeasurements?: Map<string, SubMeasurement>;
+
+        visibilityChangeCount?: number;
+        incompleteSubsCount?: number;
+        /**
+         * Amount of times queued in the JS event queue.
+         *
+         * @type {?number}
+         */
+        queuedCount?: number;
+        /**
+         * Amount of manually completed queue events.
+         *
+         * @type {?number}
+         */
+        queuedManuallyCompletedCount?: number;
+
+        /**
+         * Size of the id token
+         *
+         * @type {number}
+         */
+        idTokenSize?: number;
+
+        /**
+         *
+         * Size of the access token
+         *
+         * @type {number}
+         */
+
+        accessTokenSize?: number;
+
+        /**
+         *
+         * Size of the refresh token
+         *
+         * @type {number}
+         */
+
+        refreshTokenSize?: number | undefined;
+
+        /**
+         * Application name as specified by the app.
+         *
+         * @type {?string}
+         */
+        appName?: string;
+
+        /**
+         * Application version as specified by the app.
+         *
+         * @type {?string}
+         */
+        appVersion?: string;
+
+        /**
+         * The following are fields that may be emitted in native broker scenarios
+         */
+        extensionId?: string;
+        extensionVersion?: string;
+        matsBrokerVersion?: string;
+        matsAccountJoinOnStart?: string;
+        matsAccountJoinOnEnd?: string;
+        matsDeviceJoin?: string;
+        matsPromptBehavior?: string;
+        matsApiErrorCode?: number;
+        matsUiVisible?: boolean;
+        matsSilentCode?: number;
+        matsSilentBiSubCode?: number;
+        matsSilentMessage?: string;
+        matsSilentStatus?: number;
+        matsHttpStatus?: number;
+        matsHttpEventCount?: number;
+        httpVerToken?: string;
+        httpVerAuthority?: string;
+
+        /**
+         * Native broker fields
+         */
+        allowNativeBroker?: boolean;
+        extensionInstalled?: boolean;
+        extensionHandshakeTimeoutMs?: number;
+        extensionHandshakeTimedOut?: boolean;
     };
 
 export const IntFields: ReadonlySet<string> = new Set([
