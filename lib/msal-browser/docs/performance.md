@@ -5,10 +5,39 @@ Please refer to [msal-common/performance](../../msal-common/docs/performance.md)
 ## Measuring performance
 
 Applications that want to measure the performance of authentication flows in MSAL.js can do so manually, or consume the performance measures taken by the library itself.
+Consuming performance measurements requires setting performance client in [telemetry configuration options](./configuration.md#telemetry-config-options) and adding performance callback.
 
-### addPerformanceCallback
+### Set telemetry performance client
 
-Since version `@azure/msal-browser@2.23.0`, applications can register a callback to receive performance measurements taken by the library. These measurement will include end-to-end measurements for top-level APIs, as well as measurements for important internal APIs.
+```javascript
+import { PublicClientApplication } from "@azure/msal-browser";
+
+const msalConfig = {
+    auth: {
+        ...
+    },
+    cache: {
+        ...
+    },
+    system: {
+        ...
+    }
+}
+
+const msalInstance = new PublicClientApplication({
+    ...msalConfig,
+    telemetry: {
+        client: new BrowserPerformanceClient(msalConfig)
+    }
+});
+msalInstance.initialize();
+```
+
+**Note**: You can pass your own performance telemetry client that implements [IPerformanceClient](../../msal-common/src/telemetry/performance/IPerformanceClient.ts) to customize telemetry management.
+
+### Add performance callback
+
+Applications can register a callback to receive performance measurements taken by the library. These measurement will include end-to-end measurements for top-level APIs, as well as measurements for important internal APIs.
 
 **Note for MSFT first-party applications**: We will be publishing an internal build of `@azure/msal-browser` that is already instrumented to capture this telemetry. Contact us for more details.
 
