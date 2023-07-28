@@ -113,7 +113,7 @@ describe("SilentFlowClient unit tests", () => {
         localAccountId: ID_TOKEN_CLAIMS.oid,
         idTokenClaims: ID_TOKEN_CLAIMS,
         name: ID_TOKEN_CLAIMS.name,
-        nativeAccountId: undefined
+        nativeAccountId: undefined,
     };
 
     afterEach(() => {
@@ -774,7 +774,7 @@ describe("SilentFlowClient unit tests", () => {
             name: ID_TOKEN_CLAIMS.name,
             localAccountId: ID_TOKEN_CLAIMS.oid,
             idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined
+            nativeAccountId: undefined,
         };
 
         let extractTokenClaims: SinonStub;

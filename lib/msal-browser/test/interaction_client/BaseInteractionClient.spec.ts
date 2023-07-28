@@ -155,10 +155,14 @@ describe("BaseInteractionClient", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows-ppe.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com"
+                username: "AbeLi@microsoft.com",
             };
 
-            await testClient.validateRequestAuthority("https://login.microsoftonline.com/common", testAccount)
+            await testClient
+                .validateRequestAuthority(
+                    "https://login.microsoftonline.com/common",
+                    testAccount
+                )
                 .then(() => {
                     throw "This is unexpected. This call should have failed.";
                 })
@@ -175,11 +179,15 @@ describe("BaseInteractionClient", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com"
+                username: "AbeLi@microsoft.com",
             };
 
-            testClient.validateRequestAuthority("https://login.microsoftonline.com/common", testAccount)
-                .then(() => { 
+            testClient
+                .validateRequestAuthority(
+                    "https://login.microsoftonline.com/common",
+                    testAccount
+                )
+                .then(() => {
                     done();
                 })
                 .catch((error) => {

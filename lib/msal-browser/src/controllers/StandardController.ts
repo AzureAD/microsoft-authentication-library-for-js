@@ -1264,22 +1264,28 @@ export class StandardController implements IController {
 
     /**
      * Hydrates the cache with the tokens from an AuthenticationResult
-     * @param result 
+     * @param result
      * @param request
-     * @returns 
+     * @returns
      */
     async hydrateCache(
-        result: AuthenticationResult, 
+        result: AuthenticationResult,
         request: SilentRequest
     ): Promise<void> {
         this.logger.verbose("hydrateCache called");
 
         // Account gets saved to browser storage regardless of native or not
-        const accountEntity = AccountEntity.createFromAccountInfo(result.account, result.cloudGraphHostName, result.msGraphHost);
+        const accountEntity = AccountEntity.createFromAccountInfo(
+            result.account,
+            result.cloudGraphHostName,
+            result.msGraphHost
+        );
         this.browserStorage.setAccount(accountEntity);
 
         if (result.fromNativeBroker) {
-            this.logger.verbose("Response was from native broker, storing in-memory")
+            this.logger.verbose(
+                "Response was from native broker, storing in-memory"
+            );
             // Tokens from native broker are stored in-memory
             return this.nativeInternalStorage.hydrateCache(result, request);
         } else {

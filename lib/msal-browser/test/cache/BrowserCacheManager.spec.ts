@@ -355,13 +355,17 @@ describe("BrowserCacheManager tests", () => {
                 logger
             );
             // Pre-populate localstorage with accounts
-            const testAccount = AccountEntity.createAccount({
+            const testAccount = AccountEntity.createAccount(
+                {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                    idTokenClaims: new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto).claims,
+                    idTokenClaims: new IdToken(
+                        TEST_TOKENS.IDTOKEN_V2,
+                        browserCrypto
+                    ).claims,
                     clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                    environment: "environment"
+                    environment: "environment",
                 },
-                authority,
+                authority
             );
             window.localStorage.setItem(
                 testAccount.generateAccountKey(),
@@ -555,13 +559,19 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccount returns AccountEntity", () => {
-                    const testAccount = AccountEntity.createAccount({
+                    const testAccount = AccountEntity.createAccount(
+                        {
                             homeAccountId: "homeAccountId",
-                            idTokenClaims: new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto).claims,
-                            clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                            idTokenClaims: new IdToken(
+                                TEST_TOKENS.IDTOKEN_V2,
+                                browserCrypto
+                            ).claims,
+                            clientInfo:
+                                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                             cloudGraphHostName: "cloudGraphHost",
-                            msGraphHost: "msGraphHost"
-                        }, authority,
+                            msGraphHost: "msGraphHost",
+                        },
+                        authority
                     );
 
                     browserLocalStorage.setAccount(testAccount);
@@ -1536,13 +1546,19 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccount returns AccountEntity", () => {
-                    const testAccount = AccountEntity.createAccount({
+                    const testAccount = AccountEntity.createAccount(
+                        {
                             homeAccountId: "homeAccountId",
-                            idTokenClaims: new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto).claims,
-                            clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                            idTokenClaims: new IdToken(
+                                TEST_TOKENS.IDTOKEN_V2,
+                                browserCrypto
+                            ).claims,
+                            clientInfo:
+                                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                             cloudGraphHostName: "cloudGraphHost",
-                            msGraphHost: "msGraphHost"
-                        }, authority,
+                            msGraphHost: "msGraphHost",
+                        },
+                        authority
                     );
 
                     browserLocalStorage.setAccount(testAccount);
@@ -3163,7 +3179,7 @@ describe("BrowserCacheManager tests", () => {
                 tenantId: accountEntity1.realm,
                 name: accountEntity1.name,
                 idTokenClaims: accountEntity1.idTokenClaims,
-                nativeAccountId: undefined
+                nativeAccountId: undefined,
             };
 
             const account2: AccountInfo = {
@@ -3175,7 +3191,7 @@ describe("BrowserCacheManager tests", () => {
                 tenantId: accountEntity2.realm,
                 name: accountEntity2.name,
                 idTokenClaims: accountEntity2.idTokenClaims,
-                nativeAccountId: undefined
+                nativeAccountId: undefined,
             };
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
             const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
@@ -3373,7 +3389,7 @@ describe("BrowserCacheManager tests", () => {
                 tenantId: accountEntity1.realm,
                 name: accountEntity1.name,
                 idTokenClaims: accountEntity1.idTokenClaims,
-                nativeAccountId: undefined
+                nativeAccountId: undefined,
             };
 
             const account2: AccountInfo = {
@@ -3385,7 +3401,7 @@ describe("BrowserCacheManager tests", () => {
                 tenantId: accountEntity2.realm,
                 name: accountEntity2.name,
                 idTokenClaims: accountEntity2.idTokenClaims,
-                nativeAccountId: undefined
+                nativeAccountId: undefined,
             };
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
             const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);

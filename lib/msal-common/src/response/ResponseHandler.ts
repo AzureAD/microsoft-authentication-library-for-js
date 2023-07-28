@@ -373,14 +373,15 @@ export class ResponseHandler {
                 idTokenObj.claims.tid || Constants.EMPTY_STRING
             );
 
-            cachedAccount = AccountEntity.createAccount({
+            cachedAccount = AccountEntity.createAccount(
+                {
                     homeAccountId: this.homeAccountIdentifier,
                     idTokenClaims: idTokenObj.claims,
                     clientInfo: serverTokenResponse.client_info,
                     cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
-                    msGraphHost: authCodePayload?.msgraph_host
+                    msGraphHost: authCodePayload?.msgraph_host,
                 },
-                authority,
+                authority
             );
         }
 

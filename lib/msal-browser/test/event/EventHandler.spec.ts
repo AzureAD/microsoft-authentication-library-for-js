@@ -146,7 +146,7 @@ describe("Event API tests", () => {
                 tenantId: accountEntity.realm,
                 name: accountEntity.name,
                 idTokenClaims: accountEntity.idTokenClaims,
-                nativeAccountId: undefined
+                nativeAccountId: undefined,
             };
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
@@ -192,7 +192,7 @@ describe("Event API tests", () => {
                 tenantId: accountEntity.realm,
                 name: accountEntity.name,
                 idTokenClaims: accountEntity.idTokenClaims,
-                nativeAccountId: undefined
+                nativeAccountId: undefined,
             };
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);

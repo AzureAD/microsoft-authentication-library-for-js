@@ -377,11 +377,14 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     /**
      * Hydrates cache with the tokens and account in the AuthenticationResult object
-     * @param result 
+     * @param result
      * @param request - The request object that was used to obtain the AuthenticationResult
-     * @returns 
+     * @returns
      */
-    async hydrateCache(result: AuthenticationResult, request: SilentRequest) : Promise<void> {
+    async hydrateCache(
+        result: AuthenticationResult,
+        request: SilentRequest
+    ): Promise<void> {
         return this.controller.hydrateCache(result, request);
     }
 }

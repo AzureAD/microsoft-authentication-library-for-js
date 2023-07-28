@@ -26,7 +26,7 @@ import {
     AuthError,
     CommonSilentFlowRequest,
     AccountInfo,
-    CacheRecord
+    CacheRecord,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -232,7 +232,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             );
             return {
                 ...result,
-                account
+                account,
             };
         } catch (e) {
             throw e;
@@ -385,13 +385,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             idTokenObj
         );
-        const accountEntity = AccountEntity.createAccount({
+        const accountEntity = AccountEntity.createAccount(
+            {
                 homeAccountId: homeAccountIdentifier,
                 idTokenClaims: idTokenObj.claims,
                 clientInfo: response.client_info,
-                nativeAccountId: response.account.id
-            }, 
-            authority,
+                nativeAccountId: response.account.id,
+            },
+            authority
         );
 
         // generate authenticationResult

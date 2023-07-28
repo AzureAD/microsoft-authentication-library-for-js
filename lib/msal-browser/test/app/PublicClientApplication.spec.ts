@@ -4764,7 +4764,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined
+            nativeAccountId: undefined,
         };
 
         const testAccount1: AccountEntity = new AccountEntity();
@@ -4798,7 +4798,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined
+            nativeAccountId: undefined,
         };
 
         const testAccount2: AccountEntity = new AccountEntity();
@@ -5391,7 +5391,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             username: ID_TOKEN_CLAIMS.preferred_username,
             idTokenClaims: ID_TOKEN_CLAIMS,
             name: ID_TOKEN_CLAIMS.name,
-            nativeAccountId: undefined
+            nativeAccountId: undefined,
         };
 
         const testAuthenticationResult: AuthenticationResult = {
@@ -5406,25 +5406,30 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             correlationId: RANDOM_TEST_GUID,
             expiresOn: new Date(Date.now() + 3600000),
             account: testAccount,
-            tokenType: AuthenticationScheme.BEARER
+            tokenType: AuthenticationScheme.BEARER,
         };
 
         const request: SilentRequest = {
             scopes: ["openid", "profile"],
             account: testAccount,
-            cacheLookupPolicy: CacheLookupPolicy.AccessToken // Only perform cache lookup during validation
-        }
+            cacheLookupPolicy: CacheLookupPolicy.AccessToken, // Only perform cache lookup during validation
+        };
         it("hydrates cache with the provided id and access tokens", async () => {
             await pca.initialize();
-            await pca.acquireTokenSilent(request).then(() => {
-                throw "This is unexpected. Cache should be empty to start";
-            }).catch(e => {
-                // This is expected to throw because cache is empty, swallow error
-            });
+            await pca
+                .acquireTokenSilent(request)
+                .then(() => {
+                    throw "This is unexpected. Cache should be empty to start";
+                })
+                .catch((e) => {
+                    // This is expected to throw because cache is empty, swallow error
+                });
             await pca.hydrateCache(testAuthenticationResult, request);
 
             const result = await pca.acquireTokenSilent(request); // Get tokens from the cache
-            expect(result.accessToken).toEqual(testAuthenticationResult.accessToken);
+            expect(result.accessToken).toEqual(
+                testAuthenticationResult.accessToken
+            );
             expect(result.idToken).toEqual(testAuthenticationResult.idToken);
             expect(result.account).toEqual(testAccount);
             expect(result.fromCache).toEqual(true);
@@ -5433,11 +5438,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("hydrates internal cache if provided AuthenticationResult came from native broker", async () => {
             pca = new PublicClientApplication({
                 auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true
-                }
+                    allowNativeBroker: true,
+                },
             });
 
             //Implementation of PCA was moved to controller.
@@ -5448,28 +5453,31 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAccount = {
                 ...testAccount,
-                nativeAccountId: "testNativeAccountId"
-            }
+                nativeAccountId: "testNativeAccountId",
+            };
 
             const nativeResult = {
                 ...testAuthenticationResult,
                 account: nativeAccount,
-                fromNativeBroker: true
-            }
+                fromNativeBroker: true,
+            };
 
             const nativeRequest = {
                 ...request,
-                account: nativeAccount
-            }
+                account: nativeAccount,
+            };
 
-            await pca.acquireTokenSilent(request).then(() => {
-                throw "This is unexpected. Cache should be empty to start";
-            }).catch(e => {
-                // This is expected to throw because cache is empty, swallow error
-            });
+            await pca
+                .acquireTokenSilent(request)
+                .then(() => {
+                    throw "This is unexpected. Cache should be empty to start";
+                })
+                .catch((e) => {
+                    // This is expected to throw because cache is empty, swallow error
+                });
 
             await pca.hydrateCache(nativeResult, nativeRequest);
-            
+
             const result = await pca.acquireTokenSilent(nativeRequest); // Get tokens from the cache
 
             // Verify tokens were returned from internal memory

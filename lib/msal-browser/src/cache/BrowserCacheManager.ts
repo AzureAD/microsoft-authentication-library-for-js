@@ -1886,13 +1886,13 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Builds credential entities from AuthenticationResult object and saves the resulting credentials to the cache
-     * @param result 
+     * @param result
      * @param request
      */
     async hydrateCache(
-        result: AuthenticationResult, 
-        request: SilentRequest): Promise<void> 
-    {
+        result: AuthenticationResult,
+        request: SilentRequest
+    ): Promise<void> {
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
             result.account?.homeAccountId,
             result.account?.environment,
@@ -1923,7 +1923,11 @@ export class BrowserCacheManager extends CacheManager {
             claimsHash
         );
 
-        const cacheRecord = new CacheRecord(undefined, idTokenEntity, accessTokenEntity);
+        const cacheRecord = new CacheRecord(
+            undefined,
+            idTokenEntity,
+            accessTokenEntity
+        );
         return this.saveCacheRecord(cacheRecord);
     }
 }

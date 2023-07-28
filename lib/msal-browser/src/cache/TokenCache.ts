@@ -16,7 +16,7 @@ import {
     AuthToken,
     RefreshTokenEntity,
     Constants,
-    CacheRecord
+    CacheRecord,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
@@ -88,7 +88,9 @@ export class TokenCache implements ITokenCache {
         let cacheRecordAccount: AccountEntity;
 
         if (request.account) {
-            cacheRecordAccount = AccountEntity.createFromAccountInfo(request.account);
+            cacheRecordAccount = AccountEntity.createFromAccountInfo(
+                request.account
+            );
             cacheRecord = new CacheRecord(
                 cacheRecordAccount,
                 this.loadIdToken(
@@ -248,13 +250,14 @@ export class TokenCache implements ITokenCache {
             );
         }
 
-        const accountEntity = AccountEntity.createAccount({
+        const accountEntity = AccountEntity.createAccount(
+            {
                 homeAccountId,
                 idTokenClaims: idToken.claims,
                 clientInfo,
-                environment: authority.hostnameAndPort
+                environment: authority.hostnameAndPort,
             },
-            authority,
+            authority
         );
 
         if (this.isBrowserEnvironment) {
@@ -466,10 +469,8 @@ export class TokenCache implements ITokenCache {
                 cacheRecord?.accessToken?.tokenType || Constants.EMPTY_STRING,
             state: Constants.EMPTY_STRING,
             cloudGraphHostName:
-                accountEntity.cloudGraphHostName ||
-                Constants.EMPTY_STRING,
-            msGraphHost:
-                accountEntity.msGraphHost || Constants.EMPTY_STRING,
+                accountEntity.cloudGraphHostName || Constants.EMPTY_STRING,
+            msGraphHost: accountEntity.msGraphHost || Constants.EMPTY_STRING,
             code: undefined,
             fromNativeBroker: false,
         };

@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    Separators,
-    CacheAccountType,
-    Constants,
-} from "../../utils/Constants";
+import { Separators, CacheAccountType, Constants } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
@@ -113,15 +109,18 @@ export class AccountEntity {
      * Build Account cache from IdToken, clientInfo and authority/policy. Associated with AAD.
      * @param accountDetails
      */
-    static createAccount(accountDetails: {
-        homeAccountId: string,
-        idTokenClaims: TokenClaims,
-        clientInfo?: string,
-        cloudGraphHostName?: string,
-        msGraphHost?: string,
-        environment?: string,
-        nativeAccountId?: string
-    }, authority: Authority): AccountEntity {
+    static createAccount(
+        accountDetails: {
+            homeAccountId: string;
+            idTokenClaims: TokenClaims;
+            clientInfo?: string;
+            cloudGraphHostName?: string;
+            msGraphHost?: string;
+            environment?: string;
+            nativeAccountId?: string;
+        },
+        authority: Authority
+    ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         if (authority.authorityType === AuthorityType.Adfs) {
@@ -136,7 +135,9 @@ export class AccountEntity {
         account.homeAccountId = accountDetails.homeAccountId;
         account.nativeAccountId = accountDetails.nativeAccountId;
 
-        const env = accountDetails.environment || (authority && authority.getPreferredCache());
+        const env =
+            accountDetails.environment ||
+            (authority && authority.getPreferredCache());
 
         if (!env) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -144,7 +145,8 @@ export class AccountEntity {
 
         account.environment = env;
         // non AAD scenarios can have empty realm
-        account.realm = accountDetails.idTokenClaims.tid || Constants.EMPTY_STRING;
+        account.realm =
+            accountDetails.idTokenClaims.tid || Constants.EMPTY_STRING;
 
         account.idTokenClaims = accountDetails.idTokenClaims;
 
@@ -155,17 +157,18 @@ export class AccountEntity {
             Constants.EMPTY_STRING;
 
         /*
-            * In B2C scenarios the emails claim is used instead of preferred_username and it is an array.
-            * In most cases it will contain a single email. This field should not be relied upon if a custom
-            * policy is configured to return more than 1 email.
-            */
-        const preferredUsername = accountDetails.idTokenClaims.preferred_username || accountDetails.idTokenClaims.upn;
+         * In B2C scenarios the emails claim is used instead of preferred_username and it is an array.
+         * In most cases it will contain a single email. This field should not be relied upon if a custom
+         * policy is configured to return more than 1 email.
+         */
+        const preferredUsername =
+            accountDetails.idTokenClaims.preferred_username ||
+            accountDetails.idTokenClaims.upn;
         const email = accountDetails.idTokenClaims.emails
             ? accountDetails.idTokenClaims.emails[0]
             : null;
 
-        account.username =
-            preferredUsername || email || Constants.EMPTY_STRING;
+        account.username = preferredUsername || email || Constants.EMPTY_STRING;
         account.name = accountDetails.idTokenClaims.name;
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
@@ -176,19 +179,24 @@ export class AccountEntity {
 
     /**
      * Creates an AccountEntity object from AccountInfo
-     * @param accountInfo 
-     * @param cloudGraphHostName 
-     * @param msGraphHost 
-     * @returns 
+     * @param accountInfo
+     * @param cloudGraphHostName
+     * @param msGraphHost
+     * @returns
      */
-    static createFromAccountInfo(accountInfo: AccountInfo, cloudGraphHostName?: string, msGraphHost?: string): AccountEntity {
+    static createFromAccountInfo(
+        accountInfo: AccountInfo,
+        cloudGraphHostName?: string,
+        msGraphHost?: string
+    ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
-        account.authorityType = accountInfo.authorityType || CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        account.authorityType =
+            accountInfo.authorityType || CacheAccountType.GENERIC_ACCOUNT_TYPE;
         account.homeAccountId = accountInfo.homeAccountId;
         account.localAccountId = accountInfo.localAccountId;
         account.nativeAccountId = accountInfo.nativeAccountId;
-        
+
         account.realm = accountInfo.tenantId;
         account.environment = accountInfo.environment;
 

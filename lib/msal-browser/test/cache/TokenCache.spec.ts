@@ -242,7 +242,7 @@ describe("TokenCache tests", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
                 idTokenClaims: testIdAuthToken.claims,
                 name: testIdAuthToken.claims.name,
-                nativeAccountId: undefined
+                nativeAccountId: undefined,
             };
             const testAccountKey =
                 AccountEntity.generateAccountCacheKey(testAccountInfo);
@@ -257,9 +257,9 @@ describe("TokenCache tests", () => {
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
                 idTokenEntity
             );
-            expect(browserStorage.getAccount(testAccountKey)?.homeAccountId).toEqual(
-                testAccountInfo.homeAccountId
-            );
+            expect(
+                browserStorage.getAccount(testAccountKey)?.homeAccountId
+            ).toEqual(testAccountInfo.homeAccountId);
         });
 
         it("loads id token with request authority and client info provided in response", () => {

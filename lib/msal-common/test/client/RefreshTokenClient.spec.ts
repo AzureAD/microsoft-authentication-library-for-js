@@ -276,7 +276,7 @@ describe("RefreshTokenClient unit tests", () => {
             name: ID_TOKEN_CLAIMS.name,
             localAccountId: ID_TOKEN_CLAIMS.oid,
             idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined
+            nativeAccountId: undefined,
         };
 
         beforeEach(async () => {
@@ -1042,7 +1042,7 @@ describe("RefreshTokenClient unit tests", () => {
             name: ID_TOKEN_CLAIMS.name,
             localAccountId: ID_TOKEN_CLAIMS.oid,
             idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined
+            nativeAccountId: undefined,
         };
 
         beforeEach(async () => {
