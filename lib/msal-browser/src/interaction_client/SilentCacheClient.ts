@@ -46,9 +46,9 @@ export class SilentCacheClient extends StandardInteractionClient {
         this.logger.verbose("Silent auth client created");
 
         try {
-            const cachedToken = await silentAuthClient.acquireCachedToken(
+            const cachedToken = (await silentAuthClient.acquireCachedToken(
                 silentRequest
-            ) as AuthenticationResult;
+            )) as AuthenticationResult;
 
             acquireTokenMeasurement.end({
                 success: true,
@@ -125,7 +125,7 @@ export class SilentCacheClient extends StandardInteractionClient {
         );
         return {
             ...request,
-            ...await this.initializeBaseRequest(request, account),
+            ...(await this.initializeBaseRequest(request, account)),
             account: account,
             forceRefresh: request.forceRefresh || false,
         };

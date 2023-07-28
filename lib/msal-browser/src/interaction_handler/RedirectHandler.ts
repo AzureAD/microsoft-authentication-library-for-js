@@ -214,10 +214,10 @@ export class RedirectHandler extends InteractionHandler {
         }
 
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(
+        const tokenResponse = (await this.authModule.acquireToken(
             this.authCodeRequest,
             authCodeResponse
-        ) as AuthenticationResult;
+        )) as AuthenticationResult;
 
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;

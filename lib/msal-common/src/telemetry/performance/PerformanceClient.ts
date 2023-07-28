@@ -16,7 +16,7 @@ import {
     IntFields,
     PerformanceEvent,
     PerformanceEvents,
-    PerformanceEventStatus
+    PerformanceEventStatus,
 } from "./PerformanceEvent";
 
 export interface PreQueueEvent {
@@ -316,14 +316,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
             discard: () => {
                 return this.discardMeasurements(inProgressEvent.correlationId);
             },
-            add: (fields: { [key: string]: {} | undefined; }) => {
-                return this.addFields(
+            add: (fields: { [key: string]: {} | undefined }) => {
+                return this.addFields(fields, inProgressEvent.correlationId);
+            },
+            increment: (fields: { [key: string]: number | undefined }) => {
+                return this.incrementFields(
                     fields,
                     inProgressEvent.correlationId
                 );
-            },
-            increment: (fields: { [key: string]: number | undefined; }) => {
-                return this.incrementFields(fields, inProgressEvent.correlationId);
             },
             measurement: performanceMeasurement,
             event: inProgressEvent,
@@ -421,7 +421,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param fields
      * @param correlationId
      */
-    addFields(fields: { [key: string]: {} | undefined; }, correlationId: string): void {
+    addFields(
+        fields: { [key: string]: {} | undefined },
+        correlationId: string
+    ): void {
         this.logger.trace("PerformanceClient: Updating static fields");
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
@@ -442,7 +445,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param fields {string[]}
      * @param correlationId {string} correlation identifier
      */
-    incrementFields(fields: { [key: string]: number | undefined; }, correlationId: string): void {
+    incrementFields(
+        fields: { [key: string]: number | undefined },
+        correlationId: string
+    ): void {
         this.logger.trace("PerformanceClient: Updating counters");
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
@@ -622,9 +628,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {PerformanceEvent} event performance event to update.
      * @param {Set<string>} intFields integral fields.
      */
-    private truncateIntegralFields(
-        event: PerformanceEvent
-    ): void {
+    private truncateIntegralFields(event: PerformanceEvent): void {
         this.intFields.forEach((key) => {
             if (key in event && typeof event[key] === "number") {
                 event[key] = Math.floor(event[key]);

@@ -10,7 +10,7 @@ export const HttpMethod = {
     GET: "get",
     POST: "post",
 } as const;
-export type HttpMethod = typeof HttpMethod[keyof typeof HttpMethod];
+export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
 
 export const HttpStatus = {
     SUCCESS_RANGE_START: 200,
@@ -21,14 +21,14 @@ export const HttpStatus = {
     SERVER_ERROR_RANGE_START: 500,
     SERVER_ERROR_RANGE_END: 599,
 } as const;
-export type HttpStatus = typeof HttpStatus[keyof typeof HttpStatus];
+export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
 
 export const ProxyStatus = {
     SUCCESS_RANGE_START: 200,
     SUCCESS_RANGE_END: 299,
     SERVER_ERROR: 500,
 } as const;
-export type ProxyStatus = typeof ProxyStatus[keyof typeof ProxyStatus];
+export type ProxyStatus = (typeof ProxyStatus)[keyof typeof ProxyStatus];
 
 /**
  * Constants used for region discovery
@@ -89,8 +89,8 @@ export const ApiId = {
     acquireTokenByClientCredential: 771,
     acquireTokenByCode: 871,
     acquireTokenByRefreshToken: 872,
-}
-export type ApiId = typeof ApiId[keyof typeof ApiId];
+};
+export type ApiId = (typeof ApiId)[keyof typeof ApiId];
 
 /**
  * JWT  constants
