@@ -18,13 +18,19 @@ import { isNodeError } from "../utils/TypeGuards";
  * serviceName: Identifier used as key for whatever value is stored
  * accountName: Account under which password should be stored
  */
-export class KeychainPersistence extends BasePersistence implements IPersistence {
-
+export class KeychainPersistence
+    extends BasePersistence
+    implements IPersistence
+{
     protected readonly serviceName;
     protected readonly accountName;
     private filePersistence: FilePersistence;
 
-    private constructor(filePersistence: FilePersistence, serviceName: string, accountName: string) {
+    private constructor(
+        filePersistence: FilePersistence,
+        serviceName: string,
+        accountName: string
+    ) {
         super();
         this.filePersistence = filePersistence;
         this.serviceName = serviceName;
@@ -35,10 +41,17 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
         fileLocation: string,
         serviceName: string,
         accountName: string,
-        loggerOptions?: LoggerOptions): Promise<KeychainPersistence> {
-
-        const filePersistence = await FilePersistence.create(fileLocation, loggerOptions);
-        const persistence = new KeychainPersistence(filePersistence, serviceName, accountName);
+        loggerOptions?: LoggerOptions
+    ): Promise<KeychainPersistence> {
+        const filePersistence = await FilePersistence.create(
+            fileLocation,
+            loggerOptions
+        );
+        const persistence = new KeychainPersistence(
+            filePersistence,
+            serviceName,
+            accountName
+        );
         return persistence;
     }
 
@@ -47,7 +60,9 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
             await setPassword(this.serviceName, this.accountName, contents);
         } catch (err) {
             if (isNodeError(err)) {
-                throw PersistenceError.createKeychainPersistenceError(err.message);
+                throw PersistenceError.createKeychainPersistenceError(
+                    err.message
+                );
             } else {
                 throw err;
             }
@@ -57,11 +72,13 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
     }
 
     public async load(): Promise<string | null> {
-        try{
+        try {
             return await getPassword(this.serviceName, this.accountName);
-        } catch(err){
+        } catch (err) {
             if (isNodeError(err)) {
-                throw PersistenceError.createKeychainPersistenceError(err.message);
+                throw PersistenceError.createKeychainPersistenceError(
+                    err.message
+                );
             } else {
                 throw err;
             }
@@ -74,7 +91,9 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
             return await deletePassword(this.serviceName, this.accountName);
         } catch (err) {
             if (isNodeError(err)) {
-                throw PersistenceError.createKeychainPersistenceError(err.message);
+                throw PersistenceError.createKeychainPersistenceError(
+                    err.message
+                );
             } else {
                 throw err;
             }
@@ -92,12 +111,15 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
     public getLogger(): Logger {
         return this.filePersistence.getLogger();
     }
-   
+
     public createForPersistenceValidation(): Promise<KeychainPersistence> {
-        const testCacheFileLocation = `${dirname(this.filePersistence.getFilePath())}/test.cache`;
+        const testCacheFileLocation = `${dirname(
+            this.filePersistence.getFilePath()
+        )}/test.cache`;
         return KeychainPersistence.create(
-            testCacheFileLocation, 
-            "persistenceValidationServiceName", "persistencValidationAccountName"
+            testCacheFileLocation,
+            "persistenceValidationServiceName",
+            "persistencValidationAccountName"
         );
     }
 }

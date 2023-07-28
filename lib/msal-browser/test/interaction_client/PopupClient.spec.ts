@@ -39,13 +39,13 @@ import {
     AuthError,
     Logger,
     NetworkManager,
-    ProtocolUtils
+    ProtocolUtils,
+    ProtocolMode,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
     ApiId,
     BrowserConstants,
-    BrowserCacheLocation,
 } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
@@ -84,6 +84,7 @@ describe("PopupClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
+        await pca.initialize();
 
         //@ts-ignore
         browserCacheManager = pca.browserStorage
@@ -804,7 +805,9 @@ describe("PopupClient", () => {
                 "create_logout_url_error",
                 "Error in creating a logout url"
             );
-            sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").throws(testError);
+            sinon
+                .stub(AuthorizationCodeClient.prototype, "getLogoutUri")
+                .throws(testError);
 
             try {
                 await popupClient.logout();
@@ -1663,6 +1666,58 @@ describe("PopupClient", () => {
             // @ts-ignore
             popupClient.monitorPopupForHash(popup).then((hash: string) => {
                 expect(hash).toEqual("#code=hello");
+                done();
+            });
+        });
+
+        it("returns server code response in query form when serverResponseType in OIDCOptions is query", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    protocolMode: ProtocolMode.OIDC,
+                    OIDCOptions: { serverResponseType: "query" },
+                },
+            });
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            popupClient = new PopupClient(
+                //@ts-ignore
+                pca.config,
+                //@ts-ignore
+                pca.browserStorage,
+                //@ts-ignore
+                pca.browserCrypto,
+                //@ts-ignore
+                pca.logger,
+                //@ts-ignore
+                pca.eventHandler,
+                //@ts-ignore
+                pca.navigationClient,
+                //@ts-ignore
+                pca.performanceClient,
+                //@ts-ignore
+                pca.nativeInternalStorage,
+                undefined,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const popup = {
+                location: {
+                    href: TEST_URIS.TEST_QUERY_CODE_RESPONSE,
+                },
+                history: {
+                    replaceState: () => {
+                        return;
+                    },
+                },
+                close: () => {},
+            };
+
+            // @ts-ignore
+            popupClient.monitorPopupForHash(popup).then((hash: string) => {
+                expect(hash).toEqual("code=hello");
                 done();
             });
         });

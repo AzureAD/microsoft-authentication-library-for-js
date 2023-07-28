@@ -204,8 +204,8 @@ describe("RefreshTokenClient unit tests", () => {
             expect(spy).toHaveBeenCalled();
         });
 
-        it("Checks whether performance telemetry addStaticFields method is called", async () => {
-            const spy = jest.spyOn(stubPerformanceClient, "addStaticFields");
+        it("Checks whether performance telemetry add method is called", async () => {
+            const spy: any = jest.spyOn(stubPerformanceClient, "addFields");
 
             const client = new RefreshTokenClient(
                 config,
@@ -233,8 +233,8 @@ describe("RefreshTokenClient unit tests", () => {
             expect(refreshTokenSize).toBe(19);
         });
 
-        it("Checks whether performance telemetry addStaticFields method is called- no rt", async () => {
-            const spy = jest.spyOn(stubPerformanceClient, "addStaticFields");
+        it("Checks whether performance telemetry add method is called- no rt", async () => {
+            const spy: any = jest.spyOn(stubPerformanceClient, "addFields");
 
             const client = new RefreshTokenClient(
                 config,
@@ -934,8 +934,6 @@ describe("RefreshTokenClient unit tests", () => {
             const performanceClient = {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
-                addStaticFields: jest.fn(),
-                incrementCounters: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
@@ -945,9 +943,19 @@ describe("RefreshTokenClient unit tests", () => {
                 calculateQueuedTime: jest.fn(),
                 addQueueMeasurement: jest.fn(),
                 setPreQueueTime: jest.fn(),
+                addFields: jest.fn(),
+                incrementFields: jest.fn(),
             };
             performanceClient.startMeasurement.mockImplementation(() => {
-                return performanceClient;
+                return {
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
+                    increment: jest.fn(),
+                    end: jest.fn(),
+                };
             });
             const client = new RefreshTokenClient(config, performanceClient);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
@@ -961,10 +969,13 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addStaticFields).toBeCalledTimes(2);
-            expect(performanceClient.addStaticFields).toBeCalledWith({
-                httpVerToken: "xMsHttpVer",
-            });
+            expect(performanceClient.addFields).toBeCalledTimes(2);
+            expect(performanceClient.addFields).toBeCalledWith(
+                {
+                    httpVerToken: "xMsHttpVer",
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
@@ -974,8 +985,6 @@ describe("RefreshTokenClient unit tests", () => {
             const performanceClient = {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
-                addStaticFields: jest.fn(),
-                incrementCounters: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
@@ -985,9 +994,19 @@ describe("RefreshTokenClient unit tests", () => {
                 calculateQueuedTime: jest.fn(),
                 addQueueMeasurement: jest.fn(),
                 setPreQueueTime: jest.fn(),
+                addFields: jest.fn(),
+                incrementFields: jest.fn(),
             };
             performanceClient.startMeasurement.mockImplementation(() => {
-                return performanceClient;
+                return {
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
+                    increment: jest.fn(),
+                    end: jest.fn(),
+                };
             });
             const client = new RefreshTokenClient(config, performanceClient);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
@@ -1001,8 +1020,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addStaticFields).toBeCalledTimes(1);
-            expect(performanceClient.addStaticFields).not.toBeCalledWith({
+            expect(performanceClient.addFields).toBeCalledTimes(1);
+            expect(performanceClient.addFields).not.toBeCalledWith({
                 httpVerToken: "xMsHttpVer",
             });
         });

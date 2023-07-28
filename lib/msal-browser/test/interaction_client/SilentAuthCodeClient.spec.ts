@@ -26,8 +26,12 @@ import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
-import { ApiId, AuthorizationCodeRequest, AuthenticationResult } from "../../src";
-import { BrowserCacheManager } from "../../src/internals";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import {
+    ApiId,
+    AuthorizationCodeRequest,
+    AuthenticationResult,
+} from "../../src";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;

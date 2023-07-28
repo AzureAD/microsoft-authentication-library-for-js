@@ -104,7 +104,7 @@ describe("RedirectClient", () => {
     let browserStorage: BrowserCacheManager;
     let pca: PublicClientApplication;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -119,6 +119,7 @@ describe("RedirectClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
+        await pca.initialize();
 
         sinon
             .stub(CryptoOps.prototype, "createNewGuid")

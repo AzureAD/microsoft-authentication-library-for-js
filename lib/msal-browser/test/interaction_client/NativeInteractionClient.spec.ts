@@ -959,4 +959,3 @@ describe("NativeInteractionClient Tests", () => {
         });
     });
 });
-

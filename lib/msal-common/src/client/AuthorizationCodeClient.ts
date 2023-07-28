@@ -47,12 +47,15 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 export class AuthorizationCodeClient extends BaseClient {
     // Flag to indicate if client is for hybrid spa auth code redemption
     protected includeRedirectUri: boolean = true;
+    private oidcDefaultScopes;
 
     constructor(
         configuration: ClientConfiguration,
         performanceClient?: IPerformanceClient
     ) {
         super(configuration, performanceClient);
+        this.oidcDefaultScopes =
+            this.config.authOptions.authority.options.OIDCOptions?.defaultScopes;
     }
 
     /**
@@ -125,7 +128,7 @@ export class AuthorizationCodeClient extends BaseClient {
         const httpVerAuthority =
             response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         if (httpVerAuthority) {
-            atsMeasurement?.addStaticFields({
+            atsMeasurement?.add({
                 httpVerAuthority,
             });
         }
@@ -159,7 +162,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 requestId
             )
             .then((result: AuthenticationResult) => {
-                atsMeasurement?.endMeasurement({
+                atsMeasurement?.end({
                     success: true,
                 });
                 return result;
@@ -169,7 +172,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     "Error in fetching token in ACC",
                     request.correlationId
                 );
-                atsMeasurement?.endMeasurement({
+                atsMeasurement?.end({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
                     success: false,
@@ -197,11 +200,12 @@ export class AuthorizationCodeClient extends BaseClient {
             null
         );
 
-        // Deserialize hash fragment response parameters.
-        const hashUrlString = new UrlString(hashFragment);
-        // Deserialize hash fragment response parameters.
         const serverParams: ServerAuthorizationCodeResponse =
-            UrlString.getDeserializedHash(hashUrlString.getHash());
+            UrlString.getDeserializedCodeResponse(
+                this.config.authOptions.authority.options.OIDCOptions
+                    ?.serverResponseType,
+                hashFragment
+            );
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
@@ -336,7 +340,11 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add scope array, parameter builder will add default scopes and dedupe
-        parameterBuilder.addScopes(request.scopes);
+        parameterBuilder.addScopes(
+            request.scopes,
+            true,
+            this.oidcDefaultScopes
+        );
 
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
@@ -496,7 +504,7 @@ export class AuthorizationCodeClient extends BaseClient {
             ...(request.scopes || []),
             ...(request.extraScopesToConsent || []),
         ];
-        parameterBuilder.addScopes(requestScopes);
+        parameterBuilder.addScopes(requestScopes, true, this.oidcDefaultScopes);
 
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);

@@ -4,10 +4,12 @@
  */
 
 import { ProtocolMode } from "./ProtocolMode";
+import { OIDCOptions } from "./OIDCOptions";
 import { AzureRegionConfiguration } from "./AzureRegionConfiguration";
 
 export type AuthorityOptions = {
     protocolMode: ProtocolMode;
+    OIDCOptions?: OIDCOptions | null;
     knownAuthorities: Array<string>;
     cloudDiscoveryMetadata: string;
     authorityMetadata: string;
@@ -34,4 +36,5 @@ export const AzureCloudInstance = {
     // US Government cloud
     AzureUsGovernment: "https://login.microsoftonline.us",
 } as const;
-export type AzureCloudInstance = typeof AzureCloudInstance[keyof typeof AzureCloudInstance];
+export type AzureCloudInstance =
+    (typeof AzureCloudInstance)[keyof typeof AzureCloudInstance];

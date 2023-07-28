@@ -12,4 +12,5 @@ export const CcsCredentialType = {
     HOME_ACCOUNT_ID: "home_account_id",
     UPN: "UPN",
 } as const;
-export type CcsCredentialType = typeof CcsCredentialType[keyof typeof CcsCredentialType];
+export type CcsCredentialType =
+    (typeof CcsCredentialType)[keyof typeof CcsCredentialType];

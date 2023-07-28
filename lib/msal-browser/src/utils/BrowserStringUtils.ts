@@ -34,7 +34,7 @@ export class BrowserStringUtils {
                     ? 5
                     : 6;
         }
-        
+
         const aBytes = new Uint8Array(nArrLen);
 
         /* transcription... */

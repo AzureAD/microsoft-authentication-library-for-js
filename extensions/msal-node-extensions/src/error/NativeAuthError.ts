@@ -9,7 +9,12 @@ export class NativeAuthError extends AuthError {
     public statusCode: number;
     public tag: number;
 
-    constructor(errorStatus: string, errorContext: string, errorCode: number, errorTag: number) {
+    constructor(
+        errorStatus: string,
+        errorContext: string,
+        errorCode: number,
+        errorTag: number
+    ) {
         super(errorStatus, errorContext);
         this.name = "NativeAuthError";
         this.statusCode = errorCode;

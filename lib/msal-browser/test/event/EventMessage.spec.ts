@@ -182,10 +182,16 @@ describe("EventMessage.ts Unit Tests", () => {
             TEST_EVENT_MESSAGE.eventType = EventType.RESTORE_FROM_BFCACHE;
             TEST_EVENT_MESSAGE.interactionType = InteractionType.Redirect;
 
-            const test1 = EventMessageUtils.getInteractionStatusFromEvent(TEST_EVENT_MESSAGE, InteractionStatus.Login);
+            const test1 = EventMessageUtils.getInteractionStatusFromEvent(
+                TEST_EVENT_MESSAGE,
+                InteractionStatus.Login
+            );
             expect(test1).toBe(InteractionStatus.None);
 
-            const test2 = EventMessageUtils.getInteractionStatusFromEvent(TEST_EVENT_MESSAGE, InteractionStatus.AcquireToken);
+            const test2 = EventMessageUtils.getInteractionStatusFromEvent(
+                TEST_EVENT_MESSAGE,
+                InteractionStatus.AcquireToken
+            );
             expect(test2).toBe(InteractionStatus.None);
         });
 

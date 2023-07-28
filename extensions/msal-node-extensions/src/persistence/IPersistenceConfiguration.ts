@@ -8,10 +8,10 @@ import type { LoggerOptions } from "@azure/msal-common";
 import { DataProtectionScope } from "./DataProtectionScope";
 
 export interface IPersistenceConfiguration {
-    cachePath?: string,
-    dataProtectionScope?: DataProtectionScope,
-    serviceName?: string,
-    accountName?: string,
-    usePlaintextFileOnLinux?: boolean,
+    cachePath?: string;
+    dataProtectionScope?: DataProtectionScope;
+    serviceName?: string;
+    accountName?: string;
+    usePlaintextFileOnLinux?: boolean;
     loggerOptions?: LoggerOptions;
 }
