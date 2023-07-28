@@ -54,7 +54,8 @@ export class AuthorizationCodeClient extends BaseClient {
         performanceClient?: IPerformanceClient
     ) {
         super(configuration, performanceClient);
-        this.oidcDefaultScopes = this.config.authOptions.authority.options.OIDCOptions?.defaultScopes;
+        this.oidcDefaultScopes =
+            this.config.authOptions.authority.options.OIDCOptions?.defaultScopes;
     }
 
     /**
@@ -69,9 +70,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(
         request: CommonAuthorizationUrlRequest
-    ): 
-        
-        Promise<string> {
+    ): Promise<string> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.GetAuthCodeUrl,
             request.correlationId
@@ -129,7 +128,7 @@ export class AuthorizationCodeClient extends BaseClient {
         const httpVerAuthority =
             response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         if (httpVerAuthority) {
-            atsMeasurement?.addStaticFields({
+            atsMeasurement?.add({
                 httpVerAuthority,
             });
         }
@@ -163,7 +162,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 requestId
             )
             .then((result: AuthenticationResult) => {
-                atsMeasurement?.endMeasurement({
+                atsMeasurement?.end({
                     success: true,
                 });
                 return result;
@@ -173,7 +172,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     "Error in fetching token in ACC",
                     request.correlationId
                 );
-                atsMeasurement?.endMeasurement({
+                atsMeasurement?.end({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
                     success: false,
@@ -201,7 +200,12 @@ export class AuthorizationCodeClient extends BaseClient {
             null
         );
 
-        const serverParams : ServerAuthorizationCodeResponse = UrlString.getDeserializedCodeResponse(this.config.authOptions.authority.options.OIDCOptions?.serverResponseType, hashFragment);
+        const serverParams: ServerAuthorizationCodeResponse =
+            UrlString.getDeserializedCodeResponse(
+                this.config.authOptions.authority.options.OIDCOptions
+                    ?.serverResponseType,
+                hashFragment
+            );
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
@@ -336,7 +340,11 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add scope array, parameter builder will add default scopes and dedupe
-        parameterBuilder.addScopes(request.scopes, true, this.oidcDefaultScopes);
+        parameterBuilder.addScopes(
+            request.scopes,
+            true,
+            this.oidcDefaultScopes
+        );
 
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);

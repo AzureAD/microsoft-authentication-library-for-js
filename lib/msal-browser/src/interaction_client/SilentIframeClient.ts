@@ -97,7 +97,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             request.prompt !== PromptValue.NONE &&
             request.prompt !== PromptValue.NO_SESSION
         ) {
-            acquireTokenMeasurement.endMeasurement({
+            acquireTokenMeasurement.end({
                 success: false,
             });
             throw BrowserAuthError.createSilentPromptValueError(request.prompt);
@@ -148,7 +148,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             );
             return await this.silentTokenHelper(authClient, silentRequest).then(
                 (result: AuthenticationResult) => {
-                    acquireTokenMeasurement.endMeasurement({
+                    acquireTokenMeasurement.end({
                         success: true,
                         fromCache: false,
                         requestId: result.requestId,
@@ -162,7 +162,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             this.browserStorage.cleanRequestByState(silentRequest.state);
-            acquireTokenMeasurement.endMeasurement({
+            acquireTokenMeasurement.end({
                 errorCode: (e instanceof AuthError && e.errorCode) || undefined,
                 subErrorCode:
                     (e instanceof AuthError && e.subError) || undefined,

@@ -390,14 +390,14 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.correlationId
         )
             .then((result: Authority) => {
-                getAuthorityMeasurement.endMeasurement({
+                getAuthorityMeasurement.end({
                     success: true,
                 });
 
                 return result;
             })
             .catch((error: AuthError) => {
-                getAuthorityMeasurement.endMeasurement({
+                getAuthorityMeasurement.end({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
                     success: false,
@@ -444,7 +444,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),
-            responseMode: this.config.auth.OIDCOptions.serverResponseType as ResponseMode,
+            responseMode: this.config.auth.OIDCOptions
+                .serverResponseType as ResponseMode,
         };
 
         const account =

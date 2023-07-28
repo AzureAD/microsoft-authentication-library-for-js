@@ -129,7 +129,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 this.accountId,
                 nativeRequest
             );
-            nativeATMeasurement.endMeasurement({
+            nativeATMeasurement.end({
                 success: true,
                 isNativeBroker: false, // Should be true only when the result is coming directly from the broker
                 fromCache: true,
@@ -160,7 +160,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             reqTimestamp
         )
             .then((result: AuthenticationResult) => {
-                nativeATMeasurement.endMeasurement({
+                nativeATMeasurement.end({
                     success: true,
                     isNativeBroker: true,
                     requestId: result.requestId,
@@ -168,7 +168,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 return result;
             })
             .catch((error: AuthError) => {
-                nativeATMeasurement.endMeasurement({
+                nativeATMeasurement.end({
                     success: false,
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
@@ -675,7 +675,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             return null;
         }
 
-        this.performanceClient.addStaticFields(
+        this.performanceClient.addFields(
             {
                 extensionId: this.nativeMessageHandler.getExtensionId(),
                 extensionVersion:
@@ -860,4 +860,3 @@ export class NativeInteractionClient extends BaseInteractionClient {
         return validatedRequest;
     }
 }
-

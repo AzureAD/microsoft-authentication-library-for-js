@@ -90,7 +90,9 @@ export class ResponseHandler {
         let decodedCachedState: string;
 
         try {
-            decodedServerResponseHash = decodeURIComponent(serverResponseHash.state);
+            decodedServerResponseHash = decodeURIComponent(
+                serverResponseHash.state
+            );
         } catch (e) {
             throw ClientAuthError.createInvalidStateError(
                 serverResponseHash.state,

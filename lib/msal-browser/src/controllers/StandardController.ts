@@ -16,7 +16,6 @@ import {
     AuthError,
     PerformanceEvents,
     PerformanceCallbackFunction,
-    StubPerformanceClient,
     IPerformanceClient,
     BaseAuthRequest,
     PromptValue,
@@ -69,10 +68,8 @@ import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
-import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
-import { version, name } from "../packageMetadata";
 import { IController } from "./IController";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 
@@ -181,23 +178,7 @@ export class StandardController implements IController {
         this.hybridAuthCodeResponses = new Map();
 
         // Initialize performance client
-        this.performanceClient = this.isBrowserEnvironment
-            ? new BrowserPerformanceClient(
-                  this.config.auth.clientId,
-                  this.config.auth.authority,
-                  this.logger,
-                  name,
-                  version,
-                  this.config.telemetry.application
-              )
-            : new StubPerformanceClient(
-                  this.config.auth.clientId,
-                  this.config.auth.authority,
-                  this.logger,
-                  name,
-                  version,
-                  this.config.telemetry.application
-              );
+        this.performanceClient = this.config.telemetry.client;
 
         // Initialize the crypto class.
         this.browserCrypto = this.isBrowserEnvironment
@@ -305,7 +286,7 @@ export class StandardController implements IController {
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
 
-        initMeasurement.endMeasurement({ allowNativeBroker, success: true });
+        initMeasurement.end({ allowNativeBroker, success: true });
     }
 
     // #region Redirect Flow
@@ -620,7 +601,7 @@ export class StandardController implements IController {
             result = this.acquireTokenNative(request, ApiId.acquireTokenPopup)
                 .then((response) => {
                     this.browserStorage.setInteractionInProgress(false);
-                    atPopupMeasurement.endMeasurement({
+                    atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
                         requestId: response.requestId,
@@ -672,11 +653,11 @@ export class StandardController implements IController {
                     );
                 }
 
-                atPopupMeasurement.addStaticFields({
+                atPopupMeasurement.add({
                     accessTokenSize: result.accessToken.length,
                     idTokenSize: result.idToken.length,
                 });
-                atPopupMeasurement.endMeasurement({
+                atPopupMeasurement.end({
                     success: true,
                     requestId: result.requestId,
                 });
@@ -699,7 +680,7 @@ export class StandardController implements IController {
                     );
                 }
 
-                atPopupMeasurement.endMeasurement({
+                atPopupMeasurement.end({
                     errorCode: e.errorCode,
                     subErrorCode: e.subError,
                     success: false,
@@ -802,11 +783,11 @@ export class StandardController implements IController {
                     InteractionType.Silent,
                     response
                 );
-                this.ssoSilentMeasurement?.addStaticFields({
+                this.ssoSilentMeasurement?.add({
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
                 });
-                this.ssoSilentMeasurement?.endMeasurement({
+                this.ssoSilentMeasurement?.end({
                     success: true,
                     isNativeBroker: response.fromNativeBroker,
                     requestId: response.requestId,
@@ -820,7 +801,7 @@ export class StandardController implements IController {
                     null,
                     e
                 );
-                this.ssoSilentMeasurement?.endMeasurement({
+                this.ssoSilentMeasurement?.end({
                     errorCode: e.errorCode,
                     subErrorCode: e.subError,
                     success: false,
@@ -884,11 +865,11 @@ export class StandardController implements IController {
                                 result
                             );
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
-                            atbcMeasurement.addStaticFields({
+                            atbcMeasurement.add({
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
                             });
-                            atbcMeasurement.endMeasurement({
+                            atbcMeasurement.end({
                                 success: true,
                                 isNativeBroker: result.fromNativeBroker,
                                 requestId: result.requestId,
@@ -903,7 +884,7 @@ export class StandardController implements IController {
                                 null,
                                 error
                             );
-                            atbcMeasurement.endMeasurement({
+                            atbcMeasurement.end({
                                 errorCode: error.errorCode,
                                 subErrorCode: error.subError,
                                 success: false,
@@ -916,7 +897,7 @@ export class StandardController implements IController {
                         "Existing acquireTokenByCode request found",
                         request.correlationId
                     );
-                    atbcMeasurement.discardMeasurement();
+                    atbcMeasurement.discard();
                 }
                 return response;
             } else if (request.nativeAccountId) {
@@ -945,7 +926,7 @@ export class StandardController implements IController {
                 null,
                 e as EventError
             );
-            atbcMeasurement.endMeasurement({
+            atbcMeasurement.end({
                 errorCode: (e instanceof AuthError && e.errorCode) || undefined,
                 subErrorCode:
                     (e instanceof AuthError && e.subError) || undefined,
@@ -985,7 +966,7 @@ export class StandardController implements IController {
         const silentTokenResult = await silentAuthCodeClient
             .acquireToken(request)
             .then((response) => {
-                this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
+                this.acquireTokenByCodeAsyncMeasurement?.end({
                     success: true,
                     fromCache: response.fromCache,
                     isNativeBroker: response.fromNativeBroker,
@@ -994,7 +975,7 @@ export class StandardController implements IController {
                 return response;
             })
             .catch((tokenRenewalError: AuthError) => {
-                this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
+                this.acquireTokenByCodeAsyncMeasurement?.end({
                     errorCode: tokenRenewalError.errorCode,
                     subErrorCode: tokenRenewalError.subError,
                     success: false,
@@ -1841,7 +1822,7 @@ export class StandardController implements IController {
             PerformanceEvents.AcquireTokenSilent,
             correlationId
         );
-        atsMeasurement.addStaticFields({
+        atsMeasurement.add({
             cacheLookupPolicy: request.cacheLookupPolicy,
         });
 
@@ -1888,11 +1869,11 @@ export class StandardController implements IController {
             )
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.addStaticFields({
+                    atsMeasurement.add({
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                     });
-                    atsMeasurement.endMeasurement({
+                    atsMeasurement.end({
                         success: true,
                         fromCache: result.fromCache,
                         isNativeBroker: result.fromNativeBroker,
@@ -1903,7 +1884,7 @@ export class StandardController implements IController {
                 })
                 .catch((error: AuthError) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.endMeasurement({
+                    atsMeasurement.end({
                         errorCode: error.errorCode,
                         subErrorCode: error.subError,
                         success: false,
@@ -1918,7 +1899,7 @@ export class StandardController implements IController {
                 correlationId
             );
             // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
-            atsMeasurement.discardMeasurement();
+            atsMeasurement.discard();
             return cachedResponse;
         }
     }
@@ -2088,7 +2069,7 @@ export class StandardController implements IController {
                     InteractionType.Silent,
                     response
                 );
-                this.atsAsyncMeasurement?.endMeasurement({
+                this.atsAsyncMeasurement?.end({
                     success: true,
                     fromCache: response.fromCache,
                     isNativeBroker: response.fromNativeBroker,
@@ -2103,7 +2084,7 @@ export class StandardController implements IController {
                     null,
                     tokenRenewalError
                 );
-                this.atsAsyncMeasurement?.endMeasurement({
+                this.atsAsyncMeasurement?.end({
                     errorCode: tokenRenewalError.errorCode,
                     subErrorCode: tokenRenewalError.subError,
                     success: false,
