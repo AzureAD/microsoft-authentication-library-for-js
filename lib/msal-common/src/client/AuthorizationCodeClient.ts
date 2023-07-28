@@ -71,7 +71,6 @@ export class AuthorizationCodeClient extends BaseClient {
     async getAuthCodeUrl(
         request: CommonAuthorizationUrlRequest
     ): Promise<string> {
-
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.GetAuthCodeUrl,
             request.correlationId

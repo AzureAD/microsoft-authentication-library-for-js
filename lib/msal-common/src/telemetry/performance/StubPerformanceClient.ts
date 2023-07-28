@@ -20,8 +20,6 @@ export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     }
 }
 
-const stubPerformanceMeasurement = new StubPerformanceMeasurement();
-
 export class StubPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
@@ -45,36 +43,36 @@ export class StubPerformanceClient
     setPreQueueTime(): void {
         return;
     }
-  
-    endMeasurement(): PerformanceEvent | null { 
-      return null; 
+
+    endMeasurement(): PerformanceEvent | null {
+        return null;
     }
-  
-    discardMeasurements(): void { 
-      return; 
+
+    discardMeasurements(): void {
+        return;
     }
-  
-    removePerformanceCallback(): boolean { 
-      return true; 
+
+    removePerformanceCallback(): boolean {
+        return true;
     }
-  
-    addPerformanceCallback(): string { 
-      return ''; 
+
+    addPerformanceCallback(): string {
+        return "";
     }
-  
-    emitEvents(): void { 
-      return; 
+
+    emitEvents(): void {
+        return;
     }
-  
-    addFields(): void { 
-      return; 
+
+    addFields(): void {
+        return;
     }
-  
-    incrementFields(): void { 
-      return;
+
+    incrementFields(): void {
+        return;
     }
-  
-    cacheEventByCorrelationId(): void { 
-      return; 
+
+    cacheEventByCorrelationId(): void {
+        return;
     }
 }

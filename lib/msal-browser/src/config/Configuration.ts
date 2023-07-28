@@ -341,9 +341,9 @@ export function buildConfiguration(
             version,
             {
                 appName: Constants.EMPTY_STRING,
-                appVersion: Constants.EMPTY_STRING
+                appVersion: Constants.EMPTY_STRING,
             }
-        )
+        ),
     };
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode

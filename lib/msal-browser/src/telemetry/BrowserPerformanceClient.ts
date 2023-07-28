@@ -40,13 +40,18 @@ export class BrowserPerformanceClient
         super(
             configuration.auth.clientId,
             configuration.auth.authority || `${Constants.DEFAULT_AUTHORITY}`,
-            logger || new Logger(
-                configuration.system?.loggerOptions || {},
-                libName,
-                libVersion),
+            logger ||
+                new Logger(
+                    configuration.system?.loggerOptions || {},
+                    libName,
+                    libVersion
+                ),
             libName,
             libVersion,
-            configuration.telemetry?.application || { appName: '', appVersion: '' },
+            configuration.telemetry?.application || {
+                appName: "",
+                appVersion: "",
+            },
             intFields
         );
         this.browserCrypto = new BrowserCrypto(this.logger);

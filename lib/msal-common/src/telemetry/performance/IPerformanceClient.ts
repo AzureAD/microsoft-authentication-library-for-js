@@ -3,21 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import {
-    PerformanceEvent,
-    PerformanceEvents
-} from "./PerformanceEvent";
+import { PerformanceEvent, PerformanceEvents } from "./PerformanceEvent";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
 export type InProgressPerformanceEvent = {
-    end: (
-        event?: Partial<PerformanceEvent>
-    ) => PerformanceEvent | null;
+    end: (event?: Partial<PerformanceEvent>) => PerformanceEvent | null;
     discard: () => void;
-    add: (fields: { [key: string]: {} | undefined; }) => void;
-    increment: (fields: { [key: string]: number | undefined; }) => void;
+    add: (fields: { [key: string]: {} | undefined }) => void;
+    increment: (fields: { [key: string]: number | undefined }) => void;
     event: PerformanceEvent;
     measurement: IPerformanceMeasurement;
 };
@@ -29,8 +24,14 @@ export interface IPerformanceClient {
     ): InProgressPerformanceEvent;
     endMeasurement(event: PerformanceEvent): PerformanceEvent | null;
     discardMeasurements(correlationId: string): void;
-    addFields(fields: { [key: string]: {} | undefined }, correlationId: string): void;
-    incrementFields(fields: { [key: string]: number | undefined }, correlationId: string): void;
+    addFields(
+        fields: { [key: string]: {} | undefined },
+        correlationId: string
+    ): void;
+    incrementFields(
+        fields: { [key: string]: number | undefined },
+        correlationId: string
+    ): void;
     removePerformanceCallback(callbackId: string): boolean;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     emitEvents(events: PerformanceEvent[], correlationId: string): void;
