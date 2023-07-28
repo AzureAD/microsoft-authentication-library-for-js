@@ -4,38 +4,41 @@
  */
 
 import { IPersistence, PersistenceCachePlugin } from "../../src";
-import { Logger, TokenCacheContext, ISerializableTokenCache } from "@azure/msal-common";
+import {
+    Logger,
+    TokenCacheContext,
+    ISerializableTokenCache,
+} from "@azure/msal-common";
 
-describe('Test PersistenceCachePlugin', () => {
+describe("Test PersistenceCachePlugin", () => {
     const filePath = "./cache-plugin-test.json";
     const mockCacheData = "mockCacheData";
 
     const mockPersistence: IPersistence = {
         save: (contents) => {
-            return new Promise<void>(resolve => {
+            return new Promise<void>((resolve) => {
                 resolve();
             });
         },
         load: () => {
-            return new Promise<string>(resolve => {
+            return new Promise<string>((resolve) => {
                 resolve(mockCacheData);
             });
         },
         delete: () => {
-            return new Promise<boolean>(resolve => {
+            return new Promise<boolean>((resolve) => {
                 resolve(true);
             });
         },
         reloadNecessary: (lastSync) => {
-            return new Promise<boolean>(resolve => {
+            return new Promise<boolean>((resolve) => {
                 resolve(true);
             });
         },
         getLogger(): Logger {
             const loggerOptions = {
-                loggerCallback: () => {
-                },
-                piiLoggingEnabled: false
+                loggerCallback: () => {},
+                piiLoggingEnabled: false,
             };
             return new Logger(loggerOptions);
         },
@@ -43,41 +46,43 @@ describe('Test PersistenceCachePlugin', () => {
             return filePath;
         },
         verifyPersistence(): Promise<boolean> {
-            return new Promise<boolean>(resolve => {
+            return new Promise<boolean>((resolve) => {
                 resolve(true);
             });
         },
         createForPersistenceValidation(): Promise<IPersistence> {
-            return new Promise<IPersistence>(resolve => {
+            return new Promise<IPersistence>((resolve) => {
                 resolve(this);
             });
-        }
+        },
     };
 
     const mockCache: ISerializableTokenCache = {
         serialize: () => {
             return mockCacheData;
         },
-        deserialize: (data: string) => {
-        }
-    }
+        deserialize: (data: string) => {},
+    };
 
-    test('exports a class', async () => {
+    test("exports a class", async () => {
         const plugin = new PersistenceCachePlugin(mockPersistence);
         expect(plugin).toBeInstanceOf(PersistenceCachePlugin);
     });
 
-    test('Sets correct initial values', async () => {
+    test("Sets correct initial values", async () => {
         const plugin = new PersistenceCachePlugin(mockPersistence);
         expect(plugin.lockFilePath).toEqual(`${filePath}.lockfile`);
         expect(plugin.currentCache).toEqual(null);
         expect(plugin.lastSync).toEqual(0);
     });
 
-    test('beforeCacheAccess', async () => {
+    test("beforeCacheAccess", async () => {
         const loadSpy = jest.spyOn(mockPersistence, "load");
         const cacheSpy = jest.spyOn(mockCache, "deserialize");
-        const reloadNecessarySpy = jest.spyOn(mockPersistence, "reloadNecessary");
+        const reloadNecessarySpy = jest.spyOn(
+            mockPersistence,
+            "reloadNecessary"
+        );
         const plugin = new PersistenceCachePlugin(mockPersistence);
         const context = new TokenCacheContext(mockCache, false);
         await plugin.beforeCacheAccess(context);
@@ -86,9 +91,9 @@ describe('Test PersistenceCachePlugin', () => {
         expect(reloadNecessarySpy).toHaveBeenCalled();
     });
 
-    test('afterCacheAccess', async () => {
+    test("afterCacheAccess", async () => {
         const saveSpy = jest.spyOn(mockPersistence, "save");
-        const cacheSpy = jest.spyOn(mockCache, "serialize")
+        const cacheSpy = jest.spyOn(mockCache, "serialize");
         const plugin = new PersistenceCachePlugin(mockPersistence);
         const context = new TokenCacheContext(mockCache, true);
         await plugin.afterCacheAccess(context);

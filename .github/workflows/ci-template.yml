@@ -55,6 +55,10 @@ jobs:
       working-directory: ${{ inputs.path }}/${{ inputs.lib-name }}
       run: npm run lint
 
+    - name: Check Formatting
+      working-directory: ${{ inputs.path }}/${{ inputs.lib-name }}
+      run: npm run format:check
+
     - name: Install Keyring on Linux
       if: inputs.os == 'ubuntu-latest' && inputs.path == 'extensions'
       run: |

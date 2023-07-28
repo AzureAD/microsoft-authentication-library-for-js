@@ -1,6 +1,4 @@
-import {
-    PerformanceEvents,
-} from "@azure/msal-common";
+import { PerformanceEvents } from "@azure/msal-common";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 import { TEST_CONFIG } from "../utils/StringConstants";
 
@@ -31,9 +29,7 @@ describe("BrowserPerformanceClient.ts", () => {
     });
 
     it("sets pre-queue time", () => {
-        const browserPerfClient = new BrowserPerformanceClient(
-            testAppConfig
-        );
+        const browserPerfClient = new BrowserPerformanceClient(testAppConfig);
         const eventName = PerformanceEvents.AcquireTokenSilent;
         const correlationId = "test-correlation-id";
         const perfTimeNow = 1234567890;
@@ -100,9 +96,7 @@ describe("BrowserPerformanceClient.ts", () => {
     });
 
     it("supportsBrowserPerformanceNow returns false if window.performance not present", () => {
-        const browserPerfClient = new BrowserPerformanceClient(
-            testAppConfig
-        );
+        const browserPerfClient = new BrowserPerformanceClient(testAppConfig);
 
         // @ts-ignore
         jest.spyOn(window, "performance", "get").mockReturnValue(undefined);

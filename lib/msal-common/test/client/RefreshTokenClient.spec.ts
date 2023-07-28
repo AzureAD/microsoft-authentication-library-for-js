@@ -949,10 +949,14 @@ describe("RefreshTokenClient unit tests", () => {
             };
             performanceClient.startMeasurement.mockImplementation(() => {
                 return {
-                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
                     increment: jest.fn(),
                     end: jest.fn(),
-                }
+                };
             });
             const client = new RefreshTokenClient(config, performanceClient);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
@@ -967,9 +971,12 @@ describe("RefreshTokenClient unit tests", () => {
             await client.acquireToken(refreshTokenRequest);
 
             expect(performanceClient.addFields).toBeCalledTimes(2);
-            expect(performanceClient.addFields).toBeCalledWith({
-                httpVerToken: "xMsHttpVer"
-            }, TEST_CONFIG.CORRELATION_ID);
+            expect(performanceClient.addFields).toBeCalledWith(
+                {
+                    httpVerToken: "xMsHttpVer",
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
@@ -993,10 +1000,14 @@ describe("RefreshTokenClient unit tests", () => {
             };
             performanceClient.startMeasurement.mockImplementation(() => {
                 return {
-                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
                     increment: jest.fn(),
                     end: jest.fn(),
-                }
+                };
             });
             const client = new RefreshTokenClient(config, performanceClient);
             const refreshTokenRequest: CommonRefreshTokenRequest = {

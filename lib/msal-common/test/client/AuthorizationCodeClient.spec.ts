@@ -3293,10 +3293,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             performanceClient.startMeasurement.mockImplementation(() => {
                 return {
-                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
                     increment: jest.fn(),
                     end: jest.fn(),
-                }
+                };
             });
             const client = new AuthorizationCodeClient(
                 config,
@@ -3320,9 +3324,12 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: idTokenClaims.nonce,
             });
 
-            expect(performanceClient.addFields).toBeCalledWith({
-                httpVerAuthority: "xMsHttpVer"
-            }, TEST_CONFIG.CORRELATION_ID);
+            expect(performanceClient.addFields).toBeCalledWith(
+                {
+                    httpVerAuthority: "xMsHttpVer",
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
@@ -3374,10 +3381,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             performanceClient.startMeasurement.mockImplementation(() => {
                 return {
-                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
                     increment: jest.fn(),
                     end: jest.fn(),
-                }
+                };
             });
             const client = new AuthorizationCodeClient(
                 config,

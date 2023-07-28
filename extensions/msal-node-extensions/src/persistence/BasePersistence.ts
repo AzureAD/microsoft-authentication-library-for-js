@@ -8,11 +8,12 @@ import { Constants } from "../utils/Constants";
 import { IPersistence } from "./IPersistence";
 
 export abstract class BasePersistence {
-    public abstract createForPersistenceValidation(): Promise<IPersistence>; 
+    public abstract createForPersistenceValidation(): Promise<IPersistence>;
 
     public async verifyPersistence(): Promise<boolean> {
         // We are using a different location for the test to avoid overriding the functional cache
-        const persistenceValidator = await this.createForPersistenceValidation();
+        const persistenceValidator =
+            await this.createForPersistenceValidation();
 
         try {
             await persistenceValidator.save(Constants.PERSISTENCE_TEST_DATA);
@@ -22,7 +23,7 @@ export abstract class BasePersistence {
             if (!retrievedDummyData) {
                 throw PersistenceError.createCachePersistenceError(
                     "Persistence check failed. Data was written but it could not be read. " +
-                    "Possible cause: on Linux, LibSecret is installed but D-Bus isn't running \
+                        "Possible cause: on Linux, LibSecret is installed but D-Bus isn't running \
                     because it cannot be started over SSH."
                 );
             }
@@ -36,8 +37,9 @@ export abstract class BasePersistence {
             await persistenceValidator.delete();
             return true;
         } catch (e) {
-            throw PersistenceError.createCachePersistenceError(`Verifing persistence failed with the error: ${e}`);
+            throw PersistenceError.createCachePersistenceError(
+                `Verifing persistence failed with the error: ${e}`
+            );
         }
     }
-
 }

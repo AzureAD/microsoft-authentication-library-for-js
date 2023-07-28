@@ -36,4 +36,5 @@ export const AzureCloudInstance = {
     // US Government cloud
     AzureUsGovernment: "https://login.microsoftonline.us",
 } as const;
-export type AzureCloudInstance = typeof AzureCloudInstance[keyof typeof AzureCloudInstance];
+export type AzureCloudInstance =
+    (typeof AzureCloudInstance)[keyof typeof AzureCloudInstance];
