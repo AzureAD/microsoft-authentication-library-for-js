@@ -14,4 +14,3 @@ export type StoreInCache = {
     /* Indicates whether or not the acquired refreshToken will be stored in the cache */
     refreshToken?: boolean;
 };
-

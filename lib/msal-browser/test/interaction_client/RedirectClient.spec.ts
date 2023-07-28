@@ -2965,32 +2965,43 @@ describe("RedirectClient", () => {
 
         describe("storeInCache tests", () => {
             beforeEach(() => {
-                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
-                jest.spyOn(NetworkManager.prototype, "sendPostRequest").mockResolvedValue(TEST_TOKEN_RESPONSE);
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                );
+                jest.spyOn(
+                    NetworkManager.prototype,
+                    "sendPostRequest"
+                ).mockResolvedValue(TEST_TOKEN_RESPONSE);
             });
-            
+
             it("does not store idToken if storeInCache.idToken = false", async () => {
                 browserStorage.setInteractionInProgress(true);
                 await redirectClient.acquireToken({
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     storeInCache: {
-                        idToken: false
+                        idToken: false,
                     },
                     nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
                     onRedirectNavigate: () => {
                         return false; // Supress navigation
-                    }
+                    },
                 });
 
-                const tokenResp = await redirectClient.handleRedirectPromise(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+                const tokenResp = await redirectClient.handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                );
                 if (!tokenResp) {
                     throw "Response should not be null!";
-                } 
+                }
 
                 // Response should still contain acquired tokens
-                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
-                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
 
                 // Cache should not contain tokens which were turned off
                 const tokenKeys = browserStorage.getTokenKeys();
@@ -3005,22 +3016,28 @@ describe("RedirectClient", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     storeInCache: {
-                        accessToken: false
+                        accessToken: false,
                     },
                     nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
                     onRedirectNavigate: () => {
                         return false; // Supress navigation
-                    }
+                    },
                 });
 
-                const tokenResp = await redirectClient.handleRedirectPromise(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+                const tokenResp = await redirectClient.handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                );
                 if (!tokenResp) {
                     throw "Response should not be null!";
-                } 
+                }
 
                 // Response should still contain acquired tokens
-                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
-                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
 
                 // Cache should not contain tokens which were turned off
                 const tokenKeys = browserStorage.getTokenKeys();
@@ -3035,22 +3052,28 @@ describe("RedirectClient", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     storeInCache: {
-                        refreshToken: false
+                        refreshToken: false,
                     },
                     nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
                     onRedirectNavigate: () => {
                         return false; // Supress navigation
-                    }
+                    },
                 });
 
-                const tokenResp = await redirectClient.handleRedirectPromise(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+                const tokenResp = await redirectClient.handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                );
                 if (!tokenResp) {
                     throw "Response should not be null!";
-                } 
+                }
 
                 // Response should still contain acquired tokens
-                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
-                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
 
                 // Cache should not contain tokens which were turned off
                 const tokenKeys = browserStorage.getTokenKeys();

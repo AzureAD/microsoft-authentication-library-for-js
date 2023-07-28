@@ -74,7 +74,7 @@ describe("CacheManager.ts test cases", () => {
             ac.username = "Jane Goodman";
             ac.authorityType = "MSSTS";
             ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
-    
+
             const accountKey = ac.generateAccountKey();
             const cacheRecord = new CacheRecord();
             cacheRecord.account = ac;
@@ -89,7 +89,7 @@ describe("CacheManager.ts test cases", () => {
             }
             expect(mockCacheAccount.homeAccountId).toEqual("someUid.someUtid");
         });
-    
+
         it("save accessToken", async () => {
             const at = new AccessTokenEntity();
             Object.assign(at, {
@@ -105,7 +105,7 @@ describe("CacheManager.ts test cases", () => {
                 extendedExpiresOn: "4600",
                 tokenType: "Bearer",
             });
-    
+
             const atKey = at.generateCredentialKey();
             const cacheRecord = new CacheRecord();
             cacheRecord.accessToken = at;
@@ -119,7 +119,9 @@ describe("CacheManager.ts test cases", () => {
                 );
             }
             expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
-            expect(mockCacheAT.credentialType).toEqual(CredentialType.ACCESS_TOKEN);
+            expect(mockCacheAT.credentialType).toEqual(
+                CredentialType.ACCESS_TOKEN
+            );
             expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
 
@@ -135,17 +137,18 @@ describe("CacheManager.ts test cases", () => {
                 TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                 mockCrypto
             );
-    
+
             const atKey = at.generateCredentialKey();
             const cacheRecord = new CacheRecord();
             cacheRecord.accessToken = at;
-            await mockCache.cacheManager.saveCacheRecord(cacheRecord, { accessToken: false});
-            const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(
-                atKey
-            );
+            await mockCache.cacheManager.saveCacheRecord(cacheRecord, {
+                accessToken: false,
+            });
+            const mockCacheAT =
+                mockCache.cacheManager.getAccessTokenCredential(atKey);
             expect(mockCacheAT).toBe(null);
         });
-        
+
         it("save accessToken with Auth Scheme (pop)", async () => {
             const at = new AccessTokenEntity();
             Object.assign(at, {
@@ -162,7 +165,7 @@ describe("CacheManager.ts test cases", () => {
                 keyId: "some_key",
                 tokenType: "pop",
             });
-    
+
             const atKey = at.generateCredentialKey();
             const cacheRecord = new CacheRecord();
             cacheRecord.accessToken = at;
@@ -191,14 +194,15 @@ describe("CacheManager.ts test cases", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 TEST_CONFIG.MSAL_TENANT_ID
             );
-    
+
             const idTokenKey = idToken.generateCredentialKey();
             const cacheRecord = new CacheRecord();
             cacheRecord.idToken = idToken;
-            await mockCache.cacheManager.saveCacheRecord(cacheRecord, { idToken: false});
-            const mockCacheId = mockCache.cacheManager.getIdTokenCredential(
-                idTokenKey
-            );
+            await mockCache.cacheManager.saveCacheRecord(cacheRecord, {
+                idToken: false,
+            });
+            const mockCacheId =
+                mockCache.cacheManager.getIdTokenCredential(idTokenKey);
             expect(mockCacheId).toBe(null);
         });
 
@@ -209,18 +213,20 @@ describe("CacheManager.ts test cases", () => {
                 TEST_TOKENS.REFRESH_TOKEN,
                 TEST_CONFIG.MSAL_CLIENT_ID
             );
-    
+
             const refreshTokenKey = refreshToken.generateCredentialKey();
             const cacheRecord = new CacheRecord();
             cacheRecord.refreshToken = refreshToken;
-            await mockCache.cacheManager.saveCacheRecord(cacheRecord, { refreshToken: false});
-            const mockCacheRT = mockCache.cacheManager.getRefreshTokenCredential(
-                refreshTokenKey
-            );
+            await mockCache.cacheManager.saveCacheRecord(cacheRecord, {
+                refreshToken: false,
+            });
+            const mockCacheRT =
+                mockCache.cacheManager.getRefreshTokenCredential(
+                    refreshTokenKey
+                );
             expect(mockCacheRT).toBe(null);
         });
     });
-
 
     it("getAccounts (gets all AccountInfo objects)", async () => {
         const accounts = mockCache.cacheManager.getAllAccounts();

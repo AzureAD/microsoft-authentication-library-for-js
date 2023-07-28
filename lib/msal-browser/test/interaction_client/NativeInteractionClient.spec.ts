@@ -115,7 +115,7 @@ describe("NativeInteractionClient Tests", () => {
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
 
-        //@ts-ignore 
+        //@ts-ignore
         browserCacheManager = pca.browserStorage;
         //@ts-ignore
         internalStorage = pca.nativeInternalStorage;
@@ -601,17 +601,22 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             beforeEach(() => {
-                jest.spyOn(NativeMessageHandler.prototype, "sendMessage").mockResolvedValue(mockWamResponse);
+                jest.spyOn(
+                    NativeMessageHandler.prototype,
+                    "sendMessage"
+                ).mockResolvedValue(mockWamResponse);
             });
 
             it("does not store idToken if storeInCache.idToken = false", async () => {
                 const response = await nativeInteractionClient.acquireToken({
                     scopes: ["User.Read"],
                     storeInCache: {
-                        idToken: false
-                    }
+                        idToken: false,
+                    },
                 });
-                expect(response.accessToken).toEqual(mockWamResponse.access_token);
+                expect(response.accessToken).toEqual(
+                    mockWamResponse.access_token
+                );
                 expect(response.idToken).toEqual(mockWamResponse.id_token);
 
                 // Browser Storage should not contain tokens
@@ -631,10 +636,12 @@ describe("NativeInteractionClient Tests", () => {
                 const response = await nativeInteractionClient.acquireToken({
                     scopes: ["User.Read"],
                     storeInCache: {
-                        accessToken: false
-                    }
+                        accessToken: false,
+                    },
                 });
-                expect(response.accessToken).toEqual(mockWamResponse.access_token);
+                expect(response.accessToken).toEqual(
+                    mockWamResponse.access_token
+                );
                 expect(response.idToken).toEqual(mockWamResponse.id_token);
 
                 // Cache should not contain tokens which were turned off
@@ -654,10 +661,12 @@ describe("NativeInteractionClient Tests", () => {
                 const response = await nativeInteractionClient.acquireToken({
                     scopes: ["User.Read"],
                     storeInCache: {
-                        refreshToken: false
-                    }
+                        refreshToken: false,
+                    },
                 });
-                expect(response.accessToken).toEqual(mockWamResponse.access_token);
+                expect(response.accessToken).toEqual(
+                    mockWamResponse.access_token
+                );
                 expect(response.idToken).toEqual(mockWamResponse.id_token);
 
                 // Browser Storage should not contain tokens

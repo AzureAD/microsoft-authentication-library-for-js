@@ -51,7 +51,7 @@ const testAccount: AccountInfo = {
 
 describe("SilentRefreshClient", () => {
     let silentRefreshClient: SilentRefreshClient;
-    let browserCacheManager: BrowserCacheManager
+    let browserCacheManager: BrowserCacheManager;
 
     beforeEach(() => {
         let pca = new PublicClientApplication({
@@ -156,9 +156,18 @@ describe("SilentRefreshClient", () => {
                 const rtEntity = new RefreshTokenEntity();
                 rtEntity.secret = TEST_TOKEN_RESPONSE.body.refresh_token!;
                 const accountEntity = new AccountEntity();
-                jest.spyOn(BrowserCacheManager.prototype, "getAccount").mockReturnValue(accountEntity);
-                jest.spyOn(BrowserCacheManager.prototype, "getRefreshToken").mockReturnValue(rtEntity);
-                jest.spyOn(NetworkManager.prototype, "sendPostRequest").mockResolvedValue(TEST_TOKEN_RESPONSE);
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "getAccount"
+                ).mockReturnValue(accountEntity);
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "getRefreshToken"
+                ).mockReturnValue(rtEntity);
+                jest.spyOn(
+                    NetworkManager.prototype,
+                    "sendPostRequest"
+                ).mockResolvedValue(TEST_TOKEN_RESPONSE);
             });
 
             it("does not store idToken if storeInCache.idToken = false", async () => {
@@ -169,13 +178,17 @@ describe("SilentRefreshClient", () => {
                     forceRefresh: true,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     storeInCache: {
-                        idToken: false
-                    }
+                        idToken: false,
+                    },
                 });
 
                 // Response should still contain acquired tokens
-                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
-                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
 
                 // Cache should not contain tokens which were turned off
                 const tokenKeys = browserCacheManager.getTokenKeys();
@@ -192,13 +205,17 @@ describe("SilentRefreshClient", () => {
                     forceRefresh: true,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     storeInCache: {
-                        accessToken: false
-                    }
+                        accessToken: false,
+                    },
                 });
-                
+
                 // Response should still contain acquired tokens
-                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
-                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
 
                 // Cache should not contain tokens which were turned off
                 const tokenKeys = browserCacheManager.getTokenKeys();
@@ -215,13 +232,17 @@ describe("SilentRefreshClient", () => {
                     forceRefresh: true,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     storeInCache: {
-                        refreshToken: false
-                    }
+                        refreshToken: false,
+                    },
                 });
-                
+
                 // Response should still contain acquired tokens
-                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
-                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
 
                 // Cache should not contain tokens which were turned off
                 const tokenKeys = browserCacheManager.getTokenKeys();

@@ -165,7 +165,10 @@ export interface ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    saveCacheRecord(cacheRecord: CacheRecord, storeInCache?: StoreInCache): Promise<void>;
+    saveCacheRecord(
+        cacheRecord: CacheRecord,
+        storeInCache?: StoreInCache
+    ): Promise<void>;
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts

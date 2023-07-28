@@ -282,7 +282,10 @@ export abstract class CacheManager implements ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    async saveCacheRecord(cacheRecord: CacheRecord, storeInCache?: StoreInCache): Promise<void> {
+    async saveCacheRecord(
+        cacheRecord: CacheRecord,
+        storeInCache?: StoreInCache
+    ): Promise<void> {
         if (!cacheRecord) {
             throw ClientAuthError.createNullOrUndefinedCacheRecord();
         }
@@ -299,7 +302,10 @@ export abstract class CacheManager implements ICacheManager {
             await this.saveAccessToken(cacheRecord.accessToken);
         }
 
-        if (!!cacheRecord.refreshToken && storeInCache?.refreshToken !== false) {
+        if (
+            !!cacheRecord.refreshToken &&
+            storeInCache?.refreshToken !== false
+        ) {
             this.setRefreshTokenCredential(cacheRecord.refreshToken);
         }
 

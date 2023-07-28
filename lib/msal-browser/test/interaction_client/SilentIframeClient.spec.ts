@@ -553,9 +553,17 @@ describe("SilentIframeClient", () => {
 
         describe("storeInCache tests", () => {
             beforeEach(() => {
-                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(TEST_STATE_VALUES.TEST_STATE_SILENT);
-                jest.spyOn(SilentHandler.prototype, "monitorIframeForHash").mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
-                jest.spyOn(NetworkManager.prototype, "sendPostRequest").mockResolvedValue(TEST_TOKEN_RESPONSE);
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+                jest.spyOn(
+                    SilentHandler.prototype,
+                    "monitorIframeForHash"
+                ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
+                jest.spyOn(
+                    NetworkManager.prototype,
+                    "sendPostRequest"
+                ).mockResolvedValue(TEST_TOKEN_RESPONSE);
             });
 
             it("does not store idToken if storeInCache.idToken = false", async () => {
@@ -563,14 +571,18 @@ describe("SilentIframeClient", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     storeInCache: {
-                        idToken: false
+                        idToken: false,
                     },
-                    nonce: ID_TOKEN_CLAIMS.nonce // Ensures nonce matches the mocked idToken
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
                 });
-                
+
                 // Response should still contain acquired tokens
-                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
-                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
 
                 // Cache should not contain tokens which were turned off
                 const tokenKeys = browserCacheManager.getTokenKeys();
@@ -584,14 +596,18 @@ describe("SilentIframeClient", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     storeInCache: {
-                        accessToken: false
+                        accessToken: false,
                     },
-                    nonce: ID_TOKEN_CLAIMS.nonce // Ensures nonce matches the mocked idToken
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
                 });
-                
+
                 // Response should still contain acquired tokens
-                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
-                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
 
                 // Cache should not contain tokens which were turned off
                 const tokenKeys = browserCacheManager.getTokenKeys();
@@ -605,14 +621,18 @@ describe("SilentIframeClient", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     storeInCache: {
-                        refreshToken: false
+                        refreshToken: false,
                     },
-                    nonce: ID_TOKEN_CLAIMS.nonce // Ensures nonce matches the mocked idToken
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
                 });
-                
+
                 // Response should still contain acquired tokens
-                expect(tokenResp.idToken).toEqual(TEST_TOKEN_RESPONSE.body.id_token);
-                expect(tokenResp.accessToken).toEqual(TEST_TOKEN_RESPONSE.body.access_token);
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
 
                 // Cache should not contain tokens which were turned off
                 const tokenKeys = browserCacheManager.getTokenKeys();

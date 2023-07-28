@@ -313,7 +313,10 @@ export class ResponseHandler {
                     );
                 }
             }
-            await this.cacheStorage.saveCacheRecord(cacheRecord, request.storeInCache);
+            await this.cacheStorage.saveCacheRecord(
+                cacheRecord,
+                request.storeInCache
+            );
         } finally {
             if (
                 this.persistencePlugin &&
