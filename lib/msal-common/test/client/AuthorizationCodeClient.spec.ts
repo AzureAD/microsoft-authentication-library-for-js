@@ -3439,8 +3439,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             const performanceClient = {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
-                addStaticFields: jest.fn(),
-                incrementCounters: jest.fn(),
+                addFields: jest.fn(),
+                incrementFields: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
@@ -3452,7 +3452,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                 setPreQueueTime: jest.fn(),
             };
             performanceClient.startMeasurement.mockImplementation(() => {
-                return performanceClient;
+                return {
+                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    increment: jest.fn(),
+                    end: jest.fn(),
+                }
             });
             const client = new AuthorizationCodeClient(
                 config,
@@ -3527,8 +3531,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             const performanceClient = {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
-                addStaticFields: jest.fn(),
-                incrementCounters: jest.fn(),
+                addFields: jest.fn(),
+                incrementFields: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
@@ -3540,7 +3544,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                 setPreQueueTime: jest.fn(),
             };
             performanceClient.startMeasurement.mockImplementation(() => {
-                return performanceClient;
+                return {
+                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    increment: jest.fn(),
+                    end: jest.fn(),
+                }
             });
             const client = new AuthorizationCodeClient(
                 config,
