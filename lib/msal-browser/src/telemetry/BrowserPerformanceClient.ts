@@ -30,28 +30,18 @@ export class BrowserPerformanceClient
 
     constructor(
         configuration: Configuration,
-        logger?: Logger,
-        libraryName?: string,
-        libraryVersion?: string,
         intFields?: Set<string>
     ) {
-        const libName = libraryName || name;
-        const libVersion = libraryVersion || version;
         super(
             configuration.auth.clientId,
             configuration.auth.authority || `${Constants.DEFAULT_AUTHORITY}`,
-            logger ||
-                new Logger(
-                    configuration.system?.loggerOptions || {},
-                    libName,
-                    libVersion
-                ),
-            libName,
-            libVersion,
-            configuration.telemetry?.application || {
-                appName: "",
-                appVersion: "",
-            },
+            new Logger(
+                configuration.system?.loggerOptions || {},
+                name,
+                version),
+            name,
+            version,
+            configuration.telemetry?.application || { appName: '', appVersion: '' },
             intFields
         );
         this.browserCrypto = new BrowserCrypto(this.logger);
