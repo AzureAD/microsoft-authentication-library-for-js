@@ -19,13 +19,19 @@ import { isNodeError } from "../utils/TypeGuards";
  * serviceName: Identifier used as key for whatever value is stored
  * accountName: Account under which password should be stored
  */
-export class LibSecretPersistence extends BasePersistence implements IPersistence {
-
+export class LibSecretPersistence
+    extends BasePersistence
+    implements IPersistence
+{
     protected readonly serviceName;
     protected readonly accountName;
     private filePersistence: FilePersistence;
 
-    private constructor(filePersistence: FilePersistence, serviceName: string, accountName: string) {
+    private constructor(
+        filePersistence: FilePersistence,
+        serviceName: string,
+        accountName: string
+    ) {
         super();
         this.filePersistence = filePersistence;
         this.serviceName = serviceName;
@@ -36,10 +42,17 @@ export class LibSecretPersistence extends BasePersistence implements IPersistenc
         fileLocation: string,
         serviceName: string,
         accountName: string,
-        loggerOptions?: LoggerOptions): Promise<LibSecretPersistence> {
-
-        const filePersistence = await FilePersistence.create(fileLocation, loggerOptions);
-        const persistence = new LibSecretPersistence(filePersistence, serviceName, accountName);
+        loggerOptions?: LoggerOptions
+    ): Promise<LibSecretPersistence> {
+        const filePersistence = await FilePersistence.create(
+            fileLocation,
+            loggerOptions
+        );
+        const persistence = new LibSecretPersistence(
+            filePersistence,
+            serviceName,
+            accountName
+        );
         return persistence;
     }
 
@@ -93,12 +106,15 @@ export class LibSecretPersistence extends BasePersistence implements IPersistenc
     public getLogger(): Logger {
         return this.filePersistence.getLogger();
     }
-      
+
     public createForPersistenceValidation(): Promise<LibSecretPersistence> {
-        const testCacheFileLocation = `${dirname(this.filePersistence.getFilePath())}/test.cache`;
+        const testCacheFileLocation = `${dirname(
+            this.filePersistence.getFilePath()
+        )}/test.cache`;
         return LibSecretPersistence.create(
-            testCacheFileLocation, 
-            "persistenceValidationServiceName", "persistencValidationAccountName"
+            testCacheFileLocation,
+            "persistenceValidationServiceName",
+            "persistencValidationAccountName"
         );
     }
 }

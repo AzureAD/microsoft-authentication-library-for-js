@@ -15,7 +15,6 @@ import { isNodeError } from "../utils/TypeGuards";
  * Cross-process lock that works on all platforms.
  */
 export class CrossPlatformLock {
-
     private readonly lockFilePath: string;
     private lockFileHandle: fs.FileHandle | undefined;
     private readonly retryNumber: number;
@@ -23,7 +22,11 @@ export class CrossPlatformLock {
 
     private logger: Logger;
 
-    constructor(lockFilePath: string, logger: Logger, lockOptions?: CrossPlatformLockOptions) {
+    constructor(
+        lockFilePath: string,
+        logger: Logger,
+        lockOptions?: CrossPlatformLockOptions
+    ) {
         this.lockFilePath = lockFilePath;
         this.retryNumber = lockOptions ? lockOptions.retryNumber : 500;
         this.retryDelay = lockOptions ? lockOptions.retryDelay : 100;
@@ -46,21 +49,31 @@ export class CrossPlatformLock {
                 return;
             } catch (err) {
                 if (isNodeError(err)) {
-                    if (err.code === Constants.EEXIST_ERROR || err.code === Constants.EPERM_ERROR) {
+                    if (
+                        err.code === Constants.EEXIST_ERROR ||
+                        err.code === Constants.EPERM_ERROR
+                    ) {
                         this.logger.info(err.message);
                         await this.sleep(this.retryDelay);
                     } else {
-                        this.logger.error(`${pid} was not able to acquire lock. Ran into error: ${err.message}`);
-                        throw PersistenceError.createCrossPlatformLockError(err.message);
+                        this.logger.error(
+                            `${pid} was not able to acquire lock. Ran into error: ${err.message}`
+                        );
+                        throw PersistenceError.createCrossPlatformLockError(
+                            err.message
+                        );
                     }
                 } else {
                     throw err;
                 }
             }
         }
-        this.logger.error(`${pid} was not able to acquire lock. Exceeded amount of retries set in the options`);
+        this.logger.error(
+            `${pid} was not able to acquire lock. Exceeded amount of retries set in the options`
+        );
         throw PersistenceError.createCrossPlatformLockError(
-            "Not able to acquire lock. Exceeded amount of retries set in options");
+            "Not able to acquire lock. Exceeded amount of retries set in options"
+        );
     }
 
     /**
@@ -68,21 +81,29 @@ export class CrossPlatformLock {
      */
     public async unlock(): Promise<void> {
         try {
-            if(this.lockFileHandle){
+            if (this.lockFileHandle) {
                 // if we have a file handle to the .lockfile, delete lock file
                 await fs.unlink(this.lockFilePath);
                 await this.lockFileHandle.close();
                 this.logger.info("lockfile deleted");
             } else {
-                this.logger.warning("lockfile handle does not exist, so lockfile could not be deleted");
+                this.logger.warning(
+                    "lockfile handle does not exist, so lockfile could not be deleted"
+                );
             }
         } catch (err) {
             if (isNodeError(err)) {
                 if (err.code === Constants.ENOENT_ERROR) {
-                    this.logger.info("Tried to unlock but lockfile does not exist");
+                    this.logger.info(
+                        "Tried to unlock but lockfile does not exist"
+                    );
                 } else {
-                    this.logger.error(`${pid} was not able to release lock. Ran into error: ${err.message}`);
-                    throw PersistenceError.createCrossPlatformLockError(err.message);
+                    this.logger.error(
+                        `${pid} was not able to release lock. Ran into error: ${err.message}`
+                    );
+                    throw PersistenceError.createCrossPlatformLockError(
+                        err.message
+                    );
                 }
             } else {
                 throw err;

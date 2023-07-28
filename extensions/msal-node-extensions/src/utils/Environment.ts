@@ -11,7 +11,7 @@ export class Environment {
     static get homeEnvVar(): string {
         return this.getEnvironmentVariable(Constants.ENVIRONMENT.HOME);
     }
-    
+
     static get lognameEnvVar(): string {
         return this.getEnvironmentVariable(Constants.ENVIRONMENT.LOGNAME);
     }
@@ -57,19 +57,22 @@ export class Environment {
     }
 
     static getUserRootDirectory(): string | null {
-        return !this.isWindowsPlatform ?
-            this.getUserHomeDirOnUnix() :
-            this.getUserHomeDirOnWindows();
+        return !this.isWindowsPlatform
+            ? this.getUserHomeDirOnUnix()
+            : this.getUserHomeDirOnWindows();
     }
 
     static getUserHomeDirOnWindows(): string {
-        return this.getEnvironmentVariable(Constants.ENVIRONMENT.LOCAL_APPLICATION_DATA);
+        return this.getEnvironmentVariable(
+            Constants.ENVIRONMENT.LOCAL_APPLICATION_DATA
+        );
     }
 
     static getUserHomeDirOnUnix(): string | null {
         if (this.isWindowsPlatform()) {
             throw PersistenceError.createNotSupportedError(
-                "Getting the user home directory for unix is not supported in windows");
+                "Getting the user home directory for unix is not supported in windows"
+            );
         }
 
         if (this.homeEnvVar) {
@@ -97,8 +100,8 @@ export class Environment {
             }
         } else {
             throw PersistenceError.createNotSupportedError(
-                "Getting the user home directory for unix is not supported in windows");
+                "Getting the user home directory for unix is not supported in windows"
+            );
         }
-
     }
 }

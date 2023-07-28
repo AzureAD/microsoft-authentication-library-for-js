@@ -3,8 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, INativeBrokerPlugin } from "@azure/msal-common";
-import { mockNativeAuthenticationResult, mockNativeAccountInfo } from "./TestConstants";
+import {
+    AccountInfo,
+    AuthenticationResult,
+    INativeBrokerPlugin,
+} from "@azure/msal-common";
+import {
+    mockNativeAuthenticationResult,
+    mockNativeAccountInfo,
+} from "./TestConstants";
 
 export class MockNativeBrokerPlugin implements INativeBrokerPlugin {
     isBrokerAvailable: boolean = true;
@@ -32,5 +39,4 @@ export class MockNativeBrokerPlugin implements INativeBrokerPlugin {
     signOut(): Promise<void> {
         return Promise.resolve();
     }
-
 }

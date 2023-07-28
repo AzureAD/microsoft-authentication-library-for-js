@@ -1012,7 +1012,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
-                }
+                },
             });
 
             const callbackId = pca.addPerformanceCallback((events) => {
