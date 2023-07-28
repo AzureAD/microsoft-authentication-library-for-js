@@ -10,7 +10,7 @@ Consuming performance measurements requires setting performance client in [telem
 ### Set telemetry performance client
 
 ```javascript
-import { PublicClientApplication } from "@azure/msal-browser";
+import { PublicClientApplication, BrowserPerformanceClient } from "@azure/msal-browser";
 
 const msalConfig = {
     auth: {
