@@ -3293,10 +3293,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             performanceClient.startMeasurement.mockImplementation(() => {
                 return {
-                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
                     increment: jest.fn(),
                     end: jest.fn(),
-                }
+                };
             });
             const client = new AuthorizationCodeClient(
                 config,
@@ -3320,9 +3324,12 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: idTokenClaims.nonce,
             });
 
-            expect(performanceClient.addFields).toBeCalledWith({
-                httpVerAuthority: "xMsHttpVer"
-            }, TEST_CONFIG.CORRELATION_ID);
+            expect(performanceClient.addFields).toBeCalledWith(
+                {
+                    httpVerAuthority: "xMsHttpVer",
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
@@ -3374,10 +3381,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             performanceClient.startMeasurement.mockImplementation(() => {
                 return {
-                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
                     increment: jest.fn(),
                     end: jest.fn(),
-                }
+                };
             });
             const client = new AuthorizationCodeClient(
                 config,
@@ -3407,7 +3418,9 @@ describe("AuthorizationCodeClient unit tests", () => {
 
     describe("Telemetry protocol mode tests", () => {
         it("Adds telemetry headers to token request in AAD protocol mode", async () => {
-            let config = await ClientTestUtils.createTestClientConfiguration(true);
+            let config = await ClientTestUtils.createTestClientConfiguration(
+                true
+            );
             sinon
                 .stub(
                     Authority.prototype,
@@ -3453,10 +3466,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             performanceClient.startMeasurement.mockImplementation(() => {
                 return {
-                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
                     increment: jest.fn(),
                     end: jest.fn(),
-                }
+                };
             });
             const client = new AuthorizationCodeClient(
                 config,
@@ -3475,12 +3492,12 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
             };
-            try { 
+            try {
                 await client.acquireToken(authCodeRequest, {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                 });
-            } catch {};
+            } catch {}
             expect(
                 createTokenRequestBodySpy.calledWith(authCodeRequest)
             ).toBeTruthy();
@@ -3488,18 +3505,17 @@ describe("AuthorizationCodeClient unit tests", () => {
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_CURR_TELEM}`
-                )
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
             ).toBe(true);
             expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_LAST_TELEM}`
-                )
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
             ).toBe(true);
         });
         it("Does not add telemetry headers to token request in OIDC protocol mode", async () => {
-            let config = await ClientTestUtils.createTestClientConfiguration(true, ProtocolMode.OIDC);
+            let config = await ClientTestUtils.createTestClientConfiguration(
+                true,
+                ProtocolMode.OIDC
+            );
             sinon
                 .stub(
                     Authority.prototype,
@@ -3545,10 +3561,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             performanceClient.startMeasurement.mockImplementation(() => {
                 return {
-                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
                     increment: jest.fn(),
                     end: jest.fn(),
-                }
+                };
             });
             const client = new AuthorizationCodeClient(
                 config,
@@ -3567,12 +3587,12 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
             };
-            try { 
+            try {
                 await client.acquireToken(authCodeRequest, {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                 });
-            } catch {};
+            } catch {}
             expect(
                 createTokenRequestBodySpy.calledWith(authCodeRequest)
             ).toBeTruthy();
@@ -3580,14 +3600,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_CURR_TELEM}`
-                )
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
             ).toBe(false);
             expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_LAST_TELEM}`
-                )
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
             ).toBe(false);
         });
     });

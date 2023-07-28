@@ -949,10 +949,14 @@ describe("RefreshTokenClient unit tests", () => {
             };
             performanceClient.startMeasurement.mockImplementation(() => {
                 return {
-                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
                     increment: jest.fn(),
                     end: jest.fn(),
-                }
+                };
             });
             const client = new RefreshTokenClient(config, performanceClient);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
@@ -967,9 +971,12 @@ describe("RefreshTokenClient unit tests", () => {
             await client.acquireToken(refreshTokenRequest);
 
             expect(performanceClient.addFields).toBeCalledTimes(2);
-            expect(performanceClient.addFields).toBeCalledWith({
-                httpVerToken: "xMsHttpVer"
-            }, TEST_CONFIG.CORRELATION_ID);
+            expect(performanceClient.addFields).toBeCalledWith(
+                {
+                    httpVerToken: "xMsHttpVer",
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
@@ -993,10 +1000,14 @@ describe("RefreshTokenClient unit tests", () => {
             };
             performanceClient.startMeasurement.mockImplementation(() => {
                 return {
-                    add: (fields: { [key: string]: {} | undefined; }) => performanceClient.addFields(fields, TEST_CONFIG.CORRELATION_ID),
+                    add: (fields: { [key: string]: {} | undefined }) =>
+                        performanceClient.addFields(
+                            fields,
+                            TEST_CONFIG.CORRELATION_ID
+                        ),
                     increment: jest.fn(),
                     end: jest.fn(),
-                }
+                };
             });
             const client = new RefreshTokenClient(config, performanceClient);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
@@ -1293,19 +1304,24 @@ describe("RefreshTokenClient unit tests", () => {
             claims: TEST_CONFIG.CLAIMS,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            authenticationScheme:
+                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
         };
         it("Adds telemetry headers to token request in AAD protocol mode", async () => {
             const createTokenRequestBodySpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 <any>"createTokenRequestBody"
             );
-            const config =
-                await ClientTestUtils.createTestClientConfiguration(true);
-            const client = new RefreshTokenClient(config, stubPerformanceClient);
-            try { 
-                await client.acquireToken(refreshTokenRequest)
-            } catch {};
+            const config = await ClientTestUtils.createTestClientConfiguration(
+                true
+            );
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            try {
+                await client.acquireToken(refreshTokenRequest);
+            } catch {}
             expect(
                 createTokenRequestBodySpy.calledWith(refreshTokenRequest)
             ).toBeTruthy();
@@ -1313,14 +1329,10 @@ describe("RefreshTokenClient unit tests", () => {
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_CURR_TELEM}`
-                )
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
             ).toBe(true);
             expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_LAST_TELEM}`
-                )
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
             ).toBe(true);
         });
         it("Does not add telemetry headers to token request in OIDC protocol mode", async () => {
@@ -1328,12 +1340,17 @@ describe("RefreshTokenClient unit tests", () => {
                 RefreshTokenClient.prototype,
                 <any>"createTokenRequestBody"
             );
-            const config =
-                await ClientTestUtils.createTestClientConfiguration(true, ProtocolMode.OIDC);
-            const client = new RefreshTokenClient(config, stubPerformanceClient);
-            try { 
-                await client.acquireToken(refreshTokenRequest)
-            } catch {};
+            const config = await ClientTestUtils.createTestClientConfiguration(
+                true,
+                ProtocolMode.OIDC
+            );
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            try {
+                await client.acquireToken(refreshTokenRequest);
+            } catch {}
             expect(
                 createTokenRequestBodySpy.calledWith(refreshTokenRequest)
             ).toBeTruthy();
@@ -1341,14 +1358,10 @@ describe("RefreshTokenClient unit tests", () => {
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_CURR_TELEM}`
-                )
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
             ).toBe(false);
             expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_LAST_TELEM}`
-                )
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
             ).toBe(false);
         });
     });
