@@ -48,6 +48,7 @@ import { CcsCredentialType } from "../../src/account/CcsCredential";
 import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { Logger } from "../../src/logger/Logger";
+import { ProtocolMode } from "../../src/authority/ProtocolMode";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -1298,6 +1299,74 @@ describe("RefreshTokenClient unit tests", () => {
             ).rejects.toMatchObject(
                 InteractionRequiredAuthError.createNoTokensFoundError()
             );
+        });
+    });
+    describe("Telemetry protocol mode tests", () => {
+        const refreshTokenRequest: CommonRefreshTokenRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+            claims: TEST_CONFIG.CLAIMS,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            authenticationScheme:
+                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+        };
+        it("Adds telemetry headers to token request in AAD protocol mode", async () => {
+            const createTokenRequestBodySpy = sinon.spy(
+                RefreshTokenClient.prototype,
+                <any>"createTokenRequestBody"
+            );
+            const config = await ClientTestUtils.createTestClientConfiguration(
+                true
+            );
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            try {
+                await client.acquireToken(refreshTokenRequest);
+            } catch {}
+            expect(
+                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
+            ).toBeTruthy();
+
+            const returnVal = (await createTokenRequestBodySpy
+                .returnValues[0]) as string;
+            expect(
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
+            ).toBe(true);
+            expect(
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
+            ).toBe(true);
+        });
+        it("Does not add telemetry headers to token request in OIDC protocol mode", async () => {
+            const createTokenRequestBodySpy = sinon.spy(
+                RefreshTokenClient.prototype,
+                <any>"createTokenRequestBody"
+            );
+            const config = await ClientTestUtils.createTestClientConfiguration(
+                true,
+                ProtocolMode.OIDC
+            );
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            try {
+                await client.acquireToken(refreshTokenRequest);
+            } catch {}
+            expect(
+                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
+            ).toBeTruthy();
+
+            const returnVal = (await createTokenRequestBodySpy
+                .returnValues[0]) as string;
+            expect(
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
+            ).toBe(false);
+            expect(
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
+            ).toBe(false);
         });
     });
 });
