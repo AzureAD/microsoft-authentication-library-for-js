@@ -28,26 +28,17 @@ export class BrowserPerformanceClient
     private browserCrypto: BrowserCrypto;
     private guidGenerator: GuidGenerator;
 
-    constructor(
-        configuration: Configuration,
-        logger?: Logger,
-        libraryName?: string,
-        libraryVersion?: string,
-        intFields?: Set<string>
-    ) {
-        const libName = libraryName || name;
-        const libVersion = libraryVersion || version;
+    constructor(configuration: Configuration, intFields?: Set<string>) {
         super(
             configuration.auth.clientId,
             configuration.auth.authority || `${Constants.DEFAULT_AUTHORITY}`,
-            logger ||
-                new Logger(
-                    configuration.system?.loggerOptions || {},
-                    libName,
-                    libVersion
-                ),
-            libName,
-            libVersion,
+            new Logger(
+                configuration.system?.loggerOptions || {},
+                name,
+                version
+            ),
+            name,
+            version,
             configuration.telemetry?.application || {
                 appName: "",
                 appVersion: "",

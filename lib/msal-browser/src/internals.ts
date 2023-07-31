@@ -35,10 +35,6 @@ export { CryptoOps } from "./crypto/CryptoOps";
 // Browser Errors
 export { NativeAuthError } from "./error/NativeAuthError";
 
-// Telemetry
-export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";
-export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement";
-
 // Native request and response
 export { NativeTokenRequest } from "./broker/nativeBroker/NativeRequest";
 export { NativeResponse, MATS } from "./broker/nativeBroker/NativeResponse";
