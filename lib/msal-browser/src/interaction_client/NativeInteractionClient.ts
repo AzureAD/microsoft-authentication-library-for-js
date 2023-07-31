@@ -664,7 +664,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
             cachedAccessToken
         );
 
-        this.nativeStorageManager.saveCacheRecord(nativeCacheRecord);
+        this.nativeStorageManager.saveCacheRecord(
+            nativeCacheRecord,
+            request.storeInCache
+        );
     }
 
     protected addTelemetryFromNativeResponse(

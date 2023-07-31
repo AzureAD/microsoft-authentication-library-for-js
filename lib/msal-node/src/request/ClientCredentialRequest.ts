@@ -22,6 +22,7 @@ export type ClientCredentialRequest = Partial<
         | "resourceRequestUri"
         | "requestedClaimsHash"
         | "clientAssertion"
+        | "storeInCache"
     >
 > & {
     clientAssertion?: string;
