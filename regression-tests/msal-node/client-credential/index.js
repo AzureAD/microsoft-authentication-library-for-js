@@ -65,6 +65,10 @@ const lastResourceRequest = {
         await confidentialClientApplication.acquireTokenByClientCredential(request);
     }
 
+    const sleep = (ms) => {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     const suite = new benchmark.Suite();
     suite
         .add("ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache", async () => {
