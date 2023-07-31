@@ -195,12 +195,10 @@ export {
     QueueMeasurement,
 } from "./telemetry/performance/IPerformanceClient";
 export {
-    Counters,
     IntFields,
     PerformanceEvent,
     PerformanceEvents,
     PerformanceEventStatus,
-    StaticFields,
     SubMeasurement,
 } from "./telemetry/performance/PerformanceEvent";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";

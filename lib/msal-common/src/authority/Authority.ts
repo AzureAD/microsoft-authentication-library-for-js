@@ -614,10 +614,10 @@ export class Authority {
                 );
             const isValidResponse = isOpenIdConfigResponse(response.body);
             if (isValidResponse) {
-                perfEvent?.endMeasurement({ success: true });
+                perfEvent?.end({ success: true });
                 return response.body;
             } else {
-                perfEvent?.endMeasurement({
+                perfEvent?.end({
                     success: false,
                     errorCode: "invalid_response",
                 });
@@ -627,7 +627,7 @@ export class Authority {
                 return null;
             }
         } catch (e) {
-            perfEvent?.endMeasurement({
+            perfEvent?.end({
                 success: false,
                 errorCode: "request_failure",
             });

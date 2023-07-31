@@ -7,7 +7,12 @@ import sinon from "sinon";
 import { TEST_URIS } from "./StringConstants";
 import { XhrClient } from "../../src/network/XhrClient";
 import { FetchClient } from "../../src/network/FetchClient";
-import { BrowserUtils, BrowserAuthError, BrowserAuthErrorMessage, InteractionType } from "../../src";
+import {
+    BrowserUtils,
+    BrowserAuthError,
+    BrowserAuthErrorMessage,
+    InteractionType,
+} from "../../src";
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
     const oldWindow: Window & typeof globalThis = window;

@@ -310,7 +310,7 @@ export class PopupClient extends StandardInteractionClient {
                 );
                 // end measurement for server call with native brokering enabled
                 if (fetchNativeAccountIdMeasurement) {
-                    fetchNativeAccountIdMeasurement.endMeasurement({
+                    fetchNativeAccountIdMeasurement.end({
                         success: true,
                         isNativeBroker: true,
                     });
@@ -418,19 +418,26 @@ export class PopupClient extends StandardInteractionClient {
             try {
                 authClient.authority.endSessionEndpoint;
             } catch {
-                if (validRequest.account?.homeAccountId && validRequest.postLogoutRedirectUri && authClient.authority.protocolMode === ProtocolMode.OIDC){
-                    this.browserStorage.removeAccount(validRequest.account?.homeAccountId);
-                    
+                if (
+                    validRequest.account?.homeAccountId &&
+                    validRequest.postLogoutRedirectUri &&
+                    authClient.authority.protocolMode === ProtocolMode.OIDC
+                ) {
+                    this.browserStorage.removeAccount(
+                        validRequest.account?.homeAccountId
+                    );
+
                     this.eventHandler.emitEvent(
                         EventType.LOGOUT_SUCCESS,
                         InteractionType.Popup,
                         validRequest
                     );
 
-                    if (mainWindowRedirectUri){
+                    if (mainWindowRedirectUri) {
                         const navigationOptions: NavigationOptions = {
                             apiId: ApiId.logoutPopup,
-                            timeout: this.config.system.redirectNavigationTimeout,
+                            timeout:
+                                this.config.system.redirectNavigationTimeout,
                             noHistory: false,
                         };
                         const absoluteUrl = UrlString.getAbsoluteUrl(
@@ -587,7 +594,11 @@ export class PopupClient extends StandardInteractionClient {
                      * since we need the interval to keep running while on STS UI.
                      */
                     href = popupWindow.location.href;
-                    serverResponseString = this.extractServerResponseStringFromPopup(popupWindow, href);
+                    serverResponseString =
+                        this.extractServerResponseStringFromPopup(
+                            popupWindow,
+                            href
+                        );
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain
@@ -612,7 +623,11 @@ export class PopupClient extends StandardInteractionClient {
                     clearInterval(intervalId);
                     this.cleanPopup(popupWindow);
 
-                    if (UrlString.hashContainsKnownProperties(serverResponseString)) {
+                    if (
+                        UrlString.hashContainsKnownProperties(
+                            serverResponseString
+                        )
+                    ) {
                         this.logger.verbose(
                             "PopupHandler.monitorPopupForHash - hash contains known properties, returning."
                         );
@@ -872,7 +887,7 @@ export class PopupClient extends StandardInteractionClient {
         return `${BrowserConstants.POPUP_NAME_PREFIX}.${this.config.auth.clientId}.${homeAccountId}.${this.correlationId}`;
     }
 
-    /** 
+    /**
      * Extracts the server response from the popup window
      */
     extractServerResponseStringFromPopup(
@@ -880,10 +895,12 @@ export class PopupClient extends StandardInteractionClient {
         href: string
     ): string {
         let serverResponseString;
-        if(this.config.auth.OIDCOptions?.serverResponseType === ServerResponseType.QUERY) {
+        if (
+            this.config.auth.OIDCOptions?.serverResponseType ===
+            ServerResponseType.QUERY
+        ) {
             serverResponseString = UrlString.parseQueryServerResponse(href);
-        }
-        else {
+        } else {
             serverResponseString = popupWindow.location.hash;
         }
         return serverResponseString;

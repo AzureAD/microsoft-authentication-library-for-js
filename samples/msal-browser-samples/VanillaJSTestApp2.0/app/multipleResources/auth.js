@@ -15,10 +15,17 @@ let accountId = "";
 // configuration parameters are located at authConfig.js
 const myMSALObj = new msal.PublicClientApplication(msalConfig); 
 
-// Redirect: once login is successful and redirects with tokens, call Graph API
-myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
-    console.error(err);
+myMSALObj.initialize().then(() => {
+    this.setInitializedFlagTrue();
+    // Redirect: once login is successful and redirects with tokens, call Graph API
+    myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+        console.error(err);
+    });
 });
+
+function setInitializedFlagTrue() {
+    document.getElementById("pca-initialized").innerHTML = "true";
+}
 
 // Redirect: once login is successful and redirects with tokens, call Graph API
 function handleResponse(resp) {

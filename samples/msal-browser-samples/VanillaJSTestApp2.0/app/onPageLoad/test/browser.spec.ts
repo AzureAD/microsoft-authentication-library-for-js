@@ -1,12 +1,12 @@
 import * as puppeteer from "puppeteer";
-import { 
-    Screenshot, 
-    createFolder, 
-    setupCredentials, 
-    enterCredentials, 
+import {
+    Screenshot,
+    createFolder,
+    setupCredentials,
+    enterCredentials,
     ONE_SECOND_IN_MS,
-    getBrowser, 
-    getHomeUrl
+    getBrowser,
+    getHomeUrl,
 } from "e2e-test-utils/src/TestUtils";
 import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
@@ -27,12 +27,17 @@ describe("On Page Load tests", function () {
 
         const labApiParams: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD
+            appType: AppTypes.CLOUD,
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParams
+        );
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
     });
 
     let context: puppeteer.BrowserContext;
@@ -41,7 +46,7 @@ describe("On Page Load tests", function () {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+        page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
     });
 
@@ -57,7 +62,9 @@ describe("On Page Load tests", function () {
     it("Performs loginRedirect on page load", async () => {
         await page.goto(sampleHomeUrl);
         const testName = "redirectBaseCase";
-        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
         // Home Page
         await screenshot.takeScreenshot(page, "samplePageInit");
         // Enter credentials
@@ -70,8 +77,15 @@ describe("On Page Load tests", function () {
         expect(tokenStore.idTokens).toHaveLength(1);
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
-        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).toBeTruthy();
+        expect(
+            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+        ).toBeDefined();
+        expect(
+            await BrowserCache.accessTokenForScopesExists(
+                tokenStore.accessTokens,
+                ["openid", "profile", "user.read"]
+            )
+        ).toBeTruthy();
         const storage = await BrowserCache.getWindowStorage();
         expect(Object.keys(storage).length).toEqual(7);
     }, 60000);
@@ -79,7 +93,9 @@ describe("On Page Load tests", function () {
     it("Performs loginRedirect on page load from a page other than redirectUri", async () => {
         await page.goto(sampleHomeUrl + "?testPage");
         const testName = "navigateToLoginRequestUrl";
-        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
         // Home Page
         await screenshot.takeScreenshot(page, "samplePageInit");
         // Enter credentials
@@ -92,8 +108,15 @@ describe("On Page Load tests", function () {
         expect(tokenStore.idTokens).toHaveLength(1);
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
-        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).toBeTruthy();
+        expect(
+            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+        ).toBeDefined();
+        expect(
+            await BrowserCache.accessTokenForScopesExists(
+                tokenStore.accessTokens,
+                ["openid", "profile", "user.read"]
+            )
+        ).toBeTruthy();
         const storage = await BrowserCache.getWindowStorage();
         expect(Object.keys(storage).length).toEqual(7);
     }, 60000);

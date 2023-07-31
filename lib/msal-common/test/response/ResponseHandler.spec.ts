@@ -867,13 +867,15 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    'dummy-state-%20%%%30%%%%%40',
+                    "dummy-state-%20%%%30%%%%%40",
                     cryptoInterface
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
                 const err = e as ClientAuthError;
-                expect(err.message).toContain(`Cached state URI could not be decoded`);
+                expect(err.message).toContain(
+                    `Cached state URI could not be decoded`
+                );
                 done();
             }
         });

@@ -42,6 +42,8 @@
     "test:coverage": "jest --coverage",
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
+    "format:check": "npx prettier --ignore-path .gitignore --check src test",
+    "format:fix": "npx prettier --ignore-path .gitignore --write src test",
     "prepack": "npm run build:all && node ./scripts/checkBinaries.cjs"
   },
   "author": {

@@ -12,12 +12,15 @@ import {
     ProtocolMode,
     OIDCOptions,
     ServerResponseType,
+    Logger,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
     ClientConfigurationError,
+    IPerformanceClient,
+    StubPerformanceClient,
 } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import {
@@ -26,6 +29,7 @@ import {
 } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
+import { name, version } from "../packageMetadata";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -190,6 +194,8 @@ export type BrowserTelemetryOptions = {
      * - appVersion: Version of the application using MSAL
      */
     application?: ApplicationTelemetry;
+
+    client?: IPerformanceClient;
 };
 
 /**
@@ -327,6 +333,17 @@ export function buildConfiguration(
             appName: Constants.EMPTY_STRING,
             appVersion: Constants.EMPTY_STRING,
         },
+        client: new StubPerformanceClient(
+            DEFAULT_AUTH_OPTIONS.clientId,
+            DEFAULT_AUTH_OPTIONS.authority,
+            new Logger(DEFAULT_LOGGER_OPTIONS, name, version),
+            name,
+            version,
+            {
+                appName: Constants.EMPTY_STRING,
+                appVersion: Constants.EMPTY_STRING,
+            }
+        ),
     };
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode

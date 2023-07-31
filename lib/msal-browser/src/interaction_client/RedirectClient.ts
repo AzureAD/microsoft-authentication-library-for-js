@@ -507,23 +507,25 @@ export class RedirectClient extends StandardInteractionClient {
             );
             this.logger.verbose("Auth code client created");
 
-            if(authClient.authority.protocolMode === ProtocolMode.OIDC) {
-                try { 
+            if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
+                try {
                     authClient.authority.endSessionEndpoint;
                 } catch {
-                    if (validLogoutRequest.account?.homeAccountId){
-                        this.browserStorage.removeAccount(validLogoutRequest.account?.homeAccountId);
-                        
+                    if (validLogoutRequest.account?.homeAccountId) {
+                        this.browserStorage.removeAccount(
+                            validLogoutRequest.account?.homeAccountId
+                        );
+
                         this.eventHandler.emitEvent(
                             EventType.LOGOUT_SUCCESS,
                             InteractionType.Redirect,
                             validLogoutRequest
                         );
-        
+
                         return;
                     }
                 }
-            }   
+            }
 
             // Create logout string and navigate user window to logout.
             const logoutUri: string =
@@ -608,4 +610,3 @@ export class RedirectClient extends StandardInteractionClient {
         );
     }
 }
-

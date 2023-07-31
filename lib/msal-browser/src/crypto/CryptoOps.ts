@@ -51,10 +51,7 @@ export class CryptoOps implements ICrypto {
     private static EXTRACTABLE: boolean = true;
     private cache: CryptoKeyStore;
 
-    constructor(
-        logger: Logger,
-        performanceClient?: IPerformanceClient
-    ) {
+    constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto(this.logger);
@@ -148,7 +145,7 @@ export class CryptoOps implements ICrypto {
         });
 
         if (publicKeyThumbMeasurement) {
-            publicKeyThumbMeasurement.endMeasurement({
+            publicKeyThumbMeasurement.end({
                 success: true,
             });
         }
@@ -236,7 +233,7 @@ export class CryptoOps implements ICrypto {
         const signedJwt = `${tokenString}.${encodedSignature}`;
 
         if (signJwtMeasurement) {
-            signJwtMeasurement.endMeasurement({
+            signJwtMeasurement.end({
                 success: true,
             });
         }

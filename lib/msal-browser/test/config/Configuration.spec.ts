@@ -11,7 +11,6 @@ import {
     AzureCloudInstance,
     ProtocolMode,
     ServerResponseType,
-    ClientConfigurationError,
 } from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";

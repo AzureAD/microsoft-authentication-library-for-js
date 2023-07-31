@@ -35,7 +35,8 @@ const MsalProviderActionType = {
     UNBLOCK_INPROGRESS: "UNBLOCK_INPROGRESS",
     EVENT: "EVENT",
 } as const;
-type MsalProviderActionType = typeof MsalProviderActionType[keyof typeof MsalProviderActionType];
+type MsalProviderActionType =
+    (typeof MsalProviderActionType)[keyof typeof MsalProviderActionType];
 
 type MsalProviderReducerAction = {
     type: MsalProviderActionType;
