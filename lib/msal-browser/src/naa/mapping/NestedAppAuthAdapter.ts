@@ -17,11 +17,10 @@ import {
     InteractionRequiredAuthError,
     ServerError,
     TimeUtils,
-    AuthToken,
     ICrypto,
     Logger,
 } from "@azure/msal-common";
-import { BridgeError, isBridgeError } from "../BridgeError";
+import { isBridgeError } from "../BridgeError";
 import { BridgeStatusCode } from "../BridgeStatusCode";
 import { SilentRequest } from "../../request/SilentRequest";
 

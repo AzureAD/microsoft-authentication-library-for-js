@@ -20,6 +20,7 @@ import { TEST_TOKENS } from "../utils/StringConstants";
 export const NAA_CLIENT_ID: string = "clientid";
 export const NAA_SCOPE: string = "User.Read";
 export const NAA_CORRELATION_ID: string = "1234";
+export const NAA_CLIENT_CAPABILITIES: string[] = [];
 export const INIT_BRIDGE_RESPONSE: InitializeBridgeResponse = {
     sdkName: "test",
     sdkVersion: "1.0.0",

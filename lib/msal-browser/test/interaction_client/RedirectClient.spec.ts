@@ -120,6 +120,8 @@ describe("RedirectClient", () => {
             },
         });
 
+        await pca.initialize();
+
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
         await pca.initialize();
@@ -413,6 +415,8 @@ describe("RedirectClient", () => {
                     allowNativeBroker: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -880,6 +884,8 @@ describe("RedirectClient", () => {
                 },
             });
 
+            await pca.initialize();
+
             //PCA implementation moved to controller
             pca = (pca as any).controller;
 
@@ -1039,6 +1045,8 @@ describe("RedirectClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -1217,6 +1225,8 @@ describe("RedirectClient", () => {
                 },
             });
 
+            await pca.initialize();
+
             //PCA implementation moved to controller
             pca = (pca as any).controller;
 
@@ -1333,6 +1343,8 @@ describe("RedirectClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;

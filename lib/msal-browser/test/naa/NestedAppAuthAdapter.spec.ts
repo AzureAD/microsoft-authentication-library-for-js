@@ -27,6 +27,7 @@ import {
     SILENT_TOKEN_REQUEST,
     POPUP_REQUEST,
     NAA_CLIENT_ID,
+    NAA_CLIENT_CAPABILITIES,
     NAA_SCOPE,
     REDIRECT_REQUEST,
 } from "./BridgeProxyConstants";
@@ -40,6 +41,7 @@ describe("NestedAppAuthAdapter tests", () => {
         const crypto: ICrypto = new CryptoOps(logger);
         nestedAppAuthAdapter = new NestedAppAuthAdapter(
             NAA_CLIENT_ID,
+            NAA_CLIENT_CAPABILITIES,
             crypto,
             logger
         );

@@ -6,13 +6,14 @@
 import MockBridge from "../naa/MockBridge";
 
 beforeAll(() => {
-    const crypto = require("crypto");
-
-    Object.defineProperty(global, "crypto", {
-        value: {
-            randomUUID: () => crypto.randomUUID(),
-        },
-    });
+    /*
+     *const crypto = require("crypto");
+     *Object.defineProperty(global, "crypto", {
+     *  value: {
+     *      randomUUID: () => crypto.randomUUID(),
+     *  },
+     *});
+     */
 
     if (typeof window !== "undefined") {
         /*

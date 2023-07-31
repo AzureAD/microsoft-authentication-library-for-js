@@ -39,7 +39,6 @@ import { NestedAppAuthError } from "../error/NestedAppAuthError";
 import { EventHandler } from "../event/EventHandler";
 import { EventType } from "../event/EventType";
 import { EventCallbackFunction, EventError } from "../event/EventMessage";
-import { BridgeError } from "../naa/BridgeError";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -88,8 +87,7 @@ export class NestedAppAuthController implements IController {
                   this.logger,
                   name,
                   version,
-                  this.config.telemetry.application,
-                  this.config.system.cryptoOptions
+                  this.config.telemetry.application
               )
             : new StubPerformanceClient(
                   this.config.auth.clientId,
@@ -102,11 +100,7 @@ export class NestedAppAuthController implements IController {
 
         // Initialize the crypto class.
         this.browserCrypto = operatingContext.isBrowserEnvironment()
-            ? new CryptoOps(
-                  this.logger,
-                  this.performanceClient,
-                  this.config.system.cryptoOptions
-              )
+            ? new CryptoOps(this.logger, this.performanceClient)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
