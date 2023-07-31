@@ -528,7 +528,7 @@ describe("PublicClientApplication", () => {
                 mockAccountInfo.homeAccountId,
                 new IdToken(mockAuthenticationResult.idToken, cryptoProvider),
                 fakeAuthority,
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
             );
 
             // @ts-ignore
@@ -597,7 +597,7 @@ describe("PublicClientApplication", () => {
                 mockAccountInfo.homeAccountId,
                 new IdToken(mockAuthenticationResult.idToken, cryptoProvider),
                 fakeAuthority,
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
             );
 
             // @ts-ignore

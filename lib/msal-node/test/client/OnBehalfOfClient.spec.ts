@@ -384,7 +384,7 @@ describe("OnBehalfOf unit tests", () => {
                     "123-test-uid.456-test-uid",
                     idToken,
                     config.authOptions.authority,
-                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
                 );
 
             sinon
