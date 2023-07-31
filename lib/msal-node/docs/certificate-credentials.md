@@ -5,14 +5,18 @@
 You can build confidential client applications with MSAL Node (web apps, daemon apps etc). A **client credential** is mandatory for confidential clients. Client credential can be a:
 
 * `clientSecret`: a secret string generated during the app registration, or updated post registration for an existing application.
-* `clientCertificate`: a certificate set during the app registration, or updated post registration for an existing application. The `thumbprint` is a *X.509 SHA-1* thumbprint of the certificate, and the `privateKey` is the PEM encoded private key. `x5c` is the optional *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
-* `clientAssertion`: a string that the application uses when requesting a token. The certificate used to sign the assertion should be set on the app registration. Assertion should be of type `urn:ietf:params:oauth:client-assertion-type:jwt-bearer`.
+* `clientCertificate`: a certificate set during the app registration, or updated post registration for an existing application. The certificate needs to have the private key, because it will be used for signing [an assertion](https://learn.microsoft.com/en-us/azure/active-directory/develop/certificate-credentials) that MSAL generates.
+* `clientAssertion`: instead of letting MSAL create an [assertion](https://learn.microsoft.com/en-us/azure/active-directory/develop/certificate-credentials), the app developer takes control. Useful for adding extra claims to the assertion or for using KeyVault for signing, instead of a local certificate.
+
+Note: 1p apps may be required to also use `x5c`. This is the *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
 
 ## Using certificates
 
 This section covers creating a self-signed certificate and initializing a confidential client. For an implementation, see the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
 
 ### Generating self-signed certificates
+
+This guide details creating a self-signed certificate - https://learn.microsoft.com/azure/active-directory/develop/howto-create-self-signed-certificate using PowerShell.
 
 Download and build **OpenSSL** for your **OS** following the guide at [github.com/openssl](https://github.com/openssl/openssl#build-and-install). If you like to skip building and get a binary distributable from the community instead, check the [OpenSSL Wiki: Binaries](https://wiki.openssl.org/index.php/Binaries) page.
 
