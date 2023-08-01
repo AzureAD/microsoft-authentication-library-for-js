@@ -11,7 +11,7 @@ const msalCommon = require("@azure/msal-common");
 
 // Expect: node_path, path_to_file, filename, retryNumber, retryDelay
 if (process.argv.length < 5) {
-    process.exit(1)
+    process.exit(1);
 }
 
 let fileData = "";
@@ -24,29 +24,34 @@ const serializableCache = {
             data = "";
         }
         fileData = data;
-    }
-}
+    },
+};
 
 async function writeToCache(fileName, retryNumber, retryDelay) {
-
     const logFileName = `./test/test-logs/${process.pid}-log.txt`;
     await createDirectory(logFileName);
     const logger = fs.createWriteStream(logFileName, {
-        flags: 'a'
+        flags: "a",
     });
     const loggerOptions = {
         loggerCallback(loglevel, message, containsPii) {
             logger.write(`${message}\n`);
         },
         piiLoggingEnabled: false,
-    }
-    const persistence = await extensions.FilePersistence.create(fileName, loggerOptions);
+    };
+    const persistence = await extensions.FilePersistence.create(
+        fileName,
+        loggerOptions
+    );
 
     const lockOptions = {
         retryNumber,
-        retryDelay
+        retryDelay,
     };
-    const plugin = new extensions.PersistenceCachePlugin(persistence, lockOptions);
+    const plugin = new extensions.PersistenceCachePlugin(
+        persistence,
+        lockOptions
+    );
     const context = new msalCommon.TokenCacheContext(serializableCache, true);
     try {
         await plugin.beforeCacheAccess(context);
@@ -80,6 +85,10 @@ function sleep(ms) {
     });
 }
 
-writeToCache(process.argv[2], Number(process.argv[3]), Number(process.argv[4])).then(() => {
+writeToCache(
+    process.argv[2],
+    Number(process.argv[3]),
+    Number(process.argv[4])
+).then(() => {
     process.exit(0);
 });

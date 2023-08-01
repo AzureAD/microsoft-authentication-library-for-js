@@ -4,7 +4,12 @@
  */
 
 import sinon from "sinon";
-import { AccountInfo, AccountEntity, TokenClaims, ClientConfigurationError } from "@azure/msal-common";
+import {
+    AccountInfo,
+    AccountEntity,
+    TokenClaims,
+    ClientConfigurationError,
+} from "@azure/msal-common";
 import { TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "../utils/StringConstants";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { EndSessionRequest, PublicClientApplication } from "../../src";
@@ -22,7 +27,7 @@ class testInteractionClient extends BaseInteractionClient {
 describe("BaseInteractionClient", () => {
     let pca: PublicClientApplication;
     let testClient: testInteractionClient;
-    beforeEach(() => {
+    beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -31,7 +36,7 @@ describe("BaseInteractionClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
-
+        await pca.initialize();
         // @ts-ignore
         testClient = new testInteractionClient(
             // @ts-ignore
@@ -57,7 +62,7 @@ describe("BaseInteractionClient", () => {
         let testAccountInfo1: AccountInfo;
         let testAccountInfo2: AccountInfo;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             const testIdTokenClaims: TokenClaims = {
                 ver: "2.0",
                 iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
@@ -138,65 +143,56 @@ describe("BaseInteractionClient", () => {
             ).toMatchObject(testAccountInfo2);
             expect(pca.getActiveAccount()).toBe(null);
         });
-
     });
     describe("validateRequestAuthority()", () => {
-        let testAccountInfo1: AccountInfo;
-
-        beforeEach(() => {
-            const testIdTokenClaims: TokenClaims = {
-                "ver": "2.0",
-                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523",
-            };
-
-            testAccountInfo1 = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || ""
-            };
-
-            pca.setActiveAccount(testAccountInfo1);
-        });
-
         afterEach(() => {
             window.sessionStorage.clear();
         });
 
         it("Throw error when authority in request or MSAL config does not match with environment set for account", async () => {
-            let loginRequest = {
-                authority: "https://login.windows-ppe.net/common",
-                account: testAccountInfo1
+            const testAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows-ppe.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
             };
 
-            await testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
+            await testClient
+                .validateRequestAuthority(
+                    "https://login.microsoftonline.com/common",
+                    testAccount
+                )
                 .then(() => {
                     throw "This is unexpected. This call should have failed.";
                 })
-                .catch(error => {
-                    expect(error).toStrictEqual(ClientConfigurationError.createAuthorityMismatchError());
-            });
+                .catch((error) => {
+                    expect(error).toStrictEqual(
+                        ClientConfigurationError.createAuthorityMismatchError()
+                    );
+                });
         });
 
         it("Does not throw error when authority in request or MSAL config matches with environment set for account", (done) => {
-            let loginRequest = {
-                authority: "https://login.microsoftonline.com/common",
-                account: testAccountInfo1
+            const testAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
             };
 
-            testClient.validateRequestAuthority(loginRequest.authority, loginRequest.account)
-                .then(() => { 
+            testClient
+                .validateRequestAuthority(
+                    "https://login.microsoftonline.com/common",
+                    testAccount
+                )
+                .then(() => {
                     done();
-                }).catch(error => {
+                })
+                .catch((error) => {
                     done(error);
-            });
+                });
         });
     });
 });

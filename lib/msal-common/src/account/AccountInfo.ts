@@ -35,6 +35,7 @@ export type AccountInfo = {
             | unknown;
     };
     nativeAccountId?: string;
+    authorityType?: string;
 };
 
 export type ActiveAccountFilters = {

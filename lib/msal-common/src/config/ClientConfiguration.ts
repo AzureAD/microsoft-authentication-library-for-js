@@ -16,6 +16,7 @@ import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManag
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { ClientCredentials } from "../account/ClientCredentials";
+import { ProtocolMode } from "../authority/ProtocolMode";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -271,4 +272,14 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
         skipAuthorityMetadataCache: false,
         ...authOptions,
     };
+}
+
+/**
+ * Returns true if config has protocolMode set to ProtocolMode.OIDC, false otherwise
+ * @param ClientConfiguration
+ */
+export function isOidcProtocolMode(config: ClientConfiguration): boolean {
+    return (
+        config.authOptions.authority.options.protocolMode === ProtocolMode.OIDC
+    );
 }

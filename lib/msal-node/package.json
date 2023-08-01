@@ -20,8 +20,19 @@
     "msal",
     "oauth"
   ],
-  "main": "dist/index.js",
+  "type": "module",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "module": "./dist/index.esm.js",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.esm.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],
@@ -45,7 +56,6 @@
       "major"
     ]
   },
-  "module": "dist/index.esm.js",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.19.4",
     "@rollup/plugin-node-resolve": "^15.0.1",

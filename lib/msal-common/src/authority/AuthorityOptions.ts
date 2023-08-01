@@ -4,10 +4,12 @@
  */
 
 import { ProtocolMode } from "./ProtocolMode";
+import { OIDCOptions } from "./OIDCOptions";
 import { AzureRegionConfiguration } from "./AzureRegionConfiguration";
 
 export type AuthorityOptions = {
     protocolMode: ProtocolMode;
+    OIDCOptions?: OIDCOptions | null;
     knownAuthorities: Array<string>;
     cloudDiscoveryMetadata: string;
     authorityMetadata: string;
@@ -25,13 +27,14 @@ export const AzureCloudInstance = {
     // Microsoft PPE
     AzurePpe: "https://login.windows-ppe.net",
 
-    // Microsoft Chinese national cloud
+    // Microsoft Chinese national/regional cloud
     AzureChina: "https://login.chinacloudapi.cn",
 
-    // Microsoft German national cloud ("Black Forest")
+    // Microsoft German national/regional cloud ("Black Forest")
     AzureGermany: "https://login.microsoftonline.de",
 
     // US Government cloud
     AzureUsGovernment: "https://login.microsoftonline.us",
 } as const;
-export type AzureCloudInstance = typeof AzureCloudInstance[keyof typeof AzureCloudInstance];
+export type AzureCloudInstance =
+    (typeof AzureCloudInstance)[keyof typeof AzureCloudInstance];

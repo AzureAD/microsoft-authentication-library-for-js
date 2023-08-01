@@ -11,7 +11,8 @@ export const CryptoKeyStoreNames = {
     asymmetricKeys: "asymmetricKeys",
     symmetricKeys: "symmetricKeys",
 } as const;
-export type CryptoKeyStoreNames = typeof CryptoKeyStoreNames[keyof typeof CryptoKeyStoreNames];
+export type CryptoKeyStoreNames =
+    (typeof CryptoKeyStoreNames)[keyof typeof CryptoKeyStoreNames];
 
 /**
  * MSAL CryptoKeyStore DB Version 2

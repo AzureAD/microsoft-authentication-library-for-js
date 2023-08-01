@@ -22,6 +22,7 @@ export type OnBehalfOfRequest = Partial<
         | "resourceRequestMethod"
         | "resourceRequestUri"
         | "requestedClaimsHash"
+        | "storeInCache"
     >
 > & {
     oboAssertion: string;

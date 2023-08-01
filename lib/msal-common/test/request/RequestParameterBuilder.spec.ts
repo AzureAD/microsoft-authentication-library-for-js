@@ -296,6 +296,31 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
+    it("addScopes overrides OIDC_DEFAULT_SCOPES with defaultScopes", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addScopes([], true, ["openid", "profile"]);
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(`${Constants.OFFLINE_ACCESS_SCOPE}`)
+        ).toBe(false);
+    });
+
+    it("addScopes adds openid scope when in OIDC protocol mode", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addScopes([], true, []);
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}`
+            )
+        ).toBe(true);
+    });
+
     it("addCodeChallengeParams throws invalidCodeChallengeParamsError if codeChallengeMethod empty", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         expect(() =>

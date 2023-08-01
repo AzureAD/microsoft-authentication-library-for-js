@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration } from "../config/ClientConfiguration";
+import {
+    ClientConfiguration,
+    isOidcProtocolMode,
+} from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest";
 import { Authority } from "../authority/Authority";
@@ -71,11 +74,11 @@ export class RefreshTokenClient extends BaseClient {
             this.authority
         );
         const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
-        atsMeasurement?.addStaticFields({
+        atsMeasurement?.add({
             refreshTokenSize: response.body.refresh_token?.length || 0,
         });
         if (httpVerToken) {
-            atsMeasurement?.addStaticFields({
+            atsMeasurement?.add({
                 httpVerToken,
             });
         }
@@ -109,7 +112,7 @@ export class RefreshTokenClient extends BaseClient {
                 requestId
             )
             .then((result: AuthenticationResult) => {
-                atsMeasurement?.endMeasurement({
+                atsMeasurement?.end({
                     success: true,
                 });
                 return result;
@@ -119,7 +122,7 @@ export class RefreshTokenClient extends BaseClient {
                     "Error in fetching refresh token",
                     request.correlationId
                 );
-                atsMeasurement?.endMeasurement({
+                atsMeasurement?.end({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
                     success: false,
@@ -227,11 +230,11 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         if (!refreshToken) {
-            atsMeasurement?.discardMeasurement();
+            atsMeasurement?.discard();
             throw InteractionRequiredAuthError.createNoTokensFoundError();
         }
         // attach cached RT size to the current measurement
-        atsMeasurement?.endMeasurement({
+        atsMeasurement?.end({
             success: true,
         });
 
@@ -305,13 +308,13 @@ export class RefreshTokenClient extends BaseClient {
             thumbprint
         )
             .then((result) => {
-                acquireTokenMeasurement?.endMeasurement({
+                acquireTokenMeasurement?.end({
                     success: true,
                 });
                 return result;
             })
             .catch((error) => {
-                acquireTokenMeasurement?.endMeasurement({
+                acquireTokenMeasurement?.end({
                     success: false,
                 });
                 throw error;
@@ -340,7 +343,11 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        parameterBuilder.addScopes(request.scopes);
+        parameterBuilder.addScopes(
+            request.scopes,
+            true,
+            this.config.authOptions.authority.options.OIDCOptions?.defaultScopes
+        );
 
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
 
@@ -352,7 +359,7 @@ export class RefreshTokenClient extends BaseClient {
         );
         parameterBuilder.addThrottling();
 
-        if (this.serverTelemetryManager) {
+        if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 
@@ -391,7 +398,7 @@ export class RefreshTokenClient extends BaseClient {
             if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
-                acquireTokenMeasurement?.endMeasurement({
+                acquireTokenMeasurement?.end({
                     success: false,
                 });
                 throw ClientConfigurationError.createMissingSshJwkError();
@@ -434,7 +441,7 @@ export class RefreshTokenClient extends BaseClient {
                     break;
             }
         }
-        acquireTokenMeasurement?.endMeasurement({
+        acquireTokenMeasurement?.end({
             success: true,
         });
         return parameterBuilder.createQueryString();
