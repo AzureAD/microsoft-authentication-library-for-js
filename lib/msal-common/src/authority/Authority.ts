@@ -21,6 +21,7 @@ import {
 import {
     EndpointMetadata,
     InstanceDiscoveryMetadata,
+    InstanceDiscoveryMetadataAliases,
 } from "./AuthorityMetadata";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
@@ -352,9 +353,10 @@ export class Authority {
      * The default open id configuration endpoint for any canonical authority.
      */
     protected get defaultOpenIdConfigurationEndpoint(): string {
+        const canonicalAuthorityHost = this.hostnameAndPort;
         if (
             this.authorityType === AuthorityType.Adfs ||
-            this.protocolMode === ProtocolMode.OIDC
+            !this.isAliasOfKnownMicrosoftAuthority(canonicalAuthorityHost)
         ) {
             return `${this.canonicalAuthority}.well-known/openid-configuration`;
         }
@@ -1098,6 +1100,14 @@ export class Authority {
      */
     isAlias(host: string): boolean {
         return this.metadata.aliases.indexOf(host) > -1;
+    }
+
+    /**
+     * Returns whether or not the provided host is an alias of a known Microsoft authority for purposes of endpoint discovery
+     * @param host
+     */
+    isAliasOfKnownMicrosoftAuthority(host: string): boolean {
+        return InstanceDiscoveryMetadataAliases.has(host);
     }
 
     /**

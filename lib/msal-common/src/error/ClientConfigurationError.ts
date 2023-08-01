@@ -101,10 +101,6 @@ export const ClientConfigurationErrorMessage = {
         code: "invalid_authentication_header",
         desc: "Invalid authentication header provided",
     },
-    cannotSetOIDCProtocolMode: {
-        code: "cannot_set_OIDC_protocol_mode",
-        desc: "Cannot use OIDC Protocol Mode when using a known Microsoft authority.",
-    },
     cannotSetOIDCOptions: {
         code: "cannot_set_OIDCOptions",
         desc: "Cannot set OIDCOptions parameter. Please change the protocol mode to OIDC or use a non-Microsoft authority.",
@@ -365,16 +361,6 @@ export class ClientConfigurationError extends ClientAuthError {
         return new ClientConfigurationError(
             ClientConfigurationErrorMessage.invalidAuthenticationHeader.code,
             `${ClientConfigurationErrorMessage.invalidAuthenticationHeader.desc}. Invalid header: ${invalidHeaderName}. Details: ${details}`
-        );
-    }
-
-    /**
-     * Throws error when using OIDC protocol mode with a known Microsoft authority
-     */
-    static createCannotSetOIDCProtocolModeError(): ClientConfigurationError {
-        return new ClientConfigurationError(
-            ClientConfigurationErrorMessage.cannotSetOIDCProtocolMode.code,
-            ClientConfigurationErrorMessage.cannotSetOIDCProtocolMode.desc
         );
     }
 
