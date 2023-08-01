@@ -1107,8 +1107,6 @@ export class Authority {
      * @param host
      */
     isAliasOfKnownMicrosoftAuthority(host: string): boolean {
-        console.log(InstanceDiscoveryMetadataAliases);
-        console.log(host);
         return InstanceDiscoveryMetadataAliases.has(host);
     }
 
