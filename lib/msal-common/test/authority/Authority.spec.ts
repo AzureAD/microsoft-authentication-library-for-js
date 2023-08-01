@@ -2569,7 +2569,38 @@ describe("Authority.ts Class Unit Tests", () => {
             );
         });
 
-        it("OIDC ProtocolMode does not append v2 to endpoint", async () => {
+        it("Does not append v2 to endpoint when not using a known Microsoft authority", async () => {
+            const authorityUrl = "https://test.com/";
+            let endpoint = "";
+            const options = {
+                protocolMode: ProtocolMode.OIDC,
+                knownAuthorities: ["https://test.com"],
+                cloudDiscoveryMetadata: "",
+                authorityMetadata: "",
+            };
+            authority = new Authority(
+                authorityUrl,
+                networkInterface,
+                mockStorage,
+                options,
+                logger
+            );
+            jest.spyOn(
+                networkInterface,
+                <any>"sendGetRequestAsync"
+            ).mockImplementation((openIdConfigEndpoint) => {
+                // @ts-ignore
+                endpoint = openIdConfigEndpoint;
+                return DEFAULT_OPENID_CONFIG_RESPONSE;
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(endpoint).toBe(
+                `${authorityUrl}.well-known/openid-configuration`
+            );
+        });
+
+        it("Does append v2 to endpoint when using a known Microsoft authority", async () => {
             const authorityUrl = "https://login.microsoftonline.com/";
             let endpoint = "";
             const options = {
@@ -2596,7 +2627,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             await authority.resolveEndpointsAsync();
             expect(endpoint).toBe(
-                `${authorityUrl}.well-known/openid-configuration`
+                `${authorityUrl}v2.0/.well-known/openid-configuration`
             );
         });
     });
