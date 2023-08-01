@@ -92,7 +92,9 @@ export class ResponseHandler {
         let decodedCachedState: string;
 
         try {
-            decodedServerResponseHash = decodeURIComponent(serverResponseHash.state);
+            decodedServerResponseHash = decodeURIComponent(
+                serverResponseHash.state
+            );
         } catch (e) {
             throw ClientAuthError.createInvalidStateError(
                 serverResponseHash.state,
@@ -344,7 +346,10 @@ export class ResponseHandler {
                     );
                 }
             }
-            await this.cacheStorage.saveCacheRecord(cacheRecord);
+            await this.cacheStorage.saveCacheRecord(
+                cacheRecord,
+                request.storeInCache
+            );
         } finally {
             if (
                 this.persistencePlugin &&

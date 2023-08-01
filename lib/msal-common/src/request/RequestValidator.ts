@@ -101,7 +101,7 @@ export class RequestValidator {
 
         // remove empty string parameters
         return Object.fromEntries(
-            Object.entries(eQParams).filter(kv => kv[1] !== "")
+            Object.entries(eQParams).filter((kv) => kv[1] !== "")
         );
     }
 }

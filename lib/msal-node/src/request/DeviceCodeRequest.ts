@@ -26,6 +26,7 @@ export type DeviceCodeRequest = Partial<
         | "resourceRequestMethod"
         | "resourceRequestUri"
         | "requestedClaimsHash"
+        | "storeInCache"
     >
 > & {
     scopes: Array<string>;

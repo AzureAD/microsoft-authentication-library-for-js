@@ -1,22 +1,13 @@
-import {
-    ApplicationTelemetry,
-    Logger,
-    PerformanceEvents,
-} from "@azure/msal-common";
-import { name, version } from "../../src/packageMetadata";
+import { PerformanceEvents } from "@azure/msal-common";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
+import { TEST_CONFIG } from "../utils/StringConstants";
 
-const clientId = "test-client-id";
-const authority = "https://login.microsoftonline.com";
-const logger = new Logger({});
 const correlationId = "correlation-id";
-const applicationTelemetry: ApplicationTelemetry = {
-    appName: "Test App",
-    appVersion: "1.0.0-test.0",
-};
-const cryptoOptions = {
-    useMsrCrypto: false,
-    entropy: undefined,
+
+let testAppConfig = {
+    auth: {
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    },
 };
 
 jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
@@ -38,14 +29,7 @@ describe("BrowserPerformanceClient.ts", () => {
     });
 
     it("sets pre-queue time", () => {
-        const browserPerfClient = new BrowserPerformanceClient(
-            clientId,
-            authority,
-            logger,
-            name,
-            version,
-            applicationTelemetry
-        );
+        const browserPerfClient = new BrowserPerformanceClient(testAppConfig);
         const eventName = PerformanceEvents.AcquireTokenSilent;
         const correlationId = "test-correlation-id";
         const perfTimeNow = 1234567890;
@@ -66,12 +50,7 @@ describe("BrowserPerformanceClient.ts", () => {
     describe("generateId", () => {
         it("returns a string", () => {
             const browserPerfClient = new BrowserPerformanceClient(
-                clientId,
-                authority,
-                logger,
-                name,
-                version,
-                applicationTelemetry
+                testAppConfig
             );
 
             expect(typeof browserPerfClient.generateId()).toBe("string");
@@ -80,12 +59,7 @@ describe("BrowserPerformanceClient.ts", () => {
     describe("startPerformanceMeasurement", () => {
         it("calculate performance duration", () => {
             const browserPerfClient = new BrowserPerformanceClient(
-                clientId,
-                authority,
-                logger,
-                name,
-                version,
-                applicationTelemetry
+                testAppConfig
             );
 
             const measurement = browserPerfClient.startMeasurement(
@@ -93,7 +67,7 @@ describe("BrowserPerformanceClient.ts", () => {
                 correlationId
             );
 
-            const result = measurement.endMeasurement();
+            const result = measurement.end();
 
             expect(result?.durationMs).toBe(50);
         });
@@ -104,12 +78,7 @@ describe("BrowserPerformanceClient.ts", () => {
                 .mockReturnValue("visible");
 
             const browserPerfClient = new BrowserPerformanceClient(
-                clientId,
-                authority,
-                logger,
-                name,
-                version,
-                applicationTelemetry
+                testAppConfig
             );
 
             const measurement = browserPerfClient.startMeasurement(
@@ -117,7 +86,7 @@ describe("BrowserPerformanceClient.ts", () => {
                 correlationId
             );
 
-            const result = measurement.endMeasurement();
+            const result = measurement.end();
 
             expect(result?.startPageVisibility).toBe("visible");
             expect(result?.endPageVisibility).toBe("visible");
@@ -127,14 +96,7 @@ describe("BrowserPerformanceClient.ts", () => {
     });
 
     it("supportsBrowserPerformanceNow returns false if window.performance not present", () => {
-        const browserPerfClient = new BrowserPerformanceClient(
-            clientId,
-            authority,
-            logger,
-            name,
-            version,
-            applicationTelemetry
-        );
+        const browserPerfClient = new BrowserPerformanceClient(testAppConfig);
 
         // @ts-ignore
         jest.spyOn(window, "performance", "get").mockReturnValue(undefined);

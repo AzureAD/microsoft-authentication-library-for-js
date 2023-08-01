@@ -7,14 +7,15 @@
  * Error thrown when trying to write MSAL cache to persistence.
  */
 export class PersistenceError extends Error {
-
     // Short string denoting error
     errorCode: string;
     // Detailed description of error
     errorMessage: string;
 
     constructor(errorCode: string, errorMessage: string) {
-        const errorString = errorMessage ? `${errorCode}: ${errorMessage}` : errorCode;
+        const errorString = errorMessage
+            ? `${errorCode}: ${errorMessage}`
+            : errorCode;
         super(errorString);
         Object.setPrototypeOf(this, PersistenceError.prototype);
 
@@ -26,7 +27,10 @@ export class PersistenceError extends Error {
     /**
      * Error thrown when trying to access the file system.
      */
-    static createFileSystemError(errorCode: string, errorMessage: string): PersistenceError {
+    static createFileSystemError(
+        errorCode: string,
+        errorMessage: string
+    ): PersistenceError {
         return new PersistenceError(errorCode, errorMessage);
     }
 
@@ -41,27 +45,33 @@ export class PersistenceError extends Error {
     /**
      * Error thrown when trying to write, load, or delete data from keychain on macOs.
      */
-    static createKeychainPersistenceError(errorMessage: string): PersistenceError {
+    static createKeychainPersistenceError(
+        errorMessage: string
+    ): PersistenceError {
         return new PersistenceError("KeychainError", errorMessage);
     }
 
     /**
      * Error thrown when trying to encrypt or decrypt data using DPAPI on Windows.
      */
-    static createFilePersistenceWithDPAPIError(errorMessage: string): PersistenceError {
+    static createFilePersistenceWithDPAPIError(
+        errorMessage: string
+    ): PersistenceError {
         return new PersistenceError("DPAPIEncryptedFileError", errorMessage);
     }
 
     /**
      * Error thrown when using the cross platform lock.
      */
-    static createCrossPlatformLockError(errorMessage: string): PersistenceError {
+    static createCrossPlatformLockError(
+        errorMessage: string
+    ): PersistenceError {
         return new PersistenceError("CrossPlatformLockError", errorMessage);
     }
 
     /**
      * Throw cache persistence error
-     * 
+     *
      * @param errorMessage string
      * @returns PersistenceError
      */
@@ -71,7 +81,7 @@ export class PersistenceError extends Error {
 
     /**
      * Throw unsupported error
-     * 
+     *
      * @param errorMessage string
      * @returns PersistenceError
      */
@@ -81,21 +91,31 @@ export class PersistenceError extends Error {
 
     /**
      * Throw persistence not verified error
-     * 
+     *
      * @param errorMessage string
      * @returns PersistenceError
      */
-    static createPersistenceNotVerifiedError(errorMessage: string): PersistenceError {
-        return new PersistenceError("PersistenceNotVerifiedError", errorMessage);
+    static createPersistenceNotVerifiedError(
+        errorMessage: string
+    ): PersistenceError {
+        return new PersistenceError(
+            "PersistenceNotVerifiedError",
+            errorMessage
+        );
     }
 
     /**
      * Throw persistence creation validation error
-     * 
+     *
      * @param errorMessage string
      * @returns PersistenceError
      */
-    static createPersistenceNotValidatedError(errorMessage: string): PersistenceError {
-        return new PersistenceError("PersistenceNotValidatedError", errorMessage);
+    static createPersistenceNotValidatedError(
+        errorMessage: string
+    ): PersistenceError {
+        return new PersistenceError(
+            "PersistenceNotValidatedError",
+            errorMessage
+        );
     }
 }

@@ -92,13 +92,20 @@ export class ClientCredentialClient extends BaseClient {
         // read the user-supplied cache into memory, if applicable
         let cacheContext;
         if (this.config.serializableCache && this.config.persistencePlugin) {
-            cacheContext = new TokenCacheContext(this.config.serializableCache, false);
+            cacheContext = new TokenCacheContext(
+                this.config.serializableCache,
+                false
+            );
             await this.config.persistencePlugin.beforeCacheAccess(cacheContext);
         }
 
         const cachedAccessToken = this.readAccessTokenFromCache();
 
-        if (this.config.serializableCache && this.config.persistencePlugin && cacheContext) {
+        if (
+            this.config.serializableCache &&
+            this.config.persistencePlugin &&
+            cacheContext
+        ) {
             await this.config.persistencePlugin.afterCacheAccess(cacheContext);
         }
 

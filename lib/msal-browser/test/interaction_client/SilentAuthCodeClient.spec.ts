@@ -13,21 +13,29 @@ import {
     TEST_TOKEN_LIFETIMES,
     RANDOM_TEST_GUID,
     testNavUrl,
+    TEST_TOKEN_RESPONSE,
 } from "../utils/StringConstants";
 import {
     AccountInfo,
     TokenClaims,
     AuthorizationCodeClient,
     AuthenticationScheme,
+    NetworkManager,
 } from "@azure/msal-common";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
-import { ApiId, AuthorizationCodeRequest, AuthenticationResult } from "../../src";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import {
+    ApiId,
+    AuthorizationCodeRequest,
+    AuthenticationResult,
+} from "../../src";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
+    let browserCacheManager: BrowserCacheManager;
 
     beforeEach(() => {
         let pca = new PublicClientApplication({
@@ -38,6 +46,9 @@ describe("SilentAuthCodeClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
+
+        //@ts-ignore
+        browserCacheManager = pca.browserStorage;
 
         // @ts-ignore
         silentAuthCodeClient = new SilentAuthCodeClient(
@@ -148,6 +159,90 @@ describe("SilentAuthCodeClient", () => {
                 })
             ).toBe(true);
             expect(tokenResp).toEqual(testTokenResponse);
+        });
+
+        describe("storeInCache tests", () => {
+            beforeEach(() => {
+                jest.spyOn(
+                    NetworkManager.prototype,
+                    "sendPostRequest"
+                ).mockResolvedValue(TEST_TOKEN_RESPONSE);
+            });
+
+            it("does not store idToken if storeInCache.idToken = false", async () => {
+                const tokenResp = await silentAuthCodeClient.acquireToken({
+                    code: "test-code",
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        idToken: false,
+                    },
+                });
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(0);
+                expect(tokenKeys.accessToken).toHaveLength(1);
+                expect(tokenKeys.refreshToken).toHaveLength(1);
+            });
+
+            it("does not store accessToken if storeInCache.accessToken = false", async () => {
+                const tokenResp = await silentAuthCodeClient.acquireToken({
+                    code: "test-code",
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        accessToken: false,
+                    },
+                });
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(1);
+                expect(tokenKeys.accessToken).toHaveLength(0);
+                expect(tokenKeys.refreshToken).toHaveLength(1);
+            });
+
+            it("does not store refreshToken if storeInCache.refreshToken = false", async () => {
+                const tokenResp = await silentAuthCodeClient.acquireToken({
+                    code: "test-code",
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        refreshToken: false,
+                    },
+                });
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(1);
+                expect(tokenKeys.accessToken).toHaveLength(1);
+                expect(tokenKeys.refreshToken).toHaveLength(0);
+            });
         });
     });
 

@@ -132,9 +132,10 @@ See [Caching in MSAL](./caching.md) for more.
 
 ### Telemetry Config Options
 
-| Option        | Description                                      | Format                              | Default Value                       |
-| ------------- | ------------------------------------------------ | ----------------------------------- | ----------------------------------- |
-| `application` | Telemetry options for applications using MSAL.js | See [below](#application-telemetry) | See [below](#application-telemetry) |
+| Option        | Description                                      | Format                                                                                  | Default Value                                                                                 |
+|---------------|--------------------------------------------------|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| `application` | Telemetry options for applications using MSAL.js | See [below](#application-telemetry)                                                     | See [below](#application-telemetry)                                                           |
+| `client`      | Telemetry performance client instance            | [IPerformanceClient](../../msal-common/src/telemetry/performance/IPerformanceClient.ts) | [StubPerformanceClient](../../msal-common/src/telemetry/performance/StubPerformanceClient.ts) |
 
 #### Application Telemetry
 

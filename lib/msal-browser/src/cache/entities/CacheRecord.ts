@@ -9,7 +9,7 @@ import {
     AppMetadataEntity,
     CacheRecord as CommonCacheRecord,
     IdTokenEntity,
-    RefreshTokenEntity
+    RefreshTokenEntity,
 } from "@azure/msal-common";
 
 export class CacheRecord extends CommonCacheRecord {
@@ -22,7 +22,13 @@ export class CacheRecord extends CommonCacheRecord {
         refreshTokenEntity?: RefreshTokenEntity | null,
         appMetadataEntity?: AppMetadataEntity | null
     ) {
-        super(accountEntity, idTokenEntity, accessTokenEntity, refreshTokenEntity, appMetadataEntity);
+        super(
+            accountEntity,
+            idTokenEntity,
+            accessTokenEntity,
+            refreshTokenEntity,
+            appMetadataEntity
+        );
         this.account = accountEntity;
     }
 }

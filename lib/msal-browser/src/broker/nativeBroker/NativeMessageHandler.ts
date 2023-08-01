@@ -14,7 +14,7 @@ import {
     InProgressPerformanceEvent,
     PerformanceEvents,
     IPerformanceClient,
-    ICrypto
+    ICrypto,
 } from "@azure/msal-common";
 import {
     NativeExtensionRequest,
@@ -149,7 +149,7 @@ export class NativeMessageHandler {
                 method: NativeExtensionMethod.HandshakeRequest,
             },
         };
-        this.handshakeEvent.addStaticFields({
+        this.handshakeEvent.add({
             extensionId: this.extensionId,
             extensionHandshakeTimeoutMs: this.handshakeTimeoutMs,
         });
@@ -174,7 +174,7 @@ export class NativeMessageHandler {
                 );
                 this.messageChannel.port1.close();
                 this.messageChannel.port2.close();
-                this.handshakeEvent.endMeasurement({
+                this.handshakeEvent.end({
                     extensionHandshakeTimedOut: true,
                     success: false,
                 });
@@ -217,7 +217,9 @@ export class NativeMessageHandler {
              * the proper response.
              */
             if (!handshakeResolver) {
-                this.logger.trace(`NativeMessageHandler.onWindowMessage - resolver can't be found for request ${request.responseId}`);
+                this.logger.trace(
+                    `NativeMessageHandler.onWindowMessage - resolver can't be found for request ${request.responseId}`
+                );
                 return;
             }
 
@@ -231,14 +233,13 @@ export class NativeMessageHandler {
             this.messageChannel.port1.close();
             this.messageChannel.port2.close();
             window.removeEventListener("message", this.windowListener, false);
-            this.handshakeEvent.endMeasurement({
+            this.handshakeEvent.end({
                 success: false,
                 extensionInstalled: false,
             });
             handshakeResolver.reject(
                 BrowserAuthError.createNativeExtensionNotInstalledError()
             );
-
         }
     }
 
@@ -302,7 +303,9 @@ export class NativeMessageHandler {
                 this.resolvers.delete(request.responseId);
             } else if (method === NativeExtensionMethod.HandshakeResponse) {
                 if (!handshakeResolver) {
-                    this.logger.trace(`NativeMessageHandler.onChannelMessage - resolver can't be found for request ${request.responseId}`);
+                    this.logger.trace(
+                        `NativeMessageHandler.onChannelMessage - resolver can't be found for request ${request.responseId}`
+                    );
                     return;
                 }
                 clearTimeout(this.timeoutId); // Clear setTimeout
@@ -316,7 +319,7 @@ export class NativeMessageHandler {
                 this.logger.verbose(
                     `NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`
                 );
-                this.handshakeEvent.endMeasurement({
+                this.handshakeEvent.end({
                     extensionInstalled: true,
                     success: true,
                 });
