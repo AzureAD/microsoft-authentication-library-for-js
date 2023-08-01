@@ -18,6 +18,8 @@ import {
     TEST_SSH_VALUES,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
+    TEST_TOKEN_RESPONSE,
+    ID_TOKEN_CLAIMS,
 } from "../utils/StringConstants";
 import {
     Constants,
@@ -36,8 +38,9 @@ import {
     CommonAuthorizationCodeRequest,
     AuthError,
     Logger,
+    NetworkManager,
+    ProtocolUtils,
     ProtocolMode,
-    ServerResponseType,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -58,6 +61,7 @@ import { FetchClient } from "../../src/network/FetchClient";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -70,6 +74,7 @@ describe("PopupClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let popupClient: PopupClient;
     let pca: PublicClientApplication;
+    let browserCacheManager: BrowserCacheManager;
     beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
@@ -80,6 +85,9 @@ describe("PopupClient", () => {
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
         await pca.initialize();
+
+        //@ts-ignore
+        browserCacheManager = pca.browserStorage;
 
         //@ts-ignore
         popupClient = new PopupClient(
@@ -105,6 +113,7 @@ describe("PopupClient", () => {
     });
 
     afterEach(() => {
+        jest.restoreAllMocks();
         sinon.restore();
         window.location.hash = "";
         window.sessionStorage.clear();
@@ -594,6 +603,100 @@ describe("PopupClient", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
             });
             expect(tokenResp).toEqual(testTokenResponse);
+        });
+
+        describe("storeInCache tests", () => {
+            beforeEach(() => {
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_POPUP
+                );
+                jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
+                    window
+                );
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "monitorPopupForHash"
+                ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+                jest.spyOn(
+                    NetworkManager.prototype,
+                    "sendPostRequest"
+                ).mockResolvedValue(TEST_TOKEN_RESPONSE);
+            });
+
+            it("does not store idToken if storeInCache.idToken = false", async () => {
+                const tokenResp = await popupClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        idToken: false,
+                    },
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
+                });
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(0);
+                expect(tokenKeys.accessToken).toHaveLength(1);
+                expect(tokenKeys.refreshToken).toHaveLength(1);
+            });
+
+            it("does not store accessToken if storeInCache.accessToken = false", async () => {
+                const tokenResp = await popupClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        accessToken: false,
+                    },
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
+                });
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(1);
+                expect(tokenKeys.accessToken).toHaveLength(0);
+                expect(tokenKeys.refreshToken).toHaveLength(1);
+            });
+
+            it("does not store refreshToken if storeInCache.refreshToken = false", async () => {
+                const tokenResp = await popupClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        refreshToken: false,
+                    },
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
+                });
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(1);
+                expect(tokenKeys.accessToken).toHaveLength(1);
+                expect(tokenKeys.refreshToken).toHaveLength(0);
+            });
         });
 
         it("catches error and cleans cache before rethrowing", async () => {

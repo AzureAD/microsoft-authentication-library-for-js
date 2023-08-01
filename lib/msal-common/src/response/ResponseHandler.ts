@@ -16,7 +16,6 @@ import { ScopeSet } from "../request/ScopeSet";
 import { AuthenticationResult } from "./AuthenticationResult";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { Authority } from "../authority/Authority";
-import { AuthorityType } from "../authority/AuthorityType";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
@@ -246,7 +245,7 @@ export class ResponseHandler {
             authority.authorityType,
             this.logger,
             this.cryptoObj,
-            idTokenObj
+            idTokenObj?.claims
         );
 
         // save the response tokens
@@ -313,7 +312,10 @@ export class ResponseHandler {
                     );
                 }
             }
-            await this.cacheStorage.saveCacheRecord(cacheRecord);
+            await this.cacheStorage.saveCacheRecord(
+                cacheRecord,
+                request.storeInCache
+            );
         } finally {
             if (
                 this.persistencePlugin &&
@@ -374,11 +376,15 @@ export class ResponseHandler {
                 idTokenObj.claims.tid || Constants.EMPTY_STRING
             );
 
-            cachedAccount = this.generateAccountEntity(
-                serverTokenResponse,
-                idTokenObj,
-                authority,
-                authCodePayload
+            cachedAccount = AccountEntity.createAccount(
+                {
+                    homeAccountId: this.homeAccountIdentifier,
+                    idTokenClaims: idTokenObj.claims,
+                    clientInfo: serverTokenResponse.client_info,
+                    cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
+                    msGraphHost: authCodePayload?.msgraph_host,
+                },
+                authority
             );
         }
 
@@ -466,66 +472,6 @@ export class ResponseHandler {
             cachedRefreshToken,
             cachedAppMetadata
         );
-    }
-
-    /**
-     * Generate Account
-     * @param serverTokenResponse
-     * @param idToken
-     * @param authority
-     */
-    private generateAccountEntity(
-        serverTokenResponse: ServerAuthorizationTokenResponse,
-        idToken: AuthToken,
-        authority: Authority,
-        authCodePayload?: AuthorizationCodePayload
-    ): AccountEntity {
-        const authorityType = authority.authorityType;
-        const cloudGraphHostName = authCodePayload
-            ? authCodePayload.cloud_graph_host_name
-            : Constants.EMPTY_STRING;
-        const msGraphhost = authCodePayload
-            ? authCodePayload.msgraph_host
-            : Constants.EMPTY_STRING;
-
-        // ADFS does not require client_info in the response
-        if (authorityType === AuthorityType.Adfs) {
-            this.logger.verbose(
-                "Authority type is ADFS, creating ADFS account"
-            );
-            return AccountEntity.createGenericAccount(
-                this.homeAccountIdentifier,
-                idToken,
-                authority,
-                cloudGraphHostName,
-                msGraphhost
-            );
-        }
-
-        // This fallback applies to B2C as well as they fall under an AAD account type.
-        if (
-            StringUtils.isEmpty(serverTokenResponse.client_info) &&
-            authority.protocolMode === "AAD"
-        ) {
-            throw ClientAuthError.createClientInfoEmptyError();
-        }
-
-        return serverTokenResponse.client_info
-            ? AccountEntity.createAccount(
-                  serverTokenResponse.client_info,
-                  this.homeAccountIdentifier,
-                  idToken,
-                  authority,
-                  cloudGraphHostName,
-                  msGraphhost
-              )
-            : AccountEntity.createGenericAccount(
-                  this.homeAccountIdentifier,
-                  idToken,
-                  authority,
-                  cloudGraphHostName,
-                  msGraphhost
-              );
     }
 
     /**

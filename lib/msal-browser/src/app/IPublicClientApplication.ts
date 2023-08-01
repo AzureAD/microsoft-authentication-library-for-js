@@ -57,6 +57,10 @@ export interface IPublicClientApplication {
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     setNavigationClient(navigationClient: INavigationClient): void;
     getConfiguration(): BrowserConfiguration;
+    hydrateCache(
+        result: AuthenticationResult,
+        request: SilentRequest
+    ): Promise<void>;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -173,5 +177,10 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     getConfiguration: () => {
         throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
+    },
+    hydrateCache: () => {
+        return Promise.reject(
+            BrowserConfigurationAuthError.createStubPcaInstanceCalledError()
+        );
     },
 };

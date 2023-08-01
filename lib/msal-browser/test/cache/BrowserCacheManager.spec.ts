@@ -336,15 +336,36 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it("Adds existing accounts to account key map on initialization", () => {
+            const browserSessionStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+            const authority = new Authority(
+                TEST_CONFIG.validAuthority,
+                StubbedNetworkModule,
+                browserSessionStorage,
+                {
+                    protocolMode: ProtocolMode.AAD,
+                    authorityMetadata: "",
+                    cloudDiscoveryMetadata: "",
+                    knownAuthorities: [],
+                },
+                logger
+            );
             // Pre-populate localstorage with accounts
             const testAccount = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto),
-                undefined,
-                undefined,
-                undefined,
-                "environment"
+                {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    idTokenClaims: new IdToken(
+                        TEST_TOKENS.IDTOKEN_V2,
+                        browserCrypto
+                    ).claims,
+                    clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    environment: "environment",
+                },
+                authority
             );
             window.localStorage.setItem(
                 testAccount.generateAccountKey(),
@@ -539,13 +560,18 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getAccount returns AccountEntity", () => {
                     const testAccount = AccountEntity.createAccount(
-                        TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                        "homeAccountId",
-                        new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto),
-                        authority,
-                        "oboAssertion",
-                        "cloudGraphHost",
-                        "msGraphHost"
+                        {
+                            homeAccountId: "homeAccountId",
+                            idTokenClaims: new IdToken(
+                                TEST_TOKENS.IDTOKEN_V2,
+                                browserCrypto
+                            ).claims,
+                            clientInfo:
+                                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                            cloudGraphHostName: "cloudGraphHost",
+                            msGraphHost: "msGraphHost",
+                        },
+                        authority
                     );
 
                     browserLocalStorage.setAccount(testAccount);
@@ -1521,13 +1547,18 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getAccount returns AccountEntity", () => {
                     const testAccount = AccountEntity.createAccount(
-                        TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                        "homeAccountId",
-                        new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto),
-                        authority,
-                        "oboAssertion",
-                        "cloudGraphHost",
-                        "msGraphHost"
+                        {
+                            homeAccountId: "homeAccountId",
+                            idTokenClaims: new IdToken(
+                                TEST_TOKENS.IDTOKEN_V2,
+                                browserCrypto
+                            ).claims,
+                            clientInfo:
+                                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                            cloudGraphHostName: "cloudGraphHost",
+                            msGraphHost: "msGraphHost",
+                        },
+                        authority
                     );
 
                     browserLocalStorage.setAccount(testAccount);
@@ -3125,7 +3156,7 @@ describe("BrowserCacheManager tests", () => {
                 realm: "test-tenantId-1",
                 name: "name-1",
                 idTokenClaims: {},
-                authorityType: "AAD",
+                authorityType: "MSSTS",
             };
 
             const accountEntity2 = {
@@ -3136,422 +3167,11 @@ describe("BrowserCacheManager tests", () => {
                 realm: "test-tenantId-2",
                 name: "name-2",
                 idTokenClaims: {},
-                authorityType: "AAD",
+                authorityType: "MSSTS",
             };
 
             const account1: AccountInfo = {
-                homeAccountId: accountEntity1.homeAccountId,
-                localAccountId: accountEntity1.localAccountId,
-                username: accountEntity1.username,
-                environment: accountEntity1.environment,
-                tenantId: accountEntity1.realm,
-                name: accountEntity1.name,
-                idTokenClaims: accountEntity1.idTokenClaims,
-            };
-
-            const account2: AccountInfo = {
-                homeAccountId: accountEntity2.homeAccountId,
-                localAccountId: accountEntity2.localAccountId,
-                username: accountEntity2.username,
-                environment: accountEntity2.environment,
-                tenantId: accountEntity2.realm,
-                name: accountEntity2.name,
-                idTokenClaims: accountEntity2.idTokenClaims,
-            };
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
-            const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
-
-            beforeEach(() => {
-                browserStorage.setItem(
-                    cacheKey1,
-                    JSON.stringify(accountEntity1)
-                );
-                browserStorage.setItem(
-                    cacheKey2,
-                    JSON.stringify(accountEntity2)
-                );
-                browserStorage.addAccountKeyToMap(cacheKey1);
-                browserStorage.addAccountKeyToMap(cacheKey2);
-            });
-
-            afterEach(() => {
-                browserStorage.clear();
-            });
-
-            it("Matches accounts by username", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { username: account1.username };
-                const account2Filter = { username: account2.username };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by homeAccountId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {
-                    homeAccountId: account1.homeAccountId,
-                };
-                const account2Filter = {
-                    homeAccountId: account2.homeAccountId,
-                };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by localAccountId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {
-                    localAccountId: account1.localAccountId,
-                };
-                const account2Filter = {
-                    localAccountId: account2.localAccountId,
-                };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by tenantId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { tenantId: account1.tenantId };
-                const account2Filter = { tenantId: account2.tenantId };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by environment", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { environment: account1.environment };
-                const account2Filter = { environment: account2.environment };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by all filters", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = account1;
-                const account2Filter = account2;
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-        });
-
-        describe("getAccountInfoByHints", () => {
-            cacheConfig = {
-                temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-                cacheLocation: BrowserCacheLocation.SessionStorage,
-                storeAuthStateInCookie: false,
-                secureCookies: false,
-                cacheMigrationEnabled: false,
-                claimsBasedCachingEnabled: false,
-            };
-            logger = new Logger({
-                loggerCallback: (
-                    level: LogLevel,
-                    message: string,
-                    containsPii: boolean
-                ): void => {},
-                piiLoggingEnabled: true,
-            });
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-
-            const accountEntity1 = {
-                homeAccountId: "test-home-accountId-1",
-                localAccountId: "test-local-accountId-1",
-                username: "user-1@example.com",
-                environment: "test-environment-1",
-                realm: "test-tenantId-1",
-                name: "name-1",
-                idTokenClaims: {
-                    sid: "session-1",
-                },
-                authorityType: "AAD",
-            };
-
-            const accountEntity2 = {
-                homeAccountId: "test-home-accountId-2",
-                localAccountId: "test-local-accountId-2",
-                username: "user-2@example.com",
-                environment: "test-environment-2",
-                realm: "test-tenantId-2",
-                name: "name-2",
-                idTokenClaims: {
-                    sid: "session-2",
-                },
-                authorityType: "AAD",
-            };
-
-            const account1: AccountInfo = {
-                homeAccountId: accountEntity1.homeAccountId,
-                localAccountId: accountEntity1.localAccountId,
-                username: accountEntity1.username,
-                environment: accountEntity1.environment,
-                tenantId: accountEntity1.realm,
-                name: accountEntity1.name,
-                idTokenClaims: accountEntity1.idTokenClaims,
-            };
-
-            const account2: AccountInfo = {
-                homeAccountId: accountEntity2.homeAccountId,
-                localAccountId: accountEntity2.localAccountId,
-                username: accountEntity2.username,
-                environment: accountEntity2.environment,
-                tenantId: accountEntity2.realm,
-                name: accountEntity2.name,
-                idTokenClaims: accountEntity2.idTokenClaims,
-            };
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
-            const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
-
-            beforeEach(() => {
-                browserStorage.setItem(
-                    cacheKey1,
-                    JSON.stringify(accountEntity1)
-                );
-                browserStorage.setItem(
-                    cacheKey2,
-                    JSON.stringify(accountEntity2)
-                );
-                browserStorage.addAccountKeyToMap(cacheKey1);
-                browserStorage.addAccountKeyToMap(cacheKey2);
-            });
-
-            afterEach(() => {
-                browserStorage.clear();
-            });
-
-            it("Matches accounts by username", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { username: account1.username };
-                const account2Filter = { username: account2.username };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by homeAccountId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {
-                    homeAccountId: account1.homeAccountId,
-                };
-                const account2Filter = {
-                    homeAccountId: account2.homeAccountId,
-                };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by localAccountId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {
-                    localAccountId: account1.localAccountId,
-                };
-                const account2Filter = {
-                    localAccountId: account2.localAccountId,
-                };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by tenantId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { tenantId: account1.tenantId };
-                const account2Filter = { tenantId: account2.tenantId };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by environment", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { environment: account1.environment };
-                const account2Filter = { environment: account2.environment };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by all filters", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = account1;
-                const account2Filter = account2;
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-        });
-
-        describe("getAccountInfoByHints", () => {
-            cacheConfig = {
-                cacheLocation: BrowserCacheLocation.SessionStorage,
-                temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-                storeAuthStateInCookie: false,
-                secureCookies: false,
-                cacheMigrationEnabled: false,
-                claimsBasedCachingEnabled: false,
-            };
-            logger = new Logger({
-                loggerCallback: (
-                    level: LogLevel,
-                    message: string,
-                    containsPii: boolean
-                ): void => {},
-                piiLoggingEnabled: true,
-            });
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-
-            const accountEntity1 = {
-                homeAccountId: "test-home-accountId-1",
-                localAccountId: "test-local-accountId-1",
-                username: "user-1@example.com",
-                environment: "test-environment-1",
-                realm: "test-tenantId-1",
-                name: "name-1",
-                idTokenClaims: {
-                    sid: "session-1",
-                },
-                authorityType: "AAD",
-            };
-
-            const accountEntity2 = {
-                homeAccountId: "test-home-accountId-2",
-                localAccountId: "test-local-accountId-2",
-                username: "user-2@example.com",
-                environment: "test-environment-2",
-                realm: "test-tenantId-2",
-                name: "name-2",
-                idTokenClaims: {
-                    sid: "session-2",
-                },
-                authorityType: "AAD",
-            };
-
-            const account1: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: accountEntity1.homeAccountId,
                 localAccountId: accountEntity1.localAccountId,
                 username: accountEntity1.username,
@@ -3563,6 +3183,427 @@ describe("BrowserCacheManager tests", () => {
             };
 
             const account2: AccountInfo = {
+                authorityType: "MSSTS",
+                homeAccountId: accountEntity2.homeAccountId,
+                localAccountId: accountEntity2.localAccountId,
+                username: accountEntity2.username,
+                environment: accountEntity2.environment,
+                tenantId: accountEntity2.realm,
+                name: accountEntity2.name,
+                idTokenClaims: accountEntity2.idTokenClaims,
+                nativeAccountId: undefined,
+            };
+            const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
+            const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
+
+            beforeEach(() => {
+                browserStorage.setItem(
+                    cacheKey1,
+                    JSON.stringify(accountEntity1)
+                );
+                browserStorage.setItem(
+                    cacheKey2,
+                    JSON.stringify(accountEntity2)
+                );
+                browserStorage.addAccountKeyToMap(cacheKey1);
+                browserStorage.addAccountKeyToMap(cacheKey2);
+            });
+
+            afterEach(() => {
+                browserStorage.clear();
+            });
+
+            it("Matches accounts by username", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = { username: account1.username };
+                const account2Filter = { username: account2.username };
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+
+            it("Matches accounts by homeAccountId", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = {
+                    homeAccountId: account1.homeAccountId,
+                };
+                const account2Filter = {
+                    homeAccountId: account2.homeAccountId,
+                };
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+
+            it("Matches accounts by localAccountId", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = {
+                    localAccountId: account1.localAccountId,
+                };
+                const account2Filter = {
+                    localAccountId: account2.localAccountId,
+                };
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+
+            it("Matches accounts by tenantId", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = { tenantId: account1.tenantId };
+                const account2Filter = { tenantId: account2.tenantId };
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+
+            it("Matches accounts by environment", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = { environment: account1.environment };
+                const account2Filter = { environment: account2.environment };
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+
+            it("Matches accounts by all filters", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = account1;
+                const account2Filter = account2;
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+        });
+
+        describe("getAccountInfoByHints", () => {
+            cacheConfig = {
+                temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
+                cacheLocation: BrowserCacheLocation.SessionStorage,
+                storeAuthStateInCookie: false,
+                secureCookies: false,
+                cacheMigrationEnabled: false,
+                claimsBasedCachingEnabled: false,
+            };
+            logger = new Logger({
+                loggerCallback: (
+                    level: LogLevel,
+                    message: string,
+                    containsPii: boolean
+                ): void => {},
+                piiLoggingEnabled: true,
+            });
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+
+            const accountEntity1 = {
+                homeAccountId: "test-home-accountId-1",
+                localAccountId: "test-local-accountId-1",
+                username: "user-1@example.com",
+                environment: "test-environment-1",
+                realm: "test-tenantId-1",
+                name: "name-1",
+                idTokenClaims: {
+                    sid: "session-1",
+                },
+                authorityType: "MSSTS",
+            };
+
+            const accountEntity2 = {
+                homeAccountId: "test-home-accountId-2",
+                localAccountId: "test-local-accountId-2",
+                username: "user-2@example.com",
+                environment: "test-environment-2",
+                realm: "test-tenantId-2",
+                name: "name-2",
+                idTokenClaims: {
+                    sid: "session-2",
+                },
+                authorityType: "MSSTS",
+            };
+
+            const account1: AccountInfo = {
+                authorityType: "MSSTS",
+                homeAccountId: accountEntity1.homeAccountId,
+                localAccountId: accountEntity1.localAccountId,
+                username: accountEntity1.username,
+                environment: accountEntity1.environment,
+                tenantId: accountEntity1.realm,
+                name: accountEntity1.name,
+                idTokenClaims: accountEntity1.idTokenClaims,
+                nativeAccountId: undefined,
+            };
+
+            const account2: AccountInfo = {
+                authorityType: "MSSTS",
+                homeAccountId: accountEntity2.homeAccountId,
+                localAccountId: accountEntity2.localAccountId,
+                username: accountEntity2.username,
+                environment: accountEntity2.environment,
+                tenantId: accountEntity2.realm,
+                name: accountEntity2.name,
+                idTokenClaims: accountEntity2.idTokenClaims,
+                nativeAccountId: undefined,
+            };
+            const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
+            const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
+
+            beforeEach(() => {
+                browserStorage.setItem(
+                    cacheKey1,
+                    JSON.stringify(accountEntity1)
+                );
+                browserStorage.setItem(
+                    cacheKey2,
+                    JSON.stringify(accountEntity2)
+                );
+                browserStorage.addAccountKeyToMap(cacheKey1);
+                browserStorage.addAccountKeyToMap(cacheKey2);
+            });
+
+            afterEach(() => {
+                browserStorage.clear();
+            });
+
+            it("Matches accounts by username", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = { username: account1.username };
+                const account2Filter = { username: account2.username };
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+
+            it("Matches accounts by homeAccountId", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = {
+                    homeAccountId: account1.homeAccountId,
+                };
+                const account2Filter = {
+                    homeAccountId: account2.homeAccountId,
+                };
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+
+            it("Matches accounts by localAccountId", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = {
+                    localAccountId: account1.localAccountId,
+                };
+                const account2Filter = {
+                    localAccountId: account2.localAccountId,
+                };
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+
+            it("Matches accounts by tenantId", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = { tenantId: account1.tenantId };
+                const account2Filter = { tenantId: account2.tenantId };
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+
+            it("Matches accounts by environment", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = { environment: account1.environment };
+                const account2Filter = { environment: account2.environment };
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+
+            it("Matches accounts by all filters", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = account1;
+                const account2Filter = account2;
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account1Filter)
+                ).toContainEqual(account1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    browserStorage.getAccountInfoByFilter(account2Filter)
+                ).toContainEqual(account2);
+            });
+        });
+
+        describe("getAccountInfoByHints", () => {
+            cacheConfig = {
+                cacheLocation: BrowserCacheLocation.SessionStorage,
+                temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
+                storeAuthStateInCookie: false,
+                secureCookies: false,
+                cacheMigrationEnabled: false,
+                claimsBasedCachingEnabled: false,
+            };
+            logger = new Logger({
+                loggerCallback: (
+                    level: LogLevel,
+                    message: string,
+                    containsPii: boolean
+                ): void => {},
+                piiLoggingEnabled: true,
+            });
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+
+            const accountEntity1 = {
+                homeAccountId: "test-home-accountId-1",
+                localAccountId: "test-local-accountId-1",
+                username: "user-1@example.com",
+                environment: "test-environment-1",
+                realm: "test-tenantId-1",
+                name: "name-1",
+                idTokenClaims: {
+                    sid: "session-1",
+                },
+                authorityType: "MSSTS",
+            };
+
+            const accountEntity2 = {
+                homeAccountId: "test-home-accountId-2",
+                localAccountId: "test-local-accountId-2",
+                username: "user-2@example.com",
+                environment: "test-environment-2",
+                realm: "test-tenantId-2",
+                name: "name-2",
+                idTokenClaims: {
+                    sid: "session-2",
+                },
+                authorityType: "MSSTS",
+            };
+
+            const account1: AccountInfo = {
+                authorityType: "MSSTS",
+                homeAccountId: accountEntity1.homeAccountId,
+                localAccountId: accountEntity1.localAccountId,
+                username: accountEntity1.username,
+                environment: accountEntity1.environment,
+                tenantId: accountEntity1.realm,
+                name: accountEntity1.name,
+                idTokenClaims: accountEntity1.idTokenClaims,
+                nativeAccountId: undefined,
+            };
+
+            const account2: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: accountEntity2.homeAccountId,
                 localAccountId: accountEntity2.localAccountId,
                 username: accountEntity2.username,
@@ -3625,7 +3666,7 @@ describe("BrowserCacheManager tests", () => {
                     realm: "test-tenantId-3",
                     name: "name-3",
                     idTokenClaims: accountEntity1.idTokenClaims, // Keep this the same as account 1
-                    authorityType: "AAD",
+                    authorityType: "MSSTS",
                 };
 
                 const account3: AccountInfo = {
@@ -3671,7 +3712,7 @@ describe("BrowserCacheManager tests", () => {
                     realm: "test-tenantId-3",
                     name: "name-3",
                     idTokenClaims: accountEntity1.idTokenClaims, // Keep this the same as account 1
-                    authorityType: "AAD",
+                    authorityType: "MSSTS",
                 };
 
                 const account3: AccountInfo = {
