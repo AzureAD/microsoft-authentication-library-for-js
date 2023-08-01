@@ -219,6 +219,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -296,6 +297,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -340,6 +342,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -384,6 +387,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -461,6 +465,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -531,6 +536,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -750,6 +756,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -814,6 +821,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",

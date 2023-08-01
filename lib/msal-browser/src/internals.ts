@@ -11,9 +11,6 @@
 // Cache Manager
 export { BrowserCacheManager } from "./cache/BrowserCacheManager";
 
-// Cache entities
-export { CacheRecord } from "./cache/entities/CacheRecord";
-
 // Clients
 export { StandardInteractionClient } from "./interaction_client/StandardInteractionClient";
 export { RedirectClient } from "./interaction_client/RedirectClient";
