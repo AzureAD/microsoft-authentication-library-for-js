@@ -1,20 +1,20 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { RouterModule} from '@angular/router';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
 import { AuthenticationResult, InteractionStatus, PopupRequest, RedirectRequest, EventMessage, EventType } from '@azure/msal-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
-import { MatMenuModule } from '@angular/material/menu';
-import { NgIf } from '@angular/common';
-import { RouterLink, RouterOutlet } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
     standalone: true,
-    imports: [MatToolbarModule, MatButtonModule, RouterLink, NgIf, MatMenuModule, RouterOutlet]
+    imports: [CommonModule, RouterModule, MatToolbarModule, MatButtonModule, MatMenuModule]
 })
 export class AppComponent implements OnInit, OnDestroy {
   title = 'Angular Standalone Sample - MSAL Angular v3';

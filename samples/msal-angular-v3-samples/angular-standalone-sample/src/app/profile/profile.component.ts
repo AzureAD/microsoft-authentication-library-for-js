@@ -12,7 +12,7 @@ type ProfileType = {
 @Component({
     selector: 'app-profile',
     templateUrl: './profile.component.html',
-    styleUrls: ['./profile.component.css'],
+    styleUrls: [],
     standalone: true
 })
 export class ProfileComponent implements OnInit {

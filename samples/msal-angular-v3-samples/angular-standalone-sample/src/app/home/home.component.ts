@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
 import { AuthenticationResult, EventMessage, EventType, InteractionStatus } from '@azure/msal-browser';
 import { filter } from 'rxjs/operators';
-import { NgIf } from '@angular/common';
 
 @Component({
     selector: 'app-home',
     templateUrl: './home.component.html',
-    styleUrls: ['./home.component.css'],
+    styleUrls: [],
     standalone: true,
-    imports: [NgIf]
+    imports: [CommonModule]
 })
 export class HomeComponent implements OnInit {
   loginDisplay = false;
