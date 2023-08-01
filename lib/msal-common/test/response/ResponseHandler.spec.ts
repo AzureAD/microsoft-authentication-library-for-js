@@ -181,9 +181,6 @@ describe("ResponseHandler.ts", () => {
             .callsFake((encodedIdToken, crypto) => {
                 return ID_TOKEN_CLAIMS as TokenClaims;
             });
-        sinon
-            .stub(ResponseHandler.prototype, <any>"generateAccountEntity")
-            .returns(new AccountEntity());
         sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,

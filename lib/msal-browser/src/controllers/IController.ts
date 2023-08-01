@@ -105,6 +105,11 @@ export interface IController {
 
     getConfiguration(): BrowserConfiguration;
 
+    hydrateCache(
+        result: AuthenticationResult,
+        request: SilentRequest
+    ): Promise<void>;
+
     isBrowserEnv(): boolean;
 
     getBrowserStorage(): BrowserCacheManager;
