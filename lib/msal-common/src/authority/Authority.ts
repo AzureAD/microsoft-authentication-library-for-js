@@ -21,6 +21,7 @@ import {
 import {
     EndpointMetadata,
     InstanceDiscoveryMetadata,
+    InstanceDiscoveryMetadataAliases,
 } from "./AuthorityMetadata";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
@@ -1106,14 +1107,9 @@ export class Authority {
      * @param host
      */
     isAliasOfKnownMicrosoftAuthority(host: string): boolean {
-        for (const key in InstanceDiscoveryMetadata) {
-            for (const metadata of InstanceDiscoveryMetadata[key].metadata) {
-                if (metadata.aliases.indexOf(host) > -1) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        console.log(InstanceDiscoveryMetadataAliases);
+        console.log(host);
+        return InstanceDiscoveryMetadataAliases.has(host);
     }
 
     /**
