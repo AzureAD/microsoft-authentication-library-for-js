@@ -26,7 +26,6 @@
     "@types/jest": "^29.5.2",
     "e2e-test-utils": "file:../../e2eTestUtils",
     "jest": "^29.5.0",
-    "puppeteer": "^20.7.3",
     "ts-jest": "^29.1.0"
   }
 }

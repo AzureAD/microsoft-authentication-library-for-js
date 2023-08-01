@@ -25,7 +25,8 @@ export const NativeStatusCode = {
     DISABLED: "DISABLED",
     ACCOUNT_UNAVAILABLE: "ACCOUNT_UNAVAILABLE",
 } as const;
-export type NativeStatusCode = typeof NativeStatusCode[keyof typeof NativeStatusCode];
+export type NativeStatusCode =
+    (typeof NativeStatusCode)[keyof typeof NativeStatusCode];
 
 export const NativeAuthErrorMessage = {
     extensionError: {

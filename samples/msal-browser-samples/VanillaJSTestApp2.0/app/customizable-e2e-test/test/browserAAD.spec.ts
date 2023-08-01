@@ -1,40 +1,53 @@
 import * as puppeteer from "puppeteer";
-import { 
-    Screenshot, 
-    createFolder, 
-    setupCredentials, 
-    enterCredentials, 
+import {
+    Screenshot,
+    createFolder,
+    setupCredentials,
+    enterCredentials,
     ONE_SECOND_IN_MS,
-    clickLoginPopup, 
-    clickLoginRedirect, 
-    clickLogoutPopup, 
-    clickLogoutRedirect, 
+    clickLoginPopup,
+    clickLoginRedirect,
+    clickLogoutPopup,
+    clickLogoutRedirect,
     waitForReturnToApp,
-    getBrowser, 
-    getHomeUrl 
+    getBrowser,
+    getHomeUrl,
+    pcaInitializedPoller,
 } from "e2e-test-utils/src/TestUtils";
 import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
 import { LabClient } from "e2e-test-utils/src/LabClient";
-import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfigs/aadAuthConfig.json";
+import {
+    msalConfig as aadMsalConfig,
+    request as aadTokenRequest,
+} from "../authConfigs/aadAuthConfig.json";
 import fs from "fs";
 import { RedirectRequest } from "../../../../../../lib/msal-browser/src";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 let sampleHomeUrl = "";
 
-async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
+async function verifyTokenStore(
+    BrowserCache: BrowserCacheUtils,
+    scopes: string[]
+): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
     expect(tokenStore.idTokens).toHaveLength(1);
     expect(tokenStore.accessTokens).toHaveLength(1);
     expect(tokenStore.refreshTokens).toHaveLength(1);
-    expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
-    expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy();
+    expect(
+        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+    ).toBeDefined();
+    expect(
+        await BrowserCache.accessTokenForScopesExists(
+            tokenStore.accessTokens,
+            scopes
+        )
+    ).toBeTruthy();
     const storage = await BrowserCache.getWindowStorage();
     expect(Object.keys(storage).length).toEqual(6);
 }
-
 
 describe("AAD-Prod Tests", () => {
     let browser: puppeteer.Browser;
@@ -51,15 +64,26 @@ describe("AAD-Prod Tests", () => {
 
         const labApiParams: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD
+            appType: AppTypes.CLOUD,
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParams
+        );
 
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
 
-        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: aadTokenRequest}));
+        fs.writeFileSync(
+            "./app/customizable-e2e-test/testConfig.json",
+            JSON.stringify({
+                msalConfig: aadMsalConfig,
+                request: aadTokenRequest,
+            })
+        );
     });
 
     afterAll(async () => {
@@ -71,20 +95,30 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-            BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            BrowserCache = new BrowserCacheUtils(
+                page,
+                aadMsalConfig.cache.cacheLocation
+            );
             await page.goto(sampleHomeUrl);
+            await pcaInitializedPoller(page, 5000);
         });
 
         afterEach(async () => {
-            await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-            await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+            await page.evaluate(() =>
+                Object.assign({}, window.sessionStorage.clear())
+            );
+            await page.evaluate(() =>
+                Object.assign({}, window.localStorage.clear())
+            );
             await page.close();
         });
 
         it("Performs loginRedirect", async () => {
             const testName = "redirectBaseCase";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
 
             await clickLoginRedirect(screenshot, page);
             await enterCredentials(page, screenshot, username, accountPwd);
@@ -96,7 +130,9 @@ describe("AAD-Prod Tests", () => {
         it("Performs loginRedirect from url with empty query string", async () => {
             await page.goto(sampleHomeUrl + "?");
             const testName = "redirectEmptyQueryString";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
 
             await clickLoginRedirect(screenshot, page);
             await enterCredentials(page, screenshot, username, accountPwd);
@@ -110,7 +146,9 @@ describe("AAD-Prod Tests", () => {
             const testUrl = sampleHomeUrl + "?test";
             await page.goto(testUrl);
             const testName = "redirectEmptyQueryString";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
 
             await clickLoginRedirect(screenshot, page);
             await enterCredentials(page, screenshot, username, accountPwd);
@@ -123,13 +161,21 @@ describe("AAD-Prod Tests", () => {
         it("Performs loginRedirect with relative redirectUri", async () => {
             const relativeRedirectUriRequest: RedirectRequest = {
                 ...aadTokenRequest,
-                redirectUri: "/"
-            }
-            fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: relativeRedirectUriRequest}));
+                redirectUri: "/",
+            };
+            fs.writeFileSync(
+                "./app/customizable-e2e-test/testConfig.json",
+                JSON.stringify({
+                    msalConfig: aadMsalConfig,
+                    request: relativeRedirectUriRequest,
+                })
+            );
             page.reload();
 
             const testName = "redirectBaseCase";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
 
             await clickLoginRedirect(screenshot, page);
             await enterCredentials(page, screenshot, username, accountPwd);
@@ -141,13 +187,21 @@ describe("AAD-Prod Tests", () => {
         it("Performs loginRedirect with relative redirectStartPage", async () => {
             const relativeRedirectUriRequest: RedirectRequest = {
                 ...aadTokenRequest,
-                redirectStartPage: "/"
-            }
-            fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: relativeRedirectUriRequest}));
+                redirectStartPage: "/",
+            };
+            fs.writeFileSync(
+                "./app/customizable-e2e-test/testConfig.json",
+                JSON.stringify({
+                    msalConfig: aadMsalConfig,
+                    request: relativeRedirectUriRequest,
+                })
+            );
             page.reload();
 
             const testName = "redirectBaseCase";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
 
             await clickLoginRedirect(screenshot, page);
             await enterCredentials(page, screenshot, username, accountPwd);
@@ -158,11 +212,21 @@ describe("AAD-Prod Tests", () => {
 
         it("Performs loginPopup", async () => {
             const testName = "popupBaseCase";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
 
-            const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
+            const [popupPage, popupWindowClosed] = await clickLoginPopup(
+                screenshot,
+                page
+            );
             await enterCredentials(popupPage, screenshot, username, accountPwd);
-            await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
+            await waitForReturnToApp(
+                screenshot,
+                page,
+                popupPage,
+                popupWindowClosed
+            );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
             await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
@@ -176,26 +240,49 @@ describe("AAD-Prod Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-            BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            BrowserCache = new BrowserCacheUtils(
+                page,
+                aadMsalConfig.cache.cacheLocation
+            );
             await page.goto(sampleHomeUrl);
+            await pcaInitializedPoller(page, 5000);
 
             testName = "logoutBaseCase";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
-            const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            const [popupPage, popupWindowClosed] = await clickLoginPopup(
+                screenshot,
+                page
+            );
             await enterCredentials(popupPage, screenshot, username, accountPwd);
-            await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
+            await waitForReturnToApp(
+                screenshot,
+                page,
+                popupPage,
+                popupWindowClosed
+            );
+            await pcaInitializedPoller(page, 5000);
         });
 
         afterEach(async () => {
-            await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-            await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+            await page.evaluate(() =>
+                Object.assign({}, window.sessionStorage.clear())
+            );
+            await page.evaluate(() =>
+                Object.assign({}, window.localStorage.clear())
+            );
             await page.close();
         });
 
         it("logoutRedirect", async () => {
             await clickLogoutRedirect(screenshot, page);
-            expect(page.url().startsWith("https://login.microsoftonline.com/common/")).toBeTruthy();
+            expect(
+                page
+                    .url()
+                    .startsWith("https://login.microsoftonline.com/common/")
+            ).toBeTruthy();
             expect(page.url()).toContain("logout");
             // Skip server sign-out
             const tokenStore = await BrowserCache.getTokens();
@@ -205,8 +292,15 @@ describe("AAD-Prod Tests", () => {
         });
 
         it("logoutPopup", async () => {
-            const [popupWindow, popupWindowClosed] = await clickLogoutPopup(screenshot, page);
-            expect(popupWindow.url().startsWith("https://login.microsoftonline.com/common/")).toBeTruthy();
+            const [popupWindow, popupWindowClosed] = await clickLogoutPopup(
+                screenshot,
+                page
+            );
+            expect(
+                popupWindow
+                    .url()
+                    .startsWith("https://login.microsoftonline.com/common/")
+            ).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
             await popupWindow.waitForNavigation();
             const tokenStore = await BrowserCache.getTokens();
@@ -224,31 +318,51 @@ describe("AAD-Prod Tests", () => {
         beforeAll(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-            BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            BrowserCache = new BrowserCacheUtils(
+                page,
+                aadMsalConfig.cache.cacheLocation
+            );
             await page.goto(sampleHomeUrl);
 
             testName = "acquireTokenBaseCase";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
-            const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            const [popupPage, popupWindowClosed] = await clickLoginPopup(
+                screenshot,
+                page
+            );
             await enterCredentials(popupPage, screenshot, username, accountPwd);
-            await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
+            await waitForReturnToApp(
+                screenshot,
+                page,
+                popupPage,
+                popupWindowClosed
+            );
         });
 
         beforeEach(async () => {
             await page.reload();
             await page.waitForSelector("#WelcomeMessage");
+            await pcaInitializedPoller(page, 5000);
         });
 
         afterAll(async () => {
-            await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-            await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+            await page.evaluate(() =>
+                Object.assign({}, window.sessionStorage.clear())
+            );
+            await page.evaluate(() =>
+                Object.assign({}, window.localStorage.clear())
+            );
             await page.close();
         });
 
         it("acquireTokenRedirect", async () => {
             testName = "acquireTokenRedirect";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
             await page.waitForSelector("#acquireTokenRedirect");
 
             // Remove access_tokens from cache so we can verify acquisition
@@ -257,7 +371,10 @@ describe("AAD-Prod Tests", () => {
             await BrowserCache.removeTokens(tokenStore.accessTokens);
             await page.click("#acquireTokenRedirect");
             await page.waitForSelector("#scopes-acquired");
-            await screenshot.takeScreenshot(page, "acquireTokenRedirectGotTokens");
+            await screenshot.takeScreenshot(
+                page,
+                "acquireTokenRedirectGotTokens"
+            );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
             await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
@@ -265,7 +382,9 @@ describe("AAD-Prod Tests", () => {
 
         it("acquireTokenPopup", async () => {
             testName = "acquireTokenPopup";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
             await page.waitForSelector("#acquireTokenPopup");
 
             // Remove access_tokens from cache so we can verify acquisition
@@ -282,17 +401,27 @@ describe("AAD-Prod Tests", () => {
 
         it("acquireTokenSilent from Cache", async () => {
             testName = "acquireTokenSilentCache";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
             await page.waitForSelector("#scopes-acquired");
-            await screenshot.takeScreenshot(page, "acquireTokenSilent-fromCache-GotTokens");
+            await screenshot.takeScreenshot(
+                page,
+                "acquireTokenSilent-fromCache-GotTokens"
+            );
 
-            const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(aadMsalConfig.auth.clientId);
+            const telemetryCacheEntry =
+                await BrowserCache.getTelemetryCacheEntry(
+                    aadMsalConfig.auth.clientId
+                );
             expect(telemetryCacheEntry).toBeDefined();
             expect(telemetryCacheEntry["cacheHits"]).toEqual(1);
             // Remove Telemetry Cache entry for next test
-            await BrowserCache.removeTokens([BrowserCacheUtils.getTelemetryKey(aadMsalConfig.auth.clientId)]);
+            await BrowserCache.removeTokens([
+                BrowserCacheUtils.getTelemetryKey(aadMsalConfig.auth.clientId),
+            ]);
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
             await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
@@ -300,7 +429,9 @@ describe("AAD-Prod Tests", () => {
 
         it("acquireTokenSilent via RefreshToken", async () => {
             testName = "acquireTokenSilentRT";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
             await page.waitForSelector("#acquireTokenSilent");
 
             // Remove access_tokens from cache so we can verify acquisition
@@ -309,7 +440,10 @@ describe("AAD-Prod Tests", () => {
 
             await page.click("#acquireTokenSilent");
             await page.waitForSelector("#scopes-acquired");
-            await screenshot.takeScreenshot(page, "acquireTokenSilent-viaRefresh-GotTokens");
+            await screenshot.takeScreenshot(
+                page,
+                "acquireTokenSilent-viaRefresh-GotTokens"
+            );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
             await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);

@@ -150,7 +150,6 @@ const cryptoInterface = {
 const performanceClient = {
     startMeasurement: jest.fn(),
     endMeasurement: jest.fn(),
-    addStaticFields: jest.fn(),
     discardMeasurements: jest.fn(),
     removePerformanceCallback: jest.fn(),
     addPerformanceCallback: jest.fn(),
@@ -160,6 +159,8 @@ const performanceClient = {
     calculateQueuedTime: jest.fn(),
     addQueueMeasurement: jest.fn(),
     setPreQueueTime: jest.fn(),
+    addFields: jest.fn(),
+    incrementFields: jest.fn(),
 };
 
 let authorityInstance: Authority;

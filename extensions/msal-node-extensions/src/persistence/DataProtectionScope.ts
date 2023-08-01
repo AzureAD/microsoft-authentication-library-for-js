@@ -18,4 +18,5 @@ export const DataProtectionScope = {
     CurrentUser: "CurrentUser",
     LocalMachine: "LocalMachine",
 } as const;
-export type DataProtectionScope = typeof DataProtectionScope[keyof typeof DataProtectionScope];
+export type DataProtectionScope =
+    (typeof DataProtectionScope)[keyof typeof DataProtectionScope];

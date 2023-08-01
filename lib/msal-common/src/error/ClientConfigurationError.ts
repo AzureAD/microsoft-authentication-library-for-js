@@ -99,12 +99,24 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidAuthenticationHeader: {
         code: "invalid_authentication_header",
-        desc: "Invalid authentication header provided"
+        desc: "Invalid authentication header provided",
+    },
+    cannotSetOIDCProtocolMode: {
+        code: "cannot_set_OIDC_protocol_mode",
+        desc: "Cannot use OIDC Protocol Mode when using a known Microsoft authority.",
+    },
+    cannotSetOIDCOptions: {
+        code: "cannot_set_OIDCOptions",
+        desc: "Cannot set OIDCOptions parameter. Please change the protocol mode to OIDC or use a non-Microsoft authority.",
+    },
+    cannotAllowNativeBroker: {
+        code: "cannot_allow_native_broker",
+        desc: "Cannot set allowNativeBroker parameter to true when not in AAD protocol mode.",
     },
     authorityMismatch: {
         code: "authority_mismatch",
-        desc: "Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority."
-    }
+        desc: "Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.",
+    },
 };
 
 /**
@@ -355,11 +367,44 @@ export class ClientConfigurationError extends ClientAuthError {
             `${ClientConfigurationErrorMessage.invalidAuthenticationHeader.desc}. Invalid header: ${invalidHeaderName}. Details: ${details}`
         );
     }
-    
+
+    /**
+     * Throws error when using OIDC protocol mode with a known Microsoft authority
+     */
+    static createCannotSetOIDCProtocolModeError(): ClientConfigurationError {
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.cannotSetOIDCProtocolMode.code,
+            ClientConfigurationErrorMessage.cannotSetOIDCProtocolMode.desc
+        );
+    }
+
+    /**
+     * Throws error when provided non-default OIDCOptions when not in OIDC protocol mode
+     */
+    static createCannotSetOIDCOptionsError(): ClientConfigurationError {
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.cannotSetOIDCOptions.code,
+            ClientConfigurationErrorMessage.cannotSetOIDCOptions.desc
+        );
+    }
+
+    /**
+     * Throws error when allowNativeBroker is set to true when not in AAD protocol mode
+     */
+    static createCannotAllowNativeBrokerError(): ClientConfigurationError {
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.cannotAllowNativeBroker.code,
+            ClientConfigurationErrorMessage.cannotAllowNativeBroker.desc
+        );
+    }
+
     /**
      * Create an error when the authority provided in request does not match authority provided in account or MSAL.js configuration.
      */
     static createAuthorityMismatchError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.authorityMismatch.code, ClientConfigurationErrorMessage.authorityMismatch.desc);
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.authorityMismatch.code,
+            ClientConfigurationErrorMessage.authorityMismatch.desc
+        );
     }
 }

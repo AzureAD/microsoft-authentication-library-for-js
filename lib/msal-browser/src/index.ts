@@ -89,6 +89,10 @@ export {
 
 export { PopupWindowAttributes } from "./request/PopupWindowAttributes";
 
+// Telemetry
+export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";
+export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement";
+
 // Common Object Formats
 export {
     AuthenticationScheme,
@@ -116,6 +120,7 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
+    ServerResponseType,
     PromptValue,
     // Server Response
     ExternalTokenResponse,

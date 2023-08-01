@@ -5,7 +5,6 @@ import { Logger, PkceCodes } from "@azure/msal-common";
 import { NUM_TESTS } from "../utils/StringConstants";
 
 describe("PkceGenerator.ts Unit Tests", () => {
-
     afterEach(() => {
         jest.restoreAllMocks();
     });
