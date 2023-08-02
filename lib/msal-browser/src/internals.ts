@@ -8,8 +8,9 @@
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
 
-// Cache Manager
+// Cache
 export { BrowserCacheManager } from "./cache/BrowserCacheManager";
+export { CacheRecord } from "@azure/msal-common";
 
 // Clients
 export { StandardInteractionClient } from "./interaction_client/StandardInteractionClient";
@@ -24,6 +25,7 @@ export { NativeInteractionClient } from "./interaction_client/NativeInteractionC
 export { RedirectHandler } from "./interaction_handler/RedirectHandler";
 export { EventHandler } from "./event/EventHandler";
 export { NativeMessageHandler } from "./broker/nativeBroker/NativeMessageHandler";
+export { ResponseHandler } from "@azure/msal-common";
 
 // Utilities
 export { BrowserStateObject } from "./utils/BrowserProtocolUtils";

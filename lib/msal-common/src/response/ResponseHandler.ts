@@ -42,14 +42,14 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
  * Class that handles response parsing.
  */
 export class ResponseHandler {
-    private clientId: string;
-    private cacheStorage: CacheManager;
-    private cryptoObj: ICrypto;
-    private logger: Logger;
-    private homeAccountIdentifier: string;
-    private serializableCache: ISerializableTokenCache | null;
-    private persistencePlugin: ICachePlugin | null;
-    private performanceClient?: IPerformanceClient;
+    private readonly clientId: string;
+    protected readonly cacheStorage: CacheManager;
+    protected readonly cryptoObj: ICrypto;
+    protected readonly logger: Logger;
+    protected homeAccountIdentifier: string;
+    private readonly serializableCache: ISerializableTokenCache | null;
+    private readonly persistencePlugin: ICachePlugin | null;
+    private readonly performanceClient?: IPerformanceClient;
 
     constructor(
         clientId: string,
@@ -346,15 +346,21 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param idTokenObj
      * @param authority
+     * @param reqTimestamp
+     * @param request
+     * @param userAssertionHash
+     * @param authCodePayload
+     * @param clientId
      */
-    private generateCacheRecord(
+    protected generateCacheRecord(
         serverTokenResponse: ServerAuthorizationTokenResponse,
         authority: Authority,
         reqTimestamp: number,
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         userAssertionHash?: string,
-        authCodePayload?: AuthorizationCodePayload
+        authCodePayload?: AuthorizationCodePayload,
+        clientId?: string
     ): CacheRecord {
         const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
@@ -372,7 +378,7 @@ export class ResponseHandler {
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.id_token || Constants.EMPTY_STRING,
-                this.clientId,
+                clientId || this.clientId,
                 idTokenObj.claims.tid || Constants.EMPTY_STRING
             );
 
@@ -425,7 +431,7 @@ export class ResponseHandler {
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.access_token || Constants.EMPTY_STRING,
-                this.clientId,
+                clientId || this.clientId,
                 idTokenObj
                     ? idTokenObj.claims.tid || Constants.EMPTY_STRING
                     : authority.tenant,
