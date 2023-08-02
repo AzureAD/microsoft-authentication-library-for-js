@@ -16,53 +16,11 @@ Note: 1p apps may be required to also use `x5c`. This is the *X.509* certificate
 Certificates should be stored and deployed safely. Consider using Azure KeyVault for certificate storage and rotation. Passwords should never be hardcoded in source code. 
 Please see https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets for more information
 
-This section covers creating a self-signed certificate and initializing a confidential client. For an implementation, see the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
+See the MSAL sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
 
-### Generating self-signed certificates
+### Registering certificates
 
-This guide details creating a self-signed certificate - https://learn.microsoft.com/azure/active-directory/develop/howto-create-self-signed-certificate using PowerShell.
-
-Download and build **OpenSSL** for your **OS** following the guide at [github.com/openssl](https://github.com/openssl/openssl#build-and-install). If you like to skip building and get a binary distributable from the community instead, check the [OpenSSL Wiki: Binaries](https://wiki.openssl.org/index.php/Binaries) page.
-
-Afterwards, add the path to **OpenSSL** to your **environment variables** so that you can call it from anywhere.
-
-Type the following in a terminal. You will be prompted to enter a *pass phrase* (this is optional, but recommended):
-
-```bash
-    openssl req -x509 -newkey rsa:2048 -keyout example.key -out example.crt -subj "/CN=example.com"
-```
-
-> :bulb: Add the `-nodes` parameter above if you don't want to encrypt your private key with a *pass phrase*.
-> :bulb: The default lifetime of a self-signed certificate is 32 days. The `-days` parameter can be used to change this.
-
-In your terminal, you should see:
-
-```bash
-    Generating a RSA private key
-    ..............................................
-    ..............................................
-    writing new private key to 'example.key'
-    Enter PEM pass phrase:
-    Verifying - Enter PEM pass phrase:
-    -----
-```
-
-After that, the following files should be generated:
-
-* *example.crt*: your public key. This is the actual certificate file that you'll upload to Azure AD.
-* *example.key*: your private key.
-
-> Powershell users can run the [New-SelfSignedCertificate](https://docs.microsoft.com/powershell/module/pkiclient/new-selfsignedcertificate?view=win10-ps) command:
->
-> ```powershell
->$cert=New-SelfSignedCertificate -Subject "CN=example.com" -CertStoreLocation "Cert:\CurrentUser\My"  -KeyExportPolicy Exportable -KeySpec Signature
->```
->
-> This command will generate two files: *example.cer* (public key) and *example.pfx* (public key + encrypted private key, usually formatted in *PKCS#12*). For more information, see: [Create a self-signed public certificate to authenticate your application](https://docs.microsoft.com/azure/active-directory/develop/howto-create-self-signed-certificate)
-
-> :information_source: Certificate files come in various file extensions, such as *.crt*, *.csr*, *.cer*, *.pem*, *.pfx*, *.key*. For file type conversions, you can use *OpenSSL*. See below for [pfx to pem conversion](#optional-converting-pfx-to-pem). For other type of conversions, please refer to: [SSL/TLS Certificate File Types/Extensions](https://docs.microsoft.com/archive/blogs/kaushal/various-ssltls-certificate-file-typesextensions).
-
-### Registering self-signed certificates
+You can create a self-signed certificate using PowerShell or using Azure KeyVault.
 
 You need to upload your certificate to **Azure AD**.
 
