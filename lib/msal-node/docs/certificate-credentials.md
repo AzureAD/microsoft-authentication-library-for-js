@@ -2,15 +2,19 @@
 
 > :warning: Before you start here, make sure you understand [Initialize confidential client applications](./initialize-confidential-client-application.md).
 
-You can build confidential client applications with MSAL Node (web apps, daemon apps etc). A **client credential** is mandatory for confidential clients. Client credential can be a:
+You can build confidential client applications with MSAL Node (web apps, daemon apps etc). A **client credential** is mandatory for confidential clients. Client credential can be:
 
-* `clientSecret`: a secret string generated during the app registration, or updated post registration for an existing application.
+* `managed identity`: this is a certificatless scenario, where trust is established via the Azure infrastructure. No secret / certificate management is required. See https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/
+* `clientSecret`: a secret string generated during the app registration, or updated post registration for an existing application. This is not recommended for production.
 * `clientCertificate`: a certificate set during the app registration, or updated post registration for an existing application. The certificate needs to have the private key, because it will be used for signing [an assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials) that MSAL generates.
 * `clientAssertion`: instead of letting MSAL create an [assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials), the app developer takes control. Useful for adding extra claims to the assertion or for using KeyVault for signing, instead of a local certificate.
 
 Note: 1p apps may be required to also use `x5c`. This is the *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
 
-## Using certificates
+## Using certificates securely
+
+Certificates should be stored and deployed safely. Consider using Azure KeyVault for certificate storage and rotation. Passwords should never be hardcoded in source code. 
+Please see https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets for more information
 
 This section covers creating a self-signed certificate and initializing a confidential client. For an implementation, see the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
 
