@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Expose response handler and update attributes' access modifiers #6284",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
