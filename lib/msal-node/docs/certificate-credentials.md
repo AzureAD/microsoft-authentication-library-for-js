@@ -6,8 +6,8 @@ You can build confidential client applications with MSAL Node (web apps, daemon 
 
 * `managed identity`: this is a certificatless scenario, where trust is established via the Azure infrastructure. No secret / certificate management is required. MSAL does not yet implement this feature, but you may use Azure Identity SDK instead. See https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/
 * `clientSecret`: a secret string generated during the app registration, or updated post registration for an existing application. This is not recommended for production.
-* `clientCertificate`: a certificate set during the app registration, or updated post registration for an existing application. The certificate needs to have the private key, because it will be used for signing [an assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials) that MSAL generates.
-* `clientAssertion`: instead of letting MSAL create an [assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials), the app developer takes control. Useful for adding extra claims to the assertion or for using KeyVault for signing, instead of a local certificate.
+* `clientCertificate`: a certificate set during the app registration. The certificate needs to have the private key, because it will be used for signing [an assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials) that MSAL generates.
+* `clientAssertion`: instead of letting MSAL create an [assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials), the app developer takes control. Useful for adding extra claims to the assertion or for using KeyVault for signing, instead of a local certificate. The certificate used to sign the assertion still needs to be set during app registration.
 
 Note: 1p apps may be required to also send `x5c`. This is the *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
 
