@@ -501,7 +501,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        parameterBuilder.addClientId(
+            request.extraQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                this.config.authOptions.clientId
+        );
 
         const requestScopes = [
             ...(request.scopes || []),

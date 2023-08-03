@@ -16,6 +16,7 @@ import {
     CacheManager,
     Logger,
     CacheRecord,
+    AADServerParamKeys,
 } from "@azure/msal-common";
 import sinon from "sinon";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
@@ -35,7 +36,6 @@ import {
     NativeAuthError,
     NativeAuthErrorMessage,
 } from "../../src/error/NativeAuthError";
-import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -973,6 +973,50 @@ describe("NativeInteractionClient Tests", () => {
             const response =
                 await nativeInteractionClient.handleRedirectPromise();
             expect(response).toBe(null);
+        });
+    });
+
+    describe("initializeNativeRequest tests", () => {
+        it("pick up default params", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await nativeInteractionClient.initializeNativeRequest({
+                    scopes: ["User.Read"],
+                    prompt: PromptValue.LOGIN,
+                });
+
+            expect(nativeRequest.clientId).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
+            expect(nativeRequest.redirectUri).toContain("localhost");
+        });
+
+        it("pick up broker extra query parameters", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await nativeInteractionClient.initializeNativeRequest({
+                    scopes: ["User.Read"],
+                    prompt: PromptValue.LOGIN,
+                    redirectUri: "localhost",
+                    extraQueryParameters: {
+                        brk_client_id: "broker_client_id",
+                        brk_redirect_uri: "https://broker_redirect_uri.com",
+                        client_id: "parent_client_id",
+                    },
+                });
+
+            expect(nativeRequest.clientId).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
+            expect(
+                nativeRequest.extraParameters![
+                    AADServerParamKeys.CHILD_CLIENT_ID
+                ]
+            ).toEqual("parent_client_id");
+            expect(
+                nativeRequest.extraParameters![
+                    AADServerParamKeys.CHILD_REDIRECT_URI
+                ]
+            ).toEqual("localhost");
+            expect(nativeRequest.redirectUri).toEqual(
+                "https://broker_redirect_uri.com"
+            );
         });
     });
 });

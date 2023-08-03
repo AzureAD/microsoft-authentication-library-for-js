@@ -27,6 +27,7 @@ import {
     CommonSilentFlowRequest,
     AccountInfo,
     CacheRecord,
+    AADServerParamKeys,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -54,6 +55,11 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+
+const BrokerServerParamKeys = {
+    BROKER_CLIENT_ID: "brk_client_id",
+    BROKER_REDIRECT_URI: "brk_redirect_uri",
+};
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -823,13 +829,41 @@ export class NativeInteractionClient extends BaseInteractionClient {
             }
         };
 
+        let redirectUri = this.getRedirectUri(request.redirectUri);
+
+        if (
+            request.extraQueryParameters &&
+            request.extraQueryParameters.hasOwnProperty(
+                BrokerServerParamKeys.BROKER_CLIENT_ID
+            ) &&
+            request.extraQueryParameters.hasOwnProperty(
+                BrokerServerParamKeys.BROKER_REDIRECT_URI
+            ) &&
+            request.extraQueryParameters.hasOwnProperty(
+                AADServerParamKeys.CLIENT_ID
+            )
+        ) {
+            const child_client_id =
+                request.extraQueryParameters[AADServerParamKeys.CLIENT_ID];
+            const child_redirect_uri = redirectUri;
+            const brk_redirect_uri =
+                request.extraQueryParameters[
+                    BrokerServerParamKeys.BROKER_REDIRECT_URI
+                ];
+            request.extraQueryParameters = {
+                child_client_id,
+                child_redirect_uri,
+            };
+            redirectUri = brk_redirect_uri;
+        }
+
         const validatedRequest: NativeTokenRequest = {
             ...remainingProperties,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
             scope: scopeSet.printScopes(),
-            redirectUri: this.getRedirectUri(request.redirectUri),
+            redirectUri,
             prompt: getPrompt(),
             correlationId: this.correlationId,
             tokenType: request.authenticationScheme,

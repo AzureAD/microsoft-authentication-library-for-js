@@ -164,6 +164,8 @@ export const AADServerParamKeys = {
     RETURN_SPA_CODE: "return_spa_code",
     NATIVE_BROKER: "nativebroker",
     LOGOUT_HINT: "logout_hint",
+    CHILD_CLIENT_ID: "child_client_id",
+    CHILD_REDIRECT_URI: "child_redirect_uri",
 } as const;
 export type AADServerParamKeys =
     (typeof AADServerParamKeys)[keyof typeof AADServerParamKeys];
