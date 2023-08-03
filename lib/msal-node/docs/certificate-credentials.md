@@ -4,12 +4,12 @@
 
 You can build confidential client applications with MSAL Node (web apps, daemon apps etc). A **client credential** is mandatory for confidential clients. Client credential can be:
 
-* `managed identity`: this is a certificatless scenario, where trust is established via the Azure infrastructure. No secret / certificate management is required. See https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/
+* `managed identity`: this is a certificatless scenario, where trust is established via the Azure infrastructure. No secret / certificate management is required. MSAL does not yet implement this feature, but you may use Azure Identity SDK instead. See https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/
 * `clientSecret`: a secret string generated during the app registration, or updated post registration for an existing application. This is not recommended for production.
 * `clientCertificate`: a certificate set during the app registration, or updated post registration for an existing application. The certificate needs to have the private key, because it will be used for signing [an assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials) that MSAL generates.
 * `clientAssertion`: instead of letting MSAL create an [assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials), the app developer takes control. Useful for adding extra claims to the assertion or for using KeyVault for signing, instead of a local certificate.
 
-Note: 1p apps may be required to also use `x5c`. This is the *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
+Note: 1p apps may be required to also send `x5c`. This is the *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
 
 ## Using certificates securely
 
@@ -20,7 +20,7 @@ See the MSAL sample: [auth-code-with-certs](../../../samples/msal-node-samples/a
 
 ### Registering certificates
 
-You can create a self-signed certificate using PowerShell or using Azure KeyVault.
+If you do not have a certificate, you can create a self-signed certificate [using PowerShell](https://learn.microsoft.com/powershell/module/pki/new-selfsignedcertificate?view=windowsserver2022-ps) or using [Azure KeyVault](https://azure.microsoft.com/products/key-vault#layout-container-uida0cf).
 
 You need to upload your certificate to **Azure AD**.
 
@@ -67,7 +67,11 @@ z2HCpDsa7dxOsKIrm7F1AtGBjyB0yVDjlh/FA7jT5sd2ypBh3FVsZGJudQsLRKfE
 > openssl pkcs8 -topk8 -inform PEM -outform PEM -in example.key -out example.key
 > ```
 
-If you have encrypted your private key (or if your private key is already encrypted) with a *pass phrase* as recommended, you'll need to decrypt it before passing it to **MSAL Node**. This can be done using Node's [crypto module](https://nodejs.org/docs/latest-v14.x/api/crypto.html). Use the `createPrivateKey()` method to parse and export your key:
+If you have encrypted your private key (or if your private key is already encrypted) with a *pass phrase*, you'll need to decrypt it before passing it to **MSAL Node**.
+
+**Important**: Never hardcode passwords in source code. Both the certificate private key and the optional descryption password should be fetched from a secure location (e.g. Azure KeyVault) and deployed securely with your web api.
+
+This can be done using Node's [crypto module](https://nodejs.org/docs/latest-v14.x/api/crypto.html). Use the `createPrivateKey()` method to parse and export your key:
 
 ```javascript
 const fs = require('fs');
