@@ -52,11 +52,9 @@ const confidentialClientApplication = new msal.ConfidentialClientApplication(cli
 const firstResourceRequest = {
     scopes: ["resource-1/.default"],
 };
-/*
- * const lastResourceRequest = {
- *     scopes: [`resource-${NUM_CACHE_ITEMS}/.default`],
- * };
- */
+const lastResourceRequest = {
+    scopes: [`resource-${NUM_CACHE_ITEMS}/.default`],
+};
 
 (async () => {
     // pre populate the cache
@@ -69,75 +67,18 @@ const firstResourceRequest = {
 
     const suite = new benchmark.Suite();
     suite
-        .add("a", {
+        .add("ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache", {
+            "fn": async () => {
+                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
+            },
             "minSamples": 150,
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
         })
-        .add("a", {
+        .add("ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache", {
+            "fn": async () => {
+                await confidentialClientApplication.acquireTokenByClientCredential(lastResourceRequest);
+            },
             "minSamples": 150,
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
         })
-        .add("a", {
-            "minSamples": 150,
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
-        })
-        .add("a", {
-            "minSamples": 150,
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
-        })
-        .add("a", {
-            "minSamples": 150,
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
-        })
-        .add("a", {
-            "minSamples": 200,
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
-        })
-        .add("a", {
-            "minSamples": 200,
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
-        })
-        .add("a", {
-            "minSamples": 200,
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
-        })
-        .add("a", {
-            "minSamples": 200,
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
-        })
-        .add("a", {
-            "minSamples": 200,
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
-        })
-        /*
-         * .add("ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache", async () => {
-         *     await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-         * })
-         * .add("ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache", async () => {
-         *     await confidentialClientApplication.acquireTokenByClientCredential(lastResourceRequest);
-         * })
-         * add listeners
-         */
         .on("cycle", (event) => {
             // eslint-disable-next-line no-console
             console.log(String(event.target));
