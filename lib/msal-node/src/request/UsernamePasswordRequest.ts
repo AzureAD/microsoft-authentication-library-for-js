@@ -27,6 +27,7 @@ export type UsernamePasswordRequest = Partial<
         | "username"
         | "password"
         | "requestedClaimsHash"
+        | "storeInCache"
     >
 > & {
     scopes: Array<string>;

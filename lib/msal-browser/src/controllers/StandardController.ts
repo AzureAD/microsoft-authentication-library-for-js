@@ -23,6 +23,7 @@ import {
     InProgressPerformanceEvent,
     RequestThumbprint,
     ServerError,
+    AccountEntity,
     ServerResponseType,
     UrlString,
 } from "@azure/msal-common";
@@ -1260,6 +1261,37 @@ export class StandardController implements IController {
     }
 
     // #endregion
+
+    /**
+     * Hydrates the cache with the tokens from an AuthenticationResult
+     * @param result
+     * @param request
+     * @returns
+     */
+    async hydrateCache(
+        result: AuthenticationResult,
+        request: SilentRequest
+    ): Promise<void> {
+        this.logger.verbose("hydrateCache called");
+
+        // Account gets saved to browser storage regardless of native or not
+        const accountEntity = AccountEntity.createFromAccountInfo(
+            result.account,
+            result.cloudGraphHostName,
+            result.msGraphHost
+        );
+        this.browserStorage.setAccount(accountEntity);
+
+        if (result.fromNativeBroker) {
+            this.logger.verbose(
+                "Response was from native broker, storing in-memory"
+            );
+            // Tokens from native broker are stored in-memory
+            return this.nativeInternalStorage.hydrateCache(result, request);
+        } else {
+            return this.browserStorage.hydrateCache(result, request);
+        }
+    }
 
     // #region Helpers
 

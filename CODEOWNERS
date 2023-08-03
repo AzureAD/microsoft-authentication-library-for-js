@@ -2,23 +2,23 @@
 
 # MSAL Angular
 /lib/msal-angular/ @jo-arroyo @tnorling @peterzenz
-/samples/msal-angular-v3-samples/ @derisen @jo-arroyo @tnorling @peterzenz
+/samples/msal-angular-v3-samples/ @jo-arroyo @tnorling @peterzenz
 
 # MSAL Browser
 /lib/msal-browser/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
-/samples/msal-browser-samples/ @derisen @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
+/samples/msal-browser-samples/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
 
 # MSAL Common
 /lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @robbie-microsoft @konstantin-msft
 
 # MSAL Node
 /lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @jennyf19 @jmprieur @bgavrilMS @robbie-microsoft
-/samples/msal-node-samples/ @derisen @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft
+/samples/msal-node-samples/ @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft
 /extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz
 
 # MSAL React
 /lib/msal-react/ @tnorling @jo-arroyo @peterzenz
-/samples/msal-react-samples/ @derisen @tnorling @jo-arroyo @peterzenz
+/samples/msal-react-samples/ @tnorling @jo-arroyo @peterzenz
 
 # Build
 /build/ @sameerag @tnorling @hectormmg @peterzenz

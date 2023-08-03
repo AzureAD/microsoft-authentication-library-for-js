@@ -116,6 +116,7 @@ export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordR
 export { NativeRequest } from "./request/NativeRequest";
 export { NativeSignOutRequest } from "./request/NativeSignOutRequest";
 export { RequestParameterBuilder } from "./request/RequestParameterBuilder";
+export { StoreInCache } from "./request/StoreInCache";
 // Response
 export { AzureRegion } from "./authority/AzureRegion";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
