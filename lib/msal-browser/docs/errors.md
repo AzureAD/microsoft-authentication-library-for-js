@@ -1,6 +1,6 @@
 # Errors
 
-***
+---
 
 **[BrowserConfigurationAuthErrors](#Browserconfigurationautherrors)**
 
@@ -21,7 +21,7 @@
 
 1. [Access to fetch at [url] has been blocked by CORS policy](#Access-to-fetch-at-[url]-has-been-blocked-by-CORS-policy)
 
-***
+---
 
 ## BrowserConfigurationAuthErrors
 
@@ -46,7 +46,7 @@ Ensure that the promise returned from these APIs has resolved before invoking an
 ❌ The following example will throw this error because `loginPopup` will still be in progress when `acquireTokenPopup` is called:
 
 ```javascript
-const request = {scopes: ["openid", "profile"]}
+const request = { scopes: ["openid", "profile"] };
 loginPopup();
 acquireTokenPopup(request);
 ```
@@ -54,7 +54,7 @@ acquireTokenPopup(request);
 ✔️ To resolve this you should ensure all interactive APIs have resolved before invoking another one:
 
 ```javascript
-const request = {scopes: ["openid", "profile"]}
+const request = { scopes: ["openid", "profile"] };
 await msalInstance.loginPopup();
 await msalInstance.acquireTokenPopup(request);
 ```
@@ -90,7 +90,8 @@ if (accounts.length === 0) {
 Or alternatively:
 
 ```javascript
-msalInstance.handleRedirectPromise()
+msalInstance
+    .handleRedirectPromise()
     .then((tokenResponse) => {
         if (!tokenResponse) {
             const accounts = msalInstance.getAllAccounts();
@@ -102,7 +103,7 @@ msalInstance.handleRedirectPromise()
             // Do something with the tokenResponse
         }
     })
-    .catch(err => {
+    .catch((err) => {
         // Handle error
         console.error(err);
     });
@@ -114,8 +115,8 @@ msalInstance.handleRedirectPromise()
 
 If you are using one of our wrapper libraries (React or Angular), please see the error docs in those specific libraries for additional reasons you may be receiving this error:
 
-- [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md#interaction_in_progress)
-- [msal-angular errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md#interaction_in_progress)
+-   [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md#interaction_in_progress)
+-   [msal-angular errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md#interaction_in_progress)
 
 If you are not using any of the wrapper libraries but concerned that your application might trigger concurrent interactive requests, you should check if any other interaction is in progress prior to invoking an interaction in your token acquisition method. You can achieve this by implementing a global application state or a broadcast service etc. that emits the current MSAL interaction status via [MSAL Events API](./events.md).
 
@@ -216,14 +217,14 @@ myAcquireToken(request).catch((e) => myInteractionInProgressHandler());
 
 #### Troubleshooting Steps
 
-- [Enable verbose logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#using-the-config-object) and trace the order of events. Verify that `handleRedirectPromise` is called and returns before any `login` or `acquireToken` API is called.
+-   [Enable verbose logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#using-the-config-object) and trace the order of events. Verify that `handleRedirectPromise` is called and returns before any `login` or `acquireToken` API is called.
 
 If you are unable to figure out why this error is being thrown please [open an issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/new/choose) and be prepared to share the following information:
 
-- Verbose logs
-- A sample app and/or code snippets that we can use to reproduce the issue
-- Refresh the page. Does the error go away?
-- Open your application in a new tab. Does the error go away?
+-   Verbose logs
+-   A sample app and/or code snippets that we can use to reproduce the issue
+-   Refresh the page. Does the error go away?
+-   Open your application in a new tab. Does the error go away?
 
 ### block_iframe_reload
 
@@ -237,7 +238,7 @@ Our recommended mitigation for this is to set your `redirectUri` to a blank page
 ```javascript
 msalInstance.acquireTokenSilent({
     scopes: ["User.Read"],
-    redirectUri: "http://localhost:3000/blank.html"
+    redirectUri: "http://localhost:3000/blank.html",
 });
 ```
 
@@ -249,7 +250,7 @@ If you do not want to use a dedicated `redirectUri` for this purpose, you should
 
 **Error Messages**:
 
-- Token acquisition in iframe failed due to timeout.
+-   Token acquisition in iframe failed due to timeout.
 
 This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` and there are several reasons this could happen. These are a few of the most common:
 
@@ -271,7 +272,7 @@ You can do this on a per request basis, for example:
 ```javascript
 msalInstance.acquireTokenSilent({
     scopes: ["User.Read"],
-    redirectUri: "http://localhost:3000/blank.html"
+    redirectUri: "http://localhost:3000/blank.html",
 });
 ```
 
@@ -279,8 +280,8 @@ Remember that you will need to register this new `redirectUri` on your App Regis
 
 **Notes regarding Angular and React:**
 
-- If you are using `@azure/msal-angular` your `redirectUri` page should not be protected by the `MsalGuard`.
-- If you are using `@azure/msal-react` your `redirectUri` page should not render the `MsalAuthenticationComponent` or use the `useMsalAuthentication` hook.
+-   If you are using `@azure/msal-angular` your `redirectUri` page should not be protected by the `MsalGuard`.
+-   If you are using `@azure/msal-react` your `redirectUri` page should not render the `MsalAuthenticationComponent` or use the `useMsalAuthentication` hook.
 
 #### Issues caused by the Identity Provider
 
@@ -301,10 +302,10 @@ You can also get this error if the Identity Provider fails to redirect back to y
 
 Some B2C flows are expected to throw this error due to their need for user interaction. These flows include:
 
-- Password reset
-- Profile edit
-- Sign up
-- Some custom policies depending on how they are configured
+-   Password reset
+-   Profile edit
+-   Sign up
+-   Some custom policies depending on how they are configured
 
 ##### Network Latency
 
@@ -315,13 +316,13 @@ Another potential reason the identity provider may not redirect back to your app
 ```javascript
 const msalConfig = {
     auth: {
-        clientId: "your-client-id"
+        clientId: "your-client-id",
     },
     system: {
         windowHashTimeout: 9000, // Applies just to popup calls - In milliseconds
         iframeHashTimeout: 9000, // Applies just to silent calls - In milliseconds
-        loadFrameTimeout: 9000 // Applies to both silent and popup calls - In milliseconds
-    }
+        loadFrameTimeout: 9000, // Applies to both silent and popup calls - In milliseconds
+    },
 };
 ```
 
@@ -343,12 +344,11 @@ To resolve this error we recommend using a dedicated redirectUri page which is n
 
 Please see explanation for [hash_empty_error](#hash_empty_error) above. The root cause for this error is similar, the difference being the hash has been changed, rather than dropped.
 
-
 ### unable_to_acquire_token_from_native_platform
 
 **Error Messages**:
 
-- Unable to acquire token from native platform.
+-   Unable to acquire token from native platform.
 
 This error is thrown when calling the `acquireTokenByCode` API with the `nativeAccountId` instead of `code` and the app is running in an environment which does not acquire tokens from the native broker. For a list of pre-requisites please review the doc on [device bound tokens](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/device-bound-tokens.md).
 
@@ -356,31 +356,31 @@ This error is thrown when calling the `acquireTokenByCode` API with the `nativeA
 
 **Error Messages**:
 
-- Connection to native platform has not been established. Please install a compatible browser extension and run initialize().
+-   Connection to native platform has not been established. Please install a compatible browser extension and run initialize().
 
 This error is thrown when the user signed in with the native broker but no connection to the native broker currently exists. This can happen for the following reasons:
 
-- The Windows Accounts extension was uninstalled or disabled
-- The `initialize` API has not been called or was not awaited before invoking another MSAL API
+-   The Windows Accounts extension was uninstalled or disabled
+-   The `initialize` API has not been called or was not awaited before invoking another MSAL API
 
-### native_broker_called_before_initialize
+### uninitialized_public_client_application
 
 **Error Messages**:
 
-- You must call and await the initialize function before attempting to call any other MSAL API when native brokering is enabled.
+-   You must call and await the initialize function before attempting to call any other MSAL API.
 
-This error is thrown when the `allowNativeBroker` flag is set to `true` in the `PublicClientApplication` config and a `login`, `acquireToken` or `handleRedirectPromise` API is invoked before the `initialize` API has been called. The `initialize` API must be called and awaited before attempting to acquire tokens.
+This error is thrown when a `login`, `acquireToken` or `handleRedirectPromise` API is invoked before the `initialize` API has been called. The `initialize` API must be called and awaited before attempting to acquire tokens.
 
 ❌ The following example will throw this error because `handleRedirectPromise` is called before initialize has completed:
 
 ```javascript
 const msalInstance = new PublicClientApplication({
     auth: {
-        clientId: "your-client-id"
+        clientId: "your-client-id",
     },
     system: {
-        allowNativeBroker: true
-    }
+        allowNativeBroker: true,
+    },
 });
 
 await msalInstance.handleRedirectPromise(); // This will throw
@@ -392,11 +392,11 @@ msalInstance.acquireTokenSilent(); // This will also throw
 ```javascript
 const msalInstance = new PublicClientApplication({
     auth: {
-        clientId: "your-client-id"
+        clientId: "your-client-id",
     },
     system: {
-        allowNativeBroker: true
-    }
+        allowNativeBroker: true,
+    },
 });
 
 await msalInstance.initialize();
