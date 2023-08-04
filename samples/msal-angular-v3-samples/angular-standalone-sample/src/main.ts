@@ -15,8 +15,6 @@ import { ProfileComponent } from './app/profile/profile.component';
 import { FailedComponent } from './app/failed/failed.component';
 import { environment } from './environments/environment';
 
-const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1;
-
 export function loggerCallback(logLevel: LogLevel, message: string) {
     console.log(message);
 }
@@ -30,8 +28,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
         postLogoutRedirectUri: '/'
       },
       cache: {
-        cacheLocation: BrowserCacheLocation.LocalStorage,
-        storeAuthStateInCookie: isIE, // set to true for IE 11. Remove this line to use Angular Universal
+        cacheLocation: BrowserCacheLocation.LocalStorage
       },
       system: {
         allowNativeBroker: false, // Disables WAM Broker
