@@ -28,7 +28,11 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
 } from "../test_kit/StringConstants";
-import { checkMockedNetworkRequest, ClientTestUtils, mockCrypto } from "./ClientTestUtils";
+import {
+    checkMockedNetworkRequest,
+    ClientTestUtils,
+    mockCrypto,
+} from "./ClientTestUtils";
 
 describe("ClientCredentialClient unit tests", () => {
     let config: ClientConfiguration;
@@ -93,7 +97,8 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        const returnVal = (await createTokenRequestBodySpy.returnValues[0]) as string;
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -291,7 +296,8 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        const returnVal = (await createTokenRequestBodySpy.returnValues[0]) as string;
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
         const checks = {
             dstsScope: true,
             clientId: true,
@@ -382,7 +388,8 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        const returnVal = (await createTokenRequestBodySpy.returnValues[0]) as string;
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -438,7 +445,8 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        const returnVal = (await createTokenRequestBodySpy.returnValues[0]) as string;
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -501,7 +509,8 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        const returnVal = (await createTokenRequestBodySpy.returnValues[0]) as string;
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -570,7 +579,8 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        const returnVal = (await createTokenRequestBodySpy.returnValues[0]) as string;
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -727,25 +737,30 @@ describe("ClientCredentialClient unit tests", () => {
             .returns(expectedAtEntity);
 
         // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache at this point
-        let accessTokenKey = config.storageInterface?.getKeys()
+        let accessTokenKey = config.storageInterface
+            ?.getKeys()
             .find((value) => value.indexOf("accesstoken") >= 0);
         expect(accessTokenKey).toBeUndefined();
 
         // Acquire a token (from the cache). The refresh_in value is expired, so there will be an asynchronous network request
         // to refresh the token. That result will be stored in the cache.
-        const authResult = await (await client.acquireToken(
+        const authResult = (await await client.acquireToken(
             clientCredentialRequest
         )) as AuthenticationResult;
 
         // Check the cache to ensure the refreshed token exists (the network request was successful).
         // Typically, the network request may not have completed by the time the below code runs.
         // However, the network requests are mocked in these tests, so the refreshed token should be in the cache at this point.
-        accessTokenKey = config.storageInterface?.getKeys()
+        accessTokenKey = config.storageInterface
+            ?.getKeys()
             .find((value) => value.indexOf("accesstoken") >= 0);
-        const accessTokenCacheItem = accessTokenKey ?
-            config.storageInterface?.getAccessTokenCredential(accessTokenKey) : null;
-        expect(accessTokenCacheItem?.clientId).toEqual(expectedAtEntity.clientId);
-        
+        const accessTokenCacheItem = accessTokenKey
+            ? config.storageInterface?.getAccessTokenCredential(accessTokenKey)
+            : null;
+        expect(accessTokenCacheItem?.clientId).toEqual(
+            expectedAtEntity.clientId
+        );
+
         const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).toEqual(expectedScopes);
         expect(authResult.accessToken).toEqual("an_access_token");
@@ -754,9 +769,12 @@ describe("ClientCredentialClient unit tests", () => {
         expect(authResult.uniqueId).toHaveLength(0);
         expect(authResult.state).toHaveLength(0);
 
-        expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).toBe(true);
+        expect(
+            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
+        ).toBe(true);
 
-        const returnVal = (await createTokenRequestBodySpy.returnValues[0]) as string;
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -777,7 +795,7 @@ describe("ClientCredentialClient unit tests", () => {
             correlation_id: "73d656cf-54b1-4eb2-b429-26d8165a52d7",
             claims: '{"access_token":{"polids":{"essential":true,"values":["9ab03e19-ed42-4168-b6b7-7001fb3e933a"]}}}',
         };
-        
+
         sinon
             .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
             .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
@@ -826,7 +844,8 @@ describe("ClientCredentialClient unit tests", () => {
             .returns(expectedAtEntity);
 
         // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache at this point
-        let accessTokenKey = config.storageInterface?.getKeys()
+        let accessTokenKey = config.storageInterface
+            ?.getKeys()
             .find((value) => value.indexOf("accesstoken") >= 0);
         expect(accessTokenKey).toBeUndefined();
 
@@ -837,10 +856,11 @@ describe("ClientCredentialClient unit tests", () => {
         // Check the cache to ensure the refreshed token still does not exist (the network request was unsuccessful).
         // Typically, the network request may not have completed by the time the below code runs.
         // However, the network requests are mocked in these tests, so the refreshed token should (not) be in the cache at this point.
-        accessTokenKey = config.storageInterface?.getKeys()
+        accessTokenKey = config.storageInterface
+            ?.getKeys()
             .find((value) => value.indexOf("accesstoken") >= 0);
         expect(accessTokenKey).toBeUndefined();
-        
+
         const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).toEqual(expectedScopes);
         expect(authResult.accessToken).toEqual("an_access_token");
@@ -848,7 +868,9 @@ describe("ClientCredentialClient unit tests", () => {
         expect(authResult.fromCache).toBe(true);
         expect(authResult.uniqueId).toHaveLength(0);
         expect(authResult.state).toHaveLength(0);
-        expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).toBe(true);
+        expect(
+            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
+        ).toBe(true);
     });
 
     it("acquires a token, skipCache = true", async () => {
@@ -889,7 +911,8 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        const returnVal = (await createTokenRequestBodySpy.returnValues[0]) as string;
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
         const checks = {
             graphScope: true,
             clientId: true,

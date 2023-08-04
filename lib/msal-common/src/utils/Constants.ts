@@ -73,7 +73,7 @@ export const HttpStatus = {
     SERVER_ERROR_RANGE_START: 500,
     SERVER_ERROR_RANGE_END: 599,
 } as const;
-export type HttpStatus = typeof HttpStatus[keyof typeof HttpStatus];
+export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
 
 export const OIDC_DEFAULT_SCOPES = [
     Constants.OPENID_SCOPE,

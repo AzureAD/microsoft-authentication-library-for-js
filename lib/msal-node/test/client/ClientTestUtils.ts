@@ -332,27 +332,27 @@ export class ClientTestUtils {
 }
 
 interface checks {
-    dstsScope?: boolean | undefined,
-    graphScope?: boolean | undefined,
-    clientId?: boolean | undefined,
-    grantType?: boolean | undefined,
-    clientSecret?: boolean | undefined,
-    clientSku?: boolean | undefined,
-    clientVersion?: boolean | undefined,
-    clientOs?: boolean | undefined,
-    clientCpu?: boolean | undefined,
-    appName?: boolean | undefined,
-    appVersion?: boolean | undefined,
-    msLibraryCapability?: boolean | undefined,
-    claims?: boolean | undefined,
-    testConfigAssertion?: boolean | undefined,
-    testRequestAssertion?: boolean | undefined,
-    testAssertionType?: boolean | undefined,
+    dstsScope?: boolean | undefined;
+    graphScope?: boolean | undefined;
+    clientId?: boolean | undefined;
+    grantType?: boolean | undefined;
+    clientSecret?: boolean | undefined;
+    clientSku?: boolean | undefined;
+    clientVersion?: boolean | undefined;
+    clientOs?: boolean | undefined;
+    clientCpu?: boolean | undefined;
+    appName?: boolean | undefined;
+    appVersion?: boolean | undefined;
+    msLibraryCapability?: boolean | undefined;
+    claims?: boolean | undefined;
+    testConfigAssertion?: boolean | undefined;
+    testRequestAssertion?: boolean | undefined;
+    testAssertionType?: boolean | undefined;
 }
 
 export const checkMockedNetworkRequest = (
     returnVal: string,
-    checks: checks,
+    checks: checks
 ): void => {
     if (checks.dstsScope !== undefined) {
         expect(
@@ -364,9 +364,7 @@ export const checkMockedNetworkRequest = (
 
     if (checks.graphScope !== undefined) {
         expect(
-            returnVal.includes(
-                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`
-            )
+            returnVal.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
         ).toBe(checks.graphScope);
     }
 
@@ -483,9 +481,9 @@ export const checkMockedNetworkRequest = (
     if (checks.testAssertionType !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.CLIENT_ASSERTION_TYPE}=${encodeURIComponent(
-                    TEST_CONFIG.TEST_ASSERTION_TYPE
-                )}`
+                `${
+                    AADServerParamKeys.CLIENT_ASSERTION_TYPE
+                }=${encodeURIComponent(TEST_CONFIG.TEST_ASSERTION_TYPE)}`
             )
         ).toBe(checks.testAssertionType);
     }

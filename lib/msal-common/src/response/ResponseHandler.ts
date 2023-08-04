@@ -176,21 +176,21 @@ export class ResponseHandler {
             if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                (serverResponse.status >= HttpStatus.SERVER_ERROR_RANGE_START) &&
-                (serverResponse.status <= HttpStatus.SERVER_ERROR_RANGE_END)
+                serverResponse.status >= HttpStatus.SERVER_ERROR_RANGE_START &&
+                serverResponse.status <= HttpStatus.SERVER_ERROR_RANGE_END
             ) {
                 this.logger.warning(
                     `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`
                 );
-                
+
                 // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
                 return;
-            // check if 400 error
+                // check if 400 error
             } else if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                (serverResponse.status >= HttpStatus.CLIENT_ERROR_RANGE_START) &&
-                (serverResponse.status <= HttpStatus.CLIENT_ERROR_RANGE_END)
+                serverResponse.status >= HttpStatus.CLIENT_ERROR_RANGE_START &&
+                serverResponse.status <= HttpStatus.CLIENT_ERROR_RANGE_END
             ) {
                 this.logger.warning(
                     `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`

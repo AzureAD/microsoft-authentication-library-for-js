@@ -9,11 +9,7 @@ import {
     NetworkResponse,
     HttpStatus,
 } from "@azure/msal-common";
-import {
-    HttpMethod,
-    Constants,
-    ProxyStatus,
-} from "../utils/Constants";
+import { HttpMethod, Constants, ProxyStatus } from "../utils/Constants";
 import { NetworkUtils } from "../utils/NetworkUtils";
 import http from "http";
 import https from "https";

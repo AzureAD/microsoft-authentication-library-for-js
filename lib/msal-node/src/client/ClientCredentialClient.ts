@@ -63,14 +63,21 @@ export class ClientCredentialClient extends BaseClient {
 
         if (cachedAuthenticationResult) {
             // if the token is not expired but must be refreshed; get a new one in the background
-            if (this.lastCacheOutcome === CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN) {
+            if (
+                this.lastCacheOutcome ===
+                CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
+            ) {
                 this.logger.info(
                     "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );
 
                 // return the cached token, don't wait for the result of this request
                 const refreshAccessToken = true;
-                this.executeTokenRequest(request, this.authority, refreshAccessToken);
+                this.executeTokenRequest(
+                    request,
+                    this.authority,
+                    refreshAccessToken
+                );
             }
 
             // reset the last cache outcome
@@ -117,7 +124,7 @@ export class ClientCredentialClient extends BaseClient {
             );
             return null;
         }
-        
+
         // must refresh due to the expires_in value
         if (
             TimeUtils.isTokenExpired(
@@ -191,7 +198,7 @@ export class ClientCredentialClient extends BaseClient {
     private async executeTokenRequest(
         request: CommonClientCredentialRequest,
         authority: Authority,
-        refreshAccessToken?: boolean,
+        refreshAccessToken?: boolean
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
@@ -260,7 +267,10 @@ export class ClientCredentialClient extends BaseClient {
             this.config.persistencePlugin
         );
 
-        responseHandler.validateTokenResponse(serverTokenResponse, refreshAccessToken);
+        responseHandler.validateTokenResponse(
+            serverTokenResponse,
+            refreshAccessToken
+        );
 
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             serverTokenResponse,
