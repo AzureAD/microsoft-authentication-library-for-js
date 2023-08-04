@@ -942,3 +942,12 @@ export const rawMetdataJSON = {
 export const EndpointMetadata = rawMetdataJSON.endpointMetadata;
 export const InstanceDiscoveryMetadata =
     rawMetdataJSON.instanceDiscoveryMetadata;
+
+export const InstanceDiscoveryMetadataAliases: Set<String> = new Set();
+for (const key in InstanceDiscoveryMetadata) {
+    for (const metadata of InstanceDiscoveryMetadata[key].metadata) {
+        for (const alias of metadata.aliases) {
+            InstanceDiscoveryMetadataAliases.add(alias);
+        }
+    }
+}

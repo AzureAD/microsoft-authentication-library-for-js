@@ -269,6 +269,7 @@ describe("RefreshTokenClient unit tests", () => {
         let client: RefreshTokenClient;
 
         const testAccount: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
@@ -276,6 +277,7 @@ describe("RefreshTokenClient unit tests", () => {
             name: ID_TOKEN_CLAIMS.name,
             localAccountId: ID_TOKEN_CLAIMS.oid,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined,
         };
 
         beforeEach(async () => {
@@ -1033,6 +1035,7 @@ describe("RefreshTokenClient unit tests", () => {
         let client: RefreshTokenClient;
 
         const testAccount: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
@@ -1040,6 +1043,7 @@ describe("RefreshTokenClient unit tests", () => {
             name: ID_TOKEN_CLAIMS.name,
             localAccountId: ID_TOKEN_CLAIMS.oid,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined,
         };
 
         beforeEach(async () => {

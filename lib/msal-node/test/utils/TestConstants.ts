@@ -243,6 +243,7 @@ export const TEST_CRYPTO_VALUES = {
 };
 
 export const mockAccountInfo: AccountInfo = {
+    authorityType: "MSSTS",
     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID,
     environment: TEST_CONSTANTS.PREFERRED_CACHE,
     localAccountId: ID_TOKEN_CLAIMS.oid,
