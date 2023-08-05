@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     AccountInfo,
     Logger,
     PerformanceCallbackFunction,
@@ -28,6 +27,7 @@ import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandle
 import { EventHandler } from "../event/EventHandler";
 import { PopupClient } from "../interaction_client/PopupClient";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export interface IController {
     initialize(): Promise<void>;
@@ -104,6 +104,11 @@ export interface IController {
     setNavigationClient(navigationClient: INavigationClient): void;
 
     getConfiguration(): BrowserConfiguration;
+
+    hydrateCache(
+        result: AuthenticationResult,
+        request: SilentRequest
+    ): Promise<void>;
 
     isBrowserEnv(): boolean;
 

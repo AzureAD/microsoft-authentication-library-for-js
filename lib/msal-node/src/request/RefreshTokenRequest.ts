@@ -25,6 +25,7 @@ export type RefreshTokenRequest = Partial<
         | "resourceRequestMethod"
         | "resourceRequestUri"
         | "requestedClaimsHash"
+        | "storeInCache"
     >
 > & {
     scopes: Array<string>;

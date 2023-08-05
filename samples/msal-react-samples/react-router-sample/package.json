@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@azure/msal-browser": "file:../../../lib/msal-browser",
-    "@azure/msal-react": "file:../../../lib/msal-react",
+    "@azure/msal-browser": "^3.0.0-beta.0",
+    "@azure/msal-react": "^2.0.0-beta.0",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@mui/icons-material": "^5.10.16",
     "@mui/material": "^5.10.17",
-    "react": "file:../../../lib/msal-react/node_modules/react",
-    "react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
     "react-router-dom": "^6.7.0",
     "react-scripts": "^5.0.1"
   },
@@ -18,10 +18,8 @@
     "start": "react-scripts start",
     "test": "jest",
     "build": "react-scripts build",
-    "build:package": "cd ../../../lib/msal-react & npm run build:all",
-    "eject": "react-scripts eject",
-    "install:local": "npm install ../../../lib/msal-browser ../../../lib/msal-react && npm install ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom",
-    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
+    "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react",
+    "eject": "react-scripts eject"
   },
   "browserslist": {
     "production": [
@@ -41,7 +39,6 @@
     "e2e-test-utils": "file:../../e2eTestUtils",
     "env-cmd": "^10.1.0",
     "jest": "^29.5.0",
-    "puppeteer": "^20.7.3",
     "ts-jest": "^29.1.0"
   }
 }

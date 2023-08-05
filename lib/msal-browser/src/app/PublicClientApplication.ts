@@ -13,7 +13,6 @@ import { WrapperSKU } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { IController } from "../controllers/IController";
 import {
-    AuthenticationResult,
     PerformanceCallbackFunction,
     AccountInfo,
     Logger,
@@ -24,6 +23,7 @@ import { ControllerFactory } from "../controllers/ControllerFactory";
 import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -373,5 +373,18 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     getConfiguration(): BrowserConfiguration {
         return this.controller.getConfiguration();
+    }
+
+    /**
+     * Hydrates cache with the tokens and account in the AuthenticationResult object
+     * @param result
+     * @param request - The request object that was used to obtain the AuthenticationResult
+     * @returns
+     */
+    async hydrateCache(
+        result: AuthenticationResult,
+        request: SilentRequest
+    ): Promise<void> {
+        return this.controller.hydrateCache(result, request);
     }
 }

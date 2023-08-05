@@ -9,9 +9,8 @@
         "@emotion/styled": "^11.9.3",
         "@mui/icons-material": "^5.8.4",
         "@mui/material": "^5.9.0",
-        "core-js": "^3.8.3",
-        "react": "^17.0.2",
-        "react-dom": "^17.0.2",
+        "react": "^18.0.0",
+        "react-dom": "^18.0.0",
         "react-router-dom": "^6.7.0"
     },
     "devDependencies": {
@@ -19,7 +18,6 @@
         "@types/jest": "^29.5.0",
         "e2e-test-utils": "file:../../e2eTestUtils",
         "jest": "^29.5.0",
-        "puppeteer": "^20.7.3",
         "react-scripts": "5.0.1",
         "ts-jest": "^29.1.0"
     },
@@ -28,9 +26,7 @@
         "build": "react-scripts build",
         "eject": "react-scripts eject",
         "test": "jest",
-        "build:package": "cd ../../../lib/msal-react & npm run build:all",
-        "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
-        "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^17 react-dom@^17"
+        "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react"
     },
     "browserslist": {
         "production": [

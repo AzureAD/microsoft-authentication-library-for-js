@@ -181,9 +181,6 @@ describe("ResponseHandler.ts", () => {
             .callsFake((encodedIdToken, crypto) => {
                 return ID_TOKEN_CLAIMS as TokenClaims;
             });
-        sinon
-            .stub(ResponseHandler.prototype, <any>"generateAccountEntity")
-            .returns(new AccountEntity());
         sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -846,6 +843,38 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface
             );
             expect(buildClientInfoSpy.notCalled).toBe(true);
+        });
+
+        it("throws invalid state error", (done) => {
+            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                responseHandler.validateServerAuthorizationCodeResponse(
+                    testServerCodeResponse,
+                    "dummy-state-%20%%%30%%%%%40",
+                    cryptoInterface
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ClientAuthError);
+                const err = e as ClientAuthError;
+                expect(err.message).toContain(
+                    `Cached state URI could not be decoded`
+                );
+                done();
+            }
         });
     });
 });

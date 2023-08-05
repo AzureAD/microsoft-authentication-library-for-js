@@ -16,6 +16,7 @@ export {
     AuthOptions,
     SystemOptions,
     LoggerOptions,
+    CacheOptions,
     DEFAULT_SYSTEM_OPTIONS,
     AzureCloudOptions,
     ApplicationTelemetry,
@@ -47,6 +48,7 @@ export {
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
+export { OIDCOptions } from "./authority/OIDCOptions";
 // Broker
 export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 // Cache
@@ -114,6 +116,7 @@ export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordR
 export { NativeRequest } from "./request/NativeRequest";
 export { NativeSignOutRequest } from "./request/NativeSignOutRequest";
 export { RequestParameterBuilder } from "./request/RequestParameterBuilder";
+export { StoreInCache } from "./request/StoreInCache";
 // Response
 export { AzureRegion } from "./authority/AzureRegion";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
@@ -152,6 +155,7 @@ export {
     OIDC_DEFAULT_SCOPES,
     PromptValue,
     PersistentCacheKeys,
+    ServerResponseType,
     ResponseMode,
     CacheOutcome,
     CredentialType,
@@ -191,12 +195,10 @@ export {
     QueueMeasurement,
 } from "./telemetry/performance/IPerformanceClient";
 export {
-    Counters,
     IntFields,
     PerformanceEvent,
     PerformanceEvents,
     PerformanceEventStatus,
-    StaticFields,
     SubMeasurement,
 } from "./telemetry/performance/PerformanceEvent";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";

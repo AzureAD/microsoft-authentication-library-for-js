@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     UrlString,
@@ -18,6 +17,7 @@ import {
     Logger,
     IPerformanceClient,
     PerformanceEvents,
+    ProtocolMode,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
@@ -39,6 +39,7 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EventError } from "../event/EventMessage";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class RedirectClient extends StandardInteractionClient {
     protected nativeStorage: BrowserCacheManager;
@@ -195,7 +196,6 @@ export class RedirectClient extends StandardInteractionClient {
                 );
                 return null;
             }
-
             const responseHash = this.getRedirectResponseHash(
                 hash || window.location.hash
             );
@@ -507,6 +507,26 @@ export class RedirectClient extends StandardInteractionClient {
             );
             this.logger.verbose("Auth code client created");
 
+            if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
+                try {
+                    authClient.authority.endSessionEndpoint;
+                } catch {
+                    if (validLogoutRequest.account?.homeAccountId) {
+                        this.browserStorage.removeAccount(
+                            validLogoutRequest.account?.homeAccountId
+                        );
+
+                        this.eventHandler.emitEvent(
+                            EventType.LOGOUT_SUCCESS,
+                            InteractionType.Redirect,
+                            validLogoutRequest
+                        );
+
+                        return;
+                    }
+                }
+            }
+
             // Create logout string and navigate user window to logout.
             const logoutUri: string =
                 authClient.getLogoutUri(validLogoutRequest);
@@ -590,4 +610,3 @@ export class RedirectClient extends StandardInteractionClient {
         );
     }
 }
-

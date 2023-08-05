@@ -8,9 +8,8 @@
     "start": "node index.js",
     "test": "jest",
     "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
-    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "start:build": "npm run build:package && npm start",
-    "install:local": "npm install ../../../lib/msal-node"
+    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node",
+    "start:build": "npm run build:package && npm start"
   },
   "author": "",
   "license": "MIT",
@@ -21,7 +20,6 @@
     "@types/jest": "^29.5.0",
     "e2e-test-utils": "file:../../e2eTestUtils",
     "jest": "^29.5.0",
-    "puppeteer": "^20.7.3",
     "ts-jest": "^29.1.0"
   }
 }

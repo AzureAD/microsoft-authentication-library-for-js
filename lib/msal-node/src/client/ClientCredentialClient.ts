@@ -25,6 +25,7 @@ import {
     ServerAuthorizationTokenResponse,
     StringUtils,
     TimeUtils,
+    TokenCacheContext,
     UrlString,
 } from "@azure/msal-common";
 
@@ -71,7 +72,25 @@ export class ClientCredentialClient extends BaseClient {
     private async getCachedAuthenticationResult(
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
+        // read the user-supplied cache into memory, if applicable
+        let cacheContext;
+        if (this.config.serializableCache && this.config.persistencePlugin) {
+            cacheContext = new TokenCacheContext(
+                this.config.serializableCache,
+                false
+            );
+            await this.config.persistencePlugin.beforeCacheAccess(cacheContext);
+        }
+
         const cachedAccessToken = this.readAccessTokenFromCache();
+
+        if (
+            this.config.serializableCache &&
+            this.config.persistencePlugin &&
+            cacheContext
+        ) {
+            await this.config.persistencePlugin.afterCacheAccess(cacheContext);
+        }
 
         if (!cachedAccessToken) {
             this.serverTelemetryManager?.setCacheOutcome(

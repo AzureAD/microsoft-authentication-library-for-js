@@ -112,13 +112,11 @@ AAD samples:
 - [on-behalf-of](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/on-behalf-of): Web application using OAuth 2.0 auth code flow to acquire a token for a web API. The web API validates the token, and calls Microsoft Graph on behalf of the user who authenticated in the web application.
 - [username-password](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/username-password): Web application using OAuth 2.0 resource owner password credentials (ROPC) flow to acquire a token for a web API.
 - [ElectronTestApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/ElectronTestApp): Electron desktop application using OAuth 2.0 auth code with PKCE flow to acquire a token for a web API such as Microsoft Graph.
-- [ExpressTestApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/ExpressTestApp): Express.js MVC web application using OAuth 2.0 auth code with PKCE flow to acquire a token for a web API such as Microsoft Graph.
 - [Hybrid Spa Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/HybridSample): Sample demonstrating how to use `enableSpaAuthorizationCode` to perform SSO for applications that leverage server-side and client-side authentication using MSAL Browser and MSAL Node.
 
 B2C samples:
 
 - [b2c-user-flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/b2c-user-flows): Express app using OAuth2.0 authorization code flow.
-- [ms-identity-b2c-javascript-nodejs-management](https://github.com/Azure-Samples/ms-identity-b2c-javascript-nodejs-management/tree/main/Chapter2): Command line app using OAuth 2.0 client credentials flow for performing user management operations on an Azure AD / Azure AD B2C tenant
 
 Others:
 
@@ -126,26 +124,21 @@ Others:
 
 ## Build and Test
 
-- If you don't have [lerna](https://github.com/lerna/lerna) installed, run `npm install -g lerna`
-- Run `lerna bootstrap` from anywhere within `microsoft-authentication-library-for-js.git`.
-- Navigate to `microsoft-authentication-library-for-js/lib/msal-common` and run `npm run build`
-- Navigate to `microsoft-authentication-library-for-js/lib/msal-node` and run `npm run build`
-
 ```javascript
-// to link msal-node and msal-common packages
-lerna bootstrap
+// Install dependencies from root of repo
+npm install
 
 // Change to the msal-node package directory
-cd lib/msal-common/
+cd lib/msal-node
+
+// To run build for common package & node package
+npm run build:all
 
 // To run build only for node package
 npm run build
 
-// Change to the msal-node package directory
-cd lib/msal-node/
-
-// To run build only for node package
-npm run build
+// To run tests
+npm run test
 ```
 
 ### Local Development
@@ -158,8 +151,8 @@ Runs the project in development/watch mode. Your project will be rebuilt upon ch
 Bundles the package to the `dist` folder.
 The package is optimized and bundled with Rollup into multiple formats (CommonJS, UMD, and ES Module).
 
-#### `lerna bootstrap`
-If you are running the project in development/watch mode, or have made changes in `msal-common` and need them reflecting across the project, please run `lerna bootstrap` to link all the symbols. Please note that `npm install` will unlink all the code, hence it is advised to run `lerna bootstrap` post installation.
+#### `npm run build:all`
+Builds both `msal-common` and `msal-node`
 
 #### `npm run lint`
 Runs eslint with Prettier

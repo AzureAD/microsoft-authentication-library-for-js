@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     AccountInfo,
     Logger,
     PerformanceCallbackFunction,
@@ -21,6 +20,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export interface IPublicClientApplication {
     initialize(): Promise<void>;
@@ -57,6 +57,10 @@ export interface IPublicClientApplication {
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     setNavigationClient(navigationClient: INavigationClient): void;
     getConfiguration(): BrowserConfiguration;
+    hydrateCache(
+        result: AuthenticationResult,
+        request: SilentRequest
+    ): Promise<void>;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -173,5 +177,10 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     getConfiguration: () => {
         throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
+    },
+    hydrateCache: () => {
+        return Promise.reject(
+            BrowserConfigurationAuthError.createStubPcaInstanceCalledError()
+        );
     },
 };

@@ -16,6 +16,7 @@ import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManag
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { ClientCredentials } from "../account/ClientCredentials";
+import { ProtocolMode } from "../authority/ProtocolMode";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -38,6 +39,7 @@ export type ClientConfiguration = {
     authOptions: AuthOptions;
     systemOptions?: SystemOptions;
     loggerOptions?: LoggerOptions;
+    cacheOptions?: CacheOptions;
     storageInterface?: CacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
@@ -53,6 +55,7 @@ export type CommonClientConfiguration = {
     authOptions: Required<AuthOptions>;
     systemOptions: Required<SystemOptions>;
     loggerOptions: Required<LoggerOptions>;
+    cacheOptions: Required<CacheOptions>;
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
@@ -109,6 +112,15 @@ export type LoggerOptions = {
 };
 
 /**
+ *  Use this to configure credential cache preferences in the ClientConfiguration object
+ *
+ * - claimsBasedCachingEnabled   - Sets whether tokens should be cached based on the claims hash. Default is false.
+ */
+export type CacheOptions = {
+    claimsBasedCachingEnabled?: boolean;
+};
+
+/**
  * Library-specific options
  */
 export type LibraryInfo = {
@@ -155,6 +167,10 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
     correlationId: Constants.EMPTY_STRING,
+};
+
+const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
+    claimsBasedCachingEnabled: false,
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -205,6 +221,7 @@ export function buildClientConfiguration({
     authOptions: userAuthOptions,
     systemOptions: userSystemOptions,
     loggerOptions: userLoggerOption,
+    cacheOptions: userCacheOptions,
     storageInterface: storageImplementation,
     networkInterface: networkImplementation,
     cryptoInterface: cryptoImplementation,
@@ -224,6 +241,7 @@ export function buildClientConfiguration({
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: loggerOptions,
+        cacheOptions: { ...DEFAULT_CACHE_OPTIONS, ...userCacheOptions },
         storageInterface:
             storageImplementation ||
             new DefaultStorageClass(
@@ -254,4 +272,14 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
         skipAuthorityMetadataCache: false,
         ...authOptions,
     };
+}
+
+/**
+ * Returns true if config has protocolMode set to ProtocolMode.OIDC, false otherwise
+ * @param ClientConfiguration
+ */
+export function isOidcProtocolMode(config: ClientConfiguration): boolean {
+    return (
+        config.authOptions.authority.options.protocolMode === ProtocolMode.OIDC
+    );
 }

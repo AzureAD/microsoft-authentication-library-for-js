@@ -160,7 +160,7 @@ describe("MsalProvider tests", () => {
                     return <p>Interaction Status: {inProgress}</p>;
                 }
             };
-
+            await pca.initialize();
             await pca.handleRedirectPromise();
 
             render(
@@ -1175,7 +1175,7 @@ describe("MsalProvider tests", () => {
         });
 
         test("Doesnt rerender when accounts or in progress dont change", async () => {
-            let inProgressRenders: string[] = [];
+            const inProgressRenders: string[] = [];
             const TestComponent = ({ accounts, inProgress }: IMsalContext) => {
                 inProgressRenders.push(inProgress);
                 if (accounts.length === 1) {

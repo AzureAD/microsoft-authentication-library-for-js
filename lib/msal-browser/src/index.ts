@@ -66,6 +66,7 @@ export { EndSessionRequest } from "./request/EndSessionRequest";
 export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
+export { AuthenticationResult } from "./response/AuthenticationResult";
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache";
@@ -88,14 +89,16 @@ export {
 
 export { PopupWindowAttributes } from "./request/PopupWindowAttributes";
 
+// Telemetry
+export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";
+export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement";
+
 // Common Object Formats
 export {
     AuthenticationScheme,
     // Account
     AccountInfo,
     AccountEntity,
-    // Response
-    AuthenticationResult,
     IdTokenClaims,
     // Error
     AuthError,
@@ -117,6 +120,7 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
+    ServerResponseType,
     PromptValue,
     // Server Response
     ExternalTokenResponse,

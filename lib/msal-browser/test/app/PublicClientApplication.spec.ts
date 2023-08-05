@@ -28,7 +28,6 @@ import {
     Constants,
     AccountInfo,
     TokenClaims,
-    AuthenticationResult,
     CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
     ResponseMode,
@@ -48,6 +47,8 @@ import {
     PersistentCacheKeys,
     Authority,
     AuthError,
+    ProtocolMode,
+    ServerResponseType,
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -84,6 +85,7 @@ import {
     AuthorizationCodeRequest,
     BrowserConfigurationAuthError,
     EndSessionRequest,
+    version,
 } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
@@ -94,6 +96,8 @@ import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest"
 import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -101,6 +105,7 @@ const cacheConfig = {
     storeAuthStateInCookie: false,
     secureCookies: false,
     cacheMigrationEnabled: false,
+    claimsBasedCachingEnabled: false,
 };
 
 let testAppConfig = {
@@ -150,6 +155,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
             telemetry: {
+                client: new BrowserPerformanceClient(testAppConfig),
                 application: {
                     appName: TEST_CONFIG.applicationName,
                     appVersion: TEST_CONFIG.applicationVersion,
@@ -189,23 +195,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         afterEach(() => {
             sinon.restore();
-        })
+        });
 
         it("handles concurrent calls", async () => {
             const config = {
                 auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true
-                }
+                    allowNativeBroker: true,
+                },
             };
             const concurrency = 5;
 
-            const postMessageSpy: sinon.SinonSpy = sinon.spy(window, "postMessage");
-            const initSpy: sinon.SinonSpy = sinon.spy(PublicClientApplication.prototype, "initialize");
+            const postMessageSpy: sinon.SinonSpy = sinon.spy(
+                window,
+                "postMessage"
+            );
+            const initSpy: sinon.SinonSpy = sinon.spy(
+                PublicClientApplication.prototype,
+                "initialize"
+            );
             // @ts-ignore
-            const handshakeSpy: sinon.SinonSpy = sinon.spy(NativeMessageHandler.prototype, "sendHandshakeRequest");
+            const handshakeSpy: sinon.SinonSpy = sinon.spy(
+                NativeMessageHandler.prototype,
+                // @ts-ignore
+                "sendHandshakeRequest"
+            );
 
             let ports: Set<MessagePort> = new Set();
             let handledMessages = 0;
@@ -220,8 +236,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         responseId: request.responseId,
                         body: {
                             method: "HandshakeResponse",
-                            version: 3
-                        }
+                            version: 3,
+                        },
                     };
 
                     // Fan out messages to all registered ports to validate that responses are getting filtered out properly.
@@ -252,8 +268,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 for (let i = 0; i < apps.length; i++) {
                     // @ts-ignore
                     expect(apps[i].controller.initialized).toBeTruthy();
-                    // @ts-ignore
-                    expect(apps[i].controller.getNativeExtensionProvider()).toBeInstanceOf(NativeMessageHandler);
+                    expect(
+                        // @ts-ignore
+                        apps[i].controller.getNativeExtensionProvider()
+                    ).toBeInstanceOf(NativeMessageHandler);
                 }
             } finally {
                 for (const port of ports) {
@@ -267,18 +285,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("handles concurrent calls with native handshake timeouts", async () => {
             const config = {
                 auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true
-                }
+                    allowNativeBroker: true,
+                },
             };
             const concurrency = 6;
 
-            const postMessageSpy: sinon.SinonSpy = sinon.spy(window, "postMessage");
-            const initSpy: sinon.SinonSpy = sinon.spy(PublicClientApplication.prototype, "initialize");
+            const postMessageSpy: sinon.SinonSpy = sinon.spy(
+                window,
+                "postMessage"
+            );
+            const initSpy: sinon.SinonSpy = sinon.spy(
+                PublicClientApplication.prototype,
+                "initialize"
+            );
             // @ts-ignore
-            const createProviderSpy: sinon.SinonSpy = sinon.spy(NativeMessageHandler, "createProvider");
+            const createProviderSpy: sinon.SinonSpy = sinon.spy(
+                NativeMessageHandler,
+                "createProvider"
+            );
 
             let ports: Set<MessagePort> = new Set();
             let handledMessages = 0;
@@ -293,8 +320,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         responseId: request.responseId,
                         body: {
                             method: "HandshakeResponse",
-                            version: 3
-                        }
+                            version: 3,
+                        },
                     };
 
                     // Time out the second half of the handshakes.
@@ -330,8 +357,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 for (let i = 0; i < apps.length; i++) {
                     // @ts-ignore
                     expect(apps[i].controller.initialized).toBeTruthy();
-                    // @ts-ignore
-                    nativeProviders += apps[i].controller.getNativeExtensionProvider() ? 1 : 0;
+                    nativeProviders += apps[
+                        i
+                        // @ts-ignore
+                    ].controller.getNativeExtensionProvider()
+                        ? 1
+                        : 0;
                 }
                 expect(nativeProviders).toEqual(concurrency / 2);
             } finally {
@@ -415,6 +446,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("handleRedirectPromise", () => {
+        beforeEach(async () => {
+            // Implementation of pca was moved to controller
+            pca = (pca as any).controller;
+            await pca.initialize();
+        });
         it("Calls RedirectClient.handleRedirectPromise and returns its response", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -437,9 +473,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             const redirectClientSpy = sinon
                 .stub(RedirectClient.prototype, "handleRedirectPromise")
@@ -573,7 +606,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         acquireTokenSuccessFired = true;
                     }
                 });
-
             const response = await pca.handleRedirectPromise();
             expect(response).toEqual(testTokenResponse);
             expect(redirectClientSpy.calledOnce).toBe(true);
@@ -592,7 +624,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         loginFailureFired = true;
                     }
                 });
-
             await pca.handleRedirectPromise().catch(() => {
                 expect(redirectClientSpy.calledOnce).toBe(true);
                 expect(loginFailureFired).toBe(true);
@@ -747,6 +778,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
+            await pca.initialize();
 
             const promise1 = pca.handleRedirectPromise();
             const promise2 = pca.handleRedirectPromise();
@@ -800,12 +832,71 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResponse4).toEqual(tokenResponse1);
         });
     });
+    describe("OIDC Protocol Mode tests", () => {
+        beforeEach(async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    protocolMode: ProtocolMode.OIDC,
+                    OIDCOptions: {
+                        serverResponseType: ServerResponseType.QUERY,
+                    },
+                },
+                telemetry: {
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+                system: {
+                    allowNativeBroker: false,
+                },
+            });
+
+            await pca.initialize();
+        });
+
+        it("Looks for server code response in query param if OIDCOptions.serverResponseType is set to query", async () => {
+            /**
+             * The testing environment does not accept query params, so instead we see that it ignores a hash fragment.
+             * That means handleRedirectPromise is looking for a hash in a query param instead of a hash fragment.
+             */
+            sinon
+                .stub(RedirectClient.prototype, "handleRedirectPromise")
+                .callsFake(
+                    async (hash): Promise<AuthenticationResult | null> => {
+                        expect(hash).toBe("");
+                        return null;
+                    }
+                );
+
+            window.location.hash = "#code=hello";
+            await pca.handleRedirectPromise();
+        });
+    });
 
     describe("loginRedirect", () => {
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
+        });
+
+        it("throws an error if initialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            pca = (pca as any).controller;
+            await expect(pca.loginRedirect()).rejects.toMatchObject(
+                BrowserAuthError.createUninitializedPublicClientApplication()
+            );
+        });
+
         it("doesnt mutate request correlation id", async () => {
             const request: RedirectRequest = {
                 scopes: [],
-                onRedirectNavigate: () => false // Skip the navigation
+                onRedirectNavigate: () => false, // Skip the navigation
             };
 
             await pca.loginRedirect(request).catch(() => null);
@@ -850,6 +941,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenRedirect", () => {
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
+        });
+
+        it("throws an error if initialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            pca = (pca as any).controller;
+            await expect(
+                pca.acquireTokenRedirect({ scopes: [] })
+            ).rejects.toMatchObject(
+                BrowserAuthError.createUninitializedPublicClientApplication()
+            );
+        });
         it("goes directly to the native broker if nativeAccountId is present", async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -900,6 +1009,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
                 system: {
                     allowNativeBroker: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
                 },
             });
 
@@ -1099,10 +1211,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(redirectSpy.calledOnce).toBeFalsy();
         });
 
-        it("doesnt mutate request correlation id", async () => {
+        it("doesn't mutate request correlation id", async () => {
             const request: RedirectRequest = {
                 scopes: [],
-                onRedirectNavigate: () => false // Skip the navigation
+                onRedirectNavigate: () => false, // Skip the navigation
             };
 
             await pca.acquireTokenRedirect(request).catch(() => null);
@@ -1203,19 +1315,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
-        it("throws an error if allowNativeBroker: true and initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    allowNativeBroker: true,
                 },
             });
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createNativeBrokerCalledBeforeInitialize()
+                BrowserAuthError.createUninitializedPublicClientApplication()
             );
         });
 
@@ -1232,7 +1341,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: false,
                 },
             });
-
+            await pca.initialize();
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
@@ -1311,21 +1420,38 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("loginPopup", () => {
-        beforeEach(() => {
+        beforeEach(async () => {
             const popupWindow = {
                 ...window,
                 close: () => {},
             };
             // @ts-ignore
             sinon.stub(window, "open").returns(popupWindow);
+            pca = (pca as any).controller;
+            await pca.initialize();
         });
 
-        it("doesnt mutate request correlation id", async () => {
+        it("throws an error if initialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            pca = (pca as any).controller;
+            await expect(pca.loginPopup()).rejects.toMatchObject(
+                BrowserAuthError.createUninitializedPublicClientApplication()
+            );
+        });
+
+        it("doesn't mutate request correlation id", async () => {
             const request: PopupRequest = {
                 scopes: [],
             };
 
-            jest.spyOn(PopupClient.prototype, "initiateAuthRequest").mockImplementation(() => {
+            jest.spyOn(
+                PopupClient.prototype,
+                "initiateAuthRequest"
+            ).mockImplementation(() => {
                 throw "Request object has been built at this point, no need to continue";
             });
 
@@ -1393,19 +1519,34 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenPopup", () => {
-        beforeEach(() => {
+        beforeEach(async () => {
             const popupWindow = {
                 ...window,
                 close: () => {},
             };
             // @ts-ignore
             sinon.stub(window, "open").returns(popupWindow);
+            pca = (pca as any).controller;
+            await pca.initialize();
         });
 
         afterEach(() => {
             window.localStorage.clear();
             window.sessionStorage.clear();
             sinon.restore();
+        });
+
+        it("throws an error if initialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            await expect(
+                pca.acquireTokenPopup({ scopes: [] })
+            ).rejects.toMatchObject(
+                BrowserAuthError.createUninitializedPublicClientApplication()
+            );
         });
 
         it("goes directly to the native broker if nativeAccountId is present", async () => {
@@ -1691,12 +1832,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(popupSpy.calledOnce).toBeFalsy();
         });
 
-        it("doesnt mutate request correlation id", async () => {
+        it("doesn't mutate request correlation id", async () => {
             const request: PopupRequest = {
                 scopes: [],
             };
 
-            jest.spyOn(PopupClient.prototype, "initiateAuthRequest").mockImplementation(() => {
+            jest.spyOn(
+                PopupClient.prototype,
+                "initiateAuthRequest"
+            ).mockImplementation(() => {
                 throw "Request object has been built at this point, no need to continue";
             });
 
@@ -1724,7 +1868,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
-        it("throws an error if allowNativeBroker: true and intialize was not called prior", async () => {
+        it("throws an error if intialize was not called prior", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1736,7 +1880,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createNativeBrokerCalledBeforeInitialize()
+                BrowserAuthError.createUninitializedPublicClientApplication()
             );
         });
 
@@ -1816,7 +1960,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     }
                 });
 
-            const response = await (pca as any).controller.acquireTokenPopup({
+            const response = await pca.acquireTokenPopup({
                 scopes: ["openid"],
             });
             expect(response).toEqual(testTokenResponse);
@@ -1967,6 +2111,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("ssoSilent", () => {
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
+        });
+
+        it("throws an error if initialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
+                BrowserAuthError.createUninitializedPublicClientApplication()
+            );
+        });
+
         it("goes directly to the native broker if nativeAccountId is present", async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -2133,7 +2293,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentSpy.calledOnce).toBeFalsy();
         });
 
-        it("doesnt mutate request correlation id", async () => {
+        it("doesn't mutate request correlation id", async () => {
             const request: SilentRequest = {
                 scopes: [],
             };
@@ -2144,17 +2304,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(request.correlationId).toBe(undefined);
         });
 
-        it("throws an error if allowNativeBroker: true and initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
-                system: {
-                    allowNativeBroker: true,
-                },
             });
             await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
-                BrowserAuthError.createNativeBrokerCalledBeforeInitialize()
+                BrowserAuthError.createUninitializedPublicClientApplication()
             );
         });
 
@@ -2320,6 +2477,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenByCode", () => {
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
+        });
+
+        it("throws an error if initialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            await expect(
+                pca.acquireTokenByCode({ scopes: [] })
+            ).rejects.toMatchObject(
+                BrowserAuthError.createUninitializedPublicClientApplication()
+            );
+        });
+
         it("goes directly to the native broker if nativeAccountId is present", async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -2446,28 +2621,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 code: "123",
             };
 
-            await pca
-                .acquireTokenByCode(request)
-                .catch(() => null);
+            await pca.acquireTokenByCode(request).catch(() => null);
 
-            await pca
-                .acquireTokenByCode(request)
-                .catch(() => null);
+            await pca.acquireTokenByCode(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
 
-        it("throws an error if allowNativeBroker: true and initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
-                system: {
-                    allowNativeBroker: true,
-                },
             });
             await expect(pca.acquireTokenByCode({})).rejects.toMatchObject(
-                BrowserAuthError.createNativeBrokerCalledBeforeInitialize()
+                BrowserAuthError.createUninitializedPublicClientApplication()
             );
         });
 
@@ -2759,13 +2927,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenSilent", () => {
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
+        });
+
         it("throws No Account error if no account is provided", async () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
             ).rejects.toMatchObject(BrowserAuthError.createNoAccountError());
         });
 
-        it("throws an error if allowNativeBroker: true and initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -2777,7 +2950,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createNativeBrokerCalledBeforeInitialize()
+                BrowserAuthError.createUninitializedPublicClientApplication()
             );
         });
 
@@ -2952,13 +3125,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: [],
             };
 
-            await pca
-                .acquireTokenSilent(request)
-                .catch(() => null);
+            await pca.acquireTokenSilent(request).catch(() => null);
 
-            await pca
-                .acquireTokenSilent(request)
-                .catch(() => null);
+            await pca.acquireTokenSilent(request).catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
         });
@@ -3162,6 +3331,112 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
                 authenticationScheme: AuthenticationScheme.BEARER,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+            const expectedTokenRequest: CommonSilentFlowRequest = {
+                ...tokenRequest,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false,
+            };
+
+            const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
+            const silentRequest2 = pca.acquireTokenSilent(tokenRequest);
+            const silentRequest3 = pca.acquireTokenSilent(tokenRequest);
+            const parallelResponse = await Promise.all([
+                silentRequest1,
+                silentRequest2,
+                silentRequest3,
+            ]);
+
+            expect(silentATStub.calledWith(expectedTokenRequest)).toBeTruthy();
+            expect(atsSpy.calledOnce).toBe(true);
+            expect(silentATStub.callCount).toEqual(1);
+            expect(parallelResponse[0]).toEqual(testTokenResponse);
+            expect(parallelResponse[1]).toEqual(testTokenResponse);
+            expect(parallelResponse[2]).toEqual(testTokenResponse);
+            expect(parallelResponse).toHaveLength(3);
+        });
+
+        it("makes one network request with multiple parallel silent requests with same request including claims when claimsBasedCaching is enabled", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                },
+                cache: {
+                    claimsBasedCachingEnabled: true,
+                },
+            });
+
+            await pca.initialize();
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(
+                    Date.now() + testServerTokenResponse.expires_in * 1000
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            sinon
+                .stub(CryptoOps.prototype, "createNewGuid")
+                .returns(RANDOM_TEST_GUID);
+            sinon
+                .stub(CryptoOps.prototype, "hashString")
+                .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+            const atsSpy = sinon.spy(
+                StandardController.prototype,
+                <any>"acquireTokenSilentAsync"
+            );
+            const silentATStub = sinon
+                .stub(
+                    RefreshTokenClient.prototype,
+                    "acquireTokenByRefreshToken"
+                )
+                .resolves(testTokenResponse);
+            const tokenRequest: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
                 claims: JSON.stringify({ claim: "claim" }),
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -3195,6 +3470,224 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("makes network requests for each distinct request when acquireTokenSilent is called in parallel", async () => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(
+                    Date.now() + testServerTokenResponse.expires_in * 1000
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            sinon
+                .stub(CryptoOps.prototype, "createNewGuid")
+                .returns(RANDOM_TEST_GUID);
+            sinon
+                .stub(CryptoOps.prototype, "hashString")
+                .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+            const silentATStub = sinon
+                .stub(
+                    RefreshTokenClient.prototype,
+                    "acquireTokenByRefreshToken"
+                )
+                .resolves(testTokenResponse);
+            // Beaerer requests
+            const tokenRequest1: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+            const expectedTokenRequest1: CommonSilentFlowRequest = {
+                ...tokenRequest1,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false,
+            };
+            const tokenRequest2: CommonSilentFlowRequest = {
+                scopes: ["Mail.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+            const expectedTokenRequest2: CommonSilentFlowRequest = {
+                ...tokenRequest1,
+                scopes: ["Mail.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false,
+            };
+
+            // PoP requests
+            const popTokenRequest1: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.POP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://testUri.com/user.read",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+
+            const popTokenRequest2: CommonSilentFlowRequest = {
+                scopes: ["Mail.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.POP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://testUri.com/mail.read",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+            const expectedPopTokenRequest1: CommonSilentFlowRequest = {
+                ...popTokenRequest1,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false,
+            };
+
+            const expectedPopTokenRequest2: CommonSilentFlowRequest = {
+                ...popTokenRequest2,
+                scopes: ["Mail.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false,
+            };
+
+            // SSH Certificate requests
+            const sshCertRequest1: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.ENCODED_SSH_JWK,
+                sshKid: TEST_SSH_VALUES.SSH_KID,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+
+            const sshCertRequest2: CommonSilentFlowRequest = {
+                scopes: ["Mail.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.ALTERNATE_ENCODED_SSH_JWK,
+                sshKid: TEST_SSH_VALUES.ALTERNATE_SSH_KID,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+
+            const expectedSshCertificateRequest1: CommonSilentFlowRequest = {
+                ...sshCertRequest1,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false,
+            };
+
+            const expectedSshCertificateRequest2: CommonSilentFlowRequest = {
+                ...sshCertRequest2,
+                scopes: ["Mail.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false,
+            };
+
+            const silentRequest1 = pca.acquireTokenSilent(tokenRequest1);
+            const silentRequest2 = pca.acquireTokenSilent(tokenRequest1);
+            const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
+            const popSilentRequest1 = pca.acquireTokenSilent(popTokenRequest1);
+            const popSilentRequest2 = pca.acquireTokenSilent(popTokenRequest1);
+            const popSilentRequest3 = pca.acquireTokenSilent(popTokenRequest2);
+            const sshCertSilentRequest1 =
+                pca.acquireTokenSilent(sshCertRequest1);
+            const sshCertSilentRequest2 =
+                pca.acquireTokenSilent(sshCertRequest1);
+            const sshCertSilentRequest3 =
+                pca.acquireTokenSilent(sshCertRequest2);
+            await Promise.all([
+                silentRequest1,
+                silentRequest2,
+                silentRequest3,
+                popSilentRequest1,
+                popSilentRequest2,
+                popSilentRequest3,
+                sshCertSilentRequest1,
+                sshCertSilentRequest2,
+                sshCertSilentRequest3,
+            ]);
+
+            expect(silentATStub.calledWith(expectedTokenRequest1)).toBeTruthy();
+            expect(silentATStub.calledWith(expectedTokenRequest2)).toBeTruthy();
+            expect(
+                silentATStub.calledWith(expectedPopTokenRequest1)
+            ).toBeTruthy();
+            expect(
+                silentATStub.calledWith(expectedPopTokenRequest2)
+            ).toBeTruthy();
+            expect(
+                silentATStub.calledWith(expectedSshCertificateRequest1)
+            ).toBeTruthy();
+            expect(
+                silentATStub.calledWith(expectedSshCertificateRequest2)
+            ).toBeTruthy();
+            expect(silentATStub.callCount).toEqual(6);
+        });
+
+        it("makes network requests for each distinct request including claims when acquireTokenSilent is called in parallel with claimsBasedCaching is enabled", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                },
+                cache: {
+                    claimsBasedCachingEnabled: true,
+                },
+            });
+
+            await pca.initialize();
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -3930,9 +4423,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
             });
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             pca.acquireTokenSilent(silentRequest).catch(() => {});
         });
 
@@ -4120,10 +4610,23 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("logout", () => {
-        it("calls logoutRedirect", (done) => {
-            //Implementation of PCA was moved to controller.
+        beforeEach(async () => {
             pca = (pca as any).controller;
+            await pca.initialize();
+        });
 
+        it("throws an error if initialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            await expect(pca.logout()).rejects.toMatchObject(
+                BrowserAuthError.createUninitializedPublicClientApplication()
+            );
+        });
+
+        it("calls logoutRedirect", (done) => {
             sinon.stub(pca, "logoutRedirect").callsFake((request) => {
                 expect(request && request.postLogoutRedirectUri).toBe(
                     "/logout"
@@ -4136,9 +4639,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             sinon.stub(pca, "logoutRedirect").callsFake((request) => {
                 return Promise.resolve();
             });
@@ -4152,6 +4652,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("logoutRedirect", () => {
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
+        });
+
+        it("throws an error if initialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            await expect(pca.logoutRedirect()).rejects.toMatchObject(
+                BrowserAuthError.createUninitializedPublicClientApplication()
+            );
+        });
+
         it("doesnt mutate request correlation id", async () => {
             sinon.stub(RedirectClient.prototype, "logout").resolves();
 
@@ -4175,13 +4691,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("throws an error if inside an iframe", async () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            await expect(pca.logout()).rejects.toMatchObject(
+            await expect(pca.logoutRedirect()).rejects.toMatchObject(
                 BrowserAuthError.createRedirectInIframeError(true)
             );
         });
     });
 
     describe("logoutPopup", () => {
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
+        });
+
+        it("throws an error if initialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            await expect(pca.logoutPopup()).rejects.toMatchObject(
+                BrowserAuthError.createUninitializedPublicClientApplication()
+            );
+        });
+
         it("doesnt mutate request correlation id", async () => {
             sinon.stub(PopupClient.prototype, "logout").resolves();
 
@@ -4223,6 +4755,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("getAccount tests", () => {
         // Account 1
         const testAccountInfo1: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
@@ -4231,6 +4764,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined,
         };
 
         const testAccount1: AccountEntity = new AccountEntity();
@@ -4255,6 +4789,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         // Account 2
         const testAccountInfo2: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId: "different-home-account-id",
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
@@ -4263,6 +4798,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined,
         };
 
         const testAccount2: AccountEntity = new AccountEntity();
@@ -4285,7 +4821,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             homeAccountId: testAccountInfo2.homeAccountId,
         };
 
-        beforeEach(() => {
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
             sinon
                 .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
                 .callsFake((host) => {
@@ -4302,23 +4840,23 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
             // @ts-ignore
-            pca.controller.getBrowserStorage().setAccount(testAccount1);
+            pca.getBrowserStorage().setAccount(testAccount1);
             // @ts-ignore
-            pca.controller.getBrowserStorage().setAccount(testAccount2);
+            pca.getBrowserStorage().setAccount(testAccount2);
 
             const idToken1 = CacheManager.toObject(
                 new IdTokenEntity(),
                 idTokenData1
             );
             // @ts-ignore
-            pca.controller.getBrowserStorage().setIdTokenCredential(idToken1);
+            pca.getBrowserStorage().setIdTokenCredential(idToken1);
 
             const idToken2 = CacheManager.toObject(
                 new IdTokenEntity(),
                 idTokenData2
             );
             // @ts-ignore
-            pca.controller.getBrowserStorage().setIdTokenCredential(idToken2);
+            pca.getBrowserStorage().setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -4410,6 +4948,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("activeAccount API tests", () => {
         // Account 1
         const testAccountInfo1: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
@@ -4449,6 +4988,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         // Account 2
         const testAccountInfo2: AccountInfo = {
+            authorityType: "MSSTS",
             homeAccountId:
                 TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow2",
             environment: "login.windows.net",
@@ -4486,16 +5026,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             idTokenData2
         );
 
-        beforeEach(() => {
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
             // @ts-ignore
-            pca.controller.getBrowserStorage().setAccount(testAccount1);
+            pca.getBrowserStorage().setAccount(testAccount1);
             // @ts-ignore
-            pca.controller.getBrowserStorage().setAccount(testAccount2);
+            pca.getBrowserStorage().setAccount(testAccount2);
 
             // @ts-ignore
-            pca.controller.getBrowserStorage().setIdTokenCredential(idToken1);
+            pca.getBrowserStorage().setIdTokenCredential(idToken1);
             // @ts-ignore
-            pca.controller.getBrowserStorage().setIdTokenCredential(idToken2);
+            pca.getBrowserStorage().setIdTokenCredential(idToken2);
 
             sinon
                 .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
@@ -4560,7 +5102,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(activeAccount2).toEqual(newTestAccountInfo1);
             });
 
-            it("getActiveAccount picks up legacy account id from local storage", () => {
+            it("getActiveAccount picks up legacy account id from local storage", async () => {
                 let pcaLocal = new PublicClientApplication({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -4575,6 +5117,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         cacheLocation: BrowserCacheLocation.LocalStorage,
                     },
                 });
+                await pcaLocal.initialize();
                 expect(pcaLocal.getActiveAccount()).toBe(null);
 
                 //Implementation of PCA was moved to controller.
@@ -4648,7 +5191,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         describe("activeAccount logout", () => {
-            beforeEach(() => {
+            beforeEach(async () => {
                 pca.setActiveAccount(testAccountInfo1);
                 sinon
                     .stub(AuthorizationCodeClient.prototype, "getLogoutUri")
@@ -4799,10 +5342,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("preflightBrowserEnvironmentCheck", () => {
-        it("calls setInteractionInProgress", () => {
-            //Implementation of PCA was moved to controller.
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
+        });
+
+        it("throws an error if initialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+
             pca = (pca as any).controller;
 
+            expect(() =>
+                // @ts-ignore
+                pca.preflightBrowserEnvironmentCheck(InteractionType.Popup)
+            ).toThrow(
+                BrowserAuthError.createUninitializedPublicClientApplication()
+            );
+        });
+
+        it("calls setInteractionInProgress", () => {
             // @ts-ignore
             pca.preflightBrowserEnvironmentCheck(InteractionType.Popup);
 
@@ -4811,14 +5373,118 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt call setInteractionInProgress", () => {
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             // @ts-ignore
             pca.preflightBrowserEnvironmentCheck(InteractionType.Popup, false);
 
             // @ts-ignore
             expect(pca.browserStorage.getInteractionInProgress()).toBeFalsy;
+        });
+    });
+
+    describe("hydrateCache tests", () => {
+        const testAccount: AccountInfo = {
+            authorityType: "MSSTS",
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+            environment: "login.windows.net",
+            tenantId: ID_TOKEN_CLAIMS.tid,
+            username: ID_TOKEN_CLAIMS.preferred_username,
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            name: ID_TOKEN_CLAIMS.name,
+            nativeAccountId: undefined,
+        };
+
+        const testAuthenticationResult: AuthenticationResult = {
+            authority: TEST_CONFIG.validAuthority,
+            uniqueId: testAccount.localAccountId,
+            tenantId: testAccount.tenantId,
+            scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            accessToken: TEST_TOKENS.ACCESS_TOKEN,
+            fromCache: false,
+            correlationId: RANDOM_TEST_GUID,
+            expiresOn: new Date(Date.now() + 3600000),
+            account: testAccount,
+            tokenType: AuthenticationScheme.BEARER,
+        };
+
+        const request: SilentRequest = {
+            scopes: ["openid", "profile"],
+            account: testAccount,
+            cacheLookupPolicy: CacheLookupPolicy.AccessToken, // Only perform cache lookup during validation
+        };
+        it("hydrates cache with the provided id and access tokens", async () => {
+            await pca.initialize();
+            await pca
+                .acquireTokenSilent(request)
+                .then(() => {
+                    throw "This is unexpected. Cache should be empty to start";
+                })
+                .catch((e) => {
+                    // This is expected to throw because cache is empty, swallow error
+                });
+            await pca.hydrateCache(testAuthenticationResult, request);
+
+            const result = await pca.acquireTokenSilent(request); // Get tokens from the cache
+            expect(result.accessToken).toEqual(
+                testAuthenticationResult.accessToken
+            );
+            expect(result.idToken).toEqual(testAuthenticationResult.idToken);
+            expect(result.account).toEqual(testAccount);
+            expect(result.fromCache).toEqual(true);
+        });
+
+        it("hydrates internal cache if provided AuthenticationResult came from native broker", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: true,
+                },
+            });
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            stubProvider(pca);
+            await pca.initialize();
+
+            const nativeAccount = {
+                ...testAccount,
+                nativeAccountId: "testNativeAccountId",
+            };
+
+            const nativeResult = {
+                ...testAuthenticationResult,
+                account: nativeAccount,
+                fromNativeBroker: true,
+            };
+
+            const nativeRequest = {
+                ...request,
+                account: nativeAccount,
+            };
+
+            await pca
+                .acquireTokenSilent(request)
+                .then(() => {
+                    throw "This is unexpected. Cache should be empty to start";
+                })
+                .catch((e) => {
+                    // This is expected to throw because cache is empty, swallow error
+                });
+
+            await pca.hydrateCache(nativeResult, nativeRequest);
+
+            const result = await pca.acquireTokenSilent(nativeRequest); // Get tokens from the cache
+
+            // Verify tokens were returned from internal memory
+            expect(result.accessToken).toEqual(nativeResult.accessToken);
+            expect(result.idToken).toEqual(nativeResult.idToken);
+            expect(result.account).toEqual(nativeAccount);
+            expect(result.fromCache).toEqual(true);
         });
     });
 });
