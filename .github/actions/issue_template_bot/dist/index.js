@@ -1,9 +1,9 @@
 module.exports =
-/******/ (() => { // webpackBootstrap
-/******/ 	var __webpack_modules__ = ({
+(() => { // webpackBootstrap
+var __webpack_modules__ = ({
 
-/***/ 7351:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+7351:
+(function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
@@ -86,10 +86,10 @@ function escapeProperty(s) {
 }
 //# sourceMappingURL=command.js.map
 
-/***/ }),
+}),
 
-/***/ 2186:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+2186:
+(function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
