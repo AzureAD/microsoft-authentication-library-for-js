@@ -35,11 +35,7 @@
   },
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
-    "disallowedChangeTypes": [
-      "patch",
-      "minor",
-      "major"
-    ]
+    "disallowedChangeTypes": []
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^15.1.5",
