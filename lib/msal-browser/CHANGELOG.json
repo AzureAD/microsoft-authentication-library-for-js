@@ -84,6 +84,12 @@
         ],
         "minor": [
           {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2819735fe031ae36bea1d88f31f56089ac6ee21f",
+            "comment": "Expose \"CacheRecord\" as part of internals API #6291"
+          },
+          {
             "author": "thomas.norling@microsoft.com",
             "package": "@azure/msal-browser",
             "commit": "ab44706bcf8e5a281b70ac93a44c58420c07d16a",

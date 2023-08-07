@@ -17,6 +17,7 @@ Mon, 07 Aug 2023 18:15:15 GMT
 
 ### Minor Changes
 
+-   Expose CacheRecord as part of internals API #6291 (kshabelko@microsoft.com)
 -   Add exports to package.json and update type to module #6194 (thomas.norling@microsoft.com)
 -   Added OIDCOptions parameter to config (shylasummers@users.noreply.github.com)
 -   Expose `BrowserPerformanceClient` and `BrowserPerformanceMeasurement` artifacts as public #6273 (kshabelko@microsoft.com)
