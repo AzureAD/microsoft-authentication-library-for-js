@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Expose `BrowserPerformanceClient` and `BrowserPerformanceMeasurement` artifacts as public #6273",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

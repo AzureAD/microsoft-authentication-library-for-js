@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Revert allowNativeBroker default to false #6280",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

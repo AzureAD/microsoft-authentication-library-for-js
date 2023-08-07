@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Append v2 to endpoint when using a Microsoft authority under OIDC protocol mode",
-  "packageName": "@azure/msal-common",
-  "email": "shylasummers@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}
