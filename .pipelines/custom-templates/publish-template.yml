@@ -81,7 +81,7 @@ jobs:
             inputs:
                 command: "custom"
                 workingDir: "${{ parameters.path }}/${{ parameters.libName }}"
-                customCommand: "publish --tag beta" # Remove --tag beta when ready to GA
+                customCommand: "publish"
           - task: Npm@1
             displayName: Publish to npm - Test Mode
             condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), ${{ parameters.testMode }})
@@ -98,7 +98,7 @@ jobs:
             inputs:
                 command: "custom"
                 workingDir: "${{ parameters.path }}/${{ parameters.libName }}"
-                customCommand: "run deploy:beta" # Remove :beta when ready to GA"
+                customCommand: "run deploy"
           - task: Npm@1
             displayName: Deploy to npm (Angular only) - Test Mode
             condition: and(eq('${{ parameters.libName }}', 'msal-angular'), ${{ parameters.testMode }})
