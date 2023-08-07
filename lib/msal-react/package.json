@@ -29,7 +29,11 @@
     "node": ">=10"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "patch",
+      "minor",
+      "major"
+    ]
   },
   "scripts": {
     "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
