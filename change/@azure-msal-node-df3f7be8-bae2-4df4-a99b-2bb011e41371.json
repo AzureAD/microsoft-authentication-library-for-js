@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Update \"PerformanceClient\" for better usability/extendibility #6270",
-  "packageName": "@azure/msal-node",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

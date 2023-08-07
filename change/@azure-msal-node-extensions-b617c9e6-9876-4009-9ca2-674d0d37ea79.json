@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add exports to package.json and update type to module #6194",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
