@@ -856,4 +856,13 @@ export class Authority {
 
         return ciamAuthority;
     }
+
+    /**
+     * Extract tenantId from authority
+     */
+    static getTenantFromAuthorityString(authority: string): string | undefined {
+        const authorityUrl = new UrlString(authority);
+        const authorityUrlComponents = authorityUrl.getUrlComponents();
+        return authorityUrlComponents.PathSegments[0];
+    }
 }

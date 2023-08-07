@@ -25,6 +25,7 @@ import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
+import { Authority } from "../authority/Authority";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -679,10 +680,11 @@ export abstract class CacheManager implements ICacheManager {
      * @param authScheme
      */
     readCacheRecord(account: AccountInfo, request: BaseAuthRequest, environment: string): CacheRecord {
+        const requestTenantId = Authority.getTenantFromAuthorityString(request.authority);
         const tokenKeys = this.getTokenKeys();
         const cachedAccount = this.readAccountFromCache(account);
-        const cachedIdToken = this.getIdToken(account, tokenKeys);
-        const cachedAccessToken = this.getAccessToken(account, request, tokenKeys);
+        const cachedIdToken = this.getIdToken(account, tokenKeys, requestTenantId);
+        const cachedAccessToken = this.getAccessToken(account, request, tokenKeys, requestTenantId);
         const cachedRefreshToken = this.getRefreshToken(account, false, tokenKeys);
         const cachedAppMetadata = this.readAppMetadataFromCache(environment);
 
@@ -714,14 +716,14 @@ export abstract class CacheManager implements ICacheManager {
      * @param account
      * @param inputRealm
      */
-    getIdToken(account: AccountInfo, tokenKeys?: TokenKeys): IdTokenEntity | null {
+    getIdToken(account: AccountInfo, tokenKeys?: TokenKeys, targetRealm?: string): IdTokenEntity | null {
         this.commonLogger.trace("CacheManager - getIdToken called");
         const idTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
             credentialType: CredentialType.ID_TOKEN,
             clientId: this.clientId,
-            realm: account.tenantId,
+            realm: targetRealm || account.tenantId,
         };
 
         const idTokens: IdTokenEntity[] = this.getIdTokensByFilter(idTokenFilter, tokenKeys);
@@ -757,7 +759,7 @@ export abstract class CacheManager implements ICacheManager {
                 idTokens.push(idToken);
             }
         });
-
+        debugger;
         return idTokens;
     }
 
@@ -803,7 +805,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param scopes
      * @param authScheme
      */
-    getAccessToken(account: AccountInfo, request: BaseAuthRequest, tokenKeys?: TokenKeys): AccessTokenEntity | null {
+    getAccessToken(account: AccountInfo, request: BaseAuthRequest, tokenKeys?: TokenKeys, targetRealm?: string): AccessTokenEntity | null {
         this.commonLogger.trace("CacheManager - getAccessToken called");
         const scopes =  ScopeSet.createSearchScopes(request.scopes);
         const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
@@ -818,7 +820,7 @@ export abstract class CacheManager implements ICacheManager {
             environment: account.environment,
             credentialType: credentialType,
             clientId: this.clientId,
-            realm: account.tenantId,
+            realm: targetRealm || account.tenantId,
             target: scopes,
             tokenType: authScheme,
             keyId: request.sshKid,
