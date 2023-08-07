@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Expose \"CacheRecord\" as part of internals API #6291",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
