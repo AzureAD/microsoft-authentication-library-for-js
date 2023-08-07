@@ -211,7 +211,6 @@ loginPopup().then((response) => {
     const uniqueID = response.account.homeAccountId;
 })
 ```
-
 # Accounts
 
 ## In what scenarios will `getAllAccounts` return multiple accounts?
