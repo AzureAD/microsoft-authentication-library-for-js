@@ -2,94 +2,42 @@
   "name": "@azure/msal-react",
   "entries": [
     {
-      "date": "Thu, 06 Jul 2023 00:01:32 GMT",
-      "tag": "@azure/msal-react_v2.0.0-beta.1",
-      "version": "2.0.0-beta.1",
+      "date": "Mon, 07 Aug 2023 18:15:15 GMT",
+      "tag": "@azure/msal-react_v2.0.0",
+      "version": "2.0.0",
       "comments": {
         "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7",
+            "comment": "Remove disallowedChangeTypes from package.json files"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "26a8031e4466662fef3cd793d377adb5afd988f4",
+            "comment": "Throw when initialize has not been called #6233"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "c34e759455a7cbb86cba943923cff34f5b942e28",
+            "comment": "Fix formatting #6264"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "88f49fb55daa60410bbbc126856bdb7d2189817a",
+            "comment": "Replace lerna with npm workspaces #6136"
+          },
           {
             "author": "thomas.norling@microsoft.com",
             "package": "@azure/msal-react",
             "commit": "f714b51f03eb87ccd0102d886c814b3dab2b5cc9",
             "comment": "DevDependency updates"
-          }
-        ],
-        "prerelease": [
-          {
-            "author": "thomas.norling@microsoft.com",
-            "package": "@azure/msal-react",
-            "commit": "faae9defff0424799bfa540fdb2c2f309b34db3a",
-            "comment": "Fix module field in package.json #6190"
           },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-react",
-            "comment": "Bump @azure/msal-browser to v3.0.0-beta.1",
-            "commit": "4ccef1b8a11ca5643c11eb9586e45f8e45398e8c"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Thu, 15 Jun 2023 22:19:25 GMT",
-      "tag": "@azure/msal-react_v2.0.0-beta.0",
-      "version": "2.0.0-beta.0",
-      "comments": {
-        "prerelease": [
-          {
-            "author": "kshabelko@microsoft.com",
-            "package": "@azure/msal-react",
-            "commit": "42dd47713c8c8e362fa3cd54cbf7367140d9fb06",
-            "comment": "Switch from enums to object literals to reduce the bundle size #6068"
-          }
-        ],
-        "patch": [
-          {
-            "author": "beachball",
-            "package": "@azure/msal-react",
-            "comment": "Bump @azure/msal-browser to v3.0.0-beta.0",
-            "commit": "c7bd70a0521c2f0a397bed5109bf443db674a8a4"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Tue, 16 May 2023 22:51:25 GMT",
-      "tag": "@azure/msal-react_v2.0.0-alpha.2",
-      "version": "2.0.0-alpha.2",
-      "comments": {
-        "prerelease": [
-          {
-            "author": "beachball",
-            "package": "@azure/msal-react",
-            "comment": "Bump @azure/msal-browser to v3.0.0-alpha.2",
-            "commit": "c7103ba801167b089d6504cdc385eecb7019fc78"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Mon, 08 May 2023 20:12:01 GMT",
-      "tag": "@azure/msal-react_v2.0.0-alpha.1",
-      "version": "2.0.0-alpha.1",
-      "comments": {
-        "prerelease": [
-          {
-            "author": "beachball",
-            "package": "@azure/msal-react",
-            "comment": "Bump @azure/msal-browser to v3.0.0-alpha.1",
-            "commit": "6a8ac1e0a383b237c3fd6a3c8444376d197bea85"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Tue, 02 May 2023 23:14:26 GMT",
-      "tag": "@azure/msal-react_v2.0.0-alpha.0",
-      "version": "2.0.0-alpha.0",
-      "comments": {
-        "none": [
-          {
+             {
             "author": "hemoral@microsoft.com",
             "package": "@azure/msal-react",
             "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd",
@@ -126,6 +74,34 @@
             "package": "@azure/msal-react",
             "comment": "Bump @azure/msal-browser to v3.0.0",
             "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "ab44706bcf8e5a281b70ac93a44c58420c07d16a",
+            "comment": "Add exports to package.json and update type to module #6194"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "faae9defff0424799bfa540fdb2c2f309b34db3a",
+            "comment": "Fix module field in package.json #6190"
+          },
+           {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "42dd47713c8c8e362fa3cd54cbf7367140d9fb06",
+            "comment": "Switch from enums to object literals to reduce the bundle size #6068"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v3.0.0",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7"
           }
         ]
       }

@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add hydrateCache API #6271",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

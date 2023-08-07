@@ -1,56 +1,24 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Thu, 06 Jul 2023 00:01:36 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Aug 2023 18:15:15 GMT and should not be manually modified.
 
 <!-- Start content -->
 
-## 3.0.0-beta.1
+## 3.0.0
 
-Thu, 06 Jul 2023 00:01:36 GMT
-
-### Changes
-
-- Remove unused main field in package.json #6190 (thomas.norling@microsoft.com)
-- Bump @azure/msal-browser to v3.0.0-beta.1
-
-## 3.0.0-beta.0
-
-Thu, 15 Jun 2023 22:19:25 GMT
-
-### Patches
-
-- Bump @azure/msal-browser to v3.0.0-beta.0
-
-### Changes
-
-- Update log to match name change #6036 (joarroyo@microsoft.com)
-
-## 3.0.0-alpha.2
-
-Tue, 16 May 2023 22:51:19 GMT
-
-### Changes
-
-- Update rxjs dev dependency #6004 (joarroyo@microsoft.com)
-- Bump @azure/msal-browser to v3.0.0-alpha.2
-
-## 3.0.0-alpha.1
-
-Mon, 08 May 2023 20:12:01 GMT
-
-### Changes
-
-- Bump @azure/msal-browser to v3.0.0-alpha.1
-
-## 3.0.0-alpha.0
-
-Tue, 02 May 2023 23:14:26 GMT
+Mon, 07 Aug 2023 18:15:15 GMT
 
 ### Major changes
 
 - Update msal-angular to Angular 15 (joarroyo@microsoft.com)
 - Rebase dev onto v3 #5843 (kshabelko@microsoft.com)
 - Bump @azure/msal-browser to v3.0.0
+
+### Minor changes
+
+- Remove unused main field in package.json #6190 (thomas.norling@microsoft.com)
+- Update log to match name change #6036 (joarroyo@microsoft.com)
+- Update rxjs dev dependency #6004 (joarroyo@microsoft.com)
 
 ### Patches
 
