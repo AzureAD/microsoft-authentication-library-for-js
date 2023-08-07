@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Address `semver` CVE-2022-25883 and other moderate severity vulnerabilities #9657",
-  "packageName": "@azure/msal-react",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "none"
-}

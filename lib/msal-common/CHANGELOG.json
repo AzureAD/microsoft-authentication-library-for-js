@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 07 Aug 2023 21:58:26 GMT",
+      "tag": "@azure/msal-common_v13.2.1",
+      "version": "13.2.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "43ddd07ff783fb0c7a3c50be7f763d4aeb46f7c2",
+            "comment": "Install @types/node in common"
+          }
+        ],
+        "none": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "a7e37cd85c6332bba43e2a766122cb134d5b8c02",
+            "comment": "Address `semver` CVE-2022-25883 and other moderate severity vulnerabilities #9657"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 05 Jul 2023 22:05:08 GMT",
       "tag": "@azure/msal-common_v13.2.0",
       "version": "13.2.0",

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Install @types/node in common",
-  "packageName": "@azure/msal-common",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}

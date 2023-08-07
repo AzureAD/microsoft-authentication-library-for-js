@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 05 Jul 2023 22:05:08 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Aug 2023 21:58:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 13.2.1
+
+Mon, 07 Aug 2023 21:58:26 GMT
+
+### Patches
+
+- Install @types/node in common (sameera.gajjarapu@microsoft.com)
 
 ## 13.2.0
 
