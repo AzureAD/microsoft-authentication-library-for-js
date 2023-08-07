@@ -2,59 +2,25 @@
 
 > :warning: Before you start here, make sure you understand [Initialize confidential client applications](./initialize-confidential-client-application.md).
 
-You can build confidential client applications with MSAL Node (web apps, daemon apps etc). A **client credential** is mandatory for confidential clients. Client credential can be a:
+You can build confidential client applications with MSAL Node (web apps, daemon apps etc). A **client credential** is mandatory for confidential clients. Client credential can be:
 
-* `clientSecret`: a secret string generated during the app registration, or updated post registration for an existing application.
-* `clientCertificate`: a certificate set during the app registration, or updated post registration for an existing application. The `thumbprint` is a *X.509 SHA-1* thumbprint of the certificate, and the `privateKey` is the PEM encoded private key. `x5c` is the optional *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
-* `clientAssertion`: a string that the application uses when requesting a token. The certificate used to sign the assertion should be set on the app registration. Assertion should be of type `urn:ietf:params:oauth:client-assertion-type:jwt-bearer`.
+* `managed identity`: this is a certificatless scenario, where trust is established via the Azure infrastructure. No secret / certificate management is required. MSAL does not yet implement this feature, but you may use Azure Identity SDK instead. See https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/
+* `clientSecret`: a secret string generated during the app registration, or updated post registration for an existing application. This is not recommended for production.
+* `clientCertificate`: a certificate set during the app registration. The certificate needs to have the private key, because it will be used for signing [an assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials) that MSAL generates. The `thumbprint` is a *X.509 SHA-1* thumbprint of the certificate (x5t), and the `privateKey` is the PEM encoded private key.
+* `clientAssertion`: instead of letting MSAL create an [assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials), the app developer takes control. Useful for adding extra claims to the assertion or for using KeyVault for signing, instead of a local certificate. The certificate used to sign the assertion still needs to be set during app registration.
 
-## Using certificates
+Note: 1p apps may be required to also send `x5c`. This is the *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
 
-This section covers creating a self-signed certificate and initializing a confidential client. For an implementation, see the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
+## Using certificates securely
 
-### Generating self-signed certificates
+Certificates should be stored and deployed safely. Consider using Azure KeyVault for certificate storage and rotation. Passwords should never be hardcoded in source code. 
+Please see [certificates and secrets](https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets) for more information
 
-Download and build **OpenSSL** for your **OS** following the guide at [github.com/openssl](https://github.com/openssl/openssl#build-and-install). If you like to skip building and get a binary distributable from the community instead, check the [OpenSSL Wiki: Binaries](https://wiki.openssl.org/index.php/Binaries) page.
+See the MSAL sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
 
-Afterwards, add the path to **OpenSSL** to your **environment variables** so that you can call it from anywhere.
+### Registering certificates
 
-Type the following in a terminal. You will be prompted to enter a *pass phrase* (this is optional, but recommended):
-
-```bash
-    openssl req -x509 -newkey rsa:2048 -keyout example.key -out example.crt -subj "/CN=example.com"
-```
-
-> :bulb: Add the `-nodes` parameter above if you don't want to encrypt your private key with a *pass phrase*.
-> :bulb: The default lifetime of a self-signed certificate is 32 days. The `-days` parameter can be used to change this.
-
-In your terminal, you should see:
-
-```bash
-    Generating a RSA private key
-    ..............................................
-    ..............................................
-    writing new private key to 'example.key'
-    Enter PEM pass phrase:
-    Verifying - Enter PEM pass phrase:
-    -----
-```
-
-After that, the following files should be generated:
-
-* *example.crt*: your public key. This is the actual certificate file that you'll upload to Azure AD.
-* *example.key*: your private key.
-
-> Powershell users can run the [New-SelfSignedCertificate](https://docs.microsoft.com/powershell/module/pkiclient/new-selfsignedcertificate?view=win10-ps) command:
->
-> ```powershell
->$cert=New-SelfSignedCertificate -Subject "CN=example.com" -CertStoreLocation "Cert:\CurrentUser\My"  -KeyExportPolicy Exportable -KeySpec Signature
->```
->
-> This command will generate two files: *example.cer* (public key) and *example.pfx* (public key + encrypted private key, usually formatted in *PKCS#12*). For more information, see: [Create a self-signed public certificate to authenticate your application](https://docs.microsoft.com/azure/active-directory/develop/howto-create-self-signed-certificate)
-
-> :information_source: Certificate files come in various file extensions, such as *.crt*, *.csr*, *.cer*, *.pem*, *.pfx*, *.key*. For file type conversions, you can use *OpenSSL*. See below for [pfx to pem conversion](#optional-converting-pfx-to-pem). For other type of conversions, please refer to: [SSL/TLS Certificate File Types/Extensions](https://docs.microsoft.com/archive/blogs/kaushal/various-ssltls-certificate-file-typesextensions).
-
-### Registering self-signed certificates
+If you do not have a certificate, you can create a self-signed certificate [using PowerShell](https://learn.microsoft.com/powershell/module/pki/new-selfsignedcertificate?view=windowsserver2022-ps) or using [Azure KeyVault](https://azure.microsoft.com/products/key-vault#layout-container-uida0cf).
 
 You need to upload your certificate to **Azure AD**.
 
@@ -75,7 +41,7 @@ const config = {
         clientId: "YOUR_CLIENT_ID",
         authority: "https://login.microsoftonline.com/YOUR_TENANT_ID",
         clientCertificate: {
-            thumbprint: "CERT_THUMBPRINT", // a 40-digit hexadecimal string
+            thumbprint: "CERT_THUMBPRINT", // a 40-digit hexadecimal string 
             privateKey: "CERT_PRIVATE_KEY",
         }
     }
@@ -101,7 +67,11 @@ z2HCpDsa7dxOsKIrm7F1AtGBjyB0yVDjlh/FA7jT5sd2ypBh3FVsZGJudQsLRKfE
 > openssl pkcs8 -topk8 -inform PEM -outform PEM -in example.key -out example.key
 > ```
 
-If you have encrypted your private key (or if your private key is already encrypted) with a *pass phrase* as recommended, you'll need to decrypt it before passing it to **MSAL Node**. This can be done using Node's [crypto module](https://nodejs.org/docs/latest-v14.x/api/crypto.html). Use the `createPrivateKey()` method to parse and export your key:
+If you have encrypted your private key (or if your private key is already encrypted) with a *pass phrase*, you'll need to decrypt it before passing it to **MSAL Node**.
+
+**Important**: Never hardcode passwords in source code. Both the certificate private key and the optional descryption password should be fetched from a secure location (e.g. Azure KeyVault) and deployed securely with your web api.
+
+This can be done using Node's [crypto module](https://nodejs.org/docs/latest-v14.x/api/crypto.html). Use the `createPrivateKey()` method to parse and export your key:
 
 ```javascript
 const fs = require('fs');
