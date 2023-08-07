@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "When RT is not found in cache, attempts SSO #6217",
-  "packageName": "@azure/msal-browser",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}
