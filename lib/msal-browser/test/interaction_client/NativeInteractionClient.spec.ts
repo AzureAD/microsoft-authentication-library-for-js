@@ -1004,15 +1004,11 @@ describe("NativeInteractionClient Tests", () => {
                 });
 
             expect(nativeRequest.clientId).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
+            expect(nativeRequest.extraParameters!["child_client_id"]).toEqual(
+                "parent_client_id"
+            );
             expect(
-                nativeRequest.extraParameters![
-                    AADServerParamKeys.CHILD_CLIENT_ID
-                ]
-            ).toEqual("parent_client_id");
-            expect(
-                nativeRequest.extraParameters![
-                    AADServerParamKeys.CHILD_REDIRECT_URI
-                ]
+                nativeRequest.extraParameters!["child_redirect_uri"]
             ).toEqual("localhost");
             expect(nativeRequest.redirectUri).toEqual(
                 "https://broker_redirect_uri.com"
