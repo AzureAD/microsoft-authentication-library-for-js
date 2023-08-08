@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Update comments to address Policheck rules",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

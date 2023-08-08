@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Throw when initialize has not been called #6233",
-  "packageName": "@azure/msal-react",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}

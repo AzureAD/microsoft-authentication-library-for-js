@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Disable telemetry parameters in the token request when using OIDC protocol mode",
-  "packageName": "@azure/msal-common",
-  "email": "shylasummers@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}

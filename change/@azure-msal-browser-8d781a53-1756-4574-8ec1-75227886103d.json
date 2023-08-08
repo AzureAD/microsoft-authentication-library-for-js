@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Fix formatting #6264",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

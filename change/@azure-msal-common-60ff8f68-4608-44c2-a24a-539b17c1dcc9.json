@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Prioritize hardcoded metadata over network-sourced metadata #6231",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
