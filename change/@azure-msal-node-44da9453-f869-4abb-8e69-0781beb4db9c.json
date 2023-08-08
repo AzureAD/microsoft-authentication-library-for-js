@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Omit new storeInCache request parameter from public API surface",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

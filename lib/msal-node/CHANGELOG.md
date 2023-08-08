@@ -1,52 +1,12 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 06 Jul 2023 00:01:33 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Aug 2023 18:15:15 GMT and should not be manually modified.
 
 <!-- Start content -->
 
-## 2.0.0-beta.1
+## 2.0.0
 
-Thu, 06 Jul 2023 00:01:33 GMT
-
-### Changes
-
-- fix: msal-node now references the right index.esm.ja (joshua.head@envoryat.com)
-- Export IdTokenClaims & ServerAuthorizationCodeResponse types (thomas.norling@microsoft.com)
-- Make claims-based caching configurable #6163 (hemoral@microsoft.com)
-- Bump @azure/msal-common to v14.0.0-beta.1
-
-## 2.0.0-beta.0
-
-Thu, 15 Jun 2023 22:19:26 GMT
-
-### Patches
-
--   Bump @azure/msal-common to v14.0.0-beta.0
-
-### Changes
-
--   Switch from enums to object literals to reduce the bundle size #6068 (kshabelko@microsoft.com)
-
-## 2.0.0-alpha.2
-
-Tue, 16 May 2023 22:51:25 GMT
-
-### Changes
-
--   Bump @azure/msal-common to v14.0.0-alpha.2
-
-## 2.0.0-alpha.1
-
-Mon, 08 May 2023 20:12:00 GMT
-
-### Changes
-
--   Revert to common as a regular dependency #5985 (hemoral@microsoft.com)
--   Bump @azure/msal-common to v14.0.0-alpha.1
-
-## 2.0.0-alpha.0
-
-Tue, 02 May 2023 23:14:26 GMT
+Mon, 07 Aug 2023 18:15:15 GMT
 
 ### Major changes
 
@@ -56,6 +16,15 @@ Tue, 02 May 2023 23:14:26 GMT
 
 ### Minor changes
 
+-   Add exports to package.json and update type to module #6194 (thomas.norling@microsoft.com)
+-   Omit new storeInCache request parameter from public API surface (thomas.norling@microsoft.com)
+-   ClientCredentials: Fixed bug where user-supplied cache is loaded into memory only after network request #6218 (rginsburg@microsoft.com)
+-   Update "PerformanceClient" for better usability/extendibility #6270 (kshabelko@microsoft.com)
+-   fix: msal-node now references the right index.esm.ja (joshua.head@envoryat.com)
+-   Export IdTokenClaims & ServerAuthorizationCodeResponse types (thomas.norling@microsoft.com)
+-   Make claims-based caching configurable #6163 (hemoral@microsoft.com)
+-   Switch from enums to object literals to reduce the bundle size #6068 (kshabelko@microsoft.com)
+-   Revert to common as a regular dependency #5985 (hemoral@microsoft.com)
 -   Bundle msal-common into msal-node #5942 (kshabelko@microsoft.com)
 -   Export Serializer and Deserializer from msal-node #5931 (kshabelko@microsoft.com)
 -   Add CIAM support for v3(#5915) (sameera.gajjarapu@microsoft.com)
@@ -63,6 +32,7 @@ Tue, 02 May 2023 23:14:26 GMT
 
 ### Patches
 
+-   Bump @azure/msal-common to v14.0.0
 -   Update MSAL Node compatible versions to include Node v20 and drop v16 #5905 (hemoral@microsoft.com)
 -   Remove `null` from `acquireTokenSilent` return type #5912 (thomas.norling@microsoft.com)
 -   Fix prepack hook #5967 (kshabelko@microsoft.com)

@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "ClientCredentials: Fixed bug where user-supplied cache is loaded into memory only after network request #6218",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

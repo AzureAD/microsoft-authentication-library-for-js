@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Catch errors thrown by \"decodeURIComponent\" #6226",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

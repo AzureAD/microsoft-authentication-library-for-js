@@ -1,55 +1,24 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Thu, 06 Jul 2023 00:01:32 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Aug 2023 18:15:15 GMT and should not be manually modified.
 
 <!-- Start content -->
 
-## 2.0.0-beta.1
+## 2.0.0
 
-Thu, 06 Jul 2023 00:01:32 GMT
+Mon, 07 Aug 2023 18:15:15 GMT
 
-### Changes
-
-- Fix module field in package.json #6190 (thomas.norling@microsoft.com)
-- Bump @azure/msal-browser to v3.0.0-beta.1
-
-## 2.0.0-beta.0
-
-Thu, 15 Jun 2023 22:19:25 GMT
-
-### Patches
-
--   Bump @azure/msal-browser to v3.0.0-beta.0
-
-### Changes
-
--   Switch from enums to object literals to reduce the bundle size #6068 (kshabelko@microsoft.com)
-
-## 2.0.0-alpha.2
-
-Tue, 16 May 2023 22:51:25 GMT
-
-### Changes
-
--   Bump @azure/msal-browser to v3.0.0-alpha.2
-
-## 2.0.0-alpha.1
-
-Mon, 08 May 2023 20:12:01 GMT
-
-### Changes
-
--   Bump @azure/msal-browser to v3.0.0-alpha.1
-
-## 2.0.0-alpha.0
-
-Tue, 02 May 2023 23:14:26 GMT
-
-### Major changes
+#### Major changes
 
 -   Rebase dev onto v3 #5843 (kshabelko@microsoft.com)
 -   Drop TSDX in favor of using rollup & jest directly #5895 (thomas.norling@microsoft.com)
 -   Bump @azure/msal-browser to v3.0.0
+
+### Minor changes
+
+-   Add exports to package.json and update type to module #6194 (thomas.norling@microsoft.com)
+-   Fix module field in package.json #6190 (thomas.norling@microsoft.com)
+-   Switch from enums to object literals to reduce the bundle size #6068 (kshabelko@microsoft.com)
 
 ## 1.5.7
 

@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Expose `BrowserPerformanceClient` and `BrowserPerformanceMeasurement` artifacts as public #6273",
+  "comment": "Expose \"CacheRecord\" as part of internals API #6291",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
