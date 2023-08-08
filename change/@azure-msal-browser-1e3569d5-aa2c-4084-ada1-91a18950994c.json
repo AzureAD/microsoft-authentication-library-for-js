@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add storeInCache request parameter to control which tokens are persisted to the cache",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
