@@ -69,12 +69,14 @@ const lastResourceRequest = {
     suite
         .add("ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache", {
             "fn": async () => {
+                await sleep(10);
                 await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
             },
             "minSamples": 150,
         })
         .add("ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache", {
             "fn": async () => {
+                await sleep(10);
                 await confidentialClientApplication.acquireTokenByClientCredential(lastResourceRequest);
             },
             "minSamples": 150,
@@ -85,3 +87,7 @@ const lastResourceRequest = {
         })
         .run({ "async": true });
 })();
+
+const sleep = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
