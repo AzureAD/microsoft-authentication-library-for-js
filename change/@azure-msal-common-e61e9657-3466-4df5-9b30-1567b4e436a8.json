@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Added OIDCOptions parameter to config",
-  "packageName": "@azure/msal-common",
-  "email": "shylasummers@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}

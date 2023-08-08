@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Throw when initialize has not been called #6233",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
