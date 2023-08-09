@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix msal-node file extensions #6318",
+  "packageName": "@azure/msal-node",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
