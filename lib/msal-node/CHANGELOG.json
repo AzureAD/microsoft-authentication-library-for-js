@@ -117,7 +117,7 @@
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-node",
             "commit": "4c99ad07b7ea40e1f2191173e58d80cec143c72d",
-            "comment": "Update \"PerformanceClient\" for better usability/extendibility #6270"
+            "comment": "Update PerformanceClient for better usability/extendibility #6270"
           },
           {
             "author": "joshua.head@envoryat.com",
@@ -1586,7 +1586,7 @@
       "comments": {
         "prerelease": [
           {
-            "comment": "Export all \"Request\" types in msal-node",
+            "comment": "Export all Request types in msal-node",
             "author": "sameera.gajjarapu@microsoft.com",
             "commit": "145602c7ced2c9f77a249f0abdca76f3358bd7db",
             "package": "@azure/msal-node"
