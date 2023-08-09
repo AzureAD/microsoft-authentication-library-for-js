@@ -2,6 +2,21 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 09 Aug 2023 22:44:17 GMT",
+      "tag": "@azure/msal-node_v2.0.1",
+      "version": "2.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4d1b5ebc6070f80b0f33d5610a0f787c25d8031a",
+            "comment": "Fix msal-node file extensions #6318"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Aug 2023 18:15:15 GMT",
       "tag": "@azure/msal-node_v2.0.0",
       "version": "2.0.0",

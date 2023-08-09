@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -34,7 +34,9 @@
   },
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
-    "disallowedChangeTypes": ["major"]
+    "disallowedChangeTypes": [
+      "major"
+    ]
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^15.1.5",

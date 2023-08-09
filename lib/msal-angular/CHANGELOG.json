@@ -2,6 +2,21 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 09 Aug 2023 22:44:17 GMT",
+      "tag": "@azure/msal-angular_v3.0.1",
+      "version": "3.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "33accbe2d7591ad801e927ca10b98a2109109974",
+            "comment": "Fix Angular deploy #6316"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Aug 2023 18:15:15 GMT",
       "tag": "@azure/msal-angular_v3.0.0",
       "version": "3.0.0",
@@ -71,7 +86,7 @@
           }
         ],
         "minor": [
-           {
+          {
             "author": "thomas.norling@microsoft.com",
             "package": "@azure/msal-angular",
             "commit": "faae9defff0424799bfa540fdb2c2f309b34db3a",
@@ -83,7 +98,7 @@
             "commit": "0e1b723cd4a8d59c963fd7a5a5884bebb9e49fbe",
             "comment": "Update log to match name change #6036"
           },
-           {
+          {
             "author": "joarroyo@microsoft.com",
             "package": "@azure/msal-angular",
             "commit": "3458e0096365c79e6fb4054dfce87ff0b6dd2d41",
