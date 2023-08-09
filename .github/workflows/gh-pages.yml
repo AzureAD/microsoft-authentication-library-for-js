@@ -1,8 +1,19 @@
 # Do not run this workflow on pull request since this workflow has permission to modify contents.
+# on:
+#   push:
+#     branches:
+#       - dev
 on:
-  push:
-    branches:
-      - dev
+  pull_request:
+      types: [opened, reopened, synchronize, ready_for_review]
+      paths:
+          - "regression-tests/msal-node/client-credential/*"
+          - "lib/msal-node/**/*"
+          - "lib/msal-common/**/*"
+          - "!**.md"
+          - ".github/workflows/client-credential.yml"
+  merge_group:
+      types: [checks_requested]
 
 permissions:
   # deployments permission to deploy GitHub pages website
