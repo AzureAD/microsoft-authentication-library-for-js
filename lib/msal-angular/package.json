@@ -22,7 +22,6 @@
     "build:browser": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
     "build:pack": "npm run build && cd dist && npm pack",
     "deploy": "npm run build:all:prod && npm publish ./dist --workspaces=false",
-    "deploy:beta": "npm run build:all:prod && npm publish ./dist --tag beta",
     "test": "ng test",
     "test:coverage": "npm test",
     "lint": "cd ../../ && npm run lint:angular",
