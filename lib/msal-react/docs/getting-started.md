@@ -145,9 +145,10 @@ You can read more about this hook in the [hooks doc](https://github.com/AzureAD/
 ```javascript
 import React from 'react';
 import { useMsalAuthentication } from "@azure/msal-react";
+import { InteractionType } from '@azure/msal-browser';
 
 export function App() {
-    const {login, result, error} = useMsalAuthentication("popup");
+    const {login, result, error} = useMsalAuthentication(InteractionType.Popup);
 
     return (
         <React.Fragment>
