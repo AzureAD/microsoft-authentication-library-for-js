@@ -14,6 +14,7 @@
  */
 
 import * as internals from "./internals";
+/** @internal */
 export { internals };
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
