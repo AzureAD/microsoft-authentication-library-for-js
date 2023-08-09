@@ -1,0 +1,224 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@azure/msal-react - v2.0.0 | Documentation</title><meta name="description" content="Documentation for Documentation"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base="..">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">Documentation</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb">
+<li><a href="../index.html">Documentation</a></li>
+<li><a href="_azure_msal_react.html">@azure/msal-react</a></li></ul>
+<h1>Module @azure/msal-react - v2.0.0</h1></div>
+<section class="tsd-panel tsd-typography"><a id="md:microsoft-authentication-library-for-react-msal-react" class="tsd-anchor"></a><h1><a href="#md:microsoft-authentication-library-for-react-msal-react">Microsoft Authentication Library for React (msal-react)</a></h1><p><a href="https://www.npmjs.com/package/@azure/msal-react/"><img src="https://img.shields.io/npm/v/@azure/msal-react.svg?style=flat" alt="npm version"></a>
+<a href="https://nodei.co/npm/@azure/msal-react/"><img src="https://img.shields.io/npm/dm/@azure/msal-react.svg" alt="npm version"></a>
+<a href="https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js"><img src="https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-react" alt="codecov"></a></p>
+<table>
+<thead>
+<tr>
+<th><a href="https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-react" target="blank">Getting Started</a></th>
+<th><a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a></th>
+<th><a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a></th>
+<th><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples" target="blank">Samples</a></th>
+</tr>
+</thead>
+</table>
+<ol>
+<li><a href="#about">About</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md">FAQ</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/CHANGELOG.md">Changelog</a></li>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#build-and-test">Build and Test</a></li>
+<li><a href="#usage">Usage</a><ul>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md">Getting Started</a></li>
+<li><a href="#msal-basics">Msal Basics</a></li>
+<li><a href="#advanced-topics">Advanced Topics</a></li>
+<li><a href="#msal-react-specific-concepts">MSAL React Specific Concepts</a></li>
+</ul>
+</li>
+<li><a href="#samples">Samples</a></li>
+<li><a href="#security-reporting">Security Reporting</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct">Code of Conduct</a></li>
+</ol>
+<a id="md:about" class="tsd-anchor"></a><h2><a href="#md:about">About</a></h2><p>The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-overview">Azure AD</a> work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through <a href="https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers">Azure AD B2C</a> service. It also enables your app to get tokens to access <a href="https://www.microsoft.com/enterprise">Microsoft Cloud</a> services such as <a href="https://graph.microsoft.io">Microsoft Graph</a>.</p>
+<p>The <code>@azure/msal-react</code> package described by the code in this folder uses the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser"><code>@azure/msal-browser</code> package</a> as a peer dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section in the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/README.md#implicit-flow-vs-authorization-code-flow-with-pkce">@azure/msal-browser readme</a>.</p>
+<a id="md:prerequisites" class="tsd-anchor"></a><h2><a href="#md:prerequisites">Prerequisites</a></h2><ul>
+<li><p><code>@azure/msal-react</code> is meant to be used in <a href="https://docs.microsoft.com/azure/active-directory/develop/scenario-spa-overview">Single-Page Application scenarios</a>.</p>
+</li>
+<li><p>Before using <code>@azure/msal-react</code> you will need to <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration">register a Single Page Application in Azure AD</a> to get a valid <code>clientId</code> for configuration, and to register the routes that your app will accept redirect traffic on.</p>
+</li>
+</ul>
+<a id="md:installation" class="tsd-anchor"></a><h2><a href="#md:installation">Installation</a></h2><p>The MSAL React package is available on NPM.</p>
+<pre><code class="language-sh"><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">install</span><span class="hl-1"> </span><span class="hl-8">react</span><span class="hl-1"> </span><span class="hl-8">react-dom</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">install</span><span class="hl-1"> </span><span class="hl-8">@azure/msal-react</span><span class="hl-1"> </span><span class="hl-8">@azure/msal-browser</span>
+</code><button>Copy</button></pre>
+<a id="md:build-and-test" class="tsd-anchor"></a><h2><a href="#md:build-and-test">Build and Test</a></h2><p>See the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md"><code>contributing.md</code></a> file for more information.</p>
+<a id="md:building-the-package-locally" class="tsd-anchor"></a><h3><a href="#md:building-the-package-locally">Building the package locally</a></h3><p>To build the <code>@azure/msal-react</code> library, you can do the following:</p>
+<pre><code class="language-bash"><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">Install</span><span class="hl-1"> </span><span class="hl-8">dev</span><span class="hl-1"> </span><span class="hl-8">dependencies</span><span class="hl-1"> </span><span class="hl-8">from</span><span class="hl-1"> </span><span class="hl-8">root</span><span class="hl-1"> </span><span class="hl-8">of</span><span class="hl-1"> </span><span class="hl-8">repo</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">install</span><br/><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">Change</span><span class="hl-1"> </span><span class="hl-8">to</span><span class="hl-1"> </span><span class="hl-8">the</span><span class="hl-1"> </span><span class="hl-8">msal-react</span><span class="hl-1"> </span><span class="hl-8">package</span><span class="hl-1"> </span><span class="hl-8">directory</span><br/><span class="hl-7">cd</span><span class="hl-1"> </span><span class="hl-8">lib/msal-react/</span><br/><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">To</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">build</span><span class="hl-1"> </span><span class="hl-8">only</span><span class="hl-1"> </span><span class="hl-8">for</span><span class="hl-1"> </span><span class="hl-8">react</span><span class="hl-1"> </span><span class="hl-8">package</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">build</span>
+</code><button>Copy</button></pre>
+<p>To build both the <code>@azure/msal-react</code> library and <code>@azure/msal-browser</code> libraries, you can do the following:</p>
+<pre><code class="language-bash"><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">Install</span><span class="hl-1"> </span><span class="hl-8">dev</span><span class="hl-1"> </span><span class="hl-8">dependencies</span><span class="hl-1"> </span><span class="hl-8">from</span><span class="hl-1"> </span><span class="hl-8">root</span><span class="hl-1"> </span><span class="hl-8">of</span><span class="hl-1"> </span><span class="hl-8">repo</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">install</span><br/><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">Change</span><span class="hl-1"> </span><span class="hl-8">to</span><span class="hl-1"> </span><span class="hl-8">the</span><span class="hl-1"> </span><span class="hl-8">msal-react</span><span class="hl-1"> </span><span class="hl-8">package</span><span class="hl-1"> </span><span class="hl-8">directory</span><br/><span class="hl-7">cd</span><span class="hl-1"> </span><span class="hl-8">lib/msal-react/</span><br/><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">To</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">build</span><span class="hl-1"> </span><span class="hl-8">for</span><span class="hl-1"> </span><span class="hl-8">react</span><span class="hl-1"> </span><span class="hl-8">and</span><span class="hl-1"> </span><span class="hl-8">browser</span><span class="hl-1"> </span><span class="hl-8">packages</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">build:all</span>
+</code><button>Copy</button></pre>
+<a id="md:running-tests" class="tsd-anchor"></a><h3><a href="#md:running-tests">Running Tests</a></h3><p><code>@azure/msal-react</code> uses <a href="https://jestjs.io/">jest</a> to run unit tests and coverage.</p>
+<pre><code class="language-bash"><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">To</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">tests</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">test</span><br/><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">To</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">tests</span><span class="hl-1"> </span><span class="hl-8">with</span><span class="hl-1"> </span><span class="hl-8">code</span><span class="hl-1"> </span><span class="hl-8">coverage</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">test:coverage</span>
+</code><button>Copy</button></pre>
+<a id="md:usage" class="tsd-anchor"></a><h2><a href="#md:usage">Usage</a></h2><p>For help getting started with <code>@azure/msal-react</code> please see our <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md">getting started</a> doc.</p>
+<p>Migrating from <a href="https://www.npmjs.com/package/react-aad-msal">react-aad-msal</a>? Check out our <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/migration-guide.md">migration guide</a>.</p>
+<a id="md:msal-basics" class="tsd-anchor"></a><h3><a href="#md:msal-basics">MSAL Basics</a></h3><p>Since <code>@azure/msal-react</code> is a wrapper around <code>@azure/msal-browser</code> many docs from the <code>msal-browser</code> repo are relevant here as well. For concepts specific to <code>@azure/msal-react</code> please see <a href="#msal-react-specific-concepts">below</a></p>
+<ol>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md">Initialization</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md">Acquiring and using an access token</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/token-lifetimes.md">Managing token lifetimes</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md">Managing Accounts</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md">Logging out</a></li>
+</ol>
+<a id="md:advanced-topics" class="tsd-anchor"></a><h3><a href="#md:advanced-topics">Advanced Topics</a></h3><ul>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md">Configuration Options</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md">Request and Response Details</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md">Events</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md">Cache Storage</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md">Performance Enhancements</a></li>
+</ul>
+<a id="md:msal-react-specific-concepts" class="tsd-anchor"></a><h3><a href="#md:msal-react-specific-concepts">MSAL React Specific Concepts</a></h3><ol>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md">Hooks</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md">Events</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md">Class Components</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/performance.md">Performance</a></li>
+</ol>
+<a id="md:samples" class="tsd-anchor"></a><h2><a href="#md:samples">Samples</a></h2><p>Our <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples">samples directory</a> contains several example apps you can spin up to see how this library can be used in different contexts.</p>
+<ul>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample">Create React App (JS) Sample</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/typescript-sample">Create React App (TS) Sample</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/nextjs-sample">Next.js Sample</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/gatsby-sample">Gatsby Sample</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/b2c-sample">B2C Sample</a></li>
+</ul>
+<p>More advanced samples backed with a tutorial can be found in the <a href="https://github.com/Azure-Samples">Azure Samples</a> space on GitHub:</p>
+<ul>
+<li><a href="https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/3-Authorization-II/1-call-api">React SPA calling Express.js web API</a></li>
+<li><a href="https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/5-AccessControl/1-call-api-roles">React SPA calling Express.js web API using App Roles and RBAC</a></li>
+<li><a href="https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/6-AdvancedScenarios/1-call-api-obo">React SPA calling Microsoft Graph via Express.js web API using on-behalf-of flow</a></li>
+<li><a href="https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/4-Deployment/2-deploy-static">Deployment tutorial for Azure Static Web Apps</a></li>
+</ul>
+<a id="md:security-reporting" class="tsd-anchor"></a><h2><a href="#md:security-reporting">Security Reporting</a></h2><p>If you find a security issue with our libraries or services please report it to <a href="mailto:secure@microsoft.com">secure@microsoft.com</a> with as much detail as possible. Your submission may be eligible for a bounty through the <a href="http://aka.ms/bugbounty">Microsoft Bounty</a> program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting <a href="https://technet.microsoft.com/security/dd252948">this page</a> and subscribing to Security Advisory Alerts.</p>
+<a id="md:license" class="tsd-anchor"></a><h2><a href="#md:license">License</a></h2><p>Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License.</p>
+<a id="md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct" class="tsd-anchor"></a><h2><a href="#md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct">We Value and Adhere to the Microsoft Open Source Code of Conduct</a></h2><p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>. For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a> or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
+</section>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<h3 class="tsd-index-heading uppercase">Index</h3>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Interfaces</h3>
+<div class="tsd-index-list"><a href="../interfaces/_azure_msal_react.IMsalContext.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>IMsal<wbr/>Context</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Type Aliases</h3>
+<div class="tsd-index-list"><a href="../types/_azure_msal_react.AccountIdentifiers.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>Account<wbr/>Identifiers</span></a>
+<a href="../types/_azure_msal_react.AuthenticatedTemplateProps.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Authenticated<wbr/>Template<wbr/>Props</span></a>
+<a href="../types/_azure_msal_react.MsalAuthenticationProps.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Msal<wbr/>Authentication<wbr/>Props</span></a>
+<a href="../types/_azure_msal_react.MsalAuthenticationResult.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Msal<wbr/>Authentication<wbr/>Result</span></a>
+<a href="../types/_azure_msal_react.MsalProviderProps.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Msal<wbr/>Provider<wbr/>Props</span></a>
+<a href="../types/_azure_msal_react.UnauthenticatedTemplateProps.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Unauthenticated<wbr/>Template<wbr/>Props</span></a>
+<a href="../types/_azure_msal_react.WithMsalProps.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>With<wbr/>Msal<wbr/>Props</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Variables</h3>
+<div class="tsd-index-list"><a href="../variables/_azure_msal_react.MsalContext.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-32"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-variable)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.106 16L8.85 7.24H9.966L11.454 13.192C11.558 13.608 11.646 13.996 11.718 14.356C11.79 14.708 11.842 14.976 11.874 15.16C11.906 14.976 11.954 14.708 12.018 14.356C12.09 13.996 12.178 13.608 12.282 13.192L13.758 7.24H14.85L12.582 16H11.106Z" fill="var(--color-text)"></path></g></svg><span>Msal<wbr/>Context</span></a>
+<a href="../variables/_azure_msal_react.version.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>version</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Functions</h3>
+<div class="tsd-index-list"><a href="../functions/_azure_msal_react.AuthenticatedTemplate.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-64"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)"></path></g></svg><span>Authenticated<wbr/>Template</span></a>
+<a href="../functions/_azure_msal_react.MsalAuthenticationTemplate.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>Msal<wbr/>Authentication<wbr/>Template</span></a>
+<a href="../functions/_azure_msal_react.MsalConsumer.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>Msal<wbr/>Consumer</span></a>
+<a href="../functions/_azure_msal_react.MsalProvider.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>Msal<wbr/>Provider</span></a>
+<a href="../functions/_azure_msal_react.UnauthenticatedTemplate.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>Unauthenticated<wbr/>Template</span></a>
+<a href="../functions/_azure_msal_react.useAccount.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>use<wbr/>Account</span></a>
+<a href="../functions/_azure_msal_react.useIsAuthenticated.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>use<wbr/>Is<wbr/>Authenticated</span></a>
+<a href="../functions/_azure_msal_react.useMsal.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>use<wbr/>Msal</span></a>
+<a href="../functions/_azure_msal_react.useMsalAuthentication.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>use<wbr/>Msal<wbr/>Authentication</span></a>
+<a href="../functions/_azure_msal_react.withMsal.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>with<wbr/>Msal</span></a>
+</div></section></section></section></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)" id="icon-chevronDown"></path></svg>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-index-accordion tsd-page-navigation"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li>
+<ul>
+<li><a href="#md:microsoft-authentication-library-for-react-msal-react"><span>Microsoft <wbr/>Authentication <wbr/>Library for <wbr/>React (msal-<wbr/>react)</span></a></li>
+<li>
+<ul>
+<li><a href="#md:about"><span>About</span></a></li>
+<li><a href="#md:prerequisites"><span>Prerequisites</span></a></li>
+<li><a href="#md:installation"><span>Installation</span></a></li>
+<li><a href="#md:build-and-test"><span>Build and <wbr/>Test</span></a></li>
+<li>
+<ul>
+<li><a href="#md:building-the-package-locally"><span>Building the package locally</span></a></li>
+<li><a href="#md:running-tests"><span>Running <wbr/>Tests</span></a></li></ul></li>
+<li><a href="#md:usage"><span>Usage</span></a></li>
+<li>
+<ul>
+<li><a href="#md:msal-basics"><span>MSAL <wbr/>Basics</span></a></li>
+<li><a href="#md:advanced-topics"><span>Advanced <wbr/>Topics</span></a></li>
+<li><a href="#md:msal-react-specific-concepts"><span>MSAL <wbr/>React <wbr/>Specific <wbr/>Concepts</span></a></li></ul></li>
+<li><a href="#md:samples"><span>Samples</span></a></li>
+<li><a href="#md:security-reporting"><span>Security <wbr/>Reporting</span></a></li>
+<li><a href="#md:license"><span>License</span></a></li>
+<li><a href="#md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct"><span>We <wbr/>Value and <wbr/>Adhere to the <wbr/>Microsoft <wbr/>Open <wbr/>Source <wbr/>Code of <wbr/>Conduct</span></a></li></ul></li></ul></li></ul></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Documentation</span></a>
+<ul class="tsd-small-nested-navigation">
+<li><a href="_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.0</span></a></li>
+<li><a href="_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.0.0</span></a></li>
+<li><a href="_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.0.0</span></a></li>
+<li><a href="_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.0.0</span></a></li>
+<li>
+<details class="tsd-index-accordion" open data-key="@azure/msal-react"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="_azure_msal_react.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.0.0</span></a></summary>
+<div class="tsd-accordion-details">
+<ul class="tsd-nested-navigation">
+<li><a href="../interfaces/_azure_msal_react.IMsalContext.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>IMsal<wbr/>Context</span></a></li>
+<li><a href="../types/_azure_msal_react.AccountIdentifiers.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Account<wbr/>Identifiers</span></a></li>
+<li><a href="../types/_azure_msal_react.AuthenticatedTemplateProps.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Authenticated<wbr/>Template<wbr/>Props</span></a></li>
+<li><a href="../types/_azure_msal_react.MsalAuthenticationProps.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Msal<wbr/>Authentication<wbr/>Props</span></a></li>
+<li><a href="../types/_azure_msal_react.MsalAuthenticationResult.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Msal<wbr/>Authentication<wbr/>Result</span></a></li>
+<li><a href="../types/_azure_msal_react.MsalProviderProps.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Msal<wbr/>Provider<wbr/>Props</span></a></li>
+<li><a href="../types/_azure_msal_react.UnauthenticatedTemplateProps.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Unauthenticated<wbr/>Template<wbr/>Props</span></a></li>
+<li><a href="../types/_azure_msal_react.WithMsalProps.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>With<wbr/>Msal<wbr/>Props</span></a></li>
+<li><a href="../variables/_azure_msal_react.MsalContext.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Msal<wbr/>Context</span></a></li>
+<li><a href="../variables/_azure_msal_react.version.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>version</span></a></li>
+<li><a href="../functions/_azure_msal_react.AuthenticatedTemplate.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>Authenticated<wbr/>Template</span></a></li>
+<li><a href="../functions/_azure_msal_react.MsalAuthenticationTemplate.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>Msal<wbr/>Authentication<wbr/>Template</span></a></li>
+<li><a href="../functions/_azure_msal_react.MsalConsumer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>Msal<wbr/>Consumer</span></a></li>
+<li><a href="../functions/_azure_msal_react.MsalProvider.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>Msal<wbr/>Provider</span></a></li>
+<li><a href="../functions/_azure_msal_react.UnauthenticatedTemplate.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>Unauthenticated<wbr/>Template</span></a></li>
+<li><a href="../functions/_azure_msal_react.useAccount.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>use<wbr/>Account</span></a></li>
+<li><a href="../functions/_azure_msal_react.useIsAuthenticated.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>use<wbr/>Is<wbr/>Authenticated</span></a></li>
+<li><a href="../functions/_azure_msal_react.useMsal.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>use<wbr/>Msal</span></a></li>
+<li><a href="../functions/_azure_msal_react.useMsalAuthentication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>use<wbr/>Msal<wbr/>Authentication</span></a></li>
+<li><a href="../functions/_azure_msal_react.withMsal.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>with<wbr/>Msal</span></a></li></ul></div></details></li>
+<li><a href="_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.0.0</span></a></li></ul></nav></div></div></div>
+<div class="tsd-generator">
+<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<div class="overlay"></div></body></html>

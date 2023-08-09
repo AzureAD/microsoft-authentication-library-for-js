@@ -1,0 +1,252 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@azure/msal-node-extensions - v1.0.0 | Documentation</title><meta name="description" content="Documentation for Documentation"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base="..">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">Documentation</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb">
+<li><a href="../index.html">Documentation</a></li>
+<li><a href="_azure_msal_node_extensions.html">@azure/msal-node-extensions</a></li></ul>
+<h1>Module @azure/msal-node-extensions - v1.0.0</h1></div>
+<section class="tsd-panel tsd-typography"><a id="md:microsoft-authentication-extensions-for-node" class="tsd-anchor"></a><h1><a href="#md:microsoft-authentication-extensions-for-node">Microsoft Authentication Extensions for Node</a></h1><p><img src="https://img.shields.io/npm/v/@azure/msal-node-extensions" alt="npm (scoped)">
+<img src="https://img.shields.io/npm/dw/@azure/msal-node-extensions" alt="npm"></p>
+<table>
+<thead>
+<tr>
+<th><a href="https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-react" target="blank">Getting Started</a></th>
+<th><a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a></th>
+<th><a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a></th>
+<th><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples" target="blank">Samples</a></th>
+</tr>
+</thead>
+</table>
+<ol>
+<li><a href="#about">About</a><ul>
+<li><a href="#cache-persistence">Cache Persistence</a></li>
+<li><a href="#brokering">Brokering</a></li>
+</ul>
+</li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/extensions/docs/faq.md">FAQ</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/extensions/msal-node-extensions/CHANGELOG.md">Changelog</a></li>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#usage---cache-persistence">Usage - Cache Persistence</a></li>
+<li><a href="#usage---brokering">Usage - Brokering</a></li>
+<li><a href="#build-and-test">Build and Test</a><ul>
+<li><a href="#building-the-package-locally">Build package</a></li>
+<li><a href="#running-tests">Test package</a></li>
+</ul>
+</li>
+<li><a href="#samples">Samples</a></li>
+<li><a href="#security-reporting">Security Reporting</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#contributing">Contributing</a></li>
+<li><a href="#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct">Code of Conduct</a></li>
+</ol>
+<a id="md:about" class="tsd-anchor"></a><h2><a href="#md:about">About</a></h2><p>The <code>msal-node-extensions</code> library offers optional features to enhance the capabilities of <code>msal-node</code>:</p>
+<ul>
+<li>Secure mechanisms for client applications to perform cross-platform token cache serialization and persistence</li>
+<li>An interface for acquiring tokens from the native token broker, enabling a higher level of security and SSO with other native applications</li>
+</ul>
+<a id="md:cache-persistence" class="tsd-anchor"></a><h3><a href="#md:cache-persistence">Cache Persistence</a></h3><p><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node">MSAL Node</a> supports an in-memory cache by default and provides the ICachePlugin interface to perform cache serialization, but does not provide a default way of storing the token cache to disk. Microsoft authentication extensions for node is default implementation for persisting cache to disk across different platforms.</p>
+<p>Supported platforms are Windows, Mac and Linux:</p>
+<ul>
+<li>Windows - DPAPI is used for encryption.</li>
+<li>MAC - The MAC KeyChain is used.</li>
+<li>Linux - LibSecret is used for storing to &quot;Secret Service&quot;.</li>
+</ul>
+<blockquote>
+<p>Note: It is recommended to use this library for cache persistence support for Public client applications such as Desktop apps only. In web applications, this may lead to scale and performance issues. Web applications are recommended to persist the cache in session.</p>
+</blockquote>
+<a id="md:brokering" class="tsd-anchor"></a><h3><a href="#md:brokering">Brokering</a></h3><p>When using the native broker, refresh tokens are bound to the device on which they are acquired on and are not accessible by <code>msal-node</code> or the application. This provides a higher level of security that cannot be achieved by <code>msal-node</code> alone. More information about token brokering can be found <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs/brokering.md">here</a></p>
+<a id="md:prerequisites" class="tsd-anchor"></a><h2><a href="#md:prerequisites">Prerequisites</a></h2><p>The <code>msal-node-extensions</code> library ships with pre-compiled binaries.</p>
+<blockquote>
+<p>Note: If you are planning to do local development on msal-node-extensions itself you may need to install some additional tools. <a href="https://github.com/nodejs/node-gyp">node-gyp</a> is used to compile <a href="https://nodejs.org/api/addons.html">addons</a> for accessing system APIs. Installation requirements are listed on the <a href="https://github.com/nodejs/node-gyp#installation">node-gyp README</a></p>
+</blockquote>
+<p>On linux, the library uses <code>libsecret</code> so you may need to install it. Depending on your distribution, you will need to run the following command:</p>
+<ul>
+<li>Debian/Ubuntu: <code>sudo apt-get install libsecret-1-dev</code></li>
+<li>Red Hat-based: <code>sudo yum install libsecret-devel</code></li>
+<li>Arch Linux: sudo <code>pacman -S libsecret</code></li>
+</ul>
+<a id="md:installation" class="tsd-anchor"></a><h2><a href="#md:installation">Installation</a></h2><p>The <code>msal-node-extensions</code> package is available on NPM.</p>
+<pre><code class="language-bash"><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">i</span><span class="hl-1"> </span><span class="hl-8">@azure/msal-node-extensions</span><span class="hl-1"> </span><span class="hl-11">--save</span>
+</code><button>Copy</button></pre>
+<a id="md:usage---cache-persistence" class="tsd-anchor"></a><h2><a href="#md:usage---cache-persistence">Usage - Cache Persistence</a></h2><a id="md:getting-started" class="tsd-anchor"></a><h3><a href="#md:getting-started">Getting started</a></h3><p>Here is a code snippet on how to configure the token cache.</p>
+<pre><code class="language-js"><span class="hl-11">const</span><span class="hl-1"> { </span><br/><span class="hl-1">    </span><span class="hl-12">DataProtectionScope</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-12">Environment</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-12">PersistenceCreator</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-12">PersistenceCachePlugin</span><span class="hl-1">,</span><br/><span class="hl-1">} = </span><span class="hl-7">require</span><span class="hl-1">(</span><span class="hl-8">&quot;@azure/msal-node-extensions&quot;</span><span class="hl-1">);</span><br/><br/><span class="hl-9">// You can use the helper functions provided through the Environment class to construct your cache path</span><br/><span class="hl-9">// The helper functions provide consistent implementations across Windows, Mac and Linux.</span><br/><span class="hl-11">const</span><span class="hl-1"> </span><span class="hl-12">cachePath</span><span class="hl-1"> = </span><span class="hl-0">path</span><span class="hl-1">.</span><span class="hl-7">join</span><span class="hl-1">(</span><span class="hl-0">Environment</span><span class="hl-1">.</span><span class="hl-7">getUserRootDirectory</span><span class="hl-1">(), </span><span class="hl-8">&quot;./cache.json&quot;</span><span class="hl-1">);</span><br/><br/><span class="hl-11">const</span><span class="hl-1"> </span><span class="hl-12">persistenceConfiguration</span><span class="hl-1"> = {</span><br/><span class="hl-1">    </span><span class="hl-0">cachePath</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">dataProtectionScope:</span><span class="hl-1"> </span><span class="hl-0">DataProtectionScope</span><span class="hl-1">.</span><span class="hl-0">CurrentUser</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">serviceName:</span><span class="hl-1"> </span><span class="hl-8">&quot;&lt;SERVICE-NAME&gt;&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">accountName:</span><span class="hl-1"> </span><span class="hl-8">&quot;&lt;ACCOUNT-NAME&gt;&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">usePlaintextFileOnLinux:</span><span class="hl-1"> </span><span class="hl-11">false</span><span class="hl-1">,</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-9">// The PersistenceCreator obfuscates a lot of the complexity by doing the following actions for you :-</span><br/><span class="hl-9">// 1. Detects the environment the application is running on and initializes the right persistence instance for the environment.</span><br/><span class="hl-9">// 2. Performs persistence validation for you.</span><br/><span class="hl-9">// 3. Performs any fallbacks if necessary.</span><br/><span class="hl-0">PersistenceCreator</span><br/><span class="hl-1">.</span><span class="hl-7">createPersistence</span><span class="hl-1">(</span><span class="hl-0">persistenceConfiguration</span><span class="hl-1">)</span><br/><span class="hl-1">.</span><span class="hl-7">then</span><span class="hl-1">(</span><span class="hl-11">async</span><span class="hl-1"> (</span><span class="hl-0">persistence</span><span class="hl-1">) </span><span class="hl-11">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-11">const</span><span class="hl-1"> </span><span class="hl-12">publicClientConfig</span><span class="hl-1"> = {</span><br/><span class="hl-1">        </span><span class="hl-0">auth:</span><span class="hl-1"> {</span><br/><span class="hl-1">            </span><span class="hl-0">clientId:</span><span class="hl-1"> </span><span class="hl-8">&quot;&lt;CLIENT-ID&gt;&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">            </span><span class="hl-0">authority:</span><span class="hl-1"> </span><span class="hl-8">&quot;&lt;AUTHORITY&gt;&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">        },</span><br/><br/><span class="hl-1">        </span><span class="hl-9">// This hooks up the cross-platform cache into MSAL</span><br/><span class="hl-1">        </span><span class="hl-0">cache:</span><span class="hl-1"> {</span><br/><span class="hl-1">            </span><span class="hl-0">cachePlugin:</span><span class="hl-1"> </span><span class="hl-11">new</span><span class="hl-1"> </span><span class="hl-7">PersistenceCachePlugin</span><span class="hl-1">(</span><span class="hl-0">persistence</span><span class="hl-1">)</span><br/><span class="hl-1">        }</span><br/><span class="hl-1">    };</span><br/><br/><span class="hl-1">    </span><span class="hl-11">const</span><span class="hl-1"> </span><span class="hl-12">pca</span><span class="hl-1"> = </span><span class="hl-11">new</span><span class="hl-1"> </span><span class="hl-0">msal</span><span class="hl-1">.</span><span class="hl-7">PublicClientApplication</span><span class="hl-1">(</span><span class="hl-0">publicClientConfig</span><span class="hl-1">);</span><br/><span class="hl-1">    </span><br/><span class="hl-1">    </span><span class="hl-9">// Use the public client application as required...</span><br/><span class="hl-1">});</span>
+</code><button>Copy</button></pre>
+<p>All the arguments for the persistence configuration are explained below:</p>
+<table>
+<thead>
+<tr>
+<th>Field Name</th>
+<th>Description</th>
+<th>Required For</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>cachePath</td>
+<td>This is the path to the lock file the library uses to synchronize the reads and the writes</td>
+<td>Windows, Mac and Linux</td>
+</tr>
+<tr>
+<td>dataProtectionScope</td>
+<td>Specifies the scope of the data protection on Windows either the current user or the local machine.</td>
+<td>Windows</td>
+</tr>
+<tr>
+<td>serviceName</td>
+<td>This specifies the service name to be used on Mac and/or Linux</td>
+<td>Mac and Linux</td>
+</tr>
+<tr>
+<td>accountName</td>
+<td>This specifies the account name to be used on Mac and/or Linux</td>
+<td>Mac and Linux</td>
+</tr>
+<tr>
+<td>usePlaintextFileOnLinux</td>
+<td>This is a flag to default to plain text on linux if libsecret fails. Defaults to <code>false</code></td>
+<td>Linux</td>
+</tr>
+</tbody></table>
+<a id="md:security-boundary" class="tsd-anchor"></a><h3><a href="#md:security-boundary">Security boundary</a></h3><p>On Windows and Linux, the token cache is scoped to the user session, i.e. all applications running on behalf of the user can access the cache. Mac offers a more restricted scope, ensuring that only the application that created the cache can access it, and prompting the user if others apps want access.</p>
+<a id="md:usage---brokering" class="tsd-anchor"></a><h2><a href="#md:usage---brokering">Usage - Brokering</a></h2><p>Enabling token brokering requires just one new configuration parameter:</p>
+<pre><code class="language-javascript"><span class="hl-13">import</span><span class="hl-1"> { </span><span class="hl-0">PublicClientApplication</span><span class="hl-1">, </span><span class="hl-0">Configuration</span><span class="hl-1"> } </span><span class="hl-13">from</span><span class="hl-1"> </span><span class="hl-8">&quot;@azure/msal-node&quot;</span><span class="hl-1">;</span><br/><span class="hl-13">import</span><span class="hl-1"> { </span><span class="hl-0">NativeBrokerPlugin</span><span class="hl-1"> } </span><span class="hl-13">from</span><span class="hl-1"> </span><span class="hl-8">&quot;@azure/msal-node-extensions&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-11">const</span><span class="hl-1"> </span><span class="hl-12">msalConfig</span><span class="hl-1">: </span><span class="hl-14">Configuration</span><span class="hl-1"> = {</span><br/><span class="hl-1">    </span><span class="hl-0">auth:</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-0">clientId:</span><span class="hl-1"> </span><span class="hl-8">&quot;your-client-id&quot;</span><br/><span class="hl-1">    },</span><br/><span class="hl-1">    </span><span class="hl-0">broker:</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-0">nativeBrokerPlugin:</span><span class="hl-1"> </span><span class="hl-11">new</span><span class="hl-1"> </span><span class="hl-7">NativeBrokerPlugin</span><span class="hl-1">()</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">};</span><br/><br/><span class="hl-11">const</span><span class="hl-1"> </span><span class="hl-12">pca</span><span class="hl-1"> = </span><span class="hl-11">new</span><span class="hl-1"> </span><span class="hl-7">PublicClientApplication</span><span class="hl-1">(</span><span class="hl-0">msalConfig</span><span class="hl-1">);</span>
+</code><button>Copy</button></pre>
+<p>More detailed information can be found in the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs/brokering.md">brokering documentation</a></p>
+<a id="md:build-and-test" class="tsd-anchor"></a><h2><a href="#md:build-and-test">Build and Test</a></h2><p>If you intend to contribute to the library visit the <a href="#contributing"><code>contributing section</code></a> for even more information on how.</p>
+<a id="md:building-the-package-locally" class="tsd-anchor"></a><h3><a href="#md:building-the-package-locally">Building the package locally</a></h3><p>To build both the <code>@azure/msal-node-extensions</code> library and <code>@azure/msal-common</code> libraries, run the following commands:</p>
+<pre><code class="language-bash"><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">Install</span><span class="hl-1"> </span><span class="hl-8">dev</span><span class="hl-1"> </span><span class="hl-8">dependencies</span><span class="hl-1"> </span><span class="hl-8">from</span><span class="hl-1"> </span><span class="hl-8">root</span><span class="hl-1"> </span><span class="hl-8">of</span><span class="hl-1"> </span><span class="hl-8">repo</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">install</span><br/><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">Change</span><span class="hl-1"> </span><span class="hl-8">to</span><span class="hl-1"> </span><span class="hl-8">the</span><span class="hl-1"> </span><span class="hl-8">msal-node-extensions</span><span class="hl-1"> </span><span class="hl-8">package</span><span class="hl-1"> </span><span class="hl-8">directory</span><br/><span class="hl-7">cd</span><span class="hl-1"> </span><span class="hl-8">lib/msal-node-extensions/</span><br/><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">Build</span><span class="hl-1"> </span><span class="hl-8">msal-common</span><span class="hl-1"> </span><span class="hl-8">and</span><span class="hl-1"> </span><span class="hl-8">msal-node-extensions</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">build:all</span>
+</code><button>Copy</button></pre>
+<a id="md:running-tests" class="tsd-anchor"></a><h3><a href="#md:running-tests">Running Tests</a></h3><p><code>@azure/msal-node-extensions</code> uses <a href="https://jestjs.io/">jest</a> to run unit tests and coverage.</p>
+<pre><code class="language-bash"><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">To</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">tests</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">test</span>
+</code><button>Copy</button></pre>
+<a id="md:samples" class="tsd-anchor"></a><h2><a href="#md:samples">Samples</a></h2><ul>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions">Auth Code CLI sample with Cache Persistence</a>. This can be run on Windows, Mac and Linux.</li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack">Electron sample with Cache Persistence</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-brokered-app">Brokering sample</a></li>
+</ul>
+<a id="md:security-reporting" class="tsd-anchor"></a><h2><a href="#md:security-reporting">Security Reporting</a></h2><p>If you find a security issue with our libraries or services please report it to <a href="mailto:secure@microsoft.com">secure@microsoft.com</a> with as much detail as possible. Your submission may be eligible for a bounty through the <a href="http://aka.ms/bugbounty">Microsoft Bounty</a> program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting <a href="https://technet.microsoft.com/security/dd252948">this page</a> and subscribing to Security Advisory Alerts.</p>
+<a id="md:license" class="tsd-anchor"></a><h2><a href="#md:license">License</a></h2><p>Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License.</p>
+<a id="md:contributing" class="tsd-anchor"></a><h2><a href="#md:contributing">Contributing</a></h2><p>This project welcomes contributions and suggestions.  Most contributions require you to agree to a
+Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
+the rights to use your contribution. For details, visit <a href="https://cla.opensource.microsoft.com">https://cla.opensource.microsoft.com</a>.</p>
+<p>When you submit a pull request, a CLA bot will automatically determine whether you need to provide
+a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
+provided by the bot. You will only need to do this once across all repos using our CLA.</p>
+<p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>.
+For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a> or
+contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
+<a id="md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct" class="tsd-anchor"></a><h2><a href="#md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct">We Value and Adhere to the Microsoft Open Source Code of Conduct</a></h2><p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>. For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a> or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
+</section>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<h3 class="tsd-index-heading uppercase">Index</h3>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Classes</h3>
+<div class="tsd-index-list"><a href="../classes/_azure_msal_node_extensions.Environment.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-128"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-class)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.898 16.1201C11.098 16.1201 10.466 15.8961 10.002 15.4481C9.53803 15.0001 9.30603 14.3841 9.30603 13.6001V9.64012C9.30603 8.85612 9.53803 8.24012 10.002 7.79212C10.466 7.34412 11.098 7.12012 11.898 7.12012C12.682 7.12012 13.306 7.34812 13.77 7.80412C14.234 8.25212 14.466 8.86412 14.466 9.64012H13.386C13.386 9.14412 13.254 8.76412 12.99 8.50012C12.734 8.22812 12.37 8.09212 11.898 8.09212C11.426 8.09212 11.054 8.22412 10.782 8.48812C10.518 8.75212 10.386 9.13212 10.386 9.62812V13.6001C10.386 14.0961 10.518 14.4801 10.782 14.7521C11.054 15.0161 11.426 15.1481 11.898 15.1481C12.37 15.1481 12.734 15.0161 12.99 14.7521C13.254 14.4801 13.386 14.0961 13.386 13.6001H14.466C14.466 14.3761 14.234 14.9921 13.77 15.4481C13.306 15.8961 12.682 16.1201 11.898 16.1201Z" fill="var(--color-text)"></path></g></svg><span>Environment</span></a>
+<a href="../classes/_azure_msal_node_extensions.FilePersistence.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>File<wbr/>Persistence</span></a>
+<a href="../classes/_azure_msal_node_extensions.FilePersistenceWithDataProtection.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>File<wbr/>Persistence<wbr/>With<wbr/>Data<wbr/>Protection</span></a>
+<a href="../classes/_azure_msal_node_extensions.KeychainPersistence.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Keychain<wbr/>Persistence</span></a>
+<a href="../classes/_azure_msal_node_extensions.LibSecretPersistence.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Lib<wbr/>Secret<wbr/>Persistence</span></a>
+<a href="../classes/_azure_msal_node_extensions.NativeBrokerPlugin.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Native<wbr/>Broker<wbr/>Plugin</span></a>
+<a href="../classes/_azure_msal_node_extensions.PersistenceCachePlugin.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Persistence<wbr/>Cache<wbr/>Plugin</span></a>
+<a href="../classes/_azure_msal_node_extensions.PersistenceCreator.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Persistence<wbr/>Creator</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Interfaces</h3>
+<div class="tsd-index-list"><a href="../interfaces/_azure_msal_node_extensions.IPersistence.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>IPersistence</span></a>
+<a href="../interfaces/_azure_msal_node_extensions.IPersistenceConfiguration.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>IPersistence<wbr/>Configuration</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Type Aliases</h3>
+<div class="tsd-index-list"><a href="../types/_azure_msal_node_extensions.CrossPlatformLockOptions.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>Cross<wbr/>Platform<wbr/>Lock<wbr/>Options</span></a>
+<a href="../types/_azure_msal_node_extensions.DataProtectionScope.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Data<wbr/>Protection<wbr/>Scope</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Variables</h3>
+<div class="tsd-index-list"><a href="../variables/_azure_msal_node_extensions.DataProtectionScope-1.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-32"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-variable)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.106 16L8.85 7.24H9.966L11.454 13.192C11.558 13.608 11.646 13.996 11.718 14.356C11.79 14.708 11.842 14.976 11.874 15.16C11.906 14.976 11.954 14.708 12.018 14.356C12.09 13.996 12.178 13.608 12.282 13.192L13.758 7.24H14.85L12.582 16H11.106Z" fill="var(--color-text)"></path></g></svg><span>Data<wbr/>Protection<wbr/>Scope</span></a>
+</div></section></section></section></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)" id="icon-chevronDown"></path></svg>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-index-accordion tsd-page-navigation"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li>
+<ul>
+<li><a href="#md:microsoft-authentication-extensions-for-node"><span>Microsoft <wbr/>Authentication <wbr/>Extensions for <wbr/>Node</span></a></li>
+<li>
+<ul>
+<li><a href="#md:about"><span>About</span></a></li>
+<li>
+<ul>
+<li><a href="#md:cache-persistence"><span>Cache <wbr/>Persistence</span></a></li>
+<li><a href="#md:brokering"><span>Brokering</span></a></li></ul></li>
+<li><a href="#md:prerequisites"><span>Prerequisites</span></a></li>
+<li><a href="#md:installation"><span>Installation</span></a></li>
+<li><a href="#md:usage---cache-persistence"><span>Usage -<wbr/> <wbr/>Cache <wbr/>Persistence</span></a></li>
+<li>
+<ul>
+<li><a href="#md:getting-started"><span>Getting started</span></a></li>
+<li><a href="#md:security-boundary"><span>Security boundary</span></a></li></ul></li>
+<li><a href="#md:usage---brokering"><span>Usage -<wbr/> <wbr/>Brokering</span></a></li>
+<li><a href="#md:build-and-test"><span>Build and <wbr/>Test</span></a></li>
+<li>
+<ul>
+<li><a href="#md:building-the-package-locally"><span>Building the package locally</span></a></li>
+<li><a href="#md:running-tests"><span>Running <wbr/>Tests</span></a></li></ul></li>
+<li><a href="#md:samples"><span>Samples</span></a></li>
+<li><a href="#md:security-reporting"><span>Security <wbr/>Reporting</span></a></li>
+<li><a href="#md:license"><span>License</span></a></li>
+<li><a href="#md:contributing"><span>Contributing</span></a></li>
+<li><a href="#md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct"><span>We <wbr/>Value and <wbr/>Adhere to the <wbr/>Microsoft <wbr/>Open <wbr/>Source <wbr/>Code of <wbr/>Conduct</span></a></li></ul></li></ul></li></ul></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Documentation</span></a>
+<ul class="tsd-small-nested-navigation">
+<li><a href="_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.0</span></a></li>
+<li><a href="_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.0.0</span></a></li>
+<li><a href="_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.0.0</span></a></li>
+<li><a href="_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.0.0</span></a></li>
+<li><a href="_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.0.0</span></a></li>
+<li>
+<details class="tsd-index-accordion" open data-key="@azure/msal-node-extensions"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="_azure_msal_node_extensions.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.0.0</span></a></summary>
+<div class="tsd-accordion-details">
+<ul class="tsd-nested-navigation">
+<li><a href="../classes/_azure_msal_node_extensions.Environment.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Environment</span></a></li>
+<li><a href="../classes/_azure_msal_node_extensions.FilePersistence.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>File<wbr/>Persistence</span></a></li>
+<li><a href="../classes/_azure_msal_node_extensions.FilePersistenceWithDataProtection.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>File<wbr/>Persistence<wbr/>With<wbr/>Data<wbr/>Protection</span></a></li>
+<li><a href="../classes/_azure_msal_node_extensions.KeychainPersistence.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Keychain<wbr/>Persistence</span></a></li>
+<li><a href="../classes/_azure_msal_node_extensions.LibSecretPersistence.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Lib<wbr/>Secret<wbr/>Persistence</span></a></li>
+<li><a href="../classes/_azure_msal_node_extensions.NativeBrokerPlugin.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Native<wbr/>Broker<wbr/>Plugin</span></a></li>
+<li><a href="../classes/_azure_msal_node_extensions.PersistenceCachePlugin.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Persistence<wbr/>Cache<wbr/>Plugin</span></a></li>
+<li><a href="../classes/_azure_msal_node_extensions.PersistenceCreator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Persistence<wbr/>Creator</span></a></li>
+<li><a href="../interfaces/_azure_msal_node_extensions.IPersistence.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>IPersistence</span></a></li>
+<li><a href="../interfaces/_azure_msal_node_extensions.IPersistenceConfiguration.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>IPersistence<wbr/>Configuration</span></a></li>
+<li><a href="../types/_azure_msal_node_extensions.CrossPlatformLockOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Cross<wbr/>Platform<wbr/>Lock<wbr/>Options</span></a></li>
+<li><a href="../types/_azure_msal_node_extensions.DataProtectionScope.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Data<wbr/>Protection<wbr/>Scope</span></a></li>
+<li><a href="../variables/_azure_msal_node_extensions.DataProtectionScope-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Data<wbr/>Protection<wbr/>Scope</span></a></li></ul></div></details></li></ul></nav></div></div></div>
+<div class="tsd-generator">
+<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<div class="overlay"></div></body></html>
