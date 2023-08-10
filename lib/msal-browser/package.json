@@ -23,15 +23,15 @@
   ],
   "type": "module",
   "sideEffects": false,
-  "module": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/index.js",
-      "import": "./dist/index.js",
-      "require": "./lib/msal-browser.cjs.js",
-      "default": "./dist/index.js"
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./lib/msal-browser.cjs",
+      "default": "./dist/index.mjs"
     },
     "./package.json": "./package.json"
   },
@@ -39,7 +39,7 @@
     "node": ">=0.8.0"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": ["major"]
   },
   "directories": {
     "test": "test"
@@ -48,14 +48,11 @@
     "dist",
     "lib/msal-browser.js",
     "lib/msal-browser.js.map",
-    "lib/msal-browser.cjs.js",
-    "lib/msal-browser.cjs.js.map",
+    "lib/msal-browser.cjs",
+    "lib/msal-browser.cjs.map",
     "lib/msal-browser.min.js"
   ],
   "scripts": {
-    "cdn": "npm run build:all && npm run cdn:upload && npm run cdn:sri",
-    "cdn:upload": "node ./cdn-upload.js",
-    "cdn:sri": "node ./cdn-sri.js",
     "clean": "shx rm -rf dist lib",
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "lint": "cd ../../ && npm run lint:browser",

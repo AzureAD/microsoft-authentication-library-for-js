@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update dist settings for packages #6322",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
