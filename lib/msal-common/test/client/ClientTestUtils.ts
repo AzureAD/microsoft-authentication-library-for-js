@@ -168,6 +168,17 @@ export class MockStorageClass extends CacheManager {
     removeItem(key: string): void {
         if (!!this.store[key]) {
             delete this.store[key];
+            // Update token keys
+            const tokenKeys = this.store[TOKEN_KEYS];
+            if (tokenKeys?.accessToken.includes(key)) {
+                const index = tokenKeys?.accessToken.indexOf(key);
+                tokenKeys.accessToken.splice(index, 1);
+            }
+            if (tokenKeys?.idToken.includes(key)) {
+                const index = tokenKeys?.idToken.indexOf(key);
+                tokenKeys.idToken.splice(index, 1);
+            }
+            this.store[TOKEN_KEYS] = tokenKeys;
         }
     }
     containsKey(key: string): boolean {
