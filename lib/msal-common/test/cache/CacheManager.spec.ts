@@ -205,6 +205,40 @@ describe("CacheManager.ts test cases", () => {
             expect(mockCacheId).toBe(null);
         });
 
+        it("getIdToken matches multiple tokens, removes them and returns null", async () => {
+            await mockCache.cacheManager.clear();
+
+            const idToken1 = IdTokenEntity.createIdTokenEntity(
+                TEST_ACCOUNT_INFO.homeAccountId,
+                TEST_ACCOUNT_INFO.environment,
+                TEST_TOKENS.IDTOKEN_V2,
+                CACHE_MOCKS.MOCK_CLIENT_ID,
+                TEST_ACCOUNT_INFO.tenantId
+            );
+
+            const idToken2 = IdTokenEntity.createIdTokenEntity(
+                TEST_ACCOUNT_INFO.homeAccountId,
+                TEST_ACCOUNT_INFO.environment,
+                TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+                CACHE_MOCKS.MOCK_CLIENT_ID,
+                TEST_ACCOUNT_INFO.tenantId
+            );
+            idToken2.target = "test-target";
+
+            mockCache.cacheManager.setIdTokenCredential(idToken1);
+            mockCache.cacheManager.setIdTokenCredential(idToken2);
+
+            expect(
+                mockCache.cacheManager.getTokenKeys().idToken.length
+            ).toEqual(2);
+            expect(
+                mockCache.cacheManager.getIdToken(TEST_ACCOUNT_INFO)
+            ).toBeNull();
+            expect(
+                mockCache.cacheManager.getTokenKeys().idToken.length
+            ).toEqual(0);
+        });
+
         it("does not save refreshToken if storeInCache.refreshToken = false", async () => {
             const refreshToken = RefreshTokenEntity.createRefreshTokenEntity(
                 TEST_ACCOUNT_INFO.homeAccountId,
@@ -1102,7 +1136,9 @@ describe("CacheManager.ts test cases", () => {
         ).rejects.toThrow(ClientAuthError.createBindingKeyNotRemovedError());
     });
 
-    it("getAccessToken matches multiple tokens, throws error", () => {
+    it("getAccessToken matches multiple tokens, removes them and returns null", async () => {
+        await mockCache.cacheManager.clear();
+
         const mockedAtEntity: AccessTokenEntity =
             AccessTokenEntity.createAccessTokenEntity(
                 "uid.utid",
@@ -1153,6 +1189,10 @@ describe("CacheManager.ts test cases", () => {
         mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity2);
         mockCache.cacheManager.setAccount(mockedAccount);
 
+        expect(
+            mockCache.cacheManager.getTokenKeys().accessToken.length
+        ).toEqual(2);
+
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
             localAccountId: "uid",
@@ -1160,11 +1200,6 @@ describe("CacheManager.ts test cases", () => {
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe",
         };
-        if (!mockedAccountInfo) {
-            throw TestError.createTestSetupError(
-                "mockedAccountInfo does not have a value"
-            );
-        }
 
         const silentFlowRequest: CommonSilentFlowRequest = {
             scopes: ["user.read"],
@@ -1174,12 +1209,15 @@ describe("CacheManager.ts test cases", () => {
             forceRefresh: false,
         };
 
-        expect(() =>
+        expect(
             mockCache.cacheManager.getAccessToken(
                 mockedAccountInfo,
                 silentFlowRequest
             )
-        ).toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+        ).toBeNull();
+        expect(
+            mockCache.cacheManager.getTokenKeys().accessToken.length
+        ).toEqual(0);
     });
 
     it("getAccessToken only matches a Bearer Token when Authentication Scheme is set to Bearer", () => {
