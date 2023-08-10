@@ -3,9 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
+import { CommonAuthorizationUrlRequest, StringDict } from "@azure/msal-common";
 import { PopupWindowAttributes } from "./PopupWindowAttributes";
-import { StringDict } from "@azure/msal-common";
 
 /**
  * PopupRequest: Request object passed by user to retrieve a Code from the
