@@ -4,8 +4,8 @@
 ![npm](https://img.shields.io/npm/dw/@azure/msal-angular)
 [![codecov](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-angular)](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js)
 
-| <a href="https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-angular-auth-code" target="blank">Getting Started</a>| <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_angular.html" target="_blank">Library Reference</a> | [Support](README.md#community-help-and-support) | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples" target="blank">Samples</a>
-| --- | --- | --- | --- | --- |
+| <a href="https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-angular-auth-code" target="blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_angular.html" target="_blank">Library Reference</a> | [Support](README.md#community-help-and-support) | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples" target="blank">Samples</a> |
+| ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 
 1. [About](#about)
 1. [Guides](#guides)
@@ -43,12 +43,12 @@ The current `@azure/msal-angular` library improves upon the previous version and
 
 At a minimum, `@azure/msal-angular` will follow the [support schedule of the main Angular project](https://angular.io/guide/releases#support-policy-and-schedule). We may continue to support certain versions of Angular that are not under Active or LTS support from the main Angular project on a version-by-version basis, as defined below.
 
-| MSAL Angular version | MSAL support status     | Supported Angular versions |
-|----------------------|-------------------------|----------------------------|
-| MSAL Angular v3-alpha      | Active development      | 15, 16                     |
-| MSAL Angular v2      | In maintenance          | 9, 10, 11, 12, 13, 14      |
-| MSAL Angular v1      | In maintenance          | 6, 7, 8, 9                 |
-| MSAL Angular v0      | Out of support          | 4, 5                       |
+| MSAL Angular version | MSAL support status | Supported Angular versions |
+| -------------------- | ------------------- | -------------------------- |
+| MSAL Angular v3      | Active development  | 15, 16                     |
+| MSAL Angular v2      | In maintenance      | 9, 10, 11, 12, 13, 14      |
+| MSAL Angular v1      | In maintenance      | 6, 7, 8, 9                 |
+| MSAL Angular v0      | Out of support      | 4, 5                       |
 
 ## Prerequisites
 
@@ -57,6 +57,7 @@ Before using `@azure/msal-angular`, [register an application in Azure AD](https:
 ## Installation
 
 The `@azure/msal-angular` package is available on NPM:
+
 ```
 npm install @azure/msal-browser @azure/msal-angular@latest
 ```
@@ -64,6 +65,7 @@ npm install @azure/msal-browser @azure/msal-angular@latest
 ## Usage
 
 MSAL Angular Basics
+
 1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/initialization.md)
 1. [Public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/public-apis.md)
 1. [Using redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/redirects.md)
@@ -72,6 +74,7 @@ MSAL Angular Basics
 1. [Known issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/known-issues.md)
 
 Advanced Topics
+
 1. [Logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/logging.md)
 1. [Multi-Tenant](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/multi-tenant.md)
 1. [Security](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/security.md)
@@ -85,35 +88,39 @@ Documentation specifically for MSAL Angular v1 can be found [here](https://githu
 ## Samples
 
 ### MSAL Angular v3 Samples
-* [Angular v15](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular15-sample-app)
-* [Angular v16](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular16-sample-app)
-* [Angular v16 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-b2c-sample-app)
+
+- [Angular v15](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular15-sample-app)
+- [Angular v16](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular16-sample-app)
+- [Angular v16 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-b2c-sample-app)
 
 ### MSAL Angular v2 Samples
-* [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular9-v2-sample-app)
-* [Angular v10](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular10-sample-app)
-* [Angular v11](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular11-sample-app)
-* [Angular v12](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular12-sample-app)
-* [Angular v13 RxJS v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular13-rxjs6-sample-app)
-* [Angular v13 RxJS v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular13-rxjs7-sample-app)
-* [Angular v14 RxJS v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular14-rxjs6-sample-app)
-* [Angular v14 RxJS v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular14-rxjs7-sample-app)
-* [Angular v14 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular-b2c-sample-app)
+
+- [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular9-v2-sample-app)
+- [Angular v10](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular10-sample-app)
+- [Angular v11](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular11-sample-app)
+- [Angular v12](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular12-sample-app)
+- [Angular v13 RxJS v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular13-rxjs6-sample-app)
+- [Angular v13 RxJS v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular13-rxjs7-sample-app)
+- [Angular v14 RxJS v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular14-rxjs6-sample-app)
+- [Angular v14 RxJS v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular14-rxjs7-sample-app)
+- [Angular v14 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular-b2c-sample-app)
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/README.md) for specific features demonstrated by our MSAL Angular v2 samples.
 
 ### Advanced MSAL Angular v2 Samples
-* [Angular SPA with ASP.NET Core web API](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/3-Authorization-II/1-call-api)
-* [Angular SPA with APS.NET Core web API using App Roles and RBAC](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/5-AccessControl/1-call-api-roles)
-* [Angular SPA calling Microsoft Graph via ASP.NET Core web API using on-behalf-of flow](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/6-AdvancedScenarios/1-call-api-obo)
-* [Multi-tenant tutorial using MSAL Angular v2](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/6-AdvancedScenarios/2-call-api-mt)
-* [Deployment tutorial using Azure App Service and Azure Storage](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/4-Deployment)
+
+- [Angular SPA with ASP.NET Core web API](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/3-Authorization-II/1-call-api)
+- [Angular SPA with APS.NET Core web API using App Roles and RBAC](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/5-AccessControl/1-call-api-roles)
+- [Angular SPA calling Microsoft Graph via ASP.NET Core web API using on-behalf-of flow](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/6-AdvancedScenarios/1-call-api-obo)
+- [Multi-tenant tutorial using MSAL Angular v2](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/6-AdvancedScenarios/2-call-api-mt)
+- [Deployment tutorial using Azure App Service and Azure Storage](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/4-Deployment)
 
 ### MSAL Angular v1 Samples
-* [Angular v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/samples/msal-angular-samples/angular6-sample-app)
-* [Angular v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/samples/msal-angular-samples/angular7-sample-app)
-* [Angular v8](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/samples/msal-angular-samples/angular8-sample-app)
-* [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/samples/msal-angular-samples/angular9-sample-app)
+
+- [Angular v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/samples/msal-angular-samples/angular6-sample-app)
+- [Angular v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/samples/msal-angular-samples/angular7-sample-app)
+- [Angular v8](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/samples/msal-angular-samples/angular8-sample-app)
+- [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/samples/msal-angular-samples/angular9-sample-app)
 
 ## Build and running tests
 
@@ -135,11 +142,11 @@ This library controls how users sign-in and access services. We recommend you al
 
 ## Community Help and Support
 
--   [Msal Browser FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md) for access to our frequently asked questions
--   [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using tag "msal".
-    We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
--   [GitHub Issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/templates/edit) for reporting a bug or feature requests
--   [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
+- [Msal Browser FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md) for access to our frequently asked questions
+- [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using tag "msal".
+  We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
+- [GitHub Issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/templates/edit) for reporting a bug or feature requests
+- [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
 
 ## Contribute
 
