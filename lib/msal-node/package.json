@@ -51,7 +51,7 @@
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": ["major"]
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.19.4",
