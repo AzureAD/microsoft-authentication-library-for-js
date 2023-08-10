@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Pick up broker extra query params #6286",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
