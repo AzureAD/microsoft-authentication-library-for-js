@@ -40,6 +40,7 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Class that handles response parsing.
+ * @internal
  */
 export class ResponseHandler {
     private clientId: string;

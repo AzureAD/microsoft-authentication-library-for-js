@@ -38,6 +38,8 @@ export {
     buildAppConfiguration,
     NodeAuthOptions,
     NodeSystemOptions,
+    BrokerOptions,
+    NodeTelemetryOptions,
     CacheOptions,
 } from "./config/Configuration";
 export { ClientAssertion } from "./client/ClientAssertion";
@@ -70,6 +72,7 @@ export type { UsernamePasswordRequest } from "./request/UsernamePasswordRequest"
 export type { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export type { SilentFlowRequest } from "./request/SilentFlowRequest";
 export type { InteractiveRequest } from "./request/InteractiveRequest";
+export type { SignOutRequest } from "./request/SignOutRequest";
 
 // Common Object Formats
 export {

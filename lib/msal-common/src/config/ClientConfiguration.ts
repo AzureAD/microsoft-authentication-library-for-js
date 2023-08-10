@@ -34,6 +34,7 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - storageInterface           - Storage implementation
  * - systemOptions              - Additional library options
  * - clientCredentials          - Credentials options for confidential clients
+ * @internal
  */
 export type ClientConfiguration = {
     authOptions: AuthOptions;
@@ -77,6 +78,7 @@ export type CommonClientConfiguration = {
  * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache      - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
+ * @internal
  */
 export type AuthOptions = {
     clientId: string;

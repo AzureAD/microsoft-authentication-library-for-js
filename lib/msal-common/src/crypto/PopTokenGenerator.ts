@@ -33,6 +33,7 @@ const KeyLocation = {
 } as const;
 export type KeyLocation = (typeof KeyLocation)[keyof typeof KeyLocation];
 
+/** @internal */
 export class PopTokenGenerator {
     private cryptoUtils: ICrypto;
     private performanceClient?: IPerformanceClient;
