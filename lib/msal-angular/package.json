@@ -21,8 +21,7 @@
     "build:all:prod": "npm run build:browser && npm run build:prod",
     "build:browser": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
     "build:pack": "npm run build && cd dist && npm pack",
-    "deploy": "npm run build:all:prod && npm publish ./dist",
-    "deploy:beta": "npm run build:all:prod && npm publish ./dist --tag beta",
+    "deploy": "npm run build:all:prod && npm publish ./dist --workspaces=false",
     "test": "ng test",
     "test:coverage": "npm test",
     "lint": "cd ../../ && npm run lint:angular",
@@ -35,7 +34,7 @@
   },
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": ["major"]
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^15.1.5",

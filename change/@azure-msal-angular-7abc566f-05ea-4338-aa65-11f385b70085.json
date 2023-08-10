@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix Angular deploy #6316",
+  "packageName": "@azure/msal-angular",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

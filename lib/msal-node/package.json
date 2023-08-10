@@ -21,15 +21,15 @@
     "oauth"
   ],
   "type": "module",
-  "module": "dist/index.esm.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/index.esm.js",
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.js",
-      "default": "./dist/index.esm.js"
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     },
     "./package.json": "./package.json"
   },
@@ -37,8 +37,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build:watch": "rollup -c --watch --strictDeprecations --bundleConfigAsCjs",
+    "clean": "shx rm -rf dist lib",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
