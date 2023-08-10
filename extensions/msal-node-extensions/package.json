@@ -52,7 +52,7 @@
     "url": "https://www.microsoft.com"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": ["major"]
   },
   "dependencies": {
     "@azure/msal-common": "14.0.0",

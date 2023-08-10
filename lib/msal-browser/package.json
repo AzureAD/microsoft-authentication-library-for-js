@@ -27,15 +27,10 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "module": "./dist/index.mjs",
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.mjs" 
-      },
-      "require": {
-        "types": "./lib/index.d.ts",
-        "default": "./lib/msal-browser.cjs"
-      },
+      "import": "./dist/index.mjs",
+      "require": "./lib/msal-browser.cjs",
       "default": "./dist/index.mjs"
     },
     "./package.json": "./package.json"
@@ -44,14 +39,13 @@
     "node": ">=0.8.0"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": ["major"]
   },
   "directories": {
     "test": "test"
   },
   "files": [
     "dist",
-    "lib/index.d.ts",
     "lib/msal-browser.js",
     "lib/msal-browser.js.map",
     "lib/msal-browser.cjs",

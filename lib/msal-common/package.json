@@ -61,7 +61,7 @@
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": ["major"]
   },
   "devDependencies": {
     "@babel/core": "^7.7.2",
