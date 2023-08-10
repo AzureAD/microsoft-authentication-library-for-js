@@ -44,14 +44,14 @@
             "package": "@azure/msal-common",
             "commit": "024f979a535b793d47189de65366c49080095e55",
             "comment": "Prioritize hardcoded metadata over network-sourced metadata #6231"
-          },
+          }
         ],
         "minor": [
           {
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-common",
             "commit": "251b39a3c8b41be81c3b078902a9239e4bee0a7e",
-            "comment": "Catch errors thrown by \"decodeURIComponent\" #6226"
+            "comment": "Catch errors thrown by decodeURIComponent #6226"
           },
           {
             "author": "thomas.norling@microsoft.com",
@@ -69,7 +69,7 @@
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-common",
             "commit": "4c99ad07b7ea40e1f2191173e58d80cec143c72d",
-            "comment": "Update \"PerformanceClient\" for better usability/extendibility #6270"
+            "comment": "Update PerformanceClient for better usability/extendibility #6270"
           },
           {
             "author": "thomas.norling@microsoft.com",

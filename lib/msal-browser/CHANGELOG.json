@@ -87,7 +87,7 @@
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-browser",
             "commit": "2819735fe031ae36bea1d88f31f56089ac6ee21f",
-            "comment": "Expose \"CacheRecord\" as part of internals API #6291"
+            "comment": "Expose CacheRecord as part of internals API #6291"
           },
           {
             "author": "thomas.norling@microsoft.com",
@@ -117,7 +117,7 @@
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-browser",
             "commit": "4c99ad07b7ea40e1f2191173e58d80cec143c72d",
-            "comment": "Update \"PerformanceClient\" for better usability/extendibility #6270"
+            "comment": "Update PerformanceClient for better usability/extendibility #6270"
           },
           {
             "author": "thomas.norling@microsoft.com",
