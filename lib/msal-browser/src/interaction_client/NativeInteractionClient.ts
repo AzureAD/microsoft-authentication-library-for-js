@@ -829,41 +829,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             }
         };
 
-        let redirectUri = this.getRedirectUri(request.redirectUri);
-
-        if (
-            request.extraQueryParameters &&
-            request.extraQueryParameters.hasOwnProperty(
-                BrokerServerParamKeys.BROKER_CLIENT_ID
-            ) &&
-            request.extraQueryParameters.hasOwnProperty(
-                BrokerServerParamKeys.BROKER_REDIRECT_URI
-            ) &&
-            request.extraQueryParameters.hasOwnProperty(
-                AADServerParamKeys.CLIENT_ID
-            )
-        ) {
-            const child_client_id =
-                request.extraQueryParameters[AADServerParamKeys.CLIENT_ID];
-            const child_redirect_uri = redirectUri;
-            const brk_redirect_uri =
-                request.extraQueryParameters[
-                    BrokerServerParamKeys.BROKER_REDIRECT_URI
-                ];
-            request.extraQueryParameters = {
-                child_client_id,
-                child_redirect_uri,
-            };
-            redirectUri = brk_redirect_uri;
-        }
-
         const validatedRequest: NativeTokenRequest = {
             ...remainingProperties,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
             scope: scopeSet.printScopes(),
-            redirectUri,
+            redirectUri: this.getRedirectUri(request.redirectUri),
             prompt: getPrompt(),
             correlationId: this.correlationId,
             tokenType: request.authenticationScheme,
@@ -871,10 +843,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             extraParameters: {
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters,
-                telemetry: NativeConstants.MATS_TELEMETRY,
             },
             extendedExpiryToken: false, // Make this configurable?
         };
+
+        this.handleExtraBrokerParams(validatedRequest);
+        validatedRequest.extraParameters =
+            validatedRequest.extraParameters || {};
+        validatedRequest.extraParameters.telemetry =
+            NativeConstants.MATS_TELEMETRY;
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             // add POP request type
@@ -896,5 +873,39 @@ export class NativeInteractionClient extends BaseInteractionClient {
         }
 
         return validatedRequest;
+    }
+
+    /**
+     * Handles extra broker request parameters
+     * @param request {NativeTokenRequest}
+     * @private
+     */
+    private handleExtraBrokerParams(request: NativeTokenRequest): void {
+        if (!request.extraParameters) {
+            return;
+        }
+
+        if (
+            request.extraParameters.hasOwnProperty(
+                BrokerServerParamKeys.BROKER_CLIENT_ID
+            ) &&
+            request.extraParameters.hasOwnProperty(
+                BrokerServerParamKeys.BROKER_REDIRECT_URI
+            ) &&
+            request.extraParameters.hasOwnProperty(AADServerParamKeys.CLIENT_ID)
+        ) {
+            const child_client_id =
+                request.extraParameters[AADServerParamKeys.CLIENT_ID];
+            const child_redirect_uri = request.redirectUri;
+            const brk_redirect_uri =
+                request.extraParameters[
+                    BrokerServerParamKeys.BROKER_REDIRECT_URI
+                ];
+            request.extraParameters = {
+                child_client_id,
+                child_redirect_uri,
+            };
+            request.redirectUri = brk_redirect_uri;
+        }
     }
 }
