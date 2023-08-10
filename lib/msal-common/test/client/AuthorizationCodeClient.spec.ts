@@ -3746,4 +3746,41 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(queryString).toContain(`client_id=child_client_id`);
         });
     });
+
+    describe("createTokenRequestBody tests", () => {
+        it("pick up default client_id", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                });
+
+            expect(queryString).toContain(
+                `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`
+            );
+        });
+
+        it("pick up extra query client_id param", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    tokenBodyParameters: {
+                        client_id: "child_client_id",
+                    },
+                });
+
+            expect(queryString).toContain(`client_id=child_client_id`);
+        });
+    });
 });

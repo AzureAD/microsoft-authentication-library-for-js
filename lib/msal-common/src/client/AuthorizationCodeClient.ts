@@ -328,7 +328,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        parameterBuilder.addClientId(
+            request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                this.config.authOptions.clientId
+        );
 
         /*
          * For hybrid spa flow, there will be a code but no verifier
