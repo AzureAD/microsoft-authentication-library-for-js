@@ -2,6 +2,35 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 11 Aug 2023 19:00:44 GMT",
+      "tag": "@azure/msal-common_v14.0.1",
+      "version": "14.0.1",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3528e0e99f86b928e942c4cf104cb8909809639c",
+            "comment": "Pick up broker extra query params #6286"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ae5fbc436e4c9b331494caa599510bb5f7b10272",
+            "comment": "Update dist settings for packages #6322"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d95ac94497f09e93541c4df0c18289379112ffdb",
+            "comment": "Replaces `multiple matched tokens error` with a log message, removing matching tokens from cache #6311"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Aug 2023 18:15:15 GMT",
       "tag": "@azure/msal-common_v14.0.0",
       "version": "14.0.0",
