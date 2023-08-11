@@ -383,7 +383,11 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     async hydrateCache(
         result: AuthenticationResult,
-        request: SilentRequest|SsoSilentRequest|RedirectRequest|PopupRequest
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
     ): Promise<void> {
         return this.controller.hydrateCache(result, request);
     }

@@ -59,7 +59,11 @@ export interface IPublicClientApplication {
     getConfiguration(): BrowserConfiguration;
     hydrateCache(
         result: AuthenticationResult,
-        request: SilentRequest|SsoSilentRequest|RedirectRequest|PopupRequest
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
     ): Promise<void>;
 }
 

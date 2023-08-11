@@ -1894,7 +1894,11 @@ export class BrowserCacheManager extends CacheManager {
      */
     async hydrateCache(
         result: AuthenticationResult,
-        request: SilentRequest|SsoSilentRequest|RedirectRequest|PopupRequest
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
     ): Promise<void> {
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
             result.account?.homeAccountId,
