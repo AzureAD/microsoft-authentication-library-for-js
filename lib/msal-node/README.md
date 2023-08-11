@@ -45,10 +45,6 @@ The current version supports the following ways of acquiring tokens:
 -   [On-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow)
 -   [Username and Password flow](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows#usernamepassword)
 
-**[Coming Soon]** In the future we plan to add support for:
-
--   [Integrated Windows Authentication flow](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows#integrated-windows-authentication)
-
 More details on different grant types supported by Microsoft authentication libraries in general can be found [here](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows).
 
 ### Scenarios supported:
