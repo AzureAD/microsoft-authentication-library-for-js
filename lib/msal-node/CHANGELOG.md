@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 07 Aug 2023 18:15:15 GMT and should not be manually modified.
+This log was last generated on Fri, 11 Aug 2023 19:00:44 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.1
+
+Fri, 11 Aug 2023 19:00:44 GMT
+
+### Patches
+
+- Fix msal-node file extensions #6318 (hemoral@microsoft.com)
+- Update dist settings for packages #6322 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.0.1
 
 ## 2.0.0
 

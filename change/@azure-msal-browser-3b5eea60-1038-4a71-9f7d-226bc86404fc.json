@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update dist settings for packages #6322",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
