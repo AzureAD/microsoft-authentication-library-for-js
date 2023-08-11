@@ -8,7 +8,7 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
 } from "@azure/msal-common";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 /**
@@ -60,17 +60,11 @@ export class XhrClient implements INetworkModule {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     if (method === HTTP_REQUEST_TYPE.POST) {
                         reject(
-                            BrowserAuthError.createPostRequestFailedError(
-                                `Failed with status ${xhr.status}`,
-                                url
-                            )
+                            BrowserAuthError.create(BrowserAuthErrorMessage.postRequestFailed)
                         );
                     } else {
                         reject(
-                            BrowserAuthError.createGetRequestFailedError(
-                                `Failed with status ${xhr.status}`,
-                                url
-                            )
+                            BrowserAuthError.create(BrowserAuthErrorMessage.getRequestFailed)
                         );
                     }
                 }
@@ -84,9 +78,7 @@ export class XhrClient implements INetworkModule {
                     resolve(networkResponse);
                 } catch (e) {
                     reject(
-                        BrowserAuthError.createFailedToParseNetworkResponseError(
-                            url
-                        )
+                        BrowserAuthError.create(BrowserAuthErrorMessage.failedToParseNetworkResponse)
                     );
                 }
             };
@@ -95,21 +87,15 @@ export class XhrClient implements INetworkModule {
                 if (window.navigator.onLine) {
                     if (method === HTTP_REQUEST_TYPE.POST) {
                         reject(
-                            BrowserAuthError.createPostRequestFailedError(
-                                `Failed with status ${xhr.status}`,
-                                url
-                            )
+                            BrowserAuthError.create(BrowserAuthErrorMessage.postRequestFailed)
                         );
                     } else {
                         reject(
-                            BrowserAuthError.createGetRequestFailedError(
-                                `Failed with status ${xhr.status}`,
-                                url
-                            )
+                            BrowserAuthError.create(BrowserAuthErrorMessage.getRequestFailed)
                         );
                     }
                 } else {
-                    reject(BrowserAuthError.createNoNetworkConnectivityError());
+                    reject(BrowserAuthError.create(BrowserAuthErrorMessage.noNetworkConnectivity));
                 }
             };
 
@@ -118,8 +104,8 @@ export class XhrClient implements INetworkModule {
             } else if (method === HTTP_REQUEST_TYPE.GET) {
                 xhr.send();
             } else {
-                throw BrowserAuthError.createHttpMethodNotImplementedError(
-                    method
+                throw BrowserAuthError.create(
+                    BrowserAuthErrorMessage.httpMethodNotImplementedError
                 );
             }
         });

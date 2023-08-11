@@ -6,7 +6,7 @@
 import { Constants, INetworkModule, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { InteractionType, BrowserConstants } from "./BrowserConstants";
 
 /**
@@ -101,7 +101,7 @@ export class BrowserUtils {
         );
         // return an error if called from the hidden iframe created by the msal js silent calls
         if (isResponseHash && BrowserUtils.isInIframe()) {
-            throw BrowserAuthError.createBlockReloadInHiddenIframeError();
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError);
         }
     }
 
@@ -121,7 +121,7 @@ export class BrowserUtils {
             !allowRedirectInIframe
         ) {
             // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
-            throw BrowserAuthError.createRedirectInIframeError(isIframedApp);
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.redirectInIframeError);
         }
     }
 
@@ -131,7 +131,7 @@ export class BrowserUtils {
     static blockAcquireTokenInPopups(): void {
         // Popups opened by msal popup APIs are given a name that starts with "msal."
         if (BrowserUtils.isInPopup()) {
-            throw BrowserAuthError.createBlockAcquireTokenInPopupsError();
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError);
         }
     }
 
@@ -141,7 +141,7 @@ export class BrowserUtils {
      */
     static blockNonBrowserEnvironment(isBrowserEnvironment: boolean): void {
         if (!isBrowserEnvironment) {
-            throw BrowserAuthError.createNonBrowserEnvironmentError();
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.notInBrowserEnvironment);
         }
     }
 
@@ -151,7 +151,7 @@ export class BrowserUtils {
      */
     static blockAPICallsBeforeInitialize(initialized: boolean): void {
         if (!initialized) {
-            throw BrowserAuthError.createUninitializedPublicClientApplication();
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.uninitializedPublicClientApplication);
         }
     }
 

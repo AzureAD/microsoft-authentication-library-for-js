@@ -70,7 +70,7 @@ export class InteractionHandler {
         this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
-            throw BrowserAuthError.createEmptyHashError();
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.hashEmptyError);
         }
 
         // Handle code response.
@@ -92,7 +92,7 @@ export class InteractionHandler {
                 e.subError === BrowserAuthErrorMessage.userCancelledError.code
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
-                throw BrowserAuthError.createUserCancelledError();
+                throw BrowserAuthError.create(BrowserAuthErrorMessage.userCancelledError);
             } else {
                 throw e;
             }

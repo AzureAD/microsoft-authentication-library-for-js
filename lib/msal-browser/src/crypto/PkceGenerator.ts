@@ -4,7 +4,7 @@
  */
 
 import { PkceCodes } from "@azure/msal-common";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { Base64Encode } from "../encode/Base64Encode";
 import { BrowserCrypto } from "./BrowserCrypto";
 
@@ -51,7 +51,7 @@ export class PkceGenerator {
                 this.base64Encode.urlEncodeArr(buffer);
             return pkceCodeVerifierB64;
         } catch (e) {
-            throw BrowserAuthError.createPkceNotGeneratedError(e as string);
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.pkceNotGenerated);
         }
     }
 
@@ -72,7 +72,7 @@ export class PkceGenerator {
                 new Uint8Array(pkceHashedCodeVerifier)
             );
         } catch (e) {
-            throw BrowserAuthError.createPkceNotGeneratedError(e as string);
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.pkceNotGenerated);
         }
     }
 }

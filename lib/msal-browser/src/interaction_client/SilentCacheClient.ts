@@ -83,7 +83,7 @@ export class SilentCacheClient extends StandardInteractionClient {
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
-            BrowserAuthError.createSilentLogoutUnsupportedError()
+            BrowserAuthError.create(BrowserAuthErrorMessage.silentLogoutUnsupportedError)
         );
     }
 

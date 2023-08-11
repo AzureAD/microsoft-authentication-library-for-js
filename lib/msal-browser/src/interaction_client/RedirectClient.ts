@@ -30,7 +30,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { EventType } from "../event/EventType";
 import { NavigationOptions } from "../navigation/NavigationOptions";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
@@ -404,7 +404,7 @@ export class RedirectClient extends StandardInteractionClient {
                 "Account id found in hash, calling WAM for token"
             );
             if (!this.nativeMessageHandler) {
-                throw BrowserAuthError.createNativeConnectionNotEstablishedError();
+                throw BrowserAuthError.create(BrowserAuthErrorMessage.nativeConnectionNotEstablished);
             }
             const nativeInteractionClient = new NativeInteractionClient(
                 this.config,
@@ -438,7 +438,7 @@ export class RedirectClient extends StandardInteractionClient {
         // Hash contains known properties - handle and return in callback
         const currentAuthority = this.browserStorage.getCachedAuthority(state);
         if (!currentAuthority) {
-            throw BrowserAuthError.createNoCachedAuthorityError();
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.noCachedAuthorityError);
         }
         this.performanceClient.setPreQueueTime(
             PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,

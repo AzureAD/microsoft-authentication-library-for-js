@@ -9,7 +9,7 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
 } from "@azure/msal-common";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 /**
@@ -34,12 +34,9 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw BrowserAuthError.createGetRequestFailedError(
-                    e as string,
-                    url
-                );
+                throw BrowserAuthError.create(BrowserAuthErrorMessage.getRequestFailed);
             } else {
-                throw BrowserAuthError.createNoNetworkConnectivityError();
+                throw BrowserAuthError.create(BrowserAuthErrorMessage.noNetworkConnectivity);
             }
         }
 
@@ -50,7 +47,7 @@ export class FetchClient implements INetworkModule {
                 status: response.status,
             };
         } catch (e) {
-            throw BrowserAuthError.createFailedToParseNetworkResponseError(url);
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.failedToParseNetworkResponse);
         }
     }
 
@@ -75,12 +72,9 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw BrowserAuthError.createPostRequestFailedError(
-                    e as string,
-                    url
-                );
+                throw BrowserAuthError.create(BrowserAuthErrorMessage.postRequestFailed);
             } else {
-                throw BrowserAuthError.createNoNetworkConnectivityError();
+                throw BrowserAuthError.create(BrowserAuthErrorMessage.noNetworkConnectivity);
             }
         }
 
@@ -91,7 +85,7 @@ export class FetchClient implements INetworkModule {
                 status: response.status,
             };
         } catch (e) {
-            throw BrowserAuthError.createFailedToParseNetworkResponseError(url);
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.failedToParseNetworkResponse);
         }
     }
 

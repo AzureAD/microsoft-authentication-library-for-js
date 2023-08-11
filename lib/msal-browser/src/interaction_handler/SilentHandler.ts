@@ -14,7 +14,7 @@ import {
     PerformanceEvents,
 } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import {
     BrowserSystemOptions,
@@ -63,7 +63,7 @@ export class SilentHandler extends InteractionHandler {
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
             this.logger.info("Navigate url is empty");
-            throw BrowserAuthError.createEmptyNavigationUriError();
+            throw BrowserAuthError.create(BrowserAuthErrorMessage.emptyNavigateUriError);
         }
 
         if (this.navigateFrameWait) {
@@ -108,7 +108,7 @@ export class SilentHandler extends InteractionHandler {
                 if (window.performance.now() > timeoutMark) {
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createMonitorIframeTimeoutError());
+                    reject(BrowserAuthError.create(BrowserAuthErrorMessage.monitorIframeTimeoutError));
                     return;
                 }
 
@@ -150,7 +150,7 @@ export class SilentHandler extends InteractionHandler {
                         this.removeHiddenIframe(iframe);
                         clearInterval(intervalId);
                         reject(
-                            BrowserAuthError.createHashDoesNotContainKnownPropertiesError()
+                            BrowserAuthError.create(BrowserAuthErrorMessage.hashDoesNotContainKnownPropertiesError)
                         );
                         return;
                     }
@@ -164,7 +164,7 @@ export class SilentHandler extends InteractionHandler {
                     );
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createEmptyHashError());
+                    reject(BrowserAuthError.create(BrowserAuthErrorMessage.hashEmptyError));
                     return;
                 }
             }, this.pollIntervalMilliseconds);
