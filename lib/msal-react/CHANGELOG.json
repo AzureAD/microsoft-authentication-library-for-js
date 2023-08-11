@@ -2,6 +2,21 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Fri, 11 Aug 2023 19:00:45 GMT",
+      "tag": "@azure/msal-react_v2.0.1",
+      "version": "2.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v3.0.1",
+            "commit": "69d1715ac133eb486d94f87ebbb3fc61b4df3910"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Aug 2023 18:15:15 GMT",
       "tag": "@azure/msal-react_v2.0.0",
       "version": "2.0.0",
@@ -37,7 +52,7 @@
             "commit": "f714b51f03eb87ccd0102d886c814b3dab2b5cc9",
             "comment": "DevDependency updates"
           },
-             {
+          {
             "author": "hemoral@microsoft.com",
             "package": "@azure/msal-react",
             "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd",
@@ -89,7 +104,7 @@
             "commit": "faae9defff0424799bfa540fdb2c2f309b34db3a",
             "comment": "Fix module field in package.json #6190"
           },
-           {
+          {
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-react",
             "commit": "42dd47713c8c8e362fa3cd54cbf7367140d9fb06",

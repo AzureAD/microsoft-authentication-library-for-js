@@ -2,6 +2,49 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 11 Aug 2023 19:00:44 GMT",
+      "tag": "@azure/msal-browser_v3.0.1",
+      "version": "3.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ae5fbc436e4c9b331494caa599510bb5f7b10272",
+            "comment": "Update dist settings for packages #6322"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "be329dede8f8edf97789a245a0b3f1610b40eeb1",
+            "comment": "Add `tokenBodyParameters` to silent and interaction request types #6325"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.1",
+            "commit": "69d1715ac133eb486d94f87ebbb3fc61b4df3910"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3528e0e99f86b928e942c4cf104cb8909809639c",
+            "comment": "Pick up broker extra query params #6286"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7d957524c2181d44487d16709186dbefc160258e",
+            "comment": "Update readmes v3 #6326"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Aug 2023 18:15:15 GMT",
       "tag": "@azure/msal-browser_v3.0.0",
       "version": "3.0.0",
