@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add `tokenBodyParameters` to silent and interaction request types #6325",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
