@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 05 Jul 2023 22:05:09 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Aug 2023 21:58:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.38.1
+
+Mon, 07 Aug 2023 21:58:26 GMT
+
+### Patches
+
+- When RT is not found in cache, attempts SSO #6217 (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v13.2.1
 
 ## 2.38.0
 

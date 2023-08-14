@@ -35,7 +35,6 @@ jobs:
       fail-fast: false
       matrix:
         sample:
-          - 'angular9-v2-sample-app'
           - 'angular10-sample-app'
           - 'angular11-sample-app'
           - 'angular12-sample-app'

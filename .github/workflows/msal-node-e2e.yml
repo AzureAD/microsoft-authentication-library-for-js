@@ -65,7 +65,7 @@ jobs:
       run: npm ci --ignore-scripts
 
     - name: Link local packages
-      run: npx lerna --scope @azure/msal-node --scope @azure/msal-common bootstrap
+      run: npx lerna@6 --scope @azure/msal-node --scope @azure/msal-common bootstrap
 
     - name: Build Package
       working-directory: samples/msal-node-samples

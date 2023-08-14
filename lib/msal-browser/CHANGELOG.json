@@ -2,6 +2,35 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 07 Aug 2023 21:58:26 GMT",
+      "tag": "@azure/msal-browser_v2.38.1",
+      "version": "2.38.1",
+      "comments": {
+        "none": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a7e37cd85c6332bba43e2a766122cb134d5b8c02",
+            "comment": "Address `semver` CVE-2022-25883 and other moderate severity vulnerabilities #9657"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "43ddd07ff783fb0c7a3c50be7f763d4aeb46f7c2",
+            "comment": "When RT is not found in cache, attempts SSO #6217"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v13.2.1",
+            "commit": "43ddd07ff783fb0c7a3c50be7f763d4aeb46f7c2"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 05 Jul 2023 22:05:09 GMT",
       "tag": "@azure/msal-browser_v2.38.0",
       "version": "2.38.0",
