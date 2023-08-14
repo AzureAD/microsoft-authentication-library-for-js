@@ -1270,7 +1270,11 @@ export class StandardController implements IController {
      */
     async hydrateCache(
         result: AuthenticationResult,
-        request: SilentRequest
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
     ): Promise<void> {
         this.logger.verbose("hydrateCache called");
 
