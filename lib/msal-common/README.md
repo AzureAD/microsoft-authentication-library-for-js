@@ -2,6 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@azure/msal-common.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-common/)
 [![npm version](https://img.shields.io/npm/dm/@azure/msal-common.svg)](https://nodei.co/npm/@azure/msal-common/)
+[![bundle size](https://deno.bundlejs.com/badge?q=@azure/msal-common@latest)](https://bundlejs.com/?q=%40azure%2Fmsal-common%40latest)
 [![codecov](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-common)](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js)
 
 | <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html" target="_blank">Library Reference</a> |
