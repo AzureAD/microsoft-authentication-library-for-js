@@ -356,7 +356,8 @@ export class Authority {
         const canonicalAuthorityHost = this.hostnameAndPort;
         if (
             this.authorityType === AuthorityType.Adfs ||
-            !this.isAliasOfKnownMicrosoftAuthority(canonicalAuthorityHost)
+            (this.protocolMode === ProtocolMode.OIDC &&
+                !this.isAliasOfKnownMicrosoftAuthority(canonicalAuthorityHost))
         ) {
             return `${this.canonicalAuthority}.well-known/openid-configuration`;
         }
