@@ -91,7 +91,11 @@ export {
     SignedHttpRequestOptions,
 } from "./crypto/SignedHttpRequest";
 
-export { PopupWindowAttributes, PopupSize, PopupPosition } from "./request/PopupWindowAttributes";
+export {
+    PopupWindowAttributes,
+    PopupSize,
+    PopupPosition,
+} from "./request/PopupWindowAttributes";
 
 // Telemetry
 export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";

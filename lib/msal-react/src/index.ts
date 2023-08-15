@@ -25,7 +25,7 @@ export { UnauthenticatedTemplate } from "./components/UnauthenticatedTemplate";
 export { MsalAuthenticationTemplate } from "./components/MsalAuthenticationTemplate";
 
 export { withMsal } from "./components/withMsal";
-export { Subtract, SetComplement, SetDifference } from "./utils/utilities"; 
+export { Subtract, SetComplement, SetDifference } from "./utils/utilities";
 
 export { useMsal } from "./hooks/useMsal";
 export { useAccount } from "./hooks/useAccount";
