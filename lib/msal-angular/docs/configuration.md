@@ -111,8 +111,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
       postLogoutRedirectUri: "http://localhost:4200"
     },
     cache: {
-      cacheLocation: BrowserCacheLocation.LocalStorage,
-      storeAuthStateInCookie: isIE, // set to true for IE 11
+      cacheLocation: BrowserCacheLocation.LocalStorage
     },
   });
 }
@@ -349,8 +348,6 @@ export function initializerFactory(env: ConfigService, configUrl: string): any {
     });
     return () => promise;
 }
-
-const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1; // Remove this line to use Angular Universal
 
 export function loggerCallback(logLevel: LogLevel, message: string) {
   console.log(message);
