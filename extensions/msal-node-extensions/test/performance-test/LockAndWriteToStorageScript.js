@@ -4,7 +4,7 @@
  */
 
 const process = require("process");
-const extensions = require("../../dist/index");
+const extensions = require("../../dist/index.cjs");
 const fs = require("fs");
 const path = require("path");
 const msalCommon = require("@azure/msal-common");
@@ -57,7 +57,7 @@ async function writeToCache(fileName, retryNumber, retryDelay) {
         await plugin.beforeCacheAccess(context);
 
         const processId = process.pid.toString();
-        let data = fileData + "< " + processId + "\n";
+        const data = fileData + "< " + processId + "\n";
         await sleep(100);
         fileData = data + "> " + processId + "\n";
     } finally {

@@ -7,7 +7,8 @@
         "sourceMap": true,
         "removeComments": false,
         "outDir": "dist",
-        "noImplicitReturns": true
+        "noImplicitReturns": true,
+        "types": []
     },
     "include": [
         "./src/**/*"

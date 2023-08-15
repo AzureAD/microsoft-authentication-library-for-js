@@ -27,6 +27,7 @@ import {
     CommonSilentFlowRequest,
     AccountInfo,
     CacheRecord,
+    AADServerParamKeys,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -54,6 +55,11 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+
+const BrokerServerParamKeys = {
+    BROKER_CLIENT_ID: "brk_client_id",
+    BROKER_REDIRECT_URI: "brk_redirect_uri",
+};
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -837,10 +843,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             extraParameters: {
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters,
-                telemetry: NativeConstants.MATS_TELEMETRY,
             },
             extendedExpiryToken: false, // Make this configurable?
         };
+
+        this.handleExtraBrokerParams(validatedRequest);
+        validatedRequest.extraParameters =
+            validatedRequest.extraParameters || {};
+        validatedRequest.extraParameters.telemetry =
+            NativeConstants.MATS_TELEMETRY;
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             // add POP request type
@@ -862,5 +873,39 @@ export class NativeInteractionClient extends BaseInteractionClient {
         }
 
         return validatedRequest;
+    }
+
+    /**
+     * Handles extra broker request parameters
+     * @param request {NativeTokenRequest}
+     * @private
+     */
+    private handleExtraBrokerParams(request: NativeTokenRequest): void {
+        if (!request.extraParameters) {
+            return;
+        }
+
+        if (
+            request.extraParameters.hasOwnProperty(
+                BrokerServerParamKeys.BROKER_CLIENT_ID
+            ) &&
+            request.extraParameters.hasOwnProperty(
+                BrokerServerParamKeys.BROKER_REDIRECT_URI
+            ) &&
+            request.extraParameters.hasOwnProperty(AADServerParamKeys.CLIENT_ID)
+        ) {
+            const child_client_id =
+                request.extraParameters[AADServerParamKeys.CLIENT_ID];
+            const child_redirect_uri = request.redirectUri;
+            const brk_redirect_uri =
+                request.extraParameters[
+                    BrokerServerParamKeys.BROKER_REDIRECT_URI
+                ];
+            request.extraParameters = {
+                child_client_id,
+                child_redirect_uri,
+            };
+            request.redirectUri = brk_redirect_uri;
+        }
     }
 }
