@@ -95,6 +95,7 @@ export type BrowserAuthOptions = {
     skipAuthorityMetadataCache?: boolean;
 };
 
+/** @internal */
 export type InternalAuthOptions = Required<BrowserAuthOptions> & {
     OIDCOptions: Required<OIDCOptions>;
 };
@@ -220,6 +221,7 @@ export type Configuration = {
     telemetry?: BrowserTelemetryOptions;
 };
 
+/** @internal */
 export type BrowserConfiguration = {
     auth: InternalAuthOptions;
     cache: Required<CacheOptions>;

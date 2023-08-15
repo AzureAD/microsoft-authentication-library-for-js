@@ -56,10 +56,15 @@ export interface IPublicClientApplication {
     getActiveAccount(): AccountInfo | null;
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     setNavigationClient(navigationClient: INavigationClient): void;
+    /** @internal */
     getConfiguration(): BrowserConfiguration;
     hydrateCache(
         result: AuthenticationResult,
-        request: SilentRequest
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
     ): Promise<void>;
 }
 

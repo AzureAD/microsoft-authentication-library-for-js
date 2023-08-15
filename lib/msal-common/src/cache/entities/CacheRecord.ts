@@ -9,6 +9,7 @@ import { RefreshTokenEntity } from "./RefreshTokenEntity";
 import { AccountEntity } from "./AccountEntity";
 import { AppMetadataEntity } from "./AppMetadataEntity";
 
+/** @internal */
 export class CacheRecord {
     account: AccountEntity | null;
     idToken: IdTokenEntity | null;

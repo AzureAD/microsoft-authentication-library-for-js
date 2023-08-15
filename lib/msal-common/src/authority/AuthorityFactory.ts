@@ -14,6 +14,7 @@ import { Logger } from "../logger/Logger";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
+/** @internal */
 export class AuthorityFactory {
     /**
      * Create an authority object of the correct type based on the url
