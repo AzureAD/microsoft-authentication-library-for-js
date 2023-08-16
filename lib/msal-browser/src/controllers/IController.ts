@@ -28,6 +28,7 @@ import { EventHandler } from "../event/EventHandler";
 import { PopupClient } from "../interaction_client/PopupClient";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { EventCallbackFunction } from "../event/EventMessage";
 
 export interface IController {
     initialize(): Promise<void>;
@@ -55,7 +56,7 @@ export interface IController {
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult>;
 
-    addEventCallback(callback: Function): string | null;
+    addEventCallback(callback: EventCallbackFunction): string | null;
 
     removeEventCallback(callbackId: string): void;
 
