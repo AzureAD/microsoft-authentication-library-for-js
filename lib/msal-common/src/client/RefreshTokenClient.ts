@@ -40,6 +40,7 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 /**
  * OAuth2.0 refresh token client
+ * @internal
  */
 export class RefreshTokenClient extends BaseClient {
     constructor(
