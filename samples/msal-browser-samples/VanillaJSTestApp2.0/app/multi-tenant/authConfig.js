@@ -5,7 +5,7 @@ const guestTenant = "5d97b14d-c396-4aee-b524-c86d33e9b660"
 const msalConfig = {
     auth: {
         clientId: "bc77b0a7-16aa-4af4-884b-41b968c9c71a",
-        authority: `https://login.microsoftonline.com/${guestTenant}`
+        authority: `https://login.microsoftonline.com/${homeTenant}`
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -62,5 +62,5 @@ const silentRequest = {
 
 const guestTenantRequest = {
     ...loginRequest,
-    authority: `https://login.microsoftonline.com/${homeTenant}`
+    authority: `https://login.microsoftonline.com/${guestTenant}`
 }

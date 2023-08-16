@@ -759,7 +759,7 @@ export abstract class CacheManager implements ICacheManager {
                 idTokens.push(idToken);
             }
         });
-        debugger;
+
         return idTokens;
     }
 
