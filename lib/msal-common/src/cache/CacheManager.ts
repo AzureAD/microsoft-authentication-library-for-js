@@ -301,6 +301,26 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * Clears all access tokes that have claims prior to saving the current one
+     * @param credential 
+     * @returns 
+     */
+    async clearTokensWithClaimsInCache(): Promise<void> {
+
+        const tokenKeys = this.getTokenKeys();
+        
+        const removedAccessTokens: Array<Promise<void>> = [];
+        tokenKeys.accessToken.forEach((key) => {
+            // if the access token has claims in its key, remove the token key and the token
+            const credential = this.getAccessTokenCredential(key);
+            if(credential?.requestedClaimsHash && key.includes(credential.requestedClaimsHash)) {
+                removedAccessTokens.push(this.removeAccessToken(key));
+            }
+        });
+        await Promise.all(removedAccessTokens);
+    }
+
+    /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
      * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
      * @param homeAccountId

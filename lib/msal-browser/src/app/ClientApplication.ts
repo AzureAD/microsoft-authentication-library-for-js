@@ -185,6 +185,12 @@ export abstract class ClientApplication {
                 this.logger.verbose(e);
             }
         }
+
+        if(!this.config.cache.claimsBasedCachingEnabled) {
+            this.logger.verbose("Claims-based caching is disabled. Clearing the previous cache with claims");
+            await this.browserStorage.clearTokensWithClaimsInCache();
+        }
+
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
 
