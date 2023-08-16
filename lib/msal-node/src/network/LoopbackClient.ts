@@ -8,7 +8,7 @@ import {
     ServerAuthorizationCodeResponse,
     UrlString,
 } from "@azure/msal-common";
-import { createServer, IncomingMessage, Server, ServerResponse } from "http";
+import http from "http";
 import { NodeAuthError } from "../error/NodeAuthError";
 import {
     Constants,
@@ -18,7 +18,7 @@ import {
 import { ILoopbackClient } from "./ILoopbackClient";
 
 export class LoopbackClient implements ILoopbackClient {
-    private server: Server;
+    private server: http.Server;
 
     /**
      * Spins up a loopback server which returns the server response when the localhost redirectUri is hit
@@ -36,8 +36,11 @@ export class LoopbackClient implements ILoopbackClient {
 
         const authCodeListener = new Promise<ServerAuthorizationCodeResponse>(
             (resolve, reject) => {
-                this.server = createServer(
-                    async (req: IncomingMessage, res: ServerResponse) => {
+                this.server = http.createServer(
+                    async (
+                        req: http.IncomingMessage,
+                        res: http.ServerResponse
+                    ) => {
                         const url = req.url;
                         if (!url) {
                             res.end(

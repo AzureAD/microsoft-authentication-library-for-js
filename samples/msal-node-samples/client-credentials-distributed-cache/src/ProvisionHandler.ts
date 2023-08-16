@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { createServer, IncomingMessage, Server, ServerResponse } from "http";
+import http from "http";
 import { CryptoProvider } from "@azure/msal-node";
 import open from "open";
 
@@ -13,7 +13,7 @@ import open from "open";
  * https://learn.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps
  */
 class ProvisionHandler {
-    private server: Server;
+    private server: http.Server;
     private cryptoProvider: CryptoProvider;
     private state: string;
 
@@ -64,7 +64,7 @@ class ProvisionHandler {
         }
 
         const adminConsentListener = new Promise<boolean>((resolve, reject) => {
-            this.server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
+            this.server = http.createServer(async (req: http.IncomingMessage, res: http.ServerResponse) => {
                 const url = req.url;
 
                 if (!url) {

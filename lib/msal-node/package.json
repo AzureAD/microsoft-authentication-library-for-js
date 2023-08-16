@@ -60,7 +60,7 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/jest": "^29.5.0",
-    "@types/jsonwebtoken": "^8.5.5",
+    "@types/jsonwebtoken": "^9.0.1",
     "@types/node": "^20.3.1",
     "@types/sinon": "^7.5.0",
     "@types/uuid": "^7.0.0",
