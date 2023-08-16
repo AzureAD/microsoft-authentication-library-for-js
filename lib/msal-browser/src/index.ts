@@ -14,14 +14,17 @@
  */
 
 import * as internals from "./internals";
+/** @internal */
 export { internals };
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
+export { IController } from "./controllers/IController";
 export {
     Configuration,
     BrowserAuthOptions,
     CacheOptions,
     BrowserSystemOptions,
+    BrowserTelemetryOptions,
     BrowserConfiguration,
     DEFAULT_IFRAME_TIMEOUT_MS,
 } from "./config/Configuration";
@@ -70,6 +73,7 @@ export { AuthenticationResult } from "./response/AuthenticationResult";
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache";
+export { ITokenCache } from "./cache/ITokenCache";
 
 // Events
 export {
@@ -87,7 +91,11 @@ export {
     SignedHttpRequestOptions,
 } from "./crypto/SignedHttpRequest";
 
-export { PopupWindowAttributes } from "./request/PopupWindowAttributes";
+export {
+    PopupWindowAttributes,
+    PopupSize,
+    PopupPosition,
+} from "./request/PopupWindowAttributes";
 
 // Telemetry
 export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";

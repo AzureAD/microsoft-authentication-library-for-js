@@ -29,6 +29,7 @@ export type UrlToHttpRequestOptions = {
     auth?: string;
 };
 
+/** @internal */
 export class NetworkManager {
     private networkClient: INetworkModule;
     private cacheManager: CacheManager;

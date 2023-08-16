@@ -103,6 +103,7 @@ export interface IController {
 
     setNavigationClient(navigationClient: INavigationClient): void;
 
+    /** @internal */
     getConfiguration(): BrowserConfiguration;
 
     hydrateCache(
@@ -114,43 +115,58 @@ export interface IController {
             | PopupRequest
     ): Promise<void>;
 
+    /** @internal */
     isBrowserEnv(): boolean;
 
+    /** @internal */
     getBrowserStorage(): BrowserCacheManager;
 
+    /** @internal */
     getNativeInternalStorage(): BrowserCacheManager;
 
+    /** @internal */
     getBrowserCrypto(): ICrypto;
 
+    /** @internal */
     getPerformanceClient(): IPerformanceClient;
 
+    /** @internal */
     getNativeExtensionProvider(): NativeMessageHandler | undefined;
 
+    /** @internal */
     setNativeExtensionProvider(
         provider: NativeMessageHandler | undefined
     ): void;
 
+    /** @internal */
     getNativeAccountId(
         request: RedirectRequest | PopupRequest | SsoSilentRequest
     ): string;
 
+    /** @internal */
     getEventHandler(): EventHandler;
 
+    /** @internal */
     getNavigationClient(): INavigationClient;
 
+    /** @internal */
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>>;
 
+    /** @internal */
     preflightBrowserEnvironmentCheck(
         interactionType: InteractionType,
         isAppEmbedded?: boolean
     ): void;
 
+    /** @internal */
     canUseNative(
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         accountId?: string
     ): boolean;
 
+    /** @internal */
     createPopupClient(correlationId?: string): PopupClient;
 
+    /** @internal */
     createSilentIframeClient(correlationId?: string): SilentIframeClient;
 }

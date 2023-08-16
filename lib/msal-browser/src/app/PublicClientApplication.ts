@@ -112,7 +112,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Silently acquire an access token for a given set of scopes. Returns currently processing promise if parallel requests are made.
      *
      * @param {@link (SilentRequest:type)}
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthenticationResult} object
      */
     acquireTokenSilent(
         silentRequest: SilentRequest
@@ -370,6 +370,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     /**
      * Returns the configuration object
+     * @internal
      */
     getConfiguration(): BrowserConfiguration {
         return this.controller.getConfiguration();
