@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fixed http(s) imports",
+  "comment": "Fixed http(s) imports #6349",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
