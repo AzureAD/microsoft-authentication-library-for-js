@@ -11,6 +11,10 @@ Azure Active Directory v2.0 & Microsoft Identity Platform employs a *scope-centr
 
 The intended recipient of an **Access Token** is represented by the `aud` claim; in case the value for the `aud` claim does not match the resource [APP ID URI](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-registration), the token should be considered invalid. Likewise, the permissions that an **Access Token** grants is represented by the `scp` claim. See [Access Token claims](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#payload-claims) for more information.
 
+## Default Scopes
+
+By default MSAL.js will add the `openid`, `profile` and `offline_access` scopes to every request. These scopes are required in order to receive a refresh token and the id token claims used to populate the account object with the user's information.
+
 ## Working with Multiple Resources
 
 When you have to access multiple resources, initiate a separate token request for each:
