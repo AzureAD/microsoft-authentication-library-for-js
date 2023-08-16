@@ -46,6 +46,7 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Oauth2.0 Authorization Code client
+ * @internal
  */
 export class AuthorizationCodeClient extends BaseClient {
     // Flag to indicate if client is for hybrid spa auth code redemption

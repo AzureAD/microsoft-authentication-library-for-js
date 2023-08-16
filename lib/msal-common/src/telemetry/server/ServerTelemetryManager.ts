@@ -18,6 +18,7 @@ import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntit
 import { StringUtils } from "../../utils/StringUtils";
 import { RegionDiscoveryMetadata } from "../../authority/RegionDiscoveryMetadata";
 
+/** @internal */
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
     private apiId: number;

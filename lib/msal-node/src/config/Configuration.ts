@@ -155,6 +155,7 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
     },
 };
 
+/** @internal */
 export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
     broker: BrokerOptions;
@@ -172,7 +173,7 @@ export type NodeConfiguration = {
  * @param telemetry - Telemetry options
  *
  * @returns Configuration
- * @public
+ * @internal
  */
 export function buildAppConfiguration({
     auth,
