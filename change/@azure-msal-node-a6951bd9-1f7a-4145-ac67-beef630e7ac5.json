@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fixed jwt import error",
+  "comment": "Fixed jwt import error #6347",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
