@@ -37,7 +37,10 @@ export class LoopbackClient implements ILoopbackClient {
         const authCodeListener = new Promise<ServerAuthorizationCodeResponse>(
             (resolve, reject) => {
                 this.server = http.createServer(
-                    async (req: http.IncomingMessage, res: http.ServerResponse) => {
+                    async (
+                        req: http.IncomingMessage,
+                        res: http.ServerResponse
+                    ) => {
                         const url = req.url;
                         if (!url) {
                             res.end(
