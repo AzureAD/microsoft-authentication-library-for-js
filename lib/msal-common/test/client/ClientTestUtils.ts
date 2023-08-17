@@ -22,6 +22,7 @@ import {
     Logger,
     LogLevel,
     TokenKeys,
+    ServerTelemetryManager,
 } from "../../src";
 import {
     AUTHENTICATION_RESULT,
@@ -167,6 +168,17 @@ export class MockStorageClass extends CacheManager {
     removeItem(key: string): void {
         if (!!this.store[key]) {
             delete this.store[key];
+            // Update token keys
+            const tokenKeys = this.store[TOKEN_KEYS];
+            if (tokenKeys?.accessToken.includes(key)) {
+                const index = tokenKeys?.accessToken.indexOf(key);
+                tokenKeys.accessToken.splice(index, 1);
+            }
+            if (tokenKeys?.idToken.includes(key)) {
+                const index = tokenKeys?.idToken.indexOf(key);
+                tokenKeys.idToken.splice(index, 1);
+            }
+            this.store[TOKEN_KEYS] = tokenKeys;
         }
     }
     containsKey(key: string): boolean {
@@ -249,7 +261,10 @@ export const mockCrypto = {
 };
 
 export class ClientTestUtils {
-    static async createTestClientConfiguration(): Promise<ClientConfiguration> {
+    static async createTestClientConfiguration(
+        telem: boolean = false,
+        protocolMode: ProtocolMode = ProtocolMode.AAD
+    ): Promise<ClientConfiguration> {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
@@ -270,7 +285,7 @@ export class ClientTestUtils {
         };
 
         const authorityOptions: AuthorityOptions = {
-            protocolMode: ProtocolMode.AAD,
+            protocolMode: protocolMode,
             knownAuthorities: [TEST_CONFIG.validAuthority],
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
@@ -294,6 +309,19 @@ export class ClientTestUtils {
         await authority.resolveEndpointsAsync().catch((error) => {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
         });
+
+        let serverTelemetryManager = null;
+
+        if (telem) {
+            serverTelemetryManager = new ServerTelemetryManager(
+                {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    apiId: 866,
+                },
+                mockStorage
+            );
+        }
 
         return {
             authOptions: {
@@ -325,6 +353,7 @@ export class ClientTestUtils {
                     appVersion: TEST_CONFIG.applicationVersion,
                 },
             },
+            serverTelemetryManager: serverTelemetryManager,
         };
     }
 }

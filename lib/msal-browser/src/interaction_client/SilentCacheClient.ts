@@ -6,7 +6,6 @@
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
     CommonSilentFlowRequest,
-    AuthenticationResult,
     SilentFlowClient,
     ServerTelemetryManager,
     AccountInfo,
@@ -20,6 +19,7 @@ import {
     BrowserAuthError,
     BrowserAuthErrorMessage,
 } from "../error/BrowserAuthError";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -46,11 +46,11 @@ export class SilentCacheClient extends StandardInteractionClient {
         this.logger.verbose("Silent auth client created");
 
         try {
-            const cachedToken = await silentAuthClient.acquireCachedToken(
+            const cachedToken = (await silentAuthClient.acquireCachedToken(
                 silentRequest
-            );
+            )) as AuthenticationResult;
 
-            acquireTokenMeasurement.endMeasurement({
+            acquireTokenMeasurement.end({
                 success: true,
                 fromCache: true,
             });
@@ -65,7 +65,7 @@ export class SilentCacheClient extends StandardInteractionClient {
                     "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair."
                 );
             }
-            acquireTokenMeasurement.endMeasurement({
+            acquireTokenMeasurement.end({
                 errorCode:
                     (error instanceof AuthError && error.errorCode) ||
                     undefined,
@@ -125,7 +125,7 @@ export class SilentCacheClient extends StandardInteractionClient {
         );
         return {
             ...request,
-            ...await this.initializeBaseRequest(request, account),
+            ...(await this.initializeBaseRequest(request, account)),
             account: account,
             forceRefresh: request.forceRefresh || false,
         };

@@ -5,18 +5,16 @@
   "version": "0.1.0",
   "scripts": {
     "build": "gatsby build",
-    "build:package": "cd ../../../lib/msal-react && npm run build:all",
+    "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react",
     "develop": "gatsby develop -p 3000",
     "start": "gatsby serve -p 3000",
     "serve": "gatsby serve",
     "test": "jest",
-    "clean": "gatsby clean",
-    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
-    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
+    "clean": "gatsby clean"
   },
   "dependencies": {
-    "@azure/msal-browser": "^2.14.2",
-    "@azure/msal-react": "^1.0.0",
+    "@azure/msal-browser": "^3.0.0-beta.0",
+    "@azure/msal-react": "^2.0.0-beta.0",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@mui/icons-material": "^5.11.0",
@@ -27,6 +25,9 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "jest": "^29.5.0"
+    "@types/jest": "^29.5.0",
+    "e2e-test-utils": "file:../../e2eTestUtils",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0"
   }
 }

@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo ,
+import {
+    AccountInfo,
     ICrypto,
     AuthError,
     PkceCodes,
@@ -47,7 +48,7 @@ line3
 line4
 -----END CERTIFICATE-----
     `,
-    CLAIMS: "claim1 claim2",
+    CLAIMS: `{ "access_token": { "xms_cc":{"values":["cp1"] } }}`,
     SNI_CERTIFICATE: `-----BEGIN PRIVATE KEY-----\r
 line1\r
 line2\r
@@ -242,6 +243,7 @@ export const TEST_CRYPTO_VALUES = {
 };
 
 export const mockAccountInfo: AccountInfo = {
+    authorityType: "MSSTS",
     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID,
     environment: TEST_CONSTANTS.PREFERRED_CACHE,
     localAccountId: ID_TOKEN_CLAIMS.oid,
@@ -249,13 +251,13 @@ export const mockAccountInfo: AccountInfo = {
     username: ID_TOKEN_CLAIMS.preferred_username,
     idTokenClaims: ID_TOKEN_CLAIMS,
     name: ID_TOKEN_CLAIMS.name,
-    nativeAccountId: undefined
+    nativeAccountId: undefined,
 };
 
 export const mockNativeAccountInfo: AccountInfo = {
     ...mockAccountInfo,
-    nativeAccountId: "test-nativeAccountId"
-}
+    nativeAccountId: "test-nativeAccountId",
+};
 
 export const mockAuthenticationResult: AuthenticationResult = {
     authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
@@ -269,13 +271,13 @@ export const mockAuthenticationResult: AuthenticationResult = {
     fromCache: false,
     expiresOn: new Date(),
     tokenType: "BEARER",
-    correlationId: "test-correlationId"
+    correlationId: "test-correlationId",
 };
 
 export const mockNativeAuthenticationResult: AuthenticationResult = {
     ...mockAuthenticationResult,
-    account: mockNativeAccountInfo
-}
+    account: mockNativeAccountInfo,
+};
 
 export type MockedMetadataResponse = {
     tenant_discovery_endpoint: string;

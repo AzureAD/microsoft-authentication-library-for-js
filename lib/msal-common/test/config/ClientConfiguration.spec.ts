@@ -134,6 +134,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Logger options checks
         expect(emptyConfig.loggerOptions).not.toBeNull();
         expect(emptyConfig.loggerOptions.piiLoggingEnabled).toBe(false);
+        // Cache Options checks
+        expect(emptyConfig.cacheOptions).not.toBeNull();
+        expect(emptyConfig.cacheOptions.claimsBasedCachingEnabled).toBe(false);
         // Client info checks
         expect(emptyConfig.libraryInfo.sku).toBe(Constants.SKU);
         expect(emptyConfig.libraryInfo.version).toBe(version);
@@ -219,6 +222,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 ): void => {},
                 piiLoggingEnabled: true,
             },
+            cacheOptions: {
+                claimsBasedCachingEnabled: true,
+            },
             libraryInfo: {
                 sku: TEST_CONFIG.TEST_SKU,
                 version: TEST_CONFIG.TEST_VERSION,
@@ -298,6 +304,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.loggerOptions).not.toBeNull();
         expect(newConfig.loggerOptions.loggerCallback).not.toBeNull();
         expect(newConfig.loggerOptions.piiLoggingEnabled).toBe(true);
+        // Cache options tests
+        expect(newConfig.cacheOptions).not.toBeNull();
+        expect(newConfig.cacheOptions.claimsBasedCachingEnabled).toBe(true);
         // Client info tests
         expect(newConfig.libraryInfo.sku).toBe(TEST_CONFIG.TEST_SKU);
         expect(newConfig.libraryInfo.version).toBe(TEST_CONFIG.TEST_VERSION);

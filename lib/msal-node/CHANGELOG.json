@@ -2,78 +2,74 @@
   "name": "@azure/msal-node",
   "entries": [
     {
-      "date": "Thu, 15 Jun 2023 22:19:26 GMT",
-      "tag": "@azure/msal-node_v2.0.0-beta.0",
-      "version": "2.0.0-beta.0",
+      "date": "Fri, 11 Aug 2023 19:00:44 GMT",
+      "tag": "@azure/msal-node_v2.0.1",
+      "version": "2.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4d1b5ebc6070f80b0f33d5610a0f787c25d8031a",
+            "comment": "Fix msal-node file extensions #6318"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ae5fbc436e4c9b331494caa599510bb5f7b10272",
+            "comment": "Update dist settings for packages #6322"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.0.1",
+            "commit": "69d1715ac133eb486d94f87ebbb3fc61b4df3910"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Aug 2023 18:15:15 GMT",
+      "tag": "@azure/msal-node_v2.0.0",
+      "version": "2.0.0",
       "comments": {
         "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7",
+            "comment": "Remove disallowedChangeTypes from package.json files"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "c34e759455a7cbb86cba943923cff34f5b942e28",
+            "comment": "Fix formatting #6264"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "88f49fb55daa60410bbbc126856bdb7d2189817a",
+            "comment": "Replace lerna with npm workspaces #6136"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8c382b3b677bf9388154ab6c2863d6951905e91a",
+            "comment": "Update tests #6271"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "f714b51f03eb87ccd0102d886c814b3dab2b5cc9",
+            "comment": "DevDependency updates"
+          },
           {
             "author": "rginsburg@microsoft.com",
             "package": "@azure/msal-node",
             "commit": "a4b74f083f04466f8d341d017942635a3c268e85",
             "comment": "Updated ClientCredentialRequest documentation"
-          }
-        ],
-        "prerelease": [
-          {
-            "author": "kshabelko@microsoft.com",
-            "package": "@azure/msal-node",
-            "commit": "42dd47713c8c8e362fa3cd54cbf7367140d9fb06",
-            "comment": "Switch from enums to object literals to reduce the bundle size #6068"
-          }
-        ],
-        "patch": [
-          {
-            "author": "beachball",
-            "package": "@azure/msal-node",
-            "comment": "Bump @azure/msal-common to v14.0.0-beta.0",
-            "commit": "c7bd70a0521c2f0a397bed5109bf443db674a8a4"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Tue, 16 May 2023 22:51:25 GMT",
-      "tag": "@azure/msal-node_v2.0.0-alpha.2",
-      "version": "2.0.0-alpha.2",
-      "comments": {
-        "prerelease": [
-          {
-            "author": "beachball",
-            "package": "@azure/msal-node",
-            "comment": "Bump @azure/msal-common to v14.0.0-alpha.2",
-            "commit": "c7103ba801167b089d6504cdc385eecb7019fc78"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Mon, 08 May 2023 20:12:00 GMT",
-      "tag": "@azure/msal-node_v2.0.0-alpha.1",
-      "version": "2.0.0-alpha.1",
-      "comments": {
-        "prerelease": [
-          {
-            "author": "hemoral@microsoft.com",
-            "package": "@azure/msal-node",
-            "commit": "8788b7d52841f088d330aa881d1196a33e9e6f7a",
-            "comment": "Revert to common as a regular dependency #5985"
           },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-node",
-            "comment": "Bump @azure/msal-common to v14.0.0-alpha.1",
-            "commit": "6a8ac1e0a383b237c3fd6a3c8444376d197bea85"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Tue, 02 May 2023 23:14:26 GMT",
-      "tag": "@azure/msal-node_v2.0.0-alpha.0",
-      "version": "2.0.0-alpha.0",
-      "comments": {
-        "none": [
           {
             "author": "hemoral@microsoft.com",
             "package": "@azure/msal-node",
@@ -97,26 +93,6 @@
             "package": "@azure/msal-node",
             "commit": "41cc416a3457cd13806eb36aabe5b319fd21529e",
             "comment": "Unit tests for broker flow #5910"
-          }
-        ],
-        "patch": [
-          {
-            "author": "hemoral@microsoft.com",
-            "package": "@azure/msal-node",
-            "commit": "86c9cde0e53396c18ee380c420458ffabe470de5",
-            "comment": "Update MSAL Node compatible versions to include Node v20 and drop v16 #5905"
-          },
-          {
-            "author": "thomas.norling@microsoft.com",
-            "package": "@azure/msal-node",
-            "commit": "758159f98704b64c3b365972ac13eef96e08d0a9",
-            "comment": "Remove `null` from `acquireTokenSilent` return type #5912"
-          },
-          {
-            "author": "kshabelko@microsoft.com",
-            "package": "@azure/msal-node",
-            "commit": "85bbdefbd59785a8dd3fc46368409d95472bd2a1",
-            "comment": "Fix prepack hook #5967"
           }
         ],
         "major": [
@@ -147,6 +123,60 @@
         ],
         "minor": [
           {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ab44706bcf8e5a281b70ac93a44c58420c07d16a",
+            "comment": "Add exports to package.json and update type to module #6194"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "d8b4b702d4bf4293a35bcf9a22b8c45210afb871",
+            "comment": "Omit new storeInCache request parameter from public API surface"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "57f2241c66d5499938507d9954896b28c01455ba",
+            "comment": "ClientCredentials: Fixed bug where user-supplied cache is loaded into memory only after network request #6218"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4c99ad07b7ea40e1f2191173e58d80cec143c72d",
+            "comment": "Update PerformanceClient for better usability/extendibility #6270"
+          },
+          {
+            "author": "joshua.head@envoryat.com",
+            "package": "@azure/msal-node",
+            "commit": "32df7b975cbfca687f6d5ddd620ca19a545f39d3",
+            "comment": "fix: msal-node now references the right index.esm.ja"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5ecb611181d878b533ddb43f4774b064d63f8f3a",
+            "comment": "Export IdTokenClaims & ServerAuthorizationCodeResponse types"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4ccef1b8a11ca5643c11eb9586e45f8e45398e8c",
+            "comment": "Make claims-based caching configurable #6163"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "42dd47713c8c8e362fa3cd54cbf7367140d9fb06",
+            "comment": "Switch from enums to object literals to reduce the bundle size #6068"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8788b7d52841f088d330aa881d1196a33e9e6f7a",
+            "comment": "Revert to common as a regular dependency #5985"
+          },
+          {
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-node",
             "commit": "14aeb0a7a4e90650de4b09adb95e32c7084a6424",
@@ -157,6 +187,32 @@
             "package": "@azure/msal-node",
             "commit": "39baaeb91c3373df955079e6fc1f94d5d4e14881",
             "comment": "Export Serializer and Deserializer from msal-node #5931"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.0.0",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "86c9cde0e53396c18ee380c420458ffabe470de5",
+            "comment": "Update MSAL Node compatible versions to include Node v20 and drop v16 #5905"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "758159f98704b64c3b365972ac13eef96e08d0a9",
+            "comment": "Remove `null` from `acquireTokenSilent` return type #5912"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "85bbdefbd59785a8dd3fc46368409d95472bd2a1",
+            "comment": "Fix prepack hook #5967"
           }
         ]
       }
@@ -1557,7 +1613,7 @@
       "comments": {
         "prerelease": [
           {
-            "comment": "Export all \"Request\" types in msal-node",
+            "comment": "Export all Request types in msal-node",
             "author": "sameera.gajjarapu@microsoft.com",
             "commit": "145602c7ced2c9f77a249f0abdca76f3358bd7db",
             "package": "@azure/msal-node"

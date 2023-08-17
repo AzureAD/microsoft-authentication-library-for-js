@@ -1,13 +1,23 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.0-beta.0",
+  "version": "1.0.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "license": "MIT",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
   "keywords": [
     "js",
     "ts",
@@ -26,31 +36,28 @@
   "scripts": {
     "compile": "node-gyp rebuild",
     "clean": "shx rm -rf dist bin",
-    "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs && node ./scripts/buildBinaries.js",
-    "build:common": "cd ../../lib/msal-common && npm run build",
-    "build:all": "npm run build:common && npm run build",
+    "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs && node ./scripts/buildBinaries.cjs",
+    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node-extensions",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "link:localDeps": "npx lerna@6 bootstrap --scope @azure/msal-common --scope @azure/msal-node-extensions",
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
-    "prepack": "npm run build:all && node ./scripts/checkBinaries.js"
+    "format:check": "npx prettier --ignore-path .gitignore --check src test",
+    "format:fix": "npx prettier --ignore-path .gitignore --write src test",
+    "prepack": "npm run build:all && node ./scripts/checkBinaries.cjs"
   },
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
     "url": "https://www.microsoft.com"
   },
-  "module": "dist/msal-node-extensions.esm.js",
   "beachball": {
     "disallowedChangeTypes": [
-      "patch",
-      "minor",
       "major"
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "14.0.0-beta.0",
+    "@azure/msal-common": "14.0.1",
     "@azure/msal-node-runtime": "^0.13.6-alpha.0",
     "keytar": "^7.8.0"
   },
@@ -58,7 +65,7 @@
     "@rollup/plugin-node-resolve": "^15.0.2",
     "@rollup/plugin-typescript": "^11.1.0",
     "@types/jest": "^29.5.1",
-    "@types/node": "^18.8.3",
+    "@types/node": "^20.3.1",
     "jest": "^29.5.0",
     "node-addon-api": "^6.1.0",
     "rollup": "^3.20.2",

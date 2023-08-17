@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Fix performance bug with regional authority detection #6139",
-  "packageName": "@azure/msal-common",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

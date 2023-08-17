@@ -8,8 +8,7 @@ import { promises as fs } from "fs";
 import { FileSystemUtils } from "../util/FileSystemUtils";
 jest.setTimeout(10000);
 
-describe('Test cache lock performance', () => {
-
+describe("Test cache lock performance", () => {
     const cacheFilePath = "./test_file.json";
 
     afterEach(async () => {
@@ -17,38 +16,62 @@ describe('Test cache lock performance', () => {
         await FileSystemUtils.cleanUpFile(cacheFilePath + ".lockfile");
     });
 
-    test('test cache normal workload', async () => {
+    test("test cache normal workload", async () => {
         const numProcesses = 10;
         const retryNumber = 100;
         const retryDelay = 100;
 
-        await runMultipleProcesses(numProcesses, cacheFilePath, retryNumber, retryDelay);
-        const correctlyFormatted = await fileCorrectlyFormatted(cacheFilePath, numProcesses * 2);
-        if(!correctlyFormatted){
+        await runMultipleProcesses(
+            numProcesses,
+            cacheFilePath,
+            retryNumber,
+            retryDelay
+        );
+        const correctlyFormatted = await fileCorrectlyFormatted(
+            cacheFilePath,
+            numProcesses * 2
+        );
+        if (!correctlyFormatted) {
             console.log("File not correctly formatted");
-            console.log(JSON.stringify(await fs.readFile(cacheFilePath, "utf-8")));
+            console.log(
+                JSON.stringify(await fs.readFile(cacheFilePath, "utf-8"))
+            );
         }
         expect(correctlyFormatted).toBe(true);
     });
 });
 
-async function runMultipleProcesses(numProcesses: number, cacheLocation: string , retryNumber: number, retryDelay: number): Promise<void> {
-
-    const options = [cacheLocation, retryNumber.toString(), retryDelay.toString()];
+async function runMultipleProcesses(
+    numProcesses: number,
+    cacheLocation: string,
+    retryNumber: number,
+    retryDelay: number
+): Promise<void> {
+    const options = [
+        cacheLocation,
+        retryNumber.toString(),
+        retryDelay.toString(),
+    ];
     let count = 0;
     for (let i = 0; i < numProcesses; i++) {
-        const proc = fork("./test/performance-test/LockAndWriteToStorageScript.js", options);
-        proc.on('exit', (code) => {
+        const proc = fork(
+            "./test/performance-test/LockAndWriteToStorageScript.js",
+            options
+        );
+        proc.on("exit", (code) => {
             count++;
         });
     }
 
-    while(count < numProcesses){
+    while (count < numProcesses) {
         await sleep(100);
     }
 }
 
-async function fileCorrectlyFormatted(filePath: string, expectedCount: number): Promise<boolean> {
+async function fileCorrectlyFormatted(
+    filePath: string,
+    expectedCount: number
+): Promise<boolean> {
     const fd = await fs.readFile(filePath);
 
     let prevProcessId = null;
@@ -58,22 +81,22 @@ async function fileCorrectlyFormatted(filePath: string, expectedCount: number): 
         count++;
         const pieces = line.split(" ");
         if (pieces.length !== 2) {
-            console.log("File line does not contain two items")
+            console.log("File line does not contain two items");
             return false;
         }
         if (prevProcessId != null) {
             if (pieces[0] !== ">") {
-                console.log("File does not contain closing bracket")
+                console.log("File does not contain closing bracket");
                 return false;
             }
             if (pieces[1] != prevProcessId) {
-                console.log("File does not contain opening pid")
+                console.log("File does not contain opening pid");
                 return false;
             }
             prevProcessId = null;
         } else {
             if (pieces[0] !== "<") {
-                console.log("File does not contain opening bracket")
+                console.log("File does not contain opening bracket");
                 return false;
             }
             prevProcessId = pieces[1];
@@ -81,9 +104,9 @@ async function fileCorrectlyFormatted(filePath: string, expectedCount: number): 
     }
 
     const allProcessExecuted = expectedCount === count;
-    if(!allProcessExecuted){
+    if (!allProcessExecuted) {
         console.log("Not all processes wrote to the cache file");
-        console.log(`Expected ${expectedCount}, but counted ${count}`)
+        console.log(`Expected ${expectedCount}, but counted ${count}`);
     }
     return allProcessExecuted;
 }

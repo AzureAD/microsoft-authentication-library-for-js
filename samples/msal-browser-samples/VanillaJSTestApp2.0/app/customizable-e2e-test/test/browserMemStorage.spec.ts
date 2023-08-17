@@ -1,17 +1,33 @@
 import * as puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
-import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
-import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
-import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { msalConfig as memStorageConfig, request as memStorageTokenRequest } from "../authConfigs/memStorageAuthConfig.json";
-import { clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "./testUtils";
+import {
+    Screenshot,
+    createFolder,
+    setupCredentials,
+    enterCredentials,
+    ONE_SECOND_IN_MS,
+    clickLoginPopup,
+    clickLoginRedirect,
+    waitForReturnToApp,
+    getBrowser,
+    getHomeUrl,
+    pcaInitializedPoller,
+} from "e2e-test-utils/src/TestUtils";
+import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
+import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
+import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
+import { LabClient } from "e2e-test-utils/src/LabClient";
+import {
+    msalConfig as memStorageConfig,
+    request as memStorageTokenRequest,
+} from "../authConfigs/memStorageAuthConfig.json";
 import fs from "fs";
-import {getBrowser, getHomeUrl} from "../../testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/memStorage`;
 
-async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
+async function verifyTokenStore(
+    BrowserCache: BrowserCacheUtils,
+    scopes: string[]
+): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
     expect(tokenStore.idTokens).toHaveLength(0);
     expect(tokenStore.accessTokens).toHaveLength(0);
@@ -33,15 +49,26 @@ describe("In Memory Storage Tests", function () {
 
         const labApiParams: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD
+            appType: AppTypes.CLOUD,
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParams
+        );
 
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
 
-        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: memStorageConfig, request: memStorageTokenRequest}));
+        fs.writeFileSync(
+            "./app/customizable-e2e-test/testConfig.json",
+            JSON.stringify({
+                msalConfig: memStorageConfig,
+                request: memStorageTokenRequest,
+            })
+        );
     });
 
     let context: puppeteer.BrowserContext;
@@ -57,9 +84,13 @@ describe("In Memory Storage Tests", function () {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-            BrowserCache = new BrowserCacheUtils(page, memStorageConfig.cache.cacheLocation);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            BrowserCache = new BrowserCacheUtils(
+                page,
+                memStorageConfig.cache.cacheLocation
+            );
             await page.goto(sampleHomeUrl);
+            await pcaInitializedPoller(page, 5000);
         });
 
         afterEach(async () => {
@@ -68,7 +99,9 @@ describe("In Memory Storage Tests", function () {
 
         it("Performs loginRedirect", async () => {
             const testName = "redirectBaseCase";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
 
             await clickLoginRedirect(screenshot, page);
             await enterCredentials(page, screenshot, username, accountPwd);
@@ -79,11 +112,21 @@ describe("In Memory Storage Tests", function () {
 
         it("Performs loginPopup", async () => {
             const testName = "popupBaseCase";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
 
-            const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
+            const [popupPage, popupWindowClosed] = await clickLoginPopup(
+                screenshot,
+                page
+            );
             await enterCredentials(popupPage, screenshot, username, accountPwd);
-            await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
+            await waitForReturnToApp(
+                screenshot,
+                page,
+                popupPage,
+                popupWindowClosed
+            );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
             await verifyTokenStore(BrowserCache, memStorageTokenRequest.scopes);

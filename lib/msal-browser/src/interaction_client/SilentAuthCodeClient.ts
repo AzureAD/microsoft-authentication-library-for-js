@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     ICrypto,
     Logger,
     CommonAuthorizationCodeRequest,
@@ -25,6 +24,7 @@ import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;

@@ -28,7 +28,6 @@ export const EventType = {
     LOGOUT_SUCCESS: "msal:logoutSuccess",
     LOGOUT_FAILURE: "msal:logoutFailure",
     LOGOUT_END: "msal:logoutEnd",
-    RESTORE_FROM_BFCACHE: "msal:restoreFromBFCache"
+    RESTORE_FROM_BFCACHE: "msal:restoreFromBFCache",
 } as const;
-export type EventType = typeof EventType[keyof typeof EventType];
-
+export type EventType = (typeof EventType)[keyof typeof EventType];

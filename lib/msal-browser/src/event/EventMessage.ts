@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AuthenticationResult,
-    AuthError,
-    AccountInfo,
-} from "@azure/msal-common";
+import { AuthError, AccountInfo } from "@azure/msal-common";
 import { EventType } from "./EventType";
 import { InteractionStatus, InteractionType } from "../utils/BrowserConstants";
 import {
@@ -16,6 +12,7 @@ import {
     SilentRequest,
     SsoSilentRequest,
     EndSessionRequest,
+    AuthenticationResult,
 } from "..";
 
 export type EventMessage = {

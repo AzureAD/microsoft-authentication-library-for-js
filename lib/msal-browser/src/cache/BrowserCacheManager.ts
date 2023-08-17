@@ -30,6 +30,8 @@ import {
     ClientAuthError,
     TokenKeys,
     CredentialType,
+    CacheRecord,
+    AuthenticationScheme,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -45,6 +47,11 @@ import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
+import { AuthenticationResult } from "../response/AuthenticationResult";
+import { SilentRequest } from "../request/SilentRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { PopupRequest } from "../request/PopupRequest";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1879,6 +1886,57 @@ export class BrowserCacheManager extends CacheManager {
             true
         );
     }
+
+    /**
+     * Builds credential entities from AuthenticationResult object and saves the resulting credentials to the cache
+     * @param result
+     * @param request
+     */
+    async hydrateCache(
+        result: AuthenticationResult,
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
+    ): Promise<void> {
+        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            result.account?.homeAccountId,
+            result.account?.environment,
+            result.idToken,
+            this.clientId,
+            result.tenantId
+        );
+
+        let claimsHash;
+        if (request.claims) {
+            claimsHash = await this.cryptoImpl.hashString(request.claims);
+        }
+        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            result.account?.homeAccountId,
+            result.account.environment,
+            result.accessToken,
+            this.clientId,
+            result.tenantId,
+            result.scopes.join(" "),
+            result.expiresOn?.getTime() || 0,
+            result.extExpiresOn?.getTime() || 0,
+            this.cryptoImpl,
+            undefined, // refreshOn
+            result.tokenType as AuthenticationScheme,
+            undefined, // userAssertionHash
+            request.sshKid,
+            request.claims,
+            claimsHash
+        );
+
+        const cacheRecord = new CacheRecord(
+            undefined,
+            idTokenEntity,
+            accessTokenEntity
+        );
+        return this.saveCacheRecord(cacheRecord);
+    }
 }
 
 export const DEFAULT_BROWSER_CACHE_MANAGER = (
@@ -1891,6 +1949,7 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         storeAuthStateInCookie: false,
         secureCookies: false,
         cacheMigrationEnabled: false,
+        claimsBasedCachingEnabled: false,
     };
     return new BrowserCacheManager(
         clientId,

@@ -80,7 +80,8 @@ export const PerformanceEvents = {
      * getDiscoveredAuthority API in StandardInteractionClient class (msal-browser).
      * Used to load authority metadata for a request.
      */
-    StandardInteractionClientGetDiscoveredAuthority: "standardInteractionClientGetDiscoveredAuthority",
+    StandardInteractionClientGetDiscoveredAuthority:
+        "standardInteractionClientGetDiscoveredAuthority",
 
     /**
      * acquireToken APIs in msal-browser.
@@ -113,7 +114,8 @@ export const PerformanceEvents = {
     /**
      * Time spent on the network for refresh token acquisition
      */
-    RefreshTokenClientExecuteTokenRequest: "refreshTokenClientExecuteTokenRequest",
+    RefreshTokenClientExecuteTokenRequest:
+        "refreshTokenClientExecuteTokenRequest",
 
     /**
      * Time taken for acquiring refresh token , records RT size
@@ -123,17 +125,20 @@ export const PerformanceEvents = {
     /**
      * Time taken for acquiring cached refresh token
      */
-    RefreshTokenClientAcquireTokenWithCachedRefreshToken: "refreshTokenClientAcquireTokenWithCachedRefreshToken",
+    RefreshTokenClientAcquireTokenWithCachedRefreshToken:
+        "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 
     /**
      * acquireTokenByRefreshToken API in RefreshTokenClient (msal-common).
      */
-    RefreshTokenClientAcquireTokenByRefreshToken: "refreshTokenClientAcquireTokenByRefreshToken",
+    RefreshTokenClientAcquireTokenByRefreshToken:
+        "refreshTokenClientAcquireTokenByRefreshToken",
 
     /**
      * Helper function to create token request body in RefreshTokenClient (msal-common).
      */
-    RefreshTokenClientCreateTokenRequestBody: "refreshTokenClientCreateTokenRequestBody",
+    RefreshTokenClientCreateTokenRequestBody:
+        "refreshTokenClientCreateTokenRequestBody",
 
     /**
      * acquireTokenFromCache (msal-browser).
@@ -174,10 +179,14 @@ export const PerformanceEvents = {
     /**
      * Helper functions in StandardInteractionClient class (msal-browser)
      */
-    StandardInteractionClientCreateAuthCodeClient: "standardInteractionClientCreateAuthCodeClient",
-    StandardInteractionClientGetClientConfiguration: "standardInteractionClientGetClientConfiguration",
-    StandardInteractionClientInitializeAuthorizationRequest: "standardInteractionClientInitializeAuthorizationRequest",
-    StandardInteractionClientInitializeAuthorizationCodeRequest: "standardInteractionClientInitializeAuthorizationCodeRequest",
+    StandardInteractionClientCreateAuthCodeClient:
+        "standardInteractionClientCreateAuthCodeClient",
+    StandardInteractionClientGetClientConfiguration:
+        "standardInteractionClientGetClientConfiguration",
+    StandardInteractionClientInitializeAuthorizationRequest:
+        "standardInteractionClientInitializeAuthorizationRequest",
+    StandardInteractionClientInitializeAuthorizationCodeRequest:
+        "standardInteractionClientInitializeAuthorizationCodeRequest",
 
     /**
      * getAuthCodeUrl API (msal-browser and msal-node).
@@ -213,13 +222,18 @@ export const PerformanceEvents = {
     /**
      * Authority functions
      */
-    AuthorityFactoryCreateDiscoveredInstance: "authorityFactoryCreateDiscoveredInstance",
+    AuthorityFactoryCreateDiscoveredInstance:
+        "authorityFactoryCreateDiscoveredInstance",
     AuthorityResolveEndpointsAsync: "authorityResolveEndpointsAsync",
-    AuthorityGetCloudDiscoveryMetadataFromNetwork: "authorityGetCloudDiscoveryMetadataFromNetwork",
-    AuthorityUpdateCloudDiscoveryMetadata: "authorityUpdateCloudDiscoveryMetadata",
-    AuthorityGetEndpointMetadataFromNetwork: "authorityGetEndpointMetadataFromNetwork",
+    AuthorityGetCloudDiscoveryMetadataFromNetwork:
+        "authorityGetCloudDiscoveryMetadataFromNetwork",
+    AuthorityUpdateCloudDiscoveryMetadata:
+        "authorityUpdateCloudDiscoveryMetadata",
+    AuthorityGetEndpointMetadataFromNetwork:
+        "authorityGetEndpointMetadataFromNetwork",
     AuthorityUpdateEndpointMetadata: "authorityUpdateEndpointMetadata",
-    AuthorityUpdateMetadataWithRegionalInformation: "authorityUpdateMetadataWithRegionalInformation",
+    AuthorityUpdateMetadataWithRegionalInformation:
+        "authorityUpdateMetadataWithRegionalInformation",
 
     /**
      * Region Discovery functions
@@ -231,17 +245,22 @@ export const PerformanceEvents = {
     AcquireTokenByCodeAsync: "acquireTokenByCodeAsync",
 
     GetEndpointMetadataFromNetwork: "getEndpointMetadataFromNetwork",
-    GetCloudDiscoveryMetadataFromNetworkMeasurement: "getCloudDiscoveryMetadataFromNetworkMeasurement",
+    GetCloudDiscoveryMetadataFromNetworkMeasurement:
+        "getCloudDiscoveryMetadataFromNetworkMeasurement",
 
     HandleRedirectPromiseMeasurement: "handleRedirectPromiseMeasurement",
 
-    UpdateCloudDiscoveryMetadataMeasurement: "updateCloudDiscoveryMetadataMeasurement",
+    UpdateCloudDiscoveryMetadataMeasurement:
+        "updateCloudDiscoveryMetadataMeasurement",
 
     UsernamePasswordClientAcquireToken: "usernamePasswordClientAcquireToken",
 
     NativeMessageHandlerHandshake: "nativeMessageHandlerHandshake",
+
+    NativeGenerateAuthResult: "nativeGenerateAuthResult",
 } as const;
-export type PerformanceEvents = typeof PerformanceEvents[keyof typeof PerformanceEvents];
+export type PerformanceEvents =
+    (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
 
 /**
  * State of the performance event.
@@ -254,18 +273,183 @@ export const PerformanceEventStatus = {
     InProgress: 1,
     Completed: 2,
 } as const;
-export type PerformanceEventStatus = typeof PerformanceEventStatus[keyof typeof PerformanceEventStatus];
+export type PerformanceEventStatus =
+    (typeof PerformanceEventStatus)[keyof typeof PerformanceEventStatus];
+
+export type SubMeasurement = {
+    name: string;
+    startTimeMs: number;
+};
 
 /**
- * Fields whose value will not change throughout a request
+ * Performance measurement taken by the library, including metadata about the request and application.
+ *
+ * @export
+ * @typedef {PerformanceEvent}
  */
-export type StaticFields = {
+export type PerformanceEvent = {
     /**
-     * The Silent Token Cache Lookup Policy
+     * Unique id for the event
      *
-     * @type {?(number | undefined)}
+     * @type {string}
+     */
+    eventId: string;
+
+    /**
+     * State of the perforance measure.
+     *
+     * @type {PerformanceEventStatus}
+     */
+    status: PerformanceEventStatus;
+
+    /**
+     * Login authority used for the request
+     *
+     * @type {string}
+     */
+    authority: string;
+
+    /**
+     * Client id for the application
+     *
+     * @type {string}
+     */
+    clientId: string;
+
+    /**
+     * Correlation ID used for the request
+     *
+     * @type {string}
+     */
+    correlationId: string;
+
+    /**
+     * End-to-end duration in milliseconds.
+     * @date 3/22/2022 - 3:40:05 PM
+     *
+     * @type {number}
+     */
+    durationMs?: number;
+
+    /**
+     * Visibility of the page when the event completed.
+     * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
+     *
+     * @type {?(string | null)}
+     */
+    endPageVisibility?: string | null;
+
+    /**
+     * Whether the result was retrieved from the cache.
+     *
+     * @type {(boolean | null)}
+     */
+    fromCache?: boolean | null;
+
+    /**
+     * Event name (usually in the form of classNameFunctionName)
+     *
+     * @type {string}
+     */
+    name: string;
+
+    /**
+     * Visibility of the page when the event completed.
+     * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
+     *
+     * @type {?(string | null)}
+     */
+    startPageVisibility?: string | null;
+
+    /**
+     * Unix millisecond timestamp when the event was initiated.
+     *
+     * @type {number}
+     */
+    startTimeMs: number;
+
+    /**
+     * Whether or the operation completed successfully.
+     *
+     * @type {(boolean | null)}
+     */
+    success?: boolean | null;
+
+    /**
+     * Add specific error code in case of failure
+     *
+     * @type {string}
+     */
+    errorCode?: string;
+
+    /**
+     * Add specific sub error code in case of failure
+     *
+     * @type {string}
+     */
+    subErrorCode?: string;
+
+    /**
+     * Name of the library used for the operation.
+     *
+     * @type {string}
+     */
+    libraryName: string;
+
+    /**
+     * Version of the library used for the operation.
+     *
+     * @type {string}
+     */
+    libraryVersion: string;
+
+    /**
+     * Whether the response is from a native component (e.g., WAM)
+     *
+     * @type {?boolean}
+     */
+    isNativeBroker?: boolean;
+
+    /**
+     * Request ID returned from the response
+     *
+     * @type {?string}
+     */
+    requestId?: string;
+
+    /**
+     * Cache lookup policy
+     *
+     * @type {?number}
      */
     cacheLookupPolicy?: number | undefined;
+
+    /**
+     * Amount of time spent in the JS queue in milliseconds.
+     *
+     * @type {?number}
+     */
+    queuedTimeMs?: number;
+
+    /**
+     * Sub-measurements for internal use. To be deleted before flushing.
+     */
+    incompleteSubMeasurements?: Map<string, SubMeasurement>;
+
+    visibilityChangeCount?: number;
+    incompleteSubsCount?: number;
+    /**
+     * Amount of times queued in the JS event queue.
+     *
+     * @type {?number}
+     */
+    queuedCount?: number;
+    /**
+     * Amount of manually completed queue events.
+     *
+     * @type {?number}
+     */
+    queuedManuallyCompletedCount?: number;
 
     /**
      * Size of the id token
@@ -335,188 +519,6 @@ export type StaticFields = {
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
 };
-
-/**
- * Fields whose value may change throughout a request
- */
-export type Counters = {
-    visibilityChangeCount?: number;
-    incompleteSubsCount?: number;
-    /**
-     * Amount of times queued in the JS event queue.
-     *
-     * @type {?number}
-     */
-    queuedCount?: number;
-    /**
-     * Amount of manually completed queue events.
-     *
-     * @type {?number}
-     */
-    queuedManuallyCompletedCount?: number;
-};
-
-export type SubMeasurement = {
-    name: PerformanceEvents;
-    startTimeMs: number;
-};
-
-/**
- * Performance measurement taken by the library, including metadata about the request and application.
- *
- * @export
- * @typedef {PerformanceEvent}
- */
-export type PerformanceEvent = StaticFields &
-    Counters & {
-        /**
-         * Unique id for the event
-         *
-         * @type {string}
-         */
-        eventId: string;
-
-        /**
-         * State of the perforance measure.
-         *
-         * @type {PerformanceEventStatus}
-         */
-        status: PerformanceEventStatus;
-
-        /**
-         * Login authority used for the request
-         *
-         * @type {string}
-         */
-        authority: string;
-
-        /**
-         * Client id for the application
-         *
-         * @type {string}
-         */
-        clientId: string;
-
-        /**
-         * Correlation ID used for the request
-         *
-         * @type {string}
-         */
-        correlationId: string;
-
-        /**
-         * End-to-end duration in milliseconds.
-         * @date 3/22/2022 - 3:40:05 PM
-         *
-         * @type {number}
-         */
-        durationMs?: number;
-
-        /**
-         * Visibility of the page when the event completed.
-         * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
-         *
-         * @type {?(string | null)}
-         */
-        endPageVisibility?: string | null;
-
-        /**
-         * Whether the result was retrieved from the cache.
-         *
-         * @type {(boolean | null)}
-         */
-        fromCache?: boolean | null;
-
-        /**
-         * Event name (usually in the form of classNameFunctionName)
-         *
-         * @type {PerformanceEvents}
-         */
-        name: PerformanceEvents;
-
-        /**
-         * Visibility of the page when the event completed.
-         * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
-         *
-         * @type {?(string | null)}
-         */
-        startPageVisibility?: string | null;
-
-        /**
-         * Unix millisecond timestamp when the event was initiated.
-         *
-         * @type {number}
-         */
-        startTimeMs: number;
-
-        /**
-         * Whether or the operation completed successfully.
-         *
-         * @type {(boolean | null)}
-         */
-        success?: boolean | null;
-
-        /**
-         * Add specific error code in case of failure
-         *
-         * @type {string}
-         */
-        errorCode?: string;
-
-        /**
-         * Add specific sub error code in case of failure
-         *
-         * @type {string}
-         */
-        subErrorCode?: string;
-
-        /**
-         * Name of the library used for the operation.
-         *
-         * @type {string}
-         */
-        libraryName: string;
-
-        /**
-         * Version of the library used for the operation.
-         *
-         * @type {string}
-         */
-        libraryVersion: string;
-
-        /**
-         * Whether the response is from a native component (e.g., WAM)
-         *
-         * @type {?boolean}
-         */
-        isNativeBroker?: boolean;
-
-        /**
-         * Request ID returned from the response
-         *
-         * @type {?string}
-         */
-        requestId?: string;
-
-        /**
-         * Cache lookup policy
-         *
-         * @type {?number}
-         */
-        cacheLookupPolicy?: number | undefined;
-
-        /**
-         * Amount of time spent in the JS queue in milliseconds.
-         *
-         * @type {?number}
-         */
-        queuedTimeMs?: number;
-
-        /**
-         * Sub-measurements for internal use. To be deleted before flushing.
-         */
-        incompleteSubMeasurements?: Map<string, SubMeasurement>;
-    };
 
 export const IntFields: ReadonlySet<string> = new Set([
     "accessTokenSize",

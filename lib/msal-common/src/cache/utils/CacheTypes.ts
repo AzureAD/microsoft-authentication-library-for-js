@@ -14,14 +14,20 @@ import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
 import { AuthenticationScheme } from "../../utils/Constants";
 import { ScopeSet } from "../../request/ScopeSet";
 
+/** @internal */
 export type AccountCache = Record<string, AccountEntity>;
+/** @internal */
 export type IdTokenCache = Record<string, IdTokenEntity>;
+/** @internal */
 export type AccessTokenCache = Record<string, AccessTokenEntity>;
+/** @internal */
 export type RefreshTokenCache = Record<string, RefreshTokenEntity>;
+/** @internal */
 export type AppMetadataCache = Record<string, AppMetadataEntity>;
 
 /**
  * Object type of all accepted cache types
+ * @internal
  */
 export type ValidCacheType =
     | AccountEntity
@@ -36,6 +42,7 @@ export type ValidCacheType =
 
 /**
  * Object type of all credential types
+ * @internal
  */
 export type ValidCredentialType =
     | IdTokenEntity

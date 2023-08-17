@@ -3,12 +3,20 @@
  * Licensed under the MIT License.
  */
 
-export interface DpapiBindings{
-    protectData(dataToEncrypt: Uint8Array, optionalEntropy: Uint8Array|null, scope: string): Uint8Array
-    unprotectData(encryptData: Uint8Array, optionalEntropy: Uint8Array|null, scope: string): Uint8Array
+export interface DpapiBindings {
+    protectData(
+        dataToEncrypt: Uint8Array,
+        optionalEntropy: Uint8Array | null,
+        scope: string
+    ): Uint8Array;
+    unprotectData(
+        encryptData: Uint8Array,
+        optionalEntropy: Uint8Array | null,
+        scope: string
+    ): Uint8Array;
 }
 
-class defaultDpapi implements DpapiBindings{
+class defaultDpapi implements DpapiBindings {
     protectData(): Uint8Array {
         throw new Error("Dpapi is not supported on this platform");
     }

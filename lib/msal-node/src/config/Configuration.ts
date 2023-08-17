@@ -16,8 +16,8 @@ import {
     INativeBrokerPlugin,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient";
-import { AgentOptions as httpAgentOptions } from "http";
-import { AgentOptions as httpsAgentOptions } from "https";
+import http from "http";
+import https from "https";
 
 /**
  * - clientId               - Client id of the application.
@@ -57,6 +57,7 @@ export type NodeAuthOptions = {
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
+    claimsBasedCachingEnabled?: boolean;
 };
 
 /**
@@ -81,7 +82,7 @@ export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
     proxyUrl?: string;
-    customAgentOptions?: httpAgentOptions | httpsAgentOptions;
+    customAgentOptions?: http.AgentOptions | https.AgentOptions;
 };
 
 export type NodeTelemetryOptions = {
@@ -128,7 +129,9 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     skipAuthorityMetadataCache: false,
 };
 
-const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
+const DEFAULT_CACHE_OPTIONS: CacheOptions = {
+    claimsBasedCachingEnabled: false,
+};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (): void => {
@@ -142,7 +145,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
-    customAgentOptions: {} as httpAgentOptions | httpsAgentOptions,
+    customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
@@ -152,6 +155,7 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
     },
 };
 
+/** @internal */
 export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
     broker: BrokerOptions;
@@ -169,7 +173,7 @@ export type NodeConfiguration = {
  * @param telemetry - Telemetry options
  *
  * @returns Configuration
- * @public
+ * @internal
  */
 export function buildAppConfiguration({
     auth,
@@ -182,7 +186,7 @@ export function buildAppConfiguration({
         ...DEFAULT_SYSTEM_OPTIONS,
         networkClient: new HttpClient(
             system?.proxyUrl,
-            system?.customAgentOptions as httpAgentOptions | httpsAgentOptions
+            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
         ),
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };

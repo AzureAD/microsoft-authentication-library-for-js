@@ -2,78 +2,56 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
-      "date": "Thu, 15 Jun 2023 22:19:25 GMT",
-      "tag": "@azure/msal-angular_v3.0.0-beta.0",
-      "version": "3.0.0-beta.0",
+      "date": "Fri, 11 Aug 2023 19:00:44 GMT",
+      "tag": "@azure/msal-angular_v3.0.1",
+      "version": "3.0.1",
       "comments": {
-        "prerelease": [
+        "patch": [
           {
-            "author": "joarroyo@microsoft.com",
+            "author": "hemoral@microsoft.com",
             "package": "@azure/msal-angular",
-            "commit": "0e1b723cd4a8d59c963fd7a5a5884bebb9e49fbe",
-            "comment": "Update log to match name change #6036"
+            "commit": "33accbe2d7591ad801e927ca10b98a2109109974",
+            "comment": "Fix Angular deploy #6316"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.0.1",
+            "commit": "69d1715ac133eb486d94f87ebbb3fc61b4df3910"
           }
-        ],
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Aug 2023 18:15:15 GMT",
+      "tag": "@azure/msal-angular_v3.0.0",
+      "version": "3.0.0",
+      "comments": {
         "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7",
+            "comment": "Remove disallowedChangeTypes from package.json files"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "88f49fb55daa60410bbbc126856bdb7d2189817a",
+            "comment": "Replace lerna with npm workspaces #6136"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "c34e759455a7cbb86cba943923cff34f5b942e28",
+            "comment": "Fix formatting #6264"
+          },
           {
             "author": "joarroyo@microsoft.com",
             "package": "@azure/msal-angular",
             "commit": "8d60ee28508c67a1aec38d98d4dffe3c6909ce1a",
             "comment": "Changes to MSAL Angular docs and comments for v3 #6008"
-          }
-        ],
-        "patch": [
-          {
-            "author": "beachball",
-            "package": "@azure/msal-angular",
-            "comment": "Bump @azure/msal-browser to v3.0.0-beta.0",
-            "commit": "c7bd70a0521c2f0a397bed5109bf443db674a8a4"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Tue, 16 May 2023 22:51:19 GMT",
-      "tag": "@azure/msal-angular_v3.0.0-alpha.2",
-      "version": "3.0.0-alpha.2",
-      "comments": {
-        "prerelease": [
-          {
-            "author": "joarroyo@microsoft.com",
-            "package": "@azure/msal-angular",
-            "commit": "3458e0096365c79e6fb4054dfce87ff0b6dd2d41",
-            "comment": "Update rxjs dev dependency #6004"
           },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-angular",
-            "comment": "Bump @azure/msal-browser to v3.0.0-alpha.2",
-            "commit": "c7103ba801167b089d6504cdc385eecb7019fc78"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Mon, 08 May 2023 20:12:01 GMT",
-      "tag": "@azure/msal-angular_v3.0.0-alpha.1",
-      "version": "3.0.0-alpha.1",
-      "comments": {
-        "prerelease": [
-          {
-            "author": "beachball",
-            "package": "@azure/msal-angular",
-            "comment": "Bump @azure/msal-browser to v3.0.0-alpha.1",
-            "commit": "6a8ac1e0a383b237c3fd6a3c8444376d197bea85"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Tue, 02 May 2023 23:14:26 GMT",
-      "tag": "@azure/msal-angular_v3.0.0-alpha.0",
-      "version": "3.0.0-alpha.0",
-      "comments": {
-        "none": [
           {
             "author": "hemoral@microsoft.com",
             "package": "@azure/msal-angular",
@@ -91,18 +69,6 @@
             "package": "@azure/msal-angular",
             "commit": "134c0b2202bc3dc43ba392b7196392b386f566ac",
             "comment": "Msal Angular v3 address security vulnerabilities #5884"
-          },
-          {
-            "author": "hemoral@microsoft.com",
-            "package": "@azure/msal-angular",
-            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
-            "comment": "Msal v3 final rebase #5859"
-          },
-          {
-            "author": "hemoral@microsoft.com",
-            "package": "@azure/msal-angular",
-            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
-            "comment": "Allow major change types for v3 updates #5746"
           }
         ],
         "major": [
@@ -125,7 +91,45 @@
             "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd"
           }
         ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "faae9defff0424799bfa540fdb2c2f309b34db3a",
+            "comment": "Remove unused main field in package.json #6190"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "0e1b723cd4a8d59c963fd7a5a5884bebb9e49fbe",
+            "comment": "Update log to match name change #6036"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "3458e0096365c79e6fb4054dfce87ff0b6dd2d41",
+            "comment": "Update rxjs dev dependency #6004"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Msal v3 final rebase #5859"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Allow major change types for v3 updates #5746"
+          }
+        ],
         "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.0.0",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7"
+          },
           {
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-angular",

@@ -14,17 +14,21 @@ import {
     TEST_TOKEN_LIFETIMES,
     RANDOM_TEST_GUID,
     testNavUrl,
+    TEST_STATE_VALUES,
+    TEST_TOKEN_RESPONSE,
+    ID_TOKEN_CLAIMS,
 } from "../utils/StringConstants";
 import {
     AccountInfo,
     TokenClaims,
     PromptValue,
-    AuthenticationResult,
     CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
     ResponseMode,
     AuthenticationScheme,
     ServerTelemetryManager,
+    ProtocolUtils,
+    NetworkManager,
 } from "@azure/msal-common";
 import {
     BrowserAuthError,
@@ -34,7 +38,7 @@ import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { ApiId } from "../../src";
+import { ApiId, AuthenticationResult } from "../../src";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
@@ -43,6 +47,7 @@ describe("SilentIframeClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let silentIframeClient: SilentIframeClient;
     let pca: PublicClientApplication;
+    let browserCacheManager: BrowserCacheManager;
 
     beforeEach(() => {
         pca = new PublicClientApplication({
@@ -53,6 +58,9 @@ describe("SilentIframeClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
+
+        //@ts-ignore
+        browserCacheManager = pca.browserStorage;
 
         // @ts-ignore
         silentIframeClient = new SilentIframeClient(
@@ -541,6 +549,97 @@ describe("SilentIframeClient", () => {
                     );
                     done();
                 });
+        });
+
+        describe("storeInCache tests", () => {
+            beforeEach(() => {
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+                jest.spyOn(
+                    SilentHandler.prototype,
+                    "monitorIframeForHash"
+                ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
+                jest.spyOn(
+                    NetworkManager.prototype,
+                    "sendPostRequest"
+                ).mockResolvedValue(TEST_TOKEN_RESPONSE);
+            });
+
+            it("does not store idToken if storeInCache.idToken = false", async () => {
+                const tokenResp = await silentIframeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        idToken: false,
+                    },
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
+                });
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(0);
+                expect(tokenKeys.accessToken).toHaveLength(1);
+                expect(tokenKeys.refreshToken).toHaveLength(1);
+            });
+
+            it("does not store accessToken if storeInCache.accessToken = false", async () => {
+                const tokenResp = await silentIframeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        accessToken: false,
+                    },
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
+                });
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(1);
+                expect(tokenKeys.accessToken).toHaveLength(0);
+                expect(tokenKeys.refreshToken).toHaveLength(1);
+            });
+
+            it("does not store refreshToken if storeInCache.refreshToken = false", async () => {
+                const tokenResp = await silentIframeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        refreshToken: false,
+                    },
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
+                });
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(1);
+                expect(tokenKeys.accessToken).toHaveLength(1);
+                expect(tokenKeys.refreshToken).toHaveLength(0);
+            });
         });
     });
 

@@ -10,19 +10,17 @@ import {
     setupCredentials,
     b2cMsaAccountEnterCredentials,
     ONE_SECOND_IN_MS,
-    RETRY_TIMES
-} from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
-import { LabClient } from "../../../e2eTestUtils/LabClient";
-import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
-import {
+    RETRY_TIMES,
     clickSignIn,
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation
-} from "../../testUtils";
+} from "e2e-test-utils/src/TestUtils";
+import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
+import { LabClient } from "e2e-test-utils/src/LabClient";
+import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
+import { B2cProviders, UserTypes } from "e2e-test-utils/src/Constants";
 
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 

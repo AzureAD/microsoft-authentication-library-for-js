@@ -19,13 +19,14 @@ import {
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     testLogoutUrl,
     TEST_SSH_VALUES,
+    ID_TOKEN_CLAIMS,
+    TEST_TOKEN_RESPONSE,
 } from "../utils/StringConstants";
 import {
     ServerError,
     Constants,
     AccountInfo,
     TokenClaims,
-    AuthenticationResult,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     AuthToken,
@@ -46,6 +47,7 @@ import {
     AccountEntity,
     ClientConfigurationError,
     AuthError,
+    NetworkManager,
 } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import {
@@ -72,6 +74,7 @@ import { EventType } from "../../src/event/EventType";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -79,6 +82,7 @@ const cacheConfig = {
     storeAuthStateInCookie: false,
     secureCookies: false,
     cacheMigrationEnabled: false,
+    claimsBasedCachingEnabled: false,
 };
 
 const loggerOptions = {
@@ -100,7 +104,7 @@ describe("RedirectClient", () => {
     let browserStorage: BrowserCacheManager;
     let pca: PublicClientApplication;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -115,6 +119,7 @@ describe("RedirectClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
+        await pca.initialize();
 
         sinon
             .stub(CryptoOps.prototype, "createNewGuid")
@@ -144,6 +149,7 @@ describe("RedirectClient", () => {
     });
 
     afterEach(() => {
+        jest.restoreAllMocks();
         sinon.restore();
         window.location.hash = "";
         window.sessionStorage.clear();
@@ -1870,7 +1876,12 @@ describe("RedirectClient", () => {
                             )
                         ).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
                         bfCacheCallback({ persisted: true });
-                        expect(eventSpy.calledWith(EventType.RESTORE_FROM_BFCACHE, InteractionType.Redirect)).toBe(true);
+                        expect(
+                            eventSpy.calledWith(
+                                EventType.RESTORE_FROM_BFCACHE,
+                                InteractionType.Redirect
+                            )
+                        ).toBe(true);
                         expect(browserStorage.isInteractionInProgress()).toBe(
                             false
                         );
@@ -2951,6 +2962,126 @@ describe("RedirectClient", () => {
                 acquireTokenUrlSpy.calledWith(validatedRequest)
             ).toBeTruthy();
         });
+
+        describe("storeInCache tests", () => {
+            beforeEach(() => {
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                );
+                jest.spyOn(
+                    NetworkManager.prototype,
+                    "sendPostRequest"
+                ).mockResolvedValue(TEST_TOKEN_RESPONSE);
+            });
+
+            it("does not store idToken if storeInCache.idToken = false", async () => {
+                browserStorage.setInteractionInProgress(true);
+                await redirectClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        idToken: false,
+                    },
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
+                    onRedirectNavigate: () => {
+                        return false; // Supress navigation
+                    },
+                });
+
+                const tokenResp = await redirectClient.handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                );
+                if (!tokenResp) {
+                    throw "Response should not be null!";
+                }
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserStorage.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(0);
+                expect(tokenKeys.accessToken).toHaveLength(1);
+                expect(tokenKeys.refreshToken).toHaveLength(1);
+            });
+
+            it("does not store accessToken if storeInCache.accessToken = false", async () => {
+                browserStorage.setInteractionInProgress(true);
+                await redirectClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        accessToken: false,
+                    },
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
+                    onRedirectNavigate: () => {
+                        return false; // Supress navigation
+                    },
+                });
+
+                const tokenResp = await redirectClient.handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                );
+                if (!tokenResp) {
+                    throw "Response should not be null!";
+                }
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserStorage.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(1);
+                expect(tokenKeys.accessToken).toHaveLength(0);
+                expect(tokenKeys.refreshToken).toHaveLength(1);
+            });
+
+            it("does not store refreshToken if storeInCache.refreshToken = false", async () => {
+                browserStorage.setInteractionInProgress(true);
+                await redirectClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    storeInCache: {
+                        refreshToken: false,
+                    },
+                    nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
+                    onRedirectNavigate: () => {
+                        return false; // Supress navigation
+                    },
+                });
+
+                const tokenResp = await redirectClient.handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                );
+                if (!tokenResp) {
+                    throw "Response should not be null!";
+                }
+
+                // Response should still contain acquired tokens
+                expect(tokenResp.idToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.id_token
+                );
+                expect(tokenResp.accessToken).toEqual(
+                    TEST_TOKEN_RESPONSE.body.access_token
+                );
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserStorage.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(1);
+                expect(tokenKeys.accessToken).toHaveLength(1);
+                expect(tokenKeys.refreshToken).toHaveLength(0);
+            });
+        });
     });
 
     describe("logout", () => {
@@ -3537,6 +3668,7 @@ describe("RedirectClient", () => {
             };
 
             const testAccountInfo: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",

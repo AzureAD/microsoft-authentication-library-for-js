@@ -3,12 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ExternalTokenResponse,
-    AuthenticationResult,
-} from "@azure/msal-common";
+import { ExternalTokenResponse } from "@azure/msal-common";
 import { SilentRequest } from "../request/SilentRequest";
 import { LoadTokenOptions } from "./TokenCache";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export interface ITokenCache {
     /**

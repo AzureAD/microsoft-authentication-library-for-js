@@ -8,6 +8,7 @@ import { OpenIdConfigResponse } from "../../authority/OpenIdConfigResponse";
 import { AUTHORITY_METADATA_CONSTANTS } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 
+/** @internal */
 export class AuthorityMetadataEntity {
     aliases: Array<string>;
     preferred_cache: string;

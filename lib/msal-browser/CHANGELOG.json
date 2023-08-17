@@ -2,112 +2,78 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
-      "date": "Thu, 15 Jun 2023 22:19:24 GMT",
-      "tag": "@azure/msal-browser_v3.0.0-beta.0",
-      "version": "3.0.0-beta.0",
+      "date": "Fri, 11 Aug 2023 19:00:44 GMT",
+      "tag": "@azure/msal-browser_v3.0.1",
+      "version": "3.0.1",
       "comments": {
         "patch": [
           {
-            "author": "thomas.norling@microsoft.com",
+            "author": "hemoral@microsoft.com",
             "package": "@azure/msal-browser",
-            "commit": "2ccd5eb856e05545971f1762c117eedf87740549",
-            "comment": "Treat invalid_method as a fatal error for WAM #6094"
+            "commit": "ae5fbc436e4c9b331494caa599510bb5f7b10272",
+            "comment": "Update dist settings for packages #6322"
           },
           {
-            "author": "lalimasharda@microsoft.com",
+            "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-browser",
-            "commit": "cad79d2a14f7c58819f5e77cddfd08766fa2abb3",
-            "comment": "Added authority check for native and silent flows #6002"
-          },
-          {
-            "author": "sameera.gajjarapu@microsoft.com",
-            "package": "@azure/msal-browser",
-            "commit": "0f84d651552b1fb7fef88a65b74bd743bd381f0f",
-            "comment": "Fix silent cache lookup bugs for native flows #6067"
-          },
-          {
-            "author": "lalimasharda@microsoft.com",
-            "package": "@azure/msal-browser",
-            "commit": "b416b465f2b7f20be4f0865cd4364319df82830c",
-            "comment": "ignore native broker initialize check if application is not top-frame #6129"
+            "commit": "be329dede8f8edf97789a245a0b3f1610b40eeb1",
+            "comment": "Add `tokenBodyParameters` to silent and interaction request types #6325"
           },
           {
             "author": "beachball",
             "package": "@azure/msal-browser",
-            "comment": "Bump @azure/msal-common to v14.0.0-beta.0",
-            "commit": "c7bd70a0521c2f0a397bed5109bf443db674a8a4"
+            "comment": "Bump @azure/msal-common to v14.0.1",
+            "commit": "69d1715ac133eb486d94f87ebbb3fc61b4df3910"
           }
         ],
         "prerelease": [
           {
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-browser",
-            "commit": "0a3f082508e09a87bb155c25779d6d50ff48133e",
-            "comment": "Switch from enums to object literals to reduce the bundle size #6056"
+            "commit": "3528e0e99f86b928e942c4cf104cb8909809639c",
+            "comment": "Pick up broker extra query params #6286"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7d957524c2181d44487d16709186dbefc160258e",
+            "comment": "Update readmes v3 #6326"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Aug 2023 18:15:15 GMT",
+      "tag": "@azure/msal-browser_v3.0.0",
+      "version": "3.0.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7",
+            "comment": "Remove disallowedChangeTypes from package.json files"
           },
           {
             "author": "thomas.norling@microsoft.com",
             "package": "@azure/msal-browser",
-            "commit": "85383fb2f35d9c5e02e32d316a6d573ef09a22ed",
-            "comment": "Fix inProgress state reset when page restored from bfCache #6037"
+            "commit": "c34e759455a7cbb86cba943923cff34f5b942e28",
+            "comment": "Fix formatting #6264"
           },
           {
-            "author": "kshabelko@microsoft.com",
+            "author": "thomas.norling@microsoft.com",
             "package": "@azure/msal-browser",
-            "commit": "c27d5727a8ab559fc2f1dc6f8ffa6ba6b79a5a8a",
-            "comment": "Remove legacy MsCrypto and MsrCrypto polyfill to reduce the bundle size #6086"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Tue, 16 May 2023 22:51:19 GMT",
-      "tag": "@azure/msal-browser_v3.0.0-alpha.2",
-      "version": "3.0.0-alpha.2",
-      "comments": {
-        "prerelease": [
-          {
-            "author": "hemoral@microsoft.com",
-            "package": "@azure/msal-browser",
-            "commit": "13e5e7225602f48dabaa102641c84b583b1fb3b6",
-            "comment": "Update bundled files to be included in published package #5997"
+            "commit": "88f49fb55daa60410bbbc126856bdb7d2189817a",
+            "comment": "Replace lerna with npm workspaces #6136"
           },
           {
-            "author": "beachball",
+            "author": "thomas.norling@microsoft.com",
             "package": "@azure/msal-browser",
-            "comment": "Bump @azure/msal-common to v14.0.0-alpha.2",
-            "commit": "c7103ba801167b089d6504cdc385eecb7019fc78"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Mon, 08 May 2023 20:12:00 GMT",
-      "tag": "@azure/msal-browser_v3.0.0-alpha.1",
-      "version": "3.0.0-alpha.1",
-      "comments": {
-        "prerelease": [
-          {
-            "author": "hemoral@microsoft.com",
-            "package": "@azure/msal-browser",
-            "commit": "8788b7d52841f088d330aa881d1196a33e9e6f7a",
-            "comment": "Revert to common as a regular dependency #5985"
+            "commit": "f714b51f03eb87ccd0102d886c814b3dab2b5cc9",
+            "comment": "DevDependency updates"
           },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-browser",
-            "comment": "Bump @azure/msal-common to v14.0.0-alpha.1",
-            "commit": "6a8ac1e0a383b237c3fd6a3c8444376d197bea85"
-          }
-        ]
-      }
-    },
-    {
-      "date": "Tue, 02 May 2023 23:14:26 GMT",
-      "tag": "@azure/msal-browser_v3.0.0-alpha.0",
-      "version": "3.0.0-alpha.0",
-      "comments": {
-        "none": [
           {
             "author": "hemoral@microsoft.com",
             "package": "@azure/msal-browser",
@@ -133,7 +99,185 @@
             "comment": "Package-lock updates"
           }
         ],
+        "major": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2a169dc79b09ee661e85210073a6de1995e3b12a",
+            "comment": "Revert allowNativeBroker default to false #6280"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "`allowNativeBroker` configuration defaults to `true` #5616"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9f5c1288cbe52fa2176f41269032c7bb7920de14",
+            "comment": "Fix telemetry typos #5868"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.0",
+            "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2819735fe031ae36bea1d88f31f56089ac6ee21f",
+            "comment": "Expose CacheRecord as part of internals API #6291"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ab44706bcf8e5a281b70ac93a44c58420c07d16a",
+            "comment": "Add exports to package.json and update type to module #6194"
+          },
+          {
+            "author": "shylasummers@users.noreply.github.com",
+            "package": "@azure/msal-browser",
+            "commit": "c8e0f54ad7c6280ec6336759bbf04b5c64c121cd",
+            "comment": "Added OIDCOptions parameter to config"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e498fa34e673349f77f3dd57dcb831b3fad5cce7",
+            "comment": "Expose `BrowserPerformanceClient` and `BrowserPerformanceMeasurement` artifacts as public #6273"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "26a8031e4466662fef3cd793d377adb5afd988f4",
+            "comment": "Throw when initialize has not been called #6233"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4c99ad07b7ea40e1f2191173e58d80cec143c72d",
+            "comment": "Update PerformanceClient for better usability/extendibility #6270"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8c382b3b677bf9388154ab6c2863d6951905e91a",
+            "comment": "Add hydrateCache API #6271"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d8b4b702d4bf4293a35bcf9a22b8c45210afb871",
+            "comment": "Add storeInCache request parameter to control which tokens are persisted to the cache"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4ccef1b8a11ca5643c11eb9586e45f8e45398e8c",
+            "comment": "Make claims-based caching configurable #6163"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2b17b3cc0485be1eaca97a15de06c846557921a",
+            "comment": "Update string conversion function"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9939c2767634aabe878fa613060084c581e621d2",
+            "comment": "Make account info mandatory for AuthenticationResult and CacheRecord types #6156"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5ecb611181d878b533ddb43f4774b064d63f8f3a",
+            "comment": "Export IdTokenClaims & PromptValue types"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0a3f082508e09a87bb155c25779d6d50ff48133e",
+            "comment": "Switch from enums to object literals to reduce the bundle size #6056"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "85383fb2f35d9c5e02e32d316a6d573ef09a22ed",
+            "comment": "Fix inProgress state reset when page restored from bfCache #6037"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c27d5727a8ab559fc2f1dc6f8ffa6ba6b79a5a8a",
+            "comment": "Remove legacy MsCrypto and MsrCrypto polyfill to reduce the bundle size #6086"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "13e5e7225602f48dabaa102641c84b583b1fb3b6",
+            "comment": "Update bundled files to be included in published package #5997"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8788b7d52841f088d330aa881d1196a33e9e6f7a",
+            "comment": "Revert to common as a regular dependency #5985"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d8b8ddf1f6eeccce45821f2cd6214f306c386e83",
+            "comment": "Add CIAM support for v3(#5915)"
+          },
+          {
+            "author": "nicolas.zawada@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2536c48f4437035c8d15a83bf1d076cf2ecc7c0",
+            "comment": "Add temporaryCacheLocation to Cache Options #5725"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "42d55e7106afc0f9c574155d3e9ff63cffd9f3b5",
+            "comment": "Randomize native extension response identifiers to facilitate concurrency #5903"
+          }
+        ],
         "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.0",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2ccd5eb856e05545971f1762c117eedf87740549",
+            "comment": "Treat invalid_method as a fatal error for WAM #6094"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cad79d2a14f7c58819f5e77cddfd08766fa2abb3",
+            "comment": "Added authority check for native and silent flows #6002"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0f84d651552b1fb7fef88a65b74bd743bd381f0f",
+            "comment": "Fix silent cache lookup bugs for native flows #6067"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b416b465f2b7f20be4f0865cd4364319df82830c",
+            "comment": "ignore native broker initialize check if application is not top-frame #6129"
+          },
           {
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-browser",
@@ -181,46 +325,6 @@
             "package": "@azure/msal-common",
             "commit": "629883fbfe597b56260483e4567bacd9ae9ba81d",
             "comment": "Remove unused enum"
-          }
-        ],
-        "major": [
-          {
-            "author": "hemoral@microsoft.com",
-            "package": "@azure/msal-browser",
-            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
-            "comment": "`allowNativeBroker` configuration defaults to `true` #5616"
-          },
-          {
-            "author": "kshabelko@microsoft.com",
-            "package": "@azure/msal-browser",
-            "commit": "9f5c1288cbe52fa2176f41269032c7bb7920de14",
-            "comment": "Fix telemetry typos #5868"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-browser",
-            "comment": "Bump @azure/msal-common to v14.0.0",
-            "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd"
-          }
-        ],
-        "minor": [
-          {
-            "author": "sameera.gajjarapu@microsoft.com",
-            "package": "@azure/msal-common",
-            "commit": "d8b8ddf1f6eeccce45821f2cd6214f306c386e83",
-            "comment": "Add CIAM support for v3(#5915)"
-          },
-          {
-            "author": "nicolas.zawada@gmail.com",
-            "package": "@azure/msal-browser",
-            "commit": "b2536c48f4437035c8d15a83bf1d076cf2ecc7c0",
-            "comment": "Add temporaryCacheLocation to Cache Options #5725"
-          },
-          {
-            "author": "kshabelko@microsoft.com",
-            "package": "@azure/msal-browser",
-            "commit": "42d55e7106afc0f9c574155d3e9ff63cffd9f3b5",
-            "comment": "Randomize native extension response identifiers to facilitate concurrency #5903"
           }
         ]
       }

@@ -7,7 +7,7 @@ import {
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
-} from "@azure/msal-common";
+} from "@azure/msal-node";
 import axios, { AxiosRequestConfig } from "axios";
 
 enum HttpMethod {
@@ -40,7 +40,7 @@ export class HttpClientAxios implements INetworkModule {
 
         const response = await axios(request);
         return {
-            headers: response.headers,
+            headers: response.headers as Record<string, string>,
             body: response.data as T,
             status: response.status,
         };
@@ -70,7 +70,7 @@ export class HttpClientAxios implements INetworkModule {
 
         const response = await axios(request);
         return {
-            headers: response.headers,
+            headers: response.headers as Record<string, string>,
             body: response.data as T,
             status: response.status,
         };

@@ -16,6 +16,7 @@ import {
     CacheManager,
     Logger,
     CacheRecord,
+    AADServerParamKeys,
 } from "@azure/msal-common";
 import sinon from "sinon";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
@@ -35,10 +36,10 @@ import {
     NativeAuthError,
     NativeAuthErrorMessage,
 } from "../../src/error/NativeAuthError";
-import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {
@@ -94,53 +95,67 @@ const testCacheRecord: CacheRecord = {
 describe("NativeInteractionClient Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
 
-    let pca = new PublicClientApplication({
-        auth: {
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-        },
-    });
+    let pca: PublicClientApplication;
+    let nativeInteractionClient: NativeInteractionClient;
 
-    //Implementation of PCA was moved to controller.
-    pca = (pca as any).controller;
+    let browserCacheManager: BrowserCacheManager;
+    let internalStorage: BrowserCacheManager;
 
-    const wamProvider = new NativeMessageHandler(
-        pca.getLogger(),
-        2000,
-        getDefaultPerformanceClient(),
-        new CryptoOps(new Logger({}))
-    );
-    // @ts-ignore
-    const nativeInteractionClient = new NativeInteractionClient(
-        // @ts-ignore
-        pca.config,
-        // @ts-ignore
-        pca.browserStorage,
-        // @ts-ignore
-        pca.browserCrypto,
-        pca.getLogger(),
-        // @ts-ignore
-        pca.eventHandler,
-        // @ts-ignore
-        pca.navigationClient,
-        ApiId.acquireTokenRedirect,
-        // @ts-ignore
-        pca.performanceClient,
-        wamProvider,
-        "nativeAccountId",
-        // @ts-ignore
-        pca.nativeInternalStorage,
-        RANDOM_TEST_GUID
-    );
+    let wamProvider: NativeMessageHandler;
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;
 
     beforeEach(() => {
+        pca = new PublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
+        });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
+        //@ts-ignore
+        browserCacheManager = pca.browserStorage;
+        //@ts-ignore
+        internalStorage = pca.nativeInternalStorage;
+
+        wamProvider = new NativeMessageHandler(
+            pca.getLogger(),
+            2000,
+            getDefaultPerformanceClient(),
+            new CryptoOps(new Logger({}))
+        );
+
+        nativeInteractionClient = new NativeInteractionClient(
+            // @ts-ignore
+            pca.config,
+            // @ts-ignore
+            pca.browserStorage,
+            // @ts-ignore
+            pca.browserCrypto,
+            pca.getLogger(),
+            // @ts-ignore
+            pca.eventHandler,
+            // @ts-ignore
+            pca.navigationClient,
+            ApiId.acquireTokenRedirect,
+            // @ts-ignore
+            pca.performanceClient,
+            wamProvider,
+            "nativeAccountId",
+            // @ts-ignore
+            pca.nativeInternalStorage,
+            RANDOM_TEST_GUID
+        );
+
         postMessageSpy = sinon.spy(window, "postMessage");
         sinon.stub(MessageEvent.prototype, "source").get(() => window); // source property not set by jsdom window messaging APIs
     });
 
     afterEach(() => {
         mcPort && mcPort.close();
+        jest.restoreAllMocks();
         sinon.restore();
         sessionStorage.clear();
         localStorage.clear();
@@ -204,6 +219,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -281,6 +297,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -325,6 +342,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -369,6 +387,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -446,6 +465,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -516,6 +536,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -570,6 +591,102 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(testAccount);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
+
+        describe("storeInCache tests", () => {
+            const mockWamResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+                scope: "User.Read",
+                expires_in: 3600,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                account: {
+                    id: "nativeAccountId",
+                },
+                properties: {},
+            };
+
+            beforeEach(() => {
+                jest.spyOn(
+                    NativeMessageHandler.prototype,
+                    "sendMessage"
+                ).mockResolvedValue(mockWamResponse);
+            });
+
+            it("does not store idToken if storeInCache.idToken = false", async () => {
+                const response = await nativeInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                    storeInCache: {
+                        idToken: false,
+                    },
+                });
+                expect(response.accessToken).toEqual(
+                    mockWamResponse.access_token
+                );
+                expect(response.idToken).toEqual(mockWamResponse.id_token);
+
+                // Browser Storage should not contain tokens
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(0);
+                expect(tokenKeys.accessToken).toHaveLength(0);
+                expect(tokenKeys.refreshToken).toHaveLength(0);
+
+                // Cache should not contain tokens which were turned off
+                const internalTokenKeys = internalStorage.getTokenKeys();
+                expect(internalTokenKeys.idToken).toHaveLength(0);
+                expect(internalTokenKeys.accessToken).toHaveLength(1);
+                expect(internalTokenKeys.refreshToken).toHaveLength(0); // RT will never be returned by WAM
+            });
+
+            it("does not store accessToken if storeInCache.accessToken = false", async () => {
+                const response = await nativeInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                    storeInCache: {
+                        accessToken: false,
+                    },
+                });
+                expect(response.accessToken).toEqual(
+                    mockWamResponse.access_token
+                );
+                expect(response.idToken).toEqual(mockWamResponse.id_token);
+
+                // Cache should not contain tokens which were turned off
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(0);
+                expect(tokenKeys.accessToken).toHaveLength(0);
+                expect(tokenKeys.refreshToken).toHaveLength(0);
+
+                // Cache should not contain tokens which were turned off
+                const internalTokenKeys = internalStorage.getTokenKeys();
+                expect(internalTokenKeys.idToken).toHaveLength(1);
+                expect(internalTokenKeys.accessToken).toHaveLength(0);
+                expect(internalTokenKeys.refreshToken).toHaveLength(0); // RT will never be returned by WAM
+            });
+
+            it("does not store refreshToken if storeInCache.refreshToken = false", async () => {
+                const response = await nativeInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                    storeInCache: {
+                        refreshToken: false,
+                    },
+                });
+                expect(response.accessToken).toEqual(
+                    mockWamResponse.access_token
+                );
+                expect(response.idToken).toEqual(mockWamResponse.id_token);
+
+                // Browser Storage should not contain tokens
+                const tokenKeys = browserCacheManager.getTokenKeys();
+                expect(tokenKeys.idToken).toHaveLength(0);
+                expect(tokenKeys.accessToken).toHaveLength(0);
+                expect(tokenKeys.refreshToken).toHaveLength(0);
+
+                // Cache should not contain tokens which were turned off
+                const internalTokenKeys = internalStorage.getTokenKeys();
+                expect(internalTokenKeys.idToken).toHaveLength(1);
+                expect(internalTokenKeys.accessToken).toHaveLength(1);
+                expect(internalTokenKeys.refreshToken).toHaveLength(0); // RT will never be returned by WAM
+            });
         });
     });
 
@@ -639,6 +756,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -703,6 +821,7 @@ describe("NativeInteractionClient Tests", () => {
             };
 
             const testAccount: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
                 localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
@@ -856,5 +975,44 @@ describe("NativeInteractionClient Tests", () => {
             expect(response).toBe(null);
         });
     });
-});
 
+    describe("initializeNativeRequest tests", () => {
+        it("pick up default params", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await nativeInteractionClient.initializeNativeRequest({
+                    scopes: ["User.Read"],
+                    prompt: PromptValue.LOGIN,
+                });
+
+            expect(nativeRequest.clientId).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
+            expect(nativeRequest.redirectUri).toContain("localhost");
+        });
+
+        it("pick up broker extra query parameters", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await nativeInteractionClient.initializeNativeRequest({
+                    scopes: ["User.Read"],
+                    prompt: PromptValue.LOGIN,
+                    redirectUri: "localhost",
+                    extraQueryParameters: {
+                        brk_client_id: "broker_client_id",
+                        brk_redirect_uri: "https://broker_redirect_uri.com",
+                        client_id: "parent_client_id",
+                    },
+                });
+
+            expect(nativeRequest.clientId).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
+            expect(nativeRequest.extraParameters!["child_client_id"]).toEqual(
+                "parent_client_id"
+            );
+            expect(
+                nativeRequest.extraParameters!["child_redirect_uri"]
+            ).toEqual("localhost");
+            expect(nativeRequest.redirectUri).toEqual(
+                "https://broker_redirect_uri.com"
+            );
+        });
+    });
+});

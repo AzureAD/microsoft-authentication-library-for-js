@@ -4,17 +4,19 @@
  */
 
 import * as puppeteer from "puppeteer";
-import {Screenshot, createFolder, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import {
+    Screenshot, 
+    createFolder, 
+    RETRY_TIMES, 
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation
- } from "../../testUtils";
+} from "e2e-test-utils/src/TestUtils";
+import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
-import { getKeyVaultSecretClient, getCredentials } from "../../../e2eTestUtils/KeyVaultUtils";
+import { getKeyVaultSecretClient, getCredentials } from "e2e-test-utils/src/KeyVaultUtils";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc.cache.json`;

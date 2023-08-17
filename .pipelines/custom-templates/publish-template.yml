@@ -69,7 +69,6 @@ jobs:
           # Write NPM authToken
           - bash: echo $NPM_TOKEN > .npmrc
             displayName: Write npm authToken
-            workingDirectory: "${{ parameters.path }}/${{ parameters.libName }}"
             env:
                 NPM_TOKEN: $(MSALJSNPMTOKEN)
 
@@ -81,7 +80,7 @@ jobs:
             inputs:
                 command: "custom"
                 workingDir: "${{ parameters.path }}/${{ parameters.libName }}"
-                customCommand: "publish --tag beta" # Remove --tag beta when ready to GA
+                customCommand: "publish"
           - task: Npm@1
             displayName: Publish to npm - Test Mode
             condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), ${{ parameters.testMode }})
@@ -98,7 +97,7 @@ jobs:
             inputs:
                 command: "custom"
                 workingDir: "${{ parameters.path }}/${{ parameters.libName }}"
-                customCommand: "run deploy:beta" # Remove :beta when ready to GA"
+                customCommand: "run deploy --workspaces=false"
           - task: Npm@1
             displayName: Deploy to npm (Angular only) - Test Mode
             condition: and(eq('${{ parameters.libName }}', 'msal-angular'), ${{ parameters.testMode }})
@@ -111,7 +110,7 @@ jobs:
           - task: DeleteFiles@1
             displayName: Remove .npmrc file
             inputs:
-                Contents: ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
+                Contents: /.npmrc
 
           # Install Release Scripts dependencies
           - task: Npm@1

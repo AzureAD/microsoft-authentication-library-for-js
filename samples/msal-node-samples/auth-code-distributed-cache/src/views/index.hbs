@@ -1,0 +1,9 @@
+<h1>{{title}}</h1>
+{{#if isAuthenticated }}
+<p>Hi {{username}}!</p>
+<a href="/call-graph-direct">Acquire a token to call Microsoft Graph</a>
+<br>
+<a href="/call-graph-on-behalf">Acquire a token to call a web API that calls Microsoft Graph on your behalf</a>
+{{else}}
+<p>Welcome to {{title}}</p>
+{{/if}}

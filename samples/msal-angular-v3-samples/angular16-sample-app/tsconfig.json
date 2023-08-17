@@ -27,8 +27,14 @@
     "paths": {
       "@angular/*": [
         "./node_modules/@angular/*"
+      ],
+      "@azure/msal-angular": [
+        "../../../node_modules/@azure/msal-angular/dist"
       ]
-    }
+    },
+    "types": [
+      "jest"
+    ]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

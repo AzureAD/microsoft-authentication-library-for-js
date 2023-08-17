@@ -19,7 +19,9 @@ import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheOutcome } from "../utils/Constants";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { StringUtils } from "../utils/StringUtils";
 
+/** @internal */
 export class SilentFlowClient extends BaseClient {
     constructor(
         configuration: ClientConfiguration,
@@ -73,6 +75,15 @@ export class SilentFlowClient extends BaseClient {
             );
             this.logger.info(
                 "SilentFlowClient:acquireCachedToken - Skipping cache because forceRefresh is true."
+            );
+            throw ClientAuthError.createRefreshRequiredError();
+        } else if (
+            !this.config.cacheOptions.claimsBasedCachingEnabled &&
+            !StringUtils.isEmptyObj(request.claims)
+        ) {
+            // Must refresh due to request parameters.
+            this.logger.info(
+                "SilentFlowClient:acquireCachedToken - Skipping cache because claims-based caching is disabled and claims were requested."
             );
             throw ClientAuthError.createRefreshRequiredError();
         }

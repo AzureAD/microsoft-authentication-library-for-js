@@ -42,6 +42,7 @@ export type AuthorizationUrlRequest = Partial<
         | "resourceRequestUri"
         | "authenticationScheme"
         | "requestedClaimsHash"
+        | "storeInCache"
     >
 > & {
     scopes: Array<string>;

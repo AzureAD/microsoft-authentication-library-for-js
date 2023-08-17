@@ -20,6 +20,8 @@ import {
     TEST_POP_VALUES,
     TEST_SSH_VALUES,
     TEST_CRYPTO_VALUES,
+    TEST_ACCOUNT_INFO,
+    TEST_TOKEN_LIFETIMES,
 } from "../test_kit/StringConstants";
 import {
     ClientAuthError,
@@ -62,99 +64,201 @@ describe("CacheManager.ts test cases", () => {
         sinon.restore();
     });
 
-    it("save account", async () => {
-        const ac = new AccountEntity();
-        ac.homeAccountId = "someUid.someUtid";
-        ac.environment = "login.microsoftonline.com";
-        ac.realm = "microsoft";
-        ac.localAccountId = "object1234";
-        ac.username = "Jane Goodman";
-        ac.authorityType = "MSSTS";
-        ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
+    describe("saveCacheRecord tests", () => {
+        it("save account", async () => {
+            const ac = new AccountEntity();
+            ac.homeAccountId = "someUid.someUtid";
+            ac.environment = "login.microsoftonline.com";
+            ac.realm = "microsoft";
+            ac.localAccountId = "object1234";
+            ac.username = "Jane Goodman";
+            ac.authorityType = "MSSTS";
 
-        const accountKey = ac.generateAccountKey();
-        const cacheRecord = new CacheRecord();
-        cacheRecord.account = ac;
-        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAccount = mockCache.cacheManager.getAccount(
-            accountKey
-        ) as AccountEntity;
-        if (!mockCacheAccount) {
-            throw TestError.createTestSetupError(
-                "mockCacheAccount does not have a value"
-            );
-        }
-        expect(mockCacheAccount.homeAccountId).toEqual("someUid.someUtid");
-    });
-
-    it("save accessToken", async () => {
-        const at = new AccessTokenEntity();
-        Object.assign(at, {
-            homeAccountId: "someUid.someUtid",
-            environment: "login.microsoftonline.com",
-            credentialType: "AccessToken",
-            clientId: "mock_client_id",
-            secret: "an access token sample",
-            realm: "microsoft",
-            target: "scope6 scope7",
-            cachedAt: "1000",
-            expiresOn: "4600",
-            extendedExpiresOn: "4600",
-            tokenType: "Bearer",
+            const accountKey = ac.generateAccountKey();
+            const cacheRecord = new CacheRecord();
+            cacheRecord.account = ac;
+            await mockCache.cacheManager.saveCacheRecord(cacheRecord);
+            const mockCacheAccount = mockCache.cacheManager.getAccount(
+                accountKey
+            ) as AccountEntity;
+            if (!mockCacheAccount) {
+                throw TestError.createTestSetupError(
+                    "mockCacheAccount does not have a value"
+                );
+            }
+            expect(mockCacheAccount.homeAccountId).toEqual("someUid.someUtid");
         });
 
-        const atKey = at.generateCredentialKey();
-        const cacheRecord = new CacheRecord();
-        cacheRecord.accessToken = at;
-        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(
-            atKey
-        ) as AccessTokenEntity;
-        if (!mockCacheAT) {
-            throw TestError.createTestSetupError(
-                "mockCacheAT does not have a value"
-            );
-        }
-        expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
-        expect(mockCacheAT.credentialType).toEqual(CredentialType.ACCESS_TOKEN);
-        expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.BEARER);
-    });
+        it("save accessToken", async () => {
+            const at = new AccessTokenEntity();
+            Object.assign(at, {
+                homeAccountId: "someUid.someUtid",
+                environment: "login.microsoftonline.com",
+                credentialType: "AccessToken",
+                clientId: "mock_client_id",
+                secret: "an access token sample",
+                realm: "microsoft",
+                target: "scope6 scope7",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                tokenType: "Bearer",
+            });
 
-    it("save accessToken with Auth Scheme (pop)", async () => {
-        const at = new AccessTokenEntity();
-        Object.assign(at, {
-            homeAccountId: "someUid.someUtid",
-            environment: "login.microsoftonline.com",
-            credentialType: "AccessToken_With_AuthScheme",
-            clientId: "mock_client_id",
-            secret: "an access token sample",
-            realm: "microsoft",
-            target: "scope6 scope7",
-            cachedAt: "1000",
-            expiresOn: "4600",
-            extendedExpiresOn: "4600",
-            keyId: "some_key",
-            tokenType: "pop",
+            const atKey = at.generateCredentialKey();
+            const cacheRecord = new CacheRecord();
+            cacheRecord.accessToken = at;
+            await mockCache.cacheManager.saveCacheRecord(cacheRecord);
+            const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(
+                atKey
+            ) as AccessTokenEntity;
+            if (!mockCacheAT) {
+                throw TestError.createTestSetupError(
+                    "mockCacheAT does not have a value"
+                );
+            }
+            expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
+            expect(mockCacheAT.credentialType).toEqual(
+                CredentialType.ACCESS_TOKEN
+            );
+            expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
 
-        const atKey = at.generateCredentialKey();
-        const cacheRecord = new CacheRecord();
-        cacheRecord.accessToken = at;
-        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(
-            atKey
-        ) as AccessTokenEntity;
-        if (!mockCacheAT) {
-            throw TestError.createTestSetupError(
-                "mockCacheAT does not have a value"
+        it("does not save accessToken if storeInCache.accessToken = false", async () => {
+            const at = AccessTokenEntity.createAccessTokenEntity(
+                TEST_ACCOUNT_INFO.homeAccountId,
+                TEST_ACCOUNT_INFO.environment,
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                TEST_CONFIG.MSAL_TENANT_ID,
+                "User.Read",
+                TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
+                TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
+                mockCrypto
             );
-        }
-        expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
-        expect(mockCacheAT.credentialType).toEqual(
-            CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
-        );
-        expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.POP);
-        expect(mockCacheAT.keyId).toBeDefined();
+
+            const atKey = at.generateCredentialKey();
+            const cacheRecord = new CacheRecord();
+            cacheRecord.accessToken = at;
+            await mockCache.cacheManager.saveCacheRecord(cacheRecord, {
+                accessToken: false,
+            });
+            const mockCacheAT =
+                mockCache.cacheManager.getAccessTokenCredential(atKey);
+            expect(mockCacheAT).toBe(null);
+        });
+
+        it("save accessToken with Auth Scheme (pop)", async () => {
+            const at = new AccessTokenEntity();
+            Object.assign(at, {
+                homeAccountId: "someUid.someUtid",
+                environment: "login.microsoftonline.com",
+                credentialType: "AccessToken_With_AuthScheme",
+                clientId: "mock_client_id",
+                secret: "an access token sample",
+                realm: "microsoft",
+                target: "scope6 scope7",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                keyId: "some_key",
+                tokenType: "pop",
+            });
+
+            const atKey = at.generateCredentialKey();
+            const cacheRecord = new CacheRecord();
+            cacheRecord.accessToken = at;
+            await mockCache.cacheManager.saveCacheRecord(cacheRecord);
+            const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(
+                atKey
+            ) as AccessTokenEntity;
+            if (!mockCacheAT) {
+                throw TestError.createTestSetupError(
+                    "mockCacheAT does not have a value"
+                );
+            }
+            expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
+            expect(mockCacheAT.credentialType).toEqual(
+                CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
+            );
+            expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.POP);
+            expect(mockCacheAT.keyId).toBeDefined();
+        });
+
+        it("does not save idToken if storeInCache.idToken = false", async () => {
+            const idToken = IdTokenEntity.createIdTokenEntity(
+                TEST_ACCOUNT_INFO.homeAccountId,
+                TEST_ACCOUNT_INFO.environment,
+                TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                TEST_CONFIG.MSAL_TENANT_ID
+            );
+
+            const idTokenKey = idToken.generateCredentialKey();
+            const cacheRecord = new CacheRecord();
+            cacheRecord.idToken = idToken;
+            await mockCache.cacheManager.saveCacheRecord(cacheRecord, {
+                idToken: false,
+            });
+            const mockCacheId =
+                mockCache.cacheManager.getIdTokenCredential(idTokenKey);
+            expect(mockCacheId).toBe(null);
+        });
+
+        it("getIdToken matches multiple tokens, removes them and returns null", async () => {
+            await mockCache.cacheManager.clear();
+
+            const idToken1 = IdTokenEntity.createIdTokenEntity(
+                TEST_ACCOUNT_INFO.homeAccountId,
+                TEST_ACCOUNT_INFO.environment,
+                TEST_TOKENS.IDTOKEN_V2,
+                CACHE_MOCKS.MOCK_CLIENT_ID,
+                TEST_ACCOUNT_INFO.tenantId
+            );
+
+            const idToken2 = IdTokenEntity.createIdTokenEntity(
+                TEST_ACCOUNT_INFO.homeAccountId,
+                TEST_ACCOUNT_INFO.environment,
+                TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+                CACHE_MOCKS.MOCK_CLIENT_ID,
+                TEST_ACCOUNT_INFO.tenantId
+            );
+            idToken2.target = "test-target";
+
+            mockCache.cacheManager.setIdTokenCredential(idToken1);
+            mockCache.cacheManager.setIdTokenCredential(idToken2);
+
+            expect(
+                mockCache.cacheManager.getTokenKeys().idToken.length
+            ).toEqual(2);
+            expect(
+                mockCache.cacheManager.getIdToken(TEST_ACCOUNT_INFO)
+            ).toBeNull();
+            expect(
+                mockCache.cacheManager.getTokenKeys().idToken.length
+            ).toEqual(0);
+        });
+
+        it("does not save refreshToken if storeInCache.refreshToken = false", async () => {
+            const refreshToken = RefreshTokenEntity.createRefreshTokenEntity(
+                TEST_ACCOUNT_INFO.homeAccountId,
+                TEST_ACCOUNT_INFO.environment,
+                TEST_TOKENS.REFRESH_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+
+            const refreshTokenKey = refreshToken.generateCredentialKey();
+            const cacheRecord = new CacheRecord();
+            cacheRecord.refreshToken = refreshToken;
+            await mockCache.cacheManager.saveCacheRecord(cacheRecord, {
+                refreshToken: false,
+            });
+            const mockCacheRT =
+                mockCache.cacheManager.getRefreshTokenCredential(
+                    refreshTokenKey
+                );
+            expect(mockCacheRT).toBe(null);
+        });
     });
 
     it("getAccounts (gets all AccountInfo objects)", async () => {
@@ -173,7 +277,6 @@ describe("CacheManager.ts test cases", () => {
         ac.localAccountId = "object1234";
         ac.username = "Jane Goodman";
         ac.authorityType = "MSSTS";
-        ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
 
         const accountKey = ac.generateAccountKey();
         const cacheRecord = new CacheRecord();
@@ -886,7 +989,6 @@ describe("CacheManager.ts test cases", () => {
         ac.localAccountId = "object1234";
         ac.username = "Jane Goodman";
         ac.authorityType = "MSSTS";
-        ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
 
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
@@ -1034,7 +1136,9 @@ describe("CacheManager.ts test cases", () => {
         ).rejects.toThrow(ClientAuthError.createBindingKeyNotRemovedError());
     });
 
-    it("getAccessToken matches multiple tokens, throws error", () => {
+    it("getAccessToken matches multiple tokens, removes them and returns null", async () => {
+        await mockCache.cacheManager.clear();
+
         const mockedAtEntity: AccessTokenEntity =
             AccessTokenEntity.createAccessTokenEntity(
                 "uid.utid",
@@ -1085,6 +1189,10 @@ describe("CacheManager.ts test cases", () => {
         mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity2);
         mockCache.cacheManager.setAccount(mockedAccount);
 
+        expect(
+            mockCache.cacheManager.getTokenKeys().accessToken.length
+        ).toEqual(2);
+
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
             localAccountId: "uid",
@@ -1092,11 +1200,6 @@ describe("CacheManager.ts test cases", () => {
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe",
         };
-        if (!mockedAccountInfo) {
-            throw TestError.createTestSetupError(
-                "mockedAccountInfo does not have a value"
-            );
-        }
 
         const silentFlowRequest: CommonSilentFlowRequest = {
             scopes: ["user.read"],
@@ -1106,12 +1209,15 @@ describe("CacheManager.ts test cases", () => {
             forceRefresh: false,
         };
 
-        expect(() =>
+        expect(
             mockCache.cacheManager.getAccessToken(
                 mockedAccountInfo,
                 silentFlowRequest
             )
-        ).toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+        ).toBeNull();
+        expect(
+            mockCache.cacheManager.getTokenKeys().accessToken.length
+        ).toEqual(0);
     });
 
     it("getAccessToken only matches a Bearer Token when Authentication Scheme is set to Bearer", () => {
