@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Clear tokens and token keys for claims based ATs when `claimsBasedCachingEnabled` is set to `false` #6356",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
