@@ -124,7 +124,6 @@ describe("RedirectClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
-        await pca.initialize();
 
         jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
             RANDOM_TEST_GUID
@@ -3121,7 +3120,7 @@ describe("RedirectClient", () => {
             });
         });
 
-        it("includes postLogoutRedirectUri if one is configured", (done) => {
+        it("includes postLogoutRedirectUri if one is configured", async () => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
@@ -3135,7 +3134,6 @@ describe("RedirectClient", () => {
                                 postLogoutRedirectUri
                             )}`
                         );
-                        done();
                         return Promise.resolve(true);
                     }
                 );
@@ -3146,6 +3144,8 @@ describe("RedirectClient", () => {
                     postLogoutRedirectUri,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -3173,7 +3173,7 @@ describe("RedirectClient", () => {
             redirectClient.logout();
         });
 
-        it("doesn't include postLogoutRedirectUri if null is configured", (done) => {
+        it("doesn't include postLogoutRedirectUri if null is configured", async () => {
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
                 .callsFake(
@@ -3184,7 +3184,6 @@ describe("RedirectClient", () => {
                         expect(urlNavigate).not.toContain(
                             `post_logout_redirect_uri`
                         );
-                        done();
                         return Promise.resolve(true);
                     }
                 );
@@ -3195,6 +3194,8 @@ describe("RedirectClient", () => {
                     postLogoutRedirectUri: null,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;

@@ -11,7 +11,6 @@ import { TokenResponse } from "../TokenResponse";
 import {
     AccountInfo as MsalAccountInfo,
     AuthError,
-    AuthenticationResult,
     ClientAuthError,
     ClientConfigurationError,
     InteractionRequiredAuthError,
@@ -23,6 +22,7 @@ import {
 import { isBridgeError } from "../BridgeError";
 import { BridgeStatusCode } from "../BridgeStatusCode";
 import { SilentRequest } from "../../request/SilentRequest";
+import { AuthenticationResult } from "../../response/AuthenticationResult";
 
 export class NestedAppAuthAdapter {
     protected crypto: ICrypto;

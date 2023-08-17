@@ -41,6 +41,7 @@ import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/Native
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import { IPublicClientApplication } from "../../src";
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {
@@ -105,6 +106,48 @@ describe("NativeInteractionClient Tests", () => {
     let wamProvider: NativeMessageHandler;
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;
+
+    beforeAll(async () => {
+        pca = new PublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
+        });
+
+        await pca.initialize();
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
+        wamProvider = new NativeMessageHandler(
+            pca.getLogger(),
+            2000,
+            getDefaultPerformanceClient(),
+            new CryptoOps(new Logger({}))
+        );
+        // @ts-ignore
+        nativeInteractionClient = new NativeInteractionClient(
+            // @ts-ignore
+            pca.config,
+            // @ts-ignore
+            pca.browserStorage,
+            // @ts-ignore
+            pca.browserCrypto,
+            pca.getLogger(),
+            // @ts-ignore
+            pca.eventHandler,
+            // @ts-ignore
+            pca.navigationClient,
+            ApiId.acquireTokenRedirect,
+            // @ts-ignore
+            pca.performanceClient,
+            wamProvider,
+            "nativeAccountId",
+            // @ts-ignore
+            pca.nativeInternalStorage,
+            RANDOM_TEST_GUID
+        );
+    });
 
     beforeEach(() => {
         pca = new PublicClientApplication({

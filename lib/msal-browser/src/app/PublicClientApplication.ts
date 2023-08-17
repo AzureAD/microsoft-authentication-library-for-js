@@ -23,9 +23,11 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ControllerFactory } from "../controllers/ControllerFactory";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
-import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { AuthenticationResult } from "../response/AuthenticationResult";
+import { UnknownOperatingContextController } from "../controllers/UnknownOperatingContextController";
+import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -44,8 +46,12 @@ export class PublicClientApplication implements IPublicClientApplication {
     ): Promise<IPublicClientApplication> {
         const factory = new ControllerFactory(configuration);
         const controller = await factory.createController();
-        const pca = new PublicClientApplication(configuration, controller);
-
+        let pca;
+        if (controller !== null) {
+            pca = new PublicClientApplication(configuration, controller);
+        } else {
+            pca = new PublicClientApplication(configuration);
+        }
         return pca;
     }
 
@@ -75,6 +81,11 @@ export class PublicClientApplication implements IPublicClientApplication {
         this.configuration = configuration;
         if (controller) {
             this.controller = controller;
+        } else {
+            const operatingContext = new UnknownOperatingContext(configuration);
+            this.controller = new UnknownOperatingContextController(
+                operatingContext
+            );
         }
     }
 
@@ -82,11 +93,15 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      */
     async initialize(): Promise<void> {
-        if (this.controller === undefined) {
+        if (this.controller instanceof UnknownOperatingContextController) {
             const factory = new ControllerFactory(this.configuration);
-            this.controller = await factory.createController();
+            const result = await factory.createController();
+            if (result !== null) {
+                this.controller = result;
+            }
+            return this.controller.initialize();
         }
-        return this.controller.initialize();
+        return Promise.resolve();
     }
 
     /**

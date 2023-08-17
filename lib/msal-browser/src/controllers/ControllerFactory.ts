@@ -25,7 +25,7 @@ export class ControllerFactory {
         this.logger = new Logger(loggerOptions, name, version);
     }
 
-    async createController(): Promise<IController> {
+    async createController(): Promise<IController | null> {
         const standard = new StandardOperatingContext(this.config);
         const teamsApp = new TeamsAppOperatingContext(this.config);
 
@@ -49,8 +49,9 @@ export class ControllerFactory {
             return await controller.StandardController.createController(
                 standard
             );
+        } else {
+            // Since neither of the actual operating contexts are available keep the UnknownOperatingContextController
+            return null;
         }
-
-        throw new Error("No controller found.");
     }
 }

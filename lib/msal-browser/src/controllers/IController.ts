@@ -28,6 +28,8 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 
 export interface IController {
     initialize(): Promise<void>;
@@ -134,24 +136,25 @@ export interface IController {
      *getNativeInternalStorage(): BrowserCacheManager;
      *
      */
+    getBrowserStorage(): BrowserCacheManager;
+
+    getNativeInternalStorage(): BrowserCacheManager;
 
     getBrowserCrypto(): ICrypto;
 
     getPerformanceClient(): IPerformanceClient;
 
-    /*
-     *getNativeExtensionProvider(): NativeMessageHandler | undefined;
-     *
-     *setNativeExtensionProvider(
-     *    provider: NativeMessageHandler | undefined
-     *): void;
-     *
-     *getNativeAccountId(
-     *    request: RedirectRequest | PopupRequest | SsoSilentRequest
-     *): string;
-     */
+    getNativeExtensionProvider(): NativeMessageHandler | undefined;
 
-    // getEventHandler(): EventHandler;
+    setNativeExtensionProvider(
+        provider: NativeMessageHandler | undefined
+    ): void;
+
+    getNativeAccountId(
+        request: RedirectRequest | PopupRequest | SsoSilentRequest
+    ): string;
+
+    getEventHandler(): EventHandler;
 
     /** @internal */
     preflightBrowserEnvironmentCheck(

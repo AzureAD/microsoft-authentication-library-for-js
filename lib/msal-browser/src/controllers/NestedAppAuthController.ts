@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     CommonAuthorizationUrlRequest,
     CommonSilentFlowRequest,
     PerformanceCallbackFunction,
@@ -12,7 +11,6 @@ import {
     Logger,
     ICrypto,
     IPerformanceClient,
-    StubPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     PerformanceEvents,
 } from "@azure/msal-common";
@@ -31,14 +29,15 @@ import { ApiId, WrapperSKU, InteractionType } from "../utils/BrowserConstants";
 import { IController } from "./IController";
 import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
 import { IBridgeProxy } from "../naa/IBridgeProxy";
-import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
-import { version, name } from "../packageMetadata";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { NestedAppAuthAdapter } from "../naa/mapping/NestedAppAuthAdapter";
 import { NestedAppAuthError } from "../error/NestedAppAuthError";
 import { EventHandler } from "../event/EventHandler";
 import { EventType } from "../event/EventType";
 import { EventCallbackFunction, EventError } from "../event/EventMessage";
+import { AuthenticationResult } from "../response/AuthenticationResult";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -80,23 +79,7 @@ export class NestedAppAuthController implements IController {
         // Initialize logger
         this.logger = this.operatingContext.getLogger();
         // Initialize performance client
-        this.performanceClient = operatingContext.isBrowserEnvironment()
-            ? new BrowserPerformanceClient(
-                  this.config.auth.clientId,
-                  this.config.auth.authority,
-                  this.logger,
-                  name,
-                  version,
-                  this.config.telemetry.application
-              )
-            : new StubPerformanceClient(
-                  this.config.auth.clientId,
-                  this.config.auth.authority,
-                  this.logger,
-                  name,
-                  version,
-                  this.config.telemetry.application
-              );
+        this.performanceClient = this.config.telemetry.client;
 
         // Initialize the crypto class.
         this.browserCrypto = operatingContext.isBrowserEnvironment()
@@ -111,6 +94,24 @@ export class NestedAppAuthController implements IController {
             this.browserCrypto,
             this.logger
         );
+    }
+    getBrowserStorage(): BrowserCacheManager {
+        throw NestedAppAuthError.createUnsupportedError();
+    }
+    getNativeInternalStorage(): BrowserCacheManager {
+        throw NestedAppAuthError.createUnsupportedError();
+    }
+    getNativeExtensionProvider(): NativeMessageHandler | undefined {
+        throw NestedAppAuthError.createUnsupportedError();
+    }
+    setNativeExtensionProvider(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        provider: NativeMessageHandler | undefined
+    ): void {
+        throw NestedAppAuthError.createUnsupportedError();
+    }
+    getEventHandler(): EventHandler {
+        return this.eventHandler;
     }
 
     static async createController(
@@ -139,7 +140,7 @@ export class NestedAppAuthController implements IController {
             request.correlationId
         );
 
-        atPopupMeasurement?.addStaticFields({ nestedAppAuthRequest: true });
+        atPopupMeasurement?.add({ nestedAppAuthRequest: true });
 
         try {
             const naaRequest =
@@ -158,12 +159,12 @@ export class NestedAppAuthController implements IController {
                 result
             );
 
-            atPopupMeasurement.addStaticFields({
+            atPopupMeasurement.add({
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
             });
 
-            atPopupMeasurement.endMeasurement({
+            atPopupMeasurement.end({
                 success: true,
                 requestId: result.requestId,
             });
@@ -178,7 +179,7 @@ export class NestedAppAuthController implements IController {
                 e as EventError
             );
 
-            atPopupMeasurement.endMeasurement({
+            atPopupMeasurement.end({
                 errorCode: error.errorCode,
                 subErrorCode: error.subError,
                 success: false,
@@ -206,7 +207,7 @@ export class NestedAppAuthController implements IController {
             visibilityChangeCount: 0,
         });
 
-        ssoSilentMeasurement?.addStaticFields({
+        ssoSilentMeasurement?.add({
             nestedAppAuthRequest: true,
         });
 
@@ -225,11 +226,11 @@ export class NestedAppAuthController implements IController {
                 InteractionType.Silent,
                 result
             );
-            ssoSilentMeasurement?.addStaticFields({
+            ssoSilentMeasurement?.add({
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
             });
-            ssoSilentMeasurement?.endMeasurement({
+            ssoSilentMeasurement?.end({
                 success: true,
                 requestId: result.requestId,
             });
@@ -242,7 +243,7 @@ export class NestedAppAuthController implements IController {
                 null,
                 e as EventError
             );
-            ssoSilentMeasurement?.endMeasurement({
+            ssoSilentMeasurement?.end({
                 errorCode: error.errorCode,
                 subErrorCode: error.subError,
                 success: false,
