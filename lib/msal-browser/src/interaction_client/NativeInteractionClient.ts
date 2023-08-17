@@ -845,6 +845,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 ...request.tokenQueryParameters,
             },
             extendedExpiryToken: false, // Make this configurable?
+            reqCnf: "",
         };
 
         this.handleExtraBrokerParams(validatedRequest);
@@ -867,8 +868,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 ? request.reqCnf
                 : await popTokenGenerator.generateCnf(shrParameters);
 
-            // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-            validatedRequest.reqCnf = reqCnfData.reqCnfHash;
+            // SPAs require whole string to be passed to broker
+            validatedRequest.reqCnf = reqCnfData.reqCnfString;
             validatedRequest.keyId = reqCnfData.kid;
         }
 
