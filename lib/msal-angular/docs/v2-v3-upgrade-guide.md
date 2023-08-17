@@ -1,6 +1,6 @@
 # Upgrading from MSAL Angular v2 to v3
 
-MSAL Angular v3 brings our Angular wrapper up-to-date with the latest version of MSAL common, and with out-of-the-box support for Angular 15 and rxjs 7.
+MSAL Angular v3 brings our Angular wrapper up-to-date with the latest version of MSAL common, and with out-of-the-box support for Angular 15, 16, and rxjs 7.
 
 This guide will demonstrate changes needed to migrate an existing application from `@azure/msal-angular` v2 to v3.
 
@@ -14,7 +14,7 @@ Please also see the [MSAL Browser Migration Doc](https://github.com/AzureAD/micr
 
 #### Applications using redirects
 
-MSAL v3.x now requires initializing the application object. Initialization has been built into the `MsalRedirectComponent` and `handleRedirectObservable` API, and applications that have implemented redirect strategies do not have to make changes.
+MSAL v3.x now requires initializing the application object. Initialization has been built into the `MsalRedirectComponent` and `handleRedirectObservable` API, and applications that have implemented redirect strategies do not have to make changes. Additional changes may need to be made if your application is using standalone components.
 
 See the [guide to redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/redirects.md) for details on handling redirects in your application.
 
@@ -24,18 +24,27 @@ Due to initialization being built into `MsalRedirectComponent` and `handleRedire
 
 See the [guide to redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/redirects.md) for set up details.
 
-## Angular 15 and rxjs@7
+## Angular 15, 16, and rxjs@7
 
-MSAL Angular now expects that your application is built with `@angular/core@15`, `@angular/common@15`, `rxjs@7`.
+MSAL Angular now expects that your application is built with: 
 
-Due to this change, MSAL Angular v3 is not backwards compatible with earlier versions of Angular and RxJS and you may need to update your application. Please follow the [Angular Update Guide](https://update.angular.io/) to update your application to Angular 15.
+- `@angular/core@15` or `@angular/core@16`
+- `@angular/common@15` or `@angular/common@16`
+- `rxjs@7`
+
+Due to this change, MSAL Angular v3 is not backwards compatible with earlier versions of Angular and RxJS and you may need to update your application. Please follow the [Angular Update Guide](https://update.angular.io/) to update your application to Angular 15 or 16.
 
 As with MSAL Angular v2, `rxjs-compat` is not required.
 
 ## Samples
 
-We have put together a sample application for Angular 15. This sample demonstrates basic configuration and usage, and will be improved and added to incrementally.
+The following developer samples are now available:
 
-A sample for Angular 15 using B2C will be added shortly.
+- [Angular 15 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular15-sample-app)
+- [Angular 16 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular16-sample-app)
+- [Angular 16 sample using B2C](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-b2c-sample-app)
+- [Angular 16 sample using Angular standalone components](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-standalone-sample)
+
+The samples demonstrates basic configuration and usage, and may be improved and added to incrementally.
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/README.md) for a list of the MSAL Angular v3 samples and the features demonstrated.
