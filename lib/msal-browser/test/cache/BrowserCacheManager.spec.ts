@@ -945,7 +945,7 @@ describe("BrowserCacheManager tests", () => {
                     }
                 )
 
-                it.only("clearTokensWithClaimsInCache clears all access tokens with claims in tokenKeys", () => {
+                it("clearTokensWithClaimsInCache clears all access tokens with claims in tokenKeys", () => {
                     const testAT1 = AccessTokenEntity.createAccessTokenEntity("homeAccountId1", "environment", "secret1", "client-id", "tenantId", "openid", 1000, 1000, browserCrypto, 500, AuthenticationScheme.BEARER, "oboAssertion");
                     const testAT2 = AccessTokenEntity.createAccessTokenEntity("homeAccountId2", "environment", "secret2", "client-id", "tenantId", "openid", 1000, 1000, browserCrypto, 500, AuthenticationScheme.BEARER, "oboAssertion", undefined, "claims", "claims-hash");
                     const testAT3 = AccessTokenEntity.createAccessTokenEntity("homeAccountId3", "environment", "secret3", "client-id", "tenantId", "openid", 1000, 1000, browserCrypto, 500, AuthenticationScheme.BEARER, "oboAssertion", undefined, "claims");
