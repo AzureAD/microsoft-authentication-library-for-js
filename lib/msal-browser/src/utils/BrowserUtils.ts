@@ -3,9 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, INetworkModule, UrlString } from "@azure/msal-common";
-import { FetchClient } from "../network/FetchClient";
-import { XhrClient } from "../network/XhrClient";
+import { Constants, UrlString } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { InteractionType, BrowserConstants } from "./BrowserConstants";
 
@@ -80,18 +78,6 @@ export class BrowserUtils {
     }
 
     /**
-     * Returns best compatible network client object.
-     */
-    static getBrowserNetworkClient(): INetworkModule {
-        // @ts-ignore TS2774
-        if (window.fetch && window.Headers) {
-            return new FetchClient();
-        } else {
-            return new XhrClient();
-        }
-    }
-
-    /**
      * Throws error if we have completed an auth and are
      * attempting another auth request inside an iframe.
      */
@@ -153,18 +139,5 @@ export class BrowserUtils {
         if (!initialized) {
             throw BrowserAuthError.createUninitializedPublicClientApplication();
         }
-    }
-
-    /**
-     * Returns boolean of whether current browser is an Internet Explorer or Edge browser.
-     */
-    static detectIEOrEdge(): boolean {
-        const ua = window.navigator.userAgent;
-        const msie = ua.indexOf("MSIE ");
-        const msie11 = ua.indexOf("Trident/");
-        const msedge = ua.indexOf("Edge/");
-        const isIE = msie > 0 || msie11 > 0;
-        const isEdge = msedge > 0;
-        return isIE || isEdge;
     }
 }

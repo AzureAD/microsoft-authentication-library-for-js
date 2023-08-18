@@ -22,13 +22,13 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
 } from "@azure/msal-common";
-import { BrowserUtils } from "../utils/BrowserUtils";
 import {
     BrowserCacheLocation,
     BrowserConstants,
 } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
+import { FetchClient } from "../network/FetchClient";
 import { name, version } from "../packageMetadata";
 
 // Default timeout for popup windows and iframes in milliseconds
@@ -304,7 +304,7 @@ export function buildConfiguration(
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: isBrowserEnvironment
-            ? BrowserUtils.getBrowserNetworkClient()
+            ? new FetchClient()
             : StubbedNetworkModule,
         navigationClient: new NavigationClient(),
         loadFrameTimeout: 0,
@@ -313,8 +313,7 @@ export function buildConfiguration(
             userInputSystem?.loadFrameTimeout || DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout:
             userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
-        navigateFrameWait:
-            isBrowserEnvironment && BrowserUtils.detectIEOrEdge() ? 500 : 0,
+        navigateFrameWait: 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false,

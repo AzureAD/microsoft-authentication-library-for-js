@@ -12,6 +12,9 @@ try {
             getRandomValues(dataBuffer: Uint8Array): Uint8Array {
                 return crypto.randomFillSync(dataBuffer);
             },
+            randomUUID(): string {
+                return crypto.randomUUID();
+            }
         },
     });
 } catch (e) {
