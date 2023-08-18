@@ -23,7 +23,6 @@ export class BrowserPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
 {
-
     constructor(configuration: Configuration, intFields?: Set<string>) {
         super(
             configuration.auth.clientId,

@@ -24,7 +24,7 @@ const mockResponse: Response = {
     text: () => Promise.resolve(""),
     blob: () => Promise.resolve(new Blob()),
     formData: () => Promise.resolve(new FormData()),
-}
+};
 
 describe("FetchClient.ts Unit Tests", () => {
     let fetchClient: FetchClient;
@@ -39,9 +39,10 @@ describe("FetchClient.ts Unit Tests", () => {
     describe("Get requests", () => {
         it("sends a get request as expected", (done) => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
-            global["fetch"] = jest.fn()
+            global["fetch"] = jest
+                .fn()
                 .mockImplementation(
-                    (url: RequestInfo | URL, init: RequestInit|undefined) => {
+                    (url: RequestInfo | URL, init: RequestInit | undefined) => {
                         expect(init && init.method).toBe(HTTP_REQUEST_TYPE.GET);
                         expect(url).toBe(targetUri);
                         done();
@@ -59,10 +60,13 @@ describe("FetchClient.ts Unit Tests", () => {
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
             };
-            global["fetch"] = jest.fn()
+            global["fetch"] = jest
+                .fn()
                 .mockImplementation(
-                    (url: RequestInfo | URL, init: RequestInit|undefined) => {
-                        expect(init && init.method).toBe(HTTP_REQUEST_TYPE.POST);
+                    (url: RequestInfo | URL, init: RequestInit | undefined) => {
+                        expect(init && init.method).toBe(
+                            HTTP_REQUEST_TYPE.POST
+                        );
                         expect(init && init.body).toBe(requestOptions.body);
                         expect(url).toBe(targetUri);
                         done();
@@ -82,15 +86,22 @@ describe("FetchClient.ts Unit Tests", () => {
                 body: "thisIsAPostBody",
                 headers: reqHeaders,
             };
-            global["fetch"] = jest.fn()
+            global["fetch"] = jest
+                .fn()
                 .mockImplementation(
-                    (url: RequestInfo | URL, init: RequestInit|undefined) => {
-                        expect(init && init.method).toBe(HTTP_REQUEST_TYPE.POST);
+                    (url: RequestInfo | URL, init: RequestInit | undefined) => {
+                        expect(init && init.method).toBe(
+                            HTTP_REQUEST_TYPE.POST
+                        );
                         expect(init && init.body).toBe(requestOptions.body);
 
-                        for(const headerName in reqHeaders){
+                        for (const headerName in reqHeaders) {
                             // @ts-ignore
-                            expect(init && init.headers && init.headers.get(headerName)).toBe(reqHeaders[headerName]);
+                            expect(
+                                init &&
+                                    init.headers &&
+                                    init.headers.get(headerName)
+                            ).toBe(reqHeaders[headerName]);
                         }
                         expect(url).toBe(targetUri);
                         done();
@@ -103,20 +114,22 @@ describe("FetchClient.ts Unit Tests", () => {
     });
 
     describe("sendRequestAsync", () => {
-
         it("throws error if fetch post returns non-200 status", (done) => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
             };
 
-            global["fetch"] = jest.fn()
+            global["fetch"] = jest
+                .fn()
                 .mockImplementation(
-                    (url: RequestInfo | URL, init: RequestInit|undefined) => {
-                        expect(init && init.method).toBe(HTTP_REQUEST_TYPE.POST);
+                    (url: RequestInfo | URL, init: RequestInit | undefined) => {
+                        expect(init && init.method).toBe(
+                            HTTP_REQUEST_TYPE.POST
+                        );
                         expect(init && init.body).toBe(requestOptions.body);
                         expect(url).toBe(targetUri);
-                        return Promise.reject({...mockResponse, status: 16});
+                        return Promise.reject({ ...mockResponse, status: 16 });
                     }
                 );
 
@@ -133,12 +146,13 @@ describe("FetchClient.ts Unit Tests", () => {
 
         it("throws error if fetch get returns non-200 status", (done) => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
-            global["fetch"] = jest.fn()
+            global["fetch"] = jest
+                .fn()
                 .mockImplementation(
-                    (url: RequestInfo | URL, init: RequestInit|undefined) => {
+                    (url: RequestInfo | URL, init: RequestInit | undefined) => {
                         expect(init && init.method).toBe(HTTP_REQUEST_TYPE.GET);
                         expect(url).toBe(targetUri);
-                        return Promise.reject({...mockResponse, status: 16});
+                        return Promise.reject({ ...mockResponse, status: 16 });
                     }
                 );
 
@@ -157,13 +171,19 @@ describe("FetchClient.ts Unit Tests", () => {
                 body: "thisIsAPostBody",
             };
 
-            global["fetch"] = jest.fn()
+            global["fetch"] = jest
+                .fn()
                 .mockImplementation(
-                    (url: RequestInfo | URL, init: RequestInit|undefined) => {
-                        expect(init && init.method).toBe(HTTP_REQUEST_TYPE.POST);
+                    (url: RequestInfo | URL, init: RequestInit | undefined) => {
+                        expect(init && init.method).toBe(
+                            HTTP_REQUEST_TYPE.POST
+                        );
                         expect(init && init.body).toBe(requestOptions.body);
                         expect(url).toBe(targetUri);
-                        return Promise.resolve({...mockResponse, json: () => Promise.reject("thisIsNotJSON")});
+                        return Promise.resolve({
+                            ...mockResponse,
+                            json: () => Promise.reject("thisIsNotJSON"),
+                        });
                     }
                 );
 
@@ -185,13 +205,16 @@ describe("FetchClient.ts Unit Tests", () => {
                 body: "thisIsAPostBody",
             };
 
-            global["fetch"] = jest.fn()
+            global["fetch"] = jest
+                .fn()
                 .mockImplementation(
-                    (url: RequestInfo | URL, init: RequestInit|undefined) => {
-                        expect(init && init.method).toBe(HTTP_REQUEST_TYPE.POST);
+                    (url: RequestInfo | URL, init: RequestInit | undefined) => {
+                        expect(init && init.method).toBe(
+                            HTTP_REQUEST_TYPE.POST
+                        );
                         expect(init && init.body).toBe(requestOptions.body);
                         expect(url).toBe(targetUri);
-                        return Promise.reject({...mockResponse, status: 0});
+                        return Promise.reject({ ...mockResponse, status: 0 });
                     }
                 );
 

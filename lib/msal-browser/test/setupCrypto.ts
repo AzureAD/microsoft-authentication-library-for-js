@@ -14,7 +14,7 @@ try {
             },
             randomUUID(): string {
                 return crypto.randomUUID();
-            }
+            },
         },
     });
 } catch (e) {
