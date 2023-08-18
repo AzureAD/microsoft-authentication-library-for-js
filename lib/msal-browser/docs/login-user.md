@@ -74,7 +74,7 @@ const username = "test@contoso.com";
 const myAccount: AccountInfo = msalInstance.getAccountByUsername(username);
 
 const homeAccountId = "userid.hometenantid"; // Best to retrieve the homeAccountId from an account object previously obtained through msal
-const myAccount: AccountInfo = maslInstance.getAccountByHomeId(homeAccountId);
+const myAccount: AccountInfo = msalInstance.getAccountByHomeId(homeAccountId);
 ```
 
 **Note:** `getAccountByUsername()` is provided for convenience and should be considered less reliable than `getAccountByHomeId()`. When possible use `getAccountByHomeId()`.
