@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Fri, 11 Aug 2023 19:00:44 GMT and should not be manually modified.
+This log was last generated on Fri, 18 Aug 2023 18:40:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.0.2
+
+Fri, 18 Aug 2023 18:40:03 GMT
+
+### Patches
+
+- Fix input parameter type for addEventCallback (thomas.norling@microsoft.com)
+- Extend hydrateCache request type to include ssoSilentRequest, PopupRequest and RedirectRequest #6329 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.0.2
 
 ## 3.0.1
 
