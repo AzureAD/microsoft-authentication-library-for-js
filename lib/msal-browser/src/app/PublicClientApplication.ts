@@ -393,4 +393,12 @@ export class PublicClientApplication implements IPublicClientApplication {
     ): Promise<void> {
         return this.controller.hydrateCache(result, request);
     }
+
+    /**
+     * Clears tokens and account from the browser cache.
+     * @param logoutRequest
+     */
+    clearCache(logoutRequest?: EndSessionRequest): Promise<void> {
+        return this.controller.clearCache(logoutRequest);
+    }
 }

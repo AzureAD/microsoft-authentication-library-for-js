@@ -67,6 +67,7 @@ export interface IPublicClientApplication {
             | RedirectRequest
             | PopupRequest
     ): Promise<void>;
+    clearCache(logoutRequest?: EndSessionRequest): Promise<void>;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -185,6 +186,11 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
     },
     hydrateCache: () => {
+        return Promise.reject(
+            BrowserConfigurationAuthError.createStubPcaInstanceCalledError()
+        );
+    },
+    clearCache: () => {
         return Promise.reject(
             BrowserConfigurationAuthError.createStubPcaInstanceCalledError()
         );

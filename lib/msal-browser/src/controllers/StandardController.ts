@@ -1124,6 +1124,16 @@ export class StandardController implements IController {
         }
     }
 
+    /**
+     * Creates a cache interaction client to clear broswer cache.
+     * @param logoutRequest
+     */
+    async clearCache(logoutRequest?: EndSessionRequest): Promise<void> {
+        const correlationId = this.getRequestCorrelationId(logoutRequest);
+        const cacheClient = this.createSilentCacheClient(correlationId);
+        return cacheClient.logout(logoutRequest);
+    }
+
     // #endregion
 
     // #region Account APIs

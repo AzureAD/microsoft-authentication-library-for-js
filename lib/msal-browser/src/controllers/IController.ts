@@ -88,6 +88,8 @@ export interface IController {
 
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
 
+    clearCache(logoutRequest?: EndSessionRequest): Promise<void>;
+
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 
     getTokenCache(): ITokenCache;
