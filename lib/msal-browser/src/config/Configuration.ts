@@ -157,6 +157,7 @@ export type BrowserSystemOptions = SystemOptions & {
     loadFrameTimeout?: number;
     /**
      * Maximum time the library should wait for a frame to load
+     * @deprecated This was previously needed for older browsers which are no longer supported by MSAL.js. This option will be removed in the next major version
      */
     navigateFrameWait?: number;
     /**
