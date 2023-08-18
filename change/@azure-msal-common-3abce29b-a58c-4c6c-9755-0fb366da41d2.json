@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix authority endpoint version for B2C authorities #6342",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
