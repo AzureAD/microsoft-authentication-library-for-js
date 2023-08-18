@@ -163,7 +163,7 @@ describe("SilentCacheClient", () => {
             pca.browserStorage.setAccount(testAccountEntity);
             pca.setActiveAccount(testAccount);
             expect(pca.getActiveAccount()).toEqual(testAccount);
-            silentCacheClient.logout();
+            silentCacheClient.logout({ account: testAccount });
             //@ts-ignore
             expect(pca.getActiveAccount()).toEqual(null);
         });
