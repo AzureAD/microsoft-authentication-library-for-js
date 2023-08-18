@@ -18,6 +18,7 @@ import {
     TimeUtils,
     ICrypto,
     Logger,
+    AuthToken,
 } from "@azure/msal-common";
 import { isBridgeError } from "../BridgeError";
 import { BridgeStatusCode } from "../BridgeStatusCode";
@@ -88,10 +89,7 @@ export class NestedAppAuthAdapter {
                 Object.entries(request.extraQueryParameters)
             );
         }
-        /**
-         * Need to get information about the client to populate request correctly
-         * For example: client id, client capabilities
-         */
+
         const tokenRequest: TokenRequest = {
             userObjectId: request.account?.homeAccountId,
             clientId: this.clientId,
@@ -124,25 +122,21 @@ export class NestedAppAuthAdapter {
             TimeUtils.nowSeconds() + (response.expires_in || 0) * 1000
         );
 
-        /*
-         * Currently we're not getting id_token back....
-         *let authToken: AuthToken;
-         *if (response.id_token !== undefined) {
-         *    authToken = new AuthToken(response.id_token, this.crypto);
-         *}
-         */
+        let authToken: AuthToken | undefined;
+        if (response.id_token !== undefined) {
+            authToken = new AuthToken(response.id_token, this.crypto);
+        } else {
+            authToken = undefined;
+        }
+
         const authenticationResult: AuthenticationResult = {
             authority: response.account.environment,
             uniqueId: response.account.homeAccountId,
             tenantId: response.account.tenantId,
             scopes: response.scope.split(" "),
             account: this.fromNaaAccountInfo(response.account),
-            /*
-             * idToken: response.id_token,
-             * idTokenClaims: authToken.claims,
-             */
-            idToken: "",
-            idTokenClaims: {},
+            idToken: response.id_token !== undefined ? response.id_token : "",
+            idTokenClaims: authToken !== undefined ? authToken.claims : {},
             accessToken: response.access_token,
             fromCache: true,
             expiresOn: expiresOn,
