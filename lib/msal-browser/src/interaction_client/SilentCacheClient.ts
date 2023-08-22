@@ -20,7 +20,7 @@ import {
     BrowserAuthErrorMessage,
 } from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { EndSessionRequest } from "../request/EndSessionRequest";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -82,7 +82,7 @@ export class SilentCacheClient extends StandardInteractionClient {
      * API to silenty clear the browser cache.
      * @param logoutRequest
      */
-    logout(logoutRequest?: EndSessionRequest): Promise<void> {
+    logout(logoutRequest?: ClearCacheRequest): Promise<void> {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         return this.clearCacheOnLogout(validLogoutRequest?.account);

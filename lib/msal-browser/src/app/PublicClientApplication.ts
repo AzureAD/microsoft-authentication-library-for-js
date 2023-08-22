@@ -25,6 +25,7 @@ import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -398,7 +399,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Clears tokens and account from the browser cache.
      * @param logoutRequest
      */
-    clearCache(logoutRequest?: EndSessionRequest): Promise<void> {
+    clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
         return this.controller.clearCache(logoutRequest);
     }
 }

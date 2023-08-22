@@ -4822,13 +4822,26 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.localStorage.clear();
         });
 
-        it("browser cache cleared when clearCache called", () => {
+        it("browser cache cleared when clearCache called without a ClearCacheRequest object", () => {
             expect(pca.getActiveAccount()).toEqual(null);
             pca.setActiveAccount(testAccountInfo1);
             const activeAccount = pca.getActiveAccount();
             expect(activeAccount?.idToken).not.toBeUndefined();
             expect(activeAccount).toEqual(testAccountInfo1);
             pca.clearCache();
+            expect(pca.getActiveAccount()).toEqual(null);
+        });
+
+        it("browser cache cleared when clearCache called with a ClearCacheRequest object", () => {
+            expect(pca.getActiveAccount()).toEqual(null);
+            pca.setActiveAccount(testAccountInfo1);
+            const activeAccount = pca.getActiveAccount();
+            expect(activeAccount?.idToken).not.toBeUndefined();
+            expect(activeAccount).toEqual(testAccountInfo1);
+            pca.clearCache({
+                account: testAccountInfo1,
+                correlationId: "test123",
+            });
             expect(pca.getActiveAccount()).toEqual(null);
         });
     });
