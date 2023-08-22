@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ApiId, Constants } from "../utils/Constants";
+import { ApiId, Constants } from "../utils/Constants.js";
 import {
     AuthenticationResult,
     CommonDeviceCodeRequest,
@@ -18,19 +18,19 @@ import {
     AccountInfo,
     INativeBrokerPlugin,
 } from "@azure/msal-common";
-import { Configuration } from "../config/Configuration";
-import { ClientApplication } from "./ClientApplication";
-import { IPublicClientApplication } from "./IPublicClientApplication";
-import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { InteractiveRequest } from "../request/InteractiveRequest";
-import { NodeAuthError } from "../error/NodeAuthError";
-import { LoopbackClient } from "../network/LoopbackClient";
-import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { SignOutRequest } from "../request/SignOutRequest";
-import { ILoopbackClient } from "../network/ILoopbackClient";
-import { DeviceCodeClient } from "./DeviceCodeClient";
+import { Configuration } from "../config/Configuration.js";
+import { ClientApplication } from "./ClientApplication.js";
+import { IPublicClientApplication } from "./IPublicClientApplication.js";
+import { DeviceCodeRequest } from "../request/DeviceCodeRequest.js";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { InteractiveRequest } from "../request/InteractiveRequest.js";
+import { NodeAuthError } from "../error/NodeAuthError.js";
+import { LoopbackClient } from "../network/LoopbackClient.js";
+import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
+import { SignOutRequest } from "../request/SignOutRequest.js";
+import { ILoopbackClient } from "../network/ILoopbackClient.js";
+import { DeviceCodeClient } from "./DeviceCodeClient.js";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications

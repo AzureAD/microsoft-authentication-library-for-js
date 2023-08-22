@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NodeStorage } from "./NodeStorage";
+import { NodeStorage } from "./NodeStorage.js";
 import {
     StringUtils,
     AccountEntity,
@@ -22,10 +22,10 @@ import {
     SerializedIdTokenEntity,
     SerializedAppMetadataEntity,
     CacheKVStore,
-} from "./serializer/SerializerTypes";
-import { Deserializer } from "./serializer/Deserializer";
-import { Serializer } from "./serializer/Serializer";
-import { ITokenCache } from "./ITokenCache";
+} from "./serializer/SerializerTypes.js";
+import { Deserializer } from "./serializer/Deserializer.js";
+import { Serializer } from "./serializer/Serializer.js";
+import { ITokenCache } from "./ITokenCache.js";
 
 const defaultSerializedCache: JsonCache = {
     Account: {},

@@ -25,7 +25,7 @@ import {
     SerializedAccessTokenEntity,
     SerializedRefreshTokenEntity,
     SerializedAppMetadataEntity,
-} from "./SerializerTypes";
+} from "./SerializerTypes.js";
 
 /**
  * This class deserializes cache entities read from the file into in memory object types defined internally
