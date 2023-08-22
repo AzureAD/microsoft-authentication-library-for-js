@@ -96,10 +96,10 @@ describe("FetchClient.ts Unit Tests", () => {
                         expect(init && init.body).toBe(requestOptions.body);
 
                         for (const headerName in reqHeaders) {
-                            // @ts-ignore
                             expect(
                                 init &&
-                                    init.headers &&
+                                init.headers &&
+                                    // @ts-ignore
                                     init.headers.get(headerName)
                             ).toBe(reqHeaders[headerName]);
                         }
