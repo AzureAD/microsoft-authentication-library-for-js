@@ -43,6 +43,7 @@ import { StoreInCache } from "../request/StoreInCache";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
+ * @internal
  */
 export abstract class CacheManager implements ICacheManager {
     protected clientId: string;
@@ -882,7 +883,13 @@ export abstract class CacheManager implements ICacheManager {
             this.commonLogger.info("CacheManager:getIdToken - No token found");
             return null;
         } else if (numIdTokens > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+            this.commonLogger.info(
+                "CacheManager:getIdToken - Multiple id tokens found, clearing them"
+            );
+            idTokens.forEach((idToken) => {
+                this.removeIdToken(idToken.generateCredentialKey());
+            });
+            return null;
         }
 
         this.commonLogger.info("CacheManager:getIdToken - Returning id token");
@@ -1033,7 +1040,13 @@ export abstract class CacheManager implements ICacheManager {
             );
             return null;
         } else if (numAccessTokens > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+            this.commonLogger.info(
+                "CacheManager:getAccessToken - Multiple access tokens found, clearing them"
+            );
+            accessTokens.forEach((accessToken) => {
+                this.removeAccessToken(accessToken.generateCredentialKey());
+            });
+            return null;
         }
 
         this.commonLogger.info(
@@ -1479,6 +1492,7 @@ export abstract class CacheManager implements ICacheManager {
     }
 }
 
+/** @internal */
 export class DefaultStorageClass extends CacheManager {
     setAccount(): void {
         const notImplErr =

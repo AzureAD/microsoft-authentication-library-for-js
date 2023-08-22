@@ -2,6 +2,68 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Fri, 18 Aug 2023 18:40:02 GMT",
+      "tag": "@azure/msal-node_v2.0.2",
+      "version": "2.0.2",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "d6bdb1c9987e54a347874537025c17e70b546f36",
+            "comment": "Typedocs"
+          }
+        ],
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4d23a9049a7ecf6c0bc85171d76e7437ba9403dd",
+            "comment": "Fixed http(s) imports #6349"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b29498c2bde71b17035a7e278c5e578917cfd8d3",
+            "comment": "Fixed jwt import error #6347"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.0.2",
+            "commit": "05b714f7670e8195f9440f8dd2f750ba6896c3bb"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 11 Aug 2023 19:00:44 GMT",
+      "tag": "@azure/msal-node_v2.0.1",
+      "version": "2.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4d1b5ebc6070f80b0f33d5610a0f787c25d8031a",
+            "comment": "Fix msal-node file extensions #6318"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ae5fbc436e4c9b331494caa599510bb5f7b10272",
+            "comment": "Update dist settings for packages #6322"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.0.1",
+            "commit": "69d1715ac133eb486d94f87ebbb3fc61b4df3910"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Aug 2023 18:15:15 GMT",
       "tag": "@azure/msal-node_v2.0.0",
       "version": "2.0.0",
@@ -117,7 +179,7 @@
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-node",
             "commit": "4c99ad07b7ea40e1f2191173e58d80cec143c72d",
-            "comment": "Update \"PerformanceClient\" for better usability/extendibility #6270"
+            "comment": "Update PerformanceClient for better usability/extendibility #6270"
           },
           {
             "author": "joshua.head@envoryat.com",
@@ -1586,7 +1648,7 @@
       "comments": {
         "prerelease": [
           {
-            "comment": "Export all \"Request\" types in msal-node",
+            "comment": "Export all Request types in msal-node",
             "author": "sameera.gajjarapu@microsoft.com",
             "commit": "145602c7ced2c9f77a249f0abdca76f3358bd7db",
             "package": "@azure/msal-node"

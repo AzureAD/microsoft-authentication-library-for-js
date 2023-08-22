@@ -20,6 +20,7 @@ export default [
             format: "cjs",
             preserveModules: true,
             preserveModulesRoot: "src",
+            entryFileNames: "[name].cjs",
             banner: fileHeader,
             sourcemap: true
         },
@@ -47,8 +48,8 @@ export default [
         input: "src/index.ts",
         output: {
             dir: "dist",
-            format: "esm",
-            entryFileNames: "[name].esm.js",
+            format: "es",
+            entryFileNames: "[name].mjs",
             preserveModules: true,
             preserveModulesRoot: "src",
             banner: fileHeader,

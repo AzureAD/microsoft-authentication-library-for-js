@@ -6,6 +6,7 @@
 1. [What browsers are supported?](#what-browsers-are-supported)
 1. [What versions of Angular are supported?](#what-versions-of-angular-are-supported)
 1. [Does `@azure/msal-angular` support Server Side Rendering?](#does-azuremsal-angular-support-server-side-rendering)
+1. [Does `@azure/msal-angular` support standalone components?](#does-azuremsal-angular-support-standalone-components)
 1. [Can `@azure/msal-angular` be used with Internet Explorer?](#can-azuremsal-angular-be-used-with-internet-explorer)
 1. [Can `@azure/msal-angular` be used with Microsoft Graph JavaScript SDK?](#can-azuremsal-angular-be-used-with-microsoft-graph-javascript-sdk)
 
@@ -43,7 +44,7 @@ Please see [here](https://github.com/AzureAD/microsoft-authentication-library-fo
 
 ### What versions of Angular are supported?
 
-MSAL Angular v3 is in alpha and currently supports Angular 15 and 16.
+MSAL Angular v3 currently supports Angular 15 and 16.
 
 MSAL Angular v2 supports Angular 9, 10, 11, 12, 13 and 14.
 
@@ -51,13 +52,17 @@ MSAL Angular v2 supports Angular 9, 10, 11, 12, 13 and 14.
 
 Yes, server side rendering is supported through Angular universal. See our doc [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/angular-universal.md) for more information.
 
+### Does `@azure/msal-angular` support standalone components?
+
+MSAL Angular v3 supports standalone components. Please see our [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for more information on using standalone components with redirects and our [standalone sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular-standalone-sample) for usage details. 
+
 ### Can `@azure/msal-angular` be used with Internet Explorer?
 
 MSAL Angular v3 no longer supports Internet Explorer.
 
 MSAL Angular v2 and earlier supports IE 11. More information on configuration can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-lts/lib/msal-angular/docs/v2-docs/ie-support.md).
 
-## Can `@azure/msal-angular` be used with Microsoft Graph JavaScript SDK?
+### Can `@azure/msal-angular` be used with Microsoft Graph JavaScript SDK?
 
 Yes, `@azure/msal-angular` can be used as a custom authentication provider for the [Microsoft Graph JavaScript SDK](https://github.com/microsoftgraph/msgraph-sdk-javascript). For an implementation, please refer to the sample: [Angular SPA calling Graph API](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/2-Authorization-I/1-call-graph).
 

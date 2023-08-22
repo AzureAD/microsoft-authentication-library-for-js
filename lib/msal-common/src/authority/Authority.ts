@@ -49,6 +49,7 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
  * endpoint. It will store the pertinent config data in this object for use during token calls.
+ * @internal
  */
 export class Authority {
     // Canonical authority url string
@@ -356,7 +357,8 @@ export class Authority {
         const canonicalAuthorityHost = this.hostnameAndPort;
         if (
             this.authorityType === AuthorityType.Adfs ||
-            !this.isAliasOfKnownMicrosoftAuthority(canonicalAuthorityHost)
+            (this.protocolMode !== ProtocolMode.AAD &&
+                !this.isAliasOfKnownMicrosoftAuthority(canonicalAuthorityHost))
         ) {
             return `${this.canonicalAuthority}.well-known/openid-configuration`;
         }

@@ -24,6 +24,7 @@ import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { EventCallbackFunction } from "../event/EventMessage";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -112,7 +113,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Silently acquire an access token for a given set of scopes. Returns currently processing promise if parallel requests are made.
      *
      * @param {@link (SilentRequest:type)}
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthenticationResult} object
      */
     acquireTokenSilent(
         silentRequest: SilentRequest
@@ -140,7 +141,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Adds event callbacks to array
      * @param callback
      */
-    addEventCallback(callback: Function): string | null {
+    addEventCallback(callback: EventCallbackFunction): string | null {
         return this.controller.addEventCallback(callback);
     }
 
@@ -370,6 +371,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     /**
      * Returns the configuration object
+     * @internal
      */
     getConfiguration(): BrowserConfiguration {
         return this.controller.getConfiguration();
@@ -383,7 +385,11 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     async hydrateCache(
         result: AuthenticationResult,
-        request: SilentRequest
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
     ): Promise<void> {
         return this.controller.hydrateCache(result, request);
     }

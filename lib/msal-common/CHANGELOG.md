@@ -1,8 +1,29 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 07 Aug 2023 18:15:15 GMT and should not be manually modified.
+This log was last generated on Fri, 18 Aug 2023 18:40:02 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.0.2
+
+Fri, 18 Aug 2023 18:40:02 GMT
+
+### Patches
+
+- Fix authority endpoint version for B2C authorities #6342 (hemoral@microsoft.com)
+
+## 14.0.1
+
+Fri, 11 Aug 2023 19:00:44 GMT
+
+### Patches
+
+- Update dist settings for packages #6322 (hemoral@microsoft.com)
+- Replaces `multiple matched tokens error` with a log message, removing matching tokens from cache #6311 (kshabelko@microsoft.com)
+
+### Changes
+
+- Pick up broker extra query params #6286 (kshabelko@microsoft.com)
 
 ## 14.0.0
 

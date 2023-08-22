@@ -2,6 +2,58 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 18 Aug 2023 18:40:02 GMT",
+      "tag": "@azure/msal-common_v14.0.2",
+      "version": "14.0.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "00a8f2270bd7d39362710ae0119e74e1cac86bcc",
+            "comment": "Fix authority endpoint version for B2C authorities #6342"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d6bdb1c9987e54a347874537025c17e70b546f36",
+            "comment": "Typedocs"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 11 Aug 2023 19:00:44 GMT",
+      "tag": "@azure/msal-common_v14.0.1",
+      "version": "14.0.1",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3528e0e99f86b928e942c4cf104cb8909809639c",
+            "comment": "Pick up broker extra query params #6286"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ae5fbc436e4c9b331494caa599510bb5f7b10272",
+            "comment": "Update dist settings for packages #6322"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d95ac94497f09e93541c4df0c18289379112ffdb",
+            "comment": "Replaces `multiple matched tokens error` with a log message, removing matching tokens from cache #6311"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Aug 2023 18:15:15 GMT",
       "tag": "@azure/msal-common_v14.0.0",
       "version": "14.0.0",
@@ -44,14 +96,14 @@
             "package": "@azure/msal-common",
             "commit": "024f979a535b793d47189de65366c49080095e55",
             "comment": "Prioritize hardcoded metadata over network-sourced metadata #6231"
-          },
+          }
         ],
         "minor": [
           {
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-common",
             "commit": "251b39a3c8b41be81c3b078902a9239e4bee0a7e",
-            "comment": "Catch errors thrown by \"decodeURIComponent\" #6226"
+            "comment": "Catch errors thrown by decodeURIComponent #6226"
           },
           {
             "author": "thomas.norling@microsoft.com",
@@ -69,7 +121,7 @@
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-common",
             "commit": "4c99ad07b7ea40e1f2191173e58d80cec143c72d",
-            "comment": "Update \"PerformanceClient\" for better usability/extendibility #6270"
+            "comment": "Update PerformanceClient for better usability/extendibility #6270"
           },
           {
             "author": "thomas.norling@microsoft.com",

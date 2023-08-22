@@ -1,0 +1,10 @@
+{
+    "extends": [
+        "../../typedoc.base.json"
+    ],
+    "entryPoints": [
+        "src/public-api.ts"
+    ],
+    "tsconfig": "tsconfig.lib.prod.json",
+    "readme": "./README.md"
+}

@@ -28,6 +28,7 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
+ * @internal
  */
 export abstract class BaseClient {
     // Logger object

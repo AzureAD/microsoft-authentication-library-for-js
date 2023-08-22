@@ -2,6 +2,50 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Fri, 18 Aug 2023 18:40:03 GMT",
+      "tag": "@azure/msal-angular_v3.0.2",
+      "version": "3.0.2",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "d6bdb1c9987e54a347874537025c17e70b546f36",
+            "comment": "Typedocs"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.0.2",
+            "commit": "05b714f7670e8195f9440f8dd2f750ba6896c3bb"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 11 Aug 2023 19:00:44 GMT",
+      "tag": "@azure/msal-angular_v3.0.1",
+      "version": "3.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "33accbe2d7591ad801e927ca10b98a2109109974",
+            "comment": "Fix Angular deploy #6316"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.0.1",
+            "commit": "69d1715ac133eb486d94f87ebbb3fc61b4df3910"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Aug 2023 18:15:15 GMT",
       "tag": "@azure/msal-angular_v3.0.0",
       "version": "3.0.0",
@@ -71,7 +115,7 @@
           }
         ],
         "minor": [
-           {
+          {
             "author": "thomas.norling@microsoft.com",
             "package": "@azure/msal-angular",
             "commit": "faae9defff0424799bfa540fdb2c2f309b34db3a",
@@ -83,7 +127,7 @@
             "commit": "0e1b723cd4a8d59c963fd7a5a5884bebb9e49fbe",
             "comment": "Update log to match name change #6036"
           },
-           {
+          {
             "author": "joarroyo@microsoft.com",
             "package": "@azure/msal-angular",
             "commit": "3458e0096365c79e6fb4054dfce87ff0b6dd2d41",

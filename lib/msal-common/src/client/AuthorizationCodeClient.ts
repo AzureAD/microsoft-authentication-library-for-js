@@ -46,6 +46,7 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Oauth2.0 Authorization Code client
+ * @internal
  */
 export class AuthorizationCodeClient extends BaseClient {
     // Flag to indicate if client is for hybrid spa auth code redemption
@@ -328,7 +329,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        parameterBuilder.addClientId(
+            request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                this.config.authOptions.clientId
+        );
 
         /*
          * For hybrid spa flow, there will be a code but no verifier
@@ -501,7 +505,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        parameterBuilder.addClientId(
+            request.extraQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                this.config.authOptions.clientId
+        );
 
         const requestScopes = [
             ...(request.scopes || []),

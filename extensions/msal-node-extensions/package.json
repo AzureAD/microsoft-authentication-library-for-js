@@ -1,20 +1,20 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "license": "MIT",
-  "module": "dist/index.esm.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/index.esm.js",
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.js",
-      "default": "./dist/index.esm.js"
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     },
     "./package.json": "./package.json"
   },
@@ -52,10 +52,12 @@
     "url": "https://www.microsoft.com"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "major"
+    ]
   },
   "dependencies": {
-    "@azure/msal-common": "14.0.0",
+    "@azure/msal-common": "14.0.2",
     "@azure/msal-node-runtime": "^0.13.6-alpha.0",
     "keytar": "^7.8.0"
   },

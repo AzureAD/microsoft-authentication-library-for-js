@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -21,15 +21,15 @@
     "oauth"
   ],
   "type": "module",
-  "module": "dist/index.esm.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/index.esm.js",
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.js",
-      "default": "./dist/index.esm.js"
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     },
     "./package.json": "./package.json"
   },
@@ -37,8 +37,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build:watch": "rollup -c --watch --strictDeprecations --bundleConfigAsCjs",
+    "clean": "shx rm -rf dist lib",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -50,14 +51,16 @@
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "major"
+    ]
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.19.4",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/jest": "^29.5.0",
-    "@types/jsonwebtoken": "^8.5.5",
+    "@types/jsonwebtoken": "^9.0.1",
     "@types/node": "^20.3.1",
     "@types/sinon": "^7.5.0",
     "@types/uuid": "^7.0.0",
@@ -71,7 +74,7 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@azure/msal-common": "14.0.0",
+    "@azure/msal-common": "14.0.2",
     "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },

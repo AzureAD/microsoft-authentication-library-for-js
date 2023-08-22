@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "14.0.0",
+  "version": "14.0.2",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -22,15 +22,15 @@
     "oauth"
   ],
   "sideEffects": false,
-  "module": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/index.js",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs.js",
-      "default": "./dist/index.js"
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     },
     "./package.json": "./package.json"
   },
@@ -61,7 +61,9 @@
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "major"
+    ]
   },
   "devDependencies": {
     "@babel/core": "^7.7.2",
