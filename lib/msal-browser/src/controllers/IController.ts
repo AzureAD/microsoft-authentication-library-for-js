@@ -28,6 +28,7 @@ import { EventHandler } from "../event/EventHandler";
 import { PopupClient } from "../interaction_client/PopupClient";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { EventCallbackFunction } from "../event/EventMessage";
 
 export interface IController {
     initialize(): Promise<void>;
@@ -55,7 +56,7 @@ export interface IController {
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult>;
 
-    addEventCallback(callback: Function): string | null;
+    addEventCallback(callback: EventCallbackFunction): string | null;
 
     removeEventCallback(callbackId: string): void;
 
@@ -103,6 +104,7 @@ export interface IController {
 
     setNavigationClient(navigationClient: INavigationClient): void;
 
+    /** @internal */
     getConfiguration(): BrowserConfiguration;
 
     hydrateCache(
@@ -114,43 +116,58 @@ export interface IController {
             | PopupRequest
     ): Promise<void>;
 
+    /** @internal */
     isBrowserEnv(): boolean;
 
+    /** @internal */
     getBrowserStorage(): BrowserCacheManager;
 
+    /** @internal */
     getNativeInternalStorage(): BrowserCacheManager;
 
+    /** @internal */
     getBrowserCrypto(): ICrypto;
 
+    /** @internal */
     getPerformanceClient(): IPerformanceClient;
 
+    /** @internal */
     getNativeExtensionProvider(): NativeMessageHandler | undefined;
 
+    /** @internal */
     setNativeExtensionProvider(
         provider: NativeMessageHandler | undefined
     ): void;
 
+    /** @internal */
     getNativeAccountId(
         request: RedirectRequest | PopupRequest | SsoSilentRequest
     ): string;
 
+    /** @internal */
     getEventHandler(): EventHandler;
 
+    /** @internal */
     getNavigationClient(): INavigationClient;
 
+    /** @internal */
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>>;
 
+    /** @internal */
     preflightBrowserEnvironmentCheck(
         interactionType: InteractionType,
         isAppEmbedded?: boolean
     ): void;
 
+    /** @internal */
     canUseNative(
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         accountId?: string
     ): boolean;
 
+    /** @internal */
     createPopupClient(correlationId?: string): PopupClient;
 
+    /** @internal */
     createSilentIframeClient(correlationId?: string): SilentIframeClient;
 }

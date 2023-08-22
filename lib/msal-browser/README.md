@@ -1,4 +1,4 @@
-# Microsoft Authentication Library for JavaScript (MSAL.js) 2.0 for Browser-Based Single-Page Applications
+# Microsoft Authentication Library for JavaScript (MSAL.js) for Browser-Based Single-Page Applications
 
 [![npm version](https://img.shields.io/npm/v/@azure/msal-browser.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-browser/)
 [![npm version](https://img.shields.io/npm/dm/@azure/msal-browser.svg)](https://nodei.co/npm/@azure/msal-browser/)
@@ -59,8 +59,8 @@ npm install @azure/msal-browser
 
 ### Migrating from Previous MSAL Versions
 
--   [Migrating from MSAL v1.x to MSAL v2.x](./docs/v1-migration.md)
--   [Migrating from MSAL v2.x to MSAL v3.x](./docs/v2-migration.md)
+-   [Migrating from MSAL v1.x to MSAL v2.x](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v1-migration.md)
+-   [Migrating from MSAL v2.x to MSAL v3.x](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v2-migration.md)
 
 ### MSAL Basics
 
@@ -123,13 +123,13 @@ npm run build:all
 
 ### Running Tests
 
-`@azure/msal-browser` uses [mocha](https://mochajs.org/) and [chai](https://www.chaijs.com/) to run unit tests, as well as Istanbul's [nyc](https://github.com/istanbuljs/nyc) tool for code coverage.
+`@azure/msal-browser` uses [jest](https://jestjs.io) to run unit tests.
 
 ```bash
 // To run tests
 npm test
 // To run tests with code coverage
-npm run test:coverage:only
+npm run test:coverage
 ```
 
 ## Framework Wrappers

@@ -28,6 +28,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ClientInfo } from "../account/ClientInfo";
 
+/** @internal */
 export class RequestParameterBuilder {
     private parameters: Map<string, string>;
 

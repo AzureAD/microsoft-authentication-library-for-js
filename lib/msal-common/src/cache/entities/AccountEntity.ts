@@ -36,6 +36,7 @@ import { ProtocolMode } from "../../authority/ProtocolMode";
  *      idTokenClaims: Object containing claims parsed from ID token
  *      nativeAccountId: Account identifier on the native device
  * }
+ * @internal
  */
 export class AccountEntity {
     homeAccountId: string;

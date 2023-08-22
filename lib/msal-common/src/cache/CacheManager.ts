@@ -43,6 +43,7 @@ import { StoreInCache } from "../request/StoreInCache";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
+ * @internal
  */
 export abstract class CacheManager implements ICacheManager {
     protected clientId: string;
@@ -1491,6 +1492,7 @@ export abstract class CacheManager implements ICacheManager {
     }
 }
 
+/** @internal */
 export class DefaultStorageClass extends CacheManager {
     setAccount(): void {
         const notImplErr =
