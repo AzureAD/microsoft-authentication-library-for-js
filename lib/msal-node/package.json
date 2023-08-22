@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "@azure/msal-node",
   "version": "2.0.2",
   "author": {
