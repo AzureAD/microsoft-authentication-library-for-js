@@ -1,6 +1,5 @@
 import sinon from "sinon";
 import {
-    AADServerParamKeys,
     AccessTokenEntity,
     AppTokenProviderResult,
     AuthenticationResult,
@@ -13,11 +12,8 @@ import {
     ClientConfiguration,
     CommonClientCredentialRequest,
     CommonUsernamePasswordRequest,
-    Constants,
-    GrantType,
     IAppTokenProvider,
     InteractionRequiredAuthError,
-    ThrottlingConstants,
     TimeUtils,
 } from "@azure/msal-common";
 import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
@@ -32,7 +28,11 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
 } from "../test_kit/StringConstants";
-import { ClientTestUtils, mockCrypto } from "./ClientTestUtils";
+import {
+    checkMockedNetworkRequest,
+    ClientTestUtils,
+    mockCrypto,
+} from "./ClientTestUtils";
 
 describe("ClientCredentialClient unit tests", () => {
     let config: ClientConfiguration;
@@ -99,59 +99,20 @@ describe("ClientCredentialClient unit tests", () => {
 
         const returnVal = (await createTokenRequestBodySpy
             .returnValues[0]) as string;
-        expect(
-            returnVal.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-            )
-        ).toBe(true);
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: true,
+            clientSecret: true,
+            clientSku: true,
+            clientVersion: true,
+            clientOs: true,
+            clientCpu: true,
+            appName: true,
+            appVersion: true,
+            msLibraryCapability: true,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
 
     it("Adds tokenQueryParameters to the /token request", (done) => {
@@ -337,61 +298,20 @@ describe("ClientCredentialClient unit tests", () => {
 
         const returnVal = (await createTokenRequestBodySpy
             .returnValues[0]) as string;
-        expect(
-            returnVal.includes(
-                encodeURIComponent(TEST_CONFIG.DSTS_TEST_SCOPE[0])
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-            )
-        ).toBe(true);
+        const checks = {
+            dstsScope: true,
+            clientId: true,
+            grantType: true,
+            clientSecret: true,
+            clientSku: true,
+            clientVersion: true,
+            clientOs: true,
+            clientCpu: true,
+            appName: true,
+            appVersion: true,
+            msLibraryCapability: true,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
 
     it("acquires a token from cache when using dSTS authority", async () => {
@@ -468,68 +388,23 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                    TEST_CONFIG.CLAIMS
-                )}`
-            )
-        ).toBe(true);
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: true,
+            clientSecret: true,
+            clientSku: true,
+            clientVersion: true,
+            clientOs: true,
+            clientCpu: true,
+            appName: true,
+            appVersion: true,
+            msLibraryCapability: true,
+            claims: true,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
 
     it("Does not add claims when empty object provided", async () => {
@@ -570,68 +445,23 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                    TEST_CONFIG.CLAIMS
-                )}`
-            )
-        ).toBe(false);
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: true,
+            clientSecret: true,
+            clientSku: true,
+            clientVersion: true,
+            clientOs: true,
+            clientCpu: true,
+            appName: true,
+            appVersion: true,
+            msLibraryCapability: true,
+            claims: false,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
 
     it("Uses clientAssertion from ClientConfiguration when no client assertion is added to request", async () => {
@@ -679,82 +509,25 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                    TEST_CONFIG.CLAIMS
-                )}`
-            )
-        ).toBe(false);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent(
-                    TEST_CONFIG.TEST_CONFIG_ASSERTION
-                )}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${
-                    AADServerParamKeys.CLIENT_ASSERTION_TYPE
-                }=${encodeURIComponent(TEST_CONFIG.TEST_ASSERTION_TYPE)}`
-            )
-        ).toBe(true);
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: true,
+            clientSecret: true,
+            clientSku: true,
+            clientVersion: true,
+            clientOs: true,
+            clientCpu: true,
+            appName: true,
+            appVersion: true,
+            msLibraryCapability: true,
+            claims: false,
+            testConfigAssertion: true,
+            testAssertionType: true,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
 
     it("Uses the clientAssertion included in the request instead of the one in ClientConfiguration", async () => {
@@ -806,89 +579,26 @@ describe("ClientCredentialClient unit tests", () => {
             createTokenRequestBodySpy.calledWith(clientCredentialRequest)
         ).toBe(true);
 
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                    TEST_CONFIG.CLAIMS
-                )}`
-            )
-        ).toBe(false);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent(
-                    TEST_CONFIG.TEST_CONFIG_ASSERTION
-                )}`
-            )
-        ).toBe(false);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent(
-                    TEST_CONFIG.TEST_REQUEST_ASSERTION
-                )}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${
-                    AADServerParamKeys.CLIENT_ASSERTION_TYPE
-                }=${encodeURIComponent(TEST_CONFIG.TEST_ASSERTION_TYPE)}`
-            )
-        ).toBe(true);
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: true,
+            clientSecret: true,
+            clientSku: true,
+            clientVersion: true,
+            clientOs: true,
+            clientCpu: true,
+            appName: true,
+            appVersion: true,
+            msLibraryCapability: true,
+            claims: false,
+            testConfigAssertion: false,
+            testRequestAssertion: true,
+            testAssertionType: true,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
 
     it("Does not add headers that do not qualify for a simple request", async () => {
@@ -982,6 +692,187 @@ describe("ClientCredentialClient unit tests", () => {
         expect(authResult.state).toHaveLength(0);
     });
 
+    it("acquires a token from the cache and its refresh_in value is expired. A new token is successfully requested in the background via a network request.", async () => {
+        sinon
+            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
+            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon
+            .stub(
+                ClientCredentialClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            )
+            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+
+        const createTokenRequestBodySpy = sinon.spy(
+            ClientCredentialClient.prototype,
+            <any>"createTokenRequestBody"
+        );
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        };
+
+        const expectedAtEntity: AccessTokenEntity =
+            AccessTokenEntity.createAccessTokenEntity(
+                "",
+                "login.microsoftonline.com",
+                "an_access_token",
+                config.authOptions.clientId,
+                TEST_CONFIG.TENANT,
+                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
+                TimeUtils.nowSeconds() + 4600,
+                TimeUtils.nowSeconds() + 4600,
+                mockCrypto,
+                TimeUtils.nowSeconds() - 4600, // expired refreshOn value
+                AuthenticationScheme.BEARER
+            );
+
+        sinon
+            .stub(
+                ClientCredentialClient.prototype,
+                <any>"readAccessTokenFromCache"
+            )
+            .returns(expectedAtEntity);
+
+        // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache at this point
+        let accessTokenKey = config.storageInterface
+            ?.getKeys()
+            .find((value) => value.indexOf("accesstoken") >= 0);
+        expect(accessTokenKey).toBeUndefined();
+
+        // Acquire a token (from the cache). The refresh_in value is expired, so there will be an asynchronous network request
+        // to refresh the token. That result will be stored in the cache.
+        const authResult = (await await client.acquireToken(
+            clientCredentialRequest
+        )) as AuthenticationResult;
+
+        // Check the cache to ensure the refreshed token exists (the network request was successful).
+        // Typically, the network request may not have completed by the time the below code runs.
+        // However, the network requests are mocked in these tests, so the refreshed token should be in the cache at this point.
+        accessTokenKey = config.storageInterface
+            ?.getKeys()
+            .find((value) => value.indexOf("accesstoken") >= 0);
+        const accessTokenCacheItem = accessTokenKey
+            ? config.storageInterface?.getAccessTokenCredential(accessTokenKey)
+            : null;
+        expect(accessTokenCacheItem?.clientId).toEqual(
+            expectedAtEntity.clientId
+        );
+
+        const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.accessToken).toEqual("an_access_token");
+        expect(authResult.account).toBeNull();
+        expect(authResult.fromCache).toBe(true);
+        expect(authResult.uniqueId).toHaveLength(0);
+        expect(authResult.state).toHaveLength(0);
+
+        expect(
+            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
+        ).toBe(true);
+
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: true,
+            clientSecret: true,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
+    });
+
+    it("acquires a token from the cache and its refresh_in value is expired. A new token is requested in the background via a network request, but there is an error.", async () => {
+        const errorResponse = {
+            error: "interaction_required",
+            error_description:
+                "AADSTS50079: Due to a configuration change made by your administrator, or because you moved to a new location, you must enroll in multifactor authentication to access 'bf8d80f9-9098-4972-b203-500f535113b1'.\r\nTrace ID: b72a68c3-0926-4b8e-bc35-3150069c2800\r\nCorrelation ID: 73d656cf-54b1-4eb2-b429-26d8165a52d7\r\nTimestamp: 2017-05-01 22:43:20Z",
+            error_codes: [50079],
+            timestamp: "2017-05-01 22:43:20Z",
+            trace_id: "b72a68c3-0926-4b8e-bc35-3150069c2800",
+            correlation_id: "73d656cf-54b1-4eb2-b429-26d8165a52d7",
+            claims: '{"access_token":{"polids":{"essential":true,"values":["9ab03e19-ed42-4168-b6b7-7001fb3e933a"]}}}',
+        };
+
+        sinon
+            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
+            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon
+            .stub(
+                ClientCredentialClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            )
+            .resolves({
+                headers: [],
+                body: errorResponse,
+                status: 400,
+            });
+
+        const createTokenRequestBodySpy = sinon.spy(
+            ClientCredentialClient.prototype,
+            <any>"createTokenRequestBody"
+        );
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        };
+
+        const expectedAtEntity: AccessTokenEntity =
+            AccessTokenEntity.createAccessTokenEntity(
+                "",
+                "login.microsoftonline.com",
+                "an_access_token",
+                config.authOptions.clientId,
+                TEST_CONFIG.TENANT,
+                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
+                TimeUtils.nowSeconds() + 4600,
+                TimeUtils.nowSeconds() + 4600,
+                mockCrypto,
+                TimeUtils.nowSeconds() - 4600, // expired refreshOn value
+                AuthenticationScheme.BEARER
+            );
+
+        sinon
+            .stub(
+                ClientCredentialClient.prototype,
+                <any>"readAccessTokenFromCache"
+            )
+            .returns(expectedAtEntity);
+
+        // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache at this point
+        let accessTokenKey = config.storageInterface
+            ?.getKeys()
+            .find((value) => value.indexOf("accesstoken") >= 0);
+        expect(accessTokenKey).toBeUndefined();
+
+        const authResult = (await client.acquireToken(
+            clientCredentialRequest
+        )) as AuthenticationResult;
+
+        // Check the cache to ensure the refreshed token still does not exist (the network request was unsuccessful).
+        // Typically, the network request may not have completed by the time the below code runs.
+        // However, the network requests are mocked in these tests, so the refreshed token should (not) be in the cache at this point.
+        accessTokenKey = config.storageInterface
+            ?.getKeys()
+            .find((value) => value.indexOf("accesstoken") >= 0);
+        expect(accessTokenKey).toBeUndefined();
+
+        const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.accessToken).toEqual("an_access_token");
+        expect(authResult.account).toBeNull();
+        expect(authResult.fromCache).toBe(true);
+        expect(authResult.uniqueId).toHaveLength(0);
+        expect(authResult.state).toHaveLength(0);
+        expect(
+            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
+        ).toBe(true);
+    });
+
     it("acquires a token, skipCache = true", async () => {
         sinon
             .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
@@ -1022,24 +913,13 @@ describe("ClientCredentialClient unit tests", () => {
 
         const returnVal = (await createTokenRequestBodySpy
             .returnValues[0]) as string;
-        expect(
-            returnVal.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`
-            )
-        ).toBe(true);
-        expect(
-            returnVal.includes(
-                `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-            )
-        ).toBe(true);
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: true,
+            clientSecret: true,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
 
     it("Multiple access tokens matched, exception thrown", async () => {

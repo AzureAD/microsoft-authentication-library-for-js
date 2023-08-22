@@ -93,7 +93,7 @@ export class RequestValidator {
         }
 
         // Remove any query parameters already included in SSO params
-        queryParams.forEach((value, key) => {
+        queryParams.forEach((_value, key) => {
             if (eQParams[key]) {
                 delete eQParams[key];
             }

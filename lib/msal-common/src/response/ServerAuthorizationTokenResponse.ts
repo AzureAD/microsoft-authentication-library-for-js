@@ -24,8 +24,10 @@ import { AuthenticationScheme } from "../utils/Constants";
  * - timestamp: The time at which the error occurred.
  * - trace_id: A unique identifier for the request that can help in diagnostics.
  * - correlation_id: A unique identifier for the request that can help in diagnostics across components.
+ * - status: the network request's response status
  */
 export type ServerAuthorizationTokenResponse = {
+    status?: number;
     // Success
     token_type?: AuthenticationScheme;
     scope?: string;
