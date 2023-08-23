@@ -966,7 +966,7 @@ export class BrowserCacheManager extends CacheManager {
         tokenKeys.accessToken.forEach((key: string) => {
             // if the access token has claims in its key, remove the token key and the token
             const credential = this.getAccessTokenCredential(key);
-            if(credential?.requestedClaimsHash && key.includes(credential.requestedClaimsHash)) {
+            if(credential?.requestedClaimsHash && key.includes(credential.requestedClaimsHash.toLowerCase())) {
                 removedAccessTokens.push(this.removeAccessToken(key));
             }
         });

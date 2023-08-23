@@ -949,6 +949,7 @@ describe("BrowserCacheManager tests", () => {
                     const testAT1 = AccessTokenEntity.createAccessTokenEntity("homeAccountId1", "environment", "secret1", "client-id", "tenantId", "openid", 1000, 1000, browserCrypto, 500, AuthenticationScheme.BEARER, "oboAssertion");
                     const testAT2 = AccessTokenEntity.createAccessTokenEntity("homeAccountId2", "environment", "secret2", "client-id", "tenantId", "openid", 1000, 1000, browserCrypto, 500, AuthenticationScheme.BEARER, "oboAssertion", undefined, "claims", "claims-hash");
                     const testAT3 = AccessTokenEntity.createAccessTokenEntity("homeAccountId3", "environment", "secret3", "client-id", "tenantId", "openid", 1000, 1000, browserCrypto, 500, AuthenticationScheme.BEARER, "oboAssertion", undefined, "claims");
+                    const testAT4 = AccessTokenEntity.createAccessTokenEntity("homeAccountId4", "environment", "secret4", "client-id", "tenantId", "openid", 1000, 1000, browserCrypto, 500, AuthenticationScheme.BEARER, "oboAssertion", undefined, "claims", "claims-Hash");
 
                     expect(browserLocalStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
@@ -968,21 +969,23 @@ describe("BrowserCacheManager tests", () => {
                     browserSessionStorage.setAccessTokenCredential(testAT2);
                     browserLocalStorage.setAccessTokenCredential(testAT3);
                     browserSessionStorage.setAccessTokenCredential(testAT3);
+                    browserLocalStorage.setAccessTokenCredential(testAT4);
+                    browserSessionStorage.setAccessTokenCredential(testAT4);
 
                     expect(browserLocalStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
-                        accessToken: [testAT1.generateCredentialKey(), testAT2.generateCredentialKey(), testAT3.generateCredentialKey()],
+                        accessToken: [testAT1.generateCredentialKey(), testAT2.generateCredentialKey(), testAT3.generateCredentialKey(), testAT4.generateCredentialKey()],
                         refreshToken: []
                     });
 
                     expect(browserSessionStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
-                        accessToken: [testAT1.generateCredentialKey(), testAT2.generateCredentialKey(), testAT3.generateCredentialKey()],
+                        accessToken: [testAT1.generateCredentialKey(), testAT2.generateCredentialKey(), testAT3.generateCredentialKey(), testAT4.generateCredentialKey()],
                         refreshToken: []
                     });
 
-                    expect(browserSessionStorage.getTokenKeys().accessToken.length).toBe(3);
-                    expect(browserLocalStorage.getTokenKeys().accessToken.length).toBe(3);
+                    expect(browserSessionStorage.getTokenKeys().accessToken.length).toBe(4);
+                    expect(browserLocalStorage.getTokenKeys().accessToken.length).toBe(4);
 
                     expect(browserSessionStorage.getAccessTokenCredential(testAT1.generateCredentialKey())).toEqual(testAT1);
                     expect(browserSessionStorage.getAccessTokenCredential(testAT1.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);;
@@ -999,6 +1002,11 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getAccessTokenCredential(testAT3.generateCredentialKey())).toEqual(testAT3);
                     expect(browserLocalStorage.getAccessTokenCredential(testAT3.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);
 
+                    expect(browserSessionStorage.getAccessTokenCredential(testAT4.generateCredentialKey())).toEqual(testAT4);
+                    expect(browserSessionStorage.getAccessTokenCredential(testAT4.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);
+                    expect(browserLocalStorage.getAccessTokenCredential(testAT4.generateCredentialKey())).toEqual(testAT4);
+                    expect(browserLocalStorage.getAccessTokenCredential(testAT4.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);
+
                     browserSessionStorage.clearTokensAndKeysWithClaims();
                     browserLocalStorage.clearTokensAndKeysWithClaims();
 
@@ -1014,6 +1022,9 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserSessionStorage.getAccessTokenCredential(testAT3.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);
                     expect(browserLocalStorage.getAccessTokenCredential(testAT3.generateCredentialKey())).toEqual(testAT3);
                     expect(browserLocalStorage.getAccessTokenCredential(testAT3.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);
+
+                    expect(browserSessionStorage.getAccessTokenCredential(testAT2.generateCredentialKey())).toBeNull(); 
+                    expect(browserLocalStorage.getAccessTokenCredential(testAT2.generateCredentialKey())).toBeNull();
 
                     expect(browserLocalStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
