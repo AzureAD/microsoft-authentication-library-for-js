@@ -960,6 +960,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     async clearTokensAndKeysWithClaims(): Promise<void> {
 
+        this.logger.trace("BrowserCacheManager.clearTokensAndKeysWithClaims called");
         const tokenKeys = this.getTokenKeys();
             
         const removedAccessTokens: Array<Promise<void>> = [];
@@ -971,6 +972,7 @@ export class BrowserCacheManager extends CacheManager {
             }
         });
         await Promise.all(removedAccessTokens);
+        this.logger.warning(`${removedAccessTokens.length} access tokens with claims in the cache keys have been removed from the cache.`);
     }
 
     /**
