@@ -70,7 +70,7 @@ export type BrowserAuthOptions = {
     /**
      * Flag that enables multi-tenant account support.
      */
-    enableMultiTenantAccounts: boolean;
+    multiTenantAccountsEnabled: boolean;
 };
 
 /**
@@ -246,7 +246,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             tenant: Constants.EMPTY_STRING
         },
         skipAuthorityMetadataCache: false,
-        enableMultiTenantAccounts: false  
+        multiTenatnAccountsEnabled: false  
     };
 
     // Default cache options for browser
