@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import {
     IPerformanceClient,
     Logger,
@@ -9,21 +10,18 @@ import {
 } from "@azure/msal-common";
 
 /**
- * The functions in this file are used to wrap functions with performance measurements and logging
- */
-
-/**
  * Wraps a function with a performance measurement.
- * Usage: wrap(functionToCall, performanceClient, "EventName", "correlationId")(...argsToPassToFunction)
+ * Usage: invoke(functionToCall, performanceClient, "EventName", "correlationId")(...argsToPassToFunction)
  * @param callback
  * @param telemetryClient
  * @param logger
  * @param eventName
  * @param correlationId
- * @param thisObject
  * @returns
+ * @internal
  */
-export const wrap = <T extends Array<any>, U>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const invoke = <T extends Array<any>, U>(
     callback: (...args: T) => U,
     telemetryClient: IPerformanceClient,
     logger: Logger,
@@ -56,15 +54,17 @@ export const wrap = <T extends Array<any>, U>(
 
 /**
  * Wraps an async function with a performance measurement.
- * Usage: wrapAsync(functionToCall, performanceClient, "EventName", "correlationId")(...argsToPassToFunction)
+ * Usage: invokeAsync(functionToCall, performanceClient, "EventName", "correlationId")(...argsToPassToFunction)
  * @param callback
  * @param telemetryClient
  * @param eventName
  * @param correlationId
- * @param thisObject
  * @returns
+ * @internal
+ * 
  */
-export const wrapAsync = <T extends Array<any>, U>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const invokeAsync = <T extends Array<any>, U>(
     callback: (...args: T) => Promise<U>,
     telemetryClient: IPerformanceClient,
     logger: Logger,

@@ -31,7 +31,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { wrapAsync } from "../utils/FunctionWrappers";
+import { invokeAsync } from "../utils/FunctionWrappers";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -105,7 +105,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = await wrapAsync(
+        const silentRequest: AuthorizationUrlRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
             this.performanceClient,
             this.logger,
@@ -132,7 +132,7 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         try {
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await wrapAsync(
+            const authClient: AuthorizationCodeClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
                 this.performanceClient,
                 this.logger,
@@ -144,7 +144,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 silentRequest.azureCloudOptions
             );
 
-            return await wrapAsync(
+            return await invokeAsync(
                 this.silentTokenHelper.bind(this),
                 this.performanceClient,
                 this.logger,
@@ -202,7 +202,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
 
         // Create auth code request and generate PKCE params
-        const authCodeRequest: CommonAuthorizationCodeRequest = await wrapAsync(
+        const authCodeRequest: CommonAuthorizationCodeRequest = await invokeAsync(
             this.initializeAuthorizationCodeRequest.bind(this),
             this.performanceClient,
             this.logger,
@@ -211,7 +211,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         )(silentRequest);
 
         // Create authorize request url
-        const navigateUrl = await wrapAsync(
+        const navigateUrl = await invokeAsync(
             authClient.getAuthCodeUrl.bind(authClient),
             this.performanceClient,
             this.logger,
@@ -236,7 +236,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient
         );
         // Get the frame handle for the silent request
-        const msalFrame = await wrapAsync(
+        const msalFrame = await invokeAsync(
             silentHandler.initiateAuthRequest.bind(silentHandler),
             this.performanceClient,
             this.logger,
@@ -244,7 +244,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             silentRequest.correlationId
         )(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const hash = await wrapAsync(
+        const hash = await invokeAsync(
             silentHandler.monitorIframeForHash.bind(silentHandler),
             this.performanceClient,
             this.logger,
@@ -285,7 +285,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.browserCrypto,
                 state
             );
-            return wrapAsync(
+            return invokeAsync(
                 nativeInteractionClient.acquireToken.bind(
                     nativeInteractionClient
                 ),
@@ -303,7 +303,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Handle response from hash string
-        return wrapAsync(
+        return invokeAsync(
             silentHandler.handleCodeResponseFromHash.bind(silentHandler),
             this.performanceClient,
             this.logger,
