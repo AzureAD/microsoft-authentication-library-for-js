@@ -43,6 +43,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { invokeAsync } from "../utils/FunctionWrappers";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -80,11 +81,13 @@ export class AuthorizationCodeClient extends BaseClient {
             request.correlationId
         );
 
-        this.performanceClient?.setPreQueueTime(
+        const queryString = await invokeAsync(
+            this.createAuthCodeUrlQueryString.bind(this),
             PerformanceEvents.AuthClientCreateQueryString,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        const queryString = await this.createAuthCodeUrlQueryString(request);
+        )(request);
 
         return UrlString.appendQueryString(
             this.authority.authorizationEndpoint,
@@ -101,40 +104,35 @@ export class AuthorizationCodeClient extends BaseClient {
         request: CommonAuthorizationCodeRequest,
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
-        if (!request || !request.code) {
-            throw ClientAuthError.createTokenRequestCannotBeMadeError();
-        }
-
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.AuthClientAcquireToken,
             request.correlationId
         );
 
-        const atsMeasurement = this.performanceClient?.startMeasurement(
-            // @ts-ignore
-            "AuthCodeClientAcquireToken",
-            request.correlationId
-        );
-        this.logger.info("in acquireToken call in auth-code client");
+        if (!request.code) {
+            throw ClientAuthError.createTokenRequestCannotBeMadeError();
+        }
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        this.performanceClient?.setPreQueueTime(
+        const response = await invokeAsync(
+            this.executeTokenRequest.bind(this),
             PerformanceEvents.AuthClientExecuteTokenRequest,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        const response = await this.executeTokenRequest(
-            this.authority,
-            request
-        );
+        )(this.authority, request);
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
         const httpVerAuthority =
             response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         if (httpVerAuthority) {
-            atsMeasurement?.add({
-                httpVerAuthority,
-            });
+            this.performanceClient?.addFields(
+                {
+                    httpVerAuthority,
+                },
+                request.correlationId
+            );
         }
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -149,40 +147,23 @@ export class AuthorizationCodeClient extends BaseClient {
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
 
-        this.performanceClient?.setPreQueueTime(
+        return invokeAsync(
+            responseHandler.handleServerTokenResponse.bind(responseHandler),
             PerformanceEvents.HandleServerTokenResponse,
+            this.logger,
+            this.performanceClient,
             request.correlationId
+        )(
+            response.body,
+            this.authority,
+            reqTimestamp,
+            request,
+            authCodePayload,
+            undefined,
+            undefined,
+            undefined,
+            requestId
         );
-        return responseHandler
-            .handleServerTokenResponse(
-                response.body,
-                this.authority,
-                reqTimestamp,
-                request,
-                authCodePayload,
-                undefined,
-                undefined,
-                undefined,
-                requestId
-            )
-            .then((result: AuthenticationResult) => {
-                atsMeasurement?.end({
-                    success: true,
-                });
-                return result;
-            })
-            .catch((error) => {
-                this.logger.verbose(
-                    "Error in fetching token in ACC",
-                    request.correlationId
-                );
-                atsMeasurement?.end({
-                    errorCode: error.errorCode,
-                    subErrorCode: error.subError,
-                    success: false,
-                });
-                throw error;
-            });
     }
 
     /**
@@ -261,10 +242,6 @@ export class AuthorizationCodeClient extends BaseClient {
             PerformanceEvents.AuthClientExecuteTokenRequest,
             request.correlationId
         );
-        this.performanceClient?.setPreQueueTime(
-            PerformanceEvents.AuthClientCreateTokenRequestBody,
-            request.correlationId
-        );
 
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
@@ -272,7 +249,13 @@ export class AuthorizationCodeClient extends BaseClient {
             queryParametersString
         );
 
-        const requestBody = await this.createTokenRequestBody(request);
+        const requestBody = await invokeAsync(
+            this.createTokenRequestBody.bind(this),
+            PerformanceEvents.AuthClientCreateTokenRequestBody,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(request);
 
         let ccsCredential: CcsCredential | undefined = undefined;
         if (request.clientInfo) {
@@ -307,12 +290,13 @@ export class AuthorizationCodeClient extends BaseClient {
             sshKid: request.sshKid,
         };
 
-        return this.executePostToTokenEndpoint(
-            endpoint,
-            requestBody,
-            headers,
-            thumbprint
-        );
+        return invokeAsync(
+            this.executePostToTokenEndpoint.bind(this),
+            PerformanceEvents.BaseClientExecutePostToTokenEndpoint,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
     }
 
     /**

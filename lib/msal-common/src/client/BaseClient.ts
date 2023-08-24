@@ -25,6 +25,7 @@ import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -139,8 +140,13 @@ export abstract class BaseClient {
         tokenEndpoint: string,
         queryString: string,
         headers: Record<string, string>,
-        thumbprint: RequestThumbprint
+        thumbprint: RequestThumbprint,
+        correlationId: string
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+        this.performanceClient?.addQueueMeasurement(
+            PerformanceEvents.BaseClientCreateTokenRequestHeaders,
+            correlationId
+        );
         const response =
             await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
                 thumbprint,

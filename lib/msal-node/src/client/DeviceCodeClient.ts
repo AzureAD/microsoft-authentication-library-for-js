@@ -279,7 +279,8 @@ export class DeviceCodeClient extends BaseClient {
                 endpoint,
                 requestBody,
                 headers,
-                thumbprint
+                thumbprint,
+                request.correlationId
             );
 
             if (response.body && response.body.error) {

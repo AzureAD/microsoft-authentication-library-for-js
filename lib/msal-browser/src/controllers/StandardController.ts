@@ -26,6 +26,7 @@ import {
     AccountEntity,
     ServerResponseType,
     UrlString,
+    invokeAsync,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -1067,11 +1068,13 @@ export class StandardController implements IController {
             request.correlationId
         );
 
-        this.performanceClient.setPreQueueTime(
+        return invokeAsync(
+            silentIframeClient.acquireToken.bind(silentIframeClient),
             PerformanceEvents.SilentIframeClientAcquireToken,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        return silentIframeClient.acquireToken(request);
+        )(request);
     }
 
     // #endregion

@@ -306,7 +306,8 @@ export class RefreshTokenClient extends BaseClient {
             endpoint,
             requestBody,
             headers,
-            thumbprint
+            thumbprint,
+            request.correlationId
         )
             .then((result) => {
                 acquireTokenMeasurement?.end({
