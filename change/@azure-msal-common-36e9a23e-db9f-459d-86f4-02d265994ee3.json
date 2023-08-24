@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Clean up claims cached in tokens when claimsclaimsBasedCachingEnabled is set to false #6356",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
