@@ -151,7 +151,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
-                clientCapabilities: this.config.auth.clientCapabilities
+                clientCapabilities: this.config.auth.clientCapabilities,
+                multiTenantAccountsEnabled: this.config.auth.multiTenantAccountsEnabled
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,

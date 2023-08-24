@@ -62,7 +62,9 @@ export class RefreshTokenClient extends BaseClient {
             this.cryptoUtils,
             this.logger,
             this.config.serializableCache,
-            this.config.persistencePlugin
+            this.config.persistencePlugin,
+            this.performanceClient,
+            this.config.authOptions.multiTenantAccountsEnabled
         );
         responseHandler.validateTokenResponse(response.body);
 

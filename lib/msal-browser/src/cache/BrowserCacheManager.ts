@@ -740,6 +740,15 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Returns active account with tenant profiles if found 
+     * @returns 
+     */
+    getActiveAccountMultiTenant(): AccountInfo | null {
+        const activeAccount = this.getActiveAccount();
+        return activeAccount ? this.buildMultiTenantAccount(activeAccount) : null;
+    }
+
+    /**
      * Sets the active account's localAccountId in cache
      * @param account
      */

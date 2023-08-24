@@ -36,6 +36,7 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
+import { TenantProfile } from "@azure/msal-common/dist/account/TenantProfile";
 
 export abstract class ClientApplication {
 
@@ -758,7 +759,16 @@ export abstract class ClientApplication {
      */
     getAllAccounts(): AccountInfo[] {
         this.logger.verbose("getAllAccounts called");
-        return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts() : [];
+        if (this.isBrowserEnvironment) {
+            if (this.config.auth.multiTenantAccountsEnabled) {
+                this.logger.verbose("getAllAccounts: multi-tenant accounts enabled, retrieving all accounts including tenant profiles");
+                return this.browserStorage.getAllAccountsMultiTenant();
+            } else {
+                return this.browserStorage.getAllAccounts();
+            }
+        } else {
+            return [];
+        }
     }
 
     /**
@@ -776,7 +786,14 @@ export abstract class ClientApplication {
             return null;
         }
 
-        const account = this.browserStorage.getAccountInfoFilteredBy({username});
+        let account: AccountInfo | null = null;
+
+        if (this.config.auth.multiTenantAccountsEnabled) {
+            account = this.browserStorage.getAccountInfoMultiTenantFilteredBy({username});
+        } else {
+            account = this.browserStorage.getAccountInfoFilteredBy({username});
+        }
+
         if (account) {
             this.logger.verbose("getAccountByUsername: Account matching username found, returning");
             this.logger.verbosePii(`getAccountByUsername: Returning signed-in accounts matching username: ${username}`);
@@ -801,7 +818,14 @@ export abstract class ClientApplication {
             return null;
         }
 
-        const account = this.browserStorage.getAccountInfoFilteredBy({homeAccountId});
+        let account: AccountInfo | null = null;
+
+        if (this.config.auth.multiTenantAccountsEnabled) {
+            account = this.browserStorage.getAccountInfoMultiTenantFilteredBy({homeAccountId});
+        } else {
+            account = this.browserStorage.getAccountInfoFilteredBy({homeAccountId});
+        }
+
         if (account) {
             this.logger.verbose("getAccountByHomeId: Account matching homeAccountId found, returning");
             this.logger.verbosePii(`getAccountByHomeId: Returning signed-in accounts matching homeAccountId: ${homeAccountId}`);
@@ -826,13 +850,44 @@ export abstract class ClientApplication {
             return null;
         }
 
-        const account = this.browserStorage.getAccountInfoFilteredBy({localAccountId});
+        let account: AccountInfo | null = null;
+
+        if (this.config.auth.multiTenantAccountsEnabled) {
+            account = this.browserStorage.getAccountInfoMultiTenantFilteredBy({localAccountId});
+        } else {
+            account = this.browserStorage.getAccountInfoFilteredBy({localAccountId});
+        }
+        
         if (account) {
             this.logger.verbose("getAccountByLocalId: Account matching localAccountId found, returning");
             this.logger.verbosePii(`getAccountByLocalId: Returning signed-in accounts matching localAccountId: ${localAccountId}`);
             return account;
         } else {
             this.logger.verbose("getAccountByLocalId: No matching account found, returning null");
+            return null;
+        }
+    }
+
+    /**
+     * Returns the signed in account matching the tenant profile passed in or null if no account is found.
+     * @param tenantProfile
+     * @returns The account object stored in MSAL 
+     */
+    getAccountByTenantProfile(tenantProfile: TenantProfile): AccountInfo | null {
+        this.logger.trace("getAccountByTenantProfile called");
+        let account: AccountInfo | null = null;
+        const accountFilter = { localAccountId: tenantProfile.objectId, realm: tenantProfile.tenantId };
+        if (this.config.auth.multiTenantAccountsEnabled) {
+            account = this.browserStorage.getAccountInfoMultiTenantFilteredBy(accountFilter);
+        } else {
+            account = this.browserStorage.getAccountInfoFilteredBy(accountFilter);
+        }
+        if (account) {
+            this.logger.verbose("getAccountByTenantProfile: Account matching tenant profile found, returning");
+            this.logger.verbosePii(`getAccountByTenantProfile: Returning signed-in accounts matching tenant profile: ${JSON.stringify(tenantProfile)}`);
+            return account;
+        } else {
+            this.logger.verbose("getAccountByTenantProfile: No matching account found, returning null");
             return null;
         }
     }
@@ -849,6 +904,9 @@ export abstract class ClientApplication {
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
+        if (this.config.auth.multiTenantAccountsEnabled) {
+            return this.browserStorage.getActiveAccountMultiTenant();
+        }
         return this.browserStorage.getActiveAccount();
     }
 

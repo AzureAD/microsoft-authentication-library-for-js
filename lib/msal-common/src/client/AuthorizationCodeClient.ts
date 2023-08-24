@@ -97,7 +97,8 @@ export class AuthorizationCodeClient extends BaseClient {
             this.logger,
             this.config.serializableCache,
             this.config.persistencePlugin,
-            this.performanceClient
+            this.performanceClient,
+            this.config.authOptions.multiTenantAccountsEnabled
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
@@ -138,7 +139,15 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     handleFragmentResponse(hashFragment: string, cachedState: string): AuthorizationCodePayload {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger, null, null);
+        const responseHandler = new ResponseHandler(
+            this.config.authOptions.clientId,
+            this.cacheManager, this.cryptoUtils,
+            this.logger,
+            null,
+            null,
+            this.performanceClient,
+            this.config.authOptions.multiTenantAccountsEnabled
+        );
 
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);

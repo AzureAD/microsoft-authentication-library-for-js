@@ -47,8 +47,9 @@ export class ResponseHandler {
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
     private performanceClient?: IPerformanceClient;
+    private multiTenantAccountsEnabled?: boolean;
 
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, performanceClient?: IPerformanceClient) {
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, performanceClient?: IPerformanceClient, multiTenantAccountsEnabled?: boolean) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
@@ -56,6 +57,7 @@ export class ResponseHandler {
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
         this.performanceClient = performanceClient;
+        this.multiTenantAccountsEnabled = multiTenantAccountsEnabled;   
     }
 
     /**
@@ -171,7 +173,7 @@ export class ResponseHandler {
 
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id = serverTokenResponse.key_id || request.sshKid || undefined;
-
+        
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, request, idTokenObj, userAssertionHash, authCodePayload);
         let cacheContext;
         try {
@@ -182,16 +184,32 @@ export class ResponseHandler {
             }
             /*
              * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
-             * If not present, we should return null, as it's the case that another application called removeAccount in between
+             * If not present in single-tenant mode, we should return null, as it's the case that another application called removeAccount in between
              * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
              * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
+             * For multi-tenant mode, if the account object in the response is not in the cache but matches homeAccountId with another account in the
+             * cache, MSAL should cache the response account and credentials since they belong to a new tenant profile of the same account.
              */
             if (handlingRefreshTokenResponse && !forceCacheRefreshTokenResponse && cacheRecord.account) {
+                // Search for exact account match in cache
                 const key = cacheRecord.account.generateAccountKey();
                 const account = this.cacheStorage.getAccount(key);
+                
                 if (!account) {
-                    this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, serverRequestId);
+                    // No exact match found, search for another tenant profile of the same account
+                    if (this.multiTenantAccountsEnabled) {
+                        const homeAccountId = cacheRecord.account.homeAccountId;
+                        const crossTenantAccount = this.cacheStorage.getAccountInfoFilteredBy({homeAccountId});
+                        if(crossTenantAccount){
+                            this.logger.info("Account used to refresh tokens not in persistence, but another tenant profile for requested account is in persistence, refreshed tokens will be stored in the cache");
+                        } else {
+                            this.logger.warning("Neither the account used to refresh tokens nor a cross-tenant profile of it were found in persistence, refreshed tokens will not be stored in the cache");
+                            return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, serverRequestId);
+                        }
+                    } else {
+                        this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
+                        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, serverRequestId);
+                    }
                 }
             }
             await this.cacheStorage.saveCacheRecord(cacheRecord);

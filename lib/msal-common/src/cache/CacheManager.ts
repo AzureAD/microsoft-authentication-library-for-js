@@ -26,6 +26,7 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
 import { Authority } from "../authority/Authority";
+import { TenantProfile } from "../account/TenantProfile";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -205,23 +206,73 @@ export abstract class CacheManager implements ICacheManager {
         if (accountEntities.length < 1) {
             return [];
         } else {
-            const allAccounts = accountEntities.map<AccountInfo>((accountEntity) => {
+            const allAccounts: AccountInfo[] = accountEntities.map<AccountInfo>((accountEntity) => {
                 return this.getAccountInfoFromEntity(accountEntity);
             });
             return allAccounts;
         }
     }
+    
+    /**
+     * Returns all home accounts with their respective guest tenant profiles in the cache
+     */
+    getAllAccountsMultiTenant(): AccountInfo[] {
+        // Get all cached accounts
+        const cachedAccounts = this.getAllAccounts();
+
+        // Filter out cross-tenant/guest accounts
+        const homeAccounts: AccountInfo[] = cachedAccounts.filter((account: AccountInfo) => { 
+            const homeTenant = account.homeAccountId.split(".")[1];
+            return homeTenant === account.tenantId;
+        }).map((homeAccount: AccountInfo) => { return this.buildMultiTenantAccount(homeAccount); });
+
+        return homeAccounts;
+    }
+
+    /**
+     * Finds all cached accounts that are tenant profiles of the base account and
+     * populates the base account's tenant profile map with their profile data
+     * @param baseAccount 
+     * @returns 
+     */
+    buildMultiTenantAccount(baseAccount: AccountInfo): AccountInfo {
+        const cachedAccountKeys = this.getAccountKeys();
+        const tenantProfiles = new Map<String, TenantProfile>();
+        const accountId = [baseAccount.homeAccountId, baseAccount.environment].join(Separators.CACHE_KEY_SEPARATOR);
+        // Filter accont keys belonging to user accross tenants (including home tenant)
+        const tenantProfileAccountKeys = cachedAccountKeys.filter((key:string) => {
+            return key.indexOf(accountId) === 0;
+        });
+        tenantProfileAccountKeys.forEach((key: string) => {
+            const tenantProfileAccount= this.getAccount(key);
+            if (tenantProfileAccount) {
+                tenantProfiles.set(
+                    tenantProfileAccount.realm, {
+                        objectId: tenantProfileAccount.localAccountId,
+                        tenantId: tenantProfileAccount.realm,
+                        isHomeTenant: tenantProfileAccount.realm === baseAccount.tenantId
+                    });
+            }
+        });
+        
+        return { ...baseAccount, tenantProfiles };
+    }
 
     /** 
      * Gets accountInfo object based on provided filters
      */
-    getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null{
+    getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
         const allAccounts = this.getAccountsFilteredBy(accountFilter);
         if (allAccounts.length > 0) {
             return this.getAccountInfoFromEntity(allAccounts[0]);
         } else {
             return null;
         }
+    }
+
+    getAccountInfoMultiTenantFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
+        const account = this.getAccountInfoFilteredBy(accountFilter);
+        return account ? this.buildMultiTenantAccount(account) : null;
     }
 
     private getAccountInfoFromEntity(accountEntity: AccountEntity): AccountInfo {
