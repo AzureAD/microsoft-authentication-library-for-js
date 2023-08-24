@@ -246,7 +246,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             tenant: Constants.EMPTY_STRING
         },
         skipAuthorityMetadataCache: false,
-        multiTenatnAccountsEnabled: false  
+        multiTenantAccountsEnabled: false  
     };
 
     // Default cache options for browser
