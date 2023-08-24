@@ -190,7 +190,7 @@ export abstract class ClientApplication {
             this.logger.verbose("Claims-based caching is disabled. Clearing the previous cache with claims");
             const claimsTokensRemovalMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.ClearTokensAndKeysWithClaims);
             await this.browserStorage.clearTokensAndKeysWithClaims();
-            claimsTokensRemovalMeasurement.endMeasurement(PerformanceEvents.ClearTokensAndKeysWithClaims);
+            claimsTokensRemovalMeasurement.endMeasurement({success: true});
         }
 
         this.initialized = true;
