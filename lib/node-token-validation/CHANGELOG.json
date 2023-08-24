@@ -2,27 +2,6 @@
   "name": "@azure/node-token-validation",
   "entries": [
     {
-      "date": "Thu, 24 Aug 2023 18:23:25 GMT",
-      "tag": "@azure/node-token-validation_v1.0.0-alpha.0",
-      "version": "1.0.0-alpha.0",
-      "comments": {
-        "none": [
-          {
-            "author": "kshabelko@microsoft.com",
-            "package": "@azure/node-token-validation",
-            "commit": "a7e37cd85c6332bba43e2a766122cb134d5b8c02",
-            "comment": "Address `semver` CVE-2022-25883 and other moderate severity vulnerabilities #9657"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/node-token-validation",
-            "comment": "Bump @azure/msal-common to v13.3.0",
-            "commit": "f85761c09947826164c2ca1d60cc058f64b37885"
-          }
-        ]
-      }
-    },
-    {
       "date": "Wed, 07 Jun 2023 03:15:51 GMT",
       "tag": "@azure/node-token-validation_v1.0.0-alpha.0",
       "version": "1.0.0-alpha.0",
