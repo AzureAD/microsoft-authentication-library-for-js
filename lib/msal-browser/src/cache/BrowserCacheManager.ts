@@ -954,6 +954,32 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Clears all access tokes that have claims prior to saving the current one
+     * @param credential 
+     * @returns 
+     */
+    async clearTokensAndKeysWithClaims(): Promise<void> {
+
+        this.logger.trace("BrowserCacheManager.clearTokensAndKeysWithClaims called");
+        const tokenKeys = this.getTokenKeys();
+            
+        const removedAccessTokens: Array<Promise<void>> = [];
+        tokenKeys.accessToken.forEach((key: string) => {
+            // if the access token has claims in its key, remove the token key and the token
+            const credential = this.getAccessTokenCredential(key);
+            if(credential?.requestedClaimsHash && key.includes(credential.requestedClaimsHash.toLowerCase())) {
+                removedAccessTokens.push(this.removeAccessToken(key));
+            }
+        });
+        await Promise.all(removedAccessTokens);
+
+        // warn if any access tokens are removed
+        if(removedAccessTokens.length > 0) {
+            this.logger.warning(`${removedAccessTokens.length} access tokens with claims in the cache keys have been removed from the cache.`);
+        }
+    }
+
+    /**
      * Add value to cookies
      * @param cookieName
      * @param cookieValue

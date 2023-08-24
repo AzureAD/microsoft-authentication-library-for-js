@@ -241,6 +241,11 @@ export enum PerformanceEvents {
     UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken",
 
     NativeMessageHandlerHandshake = "nativeMessageHandlerHandshake",
+
+    /**
+     * Cache operations
+     */
+    ClearTokensAndKeysWithClaims = "clearTokensAndKeysWithClaims",
 }
 
 /**
