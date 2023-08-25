@@ -34,7 +34,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
     "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs",
