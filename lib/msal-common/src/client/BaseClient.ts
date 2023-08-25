@@ -153,10 +153,14 @@ export abstract class BaseClient {
                 tokenEndpoint,
                 { body: queryString, headers: headers }
             );
-        this.performanceClient?.addFields({
-            refreshTokenSize: response.body.refresh_token?.length || 0,
-            httpVerToken: response.headers?.[HeaderNames.X_MS_HTTP_VERSION] || ""
-        }, correlationId);
+        this.performanceClient?.addFields(
+            {
+                refreshTokenSize: response.body.refresh_token?.length || 0,
+                httpVerToken:
+                    response.headers?.[HeaderNames.X_MS_HTTP_VERSION] || "",
+            },
+            correlationId
+        );
 
         if (
             this.config.serverTelemetryManager &&

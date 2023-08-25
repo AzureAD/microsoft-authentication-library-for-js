@@ -202,7 +202,7 @@ describe("RefreshTokenClient unit tests", () => {
                     client.networkManager,
                     "sendPostRequest"
                 )
-                .resolves({...AUTHENTICATION_RESULT, headers: {}});
+                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
 
             let refreshTokenSize;
             await client.acquireToken(refreshTokenRequest).then(() => {
@@ -233,7 +233,10 @@ describe("RefreshTokenClient unit tests", () => {
                     "sendPostRequest"
                 )
                 // @ts-ignore
-                .resolves({...AUTHENTICATION_RESULT_NO_REFRESH_TOKEN, headers: {...AUTHENTICATION_RESULT_WITH_HEADERS.headers}});
+                .resolves({
+                    ...AUTHENTICATION_RESULT_NO_REFRESH_TOKEN,
+                    headers: { ...AUTHENTICATION_RESULT_WITH_HEADERS.headers },
+                });
 
             let refreshTokenSize;
             await client.acquireToken(refreshTokenRequest).then(() => {
@@ -937,9 +940,9 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     // @ts-ignore
-                    client.networkManager, 
+                    client.networkManager,
                     "sendPostRequest"
-                    )
+                )
                 .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -955,7 +958,9 @@ describe("RefreshTokenClient unit tests", () => {
             expect(performanceClient.addFields).toBeCalledWith(
                 {
                     httpVerToken: "xMsHttpVer",
-                    refreshTokenSize: AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token.length,
+                    refreshTokenSize:
+                        AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token
+                            .length,
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
@@ -979,12 +984,12 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const client = new RefreshTokenClient(config, performanceClient);
             sinon
-            .stub(
-                // @ts-ignore
-                client.networkManager,
-                "sendPostRequest"
-            )
-            .resolves({...AUTHENTICATION_RESULT, headers: {}});
+                .stub(
+                    // @ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
+                )
+                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
@@ -996,10 +1001,14 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addFields).toBeCalledWith({
-                httpVerToken: "",
-                refreshTokenSize: AUTHENTICATION_RESULT.body.refresh_token.length,
-            }, TEST_CONFIG.CORRELATION_ID);
+            expect(performanceClient.addFields).toBeCalledWith(
+                {
+                    httpVerToken: "",
+                    refreshTokenSize:
+                        AUTHENTICATION_RESULT.body.refresh_token.length,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
     });
 

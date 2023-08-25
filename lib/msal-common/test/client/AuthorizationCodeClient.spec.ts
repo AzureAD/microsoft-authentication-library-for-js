@@ -3299,7 +3299,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            
+
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -3321,7 +3321,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(performanceClient.addFields).toBeCalledWith(
                 {
                     httpVerToken: "xMsHttpVer",
-                    refreshTokenSize: AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token?.length
+                    refreshTokenSize:
+                        AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token
+                            ?.length,
                 },
                 RANDOM_TEST_GUID
             );
@@ -3359,7 +3361,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     client.networkManager,
                     "sendPostRequest"
                 )
-                .resolves({...AUTHENTICATION_RESULT, headers: {}});
+                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -3379,7 +3381,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            
+
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -3398,10 +3400,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: idTokenClaims.nonce,
             });
 
-            expect(performanceClient.addFields).toHaveBeenCalledWith({
-                httpVerToken: "",
-                refreshTokenSize: AUTHENTICATION_RESULT.body.refresh_token?.length
-            }, RANDOM_TEST_GUID);
+            expect(performanceClient.addFields).toHaveBeenCalledWith(
+                {
+                    httpVerToken: "",
+                    refreshTokenSize:
+                        AUTHENTICATION_RESULT.body.refresh_token?.length,
+                },
+                RANDOM_TEST_GUID
+            );
         });
     });
 
