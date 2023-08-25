@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { IPerformanceClient, InProgressPerformanceEvent } from "./IPerformanceClient";
+import {
+    IPerformanceClient,
+    InProgressPerformanceEvent,
+} from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceEvent, PerformanceEventStatus } from "./PerformanceEvent";
 
@@ -19,14 +22,15 @@ export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     }
 }
 
-export class StubPerformanceClient
-    implements IPerformanceClient
-{
+export class StubPerformanceClient implements IPerformanceClient {
     generateId(): string {
         return "callback-id";
     }
 
-    startMeasurement(measureName: string, correlationId?: string | undefined): InProgressPerformanceEvent {
+    startMeasurement(
+        measureName: string,
+        correlationId?: string | undefined
+    ): InProgressPerformanceEvent {
         return {
             end: () => null,
             discard: () => {},
@@ -44,7 +48,7 @@ export class StubPerformanceClient
                 correlationId: correlationId || "",
             },
             measurement: new StubPerformanceMeasurement(),
-        }
+        };
     }
 
     startPerformanceMeasurement(): IPerformanceMeasurement {

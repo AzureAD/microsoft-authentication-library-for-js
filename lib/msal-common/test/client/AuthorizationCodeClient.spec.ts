@@ -1217,7 +1217,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
 
             // @ts-ignore
-            await expect(client.acquireToken({code: null}, null)).rejects.toMatchObject(
+            await expect(
+                client.acquireToken({ code: null }, null)
+            ).rejects.toMatchObject(
                 ClientAuthError.createTokenRequestCannotBeMadeError()
             );
             // @ts-ignore
