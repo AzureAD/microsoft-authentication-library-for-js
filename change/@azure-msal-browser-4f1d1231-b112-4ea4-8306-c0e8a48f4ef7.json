@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix input parameter type for addEventCallback",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

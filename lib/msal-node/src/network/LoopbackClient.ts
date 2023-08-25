@@ -7,14 +7,11 @@ import {
     Constants as CommonConstants,
     ServerAuthorizationCodeResponse,
     UrlString,
+    HttpStatus,
 } from "@azure/msal-common";
 import http from "http";
 import { NodeAuthError } from "../error/NodeAuthError";
-import {
-    Constants,
-    HttpStatus,
-    LOOPBACK_SERVER_CONSTANTS,
-} from "../utils/Constants";
+import { Constants, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants";
 import { ILoopbackClient } from "./ILoopbackClient";
 
 export class LoopbackClient implements ILoopbackClient {

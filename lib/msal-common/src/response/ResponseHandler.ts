@@ -27,6 +27,7 @@ import {
     AuthenticationScheme,
     Constants,
     THE_FAMILY_ID,
+    HttpStatus,
 } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
@@ -153,9 +154,11 @@ export class ResponseHandler {
     /**
      * Function which validates server authorization token response.
      * @param serverResponse
+     * @param refreshAccessToken
      */
     validateTokenResponse(
-        serverResponse: ServerAuthorizationTokenResponse
+        serverResponse: ServerAuthorizationTokenResponse,
+        refreshAccessToken?: boolean
     ): void {
         // Check for error
         if (
@@ -163,6 +166,41 @@ export class ResponseHandler {
             serverResponse.error_description ||
             serverResponse.suberror
         ) {
+            const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
+            const serverError = new ServerError(
+                serverResponse.error,
+                errString,
+                serverResponse.suberror
+            );
+
+            // check if 500 error
+            if (
+                refreshAccessToken &&
+                serverResponse.status &&
+                serverResponse.status >= HttpStatus.SERVER_ERROR_RANGE_START &&
+                serverResponse.status <= HttpStatus.SERVER_ERROR_RANGE_END
+            ) {
+                this.logger.warning(
+                    `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`
+                );
+
+                // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
+                return;
+                // check if 400 error
+            } else if (
+                refreshAccessToken &&
+                serverResponse.status &&
+                serverResponse.status >= HttpStatus.CLIENT_ERROR_RANGE_START &&
+                serverResponse.status <= HttpStatus.CLIENT_ERROR_RANGE_END
+            ) {
+                this.logger.warning(
+                    `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`
+                );
+
+                // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
+                return;
+            }
+
             if (
                 InteractionRequiredAuthError.isInteractionRequiredError(
                     serverResponse.error,
@@ -181,12 +219,7 @@ export class ResponseHandler {
                 );
             }
 
-            const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
-            throw new ServerError(
-                serverResponse.error,
-                errString,
-                serverResponse.suberror
-            );
+            throw serverError;
         }
     }
 
@@ -500,6 +533,7 @@ export class ResponseHandler {
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
+        let refreshOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
 
         if (cacheRecord.accessToken) {
@@ -531,6 +565,11 @@ export class ResponseHandler {
             extExpiresOn = new Date(
                 Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
             );
+            if (cacheRecord.accessToken.refreshOn) {
+                refreshOn = new Date(
+                    Number(cacheRecord.accessToken.refreshOn) * 1000
+                );
+            }
         }
 
         if (cacheRecord.appMetadata) {
@@ -564,9 +603,10 @@ export class ResponseHandler {
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
+            extExpiresOn: extExpiresOn,
+            refreshOn: refreshOn,
             correlationId: request.correlationId,
             requestId: requestId || Constants.EMPTY_STRING,
-            extExpiresOn: extExpiresOn,
             familyId: familyId,
             tokenType:
                 cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,

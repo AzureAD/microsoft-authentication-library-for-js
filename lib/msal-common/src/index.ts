@@ -175,6 +175,7 @@ export {
     ONE_DAY_IN_MS,
     GrantType,
     AADAuthorityConstants,
+    HttpStatus,
 } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
