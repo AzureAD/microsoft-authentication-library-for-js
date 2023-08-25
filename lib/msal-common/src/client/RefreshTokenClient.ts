@@ -74,15 +74,6 @@ export class RefreshTokenClient extends BaseClient {
             request,
             this.authority
         );
-        const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
-        atsMeasurement?.add({
-            refreshTokenSize: response.body.refresh_token?.length || 0,
-        });
-        if (httpVerToken) {
-            atsMeasurement?.add({
-                httpVerToken,
-            });
-        }
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];

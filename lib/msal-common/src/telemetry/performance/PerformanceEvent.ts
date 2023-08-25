@@ -514,7 +514,6 @@ export type PerformanceEvent = {
     matsHttpStatus?: number;
     matsHttpEventCount?: number;
     httpVerToken?: string;
-    httpVerAuthority?: string;
 
     /**
      * Native broker fields

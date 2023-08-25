@@ -124,16 +124,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
-        const httpVerAuthority =
-            response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
-        if (httpVerAuthority) {
-            this.performanceClient?.addFields(
-                {
-                    httpVerAuthority,
-                },
-                request.correlationId
-            );
-        }
+
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
