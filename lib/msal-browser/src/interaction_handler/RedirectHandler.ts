@@ -5,7 +5,6 @@
 
 import {
     AuthorizationCodeClient,
-    StringUtils,
     CommonAuthorizationCodeRequest,
     ICrypto,
     Authority,
@@ -64,7 +63,7 @@ export class RedirectHandler extends InteractionHandler {
     ): Promise<void> {
         this.logger.verbose("RedirectHandler.initiateAuthRequest called");
         // Navigate if valid URL
-        if (!StringUtils.isEmpty(requestUrl)) {
+        if (requestUrl) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
             if (params.redirectStartPage) {
                 this.logger.verbose(
@@ -152,7 +151,7 @@ export class RedirectHandler extends InteractionHandler {
         this.logger.verbose("RedirectHandler.handleCodeResponse called");
 
         // Check that location hash isn't empty.
-        if (StringUtils.isEmpty(locationHash)) {
+        if (!locationHash) {
             throw BrowserAuthError.createEmptyHashError();
         }
 

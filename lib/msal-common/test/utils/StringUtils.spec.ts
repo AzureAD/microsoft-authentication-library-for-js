@@ -88,14 +88,6 @@ describe("StringUtils.ts Class Unit Tests", () => {
         }
     });
 
-    it("isEmpty correctly identifies empty strings", () => {
-        expect(StringUtils.isEmpty(undefined)).toBe(true);
-        // @ts-ignore
-        expect(StringUtils.isEmpty(null)).toBe(true);
-        expect(StringUtils.isEmpty("")).toBe(true);
-        expect(StringUtils.isEmpty("Non-empty string")).toBe(false);
-    });
-
     it("isEmptyObject correctly identifies empty stringified objects", () => {
         expect(StringUtils.isEmptyObj(undefined)).toBe(true);
         // @ts-ignore
