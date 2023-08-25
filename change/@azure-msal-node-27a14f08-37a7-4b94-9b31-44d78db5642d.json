@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Modified proactive refresh in silent-flow to also return the cached token when the token needs to be refreshed",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
