@@ -15,8 +15,8 @@ import {
     AccountEntity,
     AuthToken,
     RefreshTokenEntity,
-    AuthorityType,
     Constants,
+    CacheRecord,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
@@ -24,7 +24,6 @@ import { BrowserCacheManager } from "./BrowserCacheManager";
 import { ITokenCache } from "./ITokenCache";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { CacheRecord } from "./entities/CacheRecord";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -86,14 +85,11 @@ export class TokenCache implements ITokenCache {
 
         let cacheRecord: CacheRecord;
         let authority: Authority | undefined;
+        let cacheRecordAccount: AccountEntity;
 
         if (request.account) {
-            const cacheRecordAccount = this.loadAccount(
-                idToken,
-                request.account.environment,
-                undefined,
-                undefined,
-                request.account.homeAccountId
+            cacheRecordAccount = AccountEntity.createFromAccountInfo(
+                request.account
             );
             cacheRecord = new CacheRecord(
                 cacheRecordAccount,
@@ -142,11 +138,10 @@ export class TokenCache implements ITokenCache {
             // "clientInfo" from options takes precedence over "clientInfo" in response
             if (options.clientInfo) {
                 this.logger.trace("TokenCache - homeAccountId from options");
-                const cacheRecordAccount = this.loadAccount(
+                cacheRecordAccount = this.loadAccount(
                     idToken,
-                    authority.hostnameAndPort,
-                    options.clientInfo,
-                    authority.authorityType
+                    authority,
+                    options.clientInfo
                 );
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
@@ -173,11 +168,10 @@ export class TokenCache implements ITokenCache {
                 );
             } else if (response.client_info) {
                 this.logger.trace("TokenCache - homeAccountId from response");
-                const cacheRecordAccount = this.loadAccount(
+                cacheRecordAccount = this.loadAccount(
                     idToken,
-                    authority.hostnameAndPort,
-                    response.client_info,
-                    authority.authorityType
+                    authority,
+                    response.client_info
                 );
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
@@ -217,6 +211,7 @@ export class TokenCache implements ITokenCache {
             request,
             idToken,
             cacheRecord,
+            cacheRecordAccount,
             authority
         );
     }
@@ -232,21 +227,20 @@ export class TokenCache implements ITokenCache {
      */
     private loadAccount(
         idToken: AuthToken,
-        environment: string,
+        authority: Authority,
         clientInfo?: string,
-        authorityType?: AuthorityType,
         requestHomeAccountId?: string
     ): AccountEntity {
         let homeAccountId;
         if (requestHomeAccountId) {
             homeAccountId = requestHomeAccountId;
-        } else if (authorityType !== undefined && clientInfo) {
+        } else if (authority.authorityType !== undefined && clientInfo) {
             homeAccountId = AccountEntity.generateHomeAccountId(
                 clientInfo,
-                authorityType,
+                authority.authorityType,
                 this.logger,
                 this.cryptoObj,
-                idToken
+                idToken.claims
             );
         }
 
@@ -256,24 +250,15 @@ export class TokenCache implements ITokenCache {
             );
         }
 
-        const accountEntity = clientInfo
-            ? AccountEntity.createAccount(
-                  clientInfo,
-                  homeAccountId,
-                  idToken,
-                  undefined,
-                  undefined,
-                  undefined,
-                  environment
-              )
-            : AccountEntity.createGenericAccount(
-                  homeAccountId,
-                  idToken,
-                  undefined,
-                  undefined,
-                  undefined,
-                  environment
-              );
+        const accountEntity = AccountEntity.createAccount(
+            {
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+                clientInfo,
+                environment: authority.hostnameAndPort,
+            },
+            authority
+        );
 
         if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading account");
@@ -436,6 +421,7 @@ export class TokenCache implements ITokenCache {
         request: SilentRequest,
         idTokenObj: AuthToken,
         cacheRecord: CacheRecord,
+        accountEntity: AccountEntity,
         authority?: Authority
     ): AuthenticationResult {
         let accessToken: string = Constants.EMPTY_STRING;
@@ -469,7 +455,7 @@ export class TokenCache implements ITokenCache {
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes,
-            account: cacheRecord.account.getAccountInfo(),
+            account: accountEntity.getAccountInfo(),
             idToken: idTokenObj ? idTokenObj.rawToken : Constants.EMPTY_STRING,
             idTokenClaims: idTokenObj ? idTokenObj.claims : {},
             accessToken: accessToken,
@@ -483,10 +469,8 @@ export class TokenCache implements ITokenCache {
                 cacheRecord?.accessToken?.tokenType || Constants.EMPTY_STRING,
             state: Constants.EMPTY_STRING,
             cloudGraphHostName:
-                cacheRecord?.account?.cloudGraphHostName ||
-                Constants.EMPTY_STRING,
-            msGraphHost:
-                cacheRecord?.account?.msGraphHost || Constants.EMPTY_STRING,
+                accountEntity.cloudGraphHostName || Constants.EMPTY_STRING,
+            msGraphHost: accountEntity.msGraphHost || Constants.EMPTY_STRING,
             code: undefined,
             fromNativeBroker: false,
         };

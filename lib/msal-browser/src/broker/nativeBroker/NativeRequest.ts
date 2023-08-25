@@ -4,7 +4,7 @@
  */
 
 import { NativeExtensionMethod } from "../../utils/BrowserConstants";
-import { StringDict } from "@azure/msal-common";
+import { StoreInCache, StringDict } from "@azure/msal-common";
 
 /**
  * Token request which native broker will use to acquire tokens
@@ -30,6 +30,7 @@ export type NativeTokenRequest = {
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
     extraParameters?: StringDict;
+    storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
 };
 
 /**

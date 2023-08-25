@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Replace lerna with npm workspaces #6136",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

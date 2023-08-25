@@ -26,6 +26,8 @@ import {
     AuthError,
     CommonSilentFlowRequest,
     AccountInfo,
+    CacheRecord,
+    AADServerParamKeys,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -53,7 +55,11 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { CacheRecord } from "../cache/entities/CacheRecord";
+
+const BrokerServerParamKeys = {
+    BROKER_CLIENT_ID: "brk_client_id",
+    BROKER_REDIRECT_URI: "brk_redirect_uri",
+};
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -129,7 +135,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 this.accountId,
                 nativeRequest
             );
-            nativeATMeasurement.endMeasurement({
+            nativeATMeasurement.end({
                 success: true,
                 isNativeBroker: false, // Should be true only when the result is coming directly from the broker
                 fromCache: true,
@@ -160,7 +166,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             reqTimestamp
         )
             .then((result: AuthenticationResult) => {
-                nativeATMeasurement.endMeasurement({
+                nativeATMeasurement.end({
                     success: true,
                     isNativeBroker: true,
                     requestId: result.requestId,
@@ -168,7 +174,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 return result;
             })
             .catch((error: AuthError) => {
-                nativeATMeasurement.endMeasurement({
+                nativeATMeasurement.end({
                     success: false,
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
@@ -230,7 +236,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const result = await this.silentCacheClient.acquireToken(
                 silentRequest
             );
-            return result;
+            return {
+                ...result,
+                account,
+            };
         } catch (e) {
             throw e;
         }
@@ -375,7 +384,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // Get the preferred_cache domain for the given authority
         const authority = await this.getDiscoveredAuthority(request.authority);
-        const authorityPreferredCache = authority.getPreferredCache();
 
         // generate identifiers
         const idTokenObj = this.createIdTokenObj(response);
@@ -383,11 +391,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             idTokenObj
         );
-        const accountEntity = this.createAccountEntity(
-            response,
-            homeAccountIdentifier,
-            idTokenObj,
-            authorityPreferredCache
+        const accountEntity = AccountEntity.createAccount(
+            {
+                homeAccountId: homeAccountIdentifier,
+                idTokenClaims: idTokenObj.claims,
+                clientInfo: response.client_info,
+                nativeAccountId: response.account.id,
+            },
+            authority
         );
 
         // generate authenticationResult
@@ -406,7 +417,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             request,
             homeAccountIdentifier,
-            accountEntity,
             idTokenObj,
             result.accessToken,
             result.tenantId,
@@ -444,36 +454,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
             AuthorityType.Default,
             this.logger,
             this.browserCrypto,
-            idTokenObj
+            idTokenObj.claims
         );
 
         return homeAccountIdentifier;
-    }
-
-    /**
-     * Creates account entity
-     * @param response
-     * @param homeAccountIdentifier
-     * @param idTokenObj
-     * @param authority
-     * @returns
-     */
-    protected createAccountEntity(
-        response: NativeResponse,
-        homeAccountIdentifier: string,
-        idTokenObj: AuthToken,
-        authority: string
-    ): AccountEntity {
-        return AccountEntity.createAccount(
-            response.client_info,
-            homeAccountIdentifier,
-            idTokenObj,
-            undefined,
-            undefined,
-            undefined,
-            authority,
-            response.account.id
-        );
     }
 
     /**
@@ -641,7 +625,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
         response: NativeResponse,
         request: NativeTokenRequest,
         homeAccountIdentifier: string,
-        accountEntity: AccountEntity,
         idTokenObj: AuthToken,
         responseAccessToken: string,
         tenantId: string,
@@ -682,12 +665,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             );
 
         const nativeCacheRecord = new CacheRecord(
-            accountEntity,
+            undefined,
             cachedIdToken,
             cachedAccessToken
         );
 
-        this.nativeStorageManager.saveCacheRecord(nativeCacheRecord);
+        this.nativeStorageManager.saveCacheRecord(
+            nativeCacheRecord,
+            request.storeInCache
+        );
     }
 
     protected addTelemetryFromNativeResponse(
@@ -699,7 +685,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             return null;
         }
 
-        this.performanceClient.addStaticFields(
+        this.performanceClient.addFields(
             {
                 extensionId: this.nativeMessageHandler.getExtensionId(),
                 extensionVersion:
@@ -857,10 +843,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             extraParameters: {
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters,
-                telemetry: NativeConstants.MATS_TELEMETRY,
             },
             extendedExpiryToken: false, // Make this configurable?
         };
+
+        this.handleExtraBrokerParams(validatedRequest);
+        validatedRequest.extraParameters =
+            validatedRequest.extraParameters || {};
+        validatedRequest.extraParameters.telemetry =
+            NativeConstants.MATS_TELEMETRY;
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             // add POP request type
@@ -883,5 +874,38 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         return validatedRequest;
     }
-}
 
+    /**
+     * Handles extra broker request parameters
+     * @param request {NativeTokenRequest}
+     * @private
+     */
+    private handleExtraBrokerParams(request: NativeTokenRequest): void {
+        if (!request.extraParameters) {
+            return;
+        }
+
+        if (
+            request.extraParameters.hasOwnProperty(
+                BrokerServerParamKeys.BROKER_CLIENT_ID
+            ) &&
+            request.extraParameters.hasOwnProperty(
+                BrokerServerParamKeys.BROKER_REDIRECT_URI
+            ) &&
+            request.extraParameters.hasOwnProperty(AADServerParamKeys.CLIENT_ID)
+        ) {
+            const child_client_id =
+                request.extraParameters[AADServerParamKeys.CLIENT_ID];
+            const child_redirect_uri = request.redirectUri;
+            const brk_redirect_uri =
+                request.extraParameters[
+                    BrokerServerParamKeys.BROKER_REDIRECT_URI
+                ];
+            request.extraParameters = {
+                child_client_id,
+                child_redirect_uri,
+            };
+            request.redirectUri = brk_redirect_uri;
+        }
+    }
+}

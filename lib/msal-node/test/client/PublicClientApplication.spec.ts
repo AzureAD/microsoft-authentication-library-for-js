@@ -525,9 +525,13 @@ describe("PublicClientApplication", () => {
 
             const cryptoProvider = new CryptoProvider();
             const accountEntity: AccountEntity = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                mockAccountInfo.homeAccountId,
-                new IdToken(mockAuthenticationResult.idToken, cryptoProvider),
+                {
+                    homeAccountId: mockAccountInfo.homeAccountId,
+                    idTokenClaims: new IdToken(
+                        mockAuthenticationResult.idToken,
+                        cryptoProvider
+                    ).claims,
+                },
                 fakeAuthority
             );
 
@@ -594,9 +598,13 @@ describe("PublicClientApplication", () => {
 
             const cryptoProvider = new CryptoProvider();
             const accountEntity: AccountEntity = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                mockAccountInfo.homeAccountId,
-                new IdToken(mockAuthenticationResult.idToken, cryptoProvider),
+                {
+                    homeAccountId: mockAccountInfo.homeAccountId,
+                    idTokenClaims: new IdToken(
+                        mockAuthenticationResult.idToken,
+                        cryptoProvider
+                    ).claims,
+                },
                 fakeAuthority
             );
 

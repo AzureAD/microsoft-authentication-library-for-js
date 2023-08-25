@@ -24,20 +24,30 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
         );
 
         // Mock DatabaseStorage
-        jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async () => {});
-        jest.spyOn(DatabaseStorage.prototype, "getItem").mockImplementation(async (kid: string) => {
-            return mockDatabase["TestDB.keys"][kid];
-        });
-        jest.spyOn(DatabaseStorage.prototype, "setItem").mockImplementation(async (kid: string, payload: any) => {
-            mockDatabase["TestDB.keys"][kid] = payload;
-            return mockDatabase["TestDB.keys"][kid];
-        });
-        jest.spyOn(DatabaseStorage.prototype, "removeItem").mockImplementation(async (kid: string) => {
-            delete mockDatabase["TestDB.keys"][kid];
-        });
-        jest.spyOn(DatabaseStorage.prototype, "containsKey").mockImplementation(async (kid: string) => {
-            return !!mockDatabase["TestDB.keys"][kid];
-        });
+        jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+            async () => {}
+        );
+        jest.spyOn(DatabaseStorage.prototype, "getItem").mockImplementation(
+            async (kid: string) => {
+                return mockDatabase["TestDB.keys"][kid];
+            }
+        );
+        jest.spyOn(DatabaseStorage.prototype, "setItem").mockImplementation(
+            async (kid: string, payload: any) => {
+                mockDatabase["TestDB.keys"][kid] = payload;
+                return mockDatabase["TestDB.keys"][kid];
+            }
+        );
+        jest.spyOn(DatabaseStorage.prototype, "removeItem").mockImplementation(
+            async (kid: string) => {
+                delete mockDatabase["TestDB.keys"][kid];
+            }
+        );
+        jest.spyOn(DatabaseStorage.prototype, "containsKey").mockImplementation(
+            async (kid: string) => {
+                return !!mockDatabase["TestDB.keys"][kid];
+            }
+        );
     });
 
     afterEach(() => {

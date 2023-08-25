@@ -5,7 +5,13 @@ import {
     DEFAULT_IFRAME_TIMEOUT_MS,
 } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
-import { LogLevel, Constants, AzureCloudInstance } from "@azure/msal-common";
+import {
+    LogLevel,
+    Constants,
+    AzureCloudInstance,
+    ProtocolMode,
+    ServerResponseType,
+} from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 
@@ -69,6 +75,23 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system?.navigateFrameWait).toBe(0);
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
         expect(emptyConfig.system?.asyncPopups).toBe(false);
+        expect(emptyConfig.system?.allowNativeBroker).toBe(false);
+    });
+
+    it("sets allowNativeBroker to passed in true value", () => {
+        const config: Configuration = buildConfiguration(
+            {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: true,
+                },
+            },
+            true
+        );
+
+        expect(config.system?.allowNativeBroker).toBe(true);
     });
 
     it("sets timeouts with loadFrameTimeout", () => {
@@ -267,5 +290,22 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.loggerOptions?.loggerCallback).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(true);
         expect(newConfig.system?.asyncPopups).toBe(true);
+    });
+    it("Setting OIDCOptions when in AAD protocol mode logs a warning", async () => {
+        jest.spyOn(global.console, "warn").mockImplementation();
+        buildConfiguration(
+            {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    protocolMode: ProtocolMode.AAD,
+                    OIDCOptions: {
+                        serverResponseType: ServerResponseType.QUERY,
+                    },
+                },
+            },
+            true
+        );
+        expect(console.warn).toBeCalled();
     });
 });

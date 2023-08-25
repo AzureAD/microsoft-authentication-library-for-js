@@ -13,6 +13,7 @@ import { Logger } from "../logger/Logger";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
+/** @internal */
 export class AuthorityFactory {
     /**
      * Create an authority object of the correct type based on the url
@@ -38,7 +39,8 @@ export class AuthorityFactory {
             correlationId
         );
 
-        const authorityUriFinal = Authority.transformCIAMAuthority(authorityUri);
+        const authorityUriFinal =
+            Authority.transformCIAMAuthority(authorityUri);
 
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority =
@@ -57,6 +59,7 @@ export class AuthorityFactory {
                 PerformanceEvents.AuthorityResolveEndpointsAsync,
                 correlationId
             );
+
             await acquireTokenAuthority.resolveEndpointsAsync();
             return acquireTokenAuthority;
         } catch (e) {

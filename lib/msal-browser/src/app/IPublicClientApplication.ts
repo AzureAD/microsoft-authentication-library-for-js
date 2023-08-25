@@ -21,6 +21,7 @@ import { ITokenCache } from "../cache/ITokenCache";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { EventCallbackFunction } from "../event/EventMessage";
 
 export interface IPublicClientApplication {
     initialize(): Promise<void>;
@@ -32,7 +33,7 @@ export interface IPublicClientApplication {
     acquireTokenByCode(
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult>;
-    addEventCallback(callback: Function): string | null;
+    addEventCallback(callback: EventCallbackFunction): string | null;
     removeEventCallback(callbackId: string): void;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     removePerformanceCallback(callbackId: string): boolean;
@@ -56,7 +57,16 @@ export interface IPublicClientApplication {
     getActiveAccount(): AccountInfo | null;
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     setNavigationClient(navigationClient: INavigationClient): void;
+    /** @internal */
     getConfiguration(): BrowserConfiguration;
+    hydrateCache(
+        result: AuthenticationResult,
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
+    ): Promise<void>;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -173,5 +183,10 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     getConfiguration: () => {
         throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
+    },
+    hydrateCache: () => {
+        return Promise.reject(
+            BrowserConfigurationAuthError.createStubPcaInstanceCalledError()
+        );
     },
 };

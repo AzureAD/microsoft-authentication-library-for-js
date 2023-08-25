@@ -31,8 +31,9 @@ const KeyLocation = {
     SW: "sw",
     UHW: "uhw",
 } as const;
-export type KeyLocation = typeof KeyLocation[keyof typeof KeyLocation];
+export type KeyLocation = (typeof KeyLocation)[keyof typeof KeyLocation];
 
+/** @internal */
 export class PopTokenGenerator {
     private cryptoUtils: ICrypto;
     private performanceClient?: IPerformanceClient;

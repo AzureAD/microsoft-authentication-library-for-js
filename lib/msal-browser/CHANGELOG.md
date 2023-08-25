@@ -1,74 +1,73 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 06 Jul 2023 00:01:35 GMT and should not be manually modified.
+This log was last generated on Fri, 18 Aug 2023 18:40:03 GMT and should not be manually modified.
 
 <!-- Start content -->
 
-## 3.0.0-beta.1
+## 3.0.2
 
-Thu, 06 Jul 2023 00:01:35 GMT
-
-### Changes
-
-- Make claims-based caching configurable #6163 (hemoral@microsoft.com)
-- Update string conversion function (thomas.norling@microsoft.com)
-- Make account info mandatory for AuthenticationResult and CacheRecord types #6156 (kshabelko@microsoft.com)
-- Export IdTokenClaims & PromptValue types (thomas.norling@microsoft.com)
-- Bump @azure/msal-common to v14.0.0-beta.1
-
-## 3.0.0-beta.0
-
-Thu, 15 Jun 2023 22:19:24 GMT
+Fri, 18 Aug 2023 18:40:03 GMT
 
 ### Patches
 
--   Treat invalid_method as a fatal error for WAM #6094 (thomas.norling@microsoft.com)
--   Added authority check for native and silent flows #6002 (lalimasharda@microsoft.com)
--   Fix silent cache lookup bugs for native flows #6067 (sameera.gajjarapu@microsoft.com)
--   ignore native broker initialize check if application is not top-frame #6129 (lalimasharda@microsoft.com)
--   Bump @azure/msal-common to v14.0.0-beta.0
+- Fix input parameter type for addEventCallback (thomas.norling@microsoft.com)
+- Extend hydrateCache request type to include ssoSilentRequest, PopupRequest and RedirectRequest #6329 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.0.2
+
+## 3.0.1
+
+Fri, 11 Aug 2023 19:00:44 GMT
+
+### Patches
+
+- Update dist settings for packages #6322 (hemoral@microsoft.com)
+- Add `tokenBodyParameters` to silent and interaction request types #6325 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.0.1
 
 ### Changes
 
--   Switch from enums to object literals to reduce the bundle size #6056 (kshabelko@microsoft.com)
--   Fix inProgress state reset when page restored from bfCache #6037 (thomas.norling@microsoft.com)
--   Remove legacy MsCrypto and MsrCrypto polyfill to reduce the bundle size #6086 (kshabelko@microsoft.com)
+- Pick up broker extra query params #6286 (kshabelko@microsoft.com)
 
-## 3.0.0-alpha.2
+## 3.0.0
 
-Tue, 16 May 2023 22:51:19 GMT
+Mon, 07 Aug 2023 18:15:15 GMT
 
-### Changes
+### Major Changes
 
--   Update bundled files to be included in published package #5997 (hemoral@microsoft.com)
--   Bump @azure/msal-common to v14.0.0-alpha.2
-
-## 3.0.0-alpha.1
-
-Mon, 08 May 2023 20:12:00 GMT
-
-### Changes
-
--   Revert to common as a regular dependency #5985 (hemoral@microsoft.com)
--   Bump @azure/msal-common to v14.0.0-alpha.1
-
-## 3.0.0-alpha.0
-
-Tue, 02 May 2023 23:14:26 GMT
-
-### Major changes
-
+-   Revert allowNativeBroker default to false #6280 (hemoral@microsoft.com)
+-   Throw when initialize has not been called #6233 (hemoral@microsoft.com)
 -   `allowNativeBroker` configuration defaults to `true` #5616 (hemoral@microsoft.com)
 -   Fix telemetry typos #5868 (kshabelko@microsoft.com)
 
-### Minor changes
+### Minor Changes
 
+-   Expose CacheRecord as part of internals API #6291 (kshabelko@microsoft.com)
+-   Add exports to package.json and update type to module #6194 (thomas.norling@microsoft.com)
+-   Added OIDCOptions parameter to config (shylasummers@users.noreply.github.com)
+-   Expose `BrowserPerformanceClient` and `BrowserPerformanceMeasurement` artifacts as public #6273 (kshabelko@microsoft.com)
+-   Update "PerformanceClient" for better usability/extendibility #6270 (kshabelko@microsoft.com)
+-   Add hydrateCache API #6271 (thomas.norling@microsoft.com)
+-   Add storeInCache request parameter to control which tokens are persisted to the cache (thomas.norling@microsoft.com)
+-   Make claims-based caching configurable #6163 (hemoral@microsoft.com)
+-   Update string conversion function (thomas.norling@microsoft.com)
+-   Make account info mandatory for AuthenticationResult and CacheRecord types #6156 (kshabelko@microsoft.com)
+-   Export IdTokenClaims & PromptValue types (thomas.norling@microsoft.com)
+-   Switch from enums to object literals to reduce the bundle size #6056 (kshabelko@microsoft.com)
+-   Fix inProgress state reset when page restored from bfCache #6037 (thomas.norling@microsoft.com)
+-   Remove legacy MsCrypto and MsrCrypto polyfill to reduce the bundle size #6086 (kshabelko@microsoft.com)
+-   Update bundled files to be included in published package #5997 (hemoral@microsoft.com)
+-   Revert to common as a regular dependency #5985 (hemoral@microsoft.com)
 -   Add CIAM support for v3(#5915) (sameera.gajjarapu@microsoft.com)
 -   Add temporaryCacheLocation to Cache Options #5725 (nicolas.zawada@gmail.com)
 -   Randomize native extension response identifiers to facilitate concurrency #5903 (kshabelko@microsoft.com)
 
 ### Patches
 
+-   Bump @azure/msal-common to v14.0.0
+-   Treat invalid_method as a fatal error for WAM #6094 (thomas.norling@microsoft.com)
+-   Added authority check for native and silent flows #6002 (lalimasharda@microsoft.com)
+-   Fix silent cache lookup bugs for native flows #6067 (sameera.gajjarapu@microsoft.com)
+-   ignore native broker initialize check if application is not top-frame #6129 (lalimasharda@microsoft.com)
 -   Fix prepack hook #5967 (kshabelko@microsoft.com)
 -   Bundle local version of msal-common into msal-browser #5953 (kshabelko@microsoft.com)
 -   Fix missing idToken in response after refresh #5871 (thomas.norling@microsoft.com)

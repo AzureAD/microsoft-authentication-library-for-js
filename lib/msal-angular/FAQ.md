@@ -6,6 +6,7 @@
 1. [What browsers are supported?](#what-browsers-are-supported)
 1. [What versions of Angular are supported?](#what-versions-of-angular-are-supported)
 1. [Does `@azure/msal-angular` support Server Side Rendering?](#does-azuremsal-angular-support-server-side-rendering)
+1. [Does `@azure/msal-angular` support standalone components?](#does-azuremsal-angular-support-standalone-components)
 1. [Can `@azure/msal-angular` be used with Internet Explorer?](#can-azuremsal-angular-be-used-with-internet-explorer)
 1. [Can `@azure/msal-angular` be used with Microsoft Graph JavaScript SDK?](#can-azuremsal-angular-be-used-with-microsoft-graph-javascript-sdk)
 
@@ -43,7 +44,7 @@ Please see [here](https://github.com/AzureAD/microsoft-authentication-library-fo
 
 ### What versions of Angular are supported?
 
-MSAL Angular v3 is in alpha and currently supports Angular 15 and 16.
+MSAL Angular v3 currently supports Angular 15 and 16.
 
 MSAL Angular v2 supports Angular 9, 10, 11, 12, 13 and 14.
 
@@ -51,13 +52,17 @@ MSAL Angular v2 supports Angular 9, 10, 11, 12, 13 and 14.
 
 Yes, server side rendering is supported through Angular universal. See our doc [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/angular-universal.md) for more information.
 
+### Does `@azure/msal-angular` support standalone components?
+
+MSAL Angular v3 supports standalone components. Please see our [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for more information on using standalone components with redirects and our [standalone sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular-standalone-sample) for usage details. 
+
 ### Can `@azure/msal-angular` be used with Internet Explorer?
 
 MSAL Angular v3 no longer supports Internet Explorer.
 
 MSAL Angular v2 and earlier supports IE 11. More information on configuration can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-lts/lib/msal-angular/docs/v2-docs/ie-support.md).
 
-## Can `@azure/msal-angular` be used with Microsoft Graph JavaScript SDK?
+### Can `@azure/msal-angular` be used with Microsoft Graph JavaScript SDK?
 
 Yes, `@azure/msal-angular` can be used as a custom authentication provider for the [Microsoft Graph JavaScript SDK](https://github.com/microsoftgraph/msgraph-sdk-javascript). For an implementation, please refer to the sample: [Angular SPA calling Graph API](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/2-Authorization-I/1-call-graph).
 
@@ -127,7 +132,7 @@ Our older [Angular 11 sample](https://github.com/AzureAD/microsoft-authenticatio
 
 One of the common reasons your app may be looping while logging in with redirects is due to improper usage of the `loginRedirect()` API. We recommend that you do not call `loginRedirect()` in the `ngOnInit` in the `app.component.ts`, as this will attempt to log in with every page load, often before any redirect has finished processing. 
 
-Redirects **must** be handled either with the `MsalRedirectComponent` or with calling `handleRedirectObservable()`. See our docs on redirects [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/redirects.md) for more information. Additionally, any interaction or account validation should be done after  subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None`. Please see our [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.component.ts#L43) for an example. 
+Redirects **must** be handled either with the `MsalRedirectComponent` or with calling `handleRedirectObservable()`. See our docs on redirects [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/redirects.md) for more information. Additionally, any interaction or account validation should be done after  subscribing to the `inProgress$` observable of `MsalBroadcastService` and filtering for `InteractionStatus.None`. Please see our [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.component.ts#L43) for an example.
 
 ## How do I implement self-service sign-up?
 MSAL Angular supports self-service sign-up in the auth code flow. Please see our docs [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) for supported prompt values in the request and their expected outcomes, and [here](http://aka.ms/s3u) for an overview of self-service sign-up and configuration changes that need to be made to your Azure tenant. Please note that that self-service sign-up is not available in B2C and test environments.
@@ -142,18 +147,18 @@ Please see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authenticati
 
 The `@azure/msal-browser` instance used by `@azure/msal-angular` exposes multiple methods for getting account information. We recommend using `getAllAccounts()` to get all accounts, and `getAccountByHomeId()` and `getAccountByLocalId()` to get specific accounts. Note that while `getAccountByUsername()` is available, it should be a secondary choice, as it may be less reliable and is for convenience only. See the [`@azure/msal-browser` docs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_browser.publicclientapplication.html) for more details on account methods.
 
-We recommend subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None` before retrieving account information. This ensures that all interactions have completed before getting account information. See [our sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.component.ts#L45) for an example of this use.
+We recommend subscribing to the `inProgress$` observable of `MsalBroadcastService` and filtering for `InteractionStatus.None` before retrieving account information. This ensures that all interactions have completed before getting account information. See [our sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.component.ts#L45) for an example of this use.
 
 ### How do I get and set active accounts?
 
 The `msal-browser` instance exposes `getActiveAccount()` and `setActiveAccount()` for active accounts. 
 
-We recommend subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None` before retrieving account information with `getActiveAccount()`. This ensures that all interactions have completed before getting account information. 
+We recommend subscribing to the `inProgress$` observable of `MsalBroadcastService` and filtering for `InteractionStatus.None` before retrieving account information with `getActiveAccount()`. This ensures that all interactions have completed before getting account information. 
 
 We recommend setting the active account:
 
 - After any action that may change the account, especially if your app uses multiple accounts. See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/home/home.component.ts#L24) for an example of setting the account after a successful login.
-- On initial page load. Wait until all interactions are complete (by subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None`), check if there is an active account, and if there is none, set the active account. This could be the first account retrieved by `getAllAccounts()`, or other account selection logic required by your app. See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.component.ts#L43) for an example of checking and setting the active account on page load.
+- On initial page load. Wait until all interactions are complete (by subscribing to the `inProgress$` observable of `MsalBroadcastService` and filtering for `InteractionStatus.None`), check if there is an active account, and if there is none, set the active account. This could be the first account retrieved by `getAllAccounts()`, or other account selection logic required by your app. See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.component.ts#L43) for an example of checking and setting the active account on page load.
 
 **Note:** Prior to `@azure/msal-browser@2.16.0` active account did not persist across page loads. If you are using `@azure/msal-browser@2.15.0` or earlier we recommend that you set the active account for each page load. In version 2.16.0 and above the active account will be cached in the cache location specified in your MSAL config and retrieved each time `getActiveAccount` is called.
 

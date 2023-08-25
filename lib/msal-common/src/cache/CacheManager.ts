@@ -39,9 +39,11 @@ import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
+import { StoreInCache } from "../request/StoreInCache";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
+ * @internal
  */
 export abstract class CacheManager implements ICacheManager {
     protected clientId: string;
@@ -281,7 +283,10 @@ export abstract class CacheManager implements ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    async saveCacheRecord(cacheRecord: CacheRecord): Promise<void> {
+    async saveCacheRecord(
+        cacheRecord: CacheRecord,
+        storeInCache?: StoreInCache
+    ): Promise<void> {
         if (!cacheRecord) {
             throw ClientAuthError.createNullOrUndefinedCacheRecord();
         }
@@ -290,15 +295,18 @@ export abstract class CacheManager implements ICacheManager {
             this.setAccount(cacheRecord.account);
         }
 
-        if (!!cacheRecord.idToken) {
+        if (!!cacheRecord.idToken && storeInCache?.idToken !== false) {
             this.setIdTokenCredential(cacheRecord.idToken);
         }
 
-        if (!!cacheRecord.accessToken) {
+        if (!!cacheRecord.accessToken && storeInCache?.accessToken !== false) {
             await this.saveAccessToken(cacheRecord.accessToken);
         }
 
-        if (!!cacheRecord.refreshToken) {
+        if (
+            !!cacheRecord.refreshToken &&
+            storeInCache?.refreshToken !== false
+        ) {
             this.setRefreshTokenCredential(cacheRecord.refreshToken);
         }
 
@@ -875,7 +883,13 @@ export abstract class CacheManager implements ICacheManager {
             this.commonLogger.info("CacheManager:getIdToken - No token found");
             return null;
         } else if (numIdTokens > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+            this.commonLogger.info(
+                "CacheManager:getIdToken - Multiple id tokens found, clearing them"
+            );
+            idTokens.forEach((idToken) => {
+                this.removeIdToken(idToken.generateCredentialKey());
+            });
+            return null;
         }
 
         this.commonLogger.info("CacheManager:getIdToken - Returning id token");
@@ -1026,7 +1040,13 @@ export abstract class CacheManager implements ICacheManager {
             );
             return null;
         } else if (numAccessTokens > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+            this.commonLogger.info(
+                "CacheManager:getAccessToken - Multiple access tokens found, clearing them"
+            );
+            accessTokens.forEach((accessToken) => {
+                this.removeAccessToken(accessToken.generateCredentialKey());
+            });
+            return null;
         }
 
         this.commonLogger.info(
@@ -1472,6 +1492,7 @@ export abstract class CacheManager implements ICacheManager {
     }
 }
 
+/** @internal */
 export class DefaultStorageClass extends CacheManager {
     setAccount(): void {
         const notImplErr =

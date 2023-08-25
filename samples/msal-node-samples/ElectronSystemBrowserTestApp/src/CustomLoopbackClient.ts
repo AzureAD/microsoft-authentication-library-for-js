@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { createServer, IncomingMessage, Server, ServerResponse } from "http";
+import http from "http";
 import { ILoopbackClient, ServerAuthorizationCodeResponse } from "@azure/msal-node";
 
 /**
@@ -13,7 +13,7 @@ import { ILoopbackClient, ServerAuthorizationCodeResponse } from "@azure/msal-no
  */
 export class CustomLoopbackClient implements ILoopbackClient {
     port: number = 0; // default port, which will be set to a random available port
-    private server: Server;
+    private server: http.Server;
 
     private constructor(port: number = 0) {
         this.port = port;
@@ -52,7 +52,7 @@ export class CustomLoopbackClient implements ILoopbackClient {
         }
 
         const authCodeListener = new Promise<ServerAuthorizationCodeResponse>((resolve, reject) => {
-            this.server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
+            this.server = http.createServer(async (req: http.IncomingMessage, res: http.ServerResponse) => {
                 const url = req.url;
                 if (!url) {
                     res.end(errorTemplate || "Error occurred loading redirectUrl");
@@ -129,7 +129,7 @@ export class CustomLoopbackClient implements ILoopbackClient {
      */
     isPortAvailable(port: number): Promise<boolean> {
         return new Promise(resolve => {
-            const server = createServer()
+            const server = http.createServer()
                 .listen(port, () => {
                     server.close();
                     resolve(true);

@@ -15,7 +15,6 @@ import { ScopeSet } from "../request/ScopeSet";
 import { AuthenticationResult } from "./AuthenticationResult";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { Authority } from "../authority/Authority";
-import { AuthorityType } from "../authority/AuthorityType";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
@@ -27,6 +26,7 @@ import {
     AuthenticationScheme,
     Constants,
     THE_FAMILY_ID,
+    HttpStatus,
 } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
@@ -40,6 +40,7 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Class that handles response parsing.
+ * @internal
  */
 export class ResponseHandler {
     private clientId: string;
@@ -81,15 +82,35 @@ export class ResponseHandler {
         cryptoObj: ICrypto
     ): void {
         if (!serverResponseHash.state || !cachedState) {
-            throw !serverResponseHash.state
-                ? ClientAuthError.createStateNotFoundError("Server State")
-                : ClientAuthError.createStateNotFoundError("Cached State");
+            throw serverResponseHash.state
+                ? ClientAuthError.createStateNotFoundError("Cached State")
+                : ClientAuthError.createStateNotFoundError("Server State");
         }
 
-        if (
-            decodeURIComponent(serverResponseHash.state) !==
-            decodeURIComponent(cachedState)
-        ) {
+        let decodedServerResponseHash: string;
+        let decodedCachedState: string;
+
+        try {
+            decodedServerResponseHash = decodeURIComponent(
+                serverResponseHash.state
+            );
+        } catch (e) {
+            throw ClientAuthError.createInvalidStateError(
+                serverResponseHash.state,
+                `Server response hash URI could not be decoded`
+            );
+        }
+
+        try {
+            decodedCachedState = decodeURIComponent(cachedState);
+        } catch (e) {
+            throw ClientAuthError.createInvalidStateError(
+                serverResponseHash.state,
+                `Cached state URI could not be decoded`
+            );
+        }
+
+        if (decodedServerResponseHash !== decodedCachedState) {
             throw ClientAuthError.createStateMismatchError();
         }
 
@@ -132,9 +153,11 @@ export class ResponseHandler {
     /**
      * Function which validates server authorization token response.
      * @param serverResponse
+     * @param refreshAccessToken
      */
     validateTokenResponse(
-        serverResponse: ServerAuthorizationTokenResponse
+        serverResponse: ServerAuthorizationTokenResponse,
+        refreshAccessToken?: boolean
     ): void {
         // Check for error
         if (
@@ -142,6 +165,41 @@ export class ResponseHandler {
             serverResponse.error_description ||
             serverResponse.suberror
         ) {
+            const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
+            const serverError = new ServerError(
+                serverResponse.error,
+                errString,
+                serverResponse.suberror
+            );
+
+            // check if 500 error
+            if (
+                refreshAccessToken &&
+                serverResponse.status &&
+                serverResponse.status >= HttpStatus.SERVER_ERROR_RANGE_START &&
+                serverResponse.status <= HttpStatus.SERVER_ERROR_RANGE_END
+            ) {
+                this.logger.warning(
+                    `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`
+                );
+
+                // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
+                return;
+                // check if 400 error
+            } else if (
+                refreshAccessToken &&
+                serverResponse.status &&
+                serverResponse.status >= HttpStatus.CLIENT_ERROR_RANGE_START &&
+                serverResponse.status <= HttpStatus.CLIENT_ERROR_RANGE_END
+            ) {
+                this.logger.warning(
+                    `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`
+                );
+
+                // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
+                return;
+            }
+
             if (
                 InteractionRequiredAuthError.isInteractionRequiredError(
                     serverResponse.error,
@@ -160,12 +218,7 @@ export class ResponseHandler {
                 );
             }
 
-            const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
-            throw new ServerError(
-                serverResponse.error,
-                errString,
-                serverResponse.suberror
-            );
+            throw serverError;
         }
     }
 
@@ -224,7 +277,7 @@ export class ResponseHandler {
             authority.authorityType,
             this.logger,
             this.cryptoObj,
-            idTokenObj
+            idTokenObj?.claims
         );
 
         // save the response tokens
@@ -291,7 +344,10 @@ export class ResponseHandler {
                     );
                 }
             }
-            await this.cacheStorage.saveCacheRecord(cacheRecord);
+            await this.cacheStorage.saveCacheRecord(
+                cacheRecord,
+                request.storeInCache
+            );
         } finally {
             if (
                 this.persistencePlugin &&
@@ -352,11 +408,15 @@ export class ResponseHandler {
                 idTokenObj.claims.tid || Constants.EMPTY_STRING
             );
 
-            cachedAccount = this.generateAccountEntity(
-                serverTokenResponse,
-                idTokenObj,
-                authority,
-                authCodePayload
+            cachedAccount = AccountEntity.createAccount(
+                {
+                    homeAccountId: this.homeAccountIdentifier,
+                    idTokenClaims: idTokenObj.claims,
+                    clientInfo: serverTokenResponse.client_info,
+                    cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
+                    msGraphHost: authCodePayload?.msgraph_host,
+                },
+                authority
             );
         }
 
@@ -447,66 +507,6 @@ export class ResponseHandler {
     }
 
     /**
-     * Generate Account
-     * @param serverTokenResponse
-     * @param idToken
-     * @param authority
-     */
-    private generateAccountEntity(
-        serverTokenResponse: ServerAuthorizationTokenResponse,
-        idToken: AuthToken,
-        authority: Authority,
-        authCodePayload?: AuthorizationCodePayload
-    ): AccountEntity {
-        const authorityType = authority.authorityType;
-        const cloudGraphHostName = authCodePayload
-            ? authCodePayload.cloud_graph_host_name
-            : Constants.EMPTY_STRING;
-        const msGraphhost = authCodePayload
-            ? authCodePayload.msgraph_host
-            : Constants.EMPTY_STRING;
-
-        // ADFS does not require client_info in the response
-        if (authorityType === AuthorityType.Adfs) {
-            this.logger.verbose(
-                "Authority type is ADFS, creating ADFS account"
-            );
-            return AccountEntity.createGenericAccount(
-                this.homeAccountIdentifier,
-                idToken,
-                authority,
-                cloudGraphHostName,
-                msGraphhost
-            );
-        }
-
-        // This fallback applies to B2C as well as they fall under an AAD account type.
-        if (
-            !serverTokenResponse.client_info &&
-            authority.protocolMode === "AAD"
-        ) {
-            throw ClientAuthError.createClientInfoEmptyError();
-        }
-
-        return serverTokenResponse.client_info
-            ? AccountEntity.createAccount(
-                  serverTokenResponse.client_info,
-                  this.homeAccountIdentifier,
-                  idToken,
-                  authority,
-                  cloudGraphHostName,
-                  msGraphhost
-              )
-            : AccountEntity.createGenericAccount(
-                  this.homeAccountIdentifier,
-                  idToken,
-                  authority,
-                  cloudGraphHostName,
-                  msGraphhost
-              );
-    }
-
-    /**
      * Creates an @AuthenticationResult from @CacheRecord , @IdToken , and a boolean that states whether or not the result is from cache.
      *
      * Optionally takes a state string that is set as-is in the response.
@@ -531,6 +531,7 @@ export class ResponseHandler {
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
+        let refreshOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
 
         if (cacheRecord.accessToken) {
@@ -562,6 +563,11 @@ export class ResponseHandler {
             extExpiresOn = new Date(
                 Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
             );
+            if (cacheRecord.accessToken.refreshOn) {
+                refreshOn = new Date(
+                    Number(cacheRecord.accessToken.refreshOn) * 1000
+                );
+            }
         }
 
         if (cacheRecord.appMetadata) {
@@ -595,9 +601,10 @@ export class ResponseHandler {
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
+            extExpiresOn: extExpiresOn,
+            refreshOn: refreshOn,
             correlationId: request.correlationId,
             requestId: requestId || Constants.EMPTY_STRING,
-            extExpiresOn: extExpiresOn,
             familyId: familyId,
             tokenType:
                 cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,

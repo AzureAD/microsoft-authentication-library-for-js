@@ -16,6 +16,7 @@ import { RequestThumbprint } from "./RequestThumbprint";
 import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
+/** @internal */
 export class ThrottlingUtils {
     /**
      * Prepares a RequestThumbprint to be stored as a key.

@@ -12,6 +12,7 @@ export type JoseHeaderOptions = {
     kid?: string;
 };
 
+/** @internal */
 export class JoseHeader {
     public typ?: JsonTypes;
     public alg?: string;

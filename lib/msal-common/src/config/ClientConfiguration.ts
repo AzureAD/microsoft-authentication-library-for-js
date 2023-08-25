@@ -16,6 +16,7 @@ import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManag
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { ClientCredentials } from "../account/ClientCredentials";
+import { ProtocolMode } from "../authority/ProtocolMode";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -33,6 +34,7 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - storageInterface           - Storage implementation
  * - systemOptions              - Additional library options
  * - clientCredentials          - Credentials options for confidential clients
+ * @internal
  */
 export type ClientConfiguration = {
     authOptions: AuthOptions;
@@ -76,6 +78,7 @@ export type CommonClientConfiguration = {
  * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache      - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
+ * @internal
  */
 export type AuthOptions = {
     clientId: string;
@@ -271,4 +274,14 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
         skipAuthorityMetadataCache: false,
         ...authOptions,
     };
+}
+
+/**
+ * Returns true if config has protocolMode set to ProtocolMode.OIDC, false otherwise
+ * @param ClientConfiguration
+ */
+export function isOidcProtocolMode(config: ClientConfiguration): boolean {
+    return (
+        config.authOptions.authority.options.protocolMode === ProtocolMode.OIDC
+    );
 }

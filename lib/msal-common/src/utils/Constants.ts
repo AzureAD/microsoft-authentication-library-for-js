@@ -64,6 +64,17 @@ export const Constants = {
     INVALID_INSTANCE: "invalid_instance",
 };
 
+export const HttpStatus = {
+    SUCCESS_RANGE_START: 200,
+    SUCCESS_RANGE_END: 299,
+    REDIRECT: 302,
+    CLIENT_ERROR_RANGE_START: 400,
+    CLIENT_ERROR_RANGE_END: 499,
+    SERVER_ERROR_RANGE_START: 500,
+    SERVER_ERROR_RANGE_END: 599,
+} as const;
+export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
+
 export const OIDC_DEFAULT_SCOPES = [
     Constants.OPENID_SCOPE,
     Constants.PROFILE_SCOPE,
@@ -84,7 +95,7 @@ export const HeaderNames = {
     X_MS_REQUEST_ID: "x-ms-request-id",
     X_MS_HTTP_VERSION: "x-ms-httpver",
 } as const;
-export type HeaderNames = typeof HeaderNames[keyof typeof HeaderNames];
+export type HeaderNames = (typeof HeaderNames)[keyof typeof HeaderNames];
 
 /**
  * Persistent cache keys MSAL which stay while user is logged in.
@@ -98,7 +109,8 @@ export const PersistentCacheKeys = {
     ACTIVE_ACCOUNT: "active-account", // Legacy active-account cache key, use new key instead
     ACTIVE_ACCOUNT_FILTERS: "active-account-filters", // new cache entry for active_account for a more robust version for browser
 } as const;
-export type PersistentCacheKeys = typeof PersistentCacheKeys[keyof typeof PersistentCacheKeys];
+export type PersistentCacheKeys =
+    (typeof PersistentCacheKeys)[keyof typeof PersistentCacheKeys];
 
 /**
  * String constants related to AAD Authority
@@ -108,7 +120,8 @@ export const AADAuthorityConstants = {
     ORGANIZATIONS: "organizations",
     CONSUMERS: "consumers",
 } as const;
-export type AADAuthorityConstants = typeof AADAuthorityConstants[keyof typeof AADAuthorityConstants];
+export type AADAuthorityConstants =
+    (typeof AADAuthorityConstants)[keyof typeof AADAuthorityConstants];
 
 /**
  * Keys in the hashParams sent by AAD Server
@@ -163,7 +176,8 @@ export const AADServerParamKeys = {
     NATIVE_BROKER: "nativebroker",
     LOGOUT_HINT: "logout_hint",
 } as const;
-export type AADServerParamKeys = typeof AADServerParamKeys[keyof typeof AADServerParamKeys];
+export type AADServerParamKeys =
+    (typeof AADServerParamKeys)[keyof typeof AADServerParamKeys];
 
 /**
  * Claims request keys
@@ -172,7 +186,8 @@ export const ClaimsRequestKeys = {
     ACCESS_TOKEN: "access_token",
     XMS_CC: "xms_cc",
 } as const;
-export type ClaimsRequestKeys = typeof ClaimsRequestKeys[keyof typeof ClaimsRequestKeys];
+export type ClaimsRequestKeys =
+    (typeof ClaimsRequestKeys)[keyof typeof ClaimsRequestKeys];
 
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
@@ -202,7 +217,7 @@ export const SSOTypes = {
     ACCOUNT_ID: "accountIdentifier",
     HOMEACCOUNT_ID: "homeAccountIdentifier",
 } as const;
-export type SSOTypes = typeof SSOTypes[keyof typeof SSOTypes];
+export type SSOTypes = (typeof SSOTypes)[keyof typeof SSOTypes];
 
 /**
  * allowed values for codeVerifier
@@ -213,14 +228,23 @@ export const CodeChallengeMethodValues = {
 };
 
 /**
+ * allowed values for server response type
+ */
+export const ServerResponseType = {
+    QUERY: "query",
+    FRAGMENT: "fragment",
+} as const;
+export type ServerResponseType =
+    (typeof ServerResponseType)[keyof typeof ServerResponseType];
+
+/**
  * allowed values for response_mode
  */
 export const ResponseMode = {
-    QUERY: "query",
-    FRAGMENT: "fragment",
+    ...ServerResponseType,
     FORM_POST: "form_post",
 } as const;
-export type ResponseMode = typeof ResponseMode[keyof typeof ResponseMode];
+export type ResponseMode = (typeof ResponseMode)[keyof typeof ResponseMode];
 
 /**
  * allowed grant_type
@@ -234,7 +258,7 @@ export const GrantType = {
     DEVICE_CODE_GRANT: "device_code",
     JWT_BEARER: "urn:ietf:params:oauth:grant-type:jwt-bearer",
 } as const;
-export type GrantType = typeof GrantType[keyof typeof GrantType];
+export type GrantType = (typeof GrantType)[keyof typeof GrantType];
 
 /**
  * Account types in Cache
@@ -245,7 +269,8 @@ export const CacheAccountType = {
     MSAV1_ACCOUNT_TYPE: "MSA",
     GENERIC_ACCOUNT_TYPE: "Generic", // NTLM, Kerberos, FBA, Basic etc
 } as const;
-export type CacheAccountType = typeof CacheAccountType[keyof typeof CacheAccountType];
+export type CacheAccountType =
+    (typeof CacheAccountType)[keyof typeof CacheAccountType];
 
 /**
  * Separators used in cache
@@ -254,7 +279,7 @@ export const Separators = {
     CACHE_KEY_SEPARATOR: "-",
     CLIENT_INFO_SEPARATOR: ".",
 } as const;
-export type Separators = typeof Separators[keyof typeof Separators];
+export type Separators = (typeof Separators)[keyof typeof Separators];
 
 /**
  * Credential Type stored in the cache
@@ -265,7 +290,8 @@ export const CredentialType = {
     ACCESS_TOKEN_WITH_AUTH_SCHEME: "AccessToken_With_AuthScheme",
     REFRESH_TOKEN: "RefreshToken",
 } as const;
-export type CredentialType = typeof CredentialType[keyof typeof CredentialType];
+export type CredentialType =
+    (typeof CredentialType)[keyof typeof CredentialType];
 
 /**
  * Combine all cache types
@@ -281,7 +307,7 @@ export const CacheType = {
     APP_METADATA: 3001,
     UNDEFINED: 9999,
 } as const;
-export type CacheType = typeof CacheType[keyof typeof CacheType];
+export type CacheType = (typeof CacheType)[keyof typeof CacheType];
 
 /**
  * More Cache related constants
@@ -301,7 +327,8 @@ export const AuthorityMetadataSource = {
     NETWORK: "network",
     HARDCODED_VALUES: "hardcoded_values",
 } as const;
-export type AuthorityMetadataSource = typeof AuthorityMetadataSource[keyof typeof AuthorityMetadataSource];
+export type AuthorityMetadataSource =
+    (typeof AuthorityMetadataSource)[keyof typeof AuthorityMetadataSource];
 
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 5,
@@ -324,7 +351,8 @@ export const AuthenticationScheme = {
     POP: "pop",
     SSH: "ssh-cert",
 } as const;
-export type AuthenticationScheme = typeof AuthenticationScheme[keyof typeof AuthenticationScheme];
+export type AuthenticationScheme =
+    (typeof AuthenticationScheme)[keyof typeof AuthenticationScheme];
 
 /**
  * Constants related to throttling
@@ -352,7 +380,8 @@ export const PasswordGrantConstants = {
     username: "username",
     password: "password",
 } as const;
-export type PasswordGrantConstants = typeof PasswordGrantConstants[keyof typeof PasswordGrantConstants];
+export type PasswordGrantConstants =
+    (typeof PasswordGrantConstants)[keyof typeof PasswordGrantConstants];
 
 /**
  * Response codes
@@ -361,7 +390,7 @@ export const ResponseCodes = {
     httpSuccess: 200,
     httpBadRequest: 400,
 } as const;
-export type ResponseCodes = typeof ResponseCodes[keyof typeof ResponseCodes];
+export type ResponseCodes = (typeof ResponseCodes)[keyof typeof ResponseCodes];
 
 /**
  * Region Discovery Sources
@@ -372,7 +401,8 @@ export const RegionDiscoverySources = {
     ENVIRONMENT_VARIABLE: "3",
     IMDS: "4",
 } as const;
-export type RegionDiscoverySources = typeof RegionDiscoverySources[keyof typeof RegionDiscoverySources];
+export type RegionDiscoverySources =
+    (typeof RegionDiscoverySources)[keyof typeof RegionDiscoverySources];
 
 /**
  * Region Discovery Outcomes
@@ -384,7 +414,8 @@ export const RegionDiscoveryOutcomes = {
     AUTO_DETECTION_REQUESTED_SUCCESSFUL: "4",
     AUTO_DETECTION_REQUESTED_FAILED: "5",
 } as const;
-export type RegionDiscoveryOutcomes = typeof RegionDiscoveryOutcomes[keyof typeof RegionDiscoveryOutcomes];
+export type RegionDiscoveryOutcomes =
+    (typeof RegionDiscoveryOutcomes)[keyof typeof RegionDiscoveryOutcomes];
 
 export const CacheOutcome = {
     NO_CACHE_HIT: "0",
@@ -393,13 +424,13 @@ export const CacheOutcome = {
     CACHED_ACCESS_TOKEN_EXPIRED: "3",
     REFRESH_CACHED_ACCESS_TOKEN: "4",
 } as const;
-export type CacheOutcome = typeof CacheOutcome[keyof typeof CacheOutcome];
+export type CacheOutcome = (typeof CacheOutcome)[keyof typeof CacheOutcome];
 
 export const JsonTypes = {
     Jwt: "JWT",
     Jwk: "JWK",
     Pop: "pop",
 } as const;
-export type JsonTypes = typeof JsonTypes[keyof typeof JsonTypes];
+export type JsonTypes = (typeof JsonTypes)[keyof typeof JsonTypes];
 
 export const ONE_DAY_IN_MS = 86400000;

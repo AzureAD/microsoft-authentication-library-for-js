@@ -1,57 +1,60 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 06 Jul 2023 00:01:34 GMT and should not be manually modified.
+This log was last generated on Fri, 18 Aug 2023 18:40:02 GMT and should not be manually modified.
 
 <!-- Start content -->
 
-## 14.0.0-beta.1
+## 14.0.2
 
-Thu, 06 Jul 2023 00:01:34 GMT
-
-### Changes
-
-- Make claims-based caching configurable #6163 (hemoral@microsoft.com)
-- Fix performance bug with regional authority detection #6139 (joarroyo@microsoft.com)
-
-## 14.0.0-beta.0
-
-Thu, 15 Jun 2023 22:19:26 GMT
+Fri, 18 Aug 2023 18:40:02 GMT
 
 ### Patches
 
--   Added new ClientConfigurationError type for authority mismatch in login request #6002 (lalimasharda@microsoft.com)
+- Fix authority endpoint version for B2C authorities #6342 (hemoral@microsoft.com)
+
+## 14.0.1
+
+Fri, 11 Aug 2023 19:00:44 GMT
+
+### Patches
+
+- Update dist settings for packages #6322 (hemoral@microsoft.com)
+- Replaces `multiple matched tokens error` with a log message, removing matching tokens from cache #6311 (kshabelko@microsoft.com)
 
 ### Changes
 
--   Switch from enums to object literals to reduce the bundle size #6056 (kshabelko@microsoft.com)
--   Remove unused params in msal-common #6122 (kshabelko@microsoft.com)
+- Pick up broker extra query params #6286 (kshabelko@microsoft.com)
 
-## 14.0.0-alpha.2
+## 14.0.0
 
-Tue, 16 May 2023 22:51:19 GMT
-
-### Changes
-
--   Support tenant switching for tenant domain names #6022 (kshabelko@microsoft.com)
-
-## 14.0.0-alpha.1
-
-Mon, 08 May 2023 20:12:00 GMT
-
-### Changes
-
--   Add logging to Authority.getEndpointMetadataFromNetwork() #5973 (kshabelko@microsoft.com)
-
-## 14.0.0-alpha.0
-
-Tue, 02 May 2023 23:14:26 GMT
+Mon, 07 Aug 2023 18:15:15 GMT
 
 ### Major changes
 
 -   Add CIAM Authority Support(#5865) (sameera.gajjarapu@microsoft.com)
+-   Prioritize hardcoded metadata over network-sourced metadata #6231 (hemoral@microsoft.com)
+
+### Minor changes
+
+-   Catch errors thrown by "decodeURIComponent" #6226 (kshabelko@microsoft.com)
+-   Add storeInCache request parameter to control which tokens are persisted to the cache (thomas.norling@microsoft.com)
+-   Append v2 to endpoint when using a Microsoft authority under OIDC protocol mode (shylasummers@users.noreply.github.com)
+-   Update "PerformanceClient" for better usability/extendibility #6270 (kshabelko@microsoft.com)
+-   Simplify account generation #6271 (thomas.norling@microsoft.com)
+-   Update comments to address Policheck rules (thomas.norling@microsoft.com)
+-   Added OIDCOptions parameter to config (shylasummers@users.noreply.github.com)
+-   Disable telemetry parameters in the token request when using OIDC protocol mode (shylasummers@users.noreply.github.com)
+-   Add exports to package.json and update type to module #6194 (thomas.norling@microsoft.com)
+-   Make claims-based caching configurable #6163 (hemoral@microsoft.com)
+-   Fix performance bug with regional authority detection #6139 (joarroyo@microsoft.com)
+-   Switch from enums to object literals to reduce the bundle size #6056 (kshabelko@microsoft.com)
+-   Remove unused params in msal-common #6122 (kshabelko@microsoft.com)
+-   Support tenant switching for tenant domain names #6022 (kshabelko@microsoft.com)
+-   Add logging to Authority.getEndpointMetadataFromNetwork() #5973 (kshabelko@microsoft.com)
 
 ### Patches
 
+-   Added new ClientConfigurationError type for authority mismatch in login request #6002 (lalimasharda@microsoft.com)
 -   Fix bugs in CIAM Authority Support (#5917) (sameera.gajjarapu@microsoft.com)
 -   Update polycheck version (#5901) (sameera.gajjarapu@microsoft.com)
 -   Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)

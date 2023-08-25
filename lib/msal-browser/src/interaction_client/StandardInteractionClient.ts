@@ -353,6 +353,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             );
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
+            OIDCOptions: this.config.auth.OIDCOptions,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
@@ -388,14 +389,14 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.correlationId
         )
             .then((result: Authority) => {
-                getAuthorityMeasurement.endMeasurement({
+                getAuthorityMeasurement.end({
                     success: true,
                 });
 
                 return result;
             })
             .catch((error: AuthError) => {
-                getAuthorityMeasurement.endMeasurement({
+                getAuthorityMeasurement.end({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
                     success: false,
@@ -436,12 +437,14 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             PerformanceEvents.InitializeBaseRequest,
             this.correlationId
         );
+
         const validatedRequest: AuthorizationUrlRequest = {
             ...(await this.initializeBaseRequest(request)),
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),
-            responseMode: ResponseMode.FRAGMENT,
+            responseMode: this.config.auth.OIDCOptions
+                .serverResponseType as ResponseMode,
         };
 
         const account =

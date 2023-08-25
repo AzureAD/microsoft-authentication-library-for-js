@@ -1,8 +1,37 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Thu, 06 Jul 2023 00:01:33 GMT and should not be manually modified.
+This log was last generated on Fri, 18 Aug 2023 18:40:02 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.2
+
+Fri, 18 Aug 2023 18:40:02 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.0.2
+
+## 1.0.1
+
+Fri, 11 Aug 2023 19:00:44 GMT
+
+### Patches
+
+- Update dist settings for packages #6322 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.0.1
+
+## 1.0.0
+
+Mon, 07 Aug 2023 18:15:15 GMT
+
+### Patches
+
+-   Bump @azure/msal-common to v14.0.0
+
+### Changes
+
+-   Add exports to package.json and update type to module #6194 (thomas.norling@microsoft.com)
 
 ## 1.0.0-beta.1
 
@@ -10,7 +39,7 @@ Thu, 06 Jul 2023 00:01:33 GMT
 
 ### Changes
 
-- Bump @azure/msal-common to v14.0.0-beta.1
+-   Bump @azure/msal-common to v14.0.0-beta.1
 
 ## 1.0.0-beta.0
 

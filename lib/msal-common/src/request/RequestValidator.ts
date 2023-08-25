@@ -92,7 +92,7 @@ export class RequestValidator {
         }
 
         // Remove any query parameters already included in SSO params
-        queryParams.forEach((value, key) => {
+        queryParams.forEach((_value, key) => {
             if (eQParams[key]) {
                 delete eQParams[key];
             }
@@ -100,7 +100,7 @@ export class RequestValidator {
 
         // remove empty string parameters
         return Object.fromEntries(
-            Object.entries(eQParams).filter(kv => kv[1] !== "")
+            Object.entries(eQParams).filter((kv) => kv[1] !== "")
         );
     }
 }

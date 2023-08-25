@@ -21,6 +21,7 @@ import { CacheLookupPolicy } from "../utils/BrowserConstants";
  * - account                - Account entity to lookup the credentials.
  * - forceRefresh           - Forces silent requests to make network calls if true.
  * - extraQueryParameters   - String to string map of custom query parameters added to the /authorize call. Only used when renewing the refresh token.
+ * - tokenBodyParameters    - String to string map of custom token request body parameters added to the /token call. Only used when renewing access tokens.
  * - tokenQueryParameters   - String to string map of custom query parameters added to the /token call. Only used when renewing access tokens.
  * - redirectUri            - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal. Only used for cases where refresh token is expired.
  * - cacheLookupPolicy      - Enum of different ways the silent token can be retrieved.
@@ -44,4 +45,5 @@ export type SilentRequest = Omit<
     forceRefresh?: boolean;
     cacheLookupPolicy?: CacheLookupPolicy;
     prompt?: string;
+    tokenBodyParameters?: StringDict;
 };

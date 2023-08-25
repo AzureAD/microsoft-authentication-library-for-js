@@ -181,10 +181,10 @@ export class InteractionHandler {
             PerformanceEvents.AuthClientAcquireToken,
             this.authCodeRequest.correlationId
         );
-        const tokenResponse = await this.authModule.acquireToken(
+        const tokenResponse = (await this.authModule.acquireToken(
             this.authCodeRequest,
             authCodeResponse
-        ) as AuthenticationResult;
+        )) as AuthenticationResult;
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }

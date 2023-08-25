@@ -16,7 +16,10 @@ import {
     AADServerParamKeys,
     HeaderNames,
 } from "../utils/Constants";
-import { ClientConfiguration } from "../config/ClientConfiguration";
+import {
+    ClientConfiguration,
+    isOidcProtocolMode,
+} from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ResponseHandler } from "../response/ResponseHandler";
@@ -43,16 +46,20 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Oauth2.0 Authorization Code client
+ * @internal
  */
 export class AuthorizationCodeClient extends BaseClient {
     // Flag to indicate if client is for hybrid spa auth code redemption
     protected includeRedirectUri: boolean = true;
+    private oidcDefaultScopes;
 
     constructor(
         configuration: ClientConfiguration,
         performanceClient?: IPerformanceClient
     ) {
         super(configuration, performanceClient);
+        this.oidcDefaultScopes =
+            this.config.authOptions.authority.options.OIDCOptions?.defaultScopes;
     }
 
     /**
@@ -125,7 +132,7 @@ export class AuthorizationCodeClient extends BaseClient {
         const httpVerAuthority =
             response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         if (httpVerAuthority) {
-            atsMeasurement?.addStaticFields({
+            atsMeasurement?.add({
                 httpVerAuthority,
             });
         }
@@ -159,7 +166,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 requestId
             )
             .then((result: AuthenticationResult) => {
-                atsMeasurement?.endMeasurement({
+                atsMeasurement?.end({
                     success: true,
                 });
                 return result;
@@ -169,7 +176,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     "Error in fetching token in ACC",
                     request.correlationId
                 );
-                atsMeasurement?.endMeasurement({
+                atsMeasurement?.end({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
                     success: false,
@@ -197,11 +204,12 @@ export class AuthorizationCodeClient extends BaseClient {
             null
         );
 
-        // Deserialize hash fragment response parameters.
-        const hashUrlString = new UrlString(hashFragment);
-        // Deserialize hash fragment response parameters.
         const serverParams: ServerAuthorizationCodeResponse =
-            UrlString.getDeserializedHash(hashUrlString.getHash());
+            UrlString.getDeserializedCodeResponse(
+                this.config.authOptions.authority.options.OIDCOptions
+                    ?.serverResponseType,
+                hashFragment
+            );
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
@@ -321,7 +329,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        parameterBuilder.addClientId(
+            request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                this.config.authOptions.clientId
+        );
 
         /*
          * For hybrid spa flow, there will be a code but no verifier
@@ -336,7 +347,11 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add scope array, parameter builder will add default scopes and dedupe
-        parameterBuilder.addScopes(request.scopes);
+        parameterBuilder.addScopes(
+            request.scopes,
+            true,
+            this.oidcDefaultScopes
+        );
 
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
@@ -348,7 +363,7 @@ export class AuthorizationCodeClient extends BaseClient {
         );
         parameterBuilder.addThrottling();
 
-        if (this.serverTelemetryManager) {
+        if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 
@@ -490,13 +505,16 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        parameterBuilder.addClientId(
+            request.extraQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                this.config.authOptions.clientId
+        );
 
         const requestScopes = [
             ...(request.scopes || []),
             ...(request.extraScopesToConsent || []),
         ];
-        parameterBuilder.addScopes(requestScopes);
+        parameterBuilder.addScopes(requestScopes, true, this.oidcDefaultScopes);
 
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);
@@ -515,9 +533,11 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // add library info parameters
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        parameterBuilder.addApplicationTelemetry(
-            this.config.telemetry.application
-        );
+        if (!isOidcProtocolMode(this.config)) {
+            parameterBuilder.addApplicationTelemetry(
+                this.config.telemetry.application
+            );
+        }
 
         // add client_info=1
         parameterBuilder.addClientInfo();

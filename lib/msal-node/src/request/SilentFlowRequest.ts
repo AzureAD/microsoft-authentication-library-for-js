@@ -24,6 +24,7 @@ export type SilentFlowRequest = Partial<
         | "resourceRequestMethod"
         | "resourceRequestUri"
         | "requestedClaimsHash"
+        | "storeInCache"
     >
 > & {
     account: AccountInfo;

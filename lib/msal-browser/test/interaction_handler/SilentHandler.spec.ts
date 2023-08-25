@@ -164,7 +164,6 @@ describe("SilentHandler.ts Unit Tests", () => {
         performanceClient = {
             startMeasurement: jest.fn(),
             endMeasurement: jest.fn(),
-            addStaticFields: jest.fn(),
             discardMeasurements: jest.fn(),
             removePerformanceCallback: jest.fn(),
             addPerformanceCallback: jest.fn(),
@@ -174,6 +173,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             calculateQueuedTime: jest.fn(),
             addQueueMeasurement: jest.fn(),
             setPreQueueTime: jest.fn(),
+            addFields: jest.fn(),
+            incrementFields: jest.fn(),
         };
     });
 

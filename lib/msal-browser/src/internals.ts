@@ -12,7 +12,7 @@
 export { BrowserCacheManager } from "./cache/BrowserCacheManager";
 
 // Cache entities
-export { CacheRecord } from "./cache/entities/CacheRecord";
+export { CacheRecord } from "@azure/msal-common";
 
 // Clients
 export { StandardInteractionClient } from "./interaction_client/StandardInteractionClient";
@@ -37,10 +37,6 @@ export { CryptoOps } from "./crypto/CryptoOps";
 
 // Browser Errors
 export { NativeAuthError } from "./error/NativeAuthError";
-
-// Telemetry
-export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";
-export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement";
 
 // Native request and response
 export { NativeTokenRequest } from "./broker/nativeBroker/NativeRequest";
