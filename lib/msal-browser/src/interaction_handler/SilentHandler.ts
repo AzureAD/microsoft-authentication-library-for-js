@@ -5,7 +5,6 @@
 
 import {
     UrlString,
-    StringUtils,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     Constants,
@@ -60,7 +59,7 @@ export class SilentHandler extends InteractionHandler {
             this.authCodeRequest.correlationId
         );
 
-        if (StringUtils.isEmpty(requestUrl)) {
+        if (!requestUrl) {
             // Throw error if request URL is empty.
             this.logger.info("Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
@@ -125,7 +124,7 @@ export class SilentHandler extends InteractionHandler {
                         : Constants.EMPTY_STRING;
                 } catch (e) {}
 
-                if (StringUtils.isEmpty(href) || href === "about:blank") {
+                if (!href || href === "about:blank") {
                     return;
                 }
 

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError, StringUtils } from "@azure/msal-common";
+import { AuthError } from "@azure/msal-common";
 
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
@@ -297,7 +297,7 @@ export class BrowserAuthError extends AuthError {
      */
     static createPopupWindowError(errDetail?: string): BrowserAuthError {
         let errorMessage = BrowserAuthErrorMessage.popupWindowError.desc;
-        errorMessage = !StringUtils.isEmpty(errDetail)
+        errorMessage = errDetail
             ? `${errorMessage} Details: ${errDetail}`
             : errorMessage;
         return new BrowserAuthError(

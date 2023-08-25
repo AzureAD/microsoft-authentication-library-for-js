@@ -15,7 +15,6 @@ import {
     ProtocolUtils,
     ServerAuthorizationCodeResponse,
     PerformanceEvents,
-    StringUtils,
     IPerformanceClient,
     Logger,
     ICrypto,
@@ -542,7 +541,7 @@ export class PopupClient extends StandardInteractionClient {
      */
     initiateAuthRequest(requestUrl: string, params: PopupParams): Window {
         // Check that request url is not empty.
-        if (!StringUtils.isEmpty(requestUrl)) {
+        if (requestUrl) {
             this.logger.infoPii(`Navigate to: ${requestUrl}`);
             // Open the popup window to requestUrl.
             return this.openPopup(requestUrl, params);
@@ -602,7 +601,7 @@ export class PopupClient extends StandardInteractionClient {
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain
-                if (StringUtils.isEmpty(href) || href === "about:blank") {
+                if (!href || href === "about:blank") {
                     return;
                 }
 
@@ -687,7 +686,7 @@ export class PopupClient extends StandardInteractionClient {
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain
-                if (StringUtils.isEmpty(href) || href === "about:blank") {
+                if (!href || href === "about:blank") {
                     return;
                 }
 
