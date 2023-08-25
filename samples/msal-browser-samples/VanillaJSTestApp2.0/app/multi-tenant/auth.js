@@ -20,25 +20,48 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
     console.error(err);
 });
 
-function handleResponse(resp) {
-    if (resp !== null) {
-        accountId = resp.account.homeAccountId;
-        myMSALObj.setActiveAccount(resp.account);
-        showWelcomeMessage(resp.account);
-    } else {
-        // need to call getAccount here?
-        const currentAccounts = myMSALObj.getAllAccounts();
-        if (!currentAccounts || currentAccounts.length < 1) {
-            return;
-        } else if (currentAccounts.length > 1) {
-            // Add choose account code here
-        } else if (currentAccounts.length === 1) {
-            const activeAccount = currentAccounts[0];
-            myMSALObj.setActiveAccount(activeAccount);
-            accountId = activeAccount.homeAccountId;
-            showWelcomeMessage(activeAccount);
-        }
+function handleResponse() {
+    const allAccounts = myMSALObj.getAllAccounts();
+    if (!allAccounts || allAccounts.length < 1) {
+        return;
+    } else if (allAccounts.length === 1) {
+        // Get all accounts returns the homeAccount with tenantProfiles when multiTenantAccountsEnabled is set to true
+        pickActiveAccountAndTenantProfile(allAccounts[0]);
+    } else if (currentAccounts.length > 1) {
+            // Select account logic
     }
+}
+
+// Determines whether there is one or multiple tenant profiles to pick from and sets the active account based on the user selection if necessary.
+async function pickActiveAccountAndTenantProfile(homeAccount) {
+        // Set home tenant profile as default active account
+        let activeAccount = myMSALObj.getActiveAccount();
+        if (!activeAccount) {
+            activeAccount = homeAccount;
+            myMSALObj.setActiveAccount(activeAccount);
+        }
+        accountId = activeAccount.homeAccountId;
+        showWelcomeMessage(homeAccount);
+        let tenantProfileList = [];
+        if (homeAccount.tenantProfiles) {
+            // Tenant Profiles is a Map, so it will be flattened into an array
+            homeAccount.tenantProfiles.forEach((profile) => {
+                tenantProfileList.push(profile);
+            });
+        }
+        showTenantProfilePicker(tenantProfileList, activeAccount);
+}
+
+async function setActiveAccount(tenantId) {
+    // Sets the active account to the cached account object matching the tenant profile selected by the user.
+    let activeAccount = myMSALObj.getActiveAccount();
+    const tenantProfile = activeAccount.tenantProfiles.get(tenantId);
+    const newActiveAccount = myMSALObj.getAccountByTenantProfile(tenantProfile);
+    if (newActiveAccount) {
+        myMSALObj.setActiveAccount(newActiveAccount);
+        accountId = activeAccount.homeAccountId;
+    }
+    handleResponse();
 }
 
 async function signIn(method) {
@@ -54,7 +77,7 @@ async function signIn(method) {
 
 function signOut(interactionType) {
     const logoutRequest = {
-        account: myMSALObj.getAccountByHomeId(accountId)
+        account: myMSALObj.getActiveAccount()
     };
 
     if (interactionType === "popup") {
@@ -66,18 +89,15 @@ function signOut(interactionType) {
     }
 }
 
-async function getTokenPopup(request, account) {
-    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
-        console.log("silent token acquisition fails.");
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            console.log("acquiring token using popup");
-            return myMSALObj.acquireTokenPopup(request).catch(error => {
-                console.error(error);
-            });
-        } else {
-            console.error(error);
-        }
-    });
+async function requestGuestToken() {
+    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
+    if (currentAcc) {
+        const response = await getTokenRedirect(guestTenantRequest, currentAcc).catch(error => {
+            console.log(error);
+        });
+        callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
+        guestProfileButton.style.display = 'none';
+    }
 }
 
 // This function can be removed if you do not need to support IE

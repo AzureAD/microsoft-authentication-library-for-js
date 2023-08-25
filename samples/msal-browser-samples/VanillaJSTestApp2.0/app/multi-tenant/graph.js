@@ -19,35 +19,13 @@ function callMSGraph(endpoint, accessToken, callback) {
         .catch(error => console.log(error));
 }
 
-async function seeProfileHome() {
-    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
+async function seeProfile() {
+    const currentAcc = myMSALObj.getActiveAccount();
     if (currentAcc) {
-        const response = await getTokenPopup(loginRequest, currentAcc).catch(error => {
+        const request = {...loginRequest, authority: `${baseAuthority}/${currentAcc.tenantId}`};
+        const response = await getTokenRedirect(request, currentAcc).catch(error => {
             console.log(error);
         });
         callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
-        profileButton.style.display = 'none';
-    }
-}
-
-async function seeProfileGuest() {
-    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
-    if (currentAcc) {
-        const response = await getTokenPopup(guestTenantRequest, currentAcc).catch(error => {
-            console.log(error);
-        });
-        callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
-        guestProfileButton.style.display = 'none';
-    }
-}
-
-async function seeProfileRedirect() {
-    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
-    if (currentAcc) {
-        const response = await getTokenRedirect(loginRequest, currentAcc).catch(error => {
-            console.log(error);
-        });
-        callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
-        profileButton.style.display = 'none';
     }
 }

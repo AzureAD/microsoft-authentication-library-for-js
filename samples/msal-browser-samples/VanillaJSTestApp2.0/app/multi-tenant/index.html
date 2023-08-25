@@ -15,35 +15,41 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <a class="navbar-brand" href="/">MS Identity Platform</a>
       <div class="btn-group ml-auto dropleft">
-          <button type="button" id="SignIn" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Sign In
-          </button>
-          <div class="dropdown-menu">
-            <button class="dropdown-item" id="popup" onclick="signIn(this.id)">Sign in using Popup</button>
-            <button class="dropdown-item" id="redirect" onclick="signIn(this.id)">Sign in using Redirect</button>
-          </div>
-      </div>
+        <button type="button" id="SignIn" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Sign In
+        </button>
+        <div class="dropdown-menu">
+          <button class="dropdown-item" id="popup" onclick="signIn(this.id)">Sign in using Popup</button>
+          <button class="dropdown-item" id="redirect" onclick="signIn(this.id)">Sign in using Redirect</button>
+        </div>
     </nav>
     <br>
     <h5 class="card-header text-center">Vanilla JavaScript SPA calling MS Graph API with MSAL.JS (w/ Multiple Tenants)</h5>
     <br>
     <div class="row" style="margin:auto" >
-    <div id="card-div" class="col-md-3" style="display:none">
+    <div id="card-div-profiles" class="col-md-3" style="display:none">
     <div class="card text-center">
       <div class="card-body">
-        <h5 class="card-title" id="WelcomeMessage">Please sign-in to see your profile and read your mails</h5>
-        <div id="profile-div"></div>
-        <br>
-        <br>
-        <button class="btn btn-primary" id="seeProfile" onclick="seeProfileHome()">See Profile</button>
-        <br>
-        <br>
-        <button class="btn btn-primary" id="seeProfileGuest" onclick="seeProfileGuest()">See Guest Tenant Profile</button>
+        <h5 class="card-title" id="PickProfileMessage">Please pick a tenant to acquire tokens for</h5>
+        <div id="tenant-profile-div">
+        </div>
       </div>
     </div>
     </div>
     <br>
     <br>
+    <div id="card-div-graph" class="col-md-3" style="display:none">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title" id="WelcomeMessage"></h5>
+          <div id="graph-profile-div">
+          </div>
+          <br>
+          <br>
+            <button class="btn btn-primary" id="seeProfileGuest" onclick="seeProfile()">See Graph Profile</button>
+        </div>
+      </div>
+      </div>
       <div class="col-md-4">
         <div class="list-group" id="list-tab" role="tablist">
         </div>
