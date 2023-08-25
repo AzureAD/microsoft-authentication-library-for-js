@@ -185,9 +185,17 @@ export abstract class CacheManager implements ICacheManager {
     abstract updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
 
     /**
+     * Returns all accounts in cache. If multi-tenant accounts are enabled, the account objects will also include
+     * their respective tenant profiles.
+     */
+    getAllAccounts(multiTenantAccountsEnabled?: boolean): AccountInfo[] {
+        return (multiTenantAccountsEnabled) ? this.getAllAccountsMultiTenant() : this.getAllCachedAccounts();
+    }
+
+    /**
      * Returns all accounts in cache
      */
-    getAllAccounts(): AccountInfo[] {
+    private getAllCachedAccounts(): AccountInfo[] {
         const allAccountKeys = this.getAccountKeys();
         if (allAccountKeys.length < 1) {
             return [];
@@ -216,9 +224,9 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Returns all home accounts with their respective guest tenant profiles in the cache
      */
-    getAllAccountsMultiTenant(): AccountInfo[] {
+    private getAllMultiTenantHomeAccounts(): AccountInfo[] {
         // Get all cached accounts
-        const cachedAccounts = this.getAllAccounts();
+        const cachedAccounts = this.getAllCachedAccounts();
 
         // Filter out cross-tenant/guest accounts
         const homeAccounts: AccountInfo[] = cachedAccounts.filter((account: AccountInfo) => { 
