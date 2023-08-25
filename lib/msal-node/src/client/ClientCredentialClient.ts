@@ -71,7 +71,7 @@ export class ClientCredentialClient extends BaseClient {
                     "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );
 
-                // return the cached token, don't wait for the result of this request
+                // refresh the access token in the background
                 const refreshAccessToken = true;
                 this.executeTokenRequest(
                     request,
@@ -83,7 +83,7 @@ export class ClientCredentialClient extends BaseClient {
             // reset the last cache outcome
             this.lastCacheOutcome = CacheOutcome.NO_CACHE_HIT;
 
-            // otherwise, the token is not expired and does not need to be refreshed
+            // return the cached token
             return cachedAuthenticationResult;
         } else {
             return await this.executeTokenRequest(request, this.authority);
@@ -136,7 +136,6 @@ export class ClientCredentialClient extends BaseClient {
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
-
             return null;
         }
 

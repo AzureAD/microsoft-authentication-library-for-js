@@ -1035,6 +1035,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testRefreshTokenEntity);
+            sinon
+                .stub(MockStorageClass.prototype, "getAccount")
+                .returns(testAccountEntity);
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -1044,26 +1047,27 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: false,
             };
 
-            const expectedRefreshRequest: CommonRefreshTokenRequest = {
-                ...silentFlowRequest,
-                refreshToken: testRefreshTokenEntity.secret,
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                ccsCredential: {
-                    credential: testAccount.homeAccountId,
-                    type: CcsCredentialType.HOME_ACCOUNT_ID,
-                },
-            };
+            // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache at this point
+            let accessTokenKey = config.storageInterface
+                ?.getKeys()
+                .find((value) => value.indexOf("accesstoken") >= 0);
+            expect(accessTokenKey).toBeUndefined();
 
-            const refreshTokenSpy = sinon.stub(
-                RefreshTokenClient.prototype,
-                "acquireToken"
-            );
-
+            // Acquire a token (from the cache). The refresh_in value is expired, so there will be an asynchronous network request
+            // to refresh the token. That result will be stored in the cache.
             await client.acquireToken(silentFlowRequest);
-            expect(refreshTokenSpy.called).toBe(true);
-            expect(refreshTokenSpy.calledWith(expectedRefreshRequest)).toBe(
-                true
+
+            // Check the cache to ensure the refreshed token exists (the network request was successful).
+            // Typically, the network request may not have completed by the time the below code runs.
+            // However, the network requests are mocked in these tests, so the refreshed token should be in the cache at this point.
+            accessTokenKey = config.storageInterface
+                ?.getKeys()
+                .find((value) => value.indexOf("accesstoken") >= 0);
+            const accessTokenCacheItem = accessTokenKey
+                ? config.storageInterface?.getAccessTokenCredential(accessTokenKey)
+                : null;
+            expect(accessTokenCacheItem?.clientId).toEqual(
+                testAccessTokenEntity.clientId
             );
         });
 

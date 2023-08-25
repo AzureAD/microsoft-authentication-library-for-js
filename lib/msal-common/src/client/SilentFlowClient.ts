@@ -23,6 +23,8 @@ import { StringUtils } from "../utils/StringUtils";
 
 /** @internal */
 export class SilentFlowClient extends BaseClient {
+    private lastCacheOutcome: CacheOutcome;
+
     constructor(
         configuration: ClientConfiguration,
         performanceClient?: IPerformanceClient
@@ -39,8 +41,35 @@ export class SilentFlowClient extends BaseClient {
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
         try {
-            return await this.acquireCachedToken(request);
+            const cachedToken = await this.acquireCachedToken(request);
+
+            // if the token is not expired but must be refreshed; get a new one in the background
+            if (
+                this.lastCacheOutcome ===
+                CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
+            ) {
+                this.logger.info(
+                    "SilentFlowClient:acquireCachedToken - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+                );
+
+                // refresh the access token in the background
+                const refreshTokenClient = new RefreshTokenClient(
+                    this.config,
+                    this.performanceClient
+                );
+                refreshTokenClient.acquireTokenByRefreshToken(request);
+            }
+
+            // reset the last cache outcome
+            this.lastCacheOutcome = CacheOutcome.NO_CACHE_HIT;
+
+            // return the cached token
+            return cachedToken;
+
         } catch (e) {
+            // reset the last cache outcome
+            this.lastCacheOutcome = CacheOutcome.NO_CACHE_HIT;
+
             if (
                 e instanceof ClientAuthError &&
                 e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code
@@ -70,6 +99,7 @@ export class SilentFlowClient extends BaseClient {
 
         if (request.forceRefresh) {
             // Must refresh due to present force_refresh flag.
+            this.lastCacheOutcome = CacheOutcome.FORCE_REFRESH;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.FORCE_REFRESH
             );
@@ -103,7 +133,8 @@ export class SilentFlowClient extends BaseClient {
         );
 
         if (!cacheRecord.accessToken) {
-            // Must refresh due to non-existent access_token.
+            // must refresh due to non-existent access_token
+            this.lastCacheOutcome = CacheOutcome.NO_CACHED_ACCESS_TOKEN;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
@@ -118,7 +149,8 @@ export class SilentFlowClient extends BaseClient {
                 this.config.systemOptions.tokenRenewalOffsetSeconds
             )
         ) {
-            // Must refresh due to expired access_token.
+            // must refresh due to the expires_in value
+            this.lastCacheOutcome = CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
@@ -130,13 +162,16 @@ export class SilentFlowClient extends BaseClient {
             cacheRecord.accessToken.refreshOn &&
             TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0)
         ) {
-            // Must refresh due to the refresh_in value.
+            // must refresh (in the background) due to the refresh_in value
+            this.lastCacheOutcome = CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
             );
             this.logger.info(
                 "SilentFlowClient:acquireCachedToken - Cached access token's refreshOn property has been exceeded'."
             );
+
+            // don't throw ClientAuthError.createRefreshRequiredError(), return cached token instead
             throw ClientAuthError.createRefreshRequiredError();
         }
 
