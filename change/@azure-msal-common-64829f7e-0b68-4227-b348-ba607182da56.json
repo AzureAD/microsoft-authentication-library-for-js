@@ -2,6 +2,6 @@
   "type": "minor",
   "comment": "Add multi-tenant support [LTS] #6396",
   "packageName": "@azure/msal-common",
-  "email": "hectormg@hey.com",
+  "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
 }
