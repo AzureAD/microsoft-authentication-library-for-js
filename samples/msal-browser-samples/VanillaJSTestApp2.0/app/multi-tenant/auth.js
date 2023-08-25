@@ -21,13 +21,17 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 });
 
 function handleResponse() {
-    const allAccounts = myMSALObj.getAllAccounts();
+    // getAllAccounts returns all cached home and guest accounts
+    const allAccounts = myMSALObj.getAllAccounts().filter((account) => {
+        // Keep only home accounts since their tenant profiles are populated and guest accounts can be obatinined by getAccountByTenantProfile
+        return account.homeAccountId.split(".")[0] === account.localAccountId;;
+    });
     if (!allAccounts || allAccounts.length < 1) {
         return;
     } else if (allAccounts.length === 1) {
         // Get all accounts returns the homeAccount with tenantProfiles when multiTenantAccountsEnabled is set to true
         pickActiveAccountAndTenantProfile(allAccounts[0]);
-    } else if (currentAccounts.length > 1) {
+    } else if (allAccounts.length > 1) {
             // Select account logic
     }
 }
