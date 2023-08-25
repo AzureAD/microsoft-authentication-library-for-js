@@ -4,7 +4,6 @@
  */
 
 import { ClientAuthError } from "../error/ClientAuthError";
-import { StringUtils } from "../utils/StringUtils";
 import { ICrypto } from "../crypto/ICrypto";
 import { Separators, Constants } from "../utils/Constants";
 
@@ -25,7 +24,7 @@ export function buildClientInfo(
     rawClientInfo: string,
     crypto: ICrypto
 ): ClientInfo {
-    if (StringUtils.isEmpty(rawClientInfo)) {
+    if (!rawClientInfo) {
         throw ClientAuthError.createClientInfoEmptyError();
     }
 
@@ -46,7 +45,7 @@ export function buildClientInfo(
 export function buildClientInfoFromHomeAccountId(
     homeAccountId: string
 ): ClientInfo {
-    if (StringUtils.isEmpty(homeAccountId)) {
+    if (!homeAccountId) {
         throw ClientAuthError.createClientInfoDecodingError(
             "Home account ID was empty."
         );

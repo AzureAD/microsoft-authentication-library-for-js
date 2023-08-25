@@ -5,7 +5,6 @@
 
 import {
     AuthorizationCodePayload,
-    StringUtils,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     AuthorityFactory,
@@ -70,7 +69,7 @@ export class InteractionHandler {
         );
         this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
-        if (StringUtils.isEmpty(locationHash)) {
+        if (!locationHash) {
             throw BrowserAuthError.createEmptyHashError();
         }
 

@@ -173,7 +173,7 @@ export class DeviceCodeClient extends BaseClient {
         }
 
         if (
-            !StringUtils.isEmpty(request.claims) ||
+            request.claims ||
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {

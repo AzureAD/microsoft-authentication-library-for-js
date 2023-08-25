@@ -18,7 +18,7 @@ export class AuthToken {
     // Claims inside token
     claims: TokenClaims;
     constructor(rawToken: string, crypto: ICrypto) {
-        if (StringUtils.isEmpty(rawToken)) {
+        if (!rawToken) {
             throw ClientAuthError.createTokenNullOrEmptyError(rawToken);
         }
 

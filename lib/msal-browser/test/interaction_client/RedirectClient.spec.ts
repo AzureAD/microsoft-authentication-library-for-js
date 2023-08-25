@@ -57,7 +57,7 @@ import {
     InteractionType,
 } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
-import { XhrClient } from "../../src/network/XhrClient";
+import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
     BrowserAuthErrorMessage,
@@ -369,7 +369,7 @@ describe("RedirectClient", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             sinon
-                .stub(XhrClient.prototype, "sendGetRequestAsync")
+                .stub(FetchClient.prototype, "sendGetRequestAsync")
                 .callsFake((url): any => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -380,7 +380,7 @@ describe("RedirectClient", () => {
                     }
                 });
             sinon
-                .stub(XhrClient.prototype, "sendPostRequestAsync")
+                .stub(FetchClient.prototype, "sendPostRequestAsync")
                 .resolves(testServerTokenResponse);
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
@@ -536,7 +536,7 @@ describe("RedirectClient", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             sinon
-                .stub(XhrClient.prototype, "sendGetRequestAsync")
+                .stub(FetchClient.prototype, "sendGetRequestAsync")
                 .callsFake((url): any => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -858,7 +858,7 @@ describe("RedirectClient", () => {
             };
 
             sinon
-                .stub(XhrClient.prototype, "sendGetRequestAsync")
+                .stub(FetchClient.prototype, "sendGetRequestAsync")
                 .callsFake((url): any => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -869,7 +869,7 @@ describe("RedirectClient", () => {
                     }
                 });
             sinon
-                .stub(XhrClient.prototype, "sendPostRequestAsync")
+                .stub(FetchClient.prototype, "sendPostRequestAsync")
                 .resolves(testServerTokenResponse);
             let pca = new PublicClientApplication({
                 auth: {
@@ -1020,7 +1020,7 @@ describe("RedirectClient", () => {
             };
 
             sinon
-                .stub(XhrClient.prototype, "sendGetRequestAsync")
+                .stub(FetchClient.prototype, "sendGetRequestAsync")
                 .callsFake((url): any => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -1031,7 +1031,7 @@ describe("RedirectClient", () => {
                     }
                 });
             sinon
-                .stub(XhrClient.prototype, "sendPostRequestAsync")
+                .stub(FetchClient.prototype, "sendPostRequestAsync")
                 .resolves(testServerTokenResponse);
             let pca = new PublicClientApplication({
                 auth: {
@@ -1197,7 +1197,7 @@ describe("RedirectClient", () => {
             };
 
             sinon
-                .stub(XhrClient.prototype, "sendGetRequestAsync")
+                .stub(FetchClient.prototype, "sendGetRequestAsync")
                 .callsFake((url): any => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -1208,7 +1208,7 @@ describe("RedirectClient", () => {
                     }
                 });
             sinon
-                .stub(XhrClient.prototype, "sendPostRequestAsync")
+                .stub(FetchClient.prototype, "sendPostRequestAsync")
                 .resolves(testServerTokenResponse);
             let pca = new PublicClientApplication({
                 auth: {

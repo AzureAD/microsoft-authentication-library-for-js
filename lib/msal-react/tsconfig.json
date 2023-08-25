@@ -27,6 +27,7 @@
     "jsx": "react",
     "esModuleInterop": true,
     "types": [
+      "node",
       "jest",
       "react"
     ]

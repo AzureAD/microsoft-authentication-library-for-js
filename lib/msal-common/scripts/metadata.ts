@@ -9,10 +9,10 @@ import yargs from "yargs";
 import { isEqual } from "lodash";
 
 const METADATA_TYPESCRIPT_LOCATION = "src/authority/AuthorityMetadata.ts";
-const AUTHORITY_PLACHOLDER = "{AUTHORITY}";
+const AUTHORITY_PLACEHOLDER = "{AUTHORITY}";
 const METADATA_SOURCES = {
-    endpointMetadata: `${AUTHORITY_PLACHOLDER}v2.0/.well-known/openid-configuration`,
-    instanceDiscoveryMetadata: `https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=${AUTHORITY_PLACHOLDER}oauth2/v2.0/authorize`,
+    endpointMetadata: `${AUTHORITY_PLACEHOLDER}v2.0/.well-known/openid-configuration`,
+    instanceDiscoveryMetadata: `https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=${AUTHORITY_PLACEHOLDER}oauth2/v2.0/authorize`,
 };
 
 async function metadataWatch() {
@@ -60,7 +60,7 @@ async function metadataWatch() {
                     await checkValidityOfMetadata(
                         metadataJson.endpointMetadata[authority],
                         METADATA_SOURCES.endpointMetadata.replace(
-                            AUTHORITY_PLACHOLDER,
+                            AUTHORITY_PLACEHOLDER,
                             authority
                         )
                     );
@@ -96,7 +96,7 @@ async function metadataWatch() {
                 ] = await checkValidityOfMetadata(
                     metadataJson.instanceDiscoveryMetadata[authority],
                     METADATA_SOURCES.instanceDiscoveryMetadata.replace(
-                        AUTHORITY_PLACHOLDER,
+                        AUTHORITY_PLACEHOLDER,
                         authority
                     )
                 );

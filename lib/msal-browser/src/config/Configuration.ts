@@ -21,13 +21,14 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
 } from "@azure/msal-common";
-import { BrowserUtils } from "../utils/BrowserUtils";
 import {
     BrowserCacheLocation,
     BrowserConstants,
 } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
+import { FetchClient } from "../network/FetchClient";
+import { name, version } from "../packageMetadata";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -155,6 +156,7 @@ export type BrowserSystemOptions = SystemOptions & {
     loadFrameTimeout?: number;
     /**
      * Maximum time the library should wait for a frame to load
+     * @deprecated This was previously needed for older browsers which are no longer supported by MSAL.js. This option will be removed in the next major version
      */
     navigateFrameWait?: number;
     /**
@@ -302,7 +304,7 @@ export function buildConfiguration(
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: isBrowserEnvironment
-            ? BrowserUtils.getBrowserNetworkClient()
+            ? new FetchClient()
             : StubbedNetworkModule,
         navigationClient: new NavigationClient(),
         loadFrameTimeout: 0,
@@ -311,8 +313,7 @@ export function buildConfiguration(
             userInputSystem?.loadFrameTimeout || DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout:
             userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
-        navigateFrameWait:
-            isBrowserEnvironment && BrowserUtils.detectIEOrEdge() ? 500 : 0,
+        navigateFrameWait: 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false,
