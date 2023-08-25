@@ -17,10 +17,6 @@ export const BrowserAuthErrorMessage = {
         code: "crypto_nonexistent",
         desc: "The crypto object or function is not available.",
     },
-    httpMethodNotImplementedError: {
-        code: "http_method_not_implemented",
-        desc: "The HTTP method given has not been implemented in this library.",
-    },
     emptyNavigateUriError: {
         code: "empty_navigate_uri",
         desc: "Navigation URI is empty. Please check stack trace for more info.",
@@ -221,19 +217,6 @@ export class BrowserAuthError extends AuthError {
         return new BrowserAuthError(
             BrowserAuthErrorMessage.cryptoDoesNotExist.code,
             `${BrowserAuthErrorMessage.cryptoDoesNotExist.desc} Detail:${errDetail}`
-        );
-    }
-
-    /**
-     * Creates an error thrown when an HTTP method hasn't been implemented by the browser class.
-     * @param method
-     */
-    static createHttpMethodNotImplementedError(
-        method: string
-    ): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.httpMethodNotImplementedError.code,
-            `${BrowserAuthErrorMessage.httpMethodNotImplementedError.desc} Given Method: ${method}`
         );
     }
 
