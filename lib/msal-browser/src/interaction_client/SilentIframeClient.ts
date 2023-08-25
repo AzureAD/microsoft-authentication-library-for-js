@@ -6,7 +6,6 @@
 import {
     ICrypto,
     Logger,
-    StringUtils,
     PromptValue,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
@@ -78,9 +77,9 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
         // Check that we have some SSO data
         if (
-            StringUtils.isEmpty(request.loginHint) &&
-            StringUtils.isEmpty(request.sid) &&
-            (!request.account || StringUtils.isEmpty(request.account.username))
+            !request.loginHint &&
+            !request.sid &&
+            (!request.account || !request.account.username)
         ) {
             this.logger.warning(
                 "No user hint provided. The authorization server may need more information to complete this request."

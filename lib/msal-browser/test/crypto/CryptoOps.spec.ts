@@ -1,5 +1,4 @@
 import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
@@ -52,12 +51,6 @@ describe("CryptoOps.ts Unit Tests", () => {
         mockDatabase = {
             "TestDB.keys": {},
         };
-    });
-
-    it("createNewGuid()", () => {
-        expect(
-            new GuidGenerator(browserCrypto).isGuid(cryptoObj.createNewGuid())
-        ).toBe(true);
     });
 
     it("base64Encode()", () => {
