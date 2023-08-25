@@ -80,7 +80,9 @@ export class SilentIframeClient extends StandardInteractionClient {
             request.correlationId
         );
         // Check that we have some SSO data
-        if (!request.loginHint && !request.sid &&
+        if (
+            !request.loginHint &&
+            !request.sid &&
             (!request.account || !request.account.username)
         ) {
             this.logger.warning(

@@ -238,10 +238,7 @@ export class AccountEntity {
         if (serverClientInfo) {
             try {
                 const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
-                if (
-                    clientInfo.uid &&
-                    clientInfo.utid
-                ) {
+                if (clientInfo.uid && clientInfo.utid) {
                     return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
                 }
             } catch (e) {}

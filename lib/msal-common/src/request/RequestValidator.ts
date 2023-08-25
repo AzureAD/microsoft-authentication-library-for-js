@@ -54,10 +54,7 @@ export class RequestValidator {
         codeChallenge: string,
         codeChallengeMethod: string
     ): void {
-        if (
-            !codeChallenge ||
-            !codeChallengeMethod
-        ) {
+        if (!codeChallenge || !codeChallengeMethod) {
             throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
         } else {
             this.validateCodeChallengeMethod(codeChallengeMethod);

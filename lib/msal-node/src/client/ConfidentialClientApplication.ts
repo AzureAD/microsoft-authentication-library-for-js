@@ -217,8 +217,7 @@ export class ConfidentialClientApplication
             privateKey: Constants.EMPTY_STRING,
         };
         const certificateNotEmpty =
-            !!certificate.thumbprint ||
-            !!certificate.privateKey;
+            !!certificate.thumbprint || !!certificate.privateKey;
 
         /*
          * If app developer configures this callback, they don't need a credential

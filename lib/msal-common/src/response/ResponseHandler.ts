@@ -252,9 +252,7 @@ export class ResponseHandler {
             );
 
             // token nonce check (TODO: Add a warning if no nonce is given?)
-            if (
-                authCodePayload && authCodePayload.nonce
-            ) {
+            if (authCodePayload && authCodePayload.nonce) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
                     throw ClientAuthError.createNonceMismatchError();
                 }
@@ -396,10 +394,7 @@ export class ResponseHandler {
         // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity | undefined;
         let cachedAccount: AccountEntity | undefined;
-        if (
-            serverTokenResponse.id_token &&
-            !!idTokenObj
-        ) {
+        if (serverTokenResponse.id_token && !!idTokenObj) {
             cachedIdToken = IdTokenEntity.createIdTokenEntity(
                 this.homeAccountIdentifier,
                 env,

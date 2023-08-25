@@ -81,7 +81,9 @@ export class ScopeSet {
         const lowerCaseScopes = this.printScopesLowerCase().split(" ");
         const lowerCaseScopesSet = new ScopeSet(lowerCaseScopes);
         // compare lowercase scopes
-        return scope ? lowerCaseScopesSet.scopes.has(scope.toLowerCase()) : false;
+        return scope
+            ? lowerCaseScopesSet.scopes.has(scope.toLowerCase())
+            : false;
     }
 
     /**

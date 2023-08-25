@@ -145,11 +145,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         homeAccountId: string
     ): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
-        if (
-            homeAccountId &&
-            allAccounts &&
-            allAccounts.length
-        ) {
+        if (homeAccountId && allAccounts && allAccounts.length) {
             return (
                 allAccounts.filter(
                     (accountObj) => accountObj.homeAccountId === homeAccountId
@@ -170,11 +166,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         localAccountId: string
     ): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
-        if (
-            localAccountId &&
-            allAccounts &&
-            allAccounts.length
-        ) {
+        if (localAccountId && allAccounts && allAccounts.length) {
             return (
                 allAccounts.filter(
                     (accountObj) => accountObj.localAccountId === localAccountId

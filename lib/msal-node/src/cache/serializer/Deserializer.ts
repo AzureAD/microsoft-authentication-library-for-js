@@ -35,9 +35,7 @@ export class Deserializer {
      * @param cachedJson
      */
     static deserializeJSONBlob(jsonFile: string): JsonCache {
-        const deserializedCache = !jsonFile
-            ? {}
-            : JSON.parse(jsonFile);
+        const deserializedCache = !jsonFile ? {} : JSON.parse(jsonFile);
         return deserializedCache;
     }
 

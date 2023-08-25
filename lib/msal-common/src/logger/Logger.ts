@@ -125,7 +125,9 @@ export class Logger {
         const timestamp = new Date().toUTCString();
 
         // Add correlationId to logs if set, correlationId provided on log messages take precedence
-        const logHeader = `[${timestamp}] : [${options.correlationId || this.correlationId || ""}]`;
+        const logHeader = `[${timestamp}] : [${
+            options.correlationId || this.correlationId || ""
+        }]`;
 
         const log = `${logHeader} : ${this.packageName}@${
             this.packageVersion
