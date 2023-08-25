@@ -26,6 +26,7 @@ export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
 export { ClientInfo, buildClientInfo, buildClientInfoFromHomeAccountId } from "./account/ClientInfo";
+export { TenantProfile } from "./account/TenantProfile";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityOptions, AzureCloudInstance } from "./authority/AuthorityOptions";
