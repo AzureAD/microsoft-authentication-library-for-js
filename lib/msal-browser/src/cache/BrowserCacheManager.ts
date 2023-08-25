@@ -344,6 +344,32 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Extends inherited removeAccount function to include removal of cross-tenant account keys from the map
+     * @param account 
+     */
+    async removeAccountMultiTenant(key: string): Promise<void> {
+        const account: AccountEntity | null = this.getAccount(key);
+        
+        if (!account) {
+            this.logger.trace("BrowserCacheManager.removeAccountMultiTenant: called but no matching account was found in the cache.");
+            return;
+        }
+
+        const accountCacheKey = account.generateAccountKey();
+        super.removeAccount(accountCacheKey, true);
+
+        // Remove cross-tenant account keys from the map
+        const accountId = account.generateAccountId();
+        const accountKeys = this.getAccountKeys();
+        accountKeys.forEach((key) => {
+            if (key.indexOf(accountId) === 0) {
+                this.removeAccountKeyFromMap(key);
+            }
+        });
+        
+    }
+
+    /**
      * Removes given idToken from the cache and from the key map
      * @param key 
      */

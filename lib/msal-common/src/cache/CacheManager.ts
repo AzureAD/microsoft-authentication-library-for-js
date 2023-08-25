@@ -640,20 +640,19 @@ export abstract class CacheManager implements ICacheManager {
      * Removes the account and related tokens for a given account key
      * @param account
      */
-    async removeAccount(accountKey: string): Promise<void> {
+    async removeAccount(accountKey: string, mulitTenant?: boolean): Promise<void> {
         const account = this.getAccount(accountKey);
         if (!account) {
             throw ClientAuthError.createNoAccountFoundError();
         }
-        await this.removeAccountContext(account);
-        this.removeItem(accountKey);
+        await this.removeAccountContext(account, mulitTenant);
     }
 
     /**
-     * Removes credentials associated with the provided account
+     * Removes credentials and tenant profiles associated with the provided account
      * @param account
      */
-    async removeAccountContext(account: AccountEntity): Promise<void> {
+    async removeAccountContext(account: AccountEntity, multiTenant?: boolean): Promise<void> {
         const allTokenKeys = this.getTokenKeys();
         const accountId = account.generateAccountId();
         const removedCredentials: Array<Promise<void>> = [];
@@ -675,6 +674,21 @@ export abstract class CacheManager implements ICacheManager {
                 this.removeRefreshToken(key);
             }
         });
+
+        // Remove other account tenant profiles for this account from cache
+        if (multiTenant) {
+            const allAccountKeys = this.getAccountKeys();
+            allAccountKeys.forEach((key) => {
+                // All account keys accross tenants will have the same account ID at the beginning (homeAccountId-environment-*)
+                if (key.indexOf(accountId) === 0) {
+                    // Removes account entry from cache but not from account key map, that is done in BrowserCacheManager.removeAccountMultitenant
+                    this.removeItem(key);
+                }
+            });
+        } else {
+            // Remove account entry from cache
+            this.removeItem(account.generateAccountKey());
+        }
 
         await Promise.all(removedCredentials);
     }
