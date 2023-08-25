@@ -104,7 +104,7 @@ export class BrowserPerformanceClient
      * @returns {((event?: Partial<PerformanceEvent>) => PerformanceEvent| null)}
      */
     startMeasurement(
-        measureName: PerformanceEvents,
+        measureName: string,
         correlationId?: string
     ): InProgressPerformanceEvent {
         // Capture page visibilityState and then invoke start/end measurement
@@ -195,7 +195,7 @@ export class BrowserPerformanceClient
      * @returns
      */
     addQueueMeasurement(
-        eventName: PerformanceEvents,
+        eventName: string,
         correlationId?: string,
         queueTime?: number,
         manuallyCompleted?: boolean
