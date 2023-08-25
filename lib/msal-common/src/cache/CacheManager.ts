@@ -222,7 +222,31 @@ export abstract class CacheManager implements ICacheManager {
     }
     
     /**
-     * Returns all home accounts with their respective guest tenant profiles in the cache
+     * Returns all accounts with their respective tenant profiles in the cache
+     */
+    getAllAccountsMultiTenant(): AccountInfo[] {
+        const allAccountKeys = this.getAccountKeys();
+        const allAccounts: AccountInfo[] = this.getAllAccounts();
+        return allAccounts.map((baseAccount: AccountInfo) => {
+            // Filter accounts down to those that share homeAccountId with baseAccount
+            const filteredTenantProfileKeys = allAccountKeys.filter((key: string) => {
+                return key.indexOf(baseAccount.homeAccountId) === 0;
+            });
+            const tenantProfileAccounts = filteredTenantProfileKeys.reduce((tenantProfileAccounts: AccountInfo[], key: string) => {
+                const entity: AccountEntity | null = this.getAccount(key);
+                if (!entity) {
+                    return tenantProfileAccounts;
+                }
+                tenantProfileAccounts.push(this.getAccountInfoFromEntity(entity));
+                return tenantProfileAccounts;
+            }, []);
+            return this.buildMultiTenantAccount(baseAccount, tenantProfileAccounts);
+        });
+    }
+
+    /**
+     * Returns all accounts by truncating all cached accounts across tenants into an AccountInfo
+     * object with the home account information and the tenant profiles of the guest accounts for the user.
      */
     private getAllMultiTenantHomeAccounts(): AccountInfo[] {
         // Get all cached accounts
@@ -243,24 +267,38 @@ export abstract class CacheManager implements ICacheManager {
      * @param baseAccount 
      * @returns 
      */
-    buildMultiTenantAccount(baseAccount: AccountInfo): AccountInfo {
-        const cachedAccountKeys = this.getAccountKeys();
+    buildMultiTenantAccount(baseAccount: AccountInfo, preloadedTenantProfileAccounts?: AccountInfo[]): AccountInfo {
         const tenantProfiles = new Map<String, TenantProfile>();
         const accountId = [baseAccount.homeAccountId, baseAccount.environment].join(Separators.CACHE_KEY_SEPARATOR);
-        // Filter accont keys belonging to user accross tenants (including home tenant)
-        const tenantProfileAccountKeys = cachedAccountKeys.filter((key:string) => {
-            return key.indexOf(accountId) === 0;
-        });
-        tenantProfileAccountKeys.forEach((key: string) => {
-            const tenantProfileAccount= this.getAccount(key);
-            if (tenantProfileAccount) {
-                tenantProfiles.set(
-                    tenantProfileAccount.realm, {
-                        objectId: tenantProfileAccount.localAccountId,
-                        tenantId: tenantProfileAccount.realm,
-                        isHomeTenant: tenantProfileAccount.realm === baseAccount.tenantId
-                    });
-            }
+        let tenantProfileAccounts: AccountInfo[] = [];
+
+        // For cases where we already have the tenant profiles preloaded like getAllAccountsMultiTenant, tenantProfiles should be passed in to avoid repeated cache access
+        if (preloadedTenantProfileAccounts) {
+            tenantProfileAccounts = preloadedTenantProfileAccounts;
+        } else {
+            // Assuming this method is called for one account in isolation, cache access perf hit is acceptable
+            const cachedAccountKeys = this.getAccountKeys();
+            // Filter accont keys belonging to user accross tenants (including home tenant)
+            const tenantProfileAccountKeys = cachedAccountKeys.filter((key:string) => {
+                return key.indexOf(accountId) === 0;
+            });
+
+            tenantProfileAccountKeys.forEach((key: string) => {
+                const tenantProfileAccount = this.getAccount(key)?.getAccountInfo();
+                if (tenantProfileAccount) {
+                    tenantProfileAccounts.push(tenantProfileAccount);
+                }
+            });
+        }
+
+        // Map tenant profile accounts to their tenantProfiles for baseAccount
+        tenantProfileAccounts.forEach((tenantProfileAccount: AccountInfo) => {
+            tenantProfiles.set(
+                tenantProfileAccount.tenantId, { 
+                    objectId: tenantProfileAccount.localAccountId,
+                    tenantId: tenantProfileAccount.tenantId,
+                    isHomeTenant: tenantProfileAccount.tenantId === tenantProfileAccount.homeAccountId.split(".")[1]
+                });
         });
         
         return { ...baseAccount, tenantProfiles };
