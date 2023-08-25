@@ -15,10 +15,10 @@ const guestProfileButton = document.getElementById("seeProfileGuest");
 const tenantProfileDiv = document.getElementById("tenant-profile-div");
 const graphProfileDiv = document.getElementById("graph-profile-div");
 
-function showWelcomeMessage(homeAccount) {
+function showWelcomeMessage(activeAccount) {
     // Reconfiguring DOM elements
     cardDivGraphProfiles.style.display = 'initial';
-    welcomeDiv.innerHTML = `Welcome ${homeAccount.username}`;
+    welcomeDiv.innerHTML = `Welcome ${activeAccount.name}`;
     signInButton.setAttribute('class', "btn btn-success dropdown-toggle");
     signInButton.innerHTML = "Sign Out";
     popupButton.setAttribute('onClick', "signOut(this.id)");

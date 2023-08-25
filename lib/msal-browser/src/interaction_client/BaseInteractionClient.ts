@@ -56,11 +56,7 @@ export abstract class BaseInteractionClient {
             // Clear given account.
             try {
                 const accountKey = AccountEntity.generateAccountCacheKey(account);
-                if (this.config.auth.multiTenantAccountsEnabled) {
-                    await this.browserStorage.removeAccountMultiTenant(accountKey);
-                } else {
-                    await this.browserStorage.removeAccount(accountKey);
-                }
+                await this.browserStorage.removeAccount(accountKey, this.config.auth.multiTenantAccountsEnabled);
                 this.logger.verbose("Cleared cache items belonging to the account provided in the logout request.");
             } catch (error) {
                 this.logger.error("Account provided in logout request was not found. Local cache unchanged.");

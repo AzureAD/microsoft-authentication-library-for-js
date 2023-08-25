@@ -338,35 +338,30 @@ export class BrowserCacheManager extends CacheManager {
      * Extends inherited removeAccount function to include removal of the account key from the map
      * @param key 
      */
-    async removeAccount(key: string): Promise<void> {
-        super.removeAccount(key);
-        this.removeAccountKeyFromMap(key);
-    }
-
-    /**
-     * Extends inherited removeAccount function to include removal of cross-tenant account keys from the map
-     * @param account 
-     */
-    async removeAccountMultiTenant(key: string): Promise<void> {
-        const account: AccountEntity | null = this.getAccount(key);
+    async removeAccount(key: string, multiTenantAccountsEnabled?: boolean): Promise<void> {
+        if(multiTenantAccountsEnabled) {
+            const account: AccountEntity | null = this.getAccount(key);
         
-        if (!account) {
-            this.logger.trace("BrowserCacheManager.removeAccountMultiTenant: called but no matching account was found in the cache.");
-            return;
-        }
-
-        const accountCacheKey = account.generateAccountKey();
-        super.removeAccount(accountCacheKey, true);
-
-        // Remove cross-tenant account keys from the map
-        const accountId = account.generateAccountId();
-        const accountKeys = this.getAccountKeys();
-        accountKeys.forEach((key) => {
-            if (key.indexOf(accountId) === 0) {
-                this.removeAccountKeyFromMap(key);
+            if (!account) {
+                this.logger.trace("BrowserCacheManager.removeAccountMultiTenant: called but no matching account was found in the cache.");
+                return;
             }
-        });
-        
+    
+            const accountCacheKey = account.generateAccountKey();
+            super.removeAccount(accountCacheKey, true);
+    
+            // Remove cross-tenant account keys from the map
+            const accountId = account.generateAccountId();
+            const accountKeys = this.getAccountKeys();
+            accountKeys.forEach((key) => {
+                if (key.indexOf(accountId) === 0) {
+                    this.removeAccountKeyFromMap(key);
+                }
+            });
+        } else {
+            super.removeAccount(key);
+            this.removeAccountKeyFromMap(key);
+        }
     }
 
     /**

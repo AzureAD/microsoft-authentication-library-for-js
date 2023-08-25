@@ -13,6 +13,7 @@ import { ThrottlingEntity } from "../entities/ThrottlingEntity";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
 import { AuthenticationScheme } from "../../utils/Constants";
 import { ScopeSet } from "../../request/ScopeSet";
+import { TenantProfile } from "../../account/TenantProfile";
 
 export type AccountCache = Record<string, AccountEntity>;
 export type IdTokenCache = Record<string, IdTokenEntity>;
@@ -40,6 +41,7 @@ export type AccountFilter = {
     environment?: string;
     realm?: string;
     nativeAccountId?: string;
+    tenantProfile?: TenantProfile;
 };
 
 /**

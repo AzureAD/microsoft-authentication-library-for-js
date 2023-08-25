@@ -224,7 +224,7 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Returns all accounts with their respective tenant profiles in the cache
      */
-    getAllAccountsMultiTenant(): AccountInfo[] {
+    private getAllAccountsMultiTenant(): AccountInfo[] {
         const allAccountKeys = this.getAccountKeys();
         const allAccounts: AccountInfo[] = this.getAllAccounts();
         return allAccounts.map((baseAccount: AccountInfo) => {
@@ -248,7 +248,7 @@ export abstract class CacheManager implements ICacheManager {
      * Returns all accounts by truncating all cached accounts across tenants into an AccountInfo
      * object with the home account information and the tenant profiles of the guest accounts for the user.
      */
-    private getAllMultiTenantHomeAccounts(): AccountInfo[] {
+    getAllMultiTenantHomeAccounts(): AccountInfo[] {
         // Get all cached accounts
         const cachedAccounts = this.getAllCachedAccounts();
 
@@ -305,20 +305,14 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /** 
-     * Gets accountInfo object based on provided filters
+     * Gets first AcccountInfo object that matches the provided filters
      */
-    getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
+    getAccountInfoFilteredBy(accountFilter: AccountFilter, multiTenantAccountsEnabled?: boolean): AccountInfo | null {
         const allAccounts = this.getAccountsFilteredBy(accountFilter);
-        if (allAccounts.length > 0) {
-            return this.getAccountInfoFromEntity(allAccounts[0]);
-        } else {
-            return null;
-        }
-    }
+        const account = (allAccounts.length > 0) ? this.getAccountInfoFromEntity(allAccounts[0]) : null;
 
-    getAccountInfoMultiTenantFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
-        const account = this.getAccountInfoFilteredBy(accountFilter);
-        return account ? this.buildMultiTenantAccount(account) : null;
+        return (multiTenantAccountsEnabled && account) ? this.buildMultiTenantAccount(account) : account;
+
     }
 
     private getAccountInfoFromEntity(accountEntity: AccountEntity): AccountInfo {
@@ -401,9 +395,7 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
      * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
-     * @param homeAccountId
-     * @param environment
-     * @param realm
+     * @param accountFilter
      */
     getAccountsFilteredBy(accountFilter: AccountFilter): AccountEntity[] {
         const allAccountKeys = this.getAccountKeys();
@@ -442,6 +434,10 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             if (!!accountFilter.nativeAccountId && !this.matchNativeAccountId(entity, accountFilter.nativeAccountId)) {
+                return;
+            }
+
+            if (!!accountFilter.tenantProfile && !this.matchTenantProfile(entity, accountFilter.tenantProfile)) {
                 return;
             }
 
@@ -1257,6 +1253,18 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchKeyId(entity: CredentialEntity, keyId: string): boolean {
         return !!(entity.keyId && entity.keyId === keyId);
+    }
+
+    /**
+     * Returns true if the tenant profile represents the exact entity in cache, false otherwise
+     * @param entity 
+     * @param tenantProfile 
+     * @returns 
+     */
+    private matchTenantProfile(entity: AccountEntity, tenantProfile: TenantProfile): boolean {
+        const matchTenantId = !!(entity.realm && entity.realm === tenantProfile.tenantId);
+        const matchLocalAccountId = !!(entity.localAccountId && entity.localAccountId === tenantProfile.objectId);
+        return matchTenantId && matchLocalAccountId;
     }
 
     /**

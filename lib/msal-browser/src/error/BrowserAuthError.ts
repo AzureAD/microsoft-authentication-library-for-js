@@ -188,6 +188,10 @@ export const BrowserAuthErrorMessage = {
     nativePromptNotSupported: {
         code: "native_prompt_not_supported",
         desc: "The provided prompt is not supported by the native platform. This request should be routed to the web based flow."
+    },
+    multiTenantAccountsDisabled: {
+        code: "multi_tenant_accounts_disabled",
+        desc: "Multi-tenant accounts have not been enabled. Add multiTenantAccountsEnabled: true to the auth configuration object to use multi-tenant accounts."
     }
 };
 
@@ -541,5 +545,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createNativePromptParameterNotSupportedError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.nativePromptNotSupported.code, BrowserAuthErrorMessage.nativePromptNotSupported.desc);
+    }
+
+    /**
+     * Create an error thrown when using an API that is only supported when multi-tenant accounts are enabled by use of the Configuration.auth.multiTenantAccountsEnabled setting.
+     */
+    static createMultiTenantAccountsDisabledError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.multiTenantAccountsDisabled.code, BrowserAuthErrorMessage.multiTenantAccountsDisabled.desc);
     }
 }

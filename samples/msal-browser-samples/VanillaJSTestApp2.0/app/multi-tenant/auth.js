@@ -11,17 +11,14 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 });
 
 function handleResponse() {
-    // getAllAccounts returns all cached home and guest accounts
-    const allAccounts = myMSALObj.getAllAccounts().filter((account) => {
-        // Keep only home accounts since their tenant profiles are populated and guest accounts can be obatinined by getAccountByTenantProfile
-        return account.homeAccountId.split(".")[0] === account.localAccountId;;
-    });
-    if (!allAccounts || allAccounts.length < 1) {
+    // getAllMultiTenantHomeAccounts returns all cached home and guest accounts
+    const homeAccounts = myMSALObj.getAllMultiTenantHomeAccounts();
+    if (!homeAccounts || homeAccounts.length < 1) {
         return;
-    } else if (allAccounts.length === 1) {
+    } else if (homeAccounts.length === 1) {
         // Get all accounts returns the homeAccount with tenantProfiles when multiTenantAccountsEnabled is set to true
-        pickActiveAccountAndTenantProfile(allAccounts[0]);
-    } else if (allAccounts.length > 1) {
+        pickActiveAccountAndTenantProfile(homeAccounts[0]);
+    } else if (homeAccounts.length > 1) {
             // Select account logic
     }
 }
@@ -35,7 +32,7 @@ async function pickActiveAccountAndTenantProfile(homeAccount) {
             myMSALObj.setActiveAccount(activeAccount);
         }
         accountId = activeAccount.homeAccountId;
-        showWelcomeMessage(homeAccount);
+        showWelcomeMessage(activeAccount);
         let tenantProfileList = [];
         if (homeAccount.tenantProfiles) {
             // Tenant Profiles is a Map, so it will be flattened into an array
@@ -50,7 +47,7 @@ async function setActiveAccount(tenantId) {
     // Sets the active account to the cached account object matching the tenant profile selected by the user.
     let activeAccount = myMSALObj.getActiveAccount();
     const tenantProfile = activeAccount.tenantProfiles.get(tenantId);
-    const newActiveAccount = myMSALObj.getAccountByTenantProfile(tenantProfile);
+    const newActiveAccount = myMSALObj.getAccountByFilter({ tenantProfile: tenantProfile});
     if (newActiveAccount) {
         myMSALObj.setActiveAccount(newActiveAccount);
         accountId = activeAccount.homeAccountId;
@@ -58,8 +55,7 @@ async function setActiveAccount(tenantId) {
     handleResponse();
 }
 
-async function signIn(method) {
-    signInType = isIE ? "redirect" : method;
+async function signIn(signInType) {
     if (signInType === "popup") {
         return myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
             console.log(error);
