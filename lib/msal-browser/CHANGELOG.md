@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 07 Aug 2023 21:58:26 GMT and should not be manually modified.
+This log was last generated on Thu, 24 Aug 2023 18:23:25 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.38.2
+
+Thu, 24 Aug 2023 18:23:25 GMT
+
+### Patches
+
+- Clear tokens and token keys for claims based ATs when `claimsBasedCachingEnabled` is set to `false` #6356 (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v13.3.0
 
 ## 2.38.1
 

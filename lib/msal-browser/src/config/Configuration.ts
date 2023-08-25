@@ -70,7 +70,7 @@ export type BrowserAuthOptions = {
     /**
      * Flag that enables multi-tenant account support.
      */
-    multiTenantAccountsEnabled: boolean;
+    multiTenantAccountsEnabled?: boolean;
 };
 
 /**
