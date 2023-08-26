@@ -4,10 +4,10 @@
  */
 
 import { ICrypto, PkceCodes } from "@azure/msal-common";
-import { GuidGenerator } from "./GuidGenerator";
-import { EncodingUtils } from "../utils/EncodingUtils";
-import { PkceGenerator } from "./PkceGenerator";
-import { HashUtils } from "./HashUtils";
+import { GuidGenerator } from "./GuidGenerator.js";
+import { EncodingUtils } from "../utils/EncodingUtils.js";
+import { PkceGenerator } from "./PkceGenerator.js";
+import { HashUtils } from "./HashUtils.js";
 
 /**
  * This class implements MSAL node's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and
