@@ -5,7 +5,6 @@
 
 import { NodeStorage } from "./NodeStorage";
 import {
-    StringUtils,
     AccountEntity,
     AccountInfo,
     Logger,
@@ -77,7 +76,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         );
 
         // if cacheSnapshot not null or empty, merge
-        if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+        if (this.cacheSnapshot) {
             this.logger.trace("Reading cache snapshot from disk");
             finalState = this.mergeState(
                 JSON.parse(this.cacheSnapshot),
@@ -99,7 +98,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         this.logger.trace("Deserializing JSON to in-memory cache");
         this.cacheSnapshot = cache;
 
-        if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+        if (this.cacheSnapshot) {
             this.logger.trace("Reading cache snapshot from disk");
             const deserializedCache = Deserializer.deserializeAllCache(
                 this.overlayDefaults(JSON.parse(this.cacheSnapshot))
@@ -146,11 +145,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         homeAccountId: string
     ): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
-        if (
-            !StringUtils.isEmpty(homeAccountId) &&
-            allAccounts &&
-            allAccounts.length
-        ) {
+        if (homeAccountId && allAccounts && allAccounts.length) {
             return (
                 allAccounts.filter(
                     (accountObj) => accountObj.homeAccountId === homeAccountId
@@ -171,11 +166,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         localAccountId: string
     ): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
-        if (
-            !StringUtils.isEmpty(localAccountId) &&
-            allAccounts &&
-            allAccounts.length
-        ) {
+        if (localAccountId && allAccounts && allAccounts.length) {
             return (
                 allAccounts.filter(
                     (accountObj) => accountObj.localAccountId === localAccountId

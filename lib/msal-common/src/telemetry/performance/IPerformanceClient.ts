@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { PerformanceEvent, PerformanceEvents } from "./PerformanceEvent";
+import { PerformanceEvent } from "./PerformanceEvent";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
@@ -42,12 +42,12 @@ export interface IPerformanceClient {
     generateId(): string;
     calculateQueuedTime(preQueueTime: number, currentTime: number): number;
     addQueueMeasurement(
-        eventName: PerformanceEvents,
+        eventName: string,
         correlationId?: string,
         queueTime?: number,
         manuallyCompleted?: boolean
     ): void;
-    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
+    setPreQueueTime(eventName: string, correlationId?: string): void;
 }
 
 /**
@@ -57,7 +57,7 @@ export type QueueMeasurement = {
     /**
      * Name of performance event
      */
-    eventName: PerformanceEvents;
+    eventName: string;
 
     /**
      * Time spent in JS queue

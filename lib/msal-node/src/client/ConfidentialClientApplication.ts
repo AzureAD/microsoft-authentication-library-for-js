@@ -17,7 +17,6 @@ import {
     CommonClientCredentialRequest,
     CommonOnBehalfOfRequest,
     AuthenticationResult,
-    StringUtils,
     ClientAuthError,
     AzureRegionConfiguration,
     AuthError,
@@ -211,19 +210,14 @@ export class ConfidentialClientApplication
     }
 
     private setClientCredential(configuration: Configuration): void {
-        const clientSecretNotEmpty = !StringUtils.isEmpty(
-            configuration.auth.clientSecret
-        );
-        const clientAssertionNotEmpty = !StringUtils.isEmpty(
-            configuration.auth.clientAssertion
-        );
+        const clientSecretNotEmpty = !!configuration.auth.clientSecret;
+        const clientAssertionNotEmpty = !!configuration.auth.clientAssertion;
         const certificate = configuration.auth.clientCertificate || {
             thumbprint: Constants.EMPTY_STRING,
             privateKey: Constants.EMPTY_STRING,
         };
         const certificateNotEmpty =
-            !StringUtils.isEmpty(certificate.thumbprint) ||
-            !StringUtils.isEmpty(certificate.privateKey);
+            !!certificate.thumbprint || !!certificate.privateKey;
 
         /*
          * If app developer configures this callback, they don't need a credential

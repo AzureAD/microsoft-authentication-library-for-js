@@ -139,10 +139,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} correlationId
      * @returns {number}
      */
-    getPreQueueTime(
-        eventName: PerformanceEvents,
-        correlationId: string
-    ): number | void {
+    getPreQueueTime(eventName: string, correlationId: string): number | void {
         const preQueueEvent: PreQueueEvent | undefined =
             this.preQueueTimeByCorrelationId.get(correlationId);
 
@@ -204,7 +201,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns
      */
     addQueueMeasurement(
-        eventName: PerformanceEvents,
+        eventName: string,
         correlationId?: string,
         queueTime?: number,
         manuallyCompleted?: boolean
