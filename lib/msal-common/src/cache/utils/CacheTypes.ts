@@ -42,6 +42,7 @@ export type AccountFilter = {
     realm?: string;
     nativeAccountId?: string;
     tenantProfile?: TenantProfile;
+    isHomeTenant?: boolean;
 };
 
 /**

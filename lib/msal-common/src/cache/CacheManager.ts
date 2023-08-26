@@ -245,23 +245,6 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * Returns all accounts by truncating all cached accounts across tenants into an AccountInfo
-     * object with the home account information and the tenant profiles of the guest accounts for the user.
-     */
-    getAllMultiTenantHomeAccounts(): AccountInfo[] {
-        // Get all cached accounts
-        const cachedAccounts = this.getAllCachedAccounts();
-
-        // Filter out cross-tenant/guest accounts
-        const homeAccounts: AccountInfo[] = cachedAccounts.filter((account: AccountInfo) => { 
-            const homeTenant = account.homeAccountId.split(".")[1];
-            return homeTenant === account.tenantId;
-        }).map((homeAccount: AccountInfo) => { return this.buildMultiTenantAccount(homeAccount); });
-
-        return homeAccounts;
-    }
-
-    /**
      * Finds all cached accounts that are tenant profiles of the base account and
      * populates the base account's tenant profile map with their profile data
      * @param baseAccount 
@@ -302,6 +285,21 @@ export abstract class CacheManager implements ICacheManager {
         });
         
         return { ...baseAccount, tenantProfiles };
+    }
+
+    /**
+     * Returns all accounts in the cache that match the filter. If in multi-tenant mode, the accounts will be returned
+     * with their respective tenant profiles.
+     * @param accountFilter 
+     * @param multiTenantAccountsEnabled 
+     * @returns all accounts in the cache that match the filter
+     */
+    getAllAccountsFilteredBy(accountFilter: AccountFilter, multiTenantAccountsEnabled?: boolean): AccountInfo[] {
+        const fitleredAccounts: AccountInfo[] = this.getAccountsFilteredBy(accountFilter).map((accountEntity) => { return accountEntity.getAccountInfo(); });
+        if (multiTenantAccountsEnabled) {
+            return fitleredAccounts.map((accountInfo) => { return this.buildMultiTenantAccount(accountInfo); });
+        } 
+        return fitleredAccounts;
     }
 
     /** 
@@ -439,6 +437,16 @@ export abstract class CacheManager implements ICacheManager {
 
             if (!!accountFilter.tenantProfile && !this.matchTenantProfile(entity, accountFilter.tenantProfile)) {
                 return;
+            }
+
+            // If the account belongs to the home tenant, the realm will be the second part of the homeAccountId
+            if(accountFilter.isHomeTenant !== undefined) {
+                const entityTenantId = entity.homeAccountId.split(".")[1];
+                if (accountFilter.isHomeTenant && !this.matchRealm(entity, entityTenantId)) {
+                    return;
+                } else if (!accountFilter.isHomeTenant && this.matchRealm(entity, entityTenantId)) {
+                    return;
+                }
             }
 
             matchingAccounts.push(entity);

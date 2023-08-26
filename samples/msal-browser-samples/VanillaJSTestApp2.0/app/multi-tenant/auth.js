@@ -11,8 +11,8 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 });
 
 function handleResponse() {
-    // getAllMultiTenantHomeAccounts returns all cached home and guest accounts
-    const homeAccounts = myMSALObj.getAllMultiTenantHomeAccounts();
+    // getAccountsByFilter returns all cached accounts that match the filter. Use isHomeTenant filter to get the home accounts.
+    const homeAccounts = myMSALObj.getAccountsByFilter({ isHomeTenant: true });
     if (!homeAccounts || homeAccounts.length < 1) {
         return;
     } else if (homeAccounts.length === 1) {

@@ -772,17 +772,13 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Returns all AccountInfo objects that represent the user's home accounts with references to their corresponding
-     * guest accounts in the cache.
-     * @returns Array of home account objects in the cache with their respective tenant profile maps
+     * Returns all cached accounts that match the filter passed in.
+     * @param accountFilter 
+     * @returns All cached accounts that match the filter.
      */
-    getAllMultiTenantHomeAccounts(): AccountInfo[] {
-        this.logger.verbose("getAllMultiTenantHomeAccounts called");
-        if(this.config.auth.multiTenantAccountsEnabled) {
-            return this.isBrowserEnvironment ? this.browserStorage.getAllMultiTenantHomeAccounts() : [];
-        } else {
-            throw BrowserAuthError.createMultiTenantAccountsDisabledError();
-        }
+    getAccountsByFilter(accountFilter: AccountFilter): AccountInfo[] {
+        this.logger.verbose("getAccountsByFilter called");
+        return this.isBrowserEnvironment ? this.browserStorage.getAllAccountsFilteredBy(accountFilter, this.config.auth.multiTenantAccountsEnabled) : [];
     }
 
     /**
