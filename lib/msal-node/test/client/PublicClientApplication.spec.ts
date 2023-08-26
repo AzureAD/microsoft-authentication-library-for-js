@@ -533,17 +533,24 @@ describe("PublicClientApplication", () => {
                 state: "123",
             };
 
-            jest.spyOn(LoopbackClient.prototype, "listenForAuthCode").mockImplementation(() => {
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "listenForAuthCode"
+            ).mockImplementation(() => {
                 return new Promise<ServerAuthorizationCodeResponse>(
                     (resolve) => {
                         resolve(testServerCodeResponse);
                     }
                 );
             });
-            jest.spyOn(LoopbackClient.prototype, "getRedirectUri").mockImplementation(
-                () => TEST_CONSTANTS.REDIRECT_URI
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "getRedirectUri"
+            ).mockImplementation(() => TEST_CONSTANTS.REDIRECT_URI);
+            const mockCloseServer = jest.spyOn(
+                LoopbackClient.prototype,
+                "closeServer"
             );
-            const mockCloseServer = jest.spyOn(LoopbackClient.prototype, "closeServer");
 
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,

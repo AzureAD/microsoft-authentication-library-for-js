@@ -174,7 +174,7 @@ export class PublicClientApplication
                 errorTemplate
             );
             const redirectUri = loopbackClient.getRedirectUri();
-    
+
             const validRequest: AuthorizationUrlRequest = {
                 ...remainingProperties,
                 correlationId: correlationId,
@@ -184,13 +184,13 @@ export class PublicClientApplication
                 codeChallenge: challenge,
                 codeChallengeMethod: CodeChallengeMethodValues.S256,
             };
-    
+
             const authCodeUrl = await this.getAuthCodeUrl(validRequest);
             await openBrowser(authCodeUrl);
             const authCodeResponse = await authCodeListener.finally(() => {
                 loopbackClient.closeServer();
             });
-    
+
             if (authCodeResponse.error) {
                 throw new ServerError(
                     authCodeResponse.error,
@@ -200,7 +200,7 @@ export class PublicClientApplication
             } else if (!authCodeResponse.code) {
                 throw NodeAuthError.createNoAuthCodeInResponseError();
             }
-    
+
             const clientInfo = authCodeResponse.client_info;
             const tokenRequest: AuthorizationCodeRequest = {
                 code: authCodeResponse.code,
