@@ -241,7 +241,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             azureCloudInstance: AzureCloudInstance.None,
             tenant: Constants.EMPTY_STRING
         },
-        skipAuthorityMetadataCache: false,
+        skipAuthorityMetadataCache: false,  
     };
 
     // Default cache options for browser

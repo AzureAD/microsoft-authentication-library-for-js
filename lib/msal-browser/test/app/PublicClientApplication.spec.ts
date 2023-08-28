@@ -2402,6 +2402,43 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentIframeSpy.calledOnce).toBe(true);
         });
 
+        it("Calls SilentIframeClient.acquireToken and returns its response if cache lookup throws and refresh token is not found in cache", async () => {
+
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+
+            const refreshRequiredRTNotFoundError = InteractionRequiredAuthError.createNoTokensFoundError()
+
+            const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects("Expired");
+            const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(refreshRequiredRTNotFoundError);
+            const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const response = await pca.acquireTokenSilent({scopes: ["openid"], account: testAccount});
+            expect(response).toEqual(testTokenResponse);
+            expect(silentCacheSpy.calledOnce).toBe(true);
+            expect(silentRefreshSpy.calledOnce).toBe(true);
+            expect(silentIframeSpy.calledOnce).toBe(true);
+        })
+
         it("makes one network request with multiple parallel silent requests with same request", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,

@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 05 Jul 2023 22:05:08 GMT and should not be manually modified.
+This log was last generated on Thu, 24 Aug 2023 18:23:25 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 13.3.0
+
+Thu, 24 Aug 2023 18:23:25 GMT
+
+### Minor changes
+
+- Clean up claims cached in tokens when claimsclaimsBasedCachingEnabled is set to false #6356 (sameera.gajjarapu@microsoft.com)
+
+## 13.2.1
+
+Mon, 07 Aug 2023 21:58:26 GMT
+
+### Patches
+
+- Install @types/node in common (sameera.gajjarapu@microsoft.com)
 
 ## 13.2.0
 

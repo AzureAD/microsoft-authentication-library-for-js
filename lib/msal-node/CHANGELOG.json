@@ -2,6 +2,44 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 24 Aug 2023 18:23:26 GMT",
+      "tag": "@azure/msal-node_v1.18.2",
+      "version": "1.18.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v13.3.0",
+            "commit": "f85761c09947826164c2ca1d60cc058f64b37885"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Aug 2023 21:58:26 GMT",
+      "tag": "@azure/msal-node_v1.18.1",
+      "version": "1.18.1",
+      "comments": {
+        "none": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a7e37cd85c6332bba43e2a766122cb134d5b8c02",
+            "comment": "Address `semver` CVE-2022-25883 and other moderate severity vulnerabilities #9657"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v13.2.1",
+            "commit": "43ddd07ff783fb0c7a3c50be7f763d4aeb46f7c2"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 05 Jul 2023 22:05:09 GMT",
       "tag": "@azure/msal-node_v1.18.0",
       "version": "1.18.0",
