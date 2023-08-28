@@ -5,7 +5,6 @@
 
 import { InteractionType } from "./BrowserConstants";
 import {
-    StringUtils,
     ClientAuthError,
     ICrypto,
     RequestStateObject,
@@ -28,7 +27,7 @@ export class BrowserProtocolUtils {
         browserCrypto: ICrypto,
         state: string
     ): BrowserStateObject | null {
-        if (StringUtils.isEmpty(state)) {
+        if (!state) {
             return null;
         }
 

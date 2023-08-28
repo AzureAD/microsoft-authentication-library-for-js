@@ -16,7 +16,7 @@ export class StringUtils {
      * @param authToken
      */
     static decodeAuthToken(authToken: string): DecodedAuthToken {
-        if (StringUtils.isEmpty(authToken)) {
+        if (!authToken) {
             throw ClientAuthError.createTokenNullOrEmptyError(authToken);
         }
         const tokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
@@ -35,20 +35,11 @@ export class StringUtils {
     }
 
     /**
-     * Check if a string is empty.
-     *
-     * @param str
-     */
-    static isEmpty(str?: string): boolean {
-        return typeof str === "undefined" || !str || 0 === str.length;
-    }
-
-    /**
      * Check if stringified object is empty
      * @param strObj
      */
     static isEmptyObj(strObj?: string): boolean {
-        if (strObj && !StringUtils.isEmpty(strObj)) {
+        if (strObj) {
             try {
                 const obj = JSON.parse(strObj);
                 return Object.keys(obj).length === 0;
@@ -103,7 +94,7 @@ export class StringUtils {
      */
     static removeEmptyStringsFromArray(arr: Array<string>): Array<string> {
         return arr.filter((entry) => {
-            return !StringUtils.isEmpty(entry);
+            return !!entry;
         });
     }
 

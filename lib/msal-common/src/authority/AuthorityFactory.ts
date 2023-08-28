@@ -6,7 +6,6 @@
 import { Authority } from "./Authority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { INetworkModule } from "../network/INetworkModule";
-import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
@@ -90,7 +89,7 @@ export class AuthorityFactory {
         correlationId?: string
     ): Authority {
         // Throw error if authority url is empty
-        if (StringUtils.isEmpty(authorityUrl)) {
+        if (!authorityUrl) {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 

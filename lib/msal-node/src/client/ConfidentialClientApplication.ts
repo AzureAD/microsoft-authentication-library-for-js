@@ -5,19 +5,18 @@
 
 // AADAuthorityConstants
 
-import { ClientApplication } from "./ClientApplication";
-import { Configuration } from "../config/Configuration";
-import { ClientAssertion } from "./ClientAssertion";
+import { ClientApplication } from "./ClientApplication.js";
+import { Configuration } from "../config/Configuration.js";
+import { ClientAssertion } from "./ClientAssertion.js";
 import {
     Constants as NodeConstants,
     ApiId,
     REGION_ENVIRONMENT_VARIABLE,
-} from "../utils/Constants";
+} from "../utils/Constants.js";
 import {
     CommonClientCredentialRequest,
     CommonOnBehalfOfRequest,
     AuthenticationResult,
-    StringUtils,
     ClientAuthError,
     AzureRegionConfiguration,
     AuthError,
@@ -27,11 +26,11 @@ import {
     UrlString,
     AADAuthorityConstants,
 } from "@azure/msal-common";
-import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
-import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
-import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
-import { ClientCredentialClient } from "./ClientCredentialClient";
-import { OnBehalfOfClient } from "./OnBehalfOfClient";
+import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
+import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
+import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";
+import { ClientCredentialClient } from "./ClientCredentialClient.js";
+import { OnBehalfOfClient } from "./OnBehalfOfClient.js";
 
 /**
  *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
@@ -211,19 +210,14 @@ export class ConfidentialClientApplication
     }
 
     private setClientCredential(configuration: Configuration): void {
-        const clientSecretNotEmpty = !StringUtils.isEmpty(
-            configuration.auth.clientSecret
-        );
-        const clientAssertionNotEmpty = !StringUtils.isEmpty(
-            configuration.auth.clientAssertion
-        );
+        const clientSecretNotEmpty = !!configuration.auth.clientSecret;
+        const clientAssertionNotEmpty = !!configuration.auth.clientAssertion;
         const certificate = configuration.auth.clientCertificate || {
             thumbprint: Constants.EMPTY_STRING,
             privateKey: Constants.EMPTY_STRING,
         };
         const certificateNotEmpty =
-            !StringUtils.isEmpty(certificate.thumbprint) ||
-            !StringUtils.isEmpty(certificate.privateKey);
+            !!certificate.thumbprint || !!certificate.privateKey;
 
         /*
          * If app developer configures this callback, they don't need a credential

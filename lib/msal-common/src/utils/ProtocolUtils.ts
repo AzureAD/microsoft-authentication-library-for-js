@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils } from "./StringUtils";
 import { Constants } from "./Constants";
 import { ICrypto } from "../crypto/ICrypto";
 import { ClientAuthError } from "../error/ClientAuthError";
@@ -46,7 +45,7 @@ export class ProtocolUtils {
             cryptoObj,
             meta
         );
-        return !StringUtils.isEmpty(userState)
+        return userState
             ? `${libraryState}${Constants.RESOURCE_DELIM}${userState}`
             : libraryState;
     }
@@ -95,7 +94,7 @@ export class ProtocolUtils {
             );
         }
 
-        if (StringUtils.isEmpty(state)) {
+        if (!state) {
             throw ClientAuthError.createInvalidStateError(
                 state,
                 "Null, undefined or empty state"
@@ -115,9 +114,7 @@ export class ProtocolUtils {
                 libraryStateString
             ) as LibraryStateObject;
             return {
-                userRequestState: !StringUtils.isEmpty(userState)
-                    ? userState
-                    : Constants.EMPTY_STRING,
+                userRequestState: userState || Constants.EMPTY_STRING,
                 libraryState: libraryStateObj,
             };
         } catch (e) {
