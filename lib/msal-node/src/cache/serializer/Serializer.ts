@@ -18,7 +18,7 @@ import {
     SerializedAccessTokenEntity,
     SerializedRefreshTokenEntity,
     SerializedAppMetadataEntity,
-} from "./SerializerTypes";
+} from "./SerializerTypes.js";
 
 export class Serializer {
     /**

@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { ILoopbackClient } from "../network/ILoopbackClient";
-import { AuthorizationUrlRequest } from "./AuthorizationUrlRequest";
+import { ILoopbackClient } from "../network/ILoopbackClient.js";
+import { AuthorizationUrlRequest } from "./AuthorizationUrlRequest.js";
 
 /**
  * Request object passed by user to configure acquireTokenInteractive API
