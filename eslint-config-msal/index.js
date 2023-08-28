@@ -1,4 +1,4 @@
-{
+module.exports = {
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "sourceType": "module",
@@ -149,4 +149,4 @@
             "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
         }
     }
-}
+};
