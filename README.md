@@ -1,10 +1,10 @@
-# Microsoft Authentication Library for JavaScript (MSAL.js)
+Microsoft Authentication Library for JavaScript (MSAL.js)
 
 The Microsoft Authentication Library for JavaScript enables both client-side and server-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) for work and school accounts (AAD), Microsoft personal accounts (MSA), and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-## Repository
+Repository
 
-### Core and wrapper libraries
+Core and wrapper libraries
 
 The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for our libraries in active development. You will also find all the details about **installing the libraries** in their respective README.md.
 
@@ -50,11 +50,11 @@ The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-
 
 All of our libraries follow [semantic versioning](https://semver.org). We recommend using the latest version of each library to ensure you have the latest security patches and bug fixes.
 
-## Roadmap
+Roadmap
 
 Please check the [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md) to see what we are working on and what we have planned for future releases.
 
-## Community Help and Support
+Community Help and Support
 
 - [GitHub Issues](../../issues) is the best place to ask questions, report bugs, and new request features.
 
