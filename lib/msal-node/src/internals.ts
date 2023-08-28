@@ -8,5 +8,5 @@
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
 
-export { Serializer } from "./cache/serializer/Serializer";
-export { Deserializer } from "./cache/serializer/Deserializer";
+export { Serializer } from "./cache/serializer/Serializer.js";
+export { Deserializer } from "./cache/serializer/Deserializer.js";

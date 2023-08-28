@@ -15,12 +15,12 @@ import {
     ServerTelemetryManager,
     ServerTelemetryRequest,
     ClientConfigurationError,
-    StringUtils,
     Authority,
     AuthorityOptions,
     AuthorityFactory,
     IPerformanceClient,
     PerformanceEvents,
+    StringUtils,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";

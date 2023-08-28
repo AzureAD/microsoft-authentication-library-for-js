@@ -144,6 +144,8 @@ export {
     PerformanceCallbackFunction,
     PerformanceEvent,
     PerformanceEvents,
+    // Telemetry
+    InProgressPerformanceEvent,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

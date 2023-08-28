@@ -4,15 +4,15 @@
  */
 
 import { AccountInfo, AuthenticationResult, Logger } from "@azure/msal-common";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
-import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
-import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
-import { TokenCache } from "../cache/TokenCache";
-import { InteractiveRequest } from "../request/InteractiveRequest";
-import { SignOutRequest } from "../request/SignOutRequest";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
+import { DeviceCodeRequest } from "../request/DeviceCodeRequest.js";
+import { RefreshTokenRequest } from "../request/RefreshTokenRequest.js";
+import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
+import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest.js";
+import { TokenCache } from "../cache/TokenCache.js";
+import { InteractiveRequest } from "../request/InteractiveRequest.js";
+import { SignOutRequest } from "../request/SignOutRequest.js";
 
 /**
  * Interface for the PublicClientApplication class defining the public API signatures

@@ -15,7 +15,6 @@ import { CacheManager } from "../../cache/CacheManager";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
 import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity";
-import { StringUtils } from "../../utils/StringUtils";
 import { RegionDiscoveryMetadata } from "../../authority/RegionDiscoveryMetadata";
 
 /** @internal */
@@ -121,9 +120,9 @@ export class ServerTelemetryManager {
 
         if (error instanceof Error && !!error && error.toString()) {
             if (error instanceof AuthError) {
-                if (!StringUtils.isEmpty(error.subError)) {
+                if (error.subError) {
                     lastRequests.errors.push(error.subError);
-                } else if (!StringUtils.isEmpty(error.errorCode)) {
+                } else if (error.errorCode) {
                     lastRequests.errors.push(error.errorCode);
                 } else {
                     lastRequests.errors.push(error.toString());
