@@ -24,7 +24,6 @@ import {
     ApplicationTelemetry,
     LibraryInfo,
 } from "../config/ClientConfiguration";
-import { StringUtils } from "../utils/StringUtils";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ClientInfo } from "../account/ClientInfo";
 
@@ -288,7 +287,7 @@ export class RequestParameterBuilder {
      * @param state
      */
     addState(state: string): void {
-        if (!StringUtils.isEmpty(state)) {
+        if (state) {
             this.parameters.set(
                 AADServerParamKeys.STATE,
                 encodeURIComponent(state)
@@ -392,7 +391,7 @@ export class RequestParameterBuilder {
      * @param clientAssertion
      */
     addClientAssertion(clientAssertion: string): void {
-        if (!StringUtils.isEmpty(clientAssertion)) {
+        if (clientAssertion) {
             this.parameters.set(
                 AADServerParamKeys.CLIENT_ASSERTION,
                 encodeURIComponent(clientAssertion)
@@ -405,7 +404,7 @@ export class RequestParameterBuilder {
      * @param clientAssertionType
      */
     addClientAssertionType(clientAssertionType: string): void {
-        if (!StringUtils.isEmpty(clientAssertionType)) {
+        if (clientAssertionType) {
             this.parameters.set(
                 AADServerParamKeys.CLIENT_ASSERTION_TYPE,
                 encodeURIComponent(clientAssertionType)
@@ -529,7 +528,7 @@ export class RequestParameterBuilder {
      * @param cnfString
      */
     addPopToken(cnfString: string): void {
-        if (!StringUtils.isEmpty(cnfString)) {
+        if (cnfString) {
             this.parameters.set(
                 AADServerParamKeys.TOKEN_TYPE,
                 AuthenticationScheme.POP
@@ -545,7 +544,7 @@ export class RequestParameterBuilder {
      * add SSH JWK and key ID to query params
      */
     addSshJwk(sshJwkString: string): void {
-        if (!StringUtils.isEmpty(sshJwkString)) {
+        if (sshJwkString) {
             this.parameters.set(
                 AADServerParamKeys.TOKEN_TYPE,
                 AuthenticationScheme.SSH

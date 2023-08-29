@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils } from "../utils/StringUtils";
 import { LoggerOptions } from "../config/ClientConfiguration";
 import { Constants } from "../utils/Constants";
 
@@ -126,14 +125,9 @@ export class Logger {
         const timestamp = new Date().toUTCString();
 
         // Add correlationId to logs if set, correlationId provided on log messages take precedence
-        let logHeader: string;
-        if (!StringUtils.isEmpty(options.correlationId)) {
-            logHeader = `[${timestamp}] : [${options.correlationId}]`;
-        } else if (!StringUtils.isEmpty(this.correlationId)) {
-            logHeader = `[${timestamp}] : [${this.correlationId}]`;
-        } else {
-            logHeader = `[${timestamp}]`;
-        }
+        const logHeader = `[${timestamp}] : [${
+            options.correlationId || this.correlationId || ""
+        }]`;
 
         const log = `${logHeader} : ${this.packageName}@${
             this.packageVersion

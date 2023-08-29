@@ -41,7 +41,8 @@
     "test": "test"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
     "clean": "shx rm -rf dist lib",

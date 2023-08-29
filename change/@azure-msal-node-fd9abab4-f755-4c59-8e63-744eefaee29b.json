@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "feat(msal-node): change all relative imports to .js #6399",
+  "packageName": "@azure/msal-node",
+  "email": "22598347+datner@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}

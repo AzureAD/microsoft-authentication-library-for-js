@@ -12,6 +12,9 @@
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "description": "Microsoft Authentication Library for Angular",
+  "files": [
+    "src"
+  ],
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

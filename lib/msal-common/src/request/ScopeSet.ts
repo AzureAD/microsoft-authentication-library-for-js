@@ -81,7 +81,7 @@ export class ScopeSet {
         const lowerCaseScopes = this.printScopesLowerCase().split(" ");
         const lowerCaseScopesSet = new ScopeSet(lowerCaseScopes);
         // compare lowercase scopes
-        return !StringUtils.isEmpty(scope)
+        return scope
             ? lowerCaseScopesSet.scopes.has(scope.toLowerCase())
             : false;
     }
@@ -120,7 +120,7 @@ export class ScopeSet {
      * @param newScope
      */
     appendScope(newScope: string): void {
-        if (!StringUtils.isEmpty(newScope)) {
+        if (newScope) {
             this.scopes.add(newScope.trim());
         }
     }
@@ -142,7 +142,7 @@ export class ScopeSet {
      * @param scope
      */
     removeScope(scope: string): void {
-        if (StringUtils.isEmpty(scope)) {
+        if (!scope) {
             throw ClientAuthError.createRemoveEmptyScopeFromSetError(scope);
         }
         this.scopes.delete(scope.trim());

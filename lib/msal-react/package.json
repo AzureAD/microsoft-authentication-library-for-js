@@ -23,7 +23,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "engines": {
     "node": ">=10"
@@ -52,6 +53,7 @@
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^13.4.0",
     "@types/jest": "^29.5.0",
+    "@types/node": "^20.5.1",
     "@types/react": "^18.2.13",
     "@types/react-dom": "^18.2.6",
     "eslint-config-msal": "^0.0.0",

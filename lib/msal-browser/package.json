@@ -52,7 +52,8 @@
     "lib/msal-browser.js.map",
     "lib/msal-browser.cjs",
     "lib/msal-browser.cjs.map",
-    "lib/msal-browser.min.js"
+    "lib/msal-browser.min.js",
+    "src"
   ],
   "scripts": {
     "clean": "shx rm -rf dist lib",
