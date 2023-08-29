@@ -130,39 +130,44 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         const loopbackClient: ILoopbackClient = customLoopbackClient || new LoopbackClient();
 
-        const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
-        const redirectUri = loopbackClient.getRedirectUri();
-
-        const validRequest: AuthorizationUrlRequest = {
-            ...remainingProperties,
-            correlationId: correlationId,
-            scopes: request.scopes || OIDC_DEFAULT_SCOPES,
-            redirectUri: redirectUri,
-            responseMode: ResponseMode.QUERY,
-            codeChallenge: challenge,
-            codeChallengeMethod: CodeChallengeMethodValues.S256
-        };
-
-        const authCodeUrl = await this.getAuthCodeUrl(validRequest);
-        await openBrowser(authCodeUrl);
-        const authCodeResponse = await authCodeListener.finally(() => {
+        try {
+            const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
+            const redirectUri = loopbackClient.getRedirectUri();
+    
+            const validRequest: AuthorizationUrlRequest = {
+                ...remainingProperties,
+                correlationId: correlationId,
+                scopes: request.scopes || OIDC_DEFAULT_SCOPES,
+                redirectUri: redirectUri,
+                responseMode: ResponseMode.QUERY,
+                codeChallenge: challenge,
+                codeChallengeMethod: CodeChallengeMethodValues.S256
+            };
+    
+            const authCodeUrl = await this.getAuthCodeUrl(validRequest);
+            await openBrowser(authCodeUrl);
+            const authCodeResponse = await authCodeListener.finally(() => {
+                loopbackClient.closeServer();
+            });
+    
+            if (authCodeResponse.error) {
+                throw new ServerError(authCodeResponse.error, authCodeResponse.error_description, authCodeResponse.suberror);
+            } else if (!authCodeResponse.code) {
+                throw NodeAuthError.createNoAuthCodeInResponseError();
+            }
+    
+            const clientInfo = authCodeResponse.client_info;
+            const tokenRequest: AuthorizationCodeRequest = {
+                code: authCodeResponse.code,
+                codeVerifier: verifier,
+                clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
+                ...validRequest
+            };
+            return this.acquireTokenByCode(tokenRequest);
+        } catch (e) {
             loopbackClient.closeServer();
-        });
-
-        if (authCodeResponse.error) {
-            throw new ServerError(authCodeResponse.error, authCodeResponse.error_description, authCodeResponse.suberror);
-        } else if (!authCodeResponse.code) {
-            throw NodeAuthError.createNoAuthCodeInResponseError();
+            throw e;
         }
-
-        const clientInfo = authCodeResponse.client_info;
-        const tokenRequest: AuthorizationCodeRequest = {
-            code: authCodeResponse.code,
-            codeVerifier: verifier,
-            clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
-            ...validRequest
-        };
-        return this.acquireTokenByCode(tokenRequest);
     }
 
     /**
