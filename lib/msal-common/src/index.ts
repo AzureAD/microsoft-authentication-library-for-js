@@ -185,6 +185,7 @@ export {
     LibraryStateObject,
 } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
+export * from "./utils/FunctionWrappers";
 // Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";

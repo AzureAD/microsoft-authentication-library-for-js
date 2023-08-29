@@ -1216,8 +1216,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const client = new AuthorizationCodeClient(config);
 
-            // @ts-ignore
-            await expect(client.acquireToken(null, null)).rejects.toMatchObject(
+            await expect(
+                // @ts-ignore
+                client.acquireToken({ code: null }, null)
+            ).rejects.toMatchObject(
                 ClientAuthError.createTokenRequestCannotBeMadeError()
             );
             // @ts-ignore
@@ -1295,7 +1297,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         });
 
                         stubCalled = true;
-                        return AUTHENTICATION_RESULT;
+                        return Promise.resolve(AUTHENTICATION_RESULT);
                     }
                 );
 
@@ -1415,7 +1417,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         });
 
                         stubCalled = true;
-                        return AUTHENTICATION_RESULT;
+                        return Promise.resolve(AUTHENTICATION_RESULT);
                     }
                 );
 
@@ -1531,7 +1533,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         });
 
                         stubCalled = true;
-                        return AUTHENTICATION_RESULT;
+                        return Promise.resolve(AUTHENTICATION_RESULT);
                     }
                 );
 
@@ -3245,6 +3247,26 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("includes the http version in Authorization code client measurement(AT) when received in server response", async () => {
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addFields: jest.fn(),
+                incrementFields: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasurement: jest.fn(),
+                generateId: jest.fn(),
+                calculateQueuedTime: jest.fn(),
+                addQueueMeasurement: jest.fn(),
+                setPreQueueTime: jest.fn(),
+            };
+
+            const client = new AuthorizationCodeClient(
+                config,
+                performanceClient
+            );
             sinon
                 .stub(
                     Authority.prototype,
@@ -3253,8 +3275,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executeTokenRequest"
+                    // @ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
                 )
                 .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
 
@@ -3276,36 +3299,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const performanceClient = {
-                startMeasurement: jest.fn(),
-                endMeasurement: jest.fn(),
-                addFields: jest.fn(),
-                incrementFields: jest.fn(),
-                discardMeasurements: jest.fn(),
-                removePerformanceCallback: jest.fn(),
-                addPerformanceCallback: jest.fn(),
-                emitEvents: jest.fn(),
-                startPerformanceMeasurement: jest.fn(),
-                generateId: jest.fn(),
-                calculateQueuedTime: jest.fn(),
-                addQueueMeasurement: jest.fn(),
-                setPreQueueTime: jest.fn(),
-            };
-            performanceClient.startMeasurement.mockImplementation(() => {
-                return {
-                    add: (fields: { [key: string]: {} | undefined }) =>
-                        performanceClient.addFields(
-                            fields,
-                            TEST_CONFIG.CORRELATION_ID
-                        ),
-                    increment: jest.fn(),
-                    end: jest.fn(),
-                };
-            });
-            const client = new AuthorizationCodeClient(
-                config,
-                performanceClient
-            );
+
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -3326,13 +3320,35 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             expect(performanceClient.addFields).toBeCalledWith(
                 {
-                    httpVerAuthority: "xMsHttpVer",
+                    httpVerToken: "xMsHttpVer",
+                    refreshTokenSize:
+                        AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token
+                            ?.length,
                 },
-                TEST_CONFIG.CORRELATION_ID
+                RANDOM_TEST_GUID
             );
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addFields: jest.fn(),
+                incrementFields: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasurement: jest.fn(),
+                generateId: jest.fn(),
+                calculateQueuedTime: jest.fn(),
+                addQueueMeasurement: jest.fn(),
+                setPreQueueTime: jest.fn(),
+            };
+            const client = new AuthorizationCodeClient(
+                config,
+                performanceClient
+            );
             sinon
                 .stub(
                     Authority.prototype,
@@ -3341,10 +3357,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executeTokenRequest"
+                    // @ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
                 )
-                .resolves(AUTHENTICATION_RESULT);
+                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -3364,36 +3381,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const performanceClient = {
-                startMeasurement: jest.fn(),
-                endMeasurement: jest.fn(),
-                addFields: jest.fn(),
-                incrementFields: jest.fn(),
-                discardMeasurements: jest.fn(),
-                removePerformanceCallback: jest.fn(),
-                addPerformanceCallback: jest.fn(),
-                emitEvents: jest.fn(),
-                startPerformanceMeasurement: jest.fn(),
-                generateId: jest.fn(),
-                calculateQueuedTime: jest.fn(),
-                addQueueMeasurement: jest.fn(),
-                setPreQueueTime: jest.fn(),
-            };
-            performanceClient.startMeasurement.mockImplementation(() => {
-                return {
-                    add: (fields: { [key: string]: {} | undefined }) =>
-                        performanceClient.addFields(
-                            fields,
-                            TEST_CONFIG.CORRELATION_ID
-                        ),
-                    increment: jest.fn(),
-                    end: jest.fn(),
-                };
-            });
-            const client = new AuthorizationCodeClient(
-                config,
-                performanceClient
-            );
+
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -3412,7 +3400,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: idTokenClaims.nonce,
             });
 
-            expect(performanceClient.addFields).not.toHaveBeenCalled();
+            expect(performanceClient.addFields).toHaveBeenCalledWith(
+                {
+                    httpVerToken: "",
+                    refreshTokenSize:
+                        AUTHENTICATION_RESULT.body.refresh_token?.length,
+                },
+                RANDOM_TEST_GUID
+            );
         });
     });
 

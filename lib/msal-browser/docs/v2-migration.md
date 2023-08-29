@@ -13,7 +13,7 @@ If you are coming from [MSAL v2.x](../../msal-browser/), you can follow this gui
 In MSAL v2.x, you created an application instance as below:
 
 ```javascript
-import * as msal from "@azure/msal-browser";
+import { PublicClientApplication } from "@azure/msal-browser";
 
 const msalConfig = {
     auth: {
@@ -21,7 +21,7 @@ const msalConfig = {
     }
 };
 
-const msalInstance = new msal.PublicClientApplication(msalConfig);
+const msalInstance = new PublicClientApplication(msalConfig);
 ```
 
 In MSAL v3.x, you must initialize the application object as well. There are several options at your disposal:
@@ -31,7 +31,7 @@ In MSAL v3.x, you must initialize the application object as well. There are seve
 Instantiate a `PublicClientApplication` object and initialize it afterwards. The `initialize` function is asynchronous and must resolve before invoking other MSAL.js APIs.
 
 ```javascript
-import * as msal from "@azure/msal-browser";
+import { PublicClientApplication } from "@azure/msal-browser";
 
 const msalConfig = {
     auth: {
@@ -39,7 +39,7 @@ const msalConfig = {
     }
 };
 
-const msalInstance = new msal.PublicClientApplication(msalConfig);
+const msalInstance = new PublicClientApplication(msalConfig);
 await msalInstance.initialize();
 ```
 
@@ -48,7 +48,7 @@ await msalInstance.initialize();
 Invoke the `createPublicClientApplication` static method which returns an initialized `PublicClientApplication` object. Note that this function is asynchronous.
 
 ```javascript
-import * as msal from "@azure/msal-browser";
+import { PublicClientApplication } from "@azure/msal-browser";
 
 const msalConfig = {
     auth: {
@@ -56,7 +56,7 @@ const msalConfig = {
     }
 };
 
-const msalInstance = await msal.PublicClientApplication.createPublicClientApplication(msalConfig);
+const msalInstance = await PublicClientApplication.createPublicClientApplication(msalConfig);
 ```
 
 ### Claims-based caching
