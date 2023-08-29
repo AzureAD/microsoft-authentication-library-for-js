@@ -172,7 +172,6 @@ export class SilentFlowClient extends BaseClient {
             );
 
             // don't throw ClientAuthError.createRefreshRequiredError(), return cached token instead
-            throw ClientAuthError.createRefreshRequiredError();
         }
 
         if (this.config.serverTelemetryManager) {
