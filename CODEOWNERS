@@ -16,6 +16,9 @@
 /samples/msal-node-samples/ @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft
 /extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz
 
+# MSAL Node Confidential Client Regression Tests
+/regression-tests/msal-node/ @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
+
 # MSAL React
 /lib/msal-react/ @tnorling @jo-arroyo @peterzenz
 /samples/msal-react-samples/ @tnorling @jo-arroyo @peterzenz
