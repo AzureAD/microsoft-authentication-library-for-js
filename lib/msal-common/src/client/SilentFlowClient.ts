@@ -65,7 +65,6 @@ export class SilentFlowClient extends BaseClient {
 
             // return the cached token
             return cachedToken;
-
         } catch (e) {
             // reset the last cache outcome
             this.lastCacheOutcome = CacheOutcome.NO_CACHE_HIT;

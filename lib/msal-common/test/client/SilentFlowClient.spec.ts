@@ -1051,7 +1051,9 @@ describe("SilentFlowClient unit tests", () => {
                 ?.getKeys()
                 .find((value) => value.indexOf("accesstoken") >= 0);
             const accessTokenCacheItem = accessTokenKey
-                ? config.storageInterface?.getAccessTokenCredential(accessTokenKey)
+                ? config.storageInterface?.getAccessTokenCredential(
+                      accessTokenKey
+                  )
                 : null;
             expect(accessTokenCacheItem?.clientId).toEqual(
                 testAccessTokenEntity.clientId
