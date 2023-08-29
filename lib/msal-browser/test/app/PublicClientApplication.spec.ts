@@ -71,7 +71,7 @@ import { EventMessage } from "../../src/event/EventMessage";
 import { EventHandler } from "../../src/event/EventHandler";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
 import { Base64Encode } from "../../src/encode/Base64Encode";
-import { XhrClient } from "../../src/network/XhrClient";
+import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
     BrowserAuthErrorMessage,
@@ -754,7 +754,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             sinon
-                .stub(XhrClient.prototype, "sendGetRequestAsync")
+                .stub(FetchClient.prototype, "sendGetRequestAsync")
                 .callsFake((url): any => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -765,7 +765,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     }
                 });
             sinon
-                .stub(XhrClient.prototype, "sendPostRequestAsync")
+                .stub(FetchClient.prototype, "sendPostRequestAsync")
                 .resolves(testServerTokenResponse);
             pca = new PublicClientApplication({
                 auth: {
