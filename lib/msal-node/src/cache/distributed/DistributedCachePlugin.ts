@@ -8,9 +8,9 @@ import {
     ICachePlugin,
     TokenCacheContext,
 } from "@azure/msal-common";
-import { TokenCache } from "../TokenCache";
-import { IPartitionManager } from "./IPartitionManager";
-import { ICacheClient } from "./ICacheClient";
+import { TokenCache } from "../TokenCache.js";
+import { IPartitionManager } from "./IPartitionManager.js";
+import { ICacheClient } from "./ICacheClient.js";
 
 export class DistributedCachePlugin implements ICachePlugin {
     private client: ICacheClient;

@@ -17,6 +17,7 @@ import { AccountInfo } from "../account/AccountInfo";
  * - fromCache              - Boolean denoting whether token came from cache
  * - expiresOn              - Javascript Date object representing relative expiration of access token
  * - extExpiresOn           - Javascript Date object representing extended relative expiration of access token in case of server outage
+ * - refreshOn              - Javascript Date object representing relative time until an access token must be refreshed
  * - state                  - Value passed in by user in request
  * - familyId               - Family ID identifier, usually only used for refresh tokens
  * - requestId              - Request ID returned as part of the response
@@ -32,10 +33,11 @@ export type AuthenticationResult = {
     accessToken: string;
     fromCache: boolean;
     expiresOn: Date | null;
+    extExpiresOn?: Date;
+    refreshOn?: Date;
     tokenType: string;
     correlationId: string;
     requestId?: string;
-    extExpiresOn?: Date;
     state?: string;
     familyId?: string;
     cloudGraphHostName?: string;

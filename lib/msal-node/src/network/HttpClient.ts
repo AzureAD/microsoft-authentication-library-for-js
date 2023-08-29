@@ -7,14 +7,10 @@ import {
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
-} from "@azure/msal-common";
-import {
-    HttpMethod,
-    Constants,
     HttpStatus,
-    ProxyStatus,
-} from "../utils/Constants";
-import { NetworkUtils } from "../utils/NetworkUtils";
+} from "@azure/msal-common";
+import { HttpMethod, Constants, ProxyStatus } from "../utils/Constants.js";
+import { NetworkUtils } from "../utils/NetworkUtils.js";
 import http from "http";
 import https from "https";
 

@@ -1,6 +1,7 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "@azure/msal-node",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -34,7 +35,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
     "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs",
@@ -74,7 +76,7 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@azure/msal-common": "14.0.1",
+    "@azure/msal-common": "14.0.2",
     "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },

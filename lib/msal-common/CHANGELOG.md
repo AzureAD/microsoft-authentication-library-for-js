@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Fri, 11 Aug 2023 19:00:44 GMT and should not be manually modified.
+This log was last generated on Fri, 18 Aug 2023 18:40:02 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.0.2
+
+Fri, 18 Aug 2023 18:40:02 GMT
+
+### Patches
+
+- Fix authority endpoint version for B2C authorities #6342 (hemoral@microsoft.com)
 
 ## 14.0.1
 
