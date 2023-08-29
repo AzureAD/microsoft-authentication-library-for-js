@@ -15,12 +15,12 @@ import {
     ServerTelemetryManager,
     ServerTelemetryRequest,
     ClientConfigurationError,
-    StringUtils,
     Authority,
     AuthorityOptions,
     AuthorityFactory,
     IPerformanceClient,
     PerformanceEvents,
+    StringUtils,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -35,6 +35,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -80,7 +81,9 @@ export abstract class BaseInteractionClient {
         request: RedirectRequest | PopupRequest | SsoSilentRequest
     ): Promise<AuthenticationResult | void>;
 
-    abstract logout(request: EndSessionRequest): Promise<void>;
+    abstract logout(
+        request: EndSessionRequest | ClearCacheRequest | undefined
+    ): Promise<void>;
 
     protected async clearCacheOnLogout(
         account?: AccountInfo | null

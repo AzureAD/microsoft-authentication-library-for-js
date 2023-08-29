@@ -12,7 +12,7 @@
 /lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @robbie-microsoft @konstantin-msft
 
 # MSAL Node
-/lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @jennyf19 @jmprieur @bgavrilMS @robbie-microsoft
+/lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
 /samples/msal-node-samples/ @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft
 /extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz
 

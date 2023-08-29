@@ -12,7 +12,6 @@ import {
     ProtocolMode,
     OIDCOptions,
     ServerResponseType,
-    Logger,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
@@ -22,14 +21,13 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
 } from "@azure/msal-common";
-import { BrowserUtils } from "../utils/BrowserUtils";
 import {
     BrowserCacheLocation,
     BrowserConstants,
 } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
-import { name, version } from "../packageMetadata";
+import { FetchClient } from "../network/FetchClient";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -157,6 +155,7 @@ export type BrowserSystemOptions = SystemOptions & {
     loadFrameTimeout?: number;
     /**
      * Maximum time the library should wait for a frame to load
+     * @deprecated This was previously needed for older browsers which are no longer supported by MSAL.js. This option will be removed in the next major version
      */
     navigateFrameWait?: number;
     /**
@@ -304,7 +303,7 @@ export function buildConfiguration(
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: isBrowserEnvironment
-            ? BrowserUtils.getBrowserNetworkClient()
+            ? new FetchClient()
             : StubbedNetworkModule,
         navigationClient: new NavigationClient(),
         loadFrameTimeout: 0,
@@ -313,8 +312,7 @@ export function buildConfiguration(
             userInputSystem?.loadFrameTimeout || DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout:
             userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
-        navigateFrameWait:
-            isBrowserEnvironment && BrowserUtils.detectIEOrEdge() ? 500 : 0,
+        navigateFrameWait: 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false,
@@ -335,17 +333,7 @@ export function buildConfiguration(
             appName: Constants.EMPTY_STRING,
             appVersion: Constants.EMPTY_STRING,
         },
-        client: new StubPerformanceClient(
-            DEFAULT_AUTH_OPTIONS.clientId,
-            DEFAULT_AUTH_OPTIONS.authority,
-            new Logger(DEFAULT_LOGGER_OPTIONS, name, version),
-            name,
-            version,
-            {
-                appName: Constants.EMPTY_STRING,
-                appVersion: Constants.EMPTY_STRING,
-            }
-        ),
+        client: new StubPerformanceClient(),
     };
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode

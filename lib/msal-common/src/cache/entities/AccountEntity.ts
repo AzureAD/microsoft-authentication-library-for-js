@@ -7,7 +7,6 @@ import { Separators, CacheAccountType, Constants } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
-import { StringUtils } from "../../utils/StringUtils";
 import { AccountInfo } from "../../account/AccountInfo";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { AuthorityType } from "../../authority/AuthorityType";
@@ -239,10 +238,7 @@ export class AccountEntity {
         if (serverClientInfo) {
             try {
                 const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
-                if (
-                    !StringUtils.isEmpty(clientInfo.uid) &&
-                    !StringUtils.isEmpty(clientInfo.utid)
-                ) {
+                if (clientInfo.uid && clientInfo.utid) {
                     return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
                 }
             } catch (e) {}

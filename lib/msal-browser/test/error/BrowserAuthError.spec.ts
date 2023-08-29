@@ -95,32 +95,6 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
-    it("createHttpMethodNotImplementedError()", () => {
-        const err: BrowserAuthError =
-            BrowserAuthError.createHttpMethodNotImplementedError(
-                "Crypto unavailable error detail."
-            );
-
-        expect(err instanceof BrowserAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(
-            BrowserAuthErrorMessage.httpMethodNotImplementedError.code
-        );
-        expect(
-            err.errorMessage.includes(
-                BrowserAuthErrorMessage.httpMethodNotImplementedError.desc
-            )
-        ).toBe(true);
-        expect(
-            err.message.includes(
-                BrowserAuthErrorMessage.httpMethodNotImplementedError.desc
-            )
-        ).toBe(true);
-        expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
-    });
-
     it("createEmptyNavigationUriError()", () => {
         const err: BrowserAuthError =
             BrowserAuthError.createEmptyNavigationUriError();

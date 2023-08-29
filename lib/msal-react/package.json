@@ -23,7 +23,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "engines": {
     "node": ">=10"
@@ -36,8 +37,8 @@
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "lint": "cd ../../ && npm run lint:react",
-    "lint:fix": "npm run lint -- -- --fix",
+    "lint": "eslint src --ext .ts --ext .tsx",
+    "lint:fix": "npm run lint -- --fix",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-react",
     "prepack": "npm run build:all",
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
@@ -52,8 +53,10 @@
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^13.4.0",
     "@types/jest": "^29.5.0",
+    "@types/node": "^20.5.1",
     "@types/react": "^18.2.13",
     "@types/react-dom": "^18.2.6",
+    "eslint-config-msal": "^0.0.0",
     "jest": "^29.5.0",
     "jest-environment-jsdom": "^29.5.0",
     "prettier": "2.8.7",
