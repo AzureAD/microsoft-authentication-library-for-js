@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ApiId, Constants } from "../utils/Constants";
+import { ApiId, Constants } from "../utils/Constants.js";
 import {
     AuthenticationResult,
     CommonDeviceCodeRequest,
@@ -17,20 +17,21 @@ import {
     NativeSignOutRequest,
     AccountInfo,
     INativeBrokerPlugin,
+    ServerAuthorizationCodeResponse,
 } from "@azure/msal-common";
-import { Configuration } from "../config/Configuration";
-import { ClientApplication } from "./ClientApplication";
-import { IPublicClientApplication } from "./IPublicClientApplication";
-import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { InteractiveRequest } from "../request/InteractiveRequest";
-import { NodeAuthError } from "../error/NodeAuthError";
-import { LoopbackClient } from "../network/LoopbackClient";
-import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { SignOutRequest } from "../request/SignOutRequest";
-import { ILoopbackClient } from "../network/ILoopbackClient";
-import { DeviceCodeClient } from "./DeviceCodeClient";
+import { Configuration } from "../config/Configuration.js";
+import { ClientApplication } from "./ClientApplication.js";
+import { IPublicClientApplication } from "./IPublicClientApplication.js";
+import { DeviceCodeRequest } from "../request/DeviceCodeRequest.js";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { InteractiveRequest } from "../request/InteractiveRequest.js";
+import { NodeAuthError } from "../error/NodeAuthError.js";
+import { LoopbackClient } from "../network/LoopbackClient.js";
+import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
+import { SignOutRequest } from "../request/SignOutRequest.js";
+import { ILoopbackClient } from "../network/ILoopbackClient.js";
+import { DeviceCodeClient } from "./DeviceCodeClient.js";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -166,46 +167,52 @@ export class PublicClientApplication
         const loopbackClient: ILoopbackClient =
             customLoopbackClient || new LoopbackClient();
 
-        const authCodeListener = loopbackClient.listenForAuthCode(
-            successTemplate,
-            errorTemplate
-        );
-        const redirectUri = loopbackClient.getRedirectUri();
-
-        const validRequest: AuthorizationUrlRequest = {
-            ...remainingProperties,
-            correlationId: correlationId,
-            scopes: request.scopes || OIDC_DEFAULT_SCOPES,
-            redirectUri: redirectUri,
-            responseMode: ResponseMode.QUERY,
-            codeChallenge: challenge,
-            codeChallengeMethod: CodeChallengeMethodValues.S256,
-        };
-
-        const authCodeUrl = await this.getAuthCodeUrl(validRequest);
-        await openBrowser(authCodeUrl);
-        const authCodeResponse = await authCodeListener.finally(() => {
-            loopbackClient.closeServer();
-        });
-
-        if (authCodeResponse.error) {
-            throw new ServerError(
-                authCodeResponse.error,
-                authCodeResponse.error_description,
-                authCodeResponse.suberror
+        let authCodeListener: Promise<ServerAuthorizationCodeResponse>;
+        try {
+            authCodeListener = loopbackClient.listenForAuthCode(
+                successTemplate,
+                errorTemplate
             );
-        } else if (!authCodeResponse.code) {
-            throw NodeAuthError.createNoAuthCodeInResponseError();
-        }
+            const redirectUri = loopbackClient.getRedirectUri();
 
-        const clientInfo = authCodeResponse.client_info;
-        const tokenRequest: AuthorizationCodeRequest = {
-            code: authCodeResponse.code,
-            codeVerifier: verifier,
-            clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
-            ...validRequest,
-        };
-        return this.acquireTokenByCode(tokenRequest);
+            const validRequest: AuthorizationUrlRequest = {
+                ...remainingProperties,
+                correlationId: correlationId,
+                scopes: request.scopes || OIDC_DEFAULT_SCOPES,
+                redirectUri: redirectUri,
+                responseMode: ResponseMode.QUERY,
+                codeChallenge: challenge,
+                codeChallengeMethod: CodeChallengeMethodValues.S256,
+            };
+
+            const authCodeUrl = await this.getAuthCodeUrl(validRequest);
+            await openBrowser(authCodeUrl);
+            const authCodeResponse = await authCodeListener.finally(() => {
+                loopbackClient.closeServer();
+            });
+
+            if (authCodeResponse.error) {
+                throw new ServerError(
+                    authCodeResponse.error,
+                    authCodeResponse.error_description,
+                    authCodeResponse.suberror
+                );
+            } else if (!authCodeResponse.code) {
+                throw NodeAuthError.createNoAuthCodeInResponseError();
+            }
+
+            const clientInfo = authCodeResponse.client_info;
+            const tokenRequest: AuthorizationCodeRequest = {
+                code: authCodeResponse.code,
+                codeVerifier: verifier,
+                clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
+                ...validRequest,
+            };
+            return this.acquireTokenByCode(tokenRequest);
+        } catch (e) {
+            loopbackClient.closeServer();
+            throw e;
+        }
     }
 
     /**

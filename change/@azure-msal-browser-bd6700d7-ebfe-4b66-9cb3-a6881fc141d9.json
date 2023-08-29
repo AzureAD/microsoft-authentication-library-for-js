@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "New API to silently clear cache #6374",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}

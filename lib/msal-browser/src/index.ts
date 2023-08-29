@@ -70,6 +70,7 @@ export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
+export { ClearCacheRequest } from "./request/ClearCacheRequest";
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache";

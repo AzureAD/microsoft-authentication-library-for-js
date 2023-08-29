@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Hash } from "../utils/Constants";
+import { Hash } from "../utils/Constants.js";
 import crypto from "crypto";
 
 export class HashUtils {

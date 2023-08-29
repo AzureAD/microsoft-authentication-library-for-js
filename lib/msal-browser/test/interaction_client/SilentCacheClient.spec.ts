@@ -9,7 +9,6 @@ import {
     TEST_CONFIG,
     ID_TOKEN_CLAIMS,
     TEST_TOKENS,
-    DEFAULT_OPENID_CONFIG_RESPONSE,
 } from "../utils/StringConstants";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import {
@@ -72,13 +71,16 @@ const testAccount: AccountInfo = {
     localAccountId: ID_TOKEN_CLAIMS.oid,
     idTokenClaims: ID_TOKEN_CLAIMS,
     name: ID_TOKEN_CLAIMS.name,
+    authorityType: "MSSTS",
+    nativeAccountId: undefined,
 };
 
 describe("SilentCacheClient", () => {
     let silentCacheClient: SilentCacheClient;
+    let pca: PublicClientApplication;
 
     beforeEach(() => {
-        let pca = new PublicClientApplication({
+        pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
@@ -86,7 +88,6 @@ describe("SilentCacheClient", () => {
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
-
         // @ts-ignore
         silentCacheClient = new SilentCacheClient(
             //@ts-ignore
@@ -157,10 +158,14 @@ describe("SilentCacheClient", () => {
     });
 
     describe("logout", () => {
-        it("logout throws unsupported error", async () => {
-            await expect(silentCacheClient.logout).rejects.toMatchObject(
-                BrowserAuthError.createSilentLogoutUnsupportedError()
-            );
+        it("logout clears browser cache", async () => {
+            // @ts-ignore
+            pca.browserStorage.setAccount(testAccountEntity);
+            pca.setActiveAccount(testAccount);
+            expect(pca.getActiveAccount()).toEqual(testAccount);
+            silentCacheClient.logout({ account: testAccount });
+            //@ts-ignore
+            expect(pca.getActiveAccount()).toEqual(null);
         });
     });
 });

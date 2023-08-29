@@ -26,12 +26,12 @@ export class UrlString {
 
     constructor(url: string) {
         this._urlString = url;
-        if (StringUtils.isEmpty(this._urlString)) {
+        if (!this._urlString) {
             // Throws error if url is empty
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        if (StringUtils.isEmpty(this.getHash())) {
+        if (!this.getHash()) {
             this._urlString = UrlString.canonicalizeUri(url);
         }
     }
@@ -96,7 +96,7 @@ export class UrlString {
      * @param queryString
      */
     static appendQueryString(url: string, queryString: string): string {
-        if (StringUtils.isEmpty(queryString)) {
+        if (!queryString) {
             return url;
         }
 
@@ -170,7 +170,7 @@ export class UrlString {
         urlComponents.PathSegments = pathSegments;
 
         if (
-            !StringUtils.isEmpty(urlComponents.QueryString) &&
+            urlComponents.QueryString &&
             urlComponents.QueryString.endsWith("/")
         ) {
             urlComponents.QueryString = urlComponents.QueryString.substring(
@@ -278,7 +278,7 @@ export class UrlString {
      */
     static getDeserializedHash(hash: string): ServerAuthorizationCodeResponse {
         // Check if given hash is empty
-        if (StringUtils.isEmpty(hash)) {
+        if (!hash) {
             return {};
         }
         // Strip the # symbol if present
@@ -286,7 +286,7 @@ export class UrlString {
         // If # symbol was not present, above will return empty string, so give original hash value
         const deserializedHash: ServerAuthorizationCodeResponse =
             StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(
-                StringUtils.isEmpty(parsedHash) ? hash : parsedHash
+                parsedHash || hash
             );
         // Check if deserialization didn't work
         if (!deserializedHash) {
@@ -304,7 +304,7 @@ export class UrlString {
         query: string
     ): ServerAuthorizationCodeResponse {
         // Check if given query is empty
-        if (StringUtils.isEmpty(query)) {
+        if (!query) {
             return {};
         }
         // Strip the ? symbol if present
@@ -312,9 +312,7 @@ export class UrlString {
         // If ? symbol was not present, above will return empty string, so give original query value
         const deserializedQueryString: ServerAuthorizationCodeResponse =
             StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(
-                StringUtils.isEmpty(parsedQueryString)
-                    ? query
-                    : parsedQueryString
+                parsedQueryString || query
             );
         // Check if deserialization didn't work
         if (!deserializedQueryString) {
@@ -348,7 +346,7 @@ export class UrlString {
      * Check if the hash of the URL string contains known properties
      */
     static hashContainsKnownProperties(hash: string): boolean {
-        if (StringUtils.isEmpty(hash) || hash.indexOf("=") < 0) {
+        if (!hash || hash.indexOf("=") < 0) {
             // Hash doesn't contain key/value pairs
             return false;
         }

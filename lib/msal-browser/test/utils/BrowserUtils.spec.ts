@@ -5,8 +5,6 @@
 
 import sinon from "sinon";
 import { TEST_URIS } from "./StringConstants";
-import { XhrClient } from "../../src/network/XhrClient";
-import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserUtils,
     BrowserAuthError,
@@ -97,25 +95,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
 
     it("getCurrentUri() returns current location uri of browser", () => {
         expect(BrowserUtils.getCurrentUri()).toBe(TEST_URIS.TEST_REDIR_URI);
-    });
-
-    it("getBrowserNetworkClient() returns fetch client if available", () => {
-        window.fetch = (): Promise<Response> => {
-            //@ts-ignore
-            return null;
-        };
-        // @ts-ignore
-        window.Headers = () => {};
-
-        expect(
-            BrowserUtils.getBrowserNetworkClient() instanceof FetchClient
-        ).toBe(true);
-    });
-
-    it("getBrowserNetworkClient() returns xhr client if available", () => {
-        expect(
-            BrowserUtils.getBrowserNetworkClient() instanceof XhrClient
-        ).toBe(true);
     });
 
     describe("blockRedirectInIframe", () => {

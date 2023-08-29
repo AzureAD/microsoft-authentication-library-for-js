@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError, StringUtils } from "@azure/msal-common";
+import { AuthError } from "@azure/msal-common";
 
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
@@ -16,10 +16,6 @@ export const BrowserAuthErrorMessage = {
     cryptoDoesNotExist: {
         code: "crypto_nonexistent",
         desc: "The crypto object or function is not available.",
-    },
-    httpMethodNotImplementedError: {
-        code: "http_method_not_implemented",
-        desc: "The HTTP method given has not been implemented in this library.",
     },
     emptyNavigateUriError: {
         code: "empty_navigate_uri",
@@ -225,19 +221,6 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when an HTTP method hasn't been implemented by the browser class.
-     * @param method
-     */
-    static createHttpMethodNotImplementedError(
-        method: string
-    ): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.httpMethodNotImplementedError.code,
-            `${BrowserAuthErrorMessage.httpMethodNotImplementedError.desc} Given Method: ${method}`
-        );
-    }
-
-    /**
      * Creates an error thrown when the navigation URI is empty.
      */
     static createEmptyNavigationUriError(): BrowserAuthError {
@@ -314,7 +297,7 @@ export class BrowserAuthError extends AuthError {
      */
     static createPopupWindowError(errDetail?: string): BrowserAuthError {
         let errorMessage = BrowserAuthErrorMessage.popupWindowError.desc;
-        errorMessage = !StringUtils.isEmpty(errDetail)
+        errorMessage = errDetail
             ? `${errorMessage} Details: ${errDetail}`
             : errorMessage;
         return new BrowserAuthError(

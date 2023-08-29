@@ -10,9 +10,9 @@ import {
     HttpStatus,
 } from "@azure/msal-common";
 import http from "http";
-import { NodeAuthError } from "../error/NodeAuthError";
-import { Constants, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants";
-import { ILoopbackClient } from "./ILoopbackClient";
+import { NodeAuthError } from "../error/NodeAuthError.js";
+import { Constants, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants.js";
+import { ILoopbackClient } from "./ILoopbackClient.js";
 
 export class LoopbackClient implements ILoopbackClient {
     private server: http.Server;

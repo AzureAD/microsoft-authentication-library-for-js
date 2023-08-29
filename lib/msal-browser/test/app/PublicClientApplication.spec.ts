@@ -71,7 +71,7 @@ import { EventMessage } from "../../src/event/EventMessage";
 import { EventHandler } from "../../src/event/EventHandler";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
 import { Base64Encode } from "../../src/encode/Base64Encode";
-import { XhrClient } from "../../src/network/XhrClient";
+import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
     BrowserAuthErrorMessage,
@@ -754,7 +754,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             sinon
-                .stub(XhrClient.prototype, "sendGetRequestAsync")
+                .stub(FetchClient.prototype, "sendGetRequestAsync")
                 .callsFake((url): any => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -765,7 +765,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     }
                 });
             sinon
-                .stub(XhrClient.prototype, "sendPostRequestAsync")
+                .stub(FetchClient.prototype, "sendPostRequestAsync")
                 .resolves(testServerTokenResponse);
             pca = new PublicClientApplication({
                 auth: {
@@ -4749,6 +4749,100 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(pca.logoutPopup()).rejects.toMatchObject(
                 BrowserAuthError.createInteractionInProgressError()
             );
+        });
+    });
+
+    describe("clearCache tests", () => {
+        // Account 1
+        const testAccountInfo1: AccountInfo = {
+            authorityType: "MSSTS",
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "example@microsoft.com",
+            name: "Abe Lincoln",
+            localAccountId: TEST_CONFIG.OID,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined,
+        };
+
+        const testAccount1: AccountEntity = new AccountEntity();
+        testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
+        testAccount1.localAccountId = TEST_CONFIG.OID;
+        testAccount1.environment = testAccountInfo1.environment;
+        testAccount1.realm = testAccountInfo1.tenantId;
+        testAccount1.username = testAccountInfo1.username;
+        testAccount1.name = testAccountInfo1.name;
+        testAccount1.authorityType = "MSSTS";
+        testAccount1.clientInfo =
+            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+        const idTokenData1 = {
+            realm: testAccountInfo1.tenantId,
+            environment: testAccountInfo1.environment,
+            credentialType: "IdToken",
+            secret: TEST_TOKENS.IDTOKEN_V2,
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            homeAccountId: testAccountInfo1.homeAccountId,
+        };
+
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
+
+            sinon
+                .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
+                .callsFake((host) => {
+                    const authorityMetadata = new AuthorityMetadataEntity();
+                    authorityMetadata.updateCloudDiscoveryMetadata(
+                        {
+                            aliases: [host],
+                            preferred_cache: host,
+                            preferred_network: host,
+                        },
+                        false
+                    );
+                    return authorityMetadata;
+                });
+
+            // @ts-ignore
+            pca.getBrowserStorage().setAccount(testAccount1);
+            const idToken1 = CacheManager.toObject(
+                new IdTokenEntity(),
+                idTokenData1
+            );
+            // @ts-ignore
+            pca.getBrowserStorage().setIdTokenCredential(idToken1);
+        });
+
+        afterEach(() => {
+            sinon.restore();
+            window.sessionStorage.clear();
+            window.localStorage.clear();
+        });
+
+        it("browser cache cleared when clearCache called without a ClearCacheRequest object", () => {
+            expect(pca.getActiveAccount()).toEqual(null);
+            pca.setActiveAccount(testAccountInfo1);
+            const activeAccount = pca.getActiveAccount();
+            expect(activeAccount?.idToken).not.toBeUndefined();
+            expect(activeAccount).toEqual(testAccountInfo1);
+            pca.clearCache();
+            expect(pca.getActiveAccount()).toEqual(null);
+        });
+
+        it("browser cache cleared when clearCache called with a ClearCacheRequest object", () => {
+            expect(pca.getActiveAccount()).toEqual(null);
+            pca.setActiveAccount(testAccountInfo1);
+            const activeAccount = pca.getActiveAccount();
+            expect(activeAccount?.idToken).not.toBeUndefined();
+            expect(activeAccount).toEqual(testAccountInfo1);
+            pca.clearCache({
+                account: testAccountInfo1,
+                correlationId: "test123",
+            });
+            expect(pca.getActiveAccount()).toEqual(null);
         });
     });
 

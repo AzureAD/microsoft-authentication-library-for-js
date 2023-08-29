@@ -4,9 +4,9 @@
  */
 
 import { Constants, PkceCodes } from "@azure/msal-common";
-import { CharSet, RANDOM_OCTET_SIZE } from "../utils/Constants";
-import { EncodingUtils } from "../utils/EncodingUtils";
-import { HashUtils } from "./HashUtils";
+import { CharSet, RANDOM_OCTET_SIZE } from "../utils/Constants.js";
+import { EncodingUtils } from "../utils/EncodingUtils.js";
+import { HashUtils } from "./HashUtils.js";
 import crypto from "crypto";
 
 /**
