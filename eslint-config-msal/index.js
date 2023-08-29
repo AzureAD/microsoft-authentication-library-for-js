@@ -22,6 +22,12 @@ module.exports = {
         "plugin:import/typescript",
         "prettier"
     ],
+    "ignorePatterns": [
+        "*.d.ts",
+        "*.spec.ts",
+        "**/*/dist",
+        "samples"
+    ],
     "rules": {
         "@angular-eslint/component-class-suffix": 2,
         "@angular-eslint/contextual-lifecycle": 2,
