@@ -22,7 +22,7 @@ In order to use MSAL.js, you need to instantiate a `PublicClientApplication` obj
 Instantiate a `PublicClientApplication` object and initialize it afterwards. The `initialize` function is asynchronous and must resolve before invoking other MSAL.js APIs.
 
 ```javascript
-import * as msal from "@azure/msal-browser";
+import { PublicClientApplication } from "@azure/msal-browser";
 
 const msalConfig = {
     auth: {
@@ -30,7 +30,7 @@ const msalConfig = {
     }
 };
 
-const msalInstance = new msal.PublicClientApplication(msalConfig);
+const msalInstance = new PublicClientApplication(msalConfig);
 await msalInstance.initialize();
 ```
 
@@ -39,7 +39,7 @@ await msalInstance.initialize();
 Invoke the `createPublicClientApplication` static method which returns an initialized `PublicClientApplication` object. Note that this function is asynchronous.
 
 ```javascript
-import * as msal from "@azure/msal-browser";
+import { PublicClientApplication } from "@azure/msal-browser";
 
 const msalConfig = {
     auth: {
@@ -47,7 +47,7 @@ const msalConfig = {
     }
 };
 
-const msalInstance = await msal.PublicClientApplication.createPublicClientApplication(msalConfig);
+const msalInstance = await PublicClientApplication.createPublicClientApplication(msalConfig);
 ```
 
 ## (Optional) Configure Authority

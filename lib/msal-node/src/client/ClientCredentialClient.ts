@@ -250,7 +250,8 @@ export class ClientCredentialClient extends BaseClient {
                 endpoint,
                 requestBody,
                 headers,
-                thumbprint
+                thumbprint,
+                request.correlationId
             );
 
             serverTokenResponse = response.body;

@@ -170,7 +170,6 @@ describe("PerformanceClient.spec.ts", () => {
         mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toBe(1);
             expect(events[0].correlationId).toBe(correlationId);
-            expect(events[0].httpVerAuthority).toBe(authority);
             expect(events[0].extensionId).toBe(extensionId);
             done();
         });

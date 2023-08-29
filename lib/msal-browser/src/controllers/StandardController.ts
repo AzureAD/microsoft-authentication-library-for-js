@@ -26,6 +26,7 @@ import {
     AccountEntity,
     ServerResponseType,
     UrlString,
+    invokeAsync,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -72,6 +73,7 @@ import { StandardOperatingContext } from "../operatingcontext/StandardOperatingC
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { IController } from "./IController";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export class StandardController implements IController {
     // OperatingContext
@@ -1067,11 +1069,13 @@ export class StandardController implements IController {
             request.correlationId
         );
 
-        this.performanceClient.setPreQueueTime(
+        return invokeAsync(
+            silentIframeClient.acquireToken.bind(silentIframeClient),
             PerformanceEvents.SilentIframeClientAcquireToken,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        return silentIframeClient.acquireToken(request);
+        )(request);
     }
 
     // #endregion
@@ -1122,6 +1126,16 @@ export class StandardController implements IController {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
         }
+    }
+
+    /**
+     * Creates a cache interaction client to clear broswer cache.
+     * @param logoutRequest
+     */
+    async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        const correlationId = this.getRequestCorrelationId(logoutRequest);
+        const cacheClient = this.createSilentCacheClient(correlationId);
+        return cacheClient.logout(logoutRequest);
     }
 
     // #endregion
