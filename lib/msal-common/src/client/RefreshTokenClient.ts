@@ -70,10 +70,13 @@ export class RefreshTokenClient extends BaseClient {
             PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
             request.correlationId
         );
-        const response = await this.executeTokenRequest(
-            request,
-            this.authority
-        );
+
+        let response;
+        try {
+            response = await this.executeTokenRequest(request, this.authority);
+        } catch (error) {
+            throw error;
+        }
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
