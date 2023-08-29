@@ -1,4 +1,4 @@
-{
+module.exports = {
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "sourceType": "module",
@@ -21,6 +21,12 @@
         "plugin:security/recommended",
         "plugin:import/typescript",
         "prettier"
+    ],
+    "ignorePatterns": [
+        "*.d.ts",
+        "*.spec.ts",
+        "**/*/dist",
+        "samples"
     ],
     "rules": {
         "@angular-eslint/component-class-suffix": 2,
@@ -149,4 +155,4 @@
             "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
         }
     }
-}
+};
