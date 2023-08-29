@@ -270,7 +270,8 @@ export class OnBehalfOfClient extends BaseClient {
             endpoint,
             requestBody,
             headers,
-            thumbprint
+            thumbprint,
+            request.correlationId
         );
 
         const responseHandler = new ResponseHandler(

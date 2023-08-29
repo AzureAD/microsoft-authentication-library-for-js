@@ -20,6 +20,7 @@ import {
     BrowserAuthErrorMessage,
 } from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -78,13 +79,13 @@ export class SilentCacheClient extends StandardInteractionClient {
     }
 
     /**
-     * Currently Unsupported
+     * API to silenty clear the browser cache.
+     * @param logoutRequest
      */
-    logout(): Promise<void> {
-        // Synchronous so we must reject
-        return Promise.reject(
-            BrowserAuthError.createSilentLogoutUnsupportedError()
-        );
+    logout(logoutRequest?: ClearCacheRequest): Promise<void> {
+        this.logger.verbose("logoutRedirect called");
+        const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+        return this.clearCacheOnLogout(validLogoutRequest?.account);
     }
 
     /**
