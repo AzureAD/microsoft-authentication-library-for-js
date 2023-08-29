@@ -8,14 +8,14 @@ import {
     IAppTokenProvider,
     Logger,
 } from "@azure/msal-common";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
-import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
-import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
-import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
-import { TokenCache } from "../cache/TokenCache";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
+import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";
+import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
+import { RefreshTokenRequest } from "../request/RefreshTokenRequest.js";
+import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
+import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest.js";
+import { TokenCache } from "../cache/TokenCache.js";
 
 /**
  * Interface for the ConfidentialClientApplication class defining the public API signatures
