@@ -11,6 +11,7 @@
 1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md)
 1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/CHANGELOG.md)
 1. [Prerequisites](#prerequisites)
+1. [Version Support](#version-support)
 1. [Installation](#installation)
 1. [Build and Test](#build-and-test)
 1. [Usage](#usage)
@@ -34,6 +35,15 @@ The `@azure/msal-react` package described by the code in this folder uses the [`
 - `@azure/msal-react` is meant to be used in [Single-Page Application scenarios](https://docs.microsoft.com/azure/active-directory/develop/scenario-spa-overview).
 
 - Before using `@azure/msal-react` you will need to [register a Single Page Application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
+
+## Version Support
+
+| MSAL React version | MSAL support status | Supported React versions   |
+| ------------------ | ------------------- | -------------------------- |
+| MSAL React v2      | Active development  | 16, 17, 18                 |
+| MSAL React v1      | In maintenance      | 16, 17, 18                 |
+
+**Note:** There have been no functional changes in the MSAL React v2 release.
 
 ## Installation
 
