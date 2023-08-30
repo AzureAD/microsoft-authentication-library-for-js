@@ -153,7 +153,7 @@ In the event of refreshing a bound access token, MSAL will delete the cryptograp
 
 ## Advanced feature: Application managed cryptographic keypair
 
-> :warning: We do not recommend to use this feature unless you are familiar with the [Proof of Possession protocol](https://oauth.net/2/dpop/) and have a use case to generate your own cryptographic keypair. For most cases, we recommend the PoP usage as described in the rest of the document.
+> :warning: We do not recommend using this feature unless you are familiar with the [Proof of Possession protocol](https://oauth.net/2/dpop/) and have a specific requirement to generate your own cryptographic keypair. For most cases, we recommend the PoP usage as described in the rest of this document.
 
 If you choose to generate your own cryptographic keypair, then this feature enables the application to provide the `reqCnf` as a request parameter. MSAL JS ensures the token issuer embeds the `cnf` in the token but returns the issued token _unsigned_. The onus of signing the access token before it is forwarded to the intended resource will be on the application. 
 
