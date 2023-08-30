@@ -3,16 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import crypto from "crypto";
+const crypto = require("crypto");
 
 try {
     Object?.defineProperty(global.self, "crypto", {
         value: {
             subtle: crypto.webcrypto.subtle,
-            getRandomValues(dataBuffer: Uint8Array): Uint8Array {
+            getRandomValues(dataBuffer) {
                 return crypto.randomFillSync(dataBuffer);
             },
-            randomUUID(): string {
+            randomUUID() {
                 return crypto.randomUUID();
             },
         },
