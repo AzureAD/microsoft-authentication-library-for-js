@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Disallow major changes",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none"
+}
