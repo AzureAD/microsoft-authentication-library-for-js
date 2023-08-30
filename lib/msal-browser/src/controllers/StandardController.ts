@@ -524,7 +524,7 @@ export class StandardController implements IController {
                         );
                         return redirectClient.acquireToken(request);
                     }
-                    this.browserStorage.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -602,7 +602,7 @@ export class StandardController implements IController {
         if (this.canUseNative(request)) {
             result = this.acquireTokenNative(request, ApiId.acquireTokenPopup)
                 .then((response) => {
-                    this.browserStorage.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
@@ -626,7 +626,7 @@ export class StandardController implements IController {
                         );
                         return popupClient.acquireToken(request);
                     }
-                    this.browserStorage.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -1378,7 +1378,7 @@ export class StandardController implements IController {
 
         // Set interaction in progress temporary cache or throw if alread set.
         if (setInteractionInProgress) {
-            this.browserStorage.setInteractionInProgress(true);
+            this.getBrowserStorage().setInteractionInProgress(true);
         }
     }
 
@@ -1713,20 +1713,6 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the native internal storage
-     */
-    public getNativeInternalStorage(): BrowserCacheManager {
-        return this.nativeInternalStorage;
-    }
-
-    /**
-     * Returns the instance of interface for crypto functions
-     */
-    public getBrowserCrypto(): ICrypto {
-        return this.browserCrypto;
-    }
-
-    /**
      * Returns the browser env indicator
      */
     public isBrowserEnv(): boolean {
@@ -1734,41 +1720,10 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the native message handler
-     */
-    getNativeExtensionProvider(): NativeMessageHandler | undefined {
-        return this.nativeExtensionProvider;
-    }
-
-    /**
-     * Sets the native message handler
-     * @param provider {?NativeMessageHandler}
-     */
-    setNativeExtensionProvider(
-        provider: NativeMessageHandler | undefined
-    ): void {
-        this.nativeExtensionProvider = provider;
-    }
-
-    /**
      * Returns the event handler
      */
     getEventHandler(): EventHandler {
         return this.eventHandler;
-    }
-
-    /**
-     * Returns the navigation client
-     */
-    getNavigationClient(): INavigationClient {
-        return this.navigationClient;
-    }
-
-    /**
-     * Returns the redirect response map
-     */
-    getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
-        return this.redirectResponse;
     }
 
     /**

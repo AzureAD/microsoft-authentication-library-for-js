@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Remove redundant controller internal methods and classes from internals #6413",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
