@@ -15,8 +15,6 @@ import {
     PreQueueEvent,
     Constants,
 } from "@azure/msal-common";
-import { BrowserCrypto } from "../crypto/BrowserCrypto";
-import { GuidGenerator } from "../crypto/GuidGenerator";
 import { BrowserPerformanceMeasurement } from "./BrowserPerformanceMeasurement";
 import { Configuration } from "../config/Configuration";
 import { name, version } from "../packageMetadata";
@@ -25,9 +23,6 @@ export class BrowserPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
 {
-    private browserCrypto: BrowserCrypto;
-    private guidGenerator: GuidGenerator;
-
     constructor(configuration: Configuration, intFields?: Set<string>) {
         super(
             configuration.auth.clientId,
@@ -45,8 +40,6 @@ export class BrowserPerformanceClient
             },
             intFields
         );
-        this.browserCrypto = new BrowserCrypto(this.logger);
-        this.guidGenerator = new GuidGenerator(this.browserCrypto);
     }
 
     startPerformanceMeasurement(
@@ -57,7 +50,7 @@ export class BrowserPerformanceClient
     }
 
     generateId(): string {
-        return this.guidGenerator.generateGuid();
+        return window.crypto.randomUUID();
     }
 
     private getPageVisibility(): string | null {
@@ -104,7 +97,7 @@ export class BrowserPerformanceClient
      * @returns {((event?: Partial<PerformanceEvent>) => PerformanceEvent| null)}
      */
     startMeasurement(
-        measureName: PerformanceEvents,
+        measureName: string,
         correlationId?: string
     ): InProgressPerformanceEvent {
         // Capture page visibilityState and then invoke start/end measurement
@@ -195,7 +188,7 @@ export class BrowserPerformanceClient
      * @returns
      */
     addQueueMeasurement(
-        eventName: PerformanceEvents,
+        eventName: string,
         correlationId?: string,
         queueTime?: number,
         manuallyCompleted?: boolean

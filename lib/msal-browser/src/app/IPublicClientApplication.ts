@@ -22,6 +22,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export interface IPublicClientApplication {
     initialize(): Promise<void>;
@@ -67,6 +68,7 @@ export interface IPublicClientApplication {
             | RedirectRequest
             | PopupRequest
     ): Promise<void>;
+    clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -185,6 +187,11 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
     },
     hydrateCache: () => {
+        return Promise.reject(
+            BrowserConfigurationAuthError.createStubPcaInstanceCalledError()
+        );
+    },
+    clearCache: () => {
         return Promise.reject(
             BrowserConfigurationAuthError.createStubPcaInstanceCalledError()
         );

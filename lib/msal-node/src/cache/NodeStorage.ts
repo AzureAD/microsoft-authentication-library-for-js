@@ -20,13 +20,13 @@ import {
     ValidCredentialType,
 } from "@azure/msal-common";
 
-import { Deserializer } from "./serializer/Deserializer";
-import { Serializer } from "./serializer/Serializer";
+import { Deserializer } from "./serializer/Deserializer.js";
+import { Serializer } from "./serializer/Serializer.js";
 import {
     InMemoryCache,
     JsonCache,
     CacheKVStore,
-} from "./serializer/SerializerTypes";
+} from "./serializer/SerializerTypes.js";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library

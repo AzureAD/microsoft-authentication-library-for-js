@@ -5,7 +5,6 @@
 
 import {
     AuthorizationCodePayload,
-    StringUtils,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     AuthorityFactory,
@@ -17,6 +16,7 @@ import {
     ServerError,
     IPerformanceClient,
     PerformanceEvents,
+    invokeAsync,
 } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -69,7 +69,7 @@ export class InteractionHandler {
         );
         this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
-        if (StringUtils.isEmpty(locationHash)) {
+        if (!locationHash) {
             throw BrowserAuthError.createEmptyHashError();
         }
 
@@ -178,14 +178,13 @@ export class InteractionHandler {
         }
 
         // Acquire token with retrieved code.
-        this.performanceClient.setPreQueueTime(
+        const tokenResponse = (await invokeAsync(
+            this.authModule.acquireToken.bind(this.authModule),
             PerformanceEvents.AuthClientAcquireToken,
+            this.logger,
+            this.performanceClient,
             this.authCodeRequest.correlationId
-        );
-        const tokenResponse = (await this.authModule.acquireToken(
-            this.authCodeRequest,
-            authCodeResponse
-        )) as AuthenticationResult;
+        )(this.authCodeRequest, authCodeResponse)) as AuthenticationResult;
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }

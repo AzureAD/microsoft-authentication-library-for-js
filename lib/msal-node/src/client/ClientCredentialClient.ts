@@ -35,6 +35,7 @@ import {
 export class ClientCredentialClient extends BaseClient {
     private scopeSet: ScopeSet;
     private readonly appTokenProvider?: IAppTokenProvider;
+    private lastCacheOutcome: CacheOutcome;
 
     constructor(
         configuration: ClientConfiguration,
@@ -59,7 +60,30 @@ export class ClientCredentialClient extends BaseClient {
 
         const cachedAuthenticationResult =
             await this.getCachedAuthenticationResult(request);
+
         if (cachedAuthenticationResult) {
+            // if the token is not expired but must be refreshed; get a new one in the background
+            if (
+                this.lastCacheOutcome ===
+                CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
+            ) {
+                this.logger.info(
+                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+                );
+
+                // return the cached token, don't wait for the result of this request
+                const refreshAccessToken = true;
+                this.executeTokenRequest(
+                    request,
+                    this.authority,
+                    refreshAccessToken
+                );
+            }
+
+            // reset the last cache outcome
+            this.lastCacheOutcome = CacheOutcome.NO_CACHE_HIT;
+
+            // otherwise, the token is not expired and does not need to be refreshed
             return cachedAuthenticationResult;
         } else {
             return await this.executeTokenRequest(request, this.authority);
@@ -92,23 +116,39 @@ export class ClientCredentialClient extends BaseClient {
             await this.config.persistencePlugin.afterCacheAccess(cacheContext);
         }
 
+        // must refresh due to non-existent access_token
         if (!cachedAccessToken) {
+            this.lastCacheOutcome = CacheOutcome.NO_CACHED_ACCESS_TOKEN;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
             return null;
         }
 
+        // must refresh due to the expires_in value
         if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
                 this.config.systemOptions.tokenRenewalOffsetSeconds
             )
         ) {
+            this.lastCacheOutcome = CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
+
             return null;
+        }
+
+        // must refresh (in the background) due to the refresh_in value
+        if (
+            cachedAccessToken.refreshOn &&
+            TimeUtils.isTokenExpired(cachedAccessToken.refreshOn.toString(), 0)
+        ) {
+            this.lastCacheOutcome = CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN;
+            this.serverTelemetryManager?.setCacheOutcome(
+                CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
+            );
         }
 
         return await ResponseHandler.generateAuthenticationResult(
@@ -157,7 +197,8 @@ export class ClientCredentialClient extends BaseClient {
      */
     private async executeTokenRequest(
         request: CommonClientCredentialRequest,
-        authority: Authority
+        authority: Authority,
+        refreshAccessToken?: boolean
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
@@ -210,9 +251,12 @@ export class ClientCredentialClient extends BaseClient {
                 endpoint,
                 requestBody,
                 headers,
-                thumbprint
+                thumbprint,
+                request.correlationId
             );
+
             serverTokenResponse = response.body;
+            serverTokenResponse.status = response.status;
         }
 
         const responseHandler = new ResponseHandler(
@@ -224,7 +268,10 @@ export class ClientCredentialClient extends BaseClient {
             this.config.persistencePlugin
         );
 
-        responseHandler.validateTokenResponse(serverTokenResponse);
+        responseHandler.validateTokenResponse(
+            serverTokenResponse,
+            refreshAccessToken
+        );
 
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             serverTokenResponse,

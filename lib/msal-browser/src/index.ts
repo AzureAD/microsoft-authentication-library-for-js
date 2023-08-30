@@ -70,6 +70,7 @@ export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
+export { ClearCacheRequest } from "./request/ClearCacheRequest";
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache";
@@ -143,6 +144,8 @@ export {
     PerformanceCallbackFunction,
     PerformanceEvent,
     PerformanceEvents,
+    // Telemetry
+    InProgressPerformanceEvent,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

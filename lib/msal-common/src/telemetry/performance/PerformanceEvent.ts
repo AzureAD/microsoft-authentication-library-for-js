@@ -99,6 +99,11 @@ export const PerformanceEvents = {
      */
     BaseClientCreateTokenRequestHeaders: "baseClientCreateTokenRequestHeaders",
     /**
+     * Time spent sending/waiting for the response of a request to the token endpoint
+     */
+    BaseClientExecutePostToTokenEndpoint:
+        "baseClientExecutePostToTokenEndpoint",
+    /**
      * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
      */
     BrokerHandhshake: "brokerHandshake",
@@ -509,7 +514,6 @@ export type PerformanceEvent = {
     matsHttpStatus?: number;
     matsHttpEventCount?: number;
     httpVerToken?: string;
-    httpVerAuthority?: string;
 
     /**
      * Native broker fields

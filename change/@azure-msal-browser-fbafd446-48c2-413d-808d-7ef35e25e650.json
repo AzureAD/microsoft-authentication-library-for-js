@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Fix input parameter type for addEventCallback",
+  "type": "minor",
+  "comment": "Remove legacy code (IE11 Detection, XHRClient and custom GUID Generator)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

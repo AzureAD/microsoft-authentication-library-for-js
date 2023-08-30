@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add invoke and invokeAsync to wrap functions with logging/telemetry #6383",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
