@@ -118,9 +118,6 @@ export interface IController {
     isBrowserEnv(): boolean;
 
     /** @internal */
-    setInteractionInProgress(progress: boolean): void;
-
-    /** @internal */
     getPerformanceClient(): IPerformanceClient;
 
     /** @internal */

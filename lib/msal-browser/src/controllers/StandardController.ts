@@ -524,7 +524,7 @@ export class StandardController implements IController {
                         );
                         return redirectClient.acquireToken(request);
                     }
-                    this.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -602,7 +602,7 @@ export class StandardController implements IController {
         if (this.canUseNative(request)) {
             result = this.acquireTokenNative(request, ApiId.acquireTokenPopup)
                 .then((response) => {
-                    this.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
@@ -626,7 +626,7 @@ export class StandardController implements IController {
                         );
                         return popupClient.acquireToken(request);
                     }
-                    this.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -1378,7 +1378,7 @@ export class StandardController implements IController {
 
         // Set interaction in progress temporary cache or throw if alread set.
         if (setInteractionInProgress) {
-            this.setInteractionInProgress(true);
+            this.getBrowserStorage().setInteractionInProgress(true);
         }
     }
 
@@ -1710,13 +1710,6 @@ export class StandardController implements IController {
      */
     public getBrowserStorage(): BrowserCacheManager {
         return this.browserStorage;
-    }
-
-    /**
-     * Sets interaction in progress temp cache flag
-     */
-    public setInteractionInProgress(progress: boolean): void {
-        this.browserStorage.setInteractionInProgress(progress);
     }
 
     /**

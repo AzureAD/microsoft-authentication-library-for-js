@@ -8,10 +8,6 @@
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
 
-// Storage
-export { MemoryStorage } from "./cache/MemoryStorage";
-export { BrowserStorage } from "./cache/BrowserStorage";
-
 // Clients
 export { SilentIframeClient } from "./interaction_client/SilentIframeClient";
 export { SilentCacheClient } from "./interaction_client/SilentCacheClient";
