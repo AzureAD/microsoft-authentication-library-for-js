@@ -1715,7 +1715,7 @@ export class StandardController implements IController {
     /**
      * Sets interaction in progress temp cache flag
      */
-    public setInteractionInProgress(progress: boolean) {
+    public setInteractionInProgress(progress: boolean): void {
         this.browserStorage.setInteractionInProgress(progress);
     }
 
