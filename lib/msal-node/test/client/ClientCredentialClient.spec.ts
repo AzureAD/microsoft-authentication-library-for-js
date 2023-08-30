@@ -748,9 +748,10 @@ describe("ClientCredentialClient unit tests", () => {
             clientCredentialRequest
         )) as AuthenticationResult;
 
-        // Check the cache to ensure the refreshed token exists (the network request was successful).
-        // Typically, the network request may not have completed by the time the below code runs.
-        // However, the network requests are mocked in these tests, so the refreshed token should be in the cache at this point.
+        // Wait two seconds for the acquireToken and its mocked network requests to complete,
+        // then check the cache to ensure the refreshed token exists (the network request was successful)
+        await new Promise((r) => setTimeout(r, 2000));
+            
         accessTokenKey = config.storageInterface
             ?.getKeys()
             .find((value) => value.indexOf("accesstoken") >= 0);

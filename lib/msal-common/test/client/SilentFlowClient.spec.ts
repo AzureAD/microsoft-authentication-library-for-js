@@ -1044,9 +1044,10 @@ describe("SilentFlowClient unit tests", () => {
             // to refresh the token. That result will be stored in the cache.
             await client.acquireToken(silentFlowRequest);
 
-            // Check the cache to ensure the refreshed token exists (the network request was successful).
-            // Typically, the network request may not have completed by the time the below code runs.
-            // However, the network requests are mocked in these tests, so the refreshed token should be in the cache at this point.
+            // Wait two seconds for the acquireToken and its mocked network requests to complete,
+            // then check the cache to ensure the refreshed token exists (the network request was successful)
+            await new Promise((r) => setTimeout(r, 2000));
+
             accessTokenKey = config.storageInterface
                 ?.getKeys()
                 .find((value) => value.indexOf("accesstoken") >= 0);
@@ -1070,13 +1071,21 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"executePostToTokenEndpoint"
                 )
                 .callsFake((url: string) => {
-                    expect(
-                        url.includes(
-                            "/token?testParam1=testValue1&testParam3=testValue3"
-                        )
-                    ).toBeTruthy();
-                    expect(!url.includes("/token?testParam2=")).toBeTruthy();
-                    done();
+                    try {
+                        expect(
+                            url.includes(
+                                "/token?testParam1=testValue1&testParam3=testValue3"
+                            )
+                        ).toBeTruthy();
+                        expect(
+                            !url.includes("/token?testParam2=")
+                        ).toBeTruthy();
+                        done();
+                        return AUTHENTICATION_RESULT;
+                    } catch (error) {
+                        done(error);
+                        return error;
+                    }
                 });
             sinon
                 .stub(
@@ -1106,6 +1115,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testRefreshTokenEntity);
+            sinon
+                .stub(MockStorageClass.prototype, "getAccount")
+                .returns(testAccountEntity);
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,

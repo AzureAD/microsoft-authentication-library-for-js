@@ -297,7 +297,7 @@ export class RefreshTokenClient extends BaseClient {
         };
 
         try {
-            const result = await this.executePostToTokenEndpoint(
+            const response = await this.executePostToTokenEndpoint(
                 endpoint,
                 requestBody,
                 headers,
@@ -308,7 +308,12 @@ export class RefreshTokenClient extends BaseClient {
             acquireTokenMeasurement?.end({
                 success: true,
             });
-            return result;
+
+            if (!response) {
+                throw ClientAuthError.createTokenNullOrEmptyError("");
+            }
+
+            return response;
         } catch (error) {
             acquireTokenMeasurement?.end({
                 success: false,
