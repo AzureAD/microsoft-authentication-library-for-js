@@ -28,8 +28,7 @@ import {
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
-import { BrowserCacheManager } from "../../src/internals";
-import { CLIENT_INFO } from "@azure/msal-common/dist/utils/Constants";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 const testIdTokenClaims: TokenClaims = {
     ver: "2.0",

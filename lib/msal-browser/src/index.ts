@@ -76,6 +76,10 @@ export { ClearCacheRequest } from "./request/ClearCacheRequest";
 export { LoadTokenOptions } from "./cache/TokenCache";
 export { ITokenCache } from "./cache/ITokenCache";
 
+// Storage
+export { MemoryStorage } from "./cache/MemoryStorage";
+export { BrowserStorage } from "./cache/BrowserStorage";
+
 // Events
 export {
     EventMessage,
