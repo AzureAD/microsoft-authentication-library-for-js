@@ -1,7 +1,7 @@
 {
   "type": "none",
-  "comment": "Typedocs",
-  "packageName": "@azure/msal-browser",
+  "comment": "Update lint step",
+  "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "none"
 }

@@ -1556,7 +1556,7 @@ export class BrowserCacheManager extends CacheManager {
                 JSON.stringify(ccsCredential),
                 true
             );
-        } else if (!StringUtils.isEmpty(loginHint)) {
+        } else if (loginHint) {
             const ccsCredential: CcsCredential = {
                 credential: loginHint,
                 type: CcsCredentialType.UPN,
@@ -1576,16 +1576,14 @@ export class BrowserCacheManager extends CacheManager {
     resetRequestCache(state: string): void {
         this.logger.trace("BrowserCacheManager.resetRequestCache called");
         // check state and remove associated cache items
-        if (!StringUtils.isEmpty(state)) {
+        if (state) {
             this.getKeys().forEach((key) => {
                 if (key.indexOf(state) !== -1) {
                     this.removeItem(key);
                 }
             });
-        }
 
-        // delete generic interactive request parameters
-        if (state) {
+            // delete generic interactive request parameters
             this.removeItem(this.generateStateKey(state));
             this.removeItem(this.generateNonceKey(state));
             this.removeItem(this.generateAuthorityKey(state));
@@ -1709,7 +1707,7 @@ export class BrowserCacheManager extends CacheManager {
         );
 
         // Get cached authority and use if no authority is cached with request.
-        if (StringUtils.isEmpty(parsedRequest.authority)) {
+        if (!parsedRequest.authority) {
             const authorityCacheKey: string = this.generateAuthorityKey(state);
             const cachedAuthority = this.getTemporaryCache(authorityCacheKey);
             if (!cachedAuthority) {

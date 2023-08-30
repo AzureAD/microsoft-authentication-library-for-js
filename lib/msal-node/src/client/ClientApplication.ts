@@ -28,28 +28,28 @@ import {
     AuthError,
     AzureCloudOptions,
     AuthorizationCodePayload,
-    StringUtils,
     ClientAuthError,
     Constants,
+    StringUtils,
 } from "@azure/msal-common";
 import {
     Configuration,
     buildAppConfiguration,
     NodeConfiguration,
-} from "../config/Configuration";
-import { CryptoProvider } from "../crypto/CryptoProvider";
-import { NodeStorage } from "../cache/NodeStorage";
-import { Constants as NodeConstants, ApiId } from "../utils/Constants";
-import { TokenCache } from "../cache/TokenCache";
-import { ClientAssertion } from "./ClientAssertion";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
-import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { version, name } from "../packageMetadata";
-import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
-import { NodeAuthError } from "../error/NodeAuthError";
-import { UsernamePasswordClient } from "./UsernamePasswordClient";
+} from "../config/Configuration.js";
+import { CryptoProvider } from "../crypto/CryptoProvider.js";
+import { NodeStorage } from "../cache/NodeStorage.js";
+import { Constants as NodeConstants, ApiId } from "../utils/Constants.js";
+import { TokenCache } from "../cache/TokenCache.js";
+import { ClientAssertion } from "./ClientAssertion.js";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { RefreshTokenRequest } from "../request/RefreshTokenRequest.js";
+import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
+import { version, name } from "../packageMetadata.js";
+import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest.js";
+import { NodeAuthError } from "../error/NodeAuthError.js";
+import { UsernamePasswordClient } from "./UsernamePasswordClient.js";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential

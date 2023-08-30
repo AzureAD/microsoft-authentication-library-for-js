@@ -3,10 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { IPerformanceClient } from "./IPerformanceClient";
+import {
+    IPerformanceClient,
+    InProgressPerformanceEvent,
+} from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
-import { PerformanceClient } from "./PerformanceClient";
-import { PerformanceEvent } from "./PerformanceEvent";
+import { PerformanceEvent, PerformanceEventStatus } from "./PerformanceEvent";
 
 export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     startMeasurement(): void {
@@ -20,12 +22,33 @@ export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     }
 }
 
-export class StubPerformanceClient
-    extends PerformanceClient
-    implements IPerformanceClient
-{
+export class StubPerformanceClient implements IPerformanceClient {
     generateId(): string {
         return "callback-id";
+    }
+
+    startMeasurement(
+        measureName: string,
+        correlationId?: string | undefined
+    ): InProgressPerformanceEvent {
+        return {
+            end: () => null,
+            discard: () => {},
+            add: () => {},
+            increment: () => {},
+            event: {
+                eventId: this.generateId(),
+                status: PerformanceEventStatus.InProgress,
+                authority: "",
+                libraryName: "",
+                libraryVersion: "",
+                clientId: "",
+                name: measureName,
+                startTimeMs: Date.now(),
+                correlationId: correlationId || "",
+            },
+            measurement: new StubPerformanceMeasurement(),
+        };
     }
 
     startPerformanceMeasurement(): IPerformanceMeasurement {

@@ -102,7 +102,8 @@ export class UsernamePasswordClient extends BaseClient {
             endpoint,
             requestBody,
             headers,
-            thumbprint
+            thumbprint,
+            request.correlationId
         );
     }
 

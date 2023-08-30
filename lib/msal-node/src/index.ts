@@ -13,25 +13,25 @@
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
 
-import * as internals from "./internals";
+import * as internals from "./internals.js";
 export { internals };
 
 // Interfaces
-export { IPublicClientApplication } from "./client/IPublicClientApplication";
-export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication";
-export { ITokenCache } from "./cache/ITokenCache";
-export { ICacheClient } from "./cache/distributed/ICacheClient";
-export { IPartitionManager } from "./cache/distributed/IPartitionManager";
-export { ILoopbackClient } from "./network/ILoopbackClient";
+export { IPublicClientApplication } from "./client/IPublicClientApplication.js";
+export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication.js";
+export { ITokenCache } from "./cache/ITokenCache.js";
+export { ICacheClient } from "./cache/distributed/ICacheClient.js";
+export { IPartitionManager } from "./cache/distributed/IPartitionManager.js";
+export { ILoopbackClient } from "./network/ILoopbackClient.js";
 
 // Clients and Configuration
-export { PublicClientApplication } from "./client/PublicClientApplication";
-export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication";
-export { ClientApplication } from "./client/ClientApplication";
-export { ClientCredentialClient } from "./client/ClientCredentialClient";
-export { DeviceCodeClient } from "./client/DeviceCodeClient";
-export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
-export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
+export { PublicClientApplication } from "./client/PublicClientApplication.js";
+export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication.js";
+export { ClientApplication } from "./client/ClientApplication.js";
+export { ClientCredentialClient } from "./client/ClientCredentialClient.js";
+export { DeviceCodeClient } from "./client/DeviceCodeClient.js";
+export { OnBehalfOfClient } from "./client/OnBehalfOfClient.js";
+export { UsernamePasswordClient } from "./client/UsernamePasswordClient.js";
 
 export {
     Configuration,
@@ -41,12 +41,12 @@ export {
     BrokerOptions,
     NodeTelemetryOptions,
     CacheOptions,
-} from "./config/Configuration";
-export { ClientAssertion } from "./client/ClientAssertion";
+} from "./config/Configuration.js";
+export { ClientAssertion } from "./client/ClientAssertion.js";
 
 // Cache and Storage
-export { TokenCache } from "./cache/TokenCache";
-export { NodeStorage } from "./cache/NodeStorage";
+export { TokenCache } from "./cache/TokenCache.js";
+export { NodeStorage } from "./cache/NodeStorage.js";
 export {
     CacheKVStore,
     JsonCache,
@@ -56,23 +56,23 @@ export {
     SerializedAccessTokenEntity,
     SerializedAppMetadataEntity,
     SerializedRefreshTokenEntity,
-} from "./cache/serializer/SerializerTypes";
-export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin";
+} from "./cache/serializer/SerializerTypes.js";
+export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin.js";
 
 // Crypto
-export { CryptoProvider } from "./crypto/CryptoProvider";
+export { CryptoProvider } from "./crypto/CryptoProvider.js";
 
 // Request objects
-export type { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
-export type { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
-export type { ClientCredentialRequest } from "./request/ClientCredentialRequest";
-export type { DeviceCodeRequest } from "./request/DeviceCodeRequest";
-export type { OnBehalfOfRequest } from "./request/OnBehalfOfRequest";
-export type { UsernamePasswordRequest } from "./request/UsernamePasswordRequest";
-export type { RefreshTokenRequest } from "./request/RefreshTokenRequest";
-export type { SilentFlowRequest } from "./request/SilentFlowRequest";
-export type { InteractiveRequest } from "./request/InteractiveRequest";
-export type { SignOutRequest } from "./request/SignOutRequest";
+export type { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest.js";
+export type { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest.js";
+export type { ClientCredentialRequest } from "./request/ClientCredentialRequest.js";
+export type { DeviceCodeRequest } from "./request/DeviceCodeRequest.js";
+export type { OnBehalfOfRequest } from "./request/OnBehalfOfRequest.js";
+export type { UsernamePasswordRequest } from "./request/UsernamePasswordRequest.js";
+export type { RefreshTokenRequest } from "./request/RefreshTokenRequest.js";
+export type { SilentFlowRequest } from "./request/SilentFlowRequest.js";
+export type { InteractiveRequest } from "./request/InteractiveRequest.js";
+export type { SignOutRequest } from "./request/SignOutRequest.js";
 
 // Common Object Formats
 export {
@@ -118,4 +118,4 @@ export {
     AppTokenProviderResult,
 } from "@azure/msal-common";
 
-export { version } from "./packageMetadata";
+export { version } from "./packageMetadata.js";

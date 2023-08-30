@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { JwtHeader, sign } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { TimeUtils, ClientAuthError, Constants } from "@azure/msal-common";
-import { CryptoProvider } from "../crypto/CryptoProvider";
-import { EncodingUtils } from "../utils/EncodingUtils";
-import { JwtConstants } from "../utils/Constants";
+import { CryptoProvider } from "../crypto/CryptoProvider.js";
+import { EncodingUtils } from "../utils/EncodingUtils.js";
+import { JwtConstants } from "../utils/Constants.js";
 
 /**
  * Client assertion of type jwt-bearer used in confidential client flows
@@ -102,7 +102,7 @@ export class ClientAssertion {
         const issuedAt = TimeUtils.nowSeconds();
         this.expirationTime = issuedAt + 600;
 
-        const header: JwtHeader = {
+        const header: jwt.JwtHeader = {
             alg: JwtConstants.RSA_256,
             x5t: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex"),
         };
@@ -110,7 +110,7 @@ export class ClientAssertion {
         if (this.publicCertificate) {
             Object.assign(header, {
                 x5c: this.publicCertificate,
-            } as Partial<JwtHeader>);
+            } as Partial<jwt.JwtHeader>);
         }
 
         const payload = {
@@ -122,7 +122,7 @@ export class ClientAssertion {
             [JwtConstants.JWT_ID]: cryptoProvider.createNewGuid(),
         };
 
-        this.jwt = sign(payload, this.privateKey, { header });
+        this.jwt = jwt.sign(payload, this.privateKey, { header });
         return this.jwt;
     }
 

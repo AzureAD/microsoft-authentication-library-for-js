@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 18 Aug 2023 18:40:02 GMT",
+      "tag": "@azure/msal-common_v14.0.2",
+      "version": "14.0.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "00a8f2270bd7d39362710ae0119e74e1cac86bcc",
+            "comment": "Fix authority endpoint version for B2C authorities #6342"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d6bdb1c9987e54a347874537025c17e70b546f36",
+            "comment": "Typedocs"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 11 Aug 2023 19:00:44 GMT",
       "tag": "@azure/msal-common_v14.0.1",
       "version": "14.0.1",

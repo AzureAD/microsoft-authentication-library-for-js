@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
@@ -40,8 +40,8 @@
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node-extensions",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "lint": "cd ../../ && npm run lint:node:extensions",
-    "lint:fix": "npm run lint -- -- --fix",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
     "format:fix": "npx prettier --ignore-path .gitignore --write src test",
     "prepack": "npm run build:all && node ./scripts/checkBinaries.cjs"
@@ -57,7 +57,7 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "14.0.1",
+    "@azure/msal-common": "14.0.2",
     "@azure/msal-node-runtime": "^0.13.6-alpha.0",
     "keytar": "^7.8.0"
   },
@@ -66,6 +66,7 @@
     "@rollup/plugin-typescript": "^11.1.0",
     "@types/jest": "^29.5.1",
     "@types/node": "^20.3.1",
+    "eslint-config-msal": "^0.0.0",
     "jest": "^29.5.0",
     "node-addon-api": "^6.1.0",
     "rollup": "^3.20.2",

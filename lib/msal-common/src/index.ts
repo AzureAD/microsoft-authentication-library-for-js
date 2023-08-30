@@ -175,6 +175,7 @@ export {
     ONE_DAY_IN_MS,
     GrantType,
     AADAuthorityConstants,
+    HttpStatus,
 } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
@@ -184,6 +185,7 @@ export {
     LibraryStateObject,
 } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
+export * from "./utils/FunctionWrappers";
 // Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";

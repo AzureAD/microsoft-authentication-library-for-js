@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Extend hydrateCache request type to include ssoSilentRequest, PopupRequest and RedirectRequest #6329",
+  "comment": "Instrument ssoSilent #6383",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

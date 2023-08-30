@@ -7,7 +7,6 @@ import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResp
 import { buildClientInfo } from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
@@ -27,6 +26,7 @@ import {
     AuthenticationScheme,
     Constants,
     THE_FAMILY_ID,
+    HttpStatus,
 } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
@@ -153,9 +153,11 @@ export class ResponseHandler {
     /**
      * Function which validates server authorization token response.
      * @param serverResponse
+     * @param refreshAccessToken
      */
     validateTokenResponse(
-        serverResponse: ServerAuthorizationTokenResponse
+        serverResponse: ServerAuthorizationTokenResponse,
+        refreshAccessToken?: boolean
     ): void {
         // Check for error
         if (
@@ -163,6 +165,41 @@ export class ResponseHandler {
             serverResponse.error_description ||
             serverResponse.suberror
         ) {
+            const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
+            const serverError = new ServerError(
+                serverResponse.error,
+                errString,
+                serverResponse.suberror
+            );
+
+            // check if 500 error
+            if (
+                refreshAccessToken &&
+                serverResponse.status &&
+                serverResponse.status >= HttpStatus.SERVER_ERROR_RANGE_START &&
+                serverResponse.status <= HttpStatus.SERVER_ERROR_RANGE_END
+            ) {
+                this.logger.warning(
+                    `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`
+                );
+
+                // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
+                return;
+                // check if 400 error
+            } else if (
+                refreshAccessToken &&
+                serverResponse.status &&
+                serverResponse.status >= HttpStatus.CLIENT_ERROR_RANGE_START &&
+                serverResponse.status <= HttpStatus.CLIENT_ERROR_RANGE_END
+            ) {
+                this.logger.warning(
+                    `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`
+                );
+
+                // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
+                return;
+            }
+
             if (
                 InteractionRequiredAuthError.isInteractionRequiredError(
                     serverResponse.error,
@@ -181,12 +218,7 @@ export class ResponseHandler {
                 );
             }
 
-            const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
-            throw new ServerError(
-                serverResponse.error,
-                errString,
-                serverResponse.suberror
-            );
+            throw serverError;
         }
     }
 
@@ -220,10 +252,7 @@ export class ResponseHandler {
             );
 
             // token nonce check (TODO: Add a warning if no nonce is given?)
-            if (
-                authCodePayload &&
-                !StringUtils.isEmpty(authCodePayload.nonce)
-            ) {
+            if (authCodePayload && authCodePayload.nonce) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
                     throw ClientAuthError.createNonceMismatchError();
                 }
@@ -358,17 +387,14 @@ export class ResponseHandler {
         authCodePayload?: AuthorizationCodePayload
     ): CacheRecord {
         const env = authority.getPreferredCache();
-        if (StringUtils.isEmpty(env)) {
+        if (!env) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
         // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity | undefined;
         let cachedAccount: AccountEntity | undefined;
-        if (
-            !StringUtils.isEmpty(serverTokenResponse.id_token) &&
-            !!idTokenObj
-        ) {
+        if (serverTokenResponse.id_token && !!idTokenObj) {
             cachedIdToken = IdTokenEntity.createIdTokenEntity(
                 this.homeAccountIdentifier,
                 env,
@@ -391,7 +417,7 @@ export class ResponseHandler {
 
         // AccessToken
         let cachedAccessToken: AccessTokenEntity | null = null;
-        if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
+        if (serverTokenResponse.access_token) {
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope
                 ? ScopeSet.fromString(serverTokenResponse.scope)
@@ -445,7 +471,7 @@ export class ResponseHandler {
 
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
-        if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
+        if (serverTokenResponse.refresh_token) {
             cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
                 env,
@@ -458,7 +484,7 @@ export class ResponseHandler {
 
         // appMetadata
         let cachedAppMetadata: AppMetadataEntity | null = null;
-        if (!StringUtils.isEmpty(serverTokenResponse.foci)) {
+        if (serverTokenResponse.foci) {
             cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(
                 this.clientId,
                 env,
@@ -500,6 +526,7 @@ export class ResponseHandler {
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
+        let refreshOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
 
         if (cacheRecord.accessToken) {
@@ -531,6 +558,11 @@ export class ResponseHandler {
             extExpiresOn = new Date(
                 Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
             );
+            if (cacheRecord.accessToken.refreshOn) {
+                refreshOn = new Date(
+                    Number(cacheRecord.accessToken.refreshOn) * 1000
+                );
+            }
         }
 
         if (cacheRecord.appMetadata) {
@@ -564,9 +596,10 @@ export class ResponseHandler {
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
+            extExpiresOn: extExpiresOn,
+            refreshOn: refreshOn,
             correlationId: request.correlationId,
             requestId: requestId || Constants.EMPTY_STRING,
-            extExpiresOn: extExpiresOn,
             familyId: familyId,
             tokenType:
                 cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,

@@ -26,6 +26,7 @@ import {
     AccountEntity,
     ServerResponseType,
     UrlString,
+    invokeAsync,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -72,6 +73,7 @@ import { StandardOperatingContext } from "../operatingcontext/StandardOperatingC
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { IController } from "./IController";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export class StandardController implements IController {
     // OperatingContext
@@ -522,7 +524,7 @@ export class StandardController implements IController {
                         );
                         return redirectClient.acquireToken(request);
                     }
-                    this.browserStorage.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -600,7 +602,7 @@ export class StandardController implements IController {
         if (this.canUseNative(request)) {
             result = this.acquireTokenNative(request, ApiId.acquireTokenPopup)
                 .then((response) => {
-                    this.browserStorage.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
@@ -624,7 +626,7 @@ export class StandardController implements IController {
                         );
                         return popupClient.acquireToken(request);
                     }
-                    this.browserStorage.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -1067,11 +1069,13 @@ export class StandardController implements IController {
             request.correlationId
         );
 
-        this.performanceClient.setPreQueueTime(
+        return invokeAsync(
+            silentIframeClient.acquireToken.bind(silentIframeClient),
             PerformanceEvents.SilentIframeClientAcquireToken,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        return silentIframeClient.acquireToken(request);
+        )(request);
     }
 
     // #endregion
@@ -1122,6 +1126,16 @@ export class StandardController implements IController {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
         }
+    }
+
+    /**
+     * Creates a cache interaction client to clear broswer cache.
+     * @param logoutRequest
+     */
+    async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        const correlationId = this.getRequestCorrelationId(logoutRequest);
+        const cacheClient = this.createSilentCacheClient(correlationId);
+        return cacheClient.logout(logoutRequest);
     }
 
     // #endregion
@@ -1364,7 +1378,7 @@ export class StandardController implements IController {
 
         // Set interaction in progress temporary cache or throw if alread set.
         if (setInteractionInProgress) {
-            this.browserStorage.setInteractionInProgress(true);
+            this.getBrowserStorage().setInteractionInProgress(true);
         }
     }
 
@@ -1699,20 +1713,6 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the native internal storage
-     */
-    public getNativeInternalStorage(): BrowserCacheManager {
-        return this.nativeInternalStorage;
-    }
-
-    /**
-     * Returns the instance of interface for crypto functions
-     */
-    public getBrowserCrypto(): ICrypto {
-        return this.browserCrypto;
-    }
-
-    /**
      * Returns the browser env indicator
      */
     public isBrowserEnv(): boolean {
@@ -1720,41 +1720,10 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the native message handler
-     */
-    getNativeExtensionProvider(): NativeMessageHandler | undefined {
-        return this.nativeExtensionProvider;
-    }
-
-    /**
-     * Sets the native message handler
-     * @param provider {?NativeMessageHandler}
-     */
-    setNativeExtensionProvider(
-        provider: NativeMessageHandler | undefined
-    ): void {
-        this.nativeExtensionProvider = provider;
-    }
-
-    /**
      * Returns the event handler
      */
     getEventHandler(): EventHandler {
         return this.eventHandler;
-    }
-
-    /**
-     * Returns the navigation client
-     */
-    getNavigationClient(): INavigationClient {
-        return this.navigationClient;
-    }
-
-    /**
-     * Returns the redirect response map
-     */
-    getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
-        return this.redirectResponse;
     }
 
     /**

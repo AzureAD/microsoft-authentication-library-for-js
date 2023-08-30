@@ -1,0 +1,19 @@
+{
+    "name": "eslint-config-msal",
+    "version": "0.0.0",
+    "private": true,
+    "main": "index.js",
+    "devDependencies": {
+        "@angular-eslint/eslint-plugin": "^15.2.1",
+        "@typescript-eslint/eslint-plugin": "^5.56.0",
+        "@typescript-eslint/parser": "^5.56.0",
+        "eslint-config-prettier": "^8.8.0",
+        "eslint-import-resolver-typescript": "^3.5.5",
+        "eslint-plugin-header": "^3.1.0",
+        "eslint-plugin-import": "^2.22.1",
+        "eslint-plugin-prettier": "^4.2.1",
+        "eslint-plugin-react": "^7.31.9",
+        "eslint-plugin-react-hooks": "^4.1.2",
+        "eslint-plugin-security": "^1.4.0"
+    }
+}

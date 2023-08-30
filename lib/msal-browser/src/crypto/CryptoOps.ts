@@ -13,7 +13,6 @@ import {
     SignedHttpRequest,
     SignedHttpRequestParameters,
 } from "@azure/msal-common";
-import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
@@ -35,7 +34,6 @@ export type CachedKeyPair = {
  */
 export class CryptoOps implements ICrypto {
     private browserCrypto: BrowserCrypto;
-    private guidGenerator: GuidGenerator;
     private b64Encode: Base64Encode;
     private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
@@ -57,7 +55,6 @@ export class CryptoOps implements ICrypto {
         this.browserCrypto = new BrowserCrypto(this.logger);
         this.b64Encode = new Base64Encode();
         this.b64Decode = new Base64Decode();
-        this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
         this.cache = new CryptoKeyStore(this.logger);
         this.performanceClient = performanceClient;
@@ -68,7 +65,7 @@ export class CryptoOps implements ICrypto {
      * @returns string (GUID)
      */
     createNewGuid(): string {
-        return this.guidGenerator.generateGuid();
+        return window.crypto.randomUUID();
     }
 
     /**

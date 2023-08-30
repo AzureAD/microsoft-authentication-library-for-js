@@ -70,10 +70,6 @@ export const BrowserAuthErrorMessage: BrowserAuthErrors = {
         code: "crypto_nonexistent",
         desc: "The crypto object or function is not available.",
     },
-    httpMethodNotImplementedError: {
-        code: "http_method_not_implemented",
-        desc: "The HTTP method given has not been implemented in this library.",
-    },
     emptyNavigateUriError: {
         code: "empty_navigate_uri",
         desc: "Navigation URI is empty. Please check stack trace for more info.",

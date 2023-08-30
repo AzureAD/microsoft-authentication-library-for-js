@@ -24,6 +24,8 @@ import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { EventCallbackFunction } from "../event/EventMessage";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -140,7 +142,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Adds event callbacks to array
      * @param callback
      */
-    addEventCallback(callback: Function): string | null {
+    addEventCallback(callback: EventCallbackFunction): string | null {
         return this.controller.addEventCallback(callback);
     }
 
@@ -391,5 +393,13 @@ export class PublicClientApplication implements IPublicClientApplication {
             | PopupRequest
     ): Promise<void> {
         return this.controller.hydrateCache(result, request);
+    }
+
+    /**
+     * Clears tokens and account from the browser cache.
+     * @param logoutRequest
+     */
+    clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        return this.controller.clearCache(logoutRequest);
     }
 }

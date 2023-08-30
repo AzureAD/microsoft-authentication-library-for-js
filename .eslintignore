@@ -1,4 +1,0 @@
-*.d.ts
-*.spec.ts
-**/*/dist
-samples

@@ -6,7 +6,6 @@
 import { CredentialEntity } from "./CredentialEntity";
 import { CredentialType, AuthenticationScheme } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
-import { StringUtils } from "../../utils/StringUtils";
 import { ICrypto } from "../../crypto/ICrypto";
 import { TokenClaims } from "../../account/TokenClaims";
 import { AuthToken } from "../../account/AuthToken";
@@ -101,9 +100,7 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.target = scopes;
         atEntity.userAssertionHash = userAssertionHash;
 
-        atEntity.tokenType = StringUtils.isEmpty(tokenType)
-            ? AuthenticationScheme.BEARER
-            : tokenType;
+        atEntity.tokenType = tokenType || AuthenticationScheme.BEARER;
 
         if (requestedClaims) {
             atEntity.requestedClaims = requestedClaims;

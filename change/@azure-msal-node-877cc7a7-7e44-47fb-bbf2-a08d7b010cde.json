@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "close loopback server on error #6387",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

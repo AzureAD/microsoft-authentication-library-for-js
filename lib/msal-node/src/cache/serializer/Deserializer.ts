@@ -4,7 +4,6 @@
  */
 
 import {
-    StringUtils,
     AccountCache,
     IdTokenCache,
     AccessTokenCache,
@@ -25,7 +24,7 @@ import {
     SerializedAccessTokenEntity,
     SerializedRefreshTokenEntity,
     SerializedAppMetadataEntity,
-} from "./SerializerTypes";
+} from "./SerializerTypes.js";
 
 /**
  * This class deserializes cache entities read from the file into in memory object types defined internally
@@ -36,9 +35,7 @@ export class Deserializer {
      * @param cachedJson
      */
     static deserializeJSONBlob(jsonFile: string): JsonCache {
-        const deserializedCache = StringUtils.isEmpty(jsonFile)
-            ? {}
-            : JSON.parse(jsonFile);
+        const deserializedCache = !jsonFile ? {} : JSON.parse(jsonFile);
         return deserializedCache;
     }
 
