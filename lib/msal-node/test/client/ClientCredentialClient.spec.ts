@@ -751,7 +751,7 @@ describe("ClientCredentialClient unit tests", () => {
         // Wait two seconds for the acquireToken and its mocked network requests to complete,
         // then check the cache to ensure the refreshed token exists (the network request was successful)
         await new Promise((r) => setTimeout(r, 2000));
-            
+
         accessTokenKey = config.storageInterface
             ?.getKeys()
             .find((value) => value.indexOf("accesstoken") >= 0);
