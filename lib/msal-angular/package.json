@@ -12,6 +12,9 @@
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "description": "Microsoft Authentication Library for Angular",
+  "files": [
+    "src"
+  ],
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -24,8 +27,8 @@
     "deploy": "npm run build:all:prod && npm publish ./dist --workspaces=false",
     "test": "ng test",
     "test:coverage": "npm test",
-    "lint": "cd ../../ && npm run lint:angular",
-    "lint:fix": "npm run lint -- -- --fix",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
     "e2e": "ng e2e",
     "prepack": "npm run build:all",
     "prepublishOnly": "echo Use npm run deploy && exit 1",
@@ -54,6 +57,7 @@
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
+    "eslint-config-msal": "^0.0.0",
     "jasmine-core": "~4.0.0",
     "jasmine-spec-reporter": "~5.0.0",
     "karma": "~6.3.2",

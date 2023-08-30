@@ -24,6 +24,7 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { EventHandler } from "../event/EventHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export interface IController {
     initialize(): Promise<void>;
@@ -82,6 +83,8 @@ export interface IController {
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
 
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
+
+    clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
 
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 

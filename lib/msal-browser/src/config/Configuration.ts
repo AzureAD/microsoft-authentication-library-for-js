@@ -28,7 +28,6 @@ import {
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
 import { FetchClient } from "../network/FetchClient";
-import { name, version } from "../packageMetadata";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;

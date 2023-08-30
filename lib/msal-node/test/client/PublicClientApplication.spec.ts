@@ -52,6 +52,7 @@ import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils";
 import { version, name } from "../../package.json";
 import { MockNativeBrokerPlugin } from "../utils/MockNativeBrokerPlugin";
 import { SignOutRequest } from "../../src/request/SignOutRequest";
+import { LoopbackClient } from "../../src/network/LoopbackClient";
 
 const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
 
@@ -513,6 +514,69 @@ describe("PublicClientApplication", () => {
                 expect(brokerSpy).toHaveBeenCalled();
                 expect(e).toBe(testError);
                 done();
+            });
+        });
+
+        test("acquireTokenInteractive - loopback server is closed on error", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+
+            const openBrowser = (url: string) => {
+                expect(
+                    url.startsWith("https://login.microsoftonline.com")
+                ).toBe(true);
+                return Promise.reject("Browser open error");
+            };
+
+            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
+                state: "123",
+            };
+
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "listenForAuthCode"
+            ).mockImplementation(() => {
+                return new Promise<ServerAuthorizationCodeResponse>(
+                    (resolve) => {
+                        resolve(testServerCodeResponse);
+                    }
+                );
+            });
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "getRedirectUri"
+            ).mockImplementation(() => TEST_CONSTANTS.REDIRECT_URI);
+            const mockCloseServer = jest.spyOn(
+                LoopbackClient.prototype,
+                "closeServer"
+            );
+
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                openBrowser: openBrowser,
+            };
+
+            const MockAuthorizationCodeClient =
+                getMsalCommonAutoMock().AuthorizationCodeClient;
+            jest.spyOn(
+                msalCommon,
+                "AuthorizationCodeClient"
+            ).mockImplementation(
+                (config) => new MockAuthorizationCodeClient(config)
+            );
+
+            jest.spyOn(
+                MockAuthorizationCodeClient.prototype,
+                "getAuthCodeUrl"
+            ).mockImplementation((req) => {
+                expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
+                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+            });
+
+            authApp.acquireTokenInteractive(request).catch((e) => {
+                expect(e).toBe("Browser open error");
+                expect(mockCloseServer).toHaveBeenCalledTimes(1);
             });
         });
     });

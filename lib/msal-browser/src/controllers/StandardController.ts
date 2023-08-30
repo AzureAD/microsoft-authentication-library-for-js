@@ -73,6 +73,7 @@ import { StandardOperatingContext } from "../operatingcontext/StandardOperatingC
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { IController } from "./IController";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export class StandardController implements IController {
     // OperatingContext
@@ -1125,6 +1126,16 @@ export class StandardController implements IController {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
         }
+    }
+
+    /**
+     * Creates a cache interaction client to clear broswer cache.
+     * @param logoutRequest
+     */
+    async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        const correlationId = this.getRequestCorrelationId(logoutRequest);
+        const cacheClient = this.createSilentCacheClient(correlationId);
+        return cacheClient.logout(logoutRequest);
     }
 
     // #endregion

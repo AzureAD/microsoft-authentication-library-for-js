@@ -41,13 +41,14 @@
     "test": "test"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
     "clean": "shx rm -rf dist lib",
     "clean:coverage": "rimraf ../../.nyc_output/*",
-    "lint": "cd ../../ && npm run lint:common",
-    "lint:fix": "npm run lint -- -- --fix",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
@@ -77,6 +78,7 @@
     "@types/lodash": "^4.14.182",
     "@types/node": "^20.3.1",
     "@types/sinon": "^7.5.0",
+    "eslint-config-msal": "^0.0.0",
     "jest": "^29.5.0",
     "lodash": "^4.17.21",
     "prettier": "2.8.7",
