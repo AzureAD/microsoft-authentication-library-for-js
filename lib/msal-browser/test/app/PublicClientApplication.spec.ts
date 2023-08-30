@@ -270,7 +270,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(apps[i].controller.initialized).toBeTruthy();
                     expect(
                         // @ts-ignore
-                        apps[i].controller.getNativeExtensionProvider()
+                        apps[i].controller.nativeExtensionProvider
                     ).toBeInstanceOf(NativeMessageHandler);
                 }
             } finally {
@@ -360,7 +360,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     nativeProviders += apps[
                         i
                         // @ts-ignore
-                    ].controller.getNativeExtensionProvider()
+                    ].controller.nativeExtensionProvider
                         ? 1
                         : 0;
                 }
