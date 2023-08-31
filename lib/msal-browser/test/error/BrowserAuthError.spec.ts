@@ -1,17 +1,16 @@
 import {
     BrowserAuthError,
-    BrowserAuthErrorMessages
+    BrowserAuthErrorMessages,
 } from "../../src/error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 import { AuthError } from "@azure/msal-common";
 
 describe("BrowserAuthError Unit Tests", () => {
     for (const key in BrowserAuthErrorCodes) {
-        const code = BrowserAuthErrorCodes[key as keyof typeof BrowserAuthErrorCodes];
+        const code =
+            BrowserAuthErrorCodes[key as keyof typeof BrowserAuthErrorCodes];
         it(`BrowserAuthError object can be created for code ${code}`, () => {
-            const err: BrowserAuthError = new BrowserAuthError(
-                code
-            );
+            const err: BrowserAuthError = new BrowserAuthError(code);
 
             const message = BrowserAuthErrorMessages[code];
             expect(message).toBeTruthy();

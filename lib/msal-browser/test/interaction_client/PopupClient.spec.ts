@@ -1956,7 +1956,9 @@ describe("PopupClient", () => {
                     "http://localhost/#/code=hello",
                     { popupName: "name", popupWindowAttributes: {} }
                 )
-            ).toThrow(new BrowserAuthError(BrowserAuthErrorCodes.popupWindowError));
+            ).toThrow(
+                new BrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+            );
         });
 
         it("throws error if popup passed in is null", () => {
@@ -1978,7 +1980,9 @@ describe("PopupClient", () => {
                         popupWindowAttributes: {},
                     }
                 )
-            ).toThrow(new BrowserAuthError(BrowserAuthErrorCodes.popupWindowError));
+            ).toThrow(
+                new BrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+            );
         });
     });
 });

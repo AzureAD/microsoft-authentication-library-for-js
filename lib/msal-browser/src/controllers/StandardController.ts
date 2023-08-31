@@ -848,7 +848,9 @@ export class StandardController implements IController {
         try {
             if (request.code && request.nativeAccountId) {
                 // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
-                throw new BrowserAuthError(BrowserAuthErrorCodes.spaCodeAndNativeAccountPresent);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.spaCodeAndNativeAccountPresent
+                );
             } else if (request.code) {
                 const hybridAuthCode = request.code;
                 let response = this.hybridAuthCodeResponses.get(hybridAuthCode);
@@ -917,10 +919,14 @@ export class StandardController implements IController {
                         throw e;
                     });
                 } else {
-                    throw new BrowserAuthError(BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform);
+                    throw new BrowserAuthError(
+                        BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform
+                    );
                 }
             } else {
-                throw new BrowserAuthError(BrowserAuthErrorCodes.authCodeOrNativeAccountRequired);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.authCodeOrNativeAccountRequired
+                );
             }
         } catch (e) {
             this.eventHandler.emitEvent(
@@ -1394,7 +1400,9 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.nativeConnectionNotEstablished);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.nativeConnectionNotEstablished
+            );
         }
 
         const nativeClient = new NativeInteractionClient(

@@ -705,7 +705,9 @@ describe("RedirectClient", () => {
 
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(
-                    new BrowserAuthError(BrowserAuthErrorCodes.noCachedAuthorityError)
+                    new BrowserAuthError(
+                        BrowserAuthErrorCodes.noCachedAuthorityError
+                    )
                 );
                 expect(window.sessionStorage.length).toEqual(1); // telemetry
                 done();
@@ -2184,11 +2186,7 @@ describe("RedirectClient", () => {
             };
             sinon
                 .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .throws(
-                    new BrowserAuthError(
-                        testError.errorCode
-                    )
-                );
+                .throws(new BrowserAuthError(testError.errorCode));
             try {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
@@ -3611,7 +3609,9 @@ describe("RedirectClient", () => {
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
-            const testError = new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUriError);
+            const testError = new BrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUriError
+            );
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
                 .callsFake((): Promise<boolean> => {

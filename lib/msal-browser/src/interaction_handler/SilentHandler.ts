@@ -13,7 +13,7 @@ import {
     PerformanceEvents,
 } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
-import { BrowserAuthError} from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import {
@@ -63,7 +63,9 @@ export class SilentHandler extends InteractionHandler {
         if (!requestUrl) {
             // Throw error if request URL is empty.
             this.logger.info("Navigate url is empty");
-            throw new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUriError);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUriError
+            );
         }
 
         if (this.navigateFrameWait) {
@@ -108,7 +110,11 @@ export class SilentHandler extends InteractionHandler {
                 if (window.performance.now() > timeoutMark) {
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
-                    reject(new BrowserAuthError(BrowserAuthErrorCodes.monitorIframeTimeoutError));
+                    reject(
+                        new BrowserAuthError(
+                            BrowserAuthErrorCodes.monitorIframeTimeoutError
+                        )
+                    );
                     return;
                 }
 
@@ -150,7 +156,9 @@ export class SilentHandler extends InteractionHandler {
                         this.removeHiddenIframe(iframe);
                         clearInterval(intervalId);
                         reject(
-                            new BrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError)
+                            new BrowserAuthError(
+                                BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError
+                            )
                         );
                         return;
                     }
@@ -164,7 +172,11 @@ export class SilentHandler extends InteractionHandler {
                     );
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
-                    reject(new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError));
+                    reject(
+                        new BrowserAuthError(
+                            BrowserAuthErrorCodes.hashEmptyError
+                        )
+                    );
                     return;
                 }
             }, this.pollIntervalMilliseconds);

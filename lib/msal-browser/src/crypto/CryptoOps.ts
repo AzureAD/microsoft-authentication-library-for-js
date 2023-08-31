@@ -185,7 +185,9 @@ export class CryptoOps implements ICrypto {
         const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
 
         if (!cachedKeyPair) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.signingKeyNotFoundInStorage);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.signingKeyNotFoundInStorage
+            );
         }
 
         // Get public key as JWK

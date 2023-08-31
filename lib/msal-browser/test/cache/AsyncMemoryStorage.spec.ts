@@ -42,7 +42,9 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     const item = mockDatabase[TEST_DB_TABLE_NAME][kid];
 
                     if (item === DB_UNAVAILABLE) {
-                        throw new BrowserAuthError(BrowserAuthErrorCodes.databaseUnavailable);
+                        throw new BrowserAuthError(
+                            BrowserAuthErrorCodes.databaseUnavailable
+                        );
                     }
 
                     return item;
@@ -51,7 +53,9 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     callCounter.setItemPersistent += 1;
 
                     if (payload === DB_UNAVAILABLE) {
-                        throw new BrowserAuthError(BrowserAuthErrorCodes.databaseUnavailable);
+                        throw new BrowserAuthError(
+                            BrowserAuthErrorCodes.databaseUnavailable
+                        );
                     }
 
                     mockDatabase[TEST_DB_TABLE_NAME][kid] = payload;
@@ -62,7 +66,9 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     const item = mockDatabase[TEST_DB_TABLE_NAME][kid];
 
                     if (item === DB_UNAVAILABLE) {
-                        throw new BrowserAuthError(BrowserAuthErrorCodes.databaseUnavailable);
+                        throw new BrowserAuthError(
+                            BrowserAuthErrorCodes.databaseUnavailable
+                        );
                     }
 
                     delete mockDatabase[TEST_DB_TABLE_NAME][kid];

@@ -27,7 +27,7 @@ import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
-import { BrowserAuthError} from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import {
     BrowserProtocolUtils,
@@ -310,7 +310,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             requestCorrelationId
         );
         if (!serverParams.state) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainStateError);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.hashDoesNotContainStateError
+            );
         }
 
         const platformStateObj =
@@ -319,11 +321,15 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 serverParams.state
             );
         if (!platformStateObj) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToParseStateError);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToParseStateError
+            );
         }
 
         if (platformStateObj.interactionType !== interactionType) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.stateInteractionTypeMismatchError);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.stateInteractionTypeMismatchError
+            );
         }
 
         this.logger.verbose("Returning state from hash", requestCorrelationId);

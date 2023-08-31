@@ -382,7 +382,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     authorityInstance,
                     authConfig.networkInterface!
                 )
-            ).rejects.toMatchObject(new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError));
+            ).rejects.toMatchObject(
+                new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+            );
             //@ts-ignore
             expect(
                 interactionHandler.handleCodeResponseFromHash(

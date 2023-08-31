@@ -93,7 +93,9 @@ export class SilentIframeClient extends StandardInteractionClient {
             request.prompt !== PromptValue.NONE &&
             request.prompt !== PromptValue.NO_SESSION
         ) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.silentPromptValueError);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.silentPromptValueError
+            );
         }
 
         // Create silent request
@@ -159,7 +161,9 @@ export class SilentIframeClient extends StandardInteractionClient {
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
-            new BrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupportedError)
+            new BrowserAuthError(
+                BrowserAuthErrorCodes.silentLogoutUnsupportedError
+            )
         );
     }
 
@@ -244,7 +248,9 @@ export class SilentIframeClient extends StandardInteractionClient {
                 "Account id found in hash, calling WAM for token"
             );
             if (!this.nativeMessageHandler) {
-                throw new BrowserAuthError(BrowserAuthErrorCodes.nativeConnectionNotEstablished);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                );
             }
             const nativeInteractionClient = new NativeInteractionClient(
                 this.config,

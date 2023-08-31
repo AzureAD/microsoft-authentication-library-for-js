@@ -35,9 +35,13 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw new BrowserAuthError(BrowserAuthErrorCodes.getRequestFailed);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.getRequestFailed
+                );
             } else {
-                throw new BrowserAuthError(BrowserAuthErrorCodes.noNetworkConnectivity);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.noNetworkConnectivity
+                );
             }
         }
 
@@ -48,7 +52,9 @@ export class FetchClient implements INetworkModule {
                 status: response.status,
             };
         } catch (e) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.failedToParseNetworkResponse);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.failedToParseNetworkResponse
+            );
         }
     }
 
@@ -73,9 +79,13 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw new BrowserAuthError(BrowserAuthErrorCodes.postRequestFailed);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.postRequestFailed
+                );
             } else {
-                throw new BrowserAuthError(BrowserAuthErrorCodes.noNetworkConnectivity);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.noNetworkConnectivity
+                );
             }
         }
 
@@ -86,7 +96,9 @@ export class FetchClient implements INetworkModule {
                 status: response.status,
             };
         } catch (e) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.failedToParseNetworkResponse);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.failedToParseNetworkResponse
+            );
         }
     }
 

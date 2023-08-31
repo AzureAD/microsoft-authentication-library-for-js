@@ -1694,14 +1694,18 @@ export class BrowserCacheManager extends CacheManager {
             true
         );
         if (!encodedTokenRequest) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.noTokenRequestCacheError);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.noTokenRequestCacheError
+            );
         }
 
         const parsedRequest = this.validateAndParseJson(
             browserCrypto.base64Decode(encodedTokenRequest)
         ) as CommonAuthorizationCodeRequest;
         if (!parsedRequest) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToParseTokenRequestCacheError);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
+            );
         }
         this.removeItem(
             this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS)
@@ -1712,7 +1716,9 @@ export class BrowserCacheManager extends CacheManager {
             const authorityCacheKey: string = this.generateAuthorityKey(state);
             const cachedAuthority = this.getTemporaryCache(authorityCacheKey);
             if (!cachedAuthority) {
-                throw new BrowserAuthError(BrowserAuthErrorCodes.noCachedAuthorityError);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.noCachedAuthorityError
+                );
             }
             parsedRequest.authority = cachedAuthority;
         }
@@ -1769,7 +1775,9 @@ export class BrowserCacheManager extends CacheManager {
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         if (inProgress) {
             if (this.getInteractionInProgress()) {
-                throw new BrowserAuthError(BrowserAuthErrorCodes.interactionInProgress);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                );
             } else {
                 // No interaction is in progress
                 this.setTemporaryCache(key, this.clientId, false);

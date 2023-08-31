@@ -179,7 +179,11 @@ export class NativeMessageHandler {
                     extensionHandshakeTimedOut: true,
                     success: false,
                 });
-                reject(new BrowserAuthError(BrowserAuthErrorCodes.nativeHandshakeTimeout));
+                reject(
+                    new BrowserAuthError(
+                        BrowserAuthErrorCodes.nativeHandshakeTimeout
+                    )
+                );
                 this.handshakeResolvers.delete(req.responseId);
             }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
         });
@@ -239,7 +243,9 @@ export class NativeMessageHandler {
                 extensionInstalled: false,
             });
             handshakeResolver.reject(
-                new BrowserAuthError(BrowserAuthErrorCodes.nativeExtensionNotInstalled)
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.nativeExtensionNotInstalled
+                )
             );
         }
     }

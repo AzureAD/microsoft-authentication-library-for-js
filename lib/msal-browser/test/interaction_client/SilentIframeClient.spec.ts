@@ -111,7 +111,9 @@ describe("SilentIframeClient", () => {
             await expect(
                 silentIframeClient.acquireToken(req)
             ).rejects.toMatchObject(
-                new BrowserAuthError(BrowserAuthErrorCodes.silentPromptValueError)
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.silentPromptValueError
+                )
             );
         });
 
@@ -121,7 +123,11 @@ describe("SilentIframeClient", () => {
                 .resolves(testNavUrl);
             sinon
                 .stub(SilentHandler.prototype, "monitorIframeForHash")
-                .rejects(new BrowserAuthError(BrowserAuthErrorCodes.monitorIframeTimeoutError));
+                .rejects(
+                    new BrowserAuthError(
+                        BrowserAuthErrorCodes.monitorIframeTimeoutError
+                    )
+                );
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -133,7 +139,9 @@ describe("SilentIframeClient", () => {
                 .stub(ServerTelemetryManager.prototype, "cacheFailedRequest")
                 .callsFake((e) => {
                     expect(e).toMatchObject(
-                        new BrowserAuthError(BrowserAuthErrorCodes.monitorIframeTimeoutError)
+                        new BrowserAuthError(
+                            BrowserAuthErrorCodes.monitorIframeTimeoutError
+                        )
                     );
                 });
             const browserStorageSpy = sinon.spy(
@@ -647,7 +655,9 @@ describe("SilentIframeClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(
-                new BrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupportedError)
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.silentLogoutUnsupportedError
+                )
             );
         });
     });

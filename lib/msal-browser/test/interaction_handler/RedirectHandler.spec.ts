@@ -382,7 +382,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     authorityInstance,
                     authConfig.networkInterface!
                 )
-            ).rejects.toMatchObject(new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError));
+            ).rejects.toMatchObject(
+                new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+            );
             //@ts-ignore
             expect(
                 redirectHandler.handleCodeResponseFromHash(
@@ -392,7 +394,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     authorityInstance,
                     authConfig.networkInterface!
                 )
-            ).rejects.toMatchObject(new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+            ).rejects.toMatchObject(
+                new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
         });
 

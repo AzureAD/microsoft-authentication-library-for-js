@@ -20,9 +20,7 @@ import {
 } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import {
-    BrowserAuthError,
-} from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { AuthenticationResult } from "../response/AuthenticationResult";
@@ -92,7 +90,9 @@ export class InteractionHandler {
                 e.subError === BrowserAuthErrorCodes.userCancelledError
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
-                throw new BrowserAuthError(BrowserAuthErrorCodes.userCancelledError);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.userCancelledError
+                );
             } else {
                 throw e;
             }

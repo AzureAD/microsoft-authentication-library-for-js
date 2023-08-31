@@ -250,7 +250,9 @@ describe("SilentAuthCodeClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentAuthCodeClient.logout).rejects.toMatchObject(
-                new BrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupportedError)
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.silentLogoutUnsupportedError
+                )
             );
         });
     });

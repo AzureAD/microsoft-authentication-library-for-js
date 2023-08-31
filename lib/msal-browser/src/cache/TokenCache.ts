@@ -77,7 +77,9 @@ export class TokenCache implements ITokenCache {
         this.logger.info("TokenCache - loadExternalTokens called");
 
         if (!response.id_token) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadTokenError
+            );
         }
 
         const idToken = new AuthToken(response.id_token, this.cryptoObj);
@@ -196,10 +198,14 @@ export class TokenCache implements ITokenCache {
                     )
                 );
             } else {
-                throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.unableToLoadTokenError
+                );
             }
         } else {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadTokenError
+            );
         }
 
         return this.generateAuthenticationResult(
@@ -240,7 +246,9 @@ export class TokenCache implements ITokenCache {
         }
 
         if (!homeAccountId) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadTokenError
+            );
         }
 
         const accountEntity = AccountEntity.createAccount(
@@ -259,7 +267,9 @@ export class TokenCache implements ITokenCache {
             this.storage.setAccount(accountEntity);
             return accountEntity;
         } else {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadTokenError
+            );
         }
     }
 
@@ -290,7 +300,9 @@ export class TokenCache implements ITokenCache {
             this.storage.setIdTokenCredential(idTokenEntity);
             return idTokenEntity;
         } else {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadTokenError
+            );
         }
     }
 
@@ -319,11 +331,15 @@ export class TokenCache implements ITokenCache {
         }
 
         if (!response.expires_in) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadTokenError
+            );
         }
 
         if (!options.extendedExpiresOn) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadTokenError
+            );
         }
 
         const scopes = new ScopeSet(request.scopes).printScopes();
@@ -349,7 +365,9 @@ export class TokenCache implements ITokenCache {
             this.storage.setAccessTokenCredential(accessTokenEntity);
             return accessTokenEntity;
         } else {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadTokenError
+            );
         }
     }
 
@@ -386,7 +404,9 @@ export class TokenCache implements ITokenCache {
             this.storage.setRefreshTokenCredential(refreshTokenEntity);
             return refreshTokenEntity;
         } else {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadTokenError
+            );
         }
     }
 

@@ -317,7 +317,9 @@ export class PopupClient extends StandardInteractionClient {
                 }
 
                 if (!this.nativeMessageHandler) {
-                    throw new BrowserAuthError(BrowserAuthErrorCodes.nativeConnectionNotEstablished)
+                    throw new BrowserAuthError(
+                        BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                    );
                 }
                 const nativeInteractionClient = new NativeInteractionClient(
                     this.config,
@@ -549,7 +551,9 @@ export class PopupClient extends StandardInteractionClient {
         } else {
             // Throw error if request URL is empty.
             this.logger.error("Navigate url is empty");
-            throw new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUriError);
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUriError
+            );
         }
     }
 
@@ -581,7 +585,11 @@ export class PopupClient extends StandardInteractionClient {
                     );
                     this.cleanPopup();
                     clearInterval(intervalId);
-                    reject(new BrowserAuthError(BrowserAuthErrorCodes.userCancelledError));
+                    reject(
+                        new BrowserAuthError(
+                            BrowserAuthErrorCodes.userCancelledError
+                        )
+                    );
                     return;
                 }
 
@@ -640,7 +648,9 @@ export class PopupClient extends StandardInteractionClient {
                             `PopupHandler.monitorPopupForHash - hash found: ${serverResponseString}`
                         );
                         reject(
-                            new BrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError)
+                            new BrowserAuthError(
+                                BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError
+                            )
                         );
                     }
                 } else if (ticks > maxTicks) {
@@ -648,7 +658,11 @@ export class PopupClient extends StandardInteractionClient {
                         "PopupHandler.monitorPopupForHash - unable to find hash in url, timing out"
                     );
                     clearInterval(intervalId);
-                    reject(new BrowserAuthError(BrowserAuthErrorCodes.monitorPopupTimeoutError));
+                    reject(
+                        new BrowserAuthError(
+                            BrowserAuthErrorCodes.monitorPopupTimeoutError
+                        )
+                    );
                 }
             }, this.config.system.pollIntervalMilliseconds);
         });
@@ -739,7 +753,9 @@ export class PopupClient extends StandardInteractionClient {
 
             // Popup will be null if popups are blocked
             if (!popupWindow) {
-                throw new BrowserAuthError(BrowserAuthErrorCodes.emptyWindowError);
+                throw new BrowserAuthError(
+                    BrowserAuthErrorCodes.emptyWindowError
+                );
             }
             if (popupWindow.focus) {
                 popupWindow.focus();

@@ -217,13 +217,17 @@ describe("SilentHandler.ts Unit Tests", () => {
             await expect(
                 silentHandler.initiateAuthRequest("")
             ).rejects.toMatchObject(
-                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUriError)
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.emptyNavigateUriError
+                )
             );
             await expect(
                 //@ts-ignore
                 silentHandler.initiateAuthRequest(null)
             ).rejects.toMatchObject(
-                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUriError)
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.emptyNavigateUriError
+                )
             );
         });
 
@@ -301,7 +305,9 @@ describe("SilentHandler.ts Unit Tests", () => {
             silentHandler.monitorIframeForHash(iframe, 500).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
-                    new BrowserAuthError(BrowserAuthErrorCodes.monitorIframeTimeoutError)
+                    new BrowserAuthError(
+                        BrowserAuthErrorCodes.monitorIframeTimeoutError
+                    )
                 );
                 done();
             });
@@ -334,7 +340,9 @@ describe("SilentHandler.ts Unit Tests", () => {
             silentHandler.monitorIframeForHash(iframe, 2000).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
-                    new BrowserAuthError(BrowserAuthErrorCodes.monitorIframeTimeoutError)
+                    new BrowserAuthError(
+                        BrowserAuthErrorCodes.monitorIframeTimeoutError
+                    )
                 );
                 done();
             });
@@ -463,7 +471,9 @@ describe("SilentHandler.ts Unit Tests", () => {
             silentHandler.monitorIframeForHash(iframe, 1000).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
-                    new BrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError)
+                    new BrowserAuthError(
+                        BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError
+                    )
                 );
                 done();
             });

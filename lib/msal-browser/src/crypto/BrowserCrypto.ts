@@ -41,7 +41,9 @@ export class BrowserCrypto {
             this.subtleCrypto = new ModernBrowserCrypto();
         } else {
             this.logger.error("BrowserCrypto: crypto interface is unavailable");
-            throw new BrowserAuthError(BrowserAuthErrorCodes.cryptoDoesNotExist)
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.cryptoDoesNotExist
+            );
         }
 
         this.keygenAlgorithmOptions = {
