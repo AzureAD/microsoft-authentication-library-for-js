@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 export const pkceNotGenerated = "pkce_not_created";
 export const cryptoDoesNotExist = "crypto_nonexistent";
 export const emptyNavigateUriError = "empty_navigate_uri";
