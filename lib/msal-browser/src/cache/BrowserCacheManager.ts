@@ -52,6 +52,8 @@ import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
+import { base64Decode } from "../encode/Base64Decode";
+import { base64Encode } from "../encode/Base64Encode";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1664,12 +1666,11 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     cacheCodeRequest(
-        authCodeRequest: CommonAuthorizationCodeRequest,
-        browserCrypto: ICrypto
+        authCodeRequest: CommonAuthorizationCodeRequest
     ): void {
         this.logger.trace("BrowserCacheManager.cacheCodeRequest called");
 
-        const encodedValue = browserCrypto.base64Encode(
+        const encodedValue = base64Encode(
             JSON.stringify(authCodeRequest)
         );
         this.setTemporaryCache(
@@ -1683,8 +1684,7 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      */
     getCachedRequest(
-        state: string,
-        browserCrypto: ICrypto
+        state: string
     ): CommonAuthorizationCodeRequest {
         this.logger.trace("BrowserCacheManager.getCachedRequest called");
         // Get token request from cache and parse as TokenExchangeParameters.
@@ -1696,10 +1696,10 @@ export class BrowserCacheManager extends CacheManager {
             throw BrowserAuthError.createNoTokenRequestCacheError();
         }
 
-        const parsedRequest = this.validateAndParseJson(
-            browserCrypto.base64Decode(encodedTokenRequest)
-        ) as CommonAuthorizationCodeRequest;
-        if (!parsedRequest) {
+        let parsedRequest: CommonAuthorizationCodeRequest;
+        try {
+            parsedRequest = JSON.parse(base64Decode(encodedTokenRequest));
+        } catch (e) {
             throw BrowserAuthError.createUnableToParseTokenRequestCacheError();
         }
         this.removeItem(

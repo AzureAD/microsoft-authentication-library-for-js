@@ -2817,8 +2817,7 @@ describe("BrowserCacheManager tests", () => {
             );
 
             const cachedRequest = browserStorage.getCachedRequest(
-                RANDOM_TEST_GUID,
-                browserCrypto
+                RANDOM_TEST_GUID
             );
             expect(cachedRequest).toEqual(tokenRequest);
 
@@ -2832,11 +2831,10 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger
             );
-            const cryptoObj = new CryptoOps(logger);
             // browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
 
             expect(() =>
-                browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)
+                browserStorage.getCachedRequest(RANDOM_TEST_GUID)
             ).toThrowError(
                 BrowserAuthErrorMessage.noTokenRequestCacheError.desc
             );
@@ -2855,7 +2853,6 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger
             );
-            const cryptoObj = new CryptoOps(logger);
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
@@ -2872,7 +2869,7 @@ describe("BrowserCacheManager tests", () => {
                 true
             );
             expect(() =>
-                browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)
+                browserStorage.getCachedRequest(RANDOM_TEST_GUID)
             ).toThrowError(
                 BrowserAuthErrorMessage.unableToParseTokenRequestCacheError.desc
             );
@@ -2918,8 +2915,7 @@ describe("BrowserCacheManager tests", () => {
 
             // Perform test
             const tokenRequest = browserStorage.getCachedRequest(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                browserCrypto
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
             expect(tokenRequest.authority).toBe(alternateAuthority);
         });

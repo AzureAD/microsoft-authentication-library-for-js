@@ -391,8 +391,7 @@ export class RedirectClient extends StandardInteractionClient {
         serverTelemetryManager: ServerTelemetryManager
     ): Promise<AuthenticationResult> {
         const cachedRequest = this.browserStorage.getCachedRequest(
-            state,
-            this.browserCrypto
+            state
         );
         this.logger.verbose("handleHash called, retrieved cached request");
 
