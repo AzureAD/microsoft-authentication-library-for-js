@@ -6,13 +6,17 @@ When MSAL Node acquires a token, it caches it in memory for future usage. MSAL N
 
 ```javascript
 const msal = require('@azure/msal-node');
+// Due to security reasons, secrets should not be hardcoded.
+// The dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
+// that should be included in .gitignore.
+require('dotenv').config(); // process.env now has the values defined in a .env file
 
 // Create msal application object
 const cca = new msal.ConfidentialClientApplication({
     auth: {
         clientId: "Enter_the_Application_Id_Here", // e.g. "b1b60dca-c49d-496e-9851-xxxxxxxxxxxx" (guid)
         authority: "https://login.microsoftonline.com/Enter_the_Tenant_Info_Here", // e.g. "common" or your tenantId (guid)
-        clientSecret: "Enter_the_Client_Secret_Here" // obtained during app registration
+        clientSecret: process.env.clientSecret // obtained during app registration
     }
 });
 

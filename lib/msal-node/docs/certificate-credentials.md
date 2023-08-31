@@ -35,14 +35,18 @@ For more information, see: [Register your certificate with Microsoft identity pl
 
 ```javascript
 const msal = require('@azure/msal-node');
+// Due to security reasons, secrets should not be hardcoded.
+// The dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
+// that should be included in .gitignore.
+require('dotenv').config(); // process.env now has the values defined in a .env file
 
 const config = {
     auth: {
         clientId: "YOUR_CLIENT_ID",
         authority: "https://login.microsoftonline.com/YOUR_TENANT_ID",
         clientCertificate: {
-            thumbprint: "CERT_THUMBPRINT", // a 40-digit hexadecimal string 
-            privateKey: "CERT_PRIVATE_KEY",
+            thumbprint: process.env.thumbprint, // a 40-digit hexadecimal string 
+            privateKey: process.env.privateKey,
         }
     }
 };
@@ -77,7 +81,10 @@ This can be done using Node's [crypto module](https://nodejs.org/docs/latest-v14
 const fs = require('fs');
 const crypto = require('crypto');
 
-const privateKeySource = fs.readFileSync('./example.key')
+// Due to security reasons, secrets should never be stored in the project's directory.
+// Alternatively, the dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
+// that should be included in .gitignore.
+const privateKeySource = fs.readFileSync('<path_to_key>/example.key')
 
 const privateKeyObject = crypto.createPrivateKey({
     key: privateKeySource,
@@ -183,7 +190,10 @@ In such cases, you are responsible for cleaning the string before you pass them 
 const msal = require('@azure/msal-node');
 const fs = require('fs');
 
-const privateKeySource = fs.readFileSync('./certs/example.key');
+// Due to security reasons, secrets should never be stored in the project's directory.
+// Alternatively, the dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
+// that should be included in .gitignore.
+const privateKeySource = fs.readFileSync('<path_to_key>/certs/example.key');
 const privateKey = Buffer.from(privateKeySource, 'base64').toString().replace(/\r/g, "").replace(/\n/g, "");
 
 const config = {

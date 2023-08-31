@@ -16,15 +16,19 @@ In order to use MSAL Node, you need to instantiate a [ConfidentialClient](https:
 
 ```javascript
 import * as msal from "@azure/msal-node";
+// Due to security reasons, secrets should not be hardcoded.
+// The dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
+// that should be included in .gitignore.
+import "dotenv/config"; // process.env now has the values defined in a .env file
 
 const clientConfig = {
     auth: {
         clientId: "your_client_id",
         authority: "your_authority",
-        clientSecret: "your_secret", // OR
+        clientSecret: process.env.clientSecret, // OR
         clientCertificate: {
-            thumbprint: "cert_thumbprint",
-            privateKey: "cert_privateKey"
+            thumbprint: process.env.thumbprint,
+            privateKey: process.env.privateKey
         }, // OR
         clientAssertion: "assertion"
     }

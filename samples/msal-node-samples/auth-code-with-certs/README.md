@@ -29,13 +29,18 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 Before running the sample, you will need to replace the values in the configuration object:
 
 ```javascript
+// Due to security reasons, secrets should not be hardcoded.
+// The dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
+// that should be included in .gitignore.
+import "dotenv/config"; // process.env now has the values defined in a .env file
+
 const config = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
         clientCertificate: {
-            thumbprint: "ENTER_CERT_THUMBPRINT",
-            privateKey: "ENTER_CERT_PRIVATE_KEY",
+            thumbprint: process.env.clientCertificate,
+            privateKey: process.env.privateKey,
         }
     }
 };

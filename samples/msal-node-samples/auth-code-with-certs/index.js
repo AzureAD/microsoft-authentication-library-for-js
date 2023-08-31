@@ -13,7 +13,10 @@ const msal = require('@azure/msal-node');
  * If you have encrypted your private key with a *pass phrase* as recommended,
  * you'll need to decrypt it before passing it to msal-node for initialization.
  */
-const privateKeySource = fs.readFileSync('./certs/example.key');
+// Due to security reasons, secrets should never be stored in the project's directory.
+// Alternatively, the dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
+// that should be included in .gitignore.
+const privateKeySource = fs.readFileSync('<path_to_key>/certs/example.key');
 
 const privateKeyObject = crypto.createPrivateKey({
     key: privateKeySource,

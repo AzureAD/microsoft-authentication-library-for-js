@@ -15,12 +15,16 @@ To configure your application to use regional authorities, you a required to pro
 
 ```js
 var msal = require('@azure/msal-node');
+// Due to security reasons, secrets should not be hardcoded.
+// The dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
+// that should be included in .gitignore.
+require('dotenv').config(); // process.env now has the values defined in a .env file
 
 const config = {
     auth: {
         clientId: "<CLIENT_ID>",
         authority: "https://login.microsoftonline.com/<TENANT_ID>",
-        clientSecret: "<CLIENT_SECRET>",
+        clientSecret: process.env.clientSecret,
     }
 };
 

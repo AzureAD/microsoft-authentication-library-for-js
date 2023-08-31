@@ -32,26 +32,32 @@ The snippet below demonstrates how to initialize MSAL for SNI authentication:
 
 ```js
 var msal = require('@azure/msal-node');
+// Due to security reasons, secrets should not be hardcoded.
+// The dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
+// that should be included in .gitignore.
+require('dotenv').config(); // process.env now has the values defined in a .env file
 
-const privateKey = `-----BEGIN PRIVATE KEY-----
-/**** PRIVATE KEY CONTENT ***/
------END PRIVATE KEY-----`; 
+// -----BEGIN PRIVATE KEY-----
+// /**** PRIVATE KEY CONTENT ***/
+// -----END PRIVATE KEY-----
+const privateKey = process.env.privateKey;
 
-const x5c = `-----BEGIN CERTIFICATE-----
-/ *** CERTIFICATE CONTENT1 ***/
------END CERTIFICATE-----
-
------BEGIN CERTIFICATE-----
-/ *** CERTIFICATE CONTENT2 ***/
------END CERTIFICATE-----
-`; // public key certificate chain. May contain more than 1 certificate sections
+// public key certificate chain. May contain more than 1 certificate sections
+// -----BEGIN CERTIFICATE-----
+// / *** CERTIFICATE CONTENT1 ***/
+// -----END CERTIFICATE-----
+// 
+// -----BEGIN CERTIFICATE-----
+// / *** CERTIFICATE CONTENT2 ***/
+// -----END CERTIFICATE-----
+const x5c = process.env.x5c;
 
 const config = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
         clientCertificate: {
-                thumbprint: "ENTER_THUMBPRINT"; // a 40-digit hexadecimal string
+                thumbprint: process.env.thumbprint; // a 40-digit hexadecimal string
                 privateKey: privateKey,
                 x5c: x5c 
             }

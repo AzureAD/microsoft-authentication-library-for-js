@@ -187,11 +187,16 @@ pca.acquireTokenSilent(silentRequest).then((response) => {
 - [acquireTokenByClientCredential](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_confidentialclientapplication_.confidentialclientapplication.html#acquiretokenbyclientcredential): This API acquires a token using the confidential client application's credentials to authenticate (instead of impersonating a user) when calling another web service. In this scenario, the client is typically a middle-tier web service, a daemon service, or a back-end web application. For a higher level of assurance, the Microsoft identity platform also allows the calling service to use a certificate (instead of a shared secret) as a credential. The request is of the type [ClientCredentialRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_clientcredentialrequest_.html#clientcredentialrequest).
 
 ``` javascript
+// Due to security reasons, secrets should not be hardcoded.
+// The dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
+// that should be included in .gitignore.
+import "dotenv/config"; // process.env now has the values defined in a .env file
+
 const config = {
     auth: {
         clientId: "your_client_id_here",
         authority: "your_authority_here",
-        clientSecret: "you_client_secret_here"
+        clientSecret: process.env.clientSecret
     }
 };
 
