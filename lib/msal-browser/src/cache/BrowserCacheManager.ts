@@ -34,7 +34,8 @@ import {
     AuthenticationScheme,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import {
     BrowserCacheLocation,
     InteractionType,
@@ -1693,14 +1694,14 @@ export class BrowserCacheManager extends CacheManager {
             true
         );
         if (!encodedTokenRequest) {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.noTokenRequestCacheError);
+            throw new BrowserAuthError(BrowserAuthErrorCodes.noTokenRequestCacheError);
         }
 
         const parsedRequest = this.validateAndParseJson(
             browserCrypto.base64Decode(encodedTokenRequest)
         ) as CommonAuthorizationCodeRequest;
         if (!parsedRequest) {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToParseTokenRequestCacheError);
+            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToParseTokenRequestCacheError);
         }
         this.removeItem(
             this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS)
@@ -1711,7 +1712,7 @@ export class BrowserCacheManager extends CacheManager {
             const authorityCacheKey: string = this.generateAuthorityKey(state);
             const cachedAuthority = this.getTemporaryCache(authorityCacheKey);
             if (!cachedAuthority) {
-                throw BrowserAuthError.create(BrowserAuthErrorMessage.noCachedAuthorityError);
+                throw new BrowserAuthError(BrowserAuthErrorCodes.noCachedAuthorityError);
             }
             parsedRequest.authority = cachedAuthority;
         }
@@ -1768,7 +1769,7 @@ export class BrowserCacheManager extends CacheManager {
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         if (inProgress) {
             if (this.getInteractionInProgress()) {
-                throw BrowserAuthError.create(BrowserAuthErrorMessage.interactionInProgress);
+                throw new BrowserAuthError(BrowserAuthErrorCodes.interactionInProgress);
             } else {
                 // No interaction is in progress
                 this.setTemporaryCache(key, this.clientId, false);

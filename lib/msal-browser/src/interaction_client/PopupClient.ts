@@ -34,7 +34,8 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EventHandler } from "../event/EventHandler";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -316,7 +317,7 @@ export class PopupClient extends StandardInteractionClient {
                 }
 
                 if (!this.nativeMessageHandler) {
-                    throw BrowserAuthError.create(BrowserAuthErrorMessage.nativeConnectionNotEstablished)
+                    throw new BrowserAuthError(BrowserAuthErrorCodes.nativeConnectionNotEstablished)
                 }
                 const nativeInteractionClient = new NativeInteractionClient(
                     this.config,
@@ -548,7 +549,7 @@ export class PopupClient extends StandardInteractionClient {
         } else {
             // Throw error if request URL is empty.
             this.logger.error("Navigate url is empty");
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.emptyNavigateUriError);
+            throw new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUriError);
         }
     }
 
@@ -580,7 +581,7 @@ export class PopupClient extends StandardInteractionClient {
                     );
                     this.cleanPopup();
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.create(BrowserAuthErrorMessage.userCancelledError));
+                    reject(new BrowserAuthError(BrowserAuthErrorCodes.userCancelledError));
                     return;
                 }
 
@@ -639,7 +640,7 @@ export class PopupClient extends StandardInteractionClient {
                             `PopupHandler.monitorPopupForHash - hash found: ${serverResponseString}`
                         );
                         reject(
-                            BrowserAuthError.create(BrowserAuthErrorMessage.hashDoesNotContainKnownPropertiesError)
+                            new BrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError)
                         );
                     }
                 } else if (ticks > maxTicks) {
@@ -647,7 +648,7 @@ export class PopupClient extends StandardInteractionClient {
                         "PopupHandler.monitorPopupForHash - unable to find hash in url, timing out"
                     );
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.create(BrowserAuthErrorMessage.monitorPopupTimeoutError));
+                    reject(new BrowserAuthError(BrowserAuthErrorCodes.monitorPopupTimeoutError));
                 }
             }, this.config.system.pollIntervalMilliseconds);
         });
@@ -738,7 +739,7 @@ export class PopupClient extends StandardInteractionClient {
 
             // Popup will be null if popups are blocked
             if (!popupWindow) {
-                throw BrowserAuthError.create(BrowserAuthErrorMessage.emptyWindowError);
+                throw new BrowserAuthError(BrowserAuthErrorCodes.emptyWindowError);
             }
             if (popupWindow.focus) {
                 popupWindow.focus();
@@ -752,7 +753,7 @@ export class PopupClient extends StandardInteractionClient {
                 "error opening popup " + (e as AuthError).message
             );
             this.browserStorage.setInteractionInProgress(false);
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.popupWindowError);
+            throw new BrowserAuthError(BrowserAuthErrorCodes.popupWindowError);
         }
     }
 

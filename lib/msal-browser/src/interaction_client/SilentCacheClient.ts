@@ -16,9 +16,9 @@ import {
 import { SilentRequest } from "../request/SilentRequest";
 import { ApiId } from "../utils/BrowserConstants";
 import {
-    BrowserAuthError,
-    BrowserAuthErrorMessage,
+    BrowserAuthError
 } from "../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
@@ -60,7 +60,7 @@ export class SilentCacheClient extends StandardInteractionClient {
             if (
                 error instanceof BrowserAuthError &&
                 error.errorCode ===
-                    BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code
+                    BrowserAuthErrorCodes.signingKeyNotFoundInStorage
             ) {
                 this.logger.verbose(
                     "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair."

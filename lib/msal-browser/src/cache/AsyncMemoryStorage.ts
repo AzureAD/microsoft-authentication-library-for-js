@@ -5,9 +5,9 @@
 
 import { Logger } from "@azure/msal-common";
 import {
-    BrowserAuthError,
-    BrowserAuthErrorMessage,
+    BrowserAuthError
 } from "../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { DatabaseStorage } from "./DatabaseStorage";
 import { IAsyncStorage } from "./IAsyncMemoryStorage";
 import { MemoryStorage } from "./MemoryStorage";
@@ -32,7 +32,7 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     private handleDatabaseAccessError(error: unknown): void {
         if (
             error instanceof BrowserAuthError &&
-            error.errorCode === BrowserAuthErrorMessage.databaseUnavailable.code
+            error.errorCode === BrowserAuthErrorCodes.databaseUnavailable
         ) {
             this.logger.error(
                 "Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts."

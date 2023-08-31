@@ -24,7 +24,8 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
@@ -92,7 +93,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             request.prompt !== PromptValue.NONE &&
             request.prompt !== PromptValue.NO_SESSION
         ) {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.silentPromptValueError);
+            throw new BrowserAuthError(BrowserAuthErrorCodes.silentPromptValueError);
         }
 
         // Create silent request
@@ -158,7 +159,7 @@ export class SilentIframeClient extends StandardInteractionClient {
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
-            BrowserAuthError.create(BrowserAuthErrorMessage.silentLogoutUnsupportedError)
+            new BrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupportedError)
         );
     }
 
@@ -243,7 +244,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 "Account id found in hash, calling WAM for token"
             );
             if (!this.nativeMessageHandler) {
-                throw BrowserAuthError.create(BrowserAuthErrorMessage.nativeConnectionNotEstablished);
+                throw new BrowserAuthError(BrowserAuthErrorCodes.nativeConnectionNotEstablished);
             }
             const nativeInteractionClient = new NativeInteractionClient(
                 this.config,

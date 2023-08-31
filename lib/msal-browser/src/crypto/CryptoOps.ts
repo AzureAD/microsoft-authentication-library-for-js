@@ -18,7 +18,8 @@ import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { CryptoKeyStore } from "../cache/CryptoKeyStore";
 
 export type CachedKeyPair = {
@@ -184,7 +185,7 @@ export class CryptoOps implements ICrypto {
         const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
 
         if (!cachedKeyPair) {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.signingKeyNotFoundInStorage);
+            throw new BrowserAuthError(BrowserAuthErrorCodes.signingKeyNotFoundInStorage);
         }
 
         // Get public key as JWK

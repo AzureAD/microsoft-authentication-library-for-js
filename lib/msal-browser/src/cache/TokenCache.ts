@@ -22,7 +22,8 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
 import { ITokenCache } from "./ITokenCache";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export type LoadTokenOptions = {
@@ -76,7 +77,7 @@ export class TokenCache implements ITokenCache {
         this.logger.info("TokenCache - loadExternalTokens called");
 
         if (!response.id_token) {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToLoadTokenError);
+            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError);
         }
 
         const idToken = new AuthToken(response.id_token, this.cryptoObj);
@@ -195,10 +196,10 @@ export class TokenCache implements ITokenCache {
                     )
                 );
             } else {
-                throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToLoadTokenError)
+                throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
             }
         } else {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToLoadTokenError)
+            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
         }
 
         return this.generateAuthenticationResult(
@@ -239,7 +240,7 @@ export class TokenCache implements ITokenCache {
         }
 
         if (!homeAccountId) {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToLoadTokenError)
+            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
         }
 
         const accountEntity = AccountEntity.createAccount(
@@ -258,7 +259,7 @@ export class TokenCache implements ITokenCache {
             this.storage.setAccount(accountEntity);
             return accountEntity;
         } else {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToLoadTokenError)
+            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
         }
     }
 
@@ -289,7 +290,7 @@ export class TokenCache implements ITokenCache {
             this.storage.setIdTokenCredential(idTokenEntity);
             return idTokenEntity;
         } else {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToLoadTokenError)
+            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
         }
     }
 
@@ -318,11 +319,11 @@ export class TokenCache implements ITokenCache {
         }
 
         if (!response.expires_in) {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToLoadTokenError)
+            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
         }
 
         if (!options.extendedExpiresOn) {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToLoadTokenError)
+            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
         }
 
         const scopes = new ScopeSet(request.scopes).printScopes();
@@ -348,7 +349,7 @@ export class TokenCache implements ITokenCache {
             this.storage.setAccessTokenCredential(accessTokenEntity);
             return accessTokenEntity;
         } else {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToLoadTokenError)
+            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
         }
     }
 
@@ -385,7 +386,7 @@ export class TokenCache implements ITokenCache {
             this.storage.setRefreshTokenCredential(refreshTokenEntity);
             return refreshTokenEntity;
         } else {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.unableToLoadTokenError)
+            throw new BrowserAuthError(BrowserAuthErrorCodes.unableToLoadTokenError)
         }
     }
 

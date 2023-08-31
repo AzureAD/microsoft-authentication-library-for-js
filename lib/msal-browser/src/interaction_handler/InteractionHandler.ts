@@ -22,8 +22,8 @@ import {
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import {
     BrowserAuthError,
-    BrowserAuthErrorMessage,
 } from "../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 
@@ -70,7 +70,7 @@ export class InteractionHandler {
         this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (!locationHash) {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.hashEmptyError);
+            throw new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
         }
 
         // Handle code response.
@@ -89,10 +89,10 @@ export class InteractionHandler {
         } catch (e) {
             if (
                 e instanceof ServerError &&
-                e.subError === BrowserAuthErrorMessage.userCancelledError.code
+                e.subError === BrowserAuthErrorCodes.userCancelledError
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
-                throw BrowserAuthError.create(BrowserAuthErrorMessage.userCancelledError);
+                throw new BrowserAuthError(BrowserAuthErrorCodes.userCancelledError);
             } else {
                 throw e;
             }

@@ -21,7 +21,8 @@ import {
     NativeExtensionRequestBody,
 } from "./NativeRequest";
 import { NativeAuthError } from "../../error/NativeAuthError";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../../error/BrowserAuthError";
+import { BrowserAuthError } from "../../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../../error/BrowserAuthErrorCodes";
 import { BrowserConfiguration } from "../../config/Configuration";
 
 type ResponseResolvers<T> = {
@@ -178,7 +179,7 @@ export class NativeMessageHandler {
                     extensionHandshakeTimedOut: true,
                     success: false,
                 });
-                reject(BrowserAuthError.create(BrowserAuthErrorMessage.nativeHandshakeTimeout));
+                reject(new BrowserAuthError(BrowserAuthErrorCodes.nativeHandshakeTimeout));
                 this.handshakeResolvers.delete(req.responseId);
             }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
         });
@@ -238,7 +239,7 @@ export class NativeMessageHandler {
                 extensionInstalled: false,
             });
             handshakeResolver.reject(
-                BrowserAuthError.create(BrowserAuthErrorMessage.nativeExtensionNotInstalled)
+                new BrowserAuthError(BrowserAuthErrorCodes.nativeExtensionNotInstalled)
             );
         }
     }

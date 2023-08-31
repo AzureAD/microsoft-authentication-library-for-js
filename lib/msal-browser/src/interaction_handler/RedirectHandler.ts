@@ -15,9 +15,9 @@ import {
     IPerformanceClient,
 } from "@azure/msal-common";
 import {
-    BrowserAuthError,
-    BrowserAuthErrorMessage,
+    BrowserAuthError
 } from "../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
@@ -134,7 +134,7 @@ export class RedirectHandler extends InteractionHandler {
             this.logger.info(
                 "RedirectHandler.initiateAuthRequest: Navigate url is empty"
             );
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.emptyNavigateUriError);
+            throw new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUriError);
         }
     }
 
@@ -152,7 +152,7 @@ export class RedirectHandler extends InteractionHandler {
 
         // Check that location hash isn't empty.
         if (!locationHash) {
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.hashEmptyError);
+            throw new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
         }
 
         // Interaction is completed - remove interaction status.
@@ -174,10 +174,10 @@ export class RedirectHandler extends InteractionHandler {
         } catch (e) {
             if (
                 e instanceof ServerError &&
-                e.subError === BrowserAuthErrorMessage.userCancelledError.code
+                e.subError === BrowserAuthErrorCodes.userCancelledError
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
-                throw BrowserAuthError.create(BrowserAuthErrorMessage.userCancelledError);
+                throw new BrowserAuthError(BrowserAuthErrorCodes.userCancelledError);
             } else {
                 throw e;
             }

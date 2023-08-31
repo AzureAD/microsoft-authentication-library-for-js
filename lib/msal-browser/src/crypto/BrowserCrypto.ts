@@ -4,7 +4,8 @@
  */
 
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { ISubtleCrypto } from "./ISubtleCrypto";
 import { ModernBrowserCrypto } from "./ModernBrowserCrypto";
 import { Logger } from "@azure/msal-common";
@@ -40,7 +41,7 @@ export class BrowserCrypto {
             this.subtleCrypto = new ModernBrowserCrypto();
         } else {
             this.logger.error("BrowserCrypto: crypto interface is unavailable");
-            throw BrowserAuthError.create(BrowserAuthErrorMessage.cryptoDoesNotExist)
+            throw new BrowserAuthError(BrowserAuthErrorCodes.cryptoDoesNotExist)
         }
 
         this.keygenAlgorithmOptions = {
