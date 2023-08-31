@@ -11,7 +11,7 @@ const ErrorLink = "For more visit: aka.ms/msaljs/browser-errors";
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
  */
-export const BrowserAuthErrorMessage = {
+const ErrorMessages = {
     [ErrorCodes.pkceNotGenerated]: "The PKCE code challenge and verifier could not be generated.",
     [ErrorCodes.cryptoDoesNotExist]: "The crypto object or function is not available.",
     [ErrorCodes.emptyNavigateUriError]: "Navigation URI is empty. Please check stack trace for more info.",
@@ -59,11 +59,194 @@ export const BrowserAuthErrorMessage = {
 };
 
 /**
+ * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
+ * @deprecated Use BrowserAuthErrorCodes instead
+ */
+export const BrowserAuthErrorMessage = {
+    pkceNotGenerated: {
+        code: ErrorCodes.pkceNotGenerated,
+        desc: ErrorMessages[ErrorCodes.pkceNotGenerated],
+    },
+    cryptoDoesNotExist: {
+        code: ErrorCodes.cryptoDoesNotExist,
+        desc: ErrorMessages[ErrorCodes.cryptoDoesNotExist],
+    },
+    emptyNavigateUriError: {
+        code: ErrorCodes.emptyNavigateUriError,
+        desc: ErrorMessages[ErrorCodes.emptyNavigateUriError],
+    },
+    hashEmptyError: {
+        code: ErrorCodes.hashEmptyError,
+        desc: ErrorMessages[ErrorCodes.hashEmptyError],
+    },
+    hashDoesNotContainStateError: {
+        code: ErrorCodes.hashDoesNotContainStateError,
+        desc: ErrorMessages[ErrorCodes.hashDoesNotContainStateError],
+    },
+    hashDoesNotContainKnownPropertiesError: {
+        code: ErrorCodes.hashDoesNotContainKnownPropertiesError ,
+        desc: ErrorMessages[ErrorCodes.hashDoesNotContainKnownPropertiesError],
+    },
+    unableToParseStateError: {
+        code: ErrorCodes.unableToParseStateError,
+        desc: ErrorMessages[ErrorCodes.unableToParseStateError],
+    },
+    stateInteractionTypeMismatchError: {
+        code: ErrorCodes.stateInteractionTypeMismatchError,
+        desc: ErrorMessages[ErrorCodes.stateInteractionTypeMismatchError],
+    },
+    interactionInProgress: {
+        code: ErrorCodes.interactionInProgress,
+        desc: ErrorMessages[ErrorCodes.interactionInProgress],
+    },
+    popupWindowError: {
+        code: ErrorCodes.popupWindowError,
+        desc: ErrorMessages[ErrorCodes.popupWindowError],
+    },
+    emptyWindowError: {
+        code: ErrorCodes.emptyWindowError,
+        desc: ErrorMessages[ErrorCodes.emptyWindowError],
+    },
+    userCancelledError: {
+        code: ErrorCodes.userCancelledError,
+        desc: ErrorMessages[ErrorCodes.userCancelledError],
+    },
+    monitorPopupTimeoutError: {
+        code: ErrorCodes.monitorPopupTimeoutError,
+        desc: ErrorMessages[ErrorCodes.monitorPopupTimeoutError],
+    },
+    monitorIframeTimeoutError: {
+        code: ErrorCodes.monitorIframeTimeoutError,
+        desc: ErrorMessages[ErrorCodes.monitorIframeTimeoutError],
+    },
+    redirectInIframeError: {
+        code: ErrorCodes.redirectInIframeError,
+        desc: ErrorMessages[ErrorCodes.redirectInIframeError],
+    },
+    blockTokenRequestsInHiddenIframeError: {
+        code: ErrorCodes.blockTokenRequestsInHiddenIframeError,
+        desc: ErrorMessages[ErrorCodes.blockTokenRequestsInHiddenIframeError],
+    },
+    blockAcquireTokenInPopupsError: {
+        code: ErrorCodes.blockAcquireTokenInPopupsError,
+        desc: ErrorMessages[ErrorCodes.blockAcquireTokenInPopupsError],
+    },
+    iframeClosedPrematurelyError: {
+        code: ErrorCodes.iframeClosedPrematurelyError,
+        desc: ErrorMessages[ErrorCodes.iframeClosedPrematurelyError],
+    },
+    silentLogoutUnsupportedError: {
+        code: ErrorCodes.silentLogoutUnsupportedError,
+        desc: ErrorMessages[ErrorCodes.silentLogoutUnsupportedError],
+    },
+    noAccountError: {
+        code: ErrorCodes.noAccountError,
+        desc: ErrorMessages[ErrorCodes.noAccountError],
+    },
+    silentPromptValueError: {
+        code: ErrorCodes.silentPromptValueError,
+        desc: ErrorMessages[ErrorCodes.silentPromptValueError],
+    },
+    noTokenRequestCacheError: {
+        code: ErrorCodes.noTokenRequestCacheError,
+        desc: ErrorMessages[ErrorCodes.noTokenRequestCacheError],
+    },
+    unableToParseTokenRequestCacheError: {
+        code: ErrorCodes.unableToParseTokenRequestCacheError,
+        desc: ErrorMessages[ErrorCodes.unableToParseTokenRequestCacheError],
+    },
+    noCachedAuthorityError: {
+        code: ErrorCodes.noCachedAuthorityError,
+        desc: ErrorMessages[ErrorCodes.noCachedAuthorityError],
+    },
+    authRequestNotSet: {
+        code: ErrorCodes.authRequestNotSet,
+        desc: ErrorMessages[ErrorCodes.authRequestNotSet],
+    },
+    invalidCacheType: {
+        code: ErrorCodes.invalidCacheType,
+        desc: ErrorMessages[ErrorCodes.invalidCacheType],
+    },
+    notInBrowserEnvironment: {
+        code: ErrorCodes.notInBrowserEnvironment,
+        desc: ErrorMessages[ErrorCodes.notInBrowserEnvironment],
+    },
+    databaseNotOpen: {
+        code: ErrorCodes.databaseNotOpen,
+        desc: ErrorMessages[ErrorCodes.databaseNotOpen],
+    },
+    noNetworkConnectivity: {
+        code: ErrorCodes.noNetworkConnectivity,
+        desc: ErrorMessages[ErrorCodes.noNetworkConnectivity],
+    },
+    postRequestFailed: {
+        code: ErrorCodes.postRequestFailed,
+        desc: ErrorMessages[ErrorCodes.postRequestFailed],
+    },
+    getRequestFailed: {
+        code: ErrorCodes.getRequestFailed,
+        desc: ErrorMessages[ErrorCodes.getRequestFailed],
+    },
+    failedToParseNetworkResponse: {
+        code: ErrorCodes.failedToParseNetworkResponse,
+        desc: ErrorMessages[ErrorCodes.failedToParseNetworkResponse],
+    },
+    unableToLoadTokenError: {
+        code: ErrorCodes.unableToLoadTokenError,
+        desc: ErrorMessages[ErrorCodes.unableToLoadTokenError],
+    },
+    signingKeyNotFoundInStorage: {
+        code: ErrorCodes.signingKeyNotFoundInStorage,
+        desc: ErrorMessages[ErrorCodes.signingKeyNotFoundInStorage],
+    },
+    authCodeRequired: {
+        code: ErrorCodes.authCodeRequired,
+        desc: ErrorMessages[ErrorCodes.authCodeRequired],
+    },
+    authCodeOrNativeAccountRequired: {
+        code: ErrorCodes.authCodeOrNativeAccountRequired,
+        desc: ErrorMessages[ErrorCodes.authCodeOrNativeAccountRequired],
+    },
+    spaCodeAndNativeAccountPresent: {
+        code: ErrorCodes.spaCodeAndNativeAccountPresent,
+        desc: ErrorMessages[ErrorCodes.spaCodeAndNativeAccountPresent],
+    },
+    databaseUnavailable: {
+        code: ErrorCodes.databaseUnavailable,
+        desc: ErrorMessages[ErrorCodes.databaseUnavailable],
+    },
+    unableToAcquireTokenFromNativePlatform: {
+        code: ErrorCodes.unableToAcquireTokenFromNativePlatform,
+        desc: ErrorMessages[ErrorCodes.unableToAcquireTokenFromNativePlatform],
+    },
+    nativeHandshakeTimeout: {
+        code: ErrorCodes.nativeHandshakeTimeout,
+        desc: ErrorMessages[ErrorCodes.nativeHandshakeTimeout],
+    },
+    nativeExtensionNotInstalled: {
+        code: ErrorCodes.nativeExtensionNotInstalled,
+        desc: ErrorMessages[ErrorCodes.nativeExtensionNotInstalled],
+    },
+    nativeConnectionNotEstablished: {
+        code: ErrorCodes.nativeConnectionNotEstablished,
+        desc: ErrorMessages[ErrorCodes.nativeConnectionNotEstablished],
+    },
+    uninitializedPublicClientApplication: {
+        code: ErrorCodes.uninitializedPublicClientApplication,
+        desc: ErrorMessages[ErrorCodes.uninitializedPublicClientApplication],
+    },
+    nativePromptNotSupported: {
+        code: ErrorCodes.nativePromptNotSupported,
+        desc: ErrorMessages[ErrorCodes.nativePromptNotSupported],
+    },
+};
+
+/**
  * Browser library error class thrown by the MSAL.js library for SPAs
  */
 export class BrowserAuthError extends AuthError {
     constructor(errorCode: string) {
-        super(errorCode, BrowserAuthErrorMessage[errorCode]);
+        super(errorCode, ErrorMessages[errorCode]);
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
         this.name = "BrowserAuthError";

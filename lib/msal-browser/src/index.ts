@@ -45,7 +45,8 @@ export { BrowserUtils } from "./utils/BrowserUtils";
 
 // Browser Errors
 export {
-    BrowserAuthError
+    BrowserAuthError,
+    BrowserAuthErrorMessage
 } from "./error/BrowserAuthError";
 export * as BrowserAuthErrorCodes from "./error/BrowserAuthErrorCodes";
 export {
