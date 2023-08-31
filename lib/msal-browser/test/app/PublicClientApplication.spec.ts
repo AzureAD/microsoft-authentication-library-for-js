@@ -73,7 +73,7 @@ import { SilentIframeClient } from "../../src/interaction_client/SilentIframeCli
 import { Base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
-    BrowserAuthError,
+    BrowserAuthError, BrowserAuthErrorMessage,
 } from "../../src/error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";

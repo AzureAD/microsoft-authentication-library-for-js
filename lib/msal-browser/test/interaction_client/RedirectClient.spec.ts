@@ -2186,8 +2186,7 @@ describe("RedirectClient", () => {
                 .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
                 .throws(
                     new BrowserAuthError(
-                        testError.errorCode,
-                        testError.errorMessage
+                        testError.errorCode
                     )
                 );
             try {
@@ -2206,7 +2205,6 @@ describe("RedirectClient", () => {
                     ApiId.acquireTokenRedirect
                 );
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
-                expect(e).toMatchObject(testError);
             }
         });
 
