@@ -11,7 +11,7 @@ const ErrorLink = "For more visit: aka.ms/msaljs/browser-errors";
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
  */
-const BrowserAuthErrorMessage = {
+export const BrowserAuthErrorMessage = {
     [ErrorCodes.pkceNotGenerated]: "The PKCE code challenge and verifier could not be generated.",
     [ErrorCodes.cryptoDoesNotExist]: "The crypto object or function is not available.",
     [ErrorCodes.emptyNavigateUriError]: "Navigation URI is empty. Please check stack trace for more info.",

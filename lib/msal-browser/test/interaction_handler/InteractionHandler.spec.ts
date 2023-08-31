@@ -49,6 +49,7 @@ import {
     TemporaryCacheKeys,
     BrowserConstants,
 } from "../../src/utils/BrowserConstants";
+import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
@@ -381,7 +382,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     authorityInstance,
                     authConfig.networkInterface!
                 )
-            ).rejects.toMatchObject(BrowserAuthError.createEmptyHashError());
+            ).rejects.toMatchObject(new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError));
             //@ts-ignore
             expect(
                 interactionHandler.handleCodeResponseFromHash(
@@ -392,8 +393,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     authConfig.networkInterface
                 )
             ).rejects.toMatchObject(
-                //@ts-ignore
-                BrowserAuthError.createEmptyHashError()
+                new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
         });
 

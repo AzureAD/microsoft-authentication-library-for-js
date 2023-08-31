@@ -36,6 +36,7 @@ import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 const DEFAULT_POLL_INTERVAL_MS = 30;
@@ -216,13 +217,13 @@ describe("SilentHandler.ts Unit Tests", () => {
             await expect(
                 silentHandler.initiateAuthRequest("")
             ).rejects.toMatchObject(
-                BrowserAuthError.createEmptyNavigationUriError()
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUriError)
             );
             await expect(
                 //@ts-ignore
                 silentHandler.initiateAuthRequest(null)
             ).rejects.toMatchObject(
-                BrowserAuthError.createEmptyNavigationUriError()
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUriError)
             );
         });
 
@@ -300,7 +301,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             silentHandler.monitorIframeForHash(iframe, 500).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
-                    BrowserAuthError.createMonitorIframeTimeoutError()
+                    new BrowserAuthError(BrowserAuthErrorCodes.monitorIframeTimeoutError)
                 );
                 done();
             });
@@ -333,7 +334,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             silentHandler.monitorIframeForHash(iframe, 2000).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
-                    BrowserAuthError.createMonitorIframeTimeoutError()
+                    new BrowserAuthError(BrowserAuthErrorCodes.monitorIframeTimeoutError)
                 );
                 done();
             });
@@ -424,7 +425,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             silentHandler.monitorIframeForHash(iframe, 1000).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
-                    BrowserAuthError.createEmptyHashError()
+                    new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
                 );
                 done();
             });
@@ -462,7 +463,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             silentHandler.monitorIframeForHash(iframe, 1000).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
-                    BrowserAuthError.createHashDoesNotContainKnownPropertiesError()
+                    new BrowserAuthError(BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError)
                 );
                 done();
             });

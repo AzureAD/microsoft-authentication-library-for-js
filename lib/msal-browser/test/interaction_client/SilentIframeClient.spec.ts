@@ -42,6 +42,7 @@ import { ApiId, AuthenticationResult } from "../../src";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
+import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 describe("SilentIframeClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -110,7 +111,7 @@ describe("SilentIframeClient", () => {
             await expect(
                 silentIframeClient.acquireToken(req)
             ).rejects.toMatchObject(
-                BrowserAuthError.createSilentPromptValueError(req.prompt || "")
+                new BrowserAuthError(BrowserAuthErrorCodes.silentPromptValueError)
             );
         });
 
@@ -120,7 +121,7 @@ describe("SilentIframeClient", () => {
                 .resolves(testNavUrl);
             sinon
                 .stub(SilentHandler.prototype, "monitorIframeForHash")
-                .rejects(BrowserAuthError.createMonitorIframeTimeoutError());
+                .rejects(new BrowserAuthError(BrowserAuthErrorCodes.monitorIframeTimeoutError));
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -132,7 +133,7 @@ describe("SilentIframeClient", () => {
                 .stub(ServerTelemetryManager.prototype, "cacheFailedRequest")
                 .callsFake((e) => {
                     expect(e).toMatchObject(
-                        BrowserAuthError.createMonitorIframeTimeoutError()
+                        new BrowserAuthError(BrowserAuthErrorCodes.monitorIframeTimeoutError)
                     );
                 });
             const browserStorageSpy = sinon.spy(
@@ -646,7 +647,7 @@ describe("SilentIframeClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(
-                BrowserAuthError.createSilentLogoutUnsupportedError()
+                new BrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupportedError)
             );
         });
     });

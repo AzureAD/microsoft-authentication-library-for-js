@@ -52,6 +52,7 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
+import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -381,7 +382,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     authorityInstance,
                     authConfig.networkInterface!
                 )
-            ).rejects.toMatchObject(BrowserAuthError.createEmptyHashError());
+            ).rejects.toMatchObject(new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError));
             //@ts-ignore
             expect(
                 redirectHandler.handleCodeResponseFromHash(
@@ -391,9 +392,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     authorityInstance,
                     authConfig.networkInterface!
                 )
-            ).rejects.toMatchObject(
-                //@ts-ignore
-                BrowserAuthError.createEmptyHashError()
+            ).rejects.toMatchObject(new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
         });
 

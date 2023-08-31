@@ -75,6 +75,7 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -704,7 +705,7 @@ describe("RedirectClient", () => {
 
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createNoCachedAuthorityError()
+                    new BrowserAuthError(BrowserAuthErrorCodes.noCachedAuthorityError)
                 );
                 expect(window.sessionStorage.length).toEqual(1); // telemetry
                 done();
@@ -3612,7 +3613,7 @@ describe("RedirectClient", () => {
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
-            const testError = BrowserAuthError.createEmptyNavigationUriError();
+            const testError = new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUriError);
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
                 .callsFake((): Promise<boolean> => {

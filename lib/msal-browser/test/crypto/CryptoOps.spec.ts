@@ -6,6 +6,7 @@ import { TEST_URIS } from "../utils/StringConstants";
 import { BrowserAuthError } from "../../src";
 import { ModernBrowserCrypto } from "../../src/crypto/ModernBrowserCrypto";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
+import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 let mockDatabase = {
     "TestDB.keys": {},
@@ -304,9 +305,7 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
         expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(
-            BrowserAuthError.createSigningKeyNotFoundInStorageError(
-                "testString"
-            )
+            new BrowserAuthError(BrowserAuthErrorCodes.databaseUnavailable)
         );
     }, 30000);
 

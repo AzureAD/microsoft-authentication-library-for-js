@@ -29,6 +29,7 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 const testIdTokenClaims: TokenClaims = {
     ver: "2.0",
@@ -255,7 +256,7 @@ describe("SilentRefreshClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentRefreshClient.logout).rejects.toMatchObject(
-                BrowserAuthError.createSilentLogoutUnsupportedError()
+                new BrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupportedError)
             );
         });
     });

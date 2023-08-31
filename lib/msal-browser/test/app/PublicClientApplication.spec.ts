@@ -74,8 +74,8 @@ import { Base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
-    BrowserAuthErrorMessage,
 } from "../../src/error/BrowserAuthError";
+import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
@@ -889,7 +889,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             pca = (pca as any).controller;
             await expect(pca.loginRedirect()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -956,7 +956,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
         it("goes directly to the native broker if nativeAccountId is present", async () => {
@@ -1236,7 +1236,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: ["openid"] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                new BrowserAuthError(BrowserAuthErrorCodes.interactionInProgress)
             );
         });
 
@@ -1268,7 +1268,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: ["openid"] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                new BrowserAuthError(BrowserAuthErrorCodes.interactionInProgress)
             );
         });
 
@@ -1311,7 +1311,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createRedirectInIframeError(true)
+                new BrowserAuthError(BrowserAuthErrorCodes.redirectInIframeError)
             );
         });
 
@@ -1324,7 +1324,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -1439,7 +1439,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             pca = (pca as any).controller;
             await expect(pca.loginPopup()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -1545,7 +1545,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -1864,7 +1864,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                new BrowserAuthError(BrowserAuthErrorCodes.interactionInProgress)
             );
         });
 
@@ -1880,7 +1880,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -2123,7 +2123,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -2311,7 +2311,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -2491,7 +2491,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenByCode({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -2635,7 +2635,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.acquireTokenByCode({})).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -2776,7 +2776,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("throws an error if falsey code is provided", () => {
             expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(
-                BrowserAuthError.createAuthCodeOrNativeAccountIdRequiredError()
+                new BrowserAuthError(BrowserAuthErrorCodes.authCodeOrNativeAccountRequired)
             );
         });
 
@@ -2935,7 +2935,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws No Account error if no account is provided", async () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
-            ).rejects.toMatchObject(BrowserAuthError.createNoAccountError());
+            ).rejects.toMatchObject(new BrowserAuthError(BrowserAuthErrorCodes.noAccountError));
         });
 
         it("throws an error if initialize was not called prior", async () => {
@@ -2950,7 +2950,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -4622,7 +4622,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.logout()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -4664,7 +4664,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.logoutRedirect()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -4692,7 +4692,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws an error if inside an iframe", async () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             await expect(pca.logoutRedirect()).rejects.toMatchObject(
-                BrowserAuthError.createRedirectInIframeError(true)
+                new BrowserAuthError(BrowserAuthErrorCodes.redirectInIframeError)
             );
         });
     });
@@ -4710,7 +4710,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.logoutPopup()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 
@@ -4747,7 +4747,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             browserStorage.setInteractionInProgress(true);
 
             await expect(pca.logoutPopup()).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                new BrowserAuthError(BrowserAuthErrorCodes.interactionInProgress)
             );
         });
     });
@@ -5454,7 +5454,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 // @ts-ignore
                 pca.preflightBrowserEnvironmentCheck(InteractionType.Popup)
             ).toThrow(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                new BrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication)
             );
         });
 

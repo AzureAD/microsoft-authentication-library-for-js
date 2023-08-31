@@ -32,6 +32,7 @@ import {
     AuthorizationCodeRequest,
     AuthenticationResult,
 } from "../../src";
+import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
@@ -86,7 +87,7 @@ describe("SilentAuthCodeClient", () => {
                     code: "",
                 })
             ).rejects.toMatchObject(
-                BrowserAuthError.createAuthCodeRequiredError()
+                new BrowserAuthError(BrowserAuthErrorCodes.authCodeRequired)
             );
         });
 
@@ -249,7 +250,7 @@ describe("SilentAuthCodeClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentAuthCodeClient.logout).rejects.toMatchObject(
-                BrowserAuthError.createSilentLogoutUnsupportedError()
+                new BrowserAuthError(BrowserAuthErrorCodes.silentLogoutUnsupportedError)
             );
         });
     });
