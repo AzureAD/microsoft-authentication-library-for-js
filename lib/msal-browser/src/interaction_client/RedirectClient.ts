@@ -30,8 +30,10 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { EventType } from "../event/EventType";
 import { NavigationOptions } from "../navigation/NavigationOptions";
-import { createBrowserAuthError } from "../error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";

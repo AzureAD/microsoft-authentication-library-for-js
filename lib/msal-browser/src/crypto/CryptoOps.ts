@@ -18,8 +18,10 @@ import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { createBrowserAuthError } from "../error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { CryptoKeyStore } from "../cache/CryptoKeyStore";
 
 export type CachedKeyPair = {

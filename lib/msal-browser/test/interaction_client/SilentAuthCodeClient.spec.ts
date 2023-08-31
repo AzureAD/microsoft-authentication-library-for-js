@@ -22,7 +22,10 @@ import {
     AuthenticationScheme,
     NetworkManager,
 } from "@azure/msal-common";
-import { createBrowserAuthError } from "../../src/error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
@@ -32,7 +35,6 @@ import {
     AuthorizationCodeRequest,
     AuthenticationResult,
 } from "../../src";
-import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;

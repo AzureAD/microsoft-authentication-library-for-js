@@ -4,8 +4,10 @@
  */
 
 import { Logger } from "@azure/msal-common";
-import { BrowserAuthError } from "../error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
+import {
+    BrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { DatabaseStorage } from "./DatabaseStorage";
 import { IAsyncStorage } from "./IAsyncMemoryStorage";
 import { MemoryStorage } from "./MemoryStorage";

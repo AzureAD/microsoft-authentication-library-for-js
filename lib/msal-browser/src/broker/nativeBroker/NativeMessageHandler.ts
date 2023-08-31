@@ -21,8 +21,10 @@ import {
     NativeExtensionRequestBody,
 } from "./NativeRequest";
 import { NativeAuthError } from "../../error/NativeAuthError";
-import { createBrowserAuthError } from "../../error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../../error/BrowserAuthErrorCodes";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../error/BrowserAuthError";
 import { BrowserConfiguration } from "../../config/Configuration";
 
 type ResponseResolvers<T> = {

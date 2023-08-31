@@ -14,8 +14,10 @@ import {
     ServerError,
     IPerformanceClient,
 } from "@azure/msal-common";
-import { createBrowserAuthError } from "../error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";

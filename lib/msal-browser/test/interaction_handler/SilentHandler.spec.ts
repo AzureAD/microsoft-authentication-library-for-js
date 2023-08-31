@@ -35,11 +35,11 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import {
     BrowserAuthError,
     createBrowserAuthError,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 const DEFAULT_POLL_INTERVAL_MS = 30;

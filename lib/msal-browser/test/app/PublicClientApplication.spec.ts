@@ -76,8 +76,8 @@ import {
     BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";

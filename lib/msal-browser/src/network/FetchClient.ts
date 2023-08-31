@@ -9,8 +9,10 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
 } from "@azure/msal-common";
-import { createBrowserAuthError } from "../error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 /**

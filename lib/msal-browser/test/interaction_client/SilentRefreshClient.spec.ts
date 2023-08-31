@@ -26,10 +26,12 @@ import {
     AccountEntity,
 } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { createBrowserAuthError } from "../../src/error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 const testIdTokenClaims: TokenClaims = {
     ver: "2.0",

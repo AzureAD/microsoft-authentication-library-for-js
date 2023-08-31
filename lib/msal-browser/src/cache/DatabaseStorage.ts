@@ -3,8 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { createBrowserAuthError } from "../error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { DB_NAME, DB_TABLE_NAME, DB_VERSION } from "../utils/BrowserConstants";
 import { IAsyncStorage } from "./IAsyncMemoryStorage";
 

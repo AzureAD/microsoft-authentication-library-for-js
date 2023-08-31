@@ -46,6 +46,7 @@ import {
     BrowserAuthErrorMessage,
     BrowserAuthError,
     createBrowserAuthError,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -53,7 +54,6 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
-import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 const testPkceCodes = {
     challenge: "TestChallenge",

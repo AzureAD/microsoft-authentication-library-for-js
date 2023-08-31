@@ -61,6 +61,7 @@ import { FetchClient } from "../../src/network/FetchClient";
 import {
     createBrowserAuthError,
     BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -75,7 +76,6 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,

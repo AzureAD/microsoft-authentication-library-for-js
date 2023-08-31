@@ -4,8 +4,10 @@
  */
 
 import { AuthError, InteractionRequiredAuthError } from "@azure/msal-common";
-import { createBrowserAuthError } from "./BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "./BrowserAuthError";
 
 export type OSError = {
     error?: number;

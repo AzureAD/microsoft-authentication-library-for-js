@@ -2,8 +2,8 @@ import {
     BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorMessages,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 import { AuthError } from "@azure/msal-common";
 
 describe("BrowserAuthError Unit Tests", () => {

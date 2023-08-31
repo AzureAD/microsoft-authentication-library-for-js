@@ -1,7 +1,9 @@
 import { Logger, LogLevel } from "@azure/msal-common";
-import { createBrowserAuthError } from "../../src/error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError";
 import { AsyncMemoryStorage } from "../../src/cache/AsyncMemoryStorage";
-import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 let mockDatabase = {};
 

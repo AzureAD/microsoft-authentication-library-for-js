@@ -13,8 +13,10 @@ import {
     PerformanceEvents,
 } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
-import { createBrowserAuthError } from "../error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import {
     BrowserSystemOptions,

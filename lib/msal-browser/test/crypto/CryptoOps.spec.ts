@@ -3,10 +3,12 @@ import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
-import { createBrowserAuthError } from "../../src/error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError";
 import { ModernBrowserCrypto } from "../../src/crypto/ModernBrowserCrypto";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
 let mockDatabase = {
     "TestDB.keys": {},

@@ -13,8 +13,10 @@ import {
     PerformanceEvents,
 } from "@azure/msal-common";
 import { ApiId } from "../utils/BrowserConstants";
-import { createBrowserAuthError } from "../error/BrowserAuthError";
-import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class SilentRefreshClient extends StandardInteractionClient {
