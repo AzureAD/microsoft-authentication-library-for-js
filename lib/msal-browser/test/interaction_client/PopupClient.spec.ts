@@ -55,6 +55,7 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import {
     BrowserAuthError,
+    createBrowserAuthError,
     BrowserAuthErrorMessage,
 } from "../../src/error/BrowserAuthError";
 import { FetchClient } from "../../src/network/FetchClient";
@@ -1957,7 +1958,7 @@ describe("PopupClient", () => {
                     { popupName: "name", popupWindowAttributes: {} }
                 )
             ).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
             );
         });
 
@@ -1981,7 +1982,7 @@ describe("PopupClient", () => {
                     }
                 )
             ).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
             );
         });
     });

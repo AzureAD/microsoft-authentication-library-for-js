@@ -59,7 +59,7 @@ import {
 import { Base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
-    BrowserAuthError,
+    createBrowserAuthError,
     BrowserAuthErrorMessage,
 } from "../../src/error/BrowserAuthError";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -705,7 +705,7 @@ describe("RedirectClient", () => {
 
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(
-                    new BrowserAuthError(
+                    createBrowserAuthError(
                         BrowserAuthErrorCodes.noCachedAuthorityError
                     )
                 );
@@ -2186,7 +2186,7 @@ describe("RedirectClient", () => {
             };
             sinon
                 .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .throws(new BrowserAuthError(testError.errorCode));
+                .throws(createBrowserAuthError(testError.errorCode));
             try {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
@@ -3609,7 +3609,7 @@ describe("RedirectClient", () => {
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
-            const testError = new BrowserAuthError(
+            const testError = createBrowserAuthError(
                 BrowserAuthErrorCodes.emptyNavigateUriError
             );
             sinon

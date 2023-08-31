@@ -301,3 +301,7 @@ export class BrowserAuthError extends AuthError {
         this.name = "BrowserAuthError";
     }
 }
+
+export function createBrowserAuthError(errorCode: string): BrowserAuthError {
+    return new BrowserAuthError(errorCode);
+}

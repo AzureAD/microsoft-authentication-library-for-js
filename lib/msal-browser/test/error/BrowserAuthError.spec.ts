@@ -1,5 +1,6 @@
 import {
     BrowserAuthError,
+    createBrowserAuthError,
     BrowserAuthErrorMessages,
 } from "../../src/error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
@@ -10,7 +11,7 @@ describe("BrowserAuthError Unit Tests", () => {
         const code =
             BrowserAuthErrorCodes[key as keyof typeof BrowserAuthErrorCodes];
         it(`BrowserAuthError object can be created for code ${code}`, () => {
-            const err: BrowserAuthError = new BrowserAuthError(code);
+            const err: BrowserAuthError = createBrowserAuthError(code);
 
             const message = BrowserAuthErrorMessages[code];
             expect(message).toBeTruthy();

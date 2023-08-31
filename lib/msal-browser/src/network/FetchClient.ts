@@ -9,7 +9,7 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
 } from "@azure/msal-common";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
@@ -35,11 +35,11 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.getRequestFailed
                 );
             } else {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.noNetworkConnectivity
                 );
             }
@@ -52,7 +52,7 @@ export class FetchClient implements INetworkModule {
                 status: response.status,
             };
         } catch (e) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.failedToParseNetworkResponse
             );
         }
@@ -79,11 +79,11 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.postRequestFailed
                 );
             } else {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.noNetworkConnectivity
                 );
             }
@@ -96,7 +96,7 @@ export class FetchClient implements INetworkModule {
                 status: response.status,
             };
         } catch (e) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.failedToParseNetworkResponse
             );
         }

@@ -27,7 +27,7 @@ import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import {
     BrowserProtocolUtils,
@@ -310,7 +310,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             requestCorrelationId
         );
         if (!serverParams.state) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.hashDoesNotContainStateError
             );
         }
@@ -321,13 +321,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 serverParams.state
             );
         if (!platformStateObj) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToParseStateError
             );
         }
 
         if (platformStateObj.interactionType !== interactionType) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.stateInteractionTypeMismatchError
             );
         }

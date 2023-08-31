@@ -21,7 +21,7 @@ import {
     NativeExtensionRequestBody,
 } from "./NativeRequest";
 import { NativeAuthError } from "../../error/NativeAuthError";
-import { BrowserAuthError } from "../../error/BrowserAuthError";
+import { createBrowserAuthError } from "../../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../../error/BrowserAuthErrorCodes";
 import { BrowserConfiguration } from "../../config/Configuration";
 
@@ -180,7 +180,7 @@ export class NativeMessageHandler {
                     success: false,
                 });
                 reject(
-                    new BrowserAuthError(
+                    createBrowserAuthError(
                         BrowserAuthErrorCodes.nativeHandshakeTimeout
                     )
                 );
@@ -243,7 +243,7 @@ export class NativeMessageHandler {
                 extensionInstalled: false,
             });
             handshakeResolver.reject(
-                new BrowserAuthError(
+                createBrowserAuthError(
                     BrowserAuthErrorCodes.nativeExtensionNotInstalled
                 )
             );

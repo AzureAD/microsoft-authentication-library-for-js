@@ -40,7 +40,7 @@ import {
     RANDOM_TEST_GUID,
     TEST_CRYPTO_VALUES,
 } from "../utils/StringConstants";
-import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import { createBrowserAuthError } from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
@@ -383,7 +383,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     authConfig.networkInterface!
                 )
             ).rejects.toMatchObject(
-                new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
             //@ts-ignore
             expect(
@@ -395,7 +395,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     authConfig.networkInterface
                 )
             ).rejects.toMatchObject(
-                new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
         });
 

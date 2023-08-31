@@ -18,7 +18,7 @@ import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { CryptoKeyStore } from "../cache/CryptoKeyStore";
 
@@ -185,7 +185,7 @@ export class CryptoOps implements ICrypto {
         const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
 
         if (!cachedKeyPair) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.signingKeyNotFoundInStorage
             );
         }

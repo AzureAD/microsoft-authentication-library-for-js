@@ -20,7 +20,7 @@ import {
 } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { AuthenticationResult } from "../response/AuthenticationResult";
@@ -68,7 +68,7 @@ export class InteractionHandler {
         this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (!locationHash) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
+            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
         }
 
         // Handle code response.
@@ -90,7 +90,7 @@ export class InteractionHandler {
                 e.subError === BrowserAuthErrorCodes.userCancelledError
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.userCancelledError
                 );
             } else {

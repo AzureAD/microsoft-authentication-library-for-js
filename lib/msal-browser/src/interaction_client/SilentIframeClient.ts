@@ -24,7 +24,7 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
@@ -93,7 +93,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             request.prompt !== PromptValue.NONE &&
             request.prompt !== PromptValue.NO_SESSION
         ) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.silentPromptValueError
             );
         }
@@ -161,7 +161,7 @@ export class SilentIframeClient extends StandardInteractionClient {
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
-            new BrowserAuthError(
+            createBrowserAuthError(
                 BrowserAuthErrorCodes.silentLogoutUnsupportedError
             )
         );
@@ -248,7 +248,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 "Account id found in hash, calling WAM for token"
             );
             if (!this.nativeMessageHandler) {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.nativeConnectionNotEstablished
                 );
             }

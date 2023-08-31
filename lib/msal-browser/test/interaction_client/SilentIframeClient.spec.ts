@@ -31,7 +31,7 @@ import {
     NetworkManager,
 } from "@azure/msal-common";
 import {
-    BrowserAuthError,
+    createBrowserAuthError,
     BrowserAuthErrorMessage,
 } from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
@@ -111,7 +111,7 @@ describe("SilentIframeClient", () => {
             await expect(
                 silentIframeClient.acquireToken(req)
             ).rejects.toMatchObject(
-                new BrowserAuthError(
+                createBrowserAuthError(
                     BrowserAuthErrorCodes.silentPromptValueError
                 )
             );
@@ -124,7 +124,7 @@ describe("SilentIframeClient", () => {
             sinon
                 .stub(SilentHandler.prototype, "monitorIframeForHash")
                 .rejects(
-                    new BrowserAuthError(
+                    createBrowserAuthError(
                         BrowserAuthErrorCodes.monitorIframeTimeoutError
                     )
                 );
@@ -139,7 +139,7 @@ describe("SilentIframeClient", () => {
                 .stub(ServerTelemetryManager.prototype, "cacheFailedRequest")
                 .callsFake((e) => {
                     expect(e).toMatchObject(
-                        new BrowserAuthError(
+                        createBrowserAuthError(
                             BrowserAuthErrorCodes.monitorIframeTimeoutError
                         )
                     );
@@ -655,7 +655,7 @@ describe("SilentIframeClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(
-                new BrowserAuthError(
+                createBrowserAuthError(
                     BrowserAuthErrorCodes.silentLogoutUnsupportedError
                 )
             );

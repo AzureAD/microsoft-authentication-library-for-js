@@ -4,7 +4,7 @@
  */
 
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { ISubtleCrypto } from "./ISubtleCrypto";
 import { ModernBrowserCrypto } from "./ModernBrowserCrypto";
@@ -41,7 +41,7 @@ export class BrowserCrypto {
             this.subtleCrypto = new ModernBrowserCrypto();
         } else {
             this.logger.error("BrowserCrypto: crypto interface is unavailable");
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.cryptoDoesNotExist
             );
         }

@@ -30,7 +30,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { EventType } from "../event/EventType";
 import { NavigationOptions } from "../navigation/NavigationOptions";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
@@ -405,7 +405,7 @@ export class RedirectClient extends StandardInteractionClient {
                 "Account id found in hash, calling WAM for token"
             );
             if (!this.nativeMessageHandler) {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.nativeConnectionNotEstablished
                 );
             }
@@ -441,7 +441,7 @@ export class RedirectClient extends StandardInteractionClient {
         // Hash contains known properties - handle and return in callback
         const currentAuthority = this.browserStorage.getCachedAuthority(state);
         if (!currentAuthority) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.noCachedAuthorityError
             );
         }

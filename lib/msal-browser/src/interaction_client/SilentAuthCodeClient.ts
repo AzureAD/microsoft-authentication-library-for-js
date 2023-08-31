@@ -18,7 +18,7 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
@@ -67,7 +67,9 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
 
         // Auth code payload is required
         if (!request.code) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.authCodeRequired);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.authCodeRequired
+            );
         }
 
         // Create silent request
@@ -151,7 +153,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
-            new BrowserAuthError(
+            createBrowserAuthError(
                 BrowserAuthErrorCodes.silentLogoutUnsupportedError
             )
         );

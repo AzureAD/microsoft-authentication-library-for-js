@@ -66,7 +66,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
@@ -848,7 +848,7 @@ export class StandardController implements IController {
         try {
             if (request.code && request.nativeAccountId) {
                 // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.spaCodeAndNativeAccountPresent
                 );
             } else if (request.code) {
@@ -919,12 +919,12 @@ export class StandardController implements IController {
                         throw e;
                     });
                 } else {
-                    throw new BrowserAuthError(
+                    throw createBrowserAuthError(
                         BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform
                     );
                 }
             } else {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.authCodeOrNativeAccountRequired
                 );
             }
@@ -1400,7 +1400,7 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.nativeConnectionNotEstablished
             );
         }
@@ -1819,7 +1819,7 @@ export class StandardController implements IController {
 
         const account = request.account || this.getActiveAccount();
         if (!account) {
-            throw new BrowserAuthError(BrowserAuthErrorCodes.noAccountError);
+            throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
         }
 
         const thumbprint: RequestThumbprint = {

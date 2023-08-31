@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { DB_NAME, DB_TABLE_NAME, DB_VERSION } from "../utils/BrowserConstants";
 import { IAsyncStorage } from "./IAsyncMemoryStorage";
@@ -58,7 +58,7 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             });
             openDB.addEventListener("error", () =>
                 reject(
-                    new BrowserAuthError(
+                    createBrowserAuthError(
                         BrowserAuthErrorCodes.databaseUnavailable
                     )
                 )
@@ -97,7 +97,9 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             // TODO: Add timeouts?
             if (!this.db) {
                 return reject(
-                    new BrowserAuthError(BrowserAuthErrorCodes.databaseNotOpen)
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.databaseNotOpen
+                    )
                 );
             }
             const transaction = this.db.transaction(
@@ -131,7 +133,9 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             // TODO: Add timeouts?
             if (!this.db) {
                 return reject(
-                    new BrowserAuthError(BrowserAuthErrorCodes.databaseNotOpen)
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.databaseNotOpen
+                    )
                 );
             }
             const transaction = this.db.transaction(
@@ -164,7 +168,9 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
         return new Promise<void>((resolve: Function, reject: Function) => {
             if (!this.db) {
                 return reject(
-                    new BrowserAuthError(BrowserAuthErrorCodes.databaseNotOpen)
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.databaseNotOpen
+                    )
                 );
             }
 
@@ -195,7 +201,9 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
         return new Promise<string[]>((resolve: Function, reject: Function) => {
             if (!this.db) {
                 return reject(
-                    new BrowserAuthError(BrowserAuthErrorCodes.databaseNotOpen)
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.databaseNotOpen
+                    )
                 );
             }
 
@@ -229,7 +237,9 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
         return new Promise<boolean>((resolve: Function, reject: Function) => {
             if (!this.db) {
                 return reject(
-                    new BrowserAuthError(BrowserAuthErrorCodes.databaseNotOpen)
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.databaseNotOpen
+                    )
                 );
             }
 

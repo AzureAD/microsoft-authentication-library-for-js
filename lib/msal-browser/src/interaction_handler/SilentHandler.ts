@@ -13,7 +13,7 @@ import {
     PerformanceEvents,
 } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import {
@@ -63,7 +63,7 @@ export class SilentHandler extends InteractionHandler {
         if (!requestUrl) {
             // Throw error if request URL is empty.
             this.logger.info("Navigate url is empty");
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.emptyNavigateUriError
             );
         }
@@ -111,7 +111,7 @@ export class SilentHandler extends InteractionHandler {
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
                     reject(
-                        new BrowserAuthError(
+                        createBrowserAuthError(
                             BrowserAuthErrorCodes.monitorIframeTimeoutError
                         )
                     );
@@ -156,7 +156,7 @@ export class SilentHandler extends InteractionHandler {
                         this.removeHiddenIframe(iframe);
                         clearInterval(intervalId);
                         reject(
-                            new BrowserAuthError(
+                            createBrowserAuthError(
                                 BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError
                             )
                         );
@@ -173,7 +173,7 @@ export class SilentHandler extends InteractionHandler {
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
                     reject(
-                        new BrowserAuthError(
+                        createBrowserAuthError(
                             BrowserAuthErrorCodes.hashEmptyError
                         )
                     );

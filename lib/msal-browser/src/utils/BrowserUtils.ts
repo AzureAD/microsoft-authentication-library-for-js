@@ -4,7 +4,7 @@
  */
 
 import { Constants, UrlString } from "@azure/msal-common";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { InteractionType, BrowserConstants } from "./BrowserConstants";
 
@@ -88,7 +88,7 @@ export class BrowserUtils {
         );
         // return an error if called from the hidden iframe created by the msal js silent calls
         if (isResponseHash && BrowserUtils.isInIframe()) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.blockTokenRequestsInHiddenIframeError
             );
         }
@@ -110,7 +110,7 @@ export class BrowserUtils {
             !allowRedirectInIframe
         ) {
             // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.redirectInIframeError
             );
         }
@@ -122,7 +122,7 @@ export class BrowserUtils {
     static blockAcquireTokenInPopups(): void {
         // Popups opened by msal popup APIs are given a name that starts with "msal."
         if (BrowserUtils.isInPopup()) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.blockAcquireTokenInPopupsError
             );
         }
@@ -134,7 +134,7 @@ export class BrowserUtils {
      */
     static blockNonBrowserEnvironment(isBrowserEnvironment: boolean): void {
         if (!isBrowserEnvironment) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.notInBrowserEnvironment
             );
         }
@@ -146,7 +146,7 @@ export class BrowserUtils {
      */
     static blockAPICallsBeforeInitialize(initialized: boolean): void {
         if (!initialized) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.uninitializedPublicClientApplication
             );
         }

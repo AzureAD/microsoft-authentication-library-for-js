@@ -45,6 +45,7 @@ import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import {
     BrowserAuthErrorMessage,
     BrowserAuthError,
+    createBrowserAuthError,
 } from "../../src/error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -383,7 +384,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     authConfig.networkInterface!
                 )
             ).rejects.toMatchObject(
-                new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
             //@ts-ignore
             expect(
@@ -395,7 +396,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     authConfig.networkInterface!
                 )
             ).rejects.toMatchObject(
-                new BrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
         });
 

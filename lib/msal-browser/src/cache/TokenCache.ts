@@ -22,7 +22,7 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
 import { ITokenCache } from "./ITokenCache";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 
@@ -77,7 +77,7 @@ export class TokenCache implements ITokenCache {
         this.logger.info("TokenCache - loadExternalTokens called");
 
         if (!response.id_token) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadTokenError
             );
         }
@@ -198,12 +198,12 @@ export class TokenCache implements ITokenCache {
                     )
                 );
             } else {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.unableToLoadTokenError
                 );
             }
         } else {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadTokenError
             );
         }
@@ -246,7 +246,7 @@ export class TokenCache implements ITokenCache {
         }
 
         if (!homeAccountId) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadTokenError
             );
         }
@@ -267,7 +267,7 @@ export class TokenCache implements ITokenCache {
             this.storage.setAccount(accountEntity);
             return accountEntity;
         } else {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadTokenError
             );
         }
@@ -300,7 +300,7 @@ export class TokenCache implements ITokenCache {
             this.storage.setIdTokenCredential(idTokenEntity);
             return idTokenEntity;
         } else {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadTokenError
             );
         }
@@ -331,13 +331,13 @@ export class TokenCache implements ITokenCache {
         }
 
         if (!response.expires_in) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadTokenError
             );
         }
 
         if (!options.extendedExpiresOn) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadTokenError
             );
         }
@@ -365,7 +365,7 @@ export class TokenCache implements ITokenCache {
             this.storage.setAccessTokenCredential(accessTokenEntity);
             return accessTokenEntity;
         } else {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadTokenError
             );
         }
@@ -404,7 +404,7 @@ export class TokenCache implements ITokenCache {
             this.storage.setRefreshTokenCredential(refreshTokenEntity);
             return refreshTokenEntity;
         } else {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadTokenError
             );
         }

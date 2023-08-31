@@ -1,5 +1,5 @@
 import { Logger, LogLevel } from "@azure/msal-common";
-import { BrowserAuthError } from "../../src";
+import { createBrowserAuthError } from "../../src/error/BrowserAuthError";
 import { AsyncMemoryStorage } from "../../src/cache/AsyncMemoryStorage";
 import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes";
 
@@ -42,7 +42,7 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     const item = mockDatabase[TEST_DB_TABLE_NAME][kid];
 
                     if (item === DB_UNAVAILABLE) {
-                        throw new BrowserAuthError(
+                        throw createBrowserAuthError(
                             BrowserAuthErrorCodes.databaseUnavailable
                         );
                     }
@@ -53,7 +53,7 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     callCounter.setItemPersistent += 1;
 
                     if (payload === DB_UNAVAILABLE) {
-                        throw new BrowserAuthError(
+                        throw createBrowserAuthError(
                             BrowserAuthErrorCodes.databaseUnavailable
                         );
                     }
@@ -66,7 +66,7 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     const item = mockDatabase[TEST_DB_TABLE_NAME][kid];
 
                     if (item === DB_UNAVAILABLE) {
-                        throw new BrowserAuthError(
+                        throw createBrowserAuthError(
                             BrowserAuthErrorCodes.databaseUnavailable
                         );
                     }

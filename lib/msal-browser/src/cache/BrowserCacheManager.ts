@@ -34,7 +34,7 @@ import {
     AuthenticationScheme,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import {
     BrowserCacheLocation,
@@ -1694,7 +1694,7 @@ export class BrowserCacheManager extends CacheManager {
             true
         );
         if (!encodedTokenRequest) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.noTokenRequestCacheError
             );
         }
@@ -1703,7 +1703,7 @@ export class BrowserCacheManager extends CacheManager {
             browserCrypto.base64Decode(encodedTokenRequest)
         ) as CommonAuthorizationCodeRequest;
         if (!parsedRequest) {
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
             );
         }
@@ -1716,7 +1716,7 @@ export class BrowserCacheManager extends CacheManager {
             const authorityCacheKey: string = this.generateAuthorityKey(state);
             const cachedAuthority = this.getTemporaryCache(authorityCacheKey);
             if (!cachedAuthority) {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.noCachedAuthorityError
                 );
             }
@@ -1775,7 +1775,7 @@ export class BrowserCacheManager extends CacheManager {
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         if (inProgress) {
             if (this.getInteractionInProgress()) {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.interactionInProgress
                 );
             } else {

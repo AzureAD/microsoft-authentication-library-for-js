@@ -34,7 +34,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { createBrowserAuthError } from "../error/BrowserAuthError";
 import * as BrowserAuthErrorCodes from "../error/BrowserAuthErrorCodes";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EventHandler } from "../event/EventHandler";
@@ -317,7 +317,7 @@ export class PopupClient extends StandardInteractionClient {
                 }
 
                 if (!this.nativeMessageHandler) {
-                    throw new BrowserAuthError(
+                    throw createBrowserAuthError(
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                 }
@@ -551,7 +551,7 @@ export class PopupClient extends StandardInteractionClient {
         } else {
             // Throw error if request URL is empty.
             this.logger.error("Navigate url is empty");
-            throw new BrowserAuthError(
+            throw createBrowserAuthError(
                 BrowserAuthErrorCodes.emptyNavigateUriError
             );
         }
@@ -586,7 +586,7 @@ export class PopupClient extends StandardInteractionClient {
                     this.cleanPopup();
                     clearInterval(intervalId);
                     reject(
-                        new BrowserAuthError(
+                        createBrowserAuthError(
                             BrowserAuthErrorCodes.userCancelledError
                         )
                     );
@@ -648,7 +648,7 @@ export class PopupClient extends StandardInteractionClient {
                             `PopupHandler.monitorPopupForHash - hash found: ${serverResponseString}`
                         );
                         reject(
-                            new BrowserAuthError(
+                            createBrowserAuthError(
                                 BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError
                             )
                         );
@@ -659,7 +659,7 @@ export class PopupClient extends StandardInteractionClient {
                     );
                     clearInterval(intervalId);
                     reject(
-                        new BrowserAuthError(
+                        createBrowserAuthError(
                             BrowserAuthErrorCodes.monitorPopupTimeoutError
                         )
                     );
@@ -753,7 +753,7 @@ export class PopupClient extends StandardInteractionClient {
 
             // Popup will be null if popups are blocked
             if (!popupWindow) {
-                throw new BrowserAuthError(
+                throw createBrowserAuthError(
                     BrowserAuthErrorCodes.emptyWindowError
                 );
             }
@@ -769,7 +769,9 @@ export class PopupClient extends StandardInteractionClient {
                 "error opening popup " + (e as AuthError).message
             );
             this.browserStorage.setInteractionInProgress(false);
-            throw new BrowserAuthError(BrowserAuthErrorCodes.popupWindowError);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.popupWindowError
+            );
         }
     }
 
