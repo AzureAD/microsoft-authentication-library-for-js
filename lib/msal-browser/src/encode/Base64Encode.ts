@@ -45,6 +45,8 @@ export function base64Encode(input: string): string {
  * @param aBytes
  */
 function base64EncArr(aBytes: Uint8Array): string {
-    const binString = Array.from(aBytes, (x) => String.fromCodePoint(x)).join("");
+    const binString = Array.from(aBytes, (x) => String.fromCodePoint(x)).join(
+        ""
+    );
     return btoa(binString);
 }

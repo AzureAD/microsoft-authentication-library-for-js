@@ -2816,9 +2816,8 @@ describe("BrowserCacheManager tests", () => {
                 true
             );
 
-            const cachedRequest = browserStorage.getCachedRequest(
-                RANDOM_TEST_GUID
-            );
+            const cachedRequest =
+                browserStorage.getCachedRequest(RANDOM_TEST_GUID);
             expect(cachedRequest).toEqual(tokenRequest);
 
             // expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);

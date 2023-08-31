@@ -440,7 +440,7 @@ describe("RedirectClient", () => {
                 pca.nativeInternalStorage,
                 nativeMessageHandler
             );
-            
+
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -599,7 +599,7 @@ describe("RedirectClient", () => {
                 //@ts-ignore
                 pca.nativeInternalStorage
             );
-            
+
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -658,7 +658,6 @@ describe("RedirectClient", () => {
         });
 
         it("throws no cached authority error if authority is not in cache", (done) => {
-            
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -760,7 +759,6 @@ describe("RedirectClient", () => {
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is the same", async () => {
-            
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -921,7 +919,6 @@ describe("RedirectClient", () => {
         });
 
         it("calls custom navigateInternal function then processes hash", async () => {
-            
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -1099,7 +1096,6 @@ describe("RedirectClient", () => {
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
-            
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(

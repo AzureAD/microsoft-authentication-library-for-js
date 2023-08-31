@@ -191,9 +191,7 @@ export class CryptoOps implements ICrypto {
             BrowserStringUtils.getSortedObjectString(publicKeyJwk);
 
         // Base64URL encode public key thumbprint with keyId only: BASE64URL({ kid: "FULL_PUBLIC_KEY_HASH" })
-        const encodedKeyIdThumbprint = urlEncode(
-            JSON.stringify({ kid: kid })
-        );
+        const encodedKeyIdThumbprint = urlEncode(JSON.stringify({ kid: kid }));
 
         // Generate header
         const shrHeader = JoseHeader.getShrHeaderString({
@@ -206,9 +204,7 @@ export class CryptoOps implements ICrypto {
         payload.cnf = {
             jwk: JSON.parse(publicKeyJwkString),
         };
-        const encodedPayload = urlEncode(
-            JSON.stringify(payload)
-        );
+        const encodedPayload = urlEncode(JSON.stringify(payload));
 
         // Form token string
         const tokenString = `${encodedShrHeader}.${encodedPayload}`;
@@ -219,9 +215,7 @@ export class CryptoOps implements ICrypto {
             cachedKeyPair.privateKey,
             tokenBuffer
         );
-        const encodedSignature = urlEncodeArr(
-            new Uint8Array(signatureBuffer)
-        );
+        const encodedSignature = urlEncodeArr(new Uint8Array(signatureBuffer));
 
         const signedJwt = `${tokenString}.${encodedSignature}`;
 

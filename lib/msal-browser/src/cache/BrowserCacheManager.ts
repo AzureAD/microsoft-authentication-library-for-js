@@ -1665,14 +1665,10 @@ export class BrowserCacheManager extends CacheManager {
         this.setInteractionInProgress(false);
     }
 
-    cacheCodeRequest(
-        authCodeRequest: CommonAuthorizationCodeRequest
-    ): void {
+    cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest): void {
         this.logger.trace("BrowserCacheManager.cacheCodeRequest called");
 
-        const encodedValue = base64Encode(
-            JSON.stringify(authCodeRequest)
-        );
+        const encodedValue = base64Encode(JSON.stringify(authCodeRequest));
         this.setTemporaryCache(
             TemporaryCacheKeys.REQUEST_PARAMS,
             encodedValue,
@@ -1683,9 +1679,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      */
-    getCachedRequest(
-        state: string
-    ): CommonAuthorizationCodeRequest {
+    getCachedRequest(state: string): CommonAuthorizationCodeRequest {
         this.logger.trace("BrowserCacheManager.getCachedRequest called");
         // Get token request from cache and parse as TokenExchangeParameters.
         const encodedTokenRequest = this.getTemporaryCache(

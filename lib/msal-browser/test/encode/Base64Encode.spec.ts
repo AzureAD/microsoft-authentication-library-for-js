@@ -2,7 +2,6 @@ import { base64Encode, urlEncode } from "../../src/encode/Base64Encode";
 import { TEST_DATA_CLIENT_INFO } from "../utils/StringConstants";
 
 describe("Base64Encode.ts Unit Tests", () => {
-
     describe("encode", () => {
         it("RFC 4648 Test Vectors", () => {
             /**

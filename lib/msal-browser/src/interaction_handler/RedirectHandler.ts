@@ -82,9 +82,7 @@ export class RedirectHandler extends InteractionHandler {
                 this.authCodeRequest.correlationId,
                 true
             );
-            this.browserStorage.cacheCodeRequest(
-                this.authCodeRequest
-            );
+            this.browserStorage.cacheCodeRequest(this.authCodeRequest);
             this.logger.infoPii(
                 `RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`
             );

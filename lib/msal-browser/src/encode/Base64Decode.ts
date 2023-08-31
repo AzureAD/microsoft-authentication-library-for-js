@@ -20,9 +20,7 @@ export function base64Decode(input: string): string {
  * Decodes base64 into Uint8Array
  * @param base64String
  */
-function base64DecToArr(
-    base64String: string
-): Uint8Array {
+function base64DecToArr(base64String: string): Uint8Array {
     const binString = atob(base64String);
-  return Uint8Array.from(binString, (m) => m.codePointAt(0) || 0);
+    return Uint8Array.from(binString, (m) => m.codePointAt(0) || 0);
 }

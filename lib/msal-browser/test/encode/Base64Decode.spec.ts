@@ -10,7 +10,6 @@ import { base64Encode } from "../../src/encode/Base64Encode";
 import { CommonAuthorizationCodeRequest } from "@azure/msal-common";
 
 describe("Base64Decode.ts Unit Tests", () => {
-
     describe("decode", () => {
         it("RFC 4648 Test Vectors", () => {
             /**
@@ -54,12 +53,12 @@ describe("Base64Decode.ts Unit Tests", () => {
 
         it("MSAL Test Vectors", () => {
             // Client Info B64
-            expect(
-                base64Decode(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED)
-            ).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
-            expect(
-                base64Decode(TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED)
-            ).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(base64Decode(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED)).toBe(
+                TEST_DATA_CLIENT_INFO.TEST_UID
+            );
+            expect(base64Decode(TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED)).toBe(
+                TEST_DATA_CLIENT_INFO.TEST_UTID
+            );
             expect(
                 base64Decode(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO)
             ).toBe(TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO);
