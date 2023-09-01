@@ -7,7 +7,6 @@ import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { AuthToken } from "../account/AuthToken";
 import { TimeUtils } from "../utils/TimeUtils";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import {
@@ -20,6 +19,8 @@ import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheOutcome } from "../utils/Constants";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { StringUtils } from "../utils/StringUtils";
+import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
+import { TokenClaims } from "../account/TokenClaims";
 
 /** @internal */
 export class SilentFlowClient extends BaseClient {
@@ -155,22 +156,22 @@ export class SilentFlowClient extends BaseClient {
         cacheRecord: CacheRecord,
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        let idTokenObj: AuthToken | undefined;
+        let idTokenClaims: TokenClaims | undefined;
         if (cacheRecord.idToken) {
-            idTokenObj = new AuthToken(
+            idTokenClaims = extractTokenClaims(
                 cacheRecord.idToken.secret,
-                this.config.cryptoInterface
+                this.config.cryptoInterface.base64Decode
             );
         }
 
         // token max_age check
         if (request.maxAge || request.maxAge === 0) {
-            const authTime = idTokenObj?.claims.auth_time;
+            const authTime = idTokenClaims?.auth_time;
             if (!authTime) {
                 throw ClientAuthError.createAuthTimeNotFoundError();
             }
 
-            AuthToken.checkMaxAge(authTime, request.maxAge);
+            checkMaxAge(authTime, request.maxAge);
         }
 
         return await ResponseHandler.generateAuthenticationResult(
@@ -179,7 +180,7 @@ export class SilentFlowClient extends BaseClient {
             cacheRecord,
             true,
             request,
-            idTokenObj
+            idTokenClaims
         );
     }
 }

@@ -1,20 +1,19 @@
-import { AuthToken } from "../../src/account/AuthToken";
+import * as AuthToken from "../../src/account/AuthToken";
 import {
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     RANDOM_TEST_GUID,
-    TEST_TOKENS,
     TEST_URIS,
     TEST_POP_VALUES,
     TEST_CRYPTO_VALUES,
+    TEST_TOKENS,
 } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
-import { DecodedAuthToken } from "../../src/account/DecodedAuthToken";
 import {
     ClientAuthErrorMessage,
     ClientAuthError,
 } from "../../src/error/ClientAuthError";
-import { StringUtils } from "../../src/utils/StringUtils";
+import { AuthError } from "../../src/error/AuthError";
 
 // Set up stubs
 const idTokenClaims = {
@@ -91,108 +90,142 @@ describe("AuthToken.ts Class Unit Tests", () => {
         jest.restoreAllMocks();
     });
 
-    describe("Constructor", () => {
-        it("Throws error if rawIdToken is null or empty", () => {
-            expect(() => new AuthToken("", cryptoInterface)).toThrowError(
-                ClientAuthErrorMessage.nullOrEmptyToken.desc
-            );
-            expect(() => new AuthToken("", cryptoInterface)).toThrowError(
-                ClientAuthError
-            );
+    describe("getJWSPayload", () => {
+        it("getJWSPayload returns a correctly crackedToken.", () => {
+            const sampleJwt = `${TEST_TOKENS.SAMPLE_JWT_HEADER}.${TEST_TOKENS.SAMPLE_JWT_PAYLOAD}.${TEST_TOKENS.SAMPLE_JWT_SIG}`;
+            const decodedJwt = AuthToken.getJWSPayload(sampleJwt);
 
-            // @ts-ignore
-            expect(() => new AuthToken(null, cryptoInterface)).toThrowError(
-                ClientAuthErrorMessage.nullOrEmptyToken.desc
-            );
-            // @ts-ignore
-            expect(() => new AuthToken(null, cryptoInterface)).toThrowError(
-                ClientAuthError
-            );
+            expect(decodedJwt).toEqual(TEST_TOKENS.SAMPLE_JWT_PAYLOAD);
         });
 
-        it("Successfully sets the rawidToken and claims fields", () => {
-            //jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(idTokenClaims);
+        it("decodeJwt throws error when given a null token string", (done) => {
+            try {
+                // @ts-ignore
+                AuthToken.getJWSPayload(null);
+            } catch (err) {
+                expect(err instanceof ClientAuthError).toBe(true);
+                expect(err instanceof AuthError).toBe(true);
+                expect(err instanceof Error).toBe(true);
+                const parsedErr = err as ClientAuthError;
+                expect(parsedErr.errorCode).toBe(
+                    ClientAuthErrorMessage.nullOrEmptyToken.code
+                );
+                expect(parsedErr.errorMessage).toContain(
+                    ClientAuthErrorMessage.nullOrEmptyToken.desc
+                );
+                expect(parsedErr.message).toContain(
+                    ClientAuthErrorMessage.nullOrEmptyToken.desc
+                );
+                expect(parsedErr.name).toBe("ClientAuthError");
+                expect(parsedErr.stack).toContain("AuthToken.spec.ts");
+                done();
+            }
+        });
 
-            const idToken = new AuthToken(
-                TEST_TOKENS.IDTOKEN_V2,
-                cryptoInterface
-            );
-            expect(idToken.rawToken).toBe(TEST_TOKENS.IDTOKEN_V2);
-            expect(idToken.claims).toEqual(idTokenClaims);
+        it("decodeJwt throws error when given a empty token string", (done) => {
+            try {
+                AuthToken.getJWSPayload("");
+            } catch (err) {
+                expect(err instanceof ClientAuthError).toBe(true);
+                expect(err instanceof AuthError).toBe(true);
+                expect(err instanceof Error).toBe(true);
+                const parsedErr = err as ClientAuthError;
+                expect(parsedErr.errorCode).toBe(
+                    ClientAuthErrorMessage.nullOrEmptyToken.code
+                );
+                expect(parsedErr.errorMessage).toContain(
+                    ClientAuthErrorMessage.nullOrEmptyToken.desc
+                );
+                expect(parsedErr.message).toContain(
+                    ClientAuthErrorMessage.nullOrEmptyToken.desc
+                );
+                expect(parsedErr.name).toBe("ClientAuthError");
+                expect(parsedErr.stack).toContain("AuthToken.spec.ts");
+                done();
+            }
+        });
+
+        it("decodeJwt throws error when given a malformed token string", (done) => {
+            try {
+                AuthToken.getJWSPayload(TEST_TOKENS.SAMPLE_MALFORMED_JWT);
+            } catch (err) {
+                expect(err instanceof ClientAuthError).toBe(true);
+                expect(err instanceof AuthError).toBe(true);
+                expect(err instanceof Error).toBe(true);
+                const parsedErr = err as ClientAuthError;
+                expect(parsedErr.errorCode).toBe(
+                    ClientAuthErrorMessage.tokenParsingError.code
+                );
+                expect(parsedErr.errorMessage).toContain(
+                    ClientAuthErrorMessage.tokenParsingError.desc
+                );
+                expect(parsedErr.message).toContain(
+                    ClientAuthErrorMessage.tokenParsingError.desc
+                );
+                expect(parsedErr.name).toBe("ClientAuthError");
+                expect(parsedErr.stack).toContain("AuthToken.spec.ts");
+                done();
+            }
         });
     });
 
     describe("extractIdToken()", () => {
-        it("Throws error if idToken is null or empty", () => {
+        it("Throws error if rawIdToken is null or empty", () => {
             expect(() =>
-                AuthToken.extractTokenClaims("", cryptoInterface)
+                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
             ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() =>
-                AuthToken.extractTokenClaims("", cryptoInterface)
+                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
             ).toThrowError(ClientAuthError);
 
+            // @ts-ignore
             expect(() =>
-                // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
             ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            // @ts-ignore
             expect(() =>
-                // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
             ).toThrowError(ClientAuthError);
         });
 
-        it("throws if decodeJwt returns null", () => {
-            // @ts-ignore
-            jest.spyOn(StringUtils, "decodeAuthToken").mockReturnValue(null);
+        it("Throws error if idToken is null or empty", () => {
             expect(() =>
-                AuthToken.extractTokenClaims(
-                    TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface
-                )
-            ).toThrowError(ClientAuthErrorMessage.tokenParsingError.desc);
+                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
+            ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(() =>
+                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
+            ).toThrowError(ClientAuthError);
+
+            expect(() =>
+                // @ts-ignore
+                AuthToken.extractTokenClaims(null, cryptoInterface)
+            ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(() =>
+                // @ts-ignore
+                AuthToken.extractTokenClaims(null, cryptoInterface)
+            ).toThrowError(ClientAuthError);
         });
 
         it("Throws error if payload cannot be parsed", () => {
-            const decodedJwt: DecodedAuthToken = {
-                header: "jwt header",
-                JWSPayload: "jws payload",
-                JWSSig: "signature",
-            };
-            jest.spyOn(StringUtils, "decodeAuthToken").mockReturnValue(
-                decodedJwt
-            );
-
             expect(() =>
                 AuthToken.extractTokenClaims(
-                    TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface
+                    "not-a-real-token",
+                    cryptoInterface.base64Decode
                 )
             ).toThrowError(ClientAuthErrorMessage.tokenParsingError.desc);
             expect(() =>
                 AuthToken.extractTokenClaims(
-                    TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface
+                    "not-a-real-token",
+                    cryptoInterface.base64Decode
                 )
             ).toThrowError(ClientAuthError);
         });
 
         it("Successfully extracts the idTokenClaims from the decodedJwt", () => {
-            const decodedJwt: DecodedAuthToken = {
-                header: JSON.stringify({
-                    typ: "JWT",
-                    alg: "RS256",
-                    kid: "1LTMzakihiRla_8z2BEJVXeWMqo",
-                }),
-                JWSPayload: testTokenPayload,
-                JWSSig: "signature",
-            };
-            jest.spyOn(StringUtils, "decodeAuthToken").mockReturnValue(
-                decodedJwt
-            );
             expect(
                 AuthToken.extractTokenClaims(
-                    decodedJwt.JWSPayload,
-                    cryptoInterface
+                    TEST_TOKENS.IDTOKEN_V2,
+                    cryptoInterface.base64Decode
                 )
             ).toEqual(idTokenClaims);
         });
