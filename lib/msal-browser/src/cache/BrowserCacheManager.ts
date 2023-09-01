@@ -55,6 +55,8 @@ import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
+import { base64Decode } from "../encode/Base64Decode";
+import { base64Encode } from "../encode/Base64Encode";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1666,15 +1668,10 @@ export class BrowserCacheManager extends CacheManager {
         this.setInteractionInProgress(false);
     }
 
-    cacheCodeRequest(
-        authCodeRequest: CommonAuthorizationCodeRequest,
-        browserCrypto: ICrypto
-    ): void {
+    cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest): void {
         this.logger.trace("BrowserCacheManager.cacheCodeRequest called");
 
-        const encodedValue = browserCrypto.base64Encode(
-            JSON.stringify(authCodeRequest)
-        );
+        const encodedValue = base64Encode(JSON.stringify(authCodeRequest));
         this.setTemporaryCache(
             TemporaryCacheKeys.REQUEST_PARAMS,
             encodedValue,
@@ -1685,10 +1682,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      */
-    getCachedRequest(
-        state: string,
-        browserCrypto: ICrypto
-    ): CommonAuthorizationCodeRequest {
+    getCachedRequest(state: string): CommonAuthorizationCodeRequest {
         this.logger.trace("BrowserCacheManager.getCachedRequest called");
         // Get token request from cache and parse as TokenExchangeParameters.
         const encodedTokenRequest = this.getTemporaryCache(
@@ -1701,10 +1695,14 @@ export class BrowserCacheManager extends CacheManager {
             );
         }
 
-        const parsedRequest = this.validateAndParseJson(
-            browserCrypto.base64Decode(encodedTokenRequest)
-        ) as CommonAuthorizationCodeRequest;
-        if (!parsedRequest) {
+        let parsedRequest: CommonAuthorizationCodeRequest;
+        try {
+            parsedRequest = JSON.parse(base64Decode(encodedTokenRequest));
+        } catch (e) {
+            this.logger.errorPii(`Attempted to parse: ${encodedTokenRequest}`);
+            this.logger.error(
+                `Parsing cached token request threw with error: ${e}`
+            );
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
             );

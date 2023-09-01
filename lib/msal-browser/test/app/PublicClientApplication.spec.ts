@@ -70,7 +70,7 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { EventMessage } from "../../src/event/EventMessage";
 import { EventHandler } from "../../src/event/EventHandler";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
-import { Base64Encode } from "../../src/encode/Base64Encode";
+import { base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
@@ -662,7 +662,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -706,7 +705,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
