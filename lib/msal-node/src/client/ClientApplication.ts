@@ -590,6 +590,6 @@ export abstract class ClientApplication {
      * Clear the cache
      */
     clearCache(): void {
-        this.storage.clear();
+        void this.storage.clear();
     }
 }
