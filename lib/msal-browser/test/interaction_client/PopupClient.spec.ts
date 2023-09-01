@@ -55,6 +55,7 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import {
     BrowserAuthError,
+    createBrowserAuthError,
     BrowserAuthErrorMessage,
 } from "../../src/error/BrowserAuthError";
 import { FetchClient } from "../../src/network/FetchClient";
@@ -62,6 +63,7 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import { BrowserAuthErrorCodes } from "../../src";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -1955,7 +1957,9 @@ describe("PopupClient", () => {
                     "http://localhost/#/code=hello",
                     { popupName: "name", popupWindowAttributes: {} }
                 )
-            ).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
+            ).toThrow(
+                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+            );
         });
 
         it("throws error if popup passed in is null", () => {
@@ -1968,7 +1972,6 @@ describe("PopupClient", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
             };
-
             expect(() =>
                 popupClient.initiateAuthRequest(
                     "http://localhost/#/code=hello",
@@ -1978,17 +1981,9 @@ describe("PopupClient", () => {
                         popupWindowAttributes: {},
                     }
                 )
-            ).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
-            expect(() =>
-                popupClient.initiateAuthRequest(
-                    "http://localhost/#/code=hello",
-                    {
-                        popup: null,
-                        popupName: "name",
-                        popupWindowAttributes: {},
-                    }
-                )
-            ).toThrow(BrowserAuthError);
+            ).toThrow(
+                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+            );
         });
     });
 });

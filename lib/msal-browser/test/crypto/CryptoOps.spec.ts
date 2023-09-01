@@ -3,7 +3,10 @@ import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
-import { BrowserAuthError } from "../../src";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError";
 import { ModernBrowserCrypto } from "../../src/crypto/ModernBrowserCrypto";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
@@ -304,9 +307,7 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
         expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(
-            BrowserAuthError.createSigningKeyNotFoundInStorageError(
-                "testString"
-            )
+            createBrowserAuthError(BrowserAuthErrorCodes.cryptoKeyNotFound)
         );
     }, 30000);
 
