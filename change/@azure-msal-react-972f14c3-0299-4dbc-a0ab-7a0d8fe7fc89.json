@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Adding linter rule for floating promises #6421",
+    "comment": "Add a linter rule to avoid floating promises #6421",
     "packageName": "@azure/msal-react",
     "email": "sameera.gajjarapu@microsoft.com",
     "dependentChangeType": "patch"
