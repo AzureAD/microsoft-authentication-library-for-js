@@ -1694,8 +1694,9 @@ export class BrowserCacheManager extends CacheManager {
         try {
             parsedRequest = JSON.parse(base64Decode(encodedTokenRequest));
         } catch (e) {
+            this.logger.errorPii(`Attempted to parse: ${encodedTokenRequest}`);
             this.logger.error(
-                `Failed to parse token request from cache with error: ${e}`
+                `Parsing cached token request threw with error: ${e}`
             );
             throw BrowserAuthError.createUnableToParseTokenRequestCacheError();
         }
