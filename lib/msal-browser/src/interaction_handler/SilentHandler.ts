@@ -13,7 +13,10 @@ import {
     PerformanceEvents,
 } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import {
     BrowserSystemOptions,
@@ -62,7 +65,9 @@ export class SilentHandler extends InteractionHandler {
         if (!requestUrl) {
             // Throw error if request URL is empty.
             this.logger.info("Navigate url is empty");
-            throw BrowserAuthError.createEmptyNavigationUriError();
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUri
+            );
         }
 
         if (this.navigateFrameWait) {
@@ -107,7 +112,11 @@ export class SilentHandler extends InteractionHandler {
                 if (window.performance.now() > timeoutMark) {
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createMonitorIframeTimeoutError());
+                    reject(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.monitorWindowTimeout
+                        )
+                    );
                     return;
                 }
 
@@ -149,7 +158,9 @@ export class SilentHandler extends InteractionHandler {
                         this.removeHiddenIframe(iframe);
                         clearInterval(intervalId);
                         reject(
-                            BrowserAuthError.createHashDoesNotContainKnownPropertiesError()
+                            createBrowserAuthError(
+                                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                            )
                         );
                         return;
                     }
@@ -163,7 +174,11 @@ export class SilentHandler extends InteractionHandler {
                     );
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createEmptyHashError());
+                    reject(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.hashEmptyError
+                        )
+                    );
                     return;
                 }
             }, this.pollIntervalMilliseconds);
