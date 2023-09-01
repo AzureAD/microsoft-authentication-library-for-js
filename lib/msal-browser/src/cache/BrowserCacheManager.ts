@@ -504,7 +504,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     async removeAccount(key: string): Promise<void> {
-        super.removeAccount(key);
+        void super.removeAccount(key);
         this.removeAccountKeyFromMap(key);
     }
 
@@ -522,7 +522,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     async removeAccessToken(key: string): Promise<void> {
-        super.removeAccessToken(key);
+        void super.removeAccessToken(key);
         this.removeTokenKey(key, CredentialType.ACCESS_TOKEN);
     }
 

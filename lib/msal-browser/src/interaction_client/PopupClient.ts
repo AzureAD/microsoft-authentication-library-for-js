@@ -422,7 +422,7 @@ export class PopupClient extends StandardInteractionClient {
                     validRequest.postLogoutRedirectUri &&
                     authClient.authority.protocolMode === ProtocolMode.OIDC
                 ) {
-                    this.browserStorage.removeAccount(
+                    void this.browserStorage.removeAccount(
                         validRequest.account?.homeAccountId
                     );
 
@@ -498,7 +498,7 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger.verbosePii(
                     `Redirecting main window to: ${absoluteUrl}`
                 );
-                this.navigationClient.navigateInternal(
+                await this.navigationClient.navigateInternal(
                     absoluteUrl,
                     navigationOptions
                 );
