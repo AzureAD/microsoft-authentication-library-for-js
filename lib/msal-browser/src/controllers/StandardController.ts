@@ -240,7 +240,7 @@ export class StandardController implements IController {
         operatingContext: BaseOperatingContext
     ): Promise<IController> {
         const controller = new StandardController(operatingContext);
-        controller.initialize();
+        await controller.initialize();
         return controller;
     }
 
