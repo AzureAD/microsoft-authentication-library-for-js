@@ -56,7 +56,7 @@ import {
     BrowserCacheLocation,
     InteractionType,
 } from "../../src/utils/BrowserConstants";
-import { Base64Encode } from "../../src/encode/Base64Encode";
+import { base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
@@ -275,7 +275,6 @@ describe("RedirectClient", () => {
         });
 
         it("gets hash from cache and processes response", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -319,7 +318,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -441,7 +440,7 @@ describe("RedirectClient", () => {
                 pca.nativeInternalStorage,
                 nativeMessageHandler
             );
-            const b64Encode = new Base64Encode();
+
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -485,7 +484,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -600,7 +599,7 @@ describe("RedirectClient", () => {
                 //@ts-ignore
                 pca.nativeInternalStorage
             );
-            const b64Encode = new Base64Encode();
+
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -644,7 +643,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
 
             redirectClient.handleRedirectPromise().catch((e) => {
@@ -659,7 +658,6 @@ describe("RedirectClient", () => {
         });
 
         it("throws no cached authority error if authority is not in cache", (done) => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -699,7 +697,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
 
             redirectClient.handleRedirectPromise().catch((e) => {
@@ -761,7 +759,6 @@ describe("RedirectClient", () => {
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is the same", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -804,7 +801,7 @@ describe("RedirectClient", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -922,7 +919,6 @@ describe("RedirectClient", () => {
         });
 
         it("calls custom navigateInternal function then processes hash", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -965,7 +961,7 @@ describe("RedirectClient", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse: NetworkResponse<ServerAuthorizationTokenResponse> =
                 {
@@ -1100,7 +1096,6 @@ describe("RedirectClient", () => {
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -1143,7 +1138,7 @@ describe("RedirectClient", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
