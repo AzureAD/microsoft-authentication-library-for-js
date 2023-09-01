@@ -62,13 +62,7 @@ module.exports = {
         "@typescript-eslint/no-object-literal-type-assertion": 0,
         "@typescript-eslint/no-unused-vars": 2,
         "@typescript-eslint/prefer-interface": 0,
-        "@typescript-eslint/no-floating-promises":[
-            2,
-            {
-                ignoreVoid: true, 
-                ignoreIIFE: false,
-            }
-        ],
+        "@typescript-eslint/no-floating-promises": 2,
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [
