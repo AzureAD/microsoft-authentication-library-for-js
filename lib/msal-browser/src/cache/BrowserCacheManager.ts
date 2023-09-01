@@ -1694,6 +1694,9 @@ export class BrowserCacheManager extends CacheManager {
         try {
             parsedRequest = JSON.parse(base64Decode(encodedTokenRequest));
         } catch (e) {
+            this.logger.error(
+                `Failed to parse token request from cache with error: ${e}`
+            );
             throw BrowserAuthError.createUnableToParseTokenRequestCacheError();
         }
         this.removeItem(
