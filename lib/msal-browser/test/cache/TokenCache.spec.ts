@@ -306,7 +306,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please ensure server response includes id token.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 
@@ -322,7 +322,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide a request with an account or a request with authority.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 
@@ -339,7 +339,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide clientInfo in the response or options.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 
@@ -363,7 +363,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please ensure server response includes expires_in value.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 
@@ -388,7 +388,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide an extendedExpiresOn value in the options.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 
@@ -449,7 +449,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | loadExternalTokens is designed to work in browser environments only.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 

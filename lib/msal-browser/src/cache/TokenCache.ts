@@ -23,7 +23,10 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
 import { ITokenCache } from "./ITokenCache";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { base64Decode } from "../encode/Base64Decode";
 
@@ -78,8 +81,8 @@ export class TokenCache implements ITokenCache {
         this.logger.info("TokenCache - loadExternalTokens called");
 
         if (!response.id_token) {
-            throw BrowserAuthError.createUnableToLoadTokenError(
-                "Please ensure server response includes id token."
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
@@ -202,13 +205,13 @@ export class TokenCache implements ITokenCache {
                     )
                 );
             } else {
-                throw BrowserAuthError.createUnableToLoadTokenError(
-                    "Please provide clientInfo in the response or options."
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.unableToLoadToken
                 );
             }
         } else {
-            throw BrowserAuthError.createUnableToLoadTokenError(
-                "Please provide a request with an account or a request with authority."
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
@@ -250,8 +253,8 @@ export class TokenCache implements ITokenCache {
         }
 
         if (!homeAccountId) {
-            throw BrowserAuthError.createUnableToLoadTokenError(
-                "Unexpected missing homeAccountId"
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
@@ -271,8 +274,8 @@ export class TokenCache implements ITokenCache {
             this.storage.setAccount(accountEntity);
             return accountEntity;
         } else {
-            throw BrowserAuthError.createUnableToLoadTokenError(
-                "loadExternalTokens is designed to work in browser environments only."
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
     }
@@ -304,8 +307,8 @@ export class TokenCache implements ITokenCache {
             this.storage.setIdTokenCredential(idTokenEntity);
             return idTokenEntity;
         } else {
-            throw BrowserAuthError.createUnableToLoadTokenError(
-                "loadExternalTokens is designed to work in browser environments only."
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
     }
@@ -335,14 +338,14 @@ export class TokenCache implements ITokenCache {
         }
 
         if (!response.expires_in) {
-            throw BrowserAuthError.createUnableToLoadTokenError(
-                "Please ensure server response includes expires_in value."
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
         if (!options.extendedExpiresOn) {
-            throw BrowserAuthError.createUnableToLoadTokenError(
-                "Please provide an extendedExpiresOn value in the options."
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
@@ -369,8 +372,8 @@ export class TokenCache implements ITokenCache {
             this.storage.setAccessTokenCredential(accessTokenEntity);
             return accessTokenEntity;
         } else {
-            throw BrowserAuthError.createUnableToLoadTokenError(
-                "loadExternalTokens is designed to work in browser environments only."
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
     }
@@ -408,8 +411,8 @@ export class TokenCache implements ITokenCache {
             this.storage.setRefreshTokenCredential(refreshTokenEntity);
             return refreshTokenEntity;
         } else {
-            throw BrowserAuthError.createUnableToLoadTokenError(
-                "loadExternalTokens is designed to work in browser environments only."
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
     }
