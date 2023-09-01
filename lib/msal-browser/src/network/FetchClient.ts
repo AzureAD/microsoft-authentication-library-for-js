@@ -55,7 +55,7 @@ export class FetchClient implements INetworkModule {
             };
         } catch (e) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.failedToParseNetworkResponse
+                BrowserAuthErrorCodes.failedToParseResponse
             );
         }
     }
@@ -99,7 +99,7 @@ export class FetchClient implements INetworkModule {
             };
         } catch (e) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.failedToParseNetworkResponse
+                BrowserAuthErrorCodes.failedToParseResponse
             );
         }
     }

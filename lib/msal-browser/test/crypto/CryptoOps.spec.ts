@@ -307,9 +307,7 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
         expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(
-            createBrowserAuthError(
-                BrowserAuthErrorCodes.signingKeyNotFoundInStorage
-            )
+            createBrowserAuthError(BrowserAuthErrorCodes.cryptoKeyNotFound)
         );
     }, 30000);
 

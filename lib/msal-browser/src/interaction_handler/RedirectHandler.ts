@@ -135,7 +135,7 @@ export class RedirectHandler extends InteractionHandler {
                 "RedirectHandler.initiateAuthRequest: Navigate url is empty"
             );
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUriError
+                BrowserAuthErrorCodes.emptyNavigateUri
             );
         }
     }
@@ -176,11 +176,11 @@ export class RedirectHandler extends InteractionHandler {
         } catch (e) {
             if (
                 e instanceof ServerError &&
-                e.subError === BrowserAuthErrorCodes.userCancelledError
+                e.subError === BrowserAuthErrorCodes.userCancelled
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.userCancelledError
+                    BrowserAuthErrorCodes.userCancelled
                 );
             } else {
                 throw e;

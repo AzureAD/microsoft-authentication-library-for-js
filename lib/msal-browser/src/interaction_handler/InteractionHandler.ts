@@ -89,11 +89,11 @@ export class InteractionHandler {
         } catch (e) {
             if (
                 e instanceof ServerError &&
-                e.subError === BrowserAuthErrorCodes.userCancelledError
+                e.subError === BrowserAuthErrorCodes.userCancelled
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.userCancelledError
+                    BrowserAuthErrorCodes.userCancelled
                 );
             } else {
                 throw e;

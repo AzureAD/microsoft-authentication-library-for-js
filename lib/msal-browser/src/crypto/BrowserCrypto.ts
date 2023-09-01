@@ -44,7 +44,7 @@ export class BrowserCrypto {
         } else {
             this.logger.error("BrowserCrypto: crypto interface is unavailable");
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.cryptoDoesNotExist
+                BrowserAuthErrorCodes.cryptoNonExistent
             );
         }
 

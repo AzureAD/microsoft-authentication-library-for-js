@@ -554,7 +554,7 @@ export class PopupClient extends StandardInteractionClient {
             // Throw error if request URL is empty.
             this.logger.error("Navigate url is empty");
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUriError
+                BrowserAuthErrorCodes.emptyNavigateUri
             );
         }
     }
@@ -589,7 +589,7 @@ export class PopupClient extends StandardInteractionClient {
                     clearInterval(intervalId);
                     reject(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.userCancelledError
+                            BrowserAuthErrorCodes.userCancelled
                         )
                     );
                     return;
@@ -651,7 +651,7 @@ export class PopupClient extends StandardInteractionClient {
                         );
                         reject(
                             createBrowserAuthError(
-                                BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError
+                                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
                             )
                         );
                     }
@@ -662,7 +662,7 @@ export class PopupClient extends StandardInteractionClient {
                     clearInterval(intervalId);
                     reject(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.monitorPopupTimeoutError
+                            BrowserAuthErrorCodes.monitorPopupTimeout
                         )
                     );
                 }

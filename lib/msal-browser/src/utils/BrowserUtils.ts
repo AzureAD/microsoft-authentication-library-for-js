@@ -91,7 +91,7 @@ export class BrowserUtils {
         // return an error if called from the hidden iframe created by the msal js silent calls
         if (isResponseHash && BrowserUtils.isInIframe()) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.blockTokenRequestsInHiddenIframeError
+                BrowserAuthErrorCodes.blockIframeReload
             );
         }
     }
@@ -113,7 +113,7 @@ export class BrowserUtils {
         ) {
             // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.redirectInIframeError
+                BrowserAuthErrorCodes.redirectInIframe
             );
         }
     }
@@ -125,7 +125,7 @@ export class BrowserUtils {
         // Popups opened by msal popup APIs are given a name that starts with "msal."
         if (BrowserUtils.isInPopup()) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.blockAcquireTokenInPopupsError
+                BrowserAuthErrorCodes.blockNestedPopups
             );
         }
     }
@@ -137,7 +137,7 @@ export class BrowserUtils {
     static blockNonBrowserEnvironment(isBrowserEnvironment: boolean): void {
         if (!isBrowserEnvironment) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.notInBrowserEnvironment
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     }

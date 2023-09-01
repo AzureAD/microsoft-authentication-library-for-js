@@ -54,9 +54,7 @@ export class PkceGenerator {
                 this.base64Encode.urlEncodeArr(buffer);
             return pkceCodeVerifierB64;
         } catch (e) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.pkceNotGenerated
-            );
+            throw createBrowserAuthError(BrowserAuthErrorCodes.pkceNotCreated);
         }
     }
 
@@ -77,9 +75,7 @@ export class PkceGenerator {
                 new Uint8Array(pkceHashedCodeVerifier)
             );
         } catch (e) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.pkceNotGenerated
-            );
+            throw createBrowserAuthError(BrowserAuthErrorCodes.pkceNotCreated);
         }
     }
 }

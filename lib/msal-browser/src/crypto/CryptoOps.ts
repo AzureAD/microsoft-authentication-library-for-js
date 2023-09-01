@@ -188,7 +188,7 @@ export class CryptoOps implements ICrypto {
 
         if (!cachedKeyPair) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.signingKeyNotFoundInStorage
+                BrowserAuthErrorCodes.cryptoKeyNotFound
             );
         }
 

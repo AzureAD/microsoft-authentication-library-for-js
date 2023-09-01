@@ -125,7 +125,7 @@ describe("SilentIframeClient", () => {
                 .stub(SilentHandler.prototype, "monitorIframeForHash")
                 .rejects(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.monitorIframeTimeoutError
+                        BrowserAuthErrorCodes.monitorWindowTimeout
                     )
                 );
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -140,7 +140,7 @@ describe("SilentIframeClient", () => {
                 .callsFake((e) => {
                     expect(e).toMatchObject(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.monitorIframeTimeoutError
+                            BrowserAuthErrorCodes.monitorWindowTimeout
                         )
                     );
                 });
@@ -656,7 +656,7 @@ describe("SilentIframeClient", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.silentLogoutUnsupportedError
+                    BrowserAuthErrorCodes.silentLogoutUnsupported
                 )
             );
         });

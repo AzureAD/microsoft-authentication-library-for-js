@@ -59,8 +59,7 @@ export class SilentCacheClient extends StandardInteractionClient {
         } catch (error) {
             if (
                 error instanceof BrowserAuthError &&
-                error.errorCode ===
-                    BrowserAuthErrorCodes.signingKeyNotFoundInStorage
+                error.errorCode === BrowserAuthErrorCodes.cryptoKeyNotFound
             ) {
                 this.logger.verbose(
                     "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair."

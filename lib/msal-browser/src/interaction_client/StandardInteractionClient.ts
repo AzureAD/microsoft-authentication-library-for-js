@@ -312,9 +312,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             requestCorrelationId
         );
         if (!serverParams.state) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.hashDoesNotContainStateError
-            );
+            throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
         }
 
         const platformStateObj =
@@ -324,13 +322,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             );
         if (!platformStateObj) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToParseStateError
+                BrowserAuthErrorCodes.unableToParseState
             );
         }
 
         if (platformStateObj.interactionType !== interactionType) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.stateInteractionTypeMismatchError
+                BrowserAuthErrorCodes.stateInteractionTypeMismatch
             );
         }
 

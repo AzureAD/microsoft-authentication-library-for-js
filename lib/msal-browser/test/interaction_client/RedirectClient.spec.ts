@@ -3610,7 +3610,7 @@ describe("RedirectClient", () => {
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
             const testError = createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUriError
+                BrowserAuthErrorCodes.emptyNavigateUri
             );
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")

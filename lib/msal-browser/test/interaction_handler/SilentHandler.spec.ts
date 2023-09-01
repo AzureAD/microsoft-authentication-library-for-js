@@ -220,17 +220,13 @@ describe("SilentHandler.ts Unit Tests", () => {
             await expect(
                 silentHandler.initiateAuthRequest("")
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.emptyNavigateUriError
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
             );
             await expect(
                 //@ts-ignore
                 silentHandler.initiateAuthRequest(null)
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.emptyNavigateUriError
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
             );
         });
 
@@ -309,7 +305,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.monitorIframeTimeoutError
+                        BrowserAuthErrorCodes.monitorWindowTimeout
                     )
                 );
                 done();
@@ -344,7 +340,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.monitorIframeTimeoutError
+                        BrowserAuthErrorCodes.monitorWindowTimeout
                     )
                 );
                 done();
@@ -475,7 +471,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError
+                        BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
                     )
                 );
                 done();

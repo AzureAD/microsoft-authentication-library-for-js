@@ -13,36 +13,36 @@ const ErrorLink = "For more visit: aka.ms/msaljs/browser-errors";
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
  */
 export const BrowserAuthErrorMessages = {
-    [BrowserAuthErrorCodes.pkceNotGenerated]:
+    [BrowserAuthErrorCodes.pkceNotCreated]:
         "The PKCE code challenge and verifier could not be generated.",
-    [BrowserAuthErrorCodes.cryptoDoesNotExist]:
+    [BrowserAuthErrorCodes.cryptoNonExistent]:
         "The crypto object or function is not available.",
-    [BrowserAuthErrorCodes.emptyNavigateUriError]:
+    [BrowserAuthErrorCodes.emptyNavigateUri]:
         "Navigation URI is empty. Please check stack trace for more info.",
     [BrowserAuthErrorCodes.hashEmptyError]: `Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash. ${ErrorLink}`,
-    [BrowserAuthErrorCodes.hashDoesNotContainStateError]:
+    [BrowserAuthErrorCodes.noStateInHash]:
         "Hash does not contain state. Please verify that the request originated from msal.",
-    [BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError]: `Hash does not contain known properites. Please verify that your redirectUri is not changing the hash.  ${ErrorLink}`,
-    [BrowserAuthErrorCodes.unableToParseStateError]:
+    [BrowserAuthErrorCodes.hashDoesNotContainKnownProperties]: `Hash does not contain known properites. Please verify that your redirectUri is not changing the hash.  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.unableToParseState]:
         "Unable to parse state. Please verify that the request originated from msal.",
-    [BrowserAuthErrorCodes.stateInteractionTypeMismatchError]:
+    [BrowserAuthErrorCodes.stateInteractionTypeMismatch]:
         "Hash contains state but the interaction type does not match the caller.",
     [BrowserAuthErrorCodes.interactionInProgress]: `Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.   ${ErrorLink}`,
     [BrowserAuthErrorCodes.popupWindowError]:
         "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser.",
     [BrowserAuthErrorCodes.emptyWindowError]:
         "window.open returned null or undefined window object.",
-    [BrowserAuthErrorCodes.userCancelledError]: "User cancelled the flow.",
-    [BrowserAuthErrorCodes.monitorPopupTimeoutError]: `Token acquisition in popup failed due to timeout.  ${ErrorLink}`,
-    [BrowserAuthErrorCodes.monitorIframeTimeoutError]: `Token acquisition in iframe failed due to timeout.  ${ErrorLink}`,
-    [BrowserAuthErrorCodes.redirectInIframeError]:
+    [BrowserAuthErrorCodes.userCancelled]: "User cancelled the flow.",
+    [BrowserAuthErrorCodes.monitorPopupTimeout]: `Token acquisition in popup failed due to timeout.  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.monitorWindowTimeout]: `Token acquisition in iframe failed due to timeout.  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.redirectInIframe]:
         "Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs.",
-    [BrowserAuthErrorCodes.blockTokenRequestsInHiddenIframeError]: `Request was blocked inside an iframe because MSAL detected an authentication response.  ${ErrorLink}`,
-    [BrowserAuthErrorCodes.blockAcquireTokenInPopupsError]:
+    [BrowserAuthErrorCodes.blockIframeReload]: `Request was blocked inside an iframe because MSAL detected an authentication response.  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.blockNestedPopups]:
         "Request was blocked inside a popup because MSAL detected it was running in a popup.",
-    [BrowserAuthErrorCodes.iframeClosedPrematurelyError]:
+    [BrowserAuthErrorCodes.iframeClosedPrematurely]:
         "The iframe being monitored was closed prematurely.",
-    [BrowserAuthErrorCodes.silentLogoutUnsupportedError]:
+    [BrowserAuthErrorCodes.silentLogoutUnsupported]:
         "Silent logout not supported. Please call logoutRedirect or logoutPopup instead.",
     [BrowserAuthErrorCodes.noAccountError]:
         "No account object provided to acquireTokenSilent and no active account has been set. Please call setActiveAccount or provide an account on the request.",
@@ -54,10 +54,10 @@ export const BrowserAuthErrorMessages = {
         "The cached token request could not be parsed.",
     [BrowserAuthErrorCodes.noCachedAuthorityError]:
         "No cached authority found.",
-    [BrowserAuthErrorCodes.authRequestNotSet]:
+    [BrowserAuthErrorCodes.authRequestNotSetError]:
         "Auth Request not set. Please ensure initiateAuthRequest was called from the InteractionHandler",
     [BrowserAuthErrorCodes.invalidCacheType]: "Invalid cache type",
-    [BrowserAuthErrorCodes.notInBrowserEnvironment]:
+    [BrowserAuthErrorCodes.nonBrowserEnvironment]:
         "Login and token requests are not supported in non-browser environments.",
     [BrowserAuthErrorCodes.databaseNotOpen]: "Database is not open!",
     [BrowserAuthErrorCodes.noNetworkConnectivity]:
@@ -66,17 +66,16 @@ export const BrowserAuthErrorMessages = {
         "Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'",
     [BrowserAuthErrorCodes.getRequestFailed]:
         "Network request failed. Please check the network trace to determine root cause.",
-    [BrowserAuthErrorCodes.failedToParseNetworkResponse]:
+    [BrowserAuthErrorCodes.failedToParseResponse]:
         "Failed to parse network response. Check network trace.",
-    [BrowserAuthErrorCodes.unableToLoadTokenError]:
-        "Error loading token to cache.",
-    [BrowserAuthErrorCodes.signingKeyNotFoundInStorage]:
+    [BrowserAuthErrorCodes.unableToLoadToken]: "Error loading token to cache.",
+    [BrowserAuthErrorCodes.cryptoKeyNotFound]:
         "Cryptographic Key or Keypair not found in browser storage.",
     [BrowserAuthErrorCodes.authCodeRequired]:
         "An authorization code must be provided (as the `code` property on the request) to this flow.",
-    [BrowserAuthErrorCodes.authCodeOrNativeAccountRequired]:
+    [BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired]:
         "An authorization code or nativeAccountId must be provided to this flow.",
-    [BrowserAuthErrorCodes.spaCodeAndNativeAccountPresent]:
+    [BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent]:
         "Request cannot contain both spa code and native account id.",
     [BrowserAuthErrorCodes.databaseUnavailable]:
         "IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts.",
@@ -97,47 +96,41 @@ export const BrowserAuthErrorMessages = {
  */
 export const BrowserAuthErrorMessage = {
     pkceNotGenerated: {
-        code: BrowserAuthErrorCodes.pkceNotGenerated,
-        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.pkceNotGenerated],
+        code: BrowserAuthErrorCodes.pkceNotCreated,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.pkceNotCreated],
     },
     cryptoDoesNotExist: {
-        code: BrowserAuthErrorCodes.cryptoDoesNotExist,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.cryptoDoesNotExist
-        ],
+        code: BrowserAuthErrorCodes.cryptoNonExistent,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.cryptoNonExistent],
     },
     emptyNavigateUriError: {
-        code: BrowserAuthErrorCodes.emptyNavigateUriError,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.emptyNavigateUriError
-        ],
+        code: BrowserAuthErrorCodes.emptyNavigateUri,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.emptyNavigateUri],
     },
     hashEmptyError: {
         code: BrowserAuthErrorCodes.hashEmptyError,
         desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.hashEmptyError],
     },
     hashDoesNotContainStateError: {
-        code: BrowserAuthErrorCodes.hashDoesNotContainStateError,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.hashDoesNotContainStateError
-        ],
+        code: BrowserAuthErrorCodes.noStateInHash,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.noStateInHash],
     },
     hashDoesNotContainKnownPropertiesError: {
-        code: BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError,
+        code: BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError
+            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
         ],
     },
     unableToParseStateError: {
-        code: BrowserAuthErrorCodes.unableToParseStateError,
+        code: BrowserAuthErrorCodes.unableToParseState,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.unableToParseStateError
+            BrowserAuthErrorCodes.unableToParseState
         ],
     },
     stateInteractionTypeMismatchError: {
-        code: BrowserAuthErrorCodes.stateInteractionTypeMismatchError,
+        code: BrowserAuthErrorCodes.stateInteractionTypeMismatch,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.stateInteractionTypeMismatchError
+            BrowserAuthErrorCodes.stateInteractionTypeMismatch
         ],
     },
     interactionInProgress: {
@@ -155,51 +148,43 @@ export const BrowserAuthErrorMessage = {
         desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.emptyWindowError],
     },
     userCancelledError: {
-        code: BrowserAuthErrorCodes.userCancelledError,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.userCancelledError
-        ],
+        code: BrowserAuthErrorCodes.userCancelled,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.userCancelled],
     },
     monitorPopupTimeoutError: {
-        code: BrowserAuthErrorCodes.monitorPopupTimeoutError,
+        code: BrowserAuthErrorCodes.monitorPopupTimeout,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.monitorPopupTimeoutError
+            BrowserAuthErrorCodes.monitorPopupTimeout
         ],
     },
     monitorIframeTimeoutError: {
-        code: BrowserAuthErrorCodes.monitorIframeTimeoutError,
+        code: BrowserAuthErrorCodes.monitorWindowTimeout,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.monitorIframeTimeoutError
+            BrowserAuthErrorCodes.monitorWindowTimeout
         ],
     },
     redirectInIframeError: {
-        code: BrowserAuthErrorCodes.redirectInIframeError,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.redirectInIframeError
-        ],
+        code: BrowserAuthErrorCodes.redirectInIframe,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.redirectInIframe],
     },
     blockTokenRequestsInHiddenIframeError: {
-        code: BrowserAuthErrorCodes.blockTokenRequestsInHiddenIframeError,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.blockTokenRequestsInHiddenIframeError
-        ],
+        code: BrowserAuthErrorCodes.blockIframeReload,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.blockIframeReload],
     },
     blockAcquireTokenInPopupsError: {
-        code: BrowserAuthErrorCodes.blockAcquireTokenInPopupsError,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.blockAcquireTokenInPopupsError
-        ],
+        code: BrowserAuthErrorCodes.blockNestedPopups,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.blockNestedPopups],
     },
     iframeClosedPrematurelyError: {
-        code: BrowserAuthErrorCodes.iframeClosedPrematurelyError,
+        code: BrowserAuthErrorCodes.iframeClosedPrematurely,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.iframeClosedPrematurelyError
+            BrowserAuthErrorCodes.iframeClosedPrematurely
         ],
     },
     silentLogoutUnsupportedError: {
-        code: BrowserAuthErrorCodes.silentLogoutUnsupportedError,
+        code: BrowserAuthErrorCodes.silentLogoutUnsupported,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.silentLogoutUnsupportedError
+            BrowserAuthErrorCodes.silentLogoutUnsupported
         ],
     },
     noAccountError: {
@@ -231,17 +216,19 @@ export const BrowserAuthErrorMessage = {
         ],
     },
     authRequestNotSet: {
-        code: BrowserAuthErrorCodes.authRequestNotSet,
-        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.authRequestNotSet],
+        code: BrowserAuthErrorCodes.authRequestNotSetError,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.authRequestNotSetError
+        ],
     },
     invalidCacheType: {
         code: BrowserAuthErrorCodes.invalidCacheType,
         desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.invalidCacheType],
     },
     notInBrowserEnvironment: {
-        code: BrowserAuthErrorCodes.notInBrowserEnvironment,
+        code: BrowserAuthErrorCodes.nonBrowserEnvironment,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.notInBrowserEnvironment
+            BrowserAuthErrorCodes.nonBrowserEnvironment
         ],
     },
     databaseNotOpen: {
@@ -263,37 +250,33 @@ export const BrowserAuthErrorMessage = {
         desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.getRequestFailed],
     },
     failedToParseNetworkResponse: {
-        code: BrowserAuthErrorCodes.failedToParseNetworkResponse,
+        code: BrowserAuthErrorCodes.failedToParseResponse,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.failedToParseNetworkResponse
+            BrowserAuthErrorCodes.failedToParseResponse
         ],
     },
     unableToLoadTokenError: {
-        code: BrowserAuthErrorCodes.unableToLoadTokenError,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.unableToLoadTokenError
-        ],
+        code: BrowserAuthErrorCodes.unableToLoadToken,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.unableToLoadToken],
     },
     signingKeyNotFoundInStorage: {
-        code: BrowserAuthErrorCodes.signingKeyNotFoundInStorage,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.signingKeyNotFoundInStorage
-        ],
+        code: BrowserAuthErrorCodes.cryptoKeyNotFound,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.cryptoKeyNotFound],
     },
     authCodeRequired: {
         code: BrowserAuthErrorCodes.authCodeRequired,
         desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.authCodeRequired],
     },
     authCodeOrNativeAccountRequired: {
-        code: BrowserAuthErrorCodes.authCodeOrNativeAccountRequired,
+        code: BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.authCodeOrNativeAccountRequired
+            BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
         ],
     },
     spaCodeAndNativeAccountPresent: {
-        code: BrowserAuthErrorCodes.spaCodeAndNativeAccountPresent,
+        code: BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent,
         desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.spaCodeAndNativeAccountPresent
+            BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent
         ],
     },
     databaseUnavailable: {

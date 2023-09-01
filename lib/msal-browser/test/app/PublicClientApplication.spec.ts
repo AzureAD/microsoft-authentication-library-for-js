@@ -1321,9 +1321,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.redirectInIframeError
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
             );
         });
 
@@ -2807,7 +2805,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws an error if falsey code is provided", () => {
             expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.authCodeOrNativeAccountRequired
+                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
                 )
             );
         });
@@ -4732,9 +4730,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws an error if inside an iframe", async () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             await expect(pca.logoutRedirect()).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.redirectInIframeError
-                )
+                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
             );
         });
     });

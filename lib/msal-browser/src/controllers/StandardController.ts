@@ -851,7 +851,7 @@ export class StandardController implements IController {
             if (request.code && request.nativeAccountId) {
                 // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.spaCodeAndNativeAccountPresent
+                    BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent
                 );
             } else if (request.code) {
                 const hybridAuthCode = request.code;
@@ -927,7 +927,7 @@ export class StandardController implements IController {
                 }
             } else {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.authCodeOrNativeAccountRequired
+                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
                 );
             }
         } catch (e) {

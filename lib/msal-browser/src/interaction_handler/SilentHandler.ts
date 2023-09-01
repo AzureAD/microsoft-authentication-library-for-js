@@ -66,7 +66,7 @@ export class SilentHandler extends InteractionHandler {
             // Throw error if request URL is empty.
             this.logger.info("Navigate url is empty");
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUriError
+                BrowserAuthErrorCodes.emptyNavigateUri
             );
         }
 
@@ -114,7 +114,7 @@ export class SilentHandler extends InteractionHandler {
                     clearInterval(intervalId);
                     reject(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.monitorIframeTimeoutError
+                            BrowserAuthErrorCodes.monitorWindowTimeout
                         )
                     );
                     return;
@@ -159,7 +159,7 @@ export class SilentHandler extends InteractionHandler {
                         clearInterval(intervalId);
                         reject(
                             createBrowserAuthError(
-                                BrowserAuthErrorCodes.hashDoesNotContainKnownPropertiesError
+                                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
                             )
                         );
                         return;

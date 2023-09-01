@@ -80,7 +80,7 @@ export class TokenCache implements ITokenCache {
 
         if (!response.id_token) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadTokenError
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
@@ -201,12 +201,12 @@ export class TokenCache implements ITokenCache {
                 );
             } else {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.unableToLoadTokenError
+                    BrowserAuthErrorCodes.unableToLoadToken
                 );
             }
         } else {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadTokenError
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
@@ -249,7 +249,7 @@ export class TokenCache implements ITokenCache {
 
         if (!homeAccountId) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadTokenError
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
@@ -270,7 +270,7 @@ export class TokenCache implements ITokenCache {
             return accountEntity;
         } else {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadTokenError
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
     }
@@ -303,7 +303,7 @@ export class TokenCache implements ITokenCache {
             return idTokenEntity;
         } else {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadTokenError
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
     }
@@ -334,13 +334,13 @@ export class TokenCache implements ITokenCache {
 
         if (!response.expires_in) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadTokenError
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
         if (!options.extendedExpiresOn) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadTokenError
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
@@ -368,7 +368,7 @@ export class TokenCache implements ITokenCache {
             return accessTokenEntity;
         } else {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadTokenError
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
     }
@@ -407,7 +407,7 @@ export class TokenCache implements ITokenCache {
             return refreshTokenEntity;
         } else {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadTokenError
+                BrowserAuthErrorCodes.unableToLoadToken
             );
         }
     }

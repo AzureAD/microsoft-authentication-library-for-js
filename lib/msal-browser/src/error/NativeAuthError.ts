@@ -105,7 +105,7 @@ export class NativeAuthError extends AuthError {
                     return new InteractionRequiredAuthError(code, description);
                 case NativeStatusCode.USER_CANCEL:
                     return createBrowserAuthError(
-                        BrowserAuthErrorCodes.userCancelledError
+                        BrowserAuthErrorCodes.userCancelled
                     );
                 case NativeStatusCode.NO_NETWORK:
                     return createBrowserAuthError(
