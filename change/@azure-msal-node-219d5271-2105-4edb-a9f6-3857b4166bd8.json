@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Make AuthToken methods instead of class",
+  "comment": "Make AuthToken methods instead of class #6423",
   "packageName": "@azure/msal-node",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
