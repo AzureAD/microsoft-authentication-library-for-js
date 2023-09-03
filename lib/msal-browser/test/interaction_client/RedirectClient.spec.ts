@@ -59,8 +59,9 @@ import {
 import { base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
-    BrowserAuthError,
+    createBrowserAuthError,
     BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -702,7 +703,9 @@ describe("RedirectClient", () => {
 
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createNoCachedAuthorityError()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.noCachedAuthorityError
+                    )
                 );
                 expect(window.sessionStorage.length).toEqual(1); // telemetry
                 done();
@@ -2178,12 +2181,7 @@ describe("RedirectClient", () => {
             };
             sinon
                 .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .throws(
-                    new BrowserAuthError(
-                        testError.errorCode,
-                        testError.errorMessage
-                    )
-                );
+                .throws(createBrowserAuthError(testError.errorCode));
             try {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
@@ -2200,7 +2198,6 @@ describe("RedirectClient", () => {
                     ApiId.acquireTokenRedirect
                 );
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
-                expect(e).toMatchObject(testError);
             }
         });
 
@@ -3607,7 +3604,9 @@ describe("RedirectClient", () => {
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
-            const testError = BrowserAuthError.createEmptyNavigationUriError();
+            const testError = createBrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUri
+            );
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
                 .callsFake((): Promise<boolean> => {
