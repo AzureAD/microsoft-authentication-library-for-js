@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Fri, 18 Aug 2023 18:40:02 GMT and should not be manually modified.
+This log was last generated on Tue, 05 Sep 2023 22:13:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.3
+
+Tue, 05 Sep 2023 22:13:47 GMT
+
+### Patches
+
+- Add a linter rule to avoid floating promises #6421 (sameera.gajjarapu@microsoft.com)
+- Fix for source-map related errors #6398 (lalimasharda@microsoft.com)
+- Bump @azure/msal-browser to v3.1.0
 
 ## 2.0.2
 
