@@ -17,6 +17,7 @@ import {
     RefreshTokenEntity,
     Constants,
     CacheRecord,
+    TokenClaims,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
@@ -27,6 +28,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { base64Decode } from "../encode/Base64Decode";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -84,7 +86,10 @@ export class TokenCache implements ITokenCache {
             );
         }
 
-        const idToken = new AuthToken(response.id_token, this.cryptoObj);
+        const idTokenClaims = AuthToken.extractTokenClaims(
+            response.id_token,
+            base64Decode
+        );
 
         let cacheRecord: CacheRecord;
         let authority: Authority | undefined;
@@ -97,7 +102,7 @@ export class TokenCache implements ITokenCache {
             cacheRecord = new CacheRecord(
                 cacheRecordAccount,
                 this.loadIdToken(
-                    idToken,
+                    response.id_token,
                     cacheRecordAccount.homeAccountId,
                     request.account.environment,
                     request.account.tenantId
@@ -142,14 +147,14 @@ export class TokenCache implements ITokenCache {
             if (options.clientInfo) {
                 this.logger.trace("TokenCache - homeAccountId from options");
                 cacheRecordAccount = this.loadAccount(
-                    idToken,
+                    idTokenClaims,
                     authority,
                     options.clientInfo
                 );
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
                     this.loadIdToken(
-                        idToken,
+                        response.id_token,
                         cacheRecordAccount.homeAccountId,
                         authority.hostnameAndPort,
                         authority.tenant
@@ -172,14 +177,14 @@ export class TokenCache implements ITokenCache {
             } else if (response.client_info) {
                 this.logger.trace("TokenCache - homeAccountId from response");
                 cacheRecordAccount = this.loadAccount(
-                    idToken,
+                    idTokenClaims,
                     authority,
                     response.client_info
                 );
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
                     this.loadIdToken(
-                        idToken,
+                        response.id_token,
                         cacheRecordAccount.homeAccountId,
                         authority.hostnameAndPort,
                         authority.tenant
@@ -212,7 +217,7 @@ export class TokenCache implements ITokenCache {
 
         return this.generateAuthenticationResult(
             request,
-            idToken,
+            idTokenClaims,
             cacheRecord,
             cacheRecordAccount,
             authority
@@ -229,7 +234,7 @@ export class TokenCache implements ITokenCache {
      * @returns `AccountEntity`
      */
     private loadAccount(
-        idToken: AuthToken,
+        idTokenClaims: TokenClaims,
         authority: Authority,
         clientInfo?: string,
         requestHomeAccountId?: string
@@ -243,7 +248,7 @@ export class TokenCache implements ITokenCache {
                 authority.authorityType,
                 this.logger,
                 this.cryptoObj,
-                idToken.claims
+                idTokenClaims
             );
         }
 
@@ -256,7 +261,7 @@ export class TokenCache implements ITokenCache {
         const accountEntity = AccountEntity.createAccount(
             {
                 homeAccountId,
-                idTokenClaims: idToken.claims,
+                idTokenClaims: idTokenClaims,
                 clientInfo,
                 environment: authority.hostnameAndPort,
             },
@@ -284,7 +289,7 @@ export class TokenCache implements ITokenCache {
      * @returns `IdTokenEntity`
      */
     private loadIdToken(
-        idToken: AuthToken,
+        idToken: string,
         homeAccountId: string,
         environment: string,
         tenantId: string
@@ -292,7 +297,7 @@ export class TokenCache implements ITokenCache {
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
             homeAccountId,
             environment,
-            idToken.rawToken,
+            idToken,
             this.config.auth.clientId,
             tenantId
         );
@@ -422,7 +427,7 @@ export class TokenCache implements ITokenCache {
      */
     private generateAuthenticationResult(
         request: SilentRequest,
-        idTokenObj: AuthToken,
+        idTokenClaims: TokenClaims,
         cacheRecord: CacheRecord,
         accountEntity: AccountEntity,
         authority?: Authority
@@ -446,10 +451,8 @@ export class TokenCache implements ITokenCache {
         }
 
         const uid =
-            idTokenObj?.claims.oid ||
-            idTokenObj?.claims.sub ||
-            Constants.EMPTY_STRING;
-        const tid = idTokenObj?.claims.tid || Constants.EMPTY_STRING;
+            idTokenClaims.oid || idTokenClaims.sub || Constants.EMPTY_STRING;
+        const tid = idTokenClaims.tid || Constants.EMPTY_STRING;
 
         return {
             authority: authority
@@ -459,8 +462,8 @@ export class TokenCache implements ITokenCache {
             tenantId: tid,
             scopes: responseScopes,
             account: accountEntity.getAccountInfo(),
-            idToken: idTokenObj ? idTokenObj.rawToken : Constants.EMPTY_STRING,
-            idTokenClaims: idTokenObj ? idTokenObj.claims : {},
+            idToken: cacheRecord.idToken?.secret || "",
+            idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
             fromCache: true,
             expiresOn: expiresOn,
