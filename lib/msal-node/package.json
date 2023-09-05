@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "1.18.2",
+  "version": "1.18.3",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",

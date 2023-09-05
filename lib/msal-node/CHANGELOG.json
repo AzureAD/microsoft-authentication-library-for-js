@@ -2,6 +2,21 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 05 Sep 2023 17:42:26 GMT",
+      "tag": "@azure/msal-node_v1.18.3",
+      "version": "1.18.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "94be6cb483dfef99453bc7b2624eb9096f754092",
+            "comment": "Close loopback server on error"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 24 Aug 2023 18:23:26 GMT",
       "tag": "@azure/msal-node_v1.18.2",
       "version": "1.18.2",
