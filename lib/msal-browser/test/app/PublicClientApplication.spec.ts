@@ -70,11 +70,13 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { EventMessage } from "../../src/event/EventMessage";
 import { EventHandler } from "../../src/event/EventHandler";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
-import { Base64Encode } from "../../src/encode/Base64Encode";
+import { base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
+    createBrowserAuthError,
     BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
@@ -660,7 +662,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -704,7 +705,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -889,7 +890,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             pca = (pca as any).controller;
             await expect(pca.loginRedirect()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -956,7 +959,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
         it("goes directly to the native broker if nativeAccountId is present", async () => {
@@ -1236,7 +1241,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: ["openid"] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                )
             );
         });
 
@@ -1268,7 +1275,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: ["openid"] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                )
             );
         });
 
@@ -1311,7 +1320,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createRedirectInIframeError(true)
+                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
             );
         });
 
@@ -1324,7 +1333,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -1439,7 +1450,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             pca = (pca as any).controller;
             await expect(pca.loginPopup()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -1545,7 +1558,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -1864,7 +1879,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                )
             );
         });
 
@@ -1880,7 +1897,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -2123,7 +2142,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -2311,7 +2332,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -2491,7 +2514,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenByCode({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -2635,7 +2660,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.acquireTokenByCode({})).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -2776,7 +2803,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("throws an error if falsey code is provided", () => {
             expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(
-                BrowserAuthError.createAuthCodeOrNativeAccountIdRequiredError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
+                )
             );
         });
 
@@ -2935,7 +2964,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws No Account error if no account is provided", async () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
-            ).rejects.toMatchObject(BrowserAuthError.createNoAccountError());
+            ).rejects.toMatchObject(
+                createBrowserAuthError(BrowserAuthErrorCodes.noAccountError)
+            );
         });
 
         it("throws an error if initialize was not called prior", async () => {
@@ -2950,7 +2981,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -4622,7 +4655,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.logout()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -4664,7 +4699,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.logoutRedirect()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -4692,7 +4729,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws an error if inside an iframe", async () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             await expect(pca.logoutRedirect()).rejects.toMatchObject(
-                BrowserAuthError.createRedirectInIframeError(true)
+                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
             );
         });
     });
@@ -4710,7 +4747,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.logoutPopup()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -4747,7 +4786,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             browserStorage.setInteractionInProgress(true);
 
             await expect(pca.logoutPopup()).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                )
             );
         });
     });
@@ -5454,7 +5495,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 // @ts-ignore
                 pca.preflightBrowserEnvironmentCheck(InteractionType.Popup)
             ).toThrow(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 

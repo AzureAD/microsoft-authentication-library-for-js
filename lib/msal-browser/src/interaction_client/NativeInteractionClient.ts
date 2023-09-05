@@ -52,7 +52,10 @@ import { NativeAuthError } from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 
@@ -825,7 +828,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     this.logger.trace(
                         `initializeNativeRequest: prompt = ${request.prompt} is not compatible with native flow`
                     );
-                    throw BrowserAuthError.createNativePromptParameterNotSupportedError();
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.nativePromptNotSupported
+                    );
             }
         };
 

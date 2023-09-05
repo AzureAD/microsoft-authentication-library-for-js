@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Remove browser internals #6420",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

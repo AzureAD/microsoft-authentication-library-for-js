@@ -26,7 +26,10 @@ import {
     AccountEntity,
 } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
@@ -255,7 +258,9 @@ describe("SilentRefreshClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentRefreshClient.logout).rejects.toMatchObject(
-                BrowserAuthError.createSilentLogoutUnsupportedError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.silentLogoutUnsupported
+                )
             );
         });
     });
