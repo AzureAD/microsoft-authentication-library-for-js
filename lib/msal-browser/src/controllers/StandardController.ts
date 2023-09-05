@@ -298,7 +298,7 @@ export class StandardController implements IController {
                     PerformanceEvents.ClearTokensAndKeysWithClaims
                 );
             await this.browserStorage.clearTokensAndKeysWithClaims();
-            claimsTokensRemovalMeasurement.endMeasurement({ success: true });
+            claimsTokensRemovalMeasurement.end({ success: true });
         }
 
         this.initialized = true;
