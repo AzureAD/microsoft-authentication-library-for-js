@@ -49,6 +49,7 @@ import {
     AuthError,
     ProtocolMode,
     ServerResponseType,
+    PerformanceEvents,
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -1023,12 +1024,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events.length).toBe(1);
-                const event = events[0];
-                expect(event.success).toBeTruthy();
-                expect(event.allowNativeBroker).toBeTruthy();
-                pca.removePerformanceCallback(callbackId);
-                done();
+                expect(events.length).toBeGreaterThanOrEqual(1);
+                for (const event of events) {
+                    if (
+                        event.name ===
+                        PerformanceEvents.ClearTokensAndKeysWithClaims
+                    ) {
+                        expect(event.success).toBeTruthy();
+                    }
+
+                    if (
+                        event.name ===
+                        PerformanceEvents.InitializeClientApplication
+                    ) {
+                        expect(event.success).toBeTruthy();
+                        expect(event.allowNativeBroker).toBeTruthy();
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    }
+                }
             });
 
             stubProvider(pca);

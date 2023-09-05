@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Refactor ClientAuthError for reduced size",
+  "comment": "Refactor ClientAuthError for reduced size #6433",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
