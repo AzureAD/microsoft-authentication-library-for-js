@@ -3,37 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { DecodedAuthToken } from "../account/DecodedAuthToken";
-import { ClientAuthError } from "../error/ClientAuthError";
-
 /**
  * @hidden
  */
 export class StringUtils {
-    /**
-     * decode a JWT
-     *
-     * @param authToken
-     */
-    static decodeAuthToken(authToken: string): DecodedAuthToken {
-        if (!authToken) {
-            throw ClientAuthError.createTokenNullOrEmptyError(authToken);
-        }
-        const tokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
-        const matches = tokenPartsRegex.exec(authToken);
-        if (!matches || matches.length < 4) {
-            throw ClientAuthError.createTokenParsingError(
-                `Given token is malformed: ${JSON.stringify(authToken)}`
-            );
-        }
-        const crackedToken: DecodedAuthToken = {
-            header: matches[1],
-            JWSPayload: matches[2],
-            JWSSig: matches[3],
-        };
-        return crackedToken;
-    }
-
     /**
      * Check if stringified object is empty
      * @param strObj

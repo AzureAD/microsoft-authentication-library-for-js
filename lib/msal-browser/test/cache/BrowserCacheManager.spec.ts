@@ -27,7 +27,7 @@ import {
     AccountEntity,
     Authority,
     StubbedNetworkModule,
-    IdToken,
+    AuthToken,
     IdTokenEntity,
     AccessTokenEntity,
     RefreshTokenEntity,
@@ -49,6 +49,7 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
+import { base64Decode } from "../../src/encode/Base64Decode";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -358,10 +359,10 @@ describe("BrowserCacheManager tests", () => {
             const testAccount = AccountEntity.createAccount(
                 {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                    idTokenClaims: new IdToken(
+                    idTokenClaims: AuthToken.extractTokenClaims(
                         TEST_TOKENS.IDTOKEN_V2,
-                        browserCrypto
-                    ).claims,
+                        base64Decode
+                    ),
                     clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                     environment: "environment",
                 },
@@ -562,10 +563,10 @@ describe("BrowserCacheManager tests", () => {
                     const testAccount = AccountEntity.createAccount(
                         {
                             homeAccountId: "homeAccountId",
-                            idTokenClaims: new IdToken(
+                            idTokenClaims: AuthToken.extractTokenClaims(
                                 TEST_TOKENS.IDTOKEN_V2,
-                                browserCrypto
-                            ).claims,
+                                base64Decode
+                            ),
                             clientInfo:
                                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                             cloudGraphHostName: "cloudGraphHost",
@@ -1549,10 +1550,10 @@ describe("BrowserCacheManager tests", () => {
                     const testAccount = AccountEntity.createAccount(
                         {
                             homeAccountId: "homeAccountId",
-                            idTokenClaims: new IdToken(
+                            idTokenClaims: AuthToken.extractTokenClaims(
                                 TEST_TOKENS.IDTOKEN_V2,
-                                browserCrypto
-                            ).claims,
+                                base64Decode
+                            ),
                             clientInfo:
                                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                             cloudGraphHostName: "cloudGraphHost",

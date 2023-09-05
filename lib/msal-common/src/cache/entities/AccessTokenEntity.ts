@@ -8,8 +8,8 @@ import { CredentialType, AuthenticationScheme } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 import { ICrypto } from "../../crypto/ICrypto";
 import { TokenClaims } from "../../account/TokenClaims";
-import { AuthToken } from "../../account/AuthToken";
 import { ClientAuthError } from "../../error/ClientAuthError";
+import { extractTokenClaims } from "../../account/AuthToken";
 
 /**
  * ACCESS_TOKEN Credential Type
@@ -120,8 +120,10 @@ export class AccessTokenEntity extends CredentialEntity {
             switch (atEntity.tokenType) {
                 case AuthenticationScheme.POP:
                     // Make sure keyId is present and add it to credential
-                    const tokenClaims: TokenClaims | null =
-                        AuthToken.extractTokenClaims(accessToken, cryptoUtils);
+                    const tokenClaims: TokenClaims | null = extractTokenClaims(
+                        accessToken,
+                        cryptoUtils.base64Decode
+                    );
                     if (!tokenClaims?.cnf?.kid) {
                         throw ClientAuthError.createTokenClaimsRequiredError();
                     }

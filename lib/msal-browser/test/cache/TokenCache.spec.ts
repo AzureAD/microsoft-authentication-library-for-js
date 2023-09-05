@@ -15,6 +15,7 @@ import {
     AuthToken,
     AuthorityType,
     RefreshTokenEntity,
+    TokenClaims,
 } from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -33,6 +34,7 @@ import {
     TEST_URIS,
 } from "../utils/StringConstants";
 import { BrowserAuthErrorMessage, SilentRequest } from "../../src";
+import { base64Decode } from "../../src/encode/Base64Decode";
 
 describe("TokenCache tests", () => {
     let configuration: BrowserConfiguration;
@@ -87,7 +89,7 @@ describe("TokenCache tests", () => {
         let testEnvironment: string;
         let testClientInfo: string;
         let testIdToken: string;
-        let testIdAuthToken: AuthToken;
+        let testIdTokenClaims: TokenClaims;
         let testHomeAccountId: string;
         let idTokenEntity: IdTokenEntity;
         let idTokenKey: string;
@@ -110,13 +112,16 @@ describe("TokenCache tests", () => {
 
             testClientInfo = `${TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED}.${TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED}`;
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
-            testIdAuthToken = new AuthToken(testIdToken, cryptoObj);
+            testIdTokenClaims = AuthToken.extractTokenClaims(
+                testIdToken,
+                base64Decode
+            );
             testHomeAccountId = AccountEntity.generateHomeAccountId(
                 testClientInfo,
                 AuthorityType.Default,
                 logger,
                 cryptoObj,
-                testIdAuthToken.claims
+                testIdTokenClaims
             );
 
             idTokenEntity = IdTokenEntity.createIdTokenEntity(
@@ -240,8 +245,8 @@ describe("TokenCache tests", () => {
                 tenantId: TEST_CONFIG.MSAL_TENANT_ID,
                 username: "AbeLi@microsoft.com",
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
-                idTokenClaims: testIdAuthToken.claims,
-                name: testIdAuthToken.claims.name,
+                idTokenClaims: testIdTokenClaims,
+                name: testIdTokenClaims.name,
                 nativeAccountId: undefined,
             };
             const testAccountKey =
