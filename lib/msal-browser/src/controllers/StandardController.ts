@@ -288,6 +288,19 @@ export class StandardController implements IController {
                 this.logger.verbose(e as string);
             }
         }
+
+        if (!this.config.cache.claimsBasedCachingEnabled) {
+            this.logger.verbose(
+                "Claims-based caching is disabled. Clearing the previous cache with claims"
+            );
+            const claimsTokensRemovalMeasurement =
+                this.performanceClient.startMeasurement(
+                    PerformanceEvents.ClearTokensAndKeysWithClaims
+                );
+            await this.browserStorage.clearTokensAndKeysWithClaims();
+            claimsTokensRemovalMeasurement.endMeasurement({ success: true });
+        }
+
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
 
