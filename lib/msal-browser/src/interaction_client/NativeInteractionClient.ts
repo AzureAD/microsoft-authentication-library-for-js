@@ -664,7 +664,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             cachedAccessToken
         );
 
-        this.nativeStorageManager.saveCacheRecord(
+        void this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
             request.storeInCache
         );
