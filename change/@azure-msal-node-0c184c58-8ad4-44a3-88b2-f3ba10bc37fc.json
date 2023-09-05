@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Close loopback server on error",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
