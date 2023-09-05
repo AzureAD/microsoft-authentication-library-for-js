@@ -32,7 +32,7 @@ export function extractTokenClaims(
  *
  * @param authToken
  */
-export function getJWSPayload(authToken: string) {
+export function getJWSPayload(authToken: string): string {
     if (!authToken) {
         throw ClientAuthError.createTokenNullOrEmptyError(authToken);
     }
