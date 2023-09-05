@@ -34,7 +34,10 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EventHandler } from "../event/EventHandler";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -316,7 +319,9 @@ export class PopupClient extends StandardInteractionClient {
                 }
 
                 if (!this.nativeMessageHandler) {
-                    throw BrowserAuthError.createNativeConnectionNotEstablishedError();
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                    );
                 }
                 const nativeInteractionClient = new NativeInteractionClient(
                     this.config,
@@ -422,7 +427,7 @@ export class PopupClient extends StandardInteractionClient {
                     validRequest.postLogoutRedirectUri &&
                     authClient.authority.protocolMode === ProtocolMode.OIDC
                 ) {
-                    this.browserStorage.removeAccount(
+                    void this.browserStorage.removeAccount(
                         validRequest.account?.homeAccountId
                     );
 
@@ -498,7 +503,7 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger.verbosePii(
                     `Redirecting main window to: ${absoluteUrl}`
                 );
-                this.navigationClient.navigateInternal(
+                await this.navigationClient.navigateInternal(
                     absoluteUrl,
                     navigationOptions
                 );
@@ -548,7 +553,9 @@ export class PopupClient extends StandardInteractionClient {
         } else {
             // Throw error if request URL is empty.
             this.logger.error("Navigate url is empty");
-            throw BrowserAuthError.createEmptyNavigationUriError();
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUri
+            );
         }
     }
 
@@ -580,7 +587,11 @@ export class PopupClient extends StandardInteractionClient {
                     );
                     this.cleanPopup();
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createUserCancelledError());
+                    reject(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.userCancelled
+                        )
+                    );
                     return;
                 }
 
@@ -639,7 +650,9 @@ export class PopupClient extends StandardInteractionClient {
                             `PopupHandler.monitorPopupForHash - hash found: ${serverResponseString}`
                         );
                         reject(
-                            BrowserAuthError.createHashDoesNotContainKnownPropertiesError()
+                            createBrowserAuthError(
+                                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                            )
                         );
                     }
                 } else if (ticks > maxTicks) {
@@ -647,7 +660,11 @@ export class PopupClient extends StandardInteractionClient {
                         "PopupHandler.monitorPopupForHash - unable to find hash in url, timing out"
                     );
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createMonitorPopupTimeoutError());
+                    reject(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.monitorPopupTimeout
+                        )
+                    );
                 }
             }, this.config.system.pollIntervalMilliseconds);
         });
@@ -738,7 +755,9 @@ export class PopupClient extends StandardInteractionClient {
 
             // Popup will be null if popups are blocked
             if (!popupWindow) {
-                throw BrowserAuthError.createEmptyWindowCreatedError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.emptyWindowError
+                );
             }
             if (popupWindow.focus) {
                 popupWindow.focus();
@@ -752,8 +771,8 @@ export class PopupClient extends StandardInteractionClient {
                 "error opening popup " + (e as AuthError).message
             );
             this.browserStorage.setInteractionInProgress(false);
-            throw BrowserAuthError.createPopupWindowError(
-                (e as AuthError).toString()
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.popupWindowError
             );
         }
     }

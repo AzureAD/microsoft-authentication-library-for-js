@@ -28,6 +28,7 @@ import {
     AccountInfo,
     CacheRecord,
     AADServerParamKeys,
+    TokenClaims,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -52,9 +53,13 @@ import { NativeAuthError } from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { base64Decode } from "../encode/Base64Decode";
 
 const BrokerServerParamKeys = {
     BROKER_CLIENT_ID: "brk_client_id",
@@ -386,15 +391,18 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const authority = await this.getDiscoveredAuthority(request.authority);
 
         // generate identifiers
-        const idTokenObj = this.createIdTokenObj(response);
+        const idTokenClaims = AuthToken.extractTokenClaims(
+            response.id_token,
+            base64Decode
+        );
         const homeAccountIdentifier = this.createHomeAccountIdentifier(
             response,
-            idTokenObj
+            idTokenClaims
         );
         const accountEntity = AccountEntity.createAccount(
             {
                 homeAccountId: homeAccountIdentifier,
-                idTokenClaims: idTokenObj.claims,
+                idTokenClaims: idTokenClaims,
                 clientInfo: response.client_info,
                 nativeAccountId: response.account.id,
             },
@@ -405,7 +413,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const result = await this.generateAuthenticationResult(
             response,
             request,
-            idTokenObj,
+            idTokenClaims,
             accountEntity,
             authority.canonicalAuthority,
             reqTimestamp
@@ -417,25 +425,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             request,
             homeAccountIdentifier,
-            idTokenObj,
+            idTokenClaims,
             result.accessToken,
             result.tenantId,
             reqTimestamp
         );
 
         return result;
-    }
-
-    /**
-     * Create an idToken Object (not entity)
-     * @param response
-     * @returns
-     */
-    protected createIdTokenObj(response: NativeResponse): AuthToken {
-        return new AuthToken(
-            response.id_token || Constants.EMPTY_STRING,
-            this.browserCrypto
-        );
     }
 
     /**
@@ -446,7 +442,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     protected createHomeAccountIdentifier(
         response: NativeResponse,
-        idTokenObj: AuthToken
+        idTokenClaims: TokenClaims
     ): string {
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(
@@ -454,7 +450,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             AuthorityType.Default,
             this.logger,
             this.browserCrypto,
-            idTokenObj.claims
+            idTokenClaims
         );
 
         return homeAccountIdentifier;
@@ -539,7 +535,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected async generateAuthenticationResult(
         response: NativeResponse,
         request: NativeTokenRequest,
-        idTokenObj: AuthToken,
+        idTokenClaims: TokenClaims,
         accountEntity: AccountEntity,
         authority: string,
         reqTimestamp: number
@@ -555,12 +551,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const accountProperties = response.account.properties || {};
         const uid =
             accountProperties["UID"] ||
-            idTokenObj.claims.oid ||
-            idTokenObj.claims.sub ||
+            idTokenClaims.oid ||
+            idTokenClaims.sub ||
             Constants.EMPTY_STRING;
         const tid =
             accountProperties["TenantId"] ||
-            idTokenObj.claims.tid ||
+            idTokenClaims.tid ||
             Constants.EMPTY_STRING;
 
         // generate PoP token as needed
@@ -580,7 +576,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             scopes: responseScopes.asArray(),
             account: accountEntity.getAccountInfo(),
             idToken: response.id_token,
-            idTokenClaims: idTokenObj.claims,
+            idTokenClaims: idTokenClaims,
             accessToken: responseAccessToken,
             fromCache: mats ? this.isResponseFromCache(mats) : false,
             expiresOn: new Date(
@@ -625,7 +621,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         response: NativeResponse,
         request: NativeTokenRequest,
         homeAccountIdentifier: string,
-        idTokenObj: AuthToken,
+        idTokenClaims: TokenClaims,
         responseAccessToken: string,
         tenantId: string,
         reqTimestamp: number
@@ -634,9 +630,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             IdTokenEntity.createIdTokenEntity(
                 homeAccountIdentifier,
                 request.authority,
-                response.id_token || Constants.EMPTY_STRING,
+                response.id_token || "",
                 request.clientId,
-                idTokenObj.claims.tid || Constants.EMPTY_STRING
+                idTokenClaims.tid || ""
             );
 
         // cache accessToken in inmemory storage
@@ -655,9 +651,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 request.authority,
                 responseAccessToken,
                 request.clientId,
-                idTokenObj
-                    ? idTokenObj.claims.tid || Constants.EMPTY_STRING
-                    : tenantId,
+                idTokenClaims.tid || tenantId,
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 0,
@@ -670,7 +664,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             cachedAccessToken
         );
 
-        this.nativeStorageManager.saveCacheRecord(
+        void this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
             request.storeInCache
         );
@@ -825,7 +819,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     this.logger.trace(
                         `initializeNativeRequest: prompt = ${request.prompt} is not compatible with native flow`
                     );
-                    throw BrowserAuthError.createNativePromptParameterNotSupportedError();
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.nativePromptNotSupported
+                    );
             }
         };
 

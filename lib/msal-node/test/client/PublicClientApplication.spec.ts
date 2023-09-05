@@ -21,7 +21,7 @@ import {
     ServerAuthorizationCodeResponse,
     InteractionRequiredAuthError,
     AccountEntity,
-    IdToken,
+    AuthToken,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -591,10 +591,10 @@ describe("PublicClientApplication", () => {
             const accountEntity: AccountEntity = AccountEntity.createAccount(
                 {
                     homeAccountId: mockAccountInfo.homeAccountId,
-                    idTokenClaims: new IdToken(
+                    idTokenClaims: AuthToken.extractTokenClaims(
                         mockAuthenticationResult.idToken,
-                        cryptoProvider
-                    ).claims,
+                        cryptoProvider.base64Decode
+                    ),
                 },
                 fakeAuthority
             );
@@ -664,10 +664,10 @@ describe("PublicClientApplication", () => {
             const accountEntity: AccountEntity = AccountEntity.createAccount(
                 {
                     homeAccountId: mockAccountInfo.homeAccountId,
-                    idTokenClaims: new IdToken(
+                    idTokenClaims: AuthToken.extractTokenClaims(
                         mockAuthenticationResult.idToken,
-                        cryptoProvider
-                    ).claims,
+                        cryptoProvider.base64Decode
+                    ),
                 },
                 fakeAuthority
             );

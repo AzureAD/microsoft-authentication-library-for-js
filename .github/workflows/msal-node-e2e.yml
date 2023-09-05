@@ -44,7 +44,7 @@ jobs:
     name: ${{ matrix.sample }} - Node v${{ matrix.node }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js
         uses: actions/setup-node@v3
@@ -94,7 +94,7 @@ jobs:
     name: ${{ matrix.sample }} - ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js
         uses: actions/setup-node@v3

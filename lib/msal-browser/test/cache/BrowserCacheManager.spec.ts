@@ -27,7 +27,7 @@ import {
     AccountEntity,
     Authority,
     StubbedNetworkModule,
-    IdToken,
+    AuthToken,
     IdTokenEntity,
     AccessTokenEntity,
     RefreshTokenEntity,
@@ -49,6 +49,7 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
+import { base64Decode } from "../../src/encode/Base64Decode";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -358,10 +359,10 @@ describe("BrowserCacheManager tests", () => {
             const testAccount = AccountEntity.createAccount(
                 {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                    idTokenClaims: new IdToken(
+                    idTokenClaims: AuthToken.extractTokenClaims(
                         TEST_TOKENS.IDTOKEN_V2,
-                        browserCrypto
-                    ).claims,
+                        base64Decode
+                    ),
                     clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                     environment: "environment",
                 },
@@ -562,10 +563,10 @@ describe("BrowserCacheManager tests", () => {
                     const testAccount = AccountEntity.createAccount(
                         {
                             homeAccountId: "homeAccountId",
-                            idTokenClaims: new IdToken(
+                            idTokenClaims: AuthToken.extractTokenClaims(
                                 TEST_TOKENS.IDTOKEN_V2,
-                                browserCrypto
-                            ).claims,
+                                base64Decode
+                            ),
                             clientInfo:
                                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                             cloudGraphHostName: "cloudGraphHost",
@@ -1549,10 +1550,10 @@ describe("BrowserCacheManager tests", () => {
                     const testAccount = AccountEntity.createAccount(
                         {
                             homeAccountId: "homeAccountId",
-                            idTokenClaims: new IdToken(
+                            idTokenClaims: AuthToken.extractTokenClaims(
                                 TEST_TOKENS.IDTOKEN_V2,
-                                browserCrypto
-                            ).claims,
+                                base64Decode
+                            ),
                             clientInfo:
                                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                             cloudGraphHostName: "cloudGraphHost",
@@ -2816,10 +2817,8 @@ describe("BrowserCacheManager tests", () => {
                 true
             );
 
-            const cachedRequest = browserStorage.getCachedRequest(
-                RANDOM_TEST_GUID,
-                browserCrypto
-            );
+            const cachedRequest =
+                browserStorage.getCachedRequest(RANDOM_TEST_GUID);
             expect(cachedRequest).toEqual(tokenRequest);
 
             // expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
@@ -2832,11 +2831,10 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger
             );
-            const cryptoObj = new CryptoOps(logger);
             // browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
 
             expect(() =>
-                browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)
+                browserStorage.getCachedRequest(RANDOM_TEST_GUID)
             ).toThrowError(
                 BrowserAuthErrorMessage.noTokenRequestCacheError.desc
             );
@@ -2855,7 +2853,6 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger
             );
-            const cryptoObj = new CryptoOps(logger);
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
@@ -2872,7 +2869,7 @@ describe("BrowserCacheManager tests", () => {
                 true
             );
             expect(() =>
-                browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)
+                browserStorage.getCachedRequest(RANDOM_TEST_GUID)
             ).toThrowError(
                 BrowserAuthErrorMessage.unableToParseTokenRequestCacheError.desc
             );
@@ -2918,8 +2915,7 @@ describe("BrowserCacheManager tests", () => {
 
             // Perform test
             const tokenRequest = browserStorage.getCachedRequest(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                browserCrypto
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
             expect(tokenRequest.authority).toBe(alternateAuthority);
         });

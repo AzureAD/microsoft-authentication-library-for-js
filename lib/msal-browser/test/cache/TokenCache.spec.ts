@@ -15,6 +15,7 @@ import {
     AuthToken,
     AuthorityType,
     RefreshTokenEntity,
+    TokenClaims,
 } from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -33,6 +34,7 @@ import {
     TEST_URIS,
 } from "../utils/StringConstants";
 import { BrowserAuthErrorMessage, SilentRequest } from "../../src";
+import { base64Decode } from "../../src/encode/Base64Decode";
 
 describe("TokenCache tests", () => {
     let configuration: BrowserConfiguration;
@@ -87,7 +89,7 @@ describe("TokenCache tests", () => {
         let testEnvironment: string;
         let testClientInfo: string;
         let testIdToken: string;
-        let testIdAuthToken: AuthToken;
+        let testIdTokenClaims: TokenClaims;
         let testHomeAccountId: string;
         let idTokenEntity: IdTokenEntity;
         let idTokenKey: string;
@@ -110,13 +112,16 @@ describe("TokenCache tests", () => {
 
             testClientInfo = `${TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED}.${TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED}`;
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
-            testIdAuthToken = new AuthToken(testIdToken, cryptoObj);
+            testIdTokenClaims = AuthToken.extractTokenClaims(
+                testIdToken,
+                base64Decode
+            );
             testHomeAccountId = AccountEntity.generateHomeAccountId(
                 testClientInfo,
                 AuthorityType.Default,
                 logger,
                 cryptoObj,
-                testIdAuthToken.claims
+                testIdTokenClaims
             );
 
             idTokenEntity = IdTokenEntity.createIdTokenEntity(
@@ -240,8 +245,8 @@ describe("TokenCache tests", () => {
                 tenantId: TEST_CONFIG.MSAL_TENANT_ID,
                 username: "AbeLi@microsoft.com",
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
-                idTokenClaims: testIdAuthToken.claims,
-                name: testIdAuthToken.claims.name,
+                idTokenClaims: testIdTokenClaims,
+                name: testIdTokenClaims.name,
                 nativeAccountId: undefined,
             };
             const testAccountKey =
@@ -301,7 +306,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please ensure server response includes id token.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 
@@ -317,7 +322,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide a request with an account or a request with authority.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 
@@ -334,7 +339,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide clientInfo in the response or options.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 
@@ -358,7 +363,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please ensure server response includes expires_in value.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 
@@ -383,7 +388,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide an extendedExpiresOn value in the options.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 
@@ -444,7 +449,7 @@ describe("TokenCache tests", () => {
             expect(() =>
                 tokenCache.loadExternalTokens(request, response, options)
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | loadExternalTokens is designed to work in browser environments only.`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
             );
         });
 

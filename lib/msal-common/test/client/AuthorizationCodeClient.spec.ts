@@ -38,8 +38,7 @@ import { CommonAuthorizationUrlRequest } from "../../src/request/CommonAuthoriza
 import { TokenClaims } from "../../src/account/TokenClaims";
 import { ServerError } from "../../src/error/ServerError";
 import { CommonAuthorizationCodeRequest } from "../../src/request/CommonAuthorizationCodeRequest";
-import { AuthToken } from "../../src/account/AuthToken";
-import { ICrypto } from "../../src/crypto/ICrypto";
+import * as AuthToken from "../../src/account/AuthToken";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { CcsCredentialType, ClientConfigurationError } from "../../src";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
@@ -2454,7 +2453,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(AuthToken, "extractTokenClaims")
                 .callsFake(
-                    (encodedToken: string, crypto: ICrypto): TokenClaims => {
+                    (
+                        encodedToken: string,
+                        base64Decode: (val: string) => string
+                    ): TokenClaims => {
                         switch (encodedToken) {
                             case POP_AUTHENTICATION_RESULT.body.id_token:
                                 return idTokenClaims as TokenClaims;
@@ -2648,7 +2650,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(AuthToken, "extractTokenClaims")
                 .callsFake(
-                    (encodedToken: string, crypto: ICrypto): TokenClaims => {
+                    (
+                        encodedToken: string,
+                        base64Decode: (val: string) => string
+                    ): TokenClaims => {
                         switch (encodedToken) {
                             case POP_AUTHENTICATION_RESULT.body.id_token:
                                 return idTokenClaims as TokenClaims;
@@ -2835,7 +2840,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(AuthToken, "extractTokenClaims")
                 .callsFake(
-                    (encodedToken: string, crypto: ICrypto): TokenClaims => {
+                    (
+                        encodedToken: string,
+                        base64Decode: (val: string) => string
+                    ): TokenClaims => {
                         switch (encodedToken) {
                             case POP_AUTHENTICATION_RESULT.body.id_token:
                                 return idTokenClaims as TokenClaims;

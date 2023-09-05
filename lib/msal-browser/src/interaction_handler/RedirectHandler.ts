@@ -15,8 +15,8 @@ import {
     IPerformanceClient,
 } from "@azure/msal-common";
 import {
-    BrowserAuthError,
-    BrowserAuthErrorMessage,
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -82,10 +82,7 @@ export class RedirectHandler extends InteractionHandler {
                 this.authCodeRequest.correlationId,
                 true
             );
-            this.browserStorage.cacheCodeRequest(
-                this.authCodeRequest,
-                this.browserCrypto
-            );
+            this.browserStorage.cacheCodeRequest(this.authCodeRequest);
             this.logger.infoPii(
                 `RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`
             );
@@ -134,7 +131,9 @@ export class RedirectHandler extends InteractionHandler {
             this.logger.info(
                 "RedirectHandler.initiateAuthRequest: Navigate url is empty"
             );
-            throw BrowserAuthError.createEmptyNavigationUriError();
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUri
+            );
         }
     }
 
@@ -152,7 +151,7 @@ export class RedirectHandler extends InteractionHandler {
 
         // Check that location hash isn't empty.
         if (!locationHash) {
-            throw BrowserAuthError.createEmptyHashError();
+            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
         }
 
         // Interaction is completed - remove interaction status.
@@ -174,10 +173,12 @@ export class RedirectHandler extends InteractionHandler {
         } catch (e) {
             if (
                 e instanceof ServerError &&
-                e.subError === BrowserAuthErrorMessage.userCancelledError.code
+                e.subError === BrowserAuthErrorCodes.userCancelled
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
-                throw BrowserAuthError.createUserCancelledError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.userCancelled
+                );
             } else {
                 throw e;
             }
