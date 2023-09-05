@@ -10,7 +10,6 @@ import {
     Authority,
     BaseClient,
     CacheOutcome,
-    ClientAuthError,
     ClientAuthErrorCodes,
     ClientConfiguration,
     CommonClientCredentialRequest,
