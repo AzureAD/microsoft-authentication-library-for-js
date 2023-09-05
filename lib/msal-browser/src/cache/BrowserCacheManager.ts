@@ -1357,9 +1357,6 @@ export class BrowserCacheManager extends CacheManager {
      * @returns
      */
     async clearTokensAndKeysWithClaims(): Promise<void> {
-        this.logger.trace(
-            "BrowserCacheManager.clearTokensAndKeysWithClaims called"
-        );
         const tokenKeys = this.getTokenKeys();
 
         const removedAccessTokens: Array<Promise<void>> = [];
