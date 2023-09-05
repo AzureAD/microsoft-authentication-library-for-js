@@ -10,13 +10,14 @@ import {
     AuthorityFactory,
     Authority,
     INetworkModule,
-    ClientAuthError,
     CcsCredential,
     Logger,
     ServerError,
     IPerformanceClient,
     PerformanceEvents,
     invokeAsync,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -77,7 +78,10 @@ export class InteractionHandler {
         const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
         if (!requestState) {
-            throw ClientAuthError.createStateNotFoundError("Cached State");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.stateNotFound,
+                "Cached State"
+            );
         }
 
         let authCodeResponse;
@@ -139,7 +143,10 @@ export class InteractionHandler {
         const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
         if (!requestState) {
-            throw ClientAuthError.createStateNotFoundError("Cached State");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.stateNotFound,
+                "Cached State"
+            );
         }
 
         // Get cached items

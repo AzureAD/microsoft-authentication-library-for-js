@@ -19,7 +19,6 @@ import {
     IPerformanceClient,
     BaseAuthRequest,
     PromptValue,
-    ClientAuthError,
     InProgressPerformanceEvent,
     RequestThumbprint,
     ServerError,
@@ -27,6 +26,8 @@ import {
     ServerResponseType,
     UrlString,
     invokeAsync,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -1024,7 +1025,9 @@ export class StandardController implements IController {
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
                 return silentCacheClient.acquireToken(commonRequest);
             default:
-                throw ClientAuthError.createRefreshRequiredError();
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired
+                );
         }
     }
 
@@ -1057,7 +1060,9 @@ export class StandardController implements IController {
                 );
                 return silentRefreshClient.acquireToken(commonRequest);
             default:
-                throw ClientAuthError.createRefreshRequiredError();
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired
+                );
         }
     }
 

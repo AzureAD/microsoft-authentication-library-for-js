@@ -8,7 +8,10 @@ import { CredentialType, AuthenticationScheme } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 import { ICrypto } from "../../crypto/ICrypto";
 import { TokenClaims } from "../../account/TokenClaims";
-import { ClientAuthError } from "../../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../../error/ClientAuthError";
 import { extractTokenClaims } from "../../account/AuthToken";
 
 /**
@@ -125,7 +128,9 @@ export class AccessTokenEntity extends CredentialEntity {
                         cryptoUtils.base64Decode
                     );
                     if (!tokenClaims?.cnf?.kid) {
-                        throw ClientAuthError.createTokenClaimsRequiredError();
+                        throw createClientAuthError(
+                            ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt
+                        );
                     }
                     atEntity.keyId = tokenClaims.cnf.kid;
                     break;

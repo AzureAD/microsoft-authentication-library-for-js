@@ -9,10 +9,11 @@ import {
     ICrypto,
     Authority,
     INetworkModule,
-    ClientAuthError,
     Logger,
     ServerError,
     IPerformanceClient,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -161,7 +162,10 @@ export class RedirectHandler extends InteractionHandler {
         const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
         if (!requestState) {
-            throw ClientAuthError.createStateNotFoundError("Cached State");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.stateNotFound,
+                "Cached State"
+            );
         }
 
         let authCodeResponse;
