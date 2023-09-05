@@ -1044,7 +1044,9 @@ export abstract class CacheManager implements ICacheManager {
                 "CacheManager:getAccessToken - Multiple access tokens found, clearing them"
             );
             accessTokens.forEach((accessToken) => {
-                this.removeAccessToken(accessToken.generateCredentialKey());
+                void this.removeAccessToken(
+                    accessToken.generateCredentialKey()
+                );
             });
             return null;
         }
