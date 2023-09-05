@@ -65,9 +65,7 @@ export class NetworkManager {
             if (e instanceof AuthError) {
                 throw e;
             } else {
-                throw createClientAuthError(
-                    ClientAuthErrorCodes.noNetworkConnectivity
-                );
+                throw createClientAuthError(ClientAuthErrorCodes.networkError);
             }
         }
 

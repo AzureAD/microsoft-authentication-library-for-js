@@ -7,7 +7,6 @@ import {
     ClientConfiguration,
     Constants,
     PkceCodes,
-    ClientAuthError,
     AccountEntity,
     AppMetadataEntity,
     ThrottlingEntity,
@@ -23,6 +22,8 @@ import {
     LogLevel,
     TokenKeys,
     ServerTelemetryManager,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "../../src";
 import {
     AUTHENTICATION_RESULT,
@@ -307,7 +308,9 @@ export class ClientTestUtils {
         );
 
         await authority.resolveEndpointsAsync().catch((error) => {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
+            );
         });
 
         let serverTelemetryManager = null;

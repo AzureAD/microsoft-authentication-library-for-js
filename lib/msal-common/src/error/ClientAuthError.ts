@@ -371,7 +371,9 @@ export class ClientAuthError extends AuthError {
     constructor(errorCode: string, additionalMessage?: string) {
         super(
             errorCode,
-            `${ClientAuthErrorMessages[errorCode]}: ${additionalMessage}`
+            additionalMessage
+                ? `${ClientAuthErrorMessages[errorCode]}: ${additionalMessage}`
+                : ClientAuthErrorMessages[errorCode]
         );
         this.name = "ClientAuthError";
 

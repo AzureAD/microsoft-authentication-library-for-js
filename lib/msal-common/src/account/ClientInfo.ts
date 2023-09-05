@@ -49,7 +49,9 @@ export function buildClientInfoFromHomeAccountId(
     homeAccountId: string
 ): ClientInfo {
     if (!homeAccountId) {
-        throw createClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError);
+        throw createClientAuthError(
+            ClientAuthErrorCodes.clientInfoDecodingError
+        );
     }
     const clientInfoParts: string[] = homeAccountId.split(
         Separators.CLIENT_INFO_SEPARATOR,
