@@ -24,20 +24,16 @@ export const ClientAuthErrorMessages = {
         "Could not retrieve endpoints. Check your authority and verify the .well-known/openid-configuration endpoint returns the required endpoints.",
     [ClientAuthErrorCodes.hashNotDeserialized]:
         "The hash parameters could not be deserialized",
-    [ClientAuthErrorCodes.blankGuidGenerated]: "The guid generated was blank.",
     [ClientAuthErrorCodes.invalidState]: "State was not the expected format",
     [ClientAuthErrorCodes.stateMismatch]: "State mismatch error",
     [ClientAuthErrorCodes.stateNotFound]: "State not found",
     [ClientAuthErrorCodes.nonceMismatch]: "Nonce mismatch error",
-    [ClientAuthErrorCodes.nonceNotFound]: "Nonce not found",
     [ClientAuthErrorCodes.authTimeNotFound]:
         "Max Age was requested and the ID token is missing the auth_time variable." +
         " auth_time is an optional claim and is not enabled by default - it must be enabled." +
         " See https://aka.ms/msaljs/optional-claims for more information.",
     [ClientAuthErrorCodes.maxAgeTranspired]:
         "Max Age is set to 0, or too much time has elapsed since the last end-user authentication.",
-    [ClientAuthErrorCodes.noTokensFound]:
-        "No tokens were found for the given scopes, and no authorization code was passed to acquireToken. You must retrieve an authorization code before making a call to acquireToken().",
     [ClientAuthErrorCodes.multipleMatchingTokens]:
         "The cache contains multiple tokens satisfying the requirements. " +
         "Call AcquireToken again providing more requirements such as authority or account.",
@@ -47,8 +43,6 @@ export const ClientAuthErrorMessages = {
         "The cache contains multiple appMetadata satisfying the given parameters. Please pass more info to obtain the correct appMetadata",
     [ClientAuthErrorCodes.requestCannotBeMade]:
         "Token request cannot be made without authorization code or refresh token.",
-    [ClientAuthErrorCodes.cannotAppendEmptyScope]:
-        "Cannot append null or empty scope to ScopeSet",
     [ClientAuthErrorCodes.cannotRemoveEmptyScope]:
         "Cannot remove null or empty scope from ScopeSet",
     [ClientAuthErrorCodes.cannotAppendScopeSet]: "Cannot append ScopeSet",
@@ -67,11 +61,7 @@ export const ClientAuthErrorMessages = {
         "Invalid environment when attempting to create cache entry",
     [ClientAuthErrorCodes.noAccountFound]:
         "No account found in cache for given key.",
-    [ClientAuthErrorCodes.noCachePlugin]:
-        "ICachePlugin needs to be set before using readFromStorage or writeFromStorage",
     [ClientAuthErrorCodes.noCryptoObject]: "No crypto object detected.",
-    [ClientAuthErrorCodes.invalidCacheType]: "Invalid cache type",
-    [ClientAuthErrorCodes.unexpectedAccountType]: "Unexpected account type.",
     [ClientAuthErrorCodes.unexpectedCredentialType]:
         "Unexpected credential type.",
     [ClientAuthErrorCodes.invalidAssertion]:
@@ -86,10 +76,6 @@ export const ClientAuthErrorMessages = {
         "Cannot generate a POP jwt if the token_claims are not populated",
     [ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse]:
         "Server response does not contain an authorization code to proceed",
-    [ClientAuthErrorCodes.noAzureRegionDetected]:
-        "No azure region was detected and no fallback was made available",
-    [ClientAuthErrorCodes.accessTokenEntityNull]:
-        "Access token entity is null, please check logs and cache to ensure a valid access token is present.",
     [ClientAuthErrorCodes.bindingKeyNotRemoved]:
         "Could not remove the credential's binding key from storage.",
     [ClientAuthErrorCodes.endSessionEndpointNotSupported]:
@@ -146,10 +132,6 @@ export const ClientAuthErrorMessage = {
         code: ClientAuthErrorCodes.hashNotDeserialized,
         desc: ClientAuthErrorMessages[ClientAuthErrorCodes.hashNotDeserialized],
     },
-    blankGuidGenerated: {
-        code: ClientAuthErrorCodes.blankGuidGenerated,
-        desc: ClientAuthErrorMessages[ClientAuthErrorCodes.blankGuidGenerated],
-    },
     invalidStateError: {
         code: ClientAuthErrorCodes.invalidState,
         desc: ClientAuthErrorMessages[ClientAuthErrorCodes.invalidState],
@@ -166,10 +148,6 @@ export const ClientAuthErrorMessage = {
         code: ClientAuthErrorCodes.nonceMismatch,
         desc: ClientAuthErrorMessages[ClientAuthErrorCodes.nonceMismatch],
     },
-    nonceNotFoundError: {
-        code: ClientAuthErrorCodes.nonceNotFound,
-        desc: ClientAuthErrorMessages[ClientAuthErrorCodes.nonceNotFound],
-    },
     authTimeNotFoundError: {
         code: ClientAuthErrorCodes.authTimeNotFound,
         desc: ClientAuthErrorMessages[ClientAuthErrorCodes.authTimeNotFound],
@@ -177,10 +155,6 @@ export const ClientAuthErrorMessage = {
     maxAgeTranspired: {
         code: ClientAuthErrorCodes.maxAgeTranspired,
         desc: ClientAuthErrorMessages[ClientAuthErrorCodes.maxAgeTranspired],
-    },
-    noTokensFoundError: {
-        code: ClientAuthErrorCodes.noTokensFound,
-        desc: ClientAuthErrorMessages[ClientAuthErrorCodes.noTokensFound],
     },
     multipleMatchingTokens: {
         code: ClientAuthErrorCodes.multipleMatchingTokens,
@@ -203,12 +177,6 @@ export const ClientAuthErrorMessage = {
     tokenRequestCannotBeMade: {
         code: ClientAuthErrorCodes.requestCannotBeMade,
         desc: ClientAuthErrorMessages[ClientAuthErrorCodes.requestCannotBeMade],
-    },
-    appendEmptyScopeError: {
-        code: ClientAuthErrorCodes.cannotAppendEmptyScope,
-        desc: ClientAuthErrorMessages[
-            ClientAuthErrorCodes.cannotAppendEmptyScope
-        ],
     },
     removeEmptyScopeError: {
         code: ClientAuthErrorCodes.cannotRemoveEmptyScope,
@@ -262,23 +230,9 @@ export const ClientAuthErrorMessage = {
         code: ClientAuthErrorCodes.noAccountFound,
         desc: ClientAuthErrorMessages[ClientAuthErrorCodes.noAccountFound],
     },
-    CachePluginError: {
-        code: ClientAuthErrorCodes.noCachePlugin,
-        desc: ClientAuthErrorMessages[ClientAuthErrorCodes.noCachePlugin],
-    },
     noCryptoObj: {
         code: ClientAuthErrorCodes.noCryptoObject,
         desc: ClientAuthErrorMessages[ClientAuthErrorCodes.noCryptoObject],
-    },
-    invalidCacheType: {
-        code: ClientAuthErrorCodes.invalidCacheType,
-        desc: ClientAuthErrorMessages[ClientAuthErrorCodes.invalidCacheType],
-    },
-    unexpectedAccountType: {
-        code: ClientAuthErrorCodes.unexpectedAccountType,
-        desc: ClientAuthErrorMessages[
-            ClientAuthErrorCodes.unexpectedAccountType
-        ],
     },
     unexpectedCredentialType: {
         code: ClientAuthErrorCodes.unexpectedCredentialType,
@@ -316,18 +270,6 @@ export const ClientAuthErrorMessage = {
         code: ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse,
         desc: ClientAuthErrorMessages[
             ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
-        ],
-    },
-    noAzureRegionDetected: {
-        code: ClientAuthErrorCodes.noAzureRegionDetected,
-        desc: ClientAuthErrorMessages[
-            ClientAuthErrorCodes.noAzureRegionDetected
-        ],
-    },
-    accessTokenEntityNullError: {
-        code: ClientAuthErrorCodes.accessTokenEntityNull,
-        desc: ClientAuthErrorMessages[
-            ClientAuthErrorCodes.accessTokenEntityNull
         ],
     },
     bindingKeyNotRemovedError: {
