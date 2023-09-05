@@ -14,8 +14,9 @@ import {
 import {
     AccountInfo,
     AuthenticationResult,
-    ClientAuthError,
+    ClientAuthErrorCodes,
     ClientConfigurationError,
+    createClientAuthError,
     InteractionRequiredAuthError,
     NativeRequest,
     NativeSignOutRequest,
@@ -1330,7 +1331,7 @@ if (process.platform === "win32") {
                 await expect(
                     nativeBrokerPlugin.signOut(request)
                 ).rejects.toThrowError(
-                    ClientAuthError.createNoAccountFoundError()
+                    createClientAuthError(ClientAuthErrorCodes.noAccountFound)
                 );
             });
 
@@ -1596,7 +1597,9 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual(
-                            ClientAuthError.createNoNetworkConnectivityError()
+                            createClientAuthError(
+                                ClientAuthErrorCodes.noNetworkConnectivity
+                            )
                         );
                         done();
                     });
@@ -1653,7 +1656,9 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual(
-                            ClientAuthError.createNoNetworkConnectivityError()
+                            createClientAuthError(
+                                ClientAuthErrorCodes.noNetworkConnectivity
+                            )
                         );
                         done();
                     });
@@ -1764,7 +1769,9 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual(
-                            ClientAuthError.createUserCanceledError()
+                            createClientAuthError(
+                                ClientAuthErrorCodes.userCanceled
+                            )
                         );
                         done();
                     });
@@ -1938,7 +1945,9 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual(
-                            ClientAuthError.createNoAccountFoundError()
+                            createClientAuthError(
+                                ClientAuthErrorCodes.noAccountFound
+                            )
                         );
                         done();
                     });

@@ -12,7 +12,6 @@ import {
     ClientConfiguration,
     Constants,
     PkceCodes,
-    ClientAuthError,
     AccountEntity,
     AppMetadataEntity,
     ThrottlingEntity,
@@ -27,6 +26,8 @@ import {
     Logger,
     LogLevel,
     TokenKeys,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -293,8 +294,10 @@ export class ClientTestUtils {
             logger
         );
 
-        await authority.resolveEndpointsAsync().catch((error) => {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
+        await authority.resolveEndpointsAsync().catch(() => {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
+            );
         });
 
         return {
