@@ -2,6 +2,41 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Tue, 05 Sep 2023 22:13:47 GMT",
+      "version": "3.0.3",
+      "tag": "@azure/msal-angular_v3.0.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "a5a93f9944739924d73917b49ebaab2430b87743",
+            "comment": "Add a linter rule to avoid floating promises #6421"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "0046b300428f9c0899af70fa30eac02a93b39cc7",
+            "comment": "Fix for source-map related errors #6398"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.1.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "7b0c4cbfc05b32145acbbb9308d945eb4dd85d31",
+            "comment": "Update lint step"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 18 Aug 2023 18:40:03 GMT",
       "tag": "@azure/msal-angular_v3.0.2",
       "version": "3.0.2",

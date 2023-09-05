@@ -2,6 +2,79 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 05 Sep 2023 22:13:47 GMT",
+      "version": "14.0.3",
+      "tag": "@azure/msal-common_v14.0.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "dc5ec8dd1491c5d07971e215f9a74f900bb30af6",
+            "comment": "Clear claims from cache when config is not set #6430"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "72e3963095f82c3a0f4d21b2e2d4e4a25dfa60a9",
+            "comment": "Make AuthToken methods instead of class #6423"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "a5a93f9944739924d73917b49ebaab2430b87743",
+            "comment": "Add a linter rule to avoid floating promises #6421"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0046b300428f9c0899af70fa30eac02a93b39cc7",
+            "comment": "Fix for source-map related errors #6398"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5d050542c3f24a5d5ded1b9b1eb7e49d73cd5b8d",
+            "comment": "Make `eventName` of type string for `BrowserPerformanceClient` and `PerformanceClient` #6386"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ca09bbd8c4ea6848d95a552b08dce2d7ccd8fcae",
+            "comment": "Add invoke and invokeAsync to wrap functions with logging/telemetry #6383"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7b0c4cbfc05b32145acbbb9308d945eb4dd85d31",
+            "comment": "Update lint step"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "1e7ac8c21451783cc25303e9be5713daa1350343",
+            "comment": "shared jest config"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "rgins16@gmail.com",
+            "package": "@azure/msal-common",
+            "commit": "908e97f68b3d3732750c09c80b1bd702f98c2949",
+            "comment": "Extend proactive token refresh to client_credentials #6102"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "566f47811deff3c282513ec19e45be58dbda294d",
+            "comment": "Remove isEmpty helper API"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 18 Aug 2023 18:40:02 GMT",
       "tag": "@azure/msal-common_v14.0.2",
       "version": "14.0.2",
