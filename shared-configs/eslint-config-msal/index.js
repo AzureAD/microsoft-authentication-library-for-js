@@ -4,7 +4,8 @@ module.exports = {
         "sourceType": "module",
         "ecmaFeatures": {
             "modules": true
-        }
+        },
+        "project": "./tsconfig.json"
     },
     "plugins": [
         "security",
@@ -61,6 +62,7 @@ module.exports = {
         "@typescript-eslint/no-object-literal-type-assertion": 0,
         "@typescript-eslint/no-unused-vars": 2,
         "@typescript-eslint/prefer-interface": 0,
+        "@typescript-eslint/no-floating-promises": 2,
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [
