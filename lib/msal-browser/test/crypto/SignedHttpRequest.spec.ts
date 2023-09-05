@@ -4,6 +4,7 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { createHash } from "crypto";
 import { AuthToken, Logger } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
+import { base64Decode } from "../../src/encode/Base64Decode";
 
 let mockDatabase = {
     "TestDB.keys": {},
@@ -81,7 +82,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
 
         const decodedToken = AuthToken.extractTokenClaims(
             popToken,
-            new CryptoOps(new Logger({}))
+            base64Decode
         );
 
         expect(decodedToken.nonce).toEqual("test-nonce");

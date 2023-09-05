@@ -25,7 +25,7 @@ import {
     ActiveAccountFilters,
     CcsCredential,
     CcsCredentialType,
-    IdToken,
+    AuthToken,
     ValidCredentialType,
     ClientAuthError,
     TokenKeys,
@@ -1792,6 +1792,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Returns username retrieved from ADAL or MSAL v1 idToken
+     * @deprecated
      */
     getLegacyLoginHint(): string | null {
         // Only check for adal/msal token if no SSO params are being used
@@ -1817,23 +1818,20 @@ export class BrowserCacheManager extends CacheManager {
 
         const cachedIdTokenString = msalIdTokenString || adalIdTokenString;
         if (cachedIdTokenString) {
-            const cachedIdToken = new IdToken(
+            const idTokenClaims = AuthToken.extractTokenClaims(
                 cachedIdTokenString,
-                this.cryptoImpl
+                base64Decode
             );
-            if (
-                cachedIdToken.claims &&
-                cachedIdToken.claims.preferred_username
-            ) {
+            if (idTokenClaims.preferred_username) {
                 this.logger.verbose(
                     "No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 preferred_username as loginHint"
                 );
-                return cachedIdToken.claims.preferred_username;
-            } else if (cachedIdToken.claims && cachedIdToken.claims.upn) {
+                return idTokenClaims.preferred_username;
+            } else if (idTokenClaims.upn) {
                 this.logger.verbose(
                     "No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 upn as loginHint"
                 );
-                return cachedIdToken.claims.upn;
+                return idTokenClaims.upn;
             } else {
                 this.logger.verbose(
                     "No SSO params used and ADAL/MSAL v1 token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO."
