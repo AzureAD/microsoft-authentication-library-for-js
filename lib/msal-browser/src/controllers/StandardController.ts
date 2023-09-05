@@ -293,12 +293,15 @@ export class StandardController implements IController {
             this.logger.verbose(
                 "Claims-based caching is disabled. Clearing the previous cache with claims"
             );
-            const claimsTokensRemovalMeasurement =
-                this.performanceClient.startMeasurement(
-                    PerformanceEvents.ClearTokensAndKeysWithClaims
-                );
-            await this.browserStorage.clearTokensAndKeysWithClaims();
-            claimsTokensRemovalMeasurement.end({ success: true });
+
+            await invokeAsync(
+                this.browserStorage.clearTokensAndKeysWithClaims.bind(
+                    this.browserStorage
+                ),
+                PerformanceEvents.ClearTokensAndKeysWithClaims,
+                this.logger,
+                this.performanceClient
+            )();
         }
 
         this.initialized = true;
