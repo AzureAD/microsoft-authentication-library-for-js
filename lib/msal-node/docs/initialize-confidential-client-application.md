@@ -14,11 +14,18 @@ In this document:
 
 In order to use MSAL Node, you need to instantiate a [ConfidentialClient](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.confidentialclientapplication.html) object.
 
+### Using secrets and certificates securely
+
+Secrets should never be hardcoded. The dotenv npm package can be used to store secrets or certificates in a .env file (located in project's root directory) that should be included in .gitignore to prevent accidental uploads of the secrets.
+
+Certificates can also be read-in from files via NodeJS's fs module. However, they should never be stored in the project's directory. Production apps should fetch certificates from [Azure KeyVault](https://azure.microsoft.com/products/key-vault), or other secure key vaults.
+
+Please see [certificates and secrets](https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets) for more information.
+
+See the MSAL sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
+
 ```javascript
 import * as msal from "@azure/msal-node";
-// Due to security reasons, secrets should not be hardcoded.
-// The dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
-// that should be included in .gitignore.
 import "dotenv/config"; // process.env now has the values defined in a .env file
 
 const clientConfig = {
@@ -63,7 +70,13 @@ If your application audience is a single tenant, you must provide an authority w
 For more information on authority, please refer to: [Authority in MSAL](../../msal-common/docs/authority.md).
 
 ## Advanced Configuration
+
 [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) has more options which are documented [here](./configuration.md).
 
+## Common Issues
+
+Please refer to [Common issues when importing certificates](./certificate-credentials.md#common-issues).
+
 ## Next Steps
+
 Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](request.md)

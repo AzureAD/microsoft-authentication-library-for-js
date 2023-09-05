@@ -4,11 +4,12 @@ When MSAL Node acquires a token, it caches it in memory for future usage. MSAL N
 
 > :information_source: MSAL does not expose refresh tokens for security reasons. See [FAQ: How do I get the Refresh Token](./faq.md#how-do-i-get-the-refresh-token) for more.
 
+### Using secrets securely
+
+Secrets should never be hardcoded. The dotenv npm package can be used to store secrets in a .env file (located in project's root directory) that should be included in .gitignore to prevent accidental uploads of the secrets.
+
 ```javascript
 const msal = require('@azure/msal-node');
-// Due to security reasons, secrets should not be hardcoded.
-// The dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
-// that should be included in .gitignore.
 require('dotenv').config(); // process.env now has the values defined in a .env file
 
 // Create msal application object

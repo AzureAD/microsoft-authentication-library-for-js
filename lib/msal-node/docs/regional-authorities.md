@@ -13,11 +13,12 @@ A few important notes about regional authorities:
 ## Confguration
 To configure your application to use regional authorities, you a required to provide a region in the `azureRegion` field in the client credential request body.
 
+### Using secrets securely
+
+Secrets should never be hardcoded. The dotenv npm package can be used to store secrets in a .env file (located in project's root directory) that should be included in .gitignore to prevent accidental uploads of the secrets.
+
 ```js
 var msal = require('@azure/msal-node');
-// Due to security reasons, secrets should not be hardcoded.
-// The dotenv npm package can be used to store secrets in a .env file (located in project's root directory)
-// that should be included in .gitignore.
 require('dotenv').config(); // process.env now has the values defined in a .env file
 
 const config = {
