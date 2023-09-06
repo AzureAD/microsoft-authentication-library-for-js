@@ -28,32 +28,30 @@ See also: [Certificates: converting pfx to pem](./certificate-credentials.md#opt
 
 ## App configuration
 
-The snippet below demonstrates how to initialize MSAL for SNI authentication:
+### Using secrets and certificates securely
+
+Secrets should never be hardcoded. The dotenv npm package can be used to store secrets or certificates in a .env file (located in project's root directory) that should be included in .gitignore to prevent accidental uploads of the secrets.
+
+Certificates can also be read-in from files via NodeJS's fs module. However, they should never be stored in the project's directory. Production apps should fetch certificates from [Azure KeyVault](https://azure.microsoft.com/products/key-vault), or other secure key vaults.
+
+Please see [certificates and secrets](https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets) for more information.
+
+See the MSAL sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
+
+The snippet below demonstrates how to initialize MSAL for Subject Name / Issuer (SNI) authentication:
 
 ```js
 var msal = require('@azure/msal-node');
-
-const privateKey = `-----BEGIN PRIVATE KEY-----
-/**** PRIVATE KEY CONTENT ***/
------END PRIVATE KEY-----`; 
-
-const x5c = `-----BEGIN CERTIFICATE-----
-/ *** CERTIFICATE CONTENT1 ***/
------END CERTIFICATE-----
-
------BEGIN CERTIFICATE-----
-/ *** CERTIFICATE CONTENT2 ***/
------END CERTIFICATE-----
-`; // public key certificate chain. May contain more than 1 certificate sections
+require('dotenv').config(); // process.env now has the values defined in a .env file
 
 const config = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
         clientCertificate: {
-                thumbprint: "ENTER_THUMBPRINT"; // a 40-digit hexadecimal string
-                privateKey: privateKey,
-                x5c: x5c 
+                thumbprint: process.env.thumbprint; // a 40-digit hexadecimal string
+                privateKey: process.env.privateKey,
+                x5c: process.env.x5c 
             }
    }
 }
@@ -63,6 +61,6 @@ const config = {
 const cca = new msal.ConfidentialClientApplication(config);
 ```
 
-## common issues
+## Common Issues
 
 Please refer to [Common issues when importing certificates](./certificate-credentials.md#common-issues).

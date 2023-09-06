@@ -26,16 +26,26 @@ Locate the folder where `package.json` resides in your terminal. Then type:
    - Click on **Upload** certificate and select the certificate file to upload.
    - Click **Add**. Once the certificate is uploaded, the *thumbprint*, *start date*, and *expiration* values are displayed.
 
+### Using secrets and certificates securely
+
+Secrets should never be hardcoded. The dotenv npm package can be used to store secrets or certificates in a .env file (located in project's root directory) that should be included in .gitignore to prevent accidental uploads of the secrets.
+
+Certificates can also be read-in from files via NodeJS's fs module. However, they should never be stored in the project's directory. Production apps should fetch certificates from [Azure KeyVault](https://azure.microsoft.com/products/key-vault), or other secure key vaults.
+
+Please see [certificates and secrets](https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets) for more information.
+
 Before running the sample, you will need to replace the values in the configuration object:
 
 ```javascript
+import "dotenv/config"; // process.env now has the values defined in a .env file
+
 const config = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
         clientCertificate: {
-            thumbprint: "ENTER_CERT_THUMBPRINT",
-            privateKey: "ENTER_CERT_PRIVATE_KEY",
+            thumbprint: process.env.clientCertificate,
+            privateKey: process.env.privateKey,
         }
     }
 };
