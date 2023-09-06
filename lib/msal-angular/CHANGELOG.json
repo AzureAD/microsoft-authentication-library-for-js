@@ -2,6 +2,21 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 06 Sep 2023 17:19:21 GMT",
+      "version": "3.0.4",
+      "tag": "@azure/msal-angular_v3.0.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "a88c48e20021dd4f5aa8535fba21f71a16455ff4",
+            "comment": "Remove `files` from `package.json` that breaks packaging/deploying #6442"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Sep 2023 22:13:47 GMT",
       "version": "3.0.3",
       "tag": "@azure/msal-angular_v3.0.3",
