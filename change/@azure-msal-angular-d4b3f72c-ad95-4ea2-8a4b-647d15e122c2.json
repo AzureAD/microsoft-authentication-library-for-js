@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove `files` from `package.json` that breaks packaging/deploying #6442",
+  "packageName": "@azure/msal-angular",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
