@@ -38,7 +38,7 @@ Please see [certificates and secrets](https://learn.microsoft.com/azure/active-d
 
 See the MSAL sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
 
-The snippet below demonstrates how to initialize MSAL for SNI authentication:
+The snippet below demonstrates how to initialize MSAL for Subject Name / Issuer (SNI) authentication:
 
 ```js
 var msal = require('@azure/msal-node');
