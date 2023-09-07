@@ -759,7 +759,9 @@ describe("ClientCredentialClient unit tests", () => {
          * @param cache config.storageInterface
          * @returns AccessTokenEntity - the access token in the cache
          */
-        const waitUntilAccessTokenInCacheThenReturnIt = async (cache: CacheManager): Promise<AccessTokenEntity | null> => {
+        const waitUntilAccessTokenInCacheThenReturnIt = async (
+            cache: CacheManager
+        ): Promise<AccessTokenEntity | null> => {
             let counter: number = 0;
             return await new Promise((resolve) => {
                 // every one millisecond
@@ -772,11 +774,12 @@ describe("ClientCredentialClient unit tests", () => {
                     // if the access token's key is in the cache
                     if (accessTokenKey) {
                         // use it to get the access token (from the cache)
-                        const accessTokenFromCache: AccessTokenEntity | null = cache.getAccessTokenCredential(accessTokenKey);
+                        const accessTokenFromCache: AccessTokenEntity | null =
+                            cache.getAccessTokenCredential(accessTokenKey);
                         // return it and clear the interval
                         resolve(accessTokenFromCache);
                         clearInterval(interval);
-                    // otherwise, if the access token's key is NOT in the cache (yet)
+                        // otherwise, if the access token's key is NOT in the cache (yet)
                     } else {
                         counter++;
                         // if 2 seconds have elapsed while waiting for the access token's key to be in the cache,
@@ -788,8 +791,11 @@ describe("ClientCredentialClient unit tests", () => {
                 }, 1); // 1 millisecond
             });
         };
-        const accessTokenFromCache: AccessTokenEntity | null = await waitUntilAccessTokenInCacheThenReturnIt(config.storageInterface);
-        
+        const accessTokenFromCache: AccessTokenEntity | null =
+            await waitUntilAccessTokenInCacheThenReturnIt(
+                config.storageInterface
+            );
+
         expect(accessTokenFromCache?.clientId).toEqual(
             expectedAtEntity.clientId
         );
