@@ -1034,9 +1034,13 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: false,
             };
 
+            if (!config.storageInterface) {
+                fail("config.storageInterface is undefined");
+            }
+
             // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache at this point
-            let accessTokenKey = config.storageInterface
-                ?.getKeys()
+            const accessTokenKey: string | undefined = config.storageInterface
+                .getKeys()
                 .find((value) => value.indexOf("accesstoken") >= 0);
             expect(accessTokenKey).toBeUndefined();
 
@@ -1044,19 +1048,45 @@ describe("SilentFlowClient unit tests", () => {
             // to refresh the token. That result will be stored in the cache.
             await client.acquireToken(silentFlowRequest);
 
-            // Wait two seconds for the acquireToken and its mocked network requests to complete,
-            // then check the cache to ensure the refreshed token exists (the network request was successful)
-            await new Promise((r) => setTimeout(r, 2000));
+            /**
+             * Wait up to two seconds for acquireToken and its mocked network requests to complete and
+             * populate the cache (in the background). Periodically check the cache to ensure the refreshed token
+             * exists (the network request was successful).
+             * @param cache config.storageInterface
+             * @returns AccessTokenEntity - the access token in the cache
+             */
+            const waitUntilAccessTokenInCacheThenReturnIt = async (cache: CacheManager): Promise<AccessTokenEntity | null> => {
+                let counter: number = 0;
+                return await new Promise((resolve) => {
+                    // every one millisecond
+                    const interval = setInterval(() => {
+                        // look for the access token's key in the cache
+                        const accessTokenKey = cache
+                            .getKeys()
+                            .find((value) => value.indexOf("accesstoken") >= 0);
 
-            accessTokenKey = config.storageInterface
-                ?.getKeys()
-                .find((value) => value.indexOf("accesstoken") >= 0);
-            const accessTokenCacheItem = accessTokenKey
-                ? config.storageInterface?.getAccessTokenCredential(
-                      accessTokenKey
-                  )
-                : null;
-            expect(accessTokenCacheItem?.clientId).toEqual(
+                        // if the access token's key is in the cache
+                        if (accessTokenKey) {
+                            // use it to get the access token (from the cache)
+                            const accessTokenFromCache: AccessTokenEntity | null = cache.getAccessTokenCredential(accessTokenKey);
+                            // return it and clear the interval
+                            resolve(accessTokenFromCache);
+                            clearInterval(interval);
+                        // otherwise, if the access token's key is NOT in the cache (yet)
+                        } else {
+                            counter++;
+                            // if 2 seconds have elapsed while waiting for the access token's key to be in the cache,
+                            // exit the interval so that this test doesn't time out
+                            if (counter === 2000) {
+                                resolve(null);
+                            }
+                        }
+                    }, 1); // 1 millisecond
+                });
+            };
+            const accessTokenFromCache: AccessTokenEntity | null = await waitUntilAccessTokenInCacheThenReturnIt(config.storageInterface);
+            
+            expect(accessTokenFromCache?.clientId).toEqual(
                 testAccessTokenEntity.clientId
             );
         });

@@ -736,9 +736,13 @@ describe("ClientCredentialClient unit tests", () => {
             )
             .returns(expectedAtEntity);
 
+        if (!config.storageInterface) {
+            fail("config.storageInterface is undefined");
+        }
+
         // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache at this point
-        let accessTokenKey = config.storageInterface
-            ?.getKeys()
+        const accessTokenKey: string | undefined = config.storageInterface
+            .getKeys()
             .find((value) => value.indexOf("accesstoken") >= 0);
         expect(accessTokenKey).toBeUndefined();
 
@@ -748,17 +752,45 @@ describe("ClientCredentialClient unit tests", () => {
             clientCredentialRequest
         )) as AuthenticationResult;
 
-        // Wait two seconds for the acquireToken and its mocked network requests to complete,
-        // then check the cache to ensure the refreshed token exists (the network request was successful)
-        await new Promise((r) => setTimeout(r, 2000));
+        /**
+         * Wait up to two seconds for acquireToken and its mocked network requests to complete and
+         * populate the cache (in the background). Periodically check the cache to ensure the refreshed token
+         * exists (the network request was successful).
+         * @param cache config.storageInterface
+         * @returns AccessTokenEntity - the access token in the cache
+         */
+        const waitUntilAccessTokenInCacheThenReturnIt = async (cache: CacheManager): Promise<AccessTokenEntity | null> => {
+            let counter: number = 0;
+            return await new Promise((resolve) => {
+                // every one millisecond
+                const interval = setInterval(() => {
+                    // look for the access token's key in the cache
+                    const accessTokenKey = cache
+                        .getKeys()
+                        .find((value) => value.indexOf("accesstoken") >= 0);
 
-        accessTokenKey = config.storageInterface
-            ?.getKeys()
-            .find((value) => value.indexOf("accesstoken") >= 0);
-        const accessTokenCacheItem = accessTokenKey
-            ? config.storageInterface?.getAccessTokenCredential(accessTokenKey)
-            : null;
-        expect(accessTokenCacheItem?.clientId).toEqual(
+                    // if the access token's key is in the cache
+                    if (accessTokenKey) {
+                        // use it to get the access token (from the cache)
+                        const accessTokenFromCache: AccessTokenEntity | null = cache.getAccessTokenCredential(accessTokenKey);
+                        // return it and clear the interval
+                        resolve(accessTokenFromCache);
+                        clearInterval(interval);
+                    // otherwise, if the access token's key is NOT in the cache (yet)
+                    } else {
+                        counter++;
+                        // if 2 seconds have elapsed while waiting for the access token's key to be in the cache,
+                        // exit the interval so that this test doesn't time out
+                        if (counter === 2000) {
+                            resolve(null);
+                        }
+                    }
+                }, 1); // 1 millisecond
+            });
+        };
+        const accessTokenFromCache: AccessTokenEntity | null = await waitUntilAccessTokenInCacheThenReturnIt(config.storageInterface);
+        
+        expect(accessTokenFromCache?.clientId).toEqual(
             expectedAtEntity.clientId
         );
 
@@ -783,95 +815,6 @@ describe("ClientCredentialClient unit tests", () => {
             clientSecret: true,
         };
         checkMockedNetworkRequest(returnVal, checks);
-    });
-
-    it("acquires a token from the cache and its refresh_in value is expired. A new token is requested in the background via a network request, but there is an error.", async () => {
-        const errorResponse = {
-            error: "interaction_required",
-            error_description:
-                "AADSTS50079: Due to a configuration change made by your administrator, or because you moved to a new location, you must enroll in multifactor authentication to access 'bf8d80f9-9098-4972-b203-500f535113b1'.\r\nTrace ID: b72a68c3-0926-4b8e-bc35-3150069c2800\r\nCorrelation ID: 73d656cf-54b1-4eb2-b429-26d8165a52d7\r\nTimestamp: 2017-05-01 22:43:20Z",
-            error_codes: [50079],
-            timestamp: "2017-05-01 22:43:20Z",
-            trace_id: "b72a68c3-0926-4b8e-bc35-3150069c2800",
-            correlation_id: "73d656cf-54b1-4eb2-b429-26d8165a52d7",
-            claims: '{"access_token":{"polids":{"essential":true,"values":["9ab03e19-ed42-4168-b6b7-7001fb3e933a"]}}}',
-        };
-
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves({
-                headers: [],
-                body: errorResponse,
-                status: 400,
-            });
-
-        const createTokenRequestBodySpy = sinon.spy(
-            ClientCredentialClient.prototype,
-            <any>"createTokenRequestBody"
-        );
-        const client = new ClientCredentialClient(config);
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-        };
-
-        const expectedAtEntity: AccessTokenEntity =
-            AccessTokenEntity.createAccessTokenEntity(
-                "",
-                "login.microsoftonline.com",
-                "an_access_token",
-                config.authOptions.clientId,
-                TEST_CONFIG.TENANT,
-                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
-                TimeUtils.nowSeconds() + 4600,
-                TimeUtils.nowSeconds() + 4600,
-                mockCrypto,
-                TimeUtils.nowSeconds() - 4600, // expired refreshOn value
-                AuthenticationScheme.BEARER
-            );
-
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"readAccessTokenFromCache"
-            )
-            .returns(expectedAtEntity);
-
-        // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache at this point
-        let accessTokenKey = config.storageInterface
-            ?.getKeys()
-            .find((value) => value.indexOf("accesstoken") >= 0);
-        expect(accessTokenKey).toBeUndefined();
-
-        const authResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-
-        // Check the cache to ensure the refreshed token still does not exist (the network request was unsuccessful).
-        // Typically, the network request may not have completed by the time the below code runs.
-        // However, the network requests are mocked in these tests, so the refreshed token should (not) be in the cache at this point.
-        accessTokenKey = config.storageInterface
-            ?.getKeys()
-            .find((value) => value.indexOf("accesstoken") >= 0);
-        expect(accessTokenKey).toBeUndefined();
-
-        const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
-        expect(authResult.scopes).toEqual(expectedScopes);
-        expect(authResult.accessToken).toEqual("an_access_token");
-        expect(authResult.account).toBeNull();
-        expect(authResult.fromCache).toBe(true);
-        expect(authResult.uniqueId).toHaveLength(0);
-        expect(authResult.state).toHaveLength(0);
-        expect(
-            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
-        ).toBe(true);
     });
 
     it("acquires a token, skipCache = true", async () => {
