@@ -70,13 +70,10 @@ export class RefreshTokenClient extends BaseClient {
             PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
             request.correlationId
         );
-
-        let response;
-        try {
-            response = await this.executeTokenRequest(request, this.authority);
-        } catch (error) {
-            throw error;
-        }
+        const response = await this.executeTokenRequest(
+            request,
+            this.authority
+        );
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
@@ -296,30 +293,25 @@ export class RefreshTokenClient extends BaseClient {
             sshKid: request.sshKid,
         };
 
-        try {
-            const response = await this.executePostToTokenEndpoint(
-                endpoint,
-                requestBody,
-                headers,
-                thumbprint,
-                request.correlationId
-            );
-
-            acquireTokenMeasurement?.end({
-                success: true,
+        return this.executePostToTokenEndpoint(
+            endpoint,
+            requestBody,
+            headers,
+            thumbprint,
+            request.correlationId
+        )
+            .then((result) => {
+                acquireTokenMeasurement?.end({
+                    success: true,
+                });
+                return result;
+            })
+            .catch((error) => {
+                acquireTokenMeasurement?.end({
+                    success: false,
+                });
+                throw error;
             });
-
-            if (!response) {
-                throw ClientAuthError.createTokenNullOrEmptyError("");
-            }
-
-            return response;
-        } catch (error) {
-            acquireTokenMeasurement?.end({
-                success: false,
-            });
-            throw error;
-        }
     }
 
     /**
