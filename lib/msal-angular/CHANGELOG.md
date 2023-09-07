@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Fri, 18 Aug 2023 18:40:03 GMT and should not be manually modified.
+This log was last generated on Wed, 06 Sep 2023 17:19:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.0.4
+
+Wed, 06 Sep 2023 17:19:21 GMT
+
+### Patches
+
+- Remove `files` from `package.json` that breaks packaging/deploying #6442 (kshabelko@microsoft.com)
+
+## 3.0.3
+
+Tue, 05 Sep 2023 22:13:47 GMT
+
+### Patches
+
+- Add a linter rule to avoid floating promises #6421 (sameera.gajjarapu@microsoft.com)
+- Fix for source-map related errors #6398 (lalimasharda@microsoft.com)
+- Bump @azure/msal-browser to v3.1.0
 
 ## 3.0.2
 

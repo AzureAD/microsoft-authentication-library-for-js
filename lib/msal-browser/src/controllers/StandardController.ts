@@ -66,7 +66,10 @@ import { SilentRequest } from "../request/SilentRequest";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
@@ -240,7 +243,7 @@ export class StandardController implements IController {
         operatingContext: BaseOperatingContext
     ): Promise<IController> {
         const controller = new StandardController(operatingContext);
-        controller.initialize();
+        await controller.initialize();
         return controller;
     }
 
@@ -285,6 +288,22 @@ export class StandardController implements IController {
                 this.logger.verbose(e as string);
             }
         }
+
+        if (!this.config.cache.claimsBasedCachingEnabled) {
+            this.logger.verbose(
+                "Claims-based caching is disabled. Clearing the previous cache with claims"
+            );
+
+            await invokeAsync(
+                this.browserStorage.clearTokensAndKeysWithClaims.bind(
+                    this.browserStorage
+                ),
+                PerformanceEvents.ClearTokensAndKeysWithClaims,
+                this.logger,
+                this.performanceClient
+            )();
+        }
+
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
 
@@ -524,7 +543,7 @@ export class StandardController implements IController {
                         );
                         return redirectClient.acquireToken(request);
                     }
-                    this.browserStorage.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -602,7 +621,7 @@ export class StandardController implements IController {
         if (this.canUseNative(request)) {
             result = this.acquireTokenNative(request, ApiId.acquireTokenPopup)
                 .then((response) => {
-                    this.browserStorage.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
@@ -626,7 +645,7 @@ export class StandardController implements IController {
                         );
                         return popupClient.acquireToken(request);
                     }
-                    this.browserStorage.setInteractionInProgress(false);
+                    this.getBrowserStorage().setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -847,7 +866,9 @@ export class StandardController implements IController {
         try {
             if (request.code && request.nativeAccountId) {
                 // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
-                throw BrowserAuthError.createSpaCodeAndNativeAccountIdPresentError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent
+                );
             } else if (request.code) {
                 const hybridAuthCode = request.code;
                 let response = this.hybridAuthCodeResponses.get(hybridAuthCode);
@@ -916,10 +937,14 @@ export class StandardController implements IController {
                         throw e;
                     });
                 } else {
-                    throw BrowserAuthError.createUnableToAcquireTokenFromNativePlatformError();
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform
+                    );
                 }
             } else {
-                throw BrowserAuthError.createAuthCodeOrNativeAccountIdRequiredError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
+                );
             }
         } catch (e) {
             this.eventHandler.emitEvent(
@@ -1378,7 +1403,7 @@ export class StandardController implements IController {
 
         // Set interaction in progress temporary cache or throw if alread set.
         if (setInteractionInProgress) {
-            this.browserStorage.setInteractionInProgress(true);
+            this.getBrowserStorage().setInteractionInProgress(true);
         }
     }
 
@@ -1393,7 +1418,9 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
-            throw BrowserAuthError.createNativeConnectionNotEstablishedError();
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.nativeConnectionNotEstablished
+            );
         }
 
         const nativeClient = new NativeInteractionClient(
@@ -1713,20 +1740,6 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the native internal storage
-     */
-    public getNativeInternalStorage(): BrowserCacheManager {
-        return this.nativeInternalStorage;
-    }
-
-    /**
-     * Returns the instance of interface for crypto functions
-     */
-    public getBrowserCrypto(): ICrypto {
-        return this.browserCrypto;
-    }
-
-    /**
      * Returns the browser env indicator
      */
     public isBrowserEnv(): boolean {
@@ -1734,41 +1747,10 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the native message handler
-     */
-    getNativeExtensionProvider(): NativeMessageHandler | undefined {
-        return this.nativeExtensionProvider;
-    }
-
-    /**
-     * Sets the native message handler
-     * @param provider {?NativeMessageHandler}
-     */
-    setNativeExtensionProvider(
-        provider: NativeMessageHandler | undefined
-    ): void {
-        this.nativeExtensionProvider = provider;
-    }
-
-    /**
      * Returns the event handler
      */
     getEventHandler(): EventHandler {
         return this.eventHandler;
-    }
-
-    /**
-     * Returns the navigation client
-     */
-    getNavigationClient(): INavigationClient {
-        return this.navigationClient;
-    }
-
-    /**
-     * Returns the redirect response map
-     */
-    getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
-        return this.redirectResponse;
     }
 
     /**
@@ -1855,7 +1837,7 @@ export class StandardController implements IController {
 
         const account = request.account || this.getActiveAccount();
         if (!account) {
-            throw BrowserAuthError.createNoAccountError();
+            throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
         }
 
         const thumbprint: RequestThumbprint = {

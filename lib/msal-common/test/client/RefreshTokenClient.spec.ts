@@ -41,7 +41,7 @@ import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { CommonSilentFlowRequest } from "../../src/request/CommonSilentFlowRequest";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
-import { AuthToken } from "../../src/account/AuthToken";
+import * as AuthToken from "../../src/account/AuthToken";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";

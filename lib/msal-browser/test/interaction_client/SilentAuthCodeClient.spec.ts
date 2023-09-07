@@ -22,7 +22,10 @@ import {
     AuthenticationScheme,
     NetworkManager,
 } from "@azure/msal-common";
-import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
@@ -86,7 +89,7 @@ describe("SilentAuthCodeClient", () => {
                     code: "",
                 })
             ).rejects.toMatchObject(
-                BrowserAuthError.createAuthCodeRequiredError()
+                createBrowserAuthError(BrowserAuthErrorCodes.authCodeRequired)
             );
         });
 
@@ -249,7 +252,9 @@ describe("SilentAuthCodeClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentAuthCodeClient.logout).rejects.toMatchObject(
-                BrowserAuthError.createSilentLogoutUnsupportedError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.silentLogoutUnsupported
+                )
             );
         });
     });

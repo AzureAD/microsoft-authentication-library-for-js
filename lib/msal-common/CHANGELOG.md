@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Fri, 18 Aug 2023 18:40:02 GMT and should not be manually modified.
+This log was last generated on Tue, 05 Sep 2023 22:13:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.0.3
+
+Tue, 05 Sep 2023 22:13:47 GMT
+
+### Patches
+
+- Clear claims from cache when config is not set #6430 (sameera.gajjarapu@microsoft.com)
+- Make AuthToken methods instead of class #6423 (thomas.norling@microsoft.com)
+- Add a linter rule to avoid floating promises #6421 (sameera.gajjarapu@microsoft.com)
+- Fix for source-map related errors #6398 (lalimasharda@microsoft.com)
+- Make `eventName` of type string for `BrowserPerformanceClient` and `PerformanceClient` #6386 (kshabelko@microsoft.com)
+- Add invoke and invokeAsync to wrap functions with logging/telemetry #6383 (thomas.norling@microsoft.com)
+
+### Changes
+
+- Extend proactive token refresh to client_credentials #6102 (rgins16@gmail.com)
+- Remove isEmpty helper API (thomas.norling@microsoft.com)
 
 ## 14.0.2
 

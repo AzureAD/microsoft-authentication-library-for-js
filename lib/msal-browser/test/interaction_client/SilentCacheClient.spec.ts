@@ -4,7 +4,7 @@
  */
 
 import sinon from "sinon";
-import { PublicClientApplication, BrowserAuthError } from "../../src";
+import { PublicClientApplication } from "../../src";
 import {
     TEST_CONFIG,
     ID_TOKEN_CLAIMS,
@@ -23,7 +23,6 @@ import {
     TimeUtils,
     AuthenticationResult,
     AccountInfo,
-    Authority,
 } from "@azure/msal-common";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
@@ -108,6 +107,7 @@ describe("SilentCacheClient", () => {
     });
 
     afterEach(() => {
+        jest.restoreAllMocks();
         sinon.restore();
     });
 
@@ -129,9 +129,6 @@ describe("SilentCacheClient", () => {
                 ),
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);

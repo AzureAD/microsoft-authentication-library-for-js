@@ -8,7 +8,6 @@ import {
     Logger,
     PerformanceCallbackFunction,
     IPerformanceClient,
-    ICrypto,
     CommonSilentFlowRequest,
 } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
@@ -22,11 +21,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { EventHandler } from "../event/EventHandler";
-import { PopupClient } from "../interaction_client/PopupClient";
-import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
@@ -123,54 +118,14 @@ export interface IController {
     isBrowserEnv(): boolean;
 
     /** @internal */
-    getBrowserStorage(): BrowserCacheManager;
-
-    /** @internal */
-    getNativeInternalStorage(): BrowserCacheManager;
-
-    /** @internal */
-    getBrowserCrypto(): ICrypto;
-
-    /** @internal */
     getPerformanceClient(): IPerformanceClient;
 
     /** @internal */
-    getNativeExtensionProvider(): NativeMessageHandler | undefined;
-
-    /** @internal */
-    setNativeExtensionProvider(
-        provider: NativeMessageHandler | undefined
-    ): void;
-
-    /** @internal */
-    getNativeAccountId(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest
-    ): string;
-
-    /** @internal */
     getEventHandler(): EventHandler;
-
-    /** @internal */
-    getNavigationClient(): INavigationClient;
-
-    /** @internal */
-    getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>>;
 
     /** @internal */
     preflightBrowserEnvironmentCheck(
         interactionType: InteractionType,
         isAppEmbedded?: boolean
     ): void;
-
-    /** @internal */
-    canUseNative(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest,
-        accountId?: string
-    ): boolean;
-
-    /** @internal */
-    createPopupClient(correlationId?: string): PopupClient;
-
-    /** @internal */
-    createSilentIframeClient(correlationId?: string): SilentIframeClient;
 }

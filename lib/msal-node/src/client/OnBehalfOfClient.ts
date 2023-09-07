@@ -27,8 +27,10 @@ import {
     ResponseHandler,
     ScopeSet,
     TimeUtils,
+    TokenClaims,
     UrlString,
 } from "@azure/msal-common";
+import { EncodingUtils } from "../utils/EncodingUtils";
 
 /**
  * On-Behalf-Of client
@@ -120,16 +122,14 @@ export class OnBehalfOfClient extends BaseClient {
         const cachedIdToken = this.readIdTokenFromCacheForOBO(
             cachedAccessToken.homeAccountId
         );
-        let idTokenObject: AuthToken | undefined;
+        let idTokenClaims: TokenClaims | undefined;
         let cachedAccount: AccountEntity | null = null;
         if (cachedIdToken) {
-            idTokenObject = new AuthToken(
+            idTokenClaims = AuthToken.extractTokenClaims(
                 cachedIdToken.secret,
-                this.config.cryptoInterface
+                EncodingUtils.base64Decode
             );
-            const localAccountId = idTokenObject.claims.oid
-                ? idTokenObject.claims.oid
-                : idTokenObject.claims.sub;
+            const localAccountId = idTokenClaims.oid || idTokenClaims.sub;
             const accountInfo: AccountInfo = {
                 homeAccountId: cachedIdToken.homeAccountId,
                 environment: cachedIdToken.environment,
@@ -158,7 +158,7 @@ export class OnBehalfOfClient extends BaseClient {
             },
             true,
             request,
-            idTokenObject
+            idTokenClaims
         );
     }
 

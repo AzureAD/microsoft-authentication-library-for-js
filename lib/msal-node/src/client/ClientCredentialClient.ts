@@ -73,7 +73,7 @@ export class ClientCredentialClient extends BaseClient {
 
                 // refresh the access token in the background
                 const refreshAccessToken = true;
-                this.executeTokenRequest(
+                await this.executeTokenRequest(
                     request,
                     this.authority,
                     refreshAccessToken

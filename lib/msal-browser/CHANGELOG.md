@@ -1,8 +1,35 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Fri, 18 Aug 2023 18:40:03 GMT and should not be manually modified.
+This log was last generated on Tue, 05 Sep 2023 22:13:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.1.0
+
+Tue, 05 Sep 2023 22:13:47 GMT
+
+### Minor changes
+
+- Remove legacy code (IE11 Detection, XHRClient and custom GUID Generator) (thomas.norling@microsoft.com)
+- Remove redundant controller internal methods and classes from internals #6413 (kshabelko@microsoft.com)
+- New API to silently clear cache #6374 (lalimasharda@microsoft.com)
+- Remove browser internals #6420 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.0.3
+
+### Patches
+
+- Clear claims from cache when config is not set #6430 (sameera.gajjarapu@microsoft.com)
+- Add a linter rule to avoid floating promises #6421 (sameera.gajjarapu@microsoft.com)
+- Make AuthToken methods instead of class #6423 (thomas.norling@microsoft.com)
+- Make `eventName` of type string for `BrowserPerformanceClient` and `PerformanceClient` #6386 (kshabelko@microsoft.com)
+- Refactor BrowserAuthError to reduce size (thomas.norling@microsoft.com)
+- Make base64 encoder and decoder methods instead of classes #6416 (thomas.norling@microsoft.com)
+- Instrument ssoSilent #6383 (thomas.norling@microsoft.com)
+- Fix for source-map related errors #6398 (lalimasharda@microsoft.com)
+
+### Changes
+
+- Remove isEmpty helper API (thomas.norling@microsoft.com)
 
 ## 3.0.2
 
