@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Remove isEmpty helper API",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -16,12 +16,13 @@ import {
     ServerError,
     IPerformanceClient,
     PerformanceEvents,
+    invokeAsync,
 } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import {
-    BrowserAuthError,
-    BrowserAuthErrorMessage,
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { AuthenticationResult } from "../response/AuthenticationResult";
@@ -69,7 +70,7 @@ export class InteractionHandler {
         this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (!locationHash) {
-            throw BrowserAuthError.createEmptyHashError();
+            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
         }
 
         // Handle code response.
@@ -88,10 +89,12 @@ export class InteractionHandler {
         } catch (e) {
             if (
                 e instanceof ServerError &&
-                e.subError === BrowserAuthErrorMessage.userCancelledError.code
+                e.subError === BrowserAuthErrorCodes.userCancelled
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
-                throw BrowserAuthError.createUserCancelledError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.userCancelled
+                );
             } else {
                 throw e;
             }
@@ -177,14 +180,13 @@ export class InteractionHandler {
         }
 
         // Acquire token with retrieved code.
-        this.performanceClient.setPreQueueTime(
+        const tokenResponse = (await invokeAsync(
+            this.authModule.acquireToken.bind(this.authModule),
             PerformanceEvents.AuthClientAcquireToken,
+            this.logger,
+            this.performanceClient,
             this.authCodeRequest.correlationId
-        );
-        const tokenResponse = (await this.authModule.acquireToken(
-            this.authCodeRequest,
-            authCodeResponse
-        )) as AuthenticationResult;
+        )(this.authCodeRequest, authCodeResponse)) as AuthenticationResult;
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }

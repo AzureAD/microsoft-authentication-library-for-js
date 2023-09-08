@@ -4,7 +4,10 @@
  */
 
 import { AuthError, InteractionRequiredAuthError } from "@azure/msal-common";
-import { BrowserAuthError } from "./BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "./BrowserAuthError";
 
 export type OSError = {
     error?: number;
@@ -101,9 +104,13 @@ export class NativeAuthError extends AuthError {
                 case NativeStatusCode.USER_INTERACTION_REQUIRED:
                     return new InteractionRequiredAuthError(code, description);
                 case NativeStatusCode.USER_CANCEL:
-                    return BrowserAuthError.createUserCancelledError();
+                    return createBrowserAuthError(
+                        BrowserAuthErrorCodes.userCancelled
+                    );
                 case NativeStatusCode.NO_NETWORK:
-                    return BrowserAuthError.createNoNetworkConnectivityError();
+                    return createBrowserAuthError(
+                        BrowserAuthErrorCodes.noNetworkConnectivity
+                    );
             }
         }
 

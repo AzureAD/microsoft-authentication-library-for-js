@@ -5,7 +5,6 @@ import {
     AuthenticationResult,
     AuthenticationScheme,
     Authority,
-    AuthToken,
     BaseClient,
     CacheManager,
     ClientAuthError,
@@ -24,7 +23,6 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     DSTS_OPENID_CONFIG_RESPONSE,
-    ID_TOKEN_CLAIMS,
     TEST_CONFIG,
     TEST_TOKENS,
 } from "../test_kit/StringConstants";
@@ -221,12 +219,6 @@ describe("ClientCredentialClient unit tests", () => {
                 <any>"executePostToTokenEndpoint"
             )
             .resolves(authenticationScopes);
-
-        const idTokenClaims = {
-            ...ID_TOKEN_CLAIMS,
-            tid: "common",
-        };
-        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {

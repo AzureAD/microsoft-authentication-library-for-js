@@ -29,10 +29,10 @@ import {
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
-    TEST_URIS,
 } from "../test_kit/StringConstants";
 import { ID_TOKEN_CLAIMS } from "../utils/TestConstants";
 import { ClientTestUtils } from "./ClientTestUtils";
+import { EncodingUtils } from "../../src/utils/EncodingUtils";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
@@ -63,7 +63,7 @@ testIdToken.homeAccountId = "home_account_id";
 testIdToken.clientId = "client_id_for_id_token";
 testIdToken.environment = "env_id_token";
 testIdToken.realm = "this_is_tid_id_token";
-testIdToken.secret = "id_token";
+testIdToken.secret = TEST_TOKENS.IDTOKEN_V2;
 testIdToken.credentialType = CredentialType.ID_TOKEN;
 
 describe("OnBehalfOf unit tests", () => {
@@ -74,45 +74,6 @@ describe("OnBehalfOf unit tests", () => {
             .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
             .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         config = await ClientTestUtils.createTestClientConfiguration();
-        // Set up required objects and mocked return values
-        const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
-        config.cryptoInterface!.base64Decode = (input: string): string => {
-            switch (input) {
-                case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                    return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                    return decodedLibState;
-                default:
-                    return input;
-            }
-        };
-
-        config.cryptoInterface!.base64Encode = (input: string): string => {
-            switch (input) {
-                case "123-test-uid":
-                    return "MTIzLXRlc3QtdWlk";
-                case "456-test-utid":
-                    return "NDU2LXRlc3QtdXRpZA==";
-                case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                    return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                default:
-                    return input;
-            }
-        };
-
-        // Set up stubs
-        const idTokenClaims = {
-            ver: "2.0",
-            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            exp: 1536361411,
-            name: "Abe Lincoln",
-            preferred_username: "AbeLi@microsoft.com",
-            oid: "00000000-0000-0000-66f3-3332eca7ea81",
-            tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-            nonce: "123523",
-        };
-        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
     });
 
     afterEach(() => {
@@ -375,15 +336,15 @@ describe("OnBehalfOf unit tests", () => {
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new OnBehalfOfClient(config);
-            const idToken: AuthToken = new AuthToken(
+            const idTokenClaims = AuthToken.extractTokenClaims(
                 TEST_TOKENS.IDTOKEN_V2,
-                config.cryptoInterface!
+                EncodingUtils.base64Decode
             );
             const expectedAccountEntity: AccountEntity =
                 AccountEntity.createAccount(
                     {
                         homeAccountId: "123-test-uid.456-test-uid",
-                        idTokenClaims: idToken.claims,
+                        idTokenClaims: idTokenClaims,
                     },
                     config.authOptions.authority
                 );

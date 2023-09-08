@@ -1,10 +1,11 @@
-{
+module.exports = {
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "sourceType": "module",
         "ecmaFeatures": {
             "modules": true
-        }
+        },
+        "project": "./tsconfig.json"
     },
     "plugins": [
         "security",
@@ -21,6 +22,12 @@
         "plugin:security/recommended",
         "plugin:import/typescript",
         "prettier"
+    ],
+    "ignorePatterns": [
+        "*.d.ts",
+        "*.spec.ts",
+        "**/*/dist",
+        "samples"
     ],
     "rules": {
         "@angular-eslint/component-class-suffix": 2,
@@ -55,6 +62,7 @@
         "@typescript-eslint/no-object-literal-type-assertion": 0,
         "@typescript-eslint/no-unused-vars": 2,
         "@typescript-eslint/prefer-interface": 0,
+        "@typescript-eslint/no-floating-promises": 2,
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [
@@ -149,4 +157,4 @@
             "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
         }
     }
-}
+};

@@ -1,6 +1,6 @@
 import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
 import { mockAccountEntity, mockIdTokenEntity } from "./cacheConstants";
-import { AuthToken } from "../../../src/account/AuthToken";
+import * as AuthToken from "../../../src/account/AuthToken";
 import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { CacheAccountType, Constants } from "../../../src/utils/Constants";
 import {
@@ -152,21 +152,19 @@ describe("AccountEntity.ts Unit Tests", () => {
             tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
             nonce: "123523",
         };
-        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken.claims
+            idTokenClaims
         );
 
         const acc = AccountEntity.createAccount(
             {
                 homeAccountId,
-                idTokenClaims: idToken.claims,
+                idTokenClaims: idTokenClaims,
             },
             authority
         );
@@ -194,21 +192,19 @@ describe("AccountEntity.ts Unit Tests", () => {
             tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
             nonce: "123523",
         };
-        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken.claims
+            idTokenClaims
         );
 
         const acc = AccountEntity.createAccount(
             {
                 homeAccountId,
-                idTokenClaims: idToken.claims,
+                idTokenClaims: idTokenClaims,
             },
             authority
         );
@@ -237,21 +233,18 @@ describe("AccountEntity.ts Unit Tests", () => {
             tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
             nonce: "123523",
         };
-        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
-
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken.claims
+            idTokenClaims
         );
 
         const acc = AccountEntity.createAccount(
             {
                 homeAccountId,
-                idTokenClaims: idToken.claims,
+                idTokenClaims: idTokenClaims,
             },
             authority
         );
@@ -286,21 +279,19 @@ describe("AccountEntity.ts Unit Tests", () => {
             tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
             nonce: "123523",
         };
-        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken.claims
+            idTokenClaims
         );
 
         const acc = AccountEntity.createAccount(
             {
                 homeAccountId,
-                idTokenClaims: idToken.claims,
+                idTokenClaims: idTokenClaims,
             },
             authority
         );
@@ -342,14 +333,16 @@ describe("AccountEntity.ts Unit Tests", () => {
             upn: "testupn",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId =
             "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createAccount(
             {
                 homeAccountId,
-                idTokenClaims: idToken.claims,
+                idTokenClaims: AuthToken.extractTokenClaims(
+                    TEST_TOKENS.IDTOKEN_V2,
+                    cryptoInterface.base64Decode
+                ),
             },
             authority
         );
@@ -391,24 +384,19 @@ describe("AccountEntity.ts Unit Tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const idToken = new AuthToken(
-                TEST_TOKENS.IDTOKEN_V2,
-                cryptoInterface
-            );
 
             const homeAccountId = AccountEntity.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
-                idToken.claims
+                idTokenClaims
             );
 
             acc = AccountEntity.createAccount(
                 {
                     homeAccountId,
-                    idTokenClaims: idToken.claims,
+                    idTokenClaims: idTokenClaims,
                 },
                 authority
             );
@@ -623,14 +611,16 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             upn: "testupn",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId =
             "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createAccount(
             {
                 homeAccountId,
-                idTokenClaims: idToken.claims,
+                idTokenClaims: AuthToken.extractTokenClaims(
+                    TEST_TOKENS.IDTOKEN_V2,
+                    cryptoInterface.base64Decode
+                ),
             },
             authority
         );
@@ -674,14 +664,16 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             upn: "testupn",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId =
             "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createAccount(
             {
                 homeAccountId,
-                idTokenClaims: idToken.claims,
+                idTokenClaims: AuthToken.extractTokenClaims(
+                    TEST_TOKENS.IDTOKEN_V2,
+                    cryptoInterface.base64Decode
+                ),
             },
             authority
         );

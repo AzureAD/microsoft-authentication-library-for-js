@@ -73,7 +73,7 @@ export class ClientCredentialClient extends BaseClient {
 
                 // return the cached token, don't wait for the result of this request
                 const refreshAccessToken = true;
-                this.executeTokenRequest(
+                await this.executeTokenRequest(
                     request,
                     this.authority,
                     refreshAccessToken
@@ -251,7 +251,8 @@ export class ClientCredentialClient extends BaseClient {
                 endpoint,
                 requestBody,
                 headers,
-                thumbprint
+                thumbprint,
+                request.correlationId
             );
 
             serverTokenResponse = response.body;

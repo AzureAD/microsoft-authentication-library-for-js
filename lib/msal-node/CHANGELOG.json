@@ -2,6 +2,81 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 05 Sep 2023 22:13:47 GMT",
+      "version": "2.1.0",
+      "tag": "@azure/msal-node_v2.1.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "72e3963095f82c3a0f4d21b2e2d4e4a25dfa60a9",
+            "comment": "Make AuthToken methods instead of class #6423"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a5a93f9944739924d73917b49ebaab2430b87743",
+            "comment": "Add a linter rule to avoid floating promises #6421"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ca09bbd8c4ea6848d95a552b08dce2d7ccd8fcae",
+            "comment": "Include correlationId on POST API call #6383"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0046b300428f9c0899af70fa30eac02a93b39cc7",
+            "comment": "Fix for source-map related errors #6398"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "7e171aa74cd1f32f6bf7de3962dd2a4ad2d6c5aa",
+            "comment": "close loopback server on error #6387"
+          }
+        ],
+        "minor": [
+          {
+            "author": "22598347+datner@users.noreply.github.com",
+            "package": "@azure/msal-node",
+            "commit": "b4924fa82ebe8a58cecfa2d50501e2d0ef678a15",
+            "comment": "feat(msal-node): change all relative imports to .js #6399"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.0.3",
+            "commit": "not available"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "908e97f68b3d3732750c09c80b1bd702f98c2949",
+            "comment": "Extend proactive token refresh to client_credentials #6102"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "566f47811deff3c282513ec19e45be58dbda294d",
+            "comment": "Remove isEmpty helper API"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "7b0c4cbfc05b32145acbbb9308d945eb4dd85d31",
+            "comment": "Update lint step"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 18 Aug 2023 18:40:02 GMT",
       "tag": "@azure/msal-node_v2.0.2",
       "version": "2.0.2",

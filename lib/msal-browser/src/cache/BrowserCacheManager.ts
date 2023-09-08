@@ -25,7 +25,7 @@ import {
     ActiveAccountFilters,
     CcsCredential,
     CcsCredentialType,
-    IdToken,
+    AuthToken,
     ValidCredentialType,
     ClientAuthError,
     TokenKeys,
@@ -34,7 +34,10 @@ import {
     AuthenticationScheme,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import {
     BrowserCacheLocation,
     InteractionType,
@@ -52,6 +55,8 @@ import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
+import { base64Decode } from "../encode/Base64Decode";
+import { base64Encode } from "../encode/Base64Encode";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -504,7 +509,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     async removeAccount(key: string): Promise<void> {
-        super.removeAccount(key);
+        void super.removeAccount(key);
         this.removeAccountKeyFromMap(key);
     }
 
@@ -522,7 +527,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     async removeAccessToken(key: string): Promise<void> {
-        super.removeAccessToken(key);
+        void super.removeAccessToken(key);
         this.removeTokenKey(key, CredentialType.ACCESS_TOKEN);
     }
 
@@ -1347,6 +1352,35 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Clears all access tokes that have claims prior to saving the current one
+     * @param credential
+     * @returns
+     */
+    async clearTokensAndKeysWithClaims(): Promise<void> {
+        const tokenKeys = this.getTokenKeys();
+
+        const removedAccessTokens: Array<Promise<void>> = [];
+        tokenKeys.accessToken.forEach((key: string) => {
+            // if the access token has claims in its key, remove the token key and the token
+            const credential = this.getAccessTokenCredential(key);
+            if (
+                credential?.requestedClaimsHash &&
+                key.includes(credential.requestedClaimsHash.toLowerCase())
+            ) {
+                removedAccessTokens.push(this.removeAccessToken(key));
+            }
+        });
+        await Promise.all(removedAccessTokens);
+
+        // warn if any access tokens are removed
+        if (removedAccessTokens.length > 0) {
+            this.logger.warning(
+                `${removedAccessTokens.length} access tokens with claims in the cache keys have been removed from the cache.`
+            );
+        }
+    }
+
+    /**
      * Add value to cookies
      * @param cookieName
      * @param cookieValue
@@ -1663,15 +1697,10 @@ export class BrowserCacheManager extends CacheManager {
         this.setInteractionInProgress(false);
     }
 
-    cacheCodeRequest(
-        authCodeRequest: CommonAuthorizationCodeRequest,
-        browserCrypto: ICrypto
-    ): void {
+    cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest): void {
         this.logger.trace("BrowserCacheManager.cacheCodeRequest called");
 
-        const encodedValue = browserCrypto.base64Encode(
-            JSON.stringify(authCodeRequest)
-        );
+        const encodedValue = base64Encode(JSON.stringify(authCodeRequest));
         this.setTemporaryCache(
             TemporaryCacheKeys.REQUEST_PARAMS,
             encodedValue,
@@ -1682,10 +1711,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      */
-    getCachedRequest(
-        state: string,
-        browserCrypto: ICrypto
-    ): CommonAuthorizationCodeRequest {
+    getCachedRequest(state: string): CommonAuthorizationCodeRequest {
         this.logger.trace("BrowserCacheManager.getCachedRequest called");
         // Get token request from cache and parse as TokenExchangeParameters.
         const encodedTokenRequest = this.getTemporaryCache(
@@ -1693,14 +1719,22 @@ export class BrowserCacheManager extends CacheManager {
             true
         );
         if (!encodedTokenRequest) {
-            throw BrowserAuthError.createNoTokenRequestCacheError();
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.noTokenRequestCacheError
+            );
         }
 
-        const parsedRequest = this.validateAndParseJson(
-            browserCrypto.base64Decode(encodedTokenRequest)
-        ) as CommonAuthorizationCodeRequest;
-        if (!parsedRequest) {
-            throw BrowserAuthError.createUnableToParseTokenRequestCacheError();
+        let parsedRequest: CommonAuthorizationCodeRequest;
+        try {
+            parsedRequest = JSON.parse(base64Decode(encodedTokenRequest));
+        } catch (e) {
+            this.logger.errorPii(`Attempted to parse: ${encodedTokenRequest}`);
+            this.logger.error(
+                `Parsing cached token request threw with error: ${e}`
+            );
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
+            );
         }
         this.removeItem(
             this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS)
@@ -1711,7 +1745,9 @@ export class BrowserCacheManager extends CacheManager {
             const authorityCacheKey: string = this.generateAuthorityKey(state);
             const cachedAuthority = this.getTemporaryCache(authorityCacheKey);
             if (!cachedAuthority) {
-                throw BrowserAuthError.createNoCachedAuthorityError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.noCachedAuthorityError
+                );
             }
             parsedRequest.authority = cachedAuthority;
         }
@@ -1768,7 +1804,9 @@ export class BrowserCacheManager extends CacheManager {
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         if (inProgress) {
             if (this.getInteractionInProgress()) {
-                throw BrowserAuthError.createInteractionInProgressError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                );
             } else {
                 // No interaction is in progress
                 this.setTemporaryCache(key, this.clientId, false);
@@ -1783,6 +1821,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Returns username retrieved from ADAL or MSAL v1 idToken
+     * @deprecated
      */
     getLegacyLoginHint(): string | null {
         // Only check for adal/msal token if no SSO params are being used
@@ -1808,23 +1847,20 @@ export class BrowserCacheManager extends CacheManager {
 
         const cachedIdTokenString = msalIdTokenString || adalIdTokenString;
         if (cachedIdTokenString) {
-            const cachedIdToken = new IdToken(
+            const idTokenClaims = AuthToken.extractTokenClaims(
                 cachedIdTokenString,
-                this.cryptoImpl
+                base64Decode
             );
-            if (
-                cachedIdToken.claims &&
-                cachedIdToken.claims.preferred_username
-            ) {
+            if (idTokenClaims.preferred_username) {
                 this.logger.verbose(
                     "No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 preferred_username as loginHint"
                 );
-                return cachedIdToken.claims.preferred_username;
-            } else if (cachedIdToken.claims && cachedIdToken.claims.upn) {
+                return idTokenClaims.preferred_username;
+            } else if (idTokenClaims.upn) {
                 this.logger.verbose(
                     "No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 upn as loginHint"
                 );
-                return cachedIdToken.claims.upn;
+                return idTokenClaims.upn;
             } else {
                 this.logger.verbose(
                     "No SSO params used and ADAL/MSAL v1 token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO."

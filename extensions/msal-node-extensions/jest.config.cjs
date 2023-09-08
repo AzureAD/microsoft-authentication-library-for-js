@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
+const jestConfig = require("../../shared-configs/jest-config/jest.config.cjs");
+
 module.exports = {
-    preset: "ts-jest",
+    ...jestConfig,
     testEnvironment: "node",
-    collectCoverageFrom: ["src/**/*.ts"],
-    coverageReporters: [["lcov", { "projectRoot": "../../" }]]
 };

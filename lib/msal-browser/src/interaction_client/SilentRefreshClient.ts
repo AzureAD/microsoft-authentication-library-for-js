@@ -13,7 +13,10 @@ import {
     PerformanceEvents,
 } from "@azure/msal-common";
 import { ApiId } from "../utils/BrowserConstants";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 
 export class SilentRefreshClient extends StandardInteractionClient {
@@ -86,7 +89,9 @@ export class SilentRefreshClient extends StandardInteractionClient {
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
-            BrowserAuthError.createSilentLogoutUnsupportedError()
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.silentLogoutUnsupported
+            )
         );
     }
 

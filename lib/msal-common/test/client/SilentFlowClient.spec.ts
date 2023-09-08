@@ -30,7 +30,7 @@ import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { AccountInfo } from "../../src/account/AccountInfo";
-import { AuthToken } from "../../src/account/AuthToken";
+import * as AuthToken from "../../src/account/AuthToken";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
@@ -120,24 +120,11 @@ describe("SilentFlowClient unit tests", () => {
         sinon.restore();
     });
 
-    const name = "test-client-id";
-    const version = "0.0.1";
     const logger = new Logger({});
-    const applicationTelemetry = {
-        appName: "Test App",
-        appVersion: "1.0.0-test.0",
-    };
 
     let stubPerformanceClient: StubPerformanceClient;
     beforeEach(async () => {
-        stubPerformanceClient = new StubPerformanceClient(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            TEST_CONFIG.validAuthority,
-            logger,
-            name,
-            version,
-            applicationTelemetry
-        );
+        stubPerformanceClient = new StubPerformanceClient();
     });
 
     describe("Constructor", () => {

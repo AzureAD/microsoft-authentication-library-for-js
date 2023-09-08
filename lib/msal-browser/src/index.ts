@@ -13,10 +13,6 @@
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
 
-import * as internals from "./internals";
-/** @internal */
-export { internals };
-
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { IController } from "./controllers/IController";
 export {
@@ -47,6 +43,7 @@ export { BrowserUtils } from "./utils/BrowserUtils";
 export {
     BrowserAuthError,
     BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
 } from "./error/BrowserAuthError";
 export {
     BrowserConfigurationAuthError,
@@ -75,6 +72,10 @@ export { ClearCacheRequest } from "./request/ClearCacheRequest";
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache";
 export { ITokenCache } from "./cache/ITokenCache";
+
+// Storage
+export { MemoryStorage } from "./cache/MemoryStorage";
+export { BrowserStorage } from "./cache/BrowserStorage";
 
 // Events
 export {

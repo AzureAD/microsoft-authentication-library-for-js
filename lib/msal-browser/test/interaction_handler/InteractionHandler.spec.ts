@@ -40,7 +40,10 @@ import {
     RANDOM_TEST_GUID,
     TEST_CRYPTO_VALUES,
 } from "../utils/StringConstants";
-import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
@@ -381,7 +384,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     authorityInstance,
                     authConfig.networkInterface!
                 )
-            ).rejects.toMatchObject(BrowserAuthError.createEmptyHashError());
+            ).rejects.toMatchObject(
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+            );
             //@ts-ignore
             expect(
                 interactionHandler.handleCodeResponseFromHash(
@@ -392,8 +397,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     authConfig.networkInterface
                 )
             ).rejects.toMatchObject(
-                //@ts-ignore
-                BrowserAuthError.createEmptyHashError()
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
         });
 
