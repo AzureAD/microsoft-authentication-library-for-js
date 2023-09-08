@@ -150,10 +150,10 @@ The `useMsalAuthentication` hook will initiate a login if a user is not already 
 
 ### Return Properties
 
-- [result](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#authenticationresult) - The response from the last successful login or token acquisition. Note that this hook only attempts to login or acquire tokens automatically one time. It is the application's responsiblity to call the `login` or `acquireToken` function, when needed, to update this value.
+- [result](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#authenticationresult) - The result from the last successful login or token acquisition. Note that this hook only attempts to login or acquire tokens automatically one time. It is the application's responsiblity to call the `login` or `acquireToken` function, when needed, to update this value.
 - [error](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.autherror.html) - If an error occurs during login or token acquisition this property will contain information about the error. You can use the `login` or `acquireToken` functions returned by this hook to retry. The `error` property will be cleared on the next successful login or token acquisition.
-- `login` - function which can be used to retry a failed login. The `response` and `error` properties will be updated.
-- `acquireToken` - function which can be used to get a new access token before calling a protected API. The `response` and `error` properties will be updated.
+- `login` - function which can be used to retry a failed login. The `result` and `error` properties will be updated.
+- `acquireToken` - function which can be used to get a new access token before calling a protected API. The `result` and `error` properties will be updated.
 
 Note: Passing the "Silent" interaction type will call `ssoSilent` which attempts to open a hidden iframe and reuse an existing session with AAD. This will not work in browsers that block 3rd party cookies such as Safari. Additionally, the request object is required when using the "Silent" type. If you already have the user's sign-in information, you can pass either the `loginHint` or `sid` optional parameters to sign-in a specific account. Note: there are [additional considerations](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) - when using `ssoSilent` without providing any information about the user's session.
 
@@ -215,7 +215,7 @@ export function App() {
         loginHint: "example-username",
         scopes: ["User.Read"]
     }
-    const [login, response, error] = useMsalAuthentication(InteractionType.Popup, request, accountIdentifiers);
+    const { login, result, error } = useMsalAuthentication(InteractionType.Popup, request, accountIdentifiers);
 
     return (
         <React.Fragment>
