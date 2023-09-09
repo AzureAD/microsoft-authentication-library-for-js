@@ -417,11 +417,19 @@ export const RegionDiscoveryOutcomes = {
 export type RegionDiscoveryOutcomes =
     (typeof RegionDiscoveryOutcomes)[keyof typeof RegionDiscoveryOutcomes];
 
+/**
+ * Specifies the reason for fetching the access token from the identity provider
+ */
 export const CacheOutcome = {
+    // When a token is found in the cache or the cache is not supposed to be hit when making the request
     NO_CACHE_HIT: "0",
+    // When the token request goes to the identity provider because force_refresh was set to true. Also occurs if claims were requested
     FORCE_REFRESH: "1",
+    // When the token request goes to the identity provider because no cached access token exists
     NO_CACHED_ACCESS_TOKEN: "2",
+    // When the token request goes to the identity provider because cached access token expired
     CACHED_ACCESS_TOKEN_EXPIRED: "3",
+    // When the token request goes to the identity provider because refresh_in was used and the existing token needs to be refreshed
     REFRESH_CACHED_ACCESS_TOKEN: "4",
 } as const;
 export type CacheOutcome = (typeof CacheOutcome)[keyof typeof CacheOutcome];

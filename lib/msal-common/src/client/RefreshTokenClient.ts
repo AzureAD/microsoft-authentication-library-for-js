@@ -293,25 +293,26 @@ export class RefreshTokenClient extends BaseClient {
             sshKid: request.sshKid,
         };
 
-        return this.executePostToTokenEndpoint(
-            endpoint,
-            requestBody,
-            headers,
-            thumbprint,
-            request.correlationId
-        )
-            .then((result) => {
-                acquireTokenMeasurement?.end({
-                    success: true,
-                });
-                return result;
-            })
-            .catch((error) => {
-                acquireTokenMeasurement?.end({
-                    success: false,
-                });
-                throw error;
+        try {
+            const response = await this.executePostToTokenEndpoint(
+                endpoint,
+                requestBody,
+                headers,
+                thumbprint,
+                request.correlationId
+            );
+
+            acquireTokenMeasurement?.end({
+                success: true,
             });
+
+            return response;
+        } catch (error) {
+            acquireTokenMeasurement?.end({
+                success: false,
+            });
+            throw error;
+        }
     }
 
     /**

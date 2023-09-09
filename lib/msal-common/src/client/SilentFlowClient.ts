@@ -58,18 +58,17 @@ export class SilentFlowClient extends BaseClient {
                     this.config,
                     this.performanceClient
                 );
-                refreshTokenClient.acquireTokenByRefreshToken(request);
-            }
 
-            // reset the last cache outcome
-            this.lastCacheOutcome = CacheOutcome.NO_CACHE_HIT;
+                refreshTokenClient
+                    .acquireTokenByRefreshToken(request)
+                    .catch(() => {
+                        // do nothing, this is running in the background and no action is to be taken upon success or failure
+                    });
+            }
 
             // return the cached token
             return cachedToken;
         } catch (e) {
-            // reset the last cache outcome
-            this.lastCacheOutcome = CacheOutcome.NO_CACHE_HIT;
-
             if (
                 e instanceof ClientAuthError &&
                 e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code
@@ -82,6 +81,9 @@ export class SilentFlowClient extends BaseClient {
             } else {
                 throw e;
             }
+        } finally {
+            // reset the last cache outcome
+            this.lastCacheOutcome = CacheOutcome.NO_CACHE_HIT;
         }
     }
 
