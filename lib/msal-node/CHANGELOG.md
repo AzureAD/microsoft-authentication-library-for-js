@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 24 Aug 2023 18:23:26 GMT and should not be manually modified.
+This log was last generated on Tue, 05 Sep 2023 17:42:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.18.3
+
+Tue, 05 Sep 2023 17:42:26 GMT
+
+### Patches
+
+- Close loopback server on error (thomas.norling@microsoft.com)
 
 ## 1.18.2
 
