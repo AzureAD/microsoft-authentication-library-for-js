@@ -19,9 +19,11 @@ export function useMsal(): MsalContext {
     }
 
     if (inProgress.value === InteractionStatus.Startup) {
-        instance.value.handleRedirectPromise().catch(() => {
-            // Errors should be handled by listening to the LOGIN_FAILURE event
-            return;
+        instance.value.initialize().then(() => {
+            instance.value.handleRedirectPromise().catch(() => {
+                // Errors should be handled by listening to the LOGIN_FAILURE event
+                return;
+            });
         });
     }
 
