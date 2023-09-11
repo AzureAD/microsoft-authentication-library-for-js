@@ -356,6 +356,7 @@ export class Authority {
     protected get defaultOpenIdConfigurationEndpoint(): string {
         const canonicalAuthorityHost = this.hostnameAndPort;
         if (
+            this.canonicalAuthority.endsWith("v2.0/") ||
             this.authorityType === AuthorityType.Adfs ||
             (this.protocolMode !== ProtocolMode.AAD &&
                 !this.isAliasOfKnownMicrosoftAuthority(canonicalAuthorityHost))
