@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Clear claims from cache when config is not set #6430",
-    "packageName": "@azure/msal-browser",
-    "email": "sameera.gajjarapu@microsoft.com",
-    "dependentChangeType": "patch"
-}

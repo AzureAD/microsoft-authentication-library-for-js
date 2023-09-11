@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Make base64 encoder and decoder methods instead of classes #6416",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

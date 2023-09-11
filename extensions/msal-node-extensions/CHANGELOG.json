@@ -2,6 +2,35 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Tue, 05 Sep 2023 22:13:48 GMT",
+      "version": "1.0.3",
+      "tag": "@azure/msal-node-extensions_v1.0.3",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "1e7ac8c21451783cc25303e9be5713daa1350343",
+            "comment": "shared jest config"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "7b0c4cbfc05b32145acbbb9308d945eb4dd85d31",
+            "comment": "Update lint step"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.0.3",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 18 Aug 2023 18:40:02 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.2",
       "version": "1.0.2",
