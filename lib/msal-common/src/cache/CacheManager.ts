@@ -226,7 +226,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private getAllAccountsMultiTenant(): AccountInfo[] {
         const allAccountKeys = this.getAccountKeys();
-        const allAccounts: AccountInfo[] = this.getAllAccounts();
+        const allAccounts: AccountInfo[] = this.getAllCachedAccounts();
         return allAccounts.map((baseAccount: AccountInfo) => {
             // Filter accounts down to those that share homeAccountId with baseAccount
             const filteredTenantProfileKeys = allAccountKeys.filter((key: string) => {
