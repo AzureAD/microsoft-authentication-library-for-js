@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "patch",
   "comment": "doc: JSDoc for deprecated BrowserAuthErrorMessage",
   "packageName": "@azure/msal-browser",
   "email": "renaud.aste@ocea-sb.com",
