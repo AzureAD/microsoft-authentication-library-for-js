@@ -17,6 +17,8 @@
 /extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz
 
 # MSAL Node Confidential Client Regression Tests
+.github/workflows/client-credential-benchmark.yml @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
+.github/workflows/msal-node-confidential-client-benchmarks.yml @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
 /regression-tests/msal-node/ @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
 
 # MSAL React

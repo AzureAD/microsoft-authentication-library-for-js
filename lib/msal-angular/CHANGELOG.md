@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Tue, 05 Sep 2023 22:13:47 GMT and should not be manually modified.
+This log was last generated on Wed, 06 Sep 2023 17:19:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.0.4
+
+Wed, 06 Sep 2023 17:19:21 GMT
+
+### Patches
+
+- Remove `files` from `package.json` that breaks packaging/deploying #6442 (kshabelko@microsoft.com)
 
 ## 3.0.3
 
