@@ -30,7 +30,7 @@ import { AuthenticationScheme } from "../../src/utils/Constants";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import { LogLevel, Logger } from "../../src/logger/Logger";
-import { AuthToken } from "../../src/account/AuthToken";
+import * as AuthToken from "../../src/account/AuthToken";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
 import { TimeUtils } from "../../src/utils/TimeUtils";

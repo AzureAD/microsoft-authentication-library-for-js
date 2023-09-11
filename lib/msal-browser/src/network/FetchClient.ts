@@ -9,7 +9,10 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
 } from "@azure/msal-common";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 /**
@@ -34,12 +37,13 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw BrowserAuthError.createGetRequestFailedError(
-                    e as string,
-                    url
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.getRequestFailed
                 );
             } else {
-                throw BrowserAuthError.createNoNetworkConnectivityError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.noNetworkConnectivity
+                );
             }
         }
 
@@ -50,7 +54,9 @@ export class FetchClient implements INetworkModule {
                 status: response.status,
             };
         } catch (e) {
-            throw BrowserAuthError.createFailedToParseNetworkResponseError(url);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.failedToParseResponse
+            );
         }
     }
 
@@ -75,12 +81,13 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw BrowserAuthError.createPostRequestFailedError(
-                    e as string,
-                    url
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.postRequestFailed
                 );
             } else {
-                throw BrowserAuthError.createNoNetworkConnectivityError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.noNetworkConnectivity
+                );
             }
         }
 
@@ -91,7 +98,9 @@ export class FetchClient implements INetworkModule {
                 status: response.status,
             };
         } catch (e) {
-            throw BrowserAuthError.createFailedToParseNetworkResponseError(url);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.failedToParseResponse
+            );
         }
     }
 

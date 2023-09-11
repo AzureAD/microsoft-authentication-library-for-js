@@ -1,5 +1,8 @@
 import { Logger, LogLevel } from "@azure/msal-common";
-import { BrowserAuthError } from "../../src";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError";
 import { AsyncMemoryStorage } from "../../src/cache/AsyncMemoryStorage";
 
 let mockDatabase = {};
@@ -41,7 +44,9 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     const item = mockDatabase[TEST_DB_TABLE_NAME][kid];
 
                     if (item === DB_UNAVAILABLE) {
-                        throw BrowserAuthError.createDatabaseUnavailableError();
+                        throw createBrowserAuthError(
+                            BrowserAuthErrorCodes.databaseUnavailable
+                        );
                     }
 
                     return item;
@@ -50,7 +55,9 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     callCounter.setItemPersistent += 1;
 
                     if (payload === DB_UNAVAILABLE) {
-                        throw BrowserAuthError.createDatabaseUnavailableError();
+                        throw createBrowserAuthError(
+                            BrowserAuthErrorCodes.databaseUnavailable
+                        );
                     }
 
                     mockDatabase[TEST_DB_TABLE_NAME][kid] = payload;
@@ -61,7 +68,9 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                     const item = mockDatabase[TEST_DB_TABLE_NAME][kid];
 
                     if (item === DB_UNAVAILABLE) {
-                        throw BrowserAuthError.createDatabaseUnavailableError();
+                        throw createBrowserAuthError(
+                            BrowserAuthErrorCodes.databaseUnavailable
+                        );
                     }
 
                     delete mockDatabase[TEST_DB_TABLE_NAME][kid];

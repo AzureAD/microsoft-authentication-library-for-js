@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Make `eventName` of type string for `BrowserPerformanceClient` and `PerformanceClient` #6386",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

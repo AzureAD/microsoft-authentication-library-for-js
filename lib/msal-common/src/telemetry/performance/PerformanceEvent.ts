@@ -263,6 +263,11 @@ export const PerformanceEvents = {
     NativeMessageHandlerHandshake: "nativeMessageHandlerHandshake",
 
     NativeGenerateAuthResult: "nativeGenerateAuthResult",
+
+    /**
+     * Cache operations
+     */
+    ClearTokensAndKeysWithClaims: "clearTokensAndKeysWithClaims",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
