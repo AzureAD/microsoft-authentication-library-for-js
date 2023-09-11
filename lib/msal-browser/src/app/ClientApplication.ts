@@ -788,6 +788,7 @@ export abstract class ClientApplication {
      * This API is provided for convenience but getAccountById should be used for best reliability
      * @param username
      * @returns The account object stored in MSAL
+     * @deprecated - Use getAccountByFilter instead
      */
     getAccountByUsername(username: string): AccountInfo | null {
         this.logger.trace("getAccountByUsername called");
@@ -814,6 +815,7 @@ export abstract class ClientApplication {
      * or null when no matching account is found
      * @param homeAccountId
      * @returns The account object stored in MSAL
+     * @deprecated - Use getAccountByFilter instead
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
         this.logger.trace("getAccountByHomeId called");
@@ -840,6 +842,7 @@ export abstract class ClientApplication {
      * or null when no matching account is found
      * @param localAccountId
      * @returns The account object stored in MSAL
+     * @deprecated - Use getAccountByFilter instead
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
         this.logger.trace("getAccountByLocalId called");
