@@ -41,7 +41,9 @@ export class SilentFlowClient extends BaseClient {
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
         try {
-            const [authResponse, cacheOutcome] = await this.acquireCachedToken(request);
+            const [authResponse, cacheOutcome] = await this.acquireCachedToken(
+                request
+            );
 
             // if the token is not expired but must be refreshed; get a new one in the background
             if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
