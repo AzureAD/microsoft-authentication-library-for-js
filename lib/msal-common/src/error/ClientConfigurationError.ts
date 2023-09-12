@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientAuthError } from "./ClientAuthError";
+import { AuthError } from "./AuthError";
 
 /**
  * ClientConfigurationErrorMessage class containing string constants used by error codes and messages.
@@ -118,7 +118,7 @@ export const ClientConfigurationErrorMessage = {
 /**
  * Error thrown when there is an error in configuration of the MSAL.js library.
  */
-export class ClientConfigurationError extends ClientAuthError {
+export class ClientConfigurationError extends AuthError {
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ClientConfigurationError";

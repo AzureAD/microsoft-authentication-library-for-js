@@ -24,8 +24,8 @@ import {
     TEST_TOKEN_LIFETIMES,
 } from "../test_kit/StringConstants";
 import {
-    ClientAuthError,
-    ClientAuthErrorMessage,
+    ClientAuthErrorCodes,
+    createClientAuthError,
 } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
@@ -1133,7 +1133,9 @@ describe("CacheManager.ts test cases", () => {
             mockCache.cacheManager.removeAccessToken(
                 atWithAuthScheme.generateCredentialKey()
             )
-        ).rejects.toThrow(ClientAuthError.createBindingKeyNotRemovedError());
+        ).rejects.toThrow(
+            createClientAuthError(ClientAuthErrorCodes.bindingKeyNotRemoved)
+        );
     });
 
     it("getAccessToken matches multiple tokens, removes them and returns null", async () => {
@@ -1311,14 +1313,6 @@ describe("CacheManager.ts test cases", () => {
                 silentFlowRequest
             )
         ).toEqual(mockedAtEntity);
-        expect(() =>
-            mockCache.cacheManager.getAccessToken(
-                mockedAccountInfo,
-                silentFlowRequest
-            )
-        ).not.toThrowError(
-            `${ClientAuthErrorMessage.multipleMatchingTokens.desc}`
-        );
     });
 
     it("getAccessToken matches a Bearer Token when Authentication Scheme is set to bearer (lowercase from adfs)", () => {
@@ -1473,14 +1467,6 @@ describe("CacheManager.ts test cases", () => {
                 silentFlowRequest
             )
         ).toEqual(mockedPopAtEntity);
-        expect(() =>
-            mockCache.cacheManager.getAccessToken(
-                mockedAccountInfo,
-                silentFlowRequest
-            )
-        ).not.toThrowError(
-            `${ClientAuthErrorMessage.multipleMatchingTokens.desc}`
-        );
     });
 
     it("getAccessToken only matches an SSH Certificate when Authentication Scheme is set to ssh-cert", () => {
@@ -1578,14 +1564,6 @@ describe("CacheManager.ts test cases", () => {
                 silentFlowRequest
             )
         ).toEqual(mockedSshAtEntity);
-        expect(() =>
-            mockCache.cacheManager.getAccessToken(
-                mockedAccountInfo,
-                silentFlowRequest
-            )
-        ).not.toThrowError(
-            `${ClientAuthErrorMessage.multipleMatchingTokens.desc}`
-        );
     });
 
     it("readAccountFromCache", () => {

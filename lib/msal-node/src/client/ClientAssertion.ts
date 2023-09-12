@@ -4,7 +4,12 @@
  */
 
 import jwt from "jsonwebtoken";
-import { TimeUtils, ClientAuthError, Constants } from "@azure/msal-common";
+import {
+    TimeUtils,
+    Constants,
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "@azure/msal-common";
 import { CryptoProvider } from "../crypto/CryptoProvider.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { JwtConstants } from "../utils/Constants.js";
@@ -86,7 +91,7 @@ export class ClientAssertion {
             return this.jwt;
         }
 
-        throw ClientAuthError.createInvalidAssertionError();
+        throw createClientAuthError(ClientAuthErrorCodes.invalidAssertion);
     }
 
     /**

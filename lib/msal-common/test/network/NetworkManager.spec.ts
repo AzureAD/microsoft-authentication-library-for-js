@@ -24,7 +24,7 @@ import {
 } from "../test_kit/StringConstants";
 import {
     ClientAuthError,
-    ClientAuthErrorMessage,
+    ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError";
 import { Logger } from "../../src/logger/Logger";
 
@@ -210,11 +210,7 @@ describe("NetworkManager", () => {
                 )
                 .catch((e) => {
                     expect(e).toBeInstanceOf(ClientAuthError);
-                    expect(e.errorCode).toBe(
-                        ClientAuthErrorMessage.networkError.code
-                    );
-                    expect(e.errorMessage.includes("Fetch failed")).toBe(true);
-                    expect(e.errorMessage.includes("tokenEndpoint")).toBe(true);
+                    expect(e.errorCode).toBe(ClientAuthErrorCodes.networkError);
                     done();
                 });
         });

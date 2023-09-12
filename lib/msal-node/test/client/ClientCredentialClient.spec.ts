@@ -7,13 +7,14 @@ import {
     Authority,
     BaseClient,
     CacheManager,
-    ClientAuthError,
     ClientConfiguration,
     CommonClientCredentialRequest,
     CommonUsernamePasswordRequest,
     IAppTokenProvider,
     InteractionRequiredAuthError,
     TimeUtils,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
 import {
@@ -247,7 +248,7 @@ describe("ClientCredentialClient unit tests", () => {
         await expect(
             client.acquireToken(clientCredentialRequest)
         ).resolves.not.toThrow(
-            ClientAuthError.createMultipleMatchingTokensInCacheError()
+            createClientAuthError(ClientAuthErrorCodes.multipleMatchingTokens)
         );
     });
 
@@ -916,7 +917,7 @@ describe("ClientCredentialClient unit tests", () => {
         await expect(
             client.acquireToken(clientCredentialRequest)
         ).rejects.toMatchObject(
-            ClientAuthError.createMultipleMatchingTokensInCacheError()
+            createClientAuthError(ClientAuthErrorCodes.multipleMatchingTokens)
         );
     });
 
