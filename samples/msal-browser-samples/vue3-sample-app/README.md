@@ -1,4 +1,4 @@
-# MSAL.js 2.x + Vue 3 + TypeScript Sample
+# MSAL.js + Vue 3 + TypeScript Sample
 
 ## About this sample
 
