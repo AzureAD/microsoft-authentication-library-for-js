@@ -45,10 +45,7 @@ export class SilentFlowClient extends BaseClient {
             const cacheOutcome = response[1];
 
             // if the token is not expired but must be refreshed; get a new one in the background
-            if (
-                cacheOutcome ===
-                CacheOutcome.PROACTIVELY_REFRESHED
-            ) {
+            if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
                 this.logger.info(
                     "SilentFlowClient:acquireCachedToken - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );
@@ -180,7 +177,10 @@ export class SilentFlowClient extends BaseClient {
             this.config.serverTelemetryManager.incrementCacheHits();
         }
 
-        return [await this.generateResultFromCacheRecord(cacheRecord, request), lastCacheOutcome];
+        return [
+            await this.generateResultFromCacheRecord(cacheRecord, request),
+            lastCacheOutcome,
+        ];
     }
 
     /**

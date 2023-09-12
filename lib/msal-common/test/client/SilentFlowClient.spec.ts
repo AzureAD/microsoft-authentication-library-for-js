@@ -198,7 +198,9 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);
+            expect(authResult.accessToken).toEqual(
+                testAccessTokenEntity.secret
+            );
             expect(authResult.state).toHaveLength(0);
         });
 
@@ -255,7 +257,9 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);
+            expect(authResult.accessToken).toEqual(
+                testAccessTokenEntity.secret
+            );
             expect(authResult.state).toBe("");
         });
 
@@ -370,7 +374,9 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);
+            expect(authResult.accessToken).toEqual(
+                testAccessTokenEntity.secret
+            );
             expect(authResult.state).toBe("");
         });
 
@@ -428,7 +434,9 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);
+            expect(authResult.accessToken).toEqual(
+                testAccessTokenEntity.secret
+            );
             expect(authResult.state).toHaveLength(0);
         });
     });
