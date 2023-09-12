@@ -35,7 +35,6 @@ import {
 export class ClientCredentialClient extends BaseClient {
     private scopeSet: ScopeSet;
     private readonly appTokenProvider?: IAppTokenProvider;
-    private lastCacheOutcome: CacheOutcome;
 
     constructor(
         configuration: ClientConfiguration,
@@ -58,12 +57,12 @@ export class ClientCredentialClient extends BaseClient {
             return await this.executeTokenRequest(request, this.authority);
         }
 
-        const cachedAuthenticationResult =
+        const [cachedAuthenticationResult, lastCacheOutcome] =
             await this.getCachedAuthenticationResult(request);
 
         if (cachedAuthenticationResult) {
             // if the token is not expired but must be refreshed; get a new one in the background
-            if (this.lastCacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
+            if (lastCacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
                 this.logger.info(
                     "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );
@@ -77,9 +76,6 @@ export class ClientCredentialClient extends BaseClient {
                 );
             }
 
-            // reset the last cache outcome
-            this.lastCacheOutcome = CacheOutcome.NOT_APPLICABLE;
-
             // return the cached token
             return cachedAuthenticationResult;
         } else {
@@ -92,7 +88,7 @@ export class ClientCredentialClient extends BaseClient {
      */
     private async getCachedAuthenticationResult(
         request: CommonClientCredentialRequest
-    ): Promise<AuthenticationResult | null> {
+    ): Promise<[AuthenticationResult | null, CacheOutcome]> {
         // read the user-supplied cache into memory, if applicable
         let cacheContext;
         if (this.config.serializableCache && this.config.persistencePlugin) {
@@ -115,11 +111,10 @@ export class ClientCredentialClient extends BaseClient {
 
         // must refresh due to non-existent access_token
         if (!cachedAccessToken) {
-            this.lastCacheOutcome = CacheOutcome.NO_CACHED_ACCESS_TOKEN;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
-            return null;
+            return [null, CacheOutcome.NO_CACHED_ACCESS_TOKEN];
         }
 
         // must refresh due to the expires_in value
@@ -129,11 +124,10 @@ export class ClientCredentialClient extends BaseClient {
                 this.config.systemOptions.tokenRenewalOffsetSeconds
             )
         ) {
-            this.lastCacheOutcome = CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
-            return null;
+            return [null, CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED];
         }
 
         // must refresh (in the background) due to the refresh_in value
@@ -141,25 +135,27 @@ export class ClientCredentialClient extends BaseClient {
             cachedAccessToken.refreshOn &&
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn.toString(), 0)
         ) {
-            this.lastCacheOutcome = CacheOutcome.PROACTIVELY_REFRESHED;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.PROACTIVELY_REFRESHED
             );
         }
 
-        return await ResponseHandler.generateAuthenticationResult(
-            this.cryptoUtils,
-            this.authority,
-            {
-                account: null,
-                idToken: null,
-                accessToken: cachedAccessToken,
-                refreshToken: null,
-                appMetadata: null,
-            },
-            true,
-            request
-        );
+        return [
+            await ResponseHandler.generateAuthenticationResult(
+                this.cryptoUtils,
+                this.authority,
+                {
+                    account: null,
+                    idToken: null,
+                    accessToken: cachedAccessToken,
+                    refreshToken: null,
+                    appMetadata: null,
+                },
+                true,
+                request
+            ),
+            CacheOutcome.PROACTIVELY_REFRESHED,
+        ];
     }
 
     /**
