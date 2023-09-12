@@ -92,7 +92,11 @@ export const BrowserAuthErrorMessages = {
 
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
- * @deprecated Use BrowserAuthBrowserAuthErrorCodes instead
+ * @deprecated Use exported BrowserAuthErrorCodes instead.
+ * In your app you can do :
+ * ```
+ * import { BrowserAuthErrorCodes } from "@azure/msal-browser";
+ * ```
  */
 export const BrowserAuthErrorMessage = {
     pkceNotGenerated: {
