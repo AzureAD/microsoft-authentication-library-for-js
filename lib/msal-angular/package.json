@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -12,9 +12,6 @@
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "description": "Microsoft Authentication Library for Angular",
-  "files": [
-    "src"
-  ],
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
