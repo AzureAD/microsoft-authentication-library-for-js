@@ -16,11 +16,6 @@
 /samples/msal-node-samples/ @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft
 /extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz
 
-# MSAL Node Confidential Client Regression Tests
-.github/workflows/client-credential-benchmark.yml @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
-.github/workflows/msal-node-confidential-client-benchmarks.yml @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
-/regression-tests/msal-node/ @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
-
 # MSAL React
 /lib/msal-react/ @tnorling @jo-arroyo @peterzenz
 /samples/msal-react-samples/ @tnorling @jo-arroyo @peterzenz
@@ -30,6 +25,11 @@
 /release-scripts/ @sameerag @tnorling @hectormmg @peterzenz
 /.github/ @sameerag @tnorling @hectormmg @peterzenz
 /.pipelines/ @hectormmg @tnorling @peterzenz
+
+# MSAL Node Confidential Client Regression Tests
+.github/workflows/client-credential-benchmark.yml @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
+.github/workflows/msal-node-confidential-client-benchmarks.yml @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
+/regression-tests/msal-node/ @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
 
 # Filepaths to ignore
 /change/
