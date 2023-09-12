@@ -6,7 +6,10 @@
 import { Authority } from "./Authority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { INetworkModule } from "../network/INetworkModule";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
 import { Logger } from "../logger/Logger";
@@ -63,8 +66,8 @@ export class AuthorityFactory {
             await acquireTokenAuthority.resolveEndpointsAsync();
             return acquireTokenAuthority;
         } catch (e) {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
-                e as string
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
             );
         }
     }

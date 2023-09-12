@@ -5,7 +5,10 @@
 
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
 import {
@@ -290,8 +293,8 @@ export class UrlString {
             );
         // Check if deserialization didn't work
         if (!deserializedHash) {
-            throw ClientAuthError.createHashNotDeserializedError(
-                JSON.stringify(deserializedHash)
+            throw createClientAuthError(
+                ClientAuthErrorCodes.hashNotDeserialized
             );
         }
         return deserializedHash;
@@ -316,8 +319,8 @@ export class UrlString {
             );
         // Check if deserialization didn't work
         if (!deserializedQueryString) {
-            throw ClientAuthError.createHashNotDeserializedError(
-                JSON.stringify(deserializedQueryString)
+            throw createClientAuthError(
+                ClientAuthErrorCodes.hashNotDeserialized
             );
         }
         return deserializedQueryString;

@@ -37,7 +37,7 @@ import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AuthError } from "../../src/error/AuthError";
 import {
     ClientAuthError,
-    ClientAuthErrorMessage,
+    ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError";
 import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
 import { ServerError } from "../../src/error/ServerError";
@@ -227,10 +227,7 @@ describe("ResponseHandler.ts", () => {
                 if (e instanceof AuthError) {
                     expect(e).toBeInstanceOf(ClientAuthError);
                     expect(e.errorCode).toBe(
-                        ClientAuthErrorMessage.invalidCacheEnvironment.code
-                    );
-                    expect(e.errorMessage).toBe(
-                        ClientAuthErrorMessage.invalidCacheEnvironment.desc
+                        ClientAuthErrorCodes.invalidCacheEnvironment
                     );
                 } else {
                     throw e;
@@ -599,10 +596,6 @@ describe("ResponseHandler.ts", () => {
                 null,
                 null
             );
-            const stateMismatchSpy = sinon.spy(
-                ClientAuthError,
-                "createStateMismatchError"
-            );
 
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
@@ -612,7 +605,8 @@ describe("ResponseHandler.ts", () => {
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
-                expect(stateMismatchSpy.calledOnce).toBe(true);
+                // @ts-ignore
+                expect(e.errorCode).toBe(ClientAuthErrorCodes.stateMismatch);
                 done();
             }
         });
@@ -623,10 +617,6 @@ describe("ResponseHandler.ts", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
             };
-            const stateMismatchSpy = sinon.spy(
-                ClientAuthError,
-                "createStateMismatchError"
-            );
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
@@ -641,7 +631,6 @@ describe("ResponseHandler.ts", () => {
                 TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
                 cryptoInterface
             );
-            expect(stateMismatchSpy.notCalled).toBe(true);
         });
 
         it("Does not throw state mismatch error when Uri encoded characters have different casing", () => {
@@ -650,10 +639,6 @@ describe("ResponseHandler.ts", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
             };
-            const stateMismatchSpy = sinon.spy(
-                ClientAuthError,
-                "createStateMismatchError"
-            );
 
             const testAltState =
                 "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3d%3d";
@@ -670,7 +655,6 @@ describe("ResponseHandler.ts", () => {
                 testAltState,
                 cryptoInterface
             );
-            expect(stateMismatchSpy.notCalled).toBe(true);
         });
 
         it("throws interactionRequiredError", (done) => {
@@ -870,9 +854,7 @@ describe("ResponseHandler.ts", () => {
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
                 const err = e as ClientAuthError;
-                expect(err.message).toContain(
-                    `Cached state URI could not be decoded`
-                );
+                expect(err.errorCode).toBe(ClientAuthErrorCodes.invalidState);
                 done();
             }
         });

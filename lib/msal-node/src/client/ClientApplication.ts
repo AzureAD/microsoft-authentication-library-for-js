@@ -28,9 +28,10 @@ import {
     AuthError,
     AzureCloudOptions,
     AuthorizationCodePayload,
-    ClientAuthError,
     Constants,
     StringUtils,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -367,7 +368,7 @@ export abstract class ClientApplication {
         }
 
         if (state !== cachedState) {
-            throw ClientAuthError.createStateMismatchError();
+            throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
         }
     }
 

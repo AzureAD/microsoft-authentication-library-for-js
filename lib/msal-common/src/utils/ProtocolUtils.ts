@@ -5,7 +5,10 @@
 
 import { Constants } from "./Constants";
 import { ICrypto } from "../crypto/ICrypto";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 
 /**
  * Type which defines the object that is stringified, encoded and sent in the state value.
@@ -60,9 +63,7 @@ export class ProtocolUtils {
         meta?: Record<string, string>
     ): string {
         if (!cryptoObj) {
-            throw ClientAuthError.createNoCryptoObjectError(
-                "generateLibraryState"
-            );
+            throw createClientAuthError(ClientAuthErrorCodes.noCryptoObject);
         }
 
         // Create a state object containing a unique id and the timestamp of the request creation
@@ -89,16 +90,11 @@ export class ProtocolUtils {
         state: string
     ): RequestStateObject {
         if (!cryptoObj) {
-            throw ClientAuthError.createNoCryptoObjectError(
-                "parseRequestState"
-            );
+            throw createClientAuthError(ClientAuthErrorCodes.noCryptoObject);
         }
 
         if (!state) {
-            throw ClientAuthError.createInvalidStateError(
-                state,
-                "Null, undefined or empty state"
-            );
+            throw createClientAuthError(ClientAuthErrorCodes.invalidState);
         }
 
         try {
@@ -118,7 +114,7 @@ export class ProtocolUtils {
                 libraryState: libraryStateObj,
             };
         } catch (e) {
-            throw ClientAuthError.createInvalidStateError(state, e as string);
+            throw createClientAuthError(ClientAuthErrorCodes.invalidState);
         }
     }
 }

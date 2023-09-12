@@ -10,7 +10,10 @@ import {
 } from "./OpenIdConfigResponse";
 import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
 import {
     AADAuthorityConstants,
@@ -205,8 +208,8 @@ export class Authority {
         if (this.discoveryComplete()) {
             return this.replacePath(this.metadata.authorization_endpoint);
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
-                "Discovery incomplete."
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
             );
         }
     }
@@ -218,8 +221,8 @@ export class Authority {
         if (this.discoveryComplete()) {
             return this.replacePath(this.metadata.token_endpoint);
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
-                "Discovery incomplete."
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
             );
         }
     }
@@ -230,8 +233,8 @@ export class Authority {
                 this.metadata.token_endpoint.replace("/token", "/devicecode")
             );
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
-                "Discovery incomplete."
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
             );
         }
     }
@@ -243,12 +246,14 @@ export class Authority {
         if (this.discoveryComplete()) {
             // ROPC policies may not have end_session_endpoint set
             if (!this.metadata.end_session_endpoint) {
-                throw ClientAuthError.createLogoutNotSupportedError();
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.endSessionEndpointNotSupported
+                );
             }
             return this.replacePath(this.metadata.end_session_endpoint);
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
-                "Discovery incomplete."
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
             );
         }
     }
@@ -260,8 +265,8 @@ export class Authority {
         if (this.discoveryComplete()) {
             return this.replacePath(this.metadata.issuer);
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
-                "Discovery incomplete."
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
             );
         }
     }
@@ -273,8 +278,8 @@ export class Authority {
         if (this.discoveryComplete()) {
             return this.replacePath(this.metadata.jwks_uri);
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
-                "Discovery incomplete."
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
             );
         }
     }
@@ -540,7 +545,8 @@ export class Authority {
             this.logger.error(
                 "Did not find endpoint metadata from network... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error."
             );
-            throw ClientAuthError.createUnableToGetOpenidConfigError(
+            throw createClientAuthError(
+                ClientAuthErrorCodes.openIdConfigError,
                 this.defaultOpenIdConfigurationEndpoint
             );
         }
@@ -1091,8 +1097,8 @@ export class Authority {
         if (this.discoveryComplete()) {
             return this.metadata.preferred_cache;
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
-                "Discovery incomplete."
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
             );
         }
     }
