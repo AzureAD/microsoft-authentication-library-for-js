@@ -2543,6 +2543,32 @@ describe("Authority.ts Class Unit Tests", () => {
             );
         });
 
+        it("v2 is not added to authority if already provided", async () => {
+            const authorityUrl =
+                "https://login.microsoftonline.com/test-tenant-id/v2.0";
+            let endpoint = "";
+            authority = new Authority(
+                authorityUrl,
+                networkInterface,
+                mockStorage,
+                { ...authorityOptions, knownAuthorities: [authorityUrl] },
+                logger
+            );
+            jest.spyOn(
+                networkInterface,
+                <any>"sendGetRequestAsync"
+            ).mockImplementation((openIdConfigEndpoint) => {
+                // @ts-ignore
+                endpoint = openIdConfigEndpoint;
+                return DEFAULT_OPENID_CONFIG_RESPONSE;
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(endpoint).toBe(
+                `${authorityUrl}/.well-known/openid-configuration`
+            );
+        });
+
         it("DSTS authority uses v2 well-known endpoint with common authority", async () => {
             const authorityUrl =
                 "https://login.microsoftonline.com/dstsv2/common/";
