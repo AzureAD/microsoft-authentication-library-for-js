@@ -27,11 +27,12 @@ import {
     CcsCredentialType,
     AuthToken,
     ValidCredentialType,
-    ClientAuthError,
     TokenKeys,
     CredentialType,
     CacheRecord,
     AuthenticationScheme,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import {
@@ -614,7 +615,9 @@ export class BrowserCacheManager extends CacheManager {
                 this.logger.error(
                     `BrowserCacheManager:addTokenKey - CredentialType provided invalid. CredentialType: ${type}`
                 );
-                ClientAuthError.createUnexpectedCredentialTypeError();
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.unexpectedCredentialType
+                );
         }
 
         this.setItem(
@@ -685,7 +688,9 @@ export class BrowserCacheManager extends CacheManager {
                 this.logger.error(
                     `BrowserCacheManager:removeTokenKey - CredentialType provided invalid. CredentialType: ${type}`
                 );
-                ClientAuthError.createUnexpectedCredentialTypeError();
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.unexpectedCredentialType
+                );
         }
 
         this.setItem(
@@ -1171,7 +1176,9 @@ export class BrowserCacheManager extends CacheManager {
         if (matchingAccounts.length === 1) {
             return matchingAccounts[0];
         } else if (matchingAccounts.length > 1) {
-            throw ClientAuthError.createMultipleMatchingAccountsInCacheError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingAccounts
+            );
         }
 
         return null;

@@ -22,13 +22,14 @@ import {
     PerformanceEvents,
     IdTokenEntity,
     AccessTokenEntity,
-    ClientAuthError,
     AuthError,
     CommonSilentFlowRequest,
     AccountInfo,
     CacheRecord,
     AADServerParamKeys,
     TokenClaims,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -222,14 +223,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.warning(
                 "NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided"
             );
-            throw ClientAuthError.createNoAccountFoundError();
+            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
         // fetch the account from browser cache
         const account = this.browserStorage.getAccountInfoFilteredBy({
             nativeAccountId,
         });
         if (!account) {
-            throw ClientAuthError.createNoAccountFoundError();
+            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
 
         // leverage silent flow for cached tokens retrieval
@@ -510,7 +511,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
              * PopTokenGenerator to query the full key for signing
              */
             if (!request.keyId) {
-                throw ClientAuthError.createKeyIdMissingError();
+                throw createClientAuthError(ClientAuthErrorCodes.keyIdMissing);
             }
             return await popTokenGenerator.signPopToken(
                 response.access_token,

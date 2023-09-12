@@ -4,7 +4,10 @@
  */
 
 import { TokenClaims } from "./TokenClaims";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../error/ClientAuthError";
 
 /**
  * Extract token by decoding the rawToken
@@ -23,7 +26,7 @@ export function extractTokenClaims(
         const base64Decoded = base64Decode(jswPayload);
         return JSON.parse(base64Decoded) as TokenClaims;
     } catch (err) {
-        throw ClientAuthError.createTokenParsingError(err as string);
+        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError);
     }
 }
 
@@ -34,14 +37,12 @@ export function extractTokenClaims(
  */
 export function getJWSPayload(authToken: string): string {
     if (!authToken) {
-        throw ClientAuthError.createTokenNullOrEmptyError(authToken);
+        throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
     }
     const tokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
     const matches = tokenPartsRegex.exec(authToken);
     if (!matches || matches.length < 4) {
-        throw ClientAuthError.createTokenParsingError(
-            `Given token is malformed: ${JSON.stringify(authToken)}`
-        );
+        throw createClientAuthError(ClientAuthErrorCodes.tokenParsingError);
     }
     /**
      * const crackedToken = {
@@ -65,6 +66,6 @@ export function checkMaxAge(authTime: number, maxAge: number): void {
      */
     const fiveMinuteSkew = 300000; // five minutes in milliseconds
     if (maxAge === 0 || Date.now() - fiveMinuteSkew > authTime + maxAge) {
-        throw ClientAuthError.createMaxAgeTranspiredError();
+        throw createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired);
     }
 }

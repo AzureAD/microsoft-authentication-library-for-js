@@ -28,7 +28,10 @@ import { IdTokenEntity } from "./entities/IdTokenEntity";
 import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
 import { AuthError } from "../error/AuthError";
 import { ICacheManager } from "./interface/ICacheManager";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../error/ClientAuthError";
 import { AccountInfo } from "../account/AccountInfo";
 import { AppMetadataEntity } from "./entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity";
@@ -288,7 +291,9 @@ export abstract class CacheManager implements ICacheManager {
         storeInCache?: StoreInCache
     ): Promise<void> {
         if (!cacheRecord) {
-            throw ClientAuthError.createNullOrUndefinedCacheRecord();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidCacheRecord
+            );
         }
 
         if (!!cacheRecord.account) {
@@ -777,7 +782,9 @@ export abstract class CacheManager implements ICacheManager {
                     try {
                         await this.cryptoImpl.removeTokenBindingKey(kid);
                     } catch (error) {
-                        throw ClientAuthError.createBindingKeyNotRemovedError();
+                        throw createClientAuthError(
+                            ClientAuthErrorCodes.bindingKeyNotRemoved
+                        );
                     }
                 }
             }
@@ -1256,7 +1263,9 @@ export abstract class CacheManager implements ICacheManager {
         if (numAppMetadata < 1) {
             return null;
         } else if (numAppMetadata > 1) {
-            throw ClientAuthError.createMultipleMatchingAppMetadataInCacheError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingAppMetadata
+            );
         }
 
         return appMetadataEntries[0] as AppMetadataEntity;

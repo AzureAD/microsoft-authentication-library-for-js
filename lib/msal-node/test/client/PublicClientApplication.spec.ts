@@ -16,7 +16,6 @@ import {
     ProtocolMode,
     Logger,
     LogLevel,
-    ClientAuthError,
     AccountInfo,
     ServerAuthorizationCodeResponse,
     InteractionRequiredAuthError,
@@ -53,6 +52,8 @@ import { version, name } from "../../package.json";
 import { MockNativeBrokerPlugin } from "../utils/MockNativeBrokerPlugin";
 import { SignOutRequest } from "../../src/request/SignOutRequest";
 import { LoopbackClient } from "../../src/network/LoopbackClient";
+import { createClientAuthError } from "@azure/msal-common";
+import { ClientAuthErrorCodes } from "@azure/msal-common";
 
 const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
 
@@ -501,7 +502,9 @@ describe("PublicClientApplication", () => {
                 openBrowser,
             };
 
-            const testError = ClientAuthError.createUserCanceledError();
+            const testError = createClientAuthError(
+                ClientAuthErrorCodes.userCanceled
+            );
             const brokerSpy = jest
                 .spyOn(
                     MockNativeBrokerPlugin.prototype,
@@ -640,7 +643,9 @@ describe("PublicClientApplication", () => {
             const request: SignOutRequest = {
                 account: mockNativeAccountInfo,
             };
-            const testError = ClientAuthError.createNoAccountFoundError();
+            const testError = createClientAuthError(
+                ClientAuthErrorCodes.noAccountFound
+            );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "signOut")
                 .mockImplementation(() => {
@@ -704,7 +709,9 @@ describe("PublicClientApplication", () => {
                 },
             });
 
-            const testError = ClientAuthError.createNoAccountFoundError();
+            const testError = createClientAuthError(
+                ClientAuthErrorCodes.noAccountFound
+            );
             const brokerSpy = jest
                 .spyOn(MockNativeBrokerPlugin.prototype, "getAllAccounts")
                 .mockImplementation(() => {
@@ -1102,6 +1109,8 @@ describe("PublicClientApplication", () => {
 
         await expect(
             authApp.acquireTokenByCode(request, authCodePayLoad)
-        ).rejects.toMatchObject(ClientAuthError.createStateMismatchError());
+        ).rejects.toMatchObject(
+            createClientAuthError(ClientAuthErrorCodes.stateMismatch)
+        );
     });
 });
