@@ -50,7 +50,7 @@ export class SilentCacheClient extends StandardInteractionClient {
             const response = await silentAuthClient.acquireCachedToken(
                 silentRequest
             );
-            const authResponse = response[0];
+            const authResponse = response[0] as AuthenticationResult;
 
             acquireTokenMeasurement.end({
                 success: true,
