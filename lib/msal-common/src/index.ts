@@ -144,6 +144,8 @@ export { ServerError } from "./error/ServerError";
 export {
     ClientAuthError,
     ClientAuthErrorMessage,
+    ClientAuthErrorCodes,
+    createClientAuthError,
 } from "./error/ClientAuthError";
 export {
     ClientConfigurationError,

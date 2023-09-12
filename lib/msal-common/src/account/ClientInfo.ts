@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../error/ClientAuthError";
 import { ICrypto } from "../crypto/ICrypto";
 import { Separators, Constants } from "../utils/Constants";
 
@@ -25,15 +28,15 @@ export function buildClientInfo(
     crypto: ICrypto
 ): ClientInfo {
     if (!rawClientInfo) {
-        throw ClientAuthError.createClientInfoEmptyError();
+        throw createClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError);
     }
 
     try {
         const decodedClientInfo: string = crypto.base64Decode(rawClientInfo);
         return JSON.parse(decodedClientInfo) as ClientInfo;
     } catch (e) {
-        throw ClientAuthError.createClientInfoDecodingError(
-            (e as ClientAuthError).message
+        throw createClientAuthError(
+            ClientAuthErrorCodes.clientInfoDecodingError
         );
     }
 }
@@ -46,8 +49,8 @@ export function buildClientInfoFromHomeAccountId(
     homeAccountId: string
 ): ClientInfo {
     if (!homeAccountId) {
-        throw ClientAuthError.createClientInfoDecodingError(
-            "Home account ID was empty."
+        throw createClientAuthError(
+            ClientAuthErrorCodes.clientInfoDecodingError
         );
     }
     const clientInfoParts: string[] = homeAccountId.split(

@@ -14,7 +14,7 @@ import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import {
     ClientAuthError,
-    ClientAuthErrorMessage,
+    ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError";
 import { Logger, LogLevel } from "../../src";
 
@@ -205,12 +205,9 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
             logger
         ).catch((e) => {
             expect(e).toBeInstanceOf(ClientAuthError);
-            expect(
-                e.errorMessage.includes(
-                    ClientAuthErrorMessage.endpointResolutionError.desc
-                )
-            ).toBe(true);
-            expect(e.errorMessage.includes("Discovery failed.")).toBe(true);
+            expect(e.errorCode).toBe(
+                ClientAuthErrorCodes.endpointResolutionError
+            );
             expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
             done();
         });

@@ -6,7 +6,10 @@
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
 import { buildClientInfo } from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
@@ -84,8 +87,14 @@ export class ResponseHandler {
     ): void {
         if (!serverResponseHash.state || !cachedState) {
             throw serverResponseHash.state
-                ? ClientAuthError.createStateNotFoundError("Cached State")
-                : ClientAuthError.createStateNotFoundError("Server State");
+                ? createClientAuthError(
+                      ClientAuthErrorCodes.stateNotFound,
+                      "Cached State"
+                  )
+                : createClientAuthError(
+                      ClientAuthErrorCodes.stateNotFound,
+                      "Server State"
+                  );
         }
 
         let decodedServerResponseHash: string;
@@ -96,23 +105,23 @@ export class ResponseHandler {
                 serverResponseHash.state
             );
         } catch (e) {
-            throw ClientAuthError.createInvalidStateError(
-                serverResponseHash.state,
-                `Server response hash URI could not be decoded`
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidState,
+                serverResponseHash.state
             );
         }
 
         try {
             decodedCachedState = decodeURIComponent(cachedState);
         } catch (e) {
-            throw ClientAuthError.createInvalidStateError(
-                serverResponseHash.state,
-                `Cached state URI could not be decoded`
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidState,
+                serverResponseHash.state
             );
         }
 
         if (decodedServerResponseHash !== decodedCachedState) {
-            throw ClientAuthError.createStateMismatchError();
+            throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
         }
 
         // Check for error
@@ -255,7 +264,9 @@ export class ResponseHandler {
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && authCodePayload.nonce) {
                 if (idTokenClaims.nonce !== authCodePayload.nonce) {
-                    throw ClientAuthError.createNonceMismatchError();
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.nonceMismatch
+                    );
                 }
             }
 
@@ -263,7 +274,9 @@ export class ResponseHandler {
             if (request.maxAge || request.maxAge === 0) {
                 const authTime = idTokenClaims.auth_time;
                 if (!authTime) {
-                    throw ClientAuthError.createAuthTimeNotFoundError();
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.authTimeNotFound
+                    );
                 }
 
                 checkMaxAge(authTime, request.maxAge);
@@ -389,7 +402,9 @@ export class ResponseHandler {
     ): CacheRecord {
         const env = authority.getPreferredCache();
         if (!env) {
-            throw ClientAuthError.createInvalidCacheEnvironmentError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidCacheEnvironment
+            );
         }
 
         // IdToken: non AAD scenarios can have empty realm
@@ -537,7 +552,9 @@ export class ResponseHandler {
                 const { secret, keyId } = cacheRecord.accessToken;
 
                 if (!keyId) {
-                    throw ClientAuthError.createKeyIdMissingError();
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.keyIdMissing
+                    );
                 }
 
                 accessToken = await popTokenGenerator.signPopToken(

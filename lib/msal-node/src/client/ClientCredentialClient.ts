@@ -10,7 +10,7 @@ import {
     Authority,
     BaseClient,
     CacheOutcome,
-    ClientAuthError,
+    ClientAuthErrorCodes,
     ClientConfiguration,
     CommonClientCredentialRequest,
     Constants,
@@ -27,6 +27,7 @@ import {
     TimeUtils,
     TokenCacheContext,
     UrlString,
+    createClientAuthError,
 } from "@azure/msal-common";
 
 /**
@@ -184,7 +185,9 @@ export class ClientCredentialClient extends BaseClient {
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens
+            );
         }
         return accessTokens[0] as AccessTokenEntity;
     }

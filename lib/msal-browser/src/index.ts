@@ -114,6 +114,7 @@ export {
     AuthError,
     AuthErrorMessage,
     ClientAuthError,
+    ClientAuthErrorCodes,
     ClientAuthErrorMessage,
     ClientConfigurationError,
     ClientConfigurationErrorMessage,
