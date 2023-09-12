@@ -63,10 +63,7 @@ export class ClientCredentialClient extends BaseClient {
 
         if (cachedAuthenticationResult) {
             // if the token is not expired but must be refreshed; get a new one in the background
-            if (
-                this.lastCacheOutcome ===
-                CacheOutcome.PROACTIVELY_REFRESHED
-            ) {
+            if (this.lastCacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
                 this.logger.info(
                     "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );
