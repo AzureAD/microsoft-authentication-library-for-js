@@ -173,7 +173,7 @@ describe("ServerTelemetryManager.ts", () => {
                 testPayload,
                 testCacheManager
             );
-            telemetryManager.setCacheOutcome(CacheOutcome.FORCE_REFRESH);
+            telemetryManager.setCacheOutcome(CacheOutcome.FORCE_REFRESH_OR_CLAIMS);
             const currHeaderVal =
                 telemetryManager.generateCurrentRequestHeaderValue();
             expect(currHeaderVal).toEqual(`5|${testApiCode},1,,,|,`);

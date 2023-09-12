@@ -47,15 +47,16 @@ export class SilentCacheClient extends StandardInteractionClient {
         this.logger.verbose("Silent auth client created");
 
         try {
-            const cachedToken = (await silentAuthClient.acquireCachedToken(
+            const response = (await silentAuthClient.acquireCachedToken(
                 silentRequest
-            )) as AuthenticationResult;
+            ));
+            const authResponse = response[0];
 
             acquireTokenMeasurement.end({
                 success: true,
                 fromCache: true,
             });
-            return cachedToken;
+            return authResponse;
         } catch (error) {
             if (
                 error instanceof BrowserAuthError &&
