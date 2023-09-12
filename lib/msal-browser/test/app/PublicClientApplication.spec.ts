@@ -101,6 +101,8 @@ import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
+import { createClientAuthError } from "@azure/msal-common";
+import { ClientAuthErrorCodes } from "@azure/msal-common";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -4496,8 +4498,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
 
-            const refreshRequiredCacheError =
-                ClientAuthError.createRefreshRequiredError();
+            const refreshRequiredCacheError = createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired
+            );
             const refreshRequiredServerError = new ServerError(
                 BrowserConstants.INVALID_GRANT_ERROR,
                 "Refresh Token expired"

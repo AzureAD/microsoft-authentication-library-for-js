@@ -8,7 +8,10 @@ import { RequestThumbprint } from "./RequestThumbprint";
 import { ThrottlingUtils } from "./ThrottlingUtils";
 import { CacheManager } from "../cache/CacheManager";
 import { AuthError } from "../error/AuthError";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 
 export type NetworkResponse<T> = {
@@ -62,10 +65,7 @@ export class NetworkManager {
             if (e instanceof AuthError) {
                 throw e;
             } else {
-                throw ClientAuthError.createNetworkError(
-                    tokenEndpoint,
-                    e as string
-                );
+                throw createClientAuthError(ClientAuthErrorCodes.networkError);
             }
         }
 
