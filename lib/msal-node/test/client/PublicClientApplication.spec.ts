@@ -383,19 +383,19 @@ describe("PublicClientApplication", () => {
             };
 
             const mockListenForAuthCode = jest.fn(() => {
-                return new Promise<ServerAuthorizationCodeResponse>(
-                    (resolve) => {
-                        resolve(testServerCodeResponse);
-                    }
-                );
+                return Promise.resolve(testServerCodeResponse);
             });
             const mockGetRedirectUri = jest.fn(
                 () => TEST_CONSTANTS.REDIRECT_URI
             );
+            const mockStartServer = jest.fn(() => {
+                return Promise.resolve();
+            });
             const mockCloseServer = jest.fn(() => {});
 
             const customLoopbackClient: ILoopbackClient = {
-                listenForAuthCode: mockListenForAuthCode,
+                startServer: mockStartServer,
+                waitForAuthCode: mockListenForAuthCode,
                 getRedirectUri: mockGetRedirectUri,
                 closeServer: mockCloseServer,
             };
@@ -443,6 +443,7 @@ describe("PublicClientApplication", () => {
             expect(mockListenForAuthCode).toHaveBeenCalledTimes(1);
             expect(mockGetRedirectUri).toHaveBeenCalledTimes(1);
             expect(mockCloseServer).toHaveBeenCalledTimes(1);
+            expect(mockStartServer).toHaveBeenCalledTimes(1);
         });
 
         test("acquireTokenInteractive - calls into NativeBrokerPlugin and returns result", async () => {
@@ -535,14 +536,12 @@ describe("PublicClientApplication", () => {
 
             jest.spyOn(
                 LoopbackClient.prototype,
-                "listenForAuthCode"
-            ).mockImplementation(() => {
-                return new Promise<ServerAuthorizationCodeResponse>(
-                    (resolve) => {
-                        resolve(testServerCodeResponse);
-                    }
-                );
-            });
+                "startServer"
+            ).mockResolvedValue();
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "waitForAuthCode"
+            ).mockResolvedValue(testServerCodeResponse);
             jest.spyOn(
                 LoopbackClient.prototype,
                 "getRedirectUri"
@@ -574,7 +573,7 @@ describe("PublicClientApplication", () => {
                 return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
             });
 
-            authApp.acquireTokenInteractive(request).catch((e) => {
+            await authApp.acquireTokenInteractive(request).catch((e) => {
                 expect(e).toBe("Browser open error");
                 expect(mockCloseServer).toHaveBeenCalledTimes(1);
             });
