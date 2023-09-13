@@ -47,7 +47,10 @@ import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
 import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager";
-import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
+import {
+    InteractionRequiredAuthErrorCodes,
+    createInteractionRequiredAuthError,
+} from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { Logger } from "../../src/logger/Logger";
 
@@ -584,7 +587,9 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireToken(tokenRequest)
             ).rejects.toMatchObject(
-                InteractionRequiredAuthError.createNoTokensFoundError()
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.noTokensFound
+                )
             );
         });
 
