@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import {
     ClientAuthErrorCodes,
@@ -72,7 +75,9 @@ export class ScopeSet {
     private validateInputScopes(inputScopes: Array<string>): void {
         // Check if scopes are required but not given or is an empty array
         if (!inputScopes || inputScopes.length < 1) {
-            throw ClientConfigurationError.createEmptyScopesArrayError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.emptyInputScopesError
+            );
         }
     }
 

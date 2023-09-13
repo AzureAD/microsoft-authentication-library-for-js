@@ -4,7 +4,10 @@
  */
 
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
@@ -31,7 +34,9 @@ export class UrlString {
         this._urlString = url;
         if (!this._urlString) {
             // Throws error if url is empty
-            throw ClientConfigurationError.createUrlEmptyError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError
+            );
         }
 
         if (!this.getHash()) {
@@ -72,13 +77,15 @@ export class UrlString {
         try {
             components = this.getUrlComponents();
         } catch (e) {
-            throw ClientConfigurationError.createUrlParseError(e as string);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError
+            );
         }
 
         // Throw error if URI or path segments are not parseable.
         if (!components.HostNameAndPort || !components.PathSegments) {
-            throw ClientConfigurationError.createUrlParseError(
-                `Given url string: ${this.urlString}`
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError
             );
         }
 
@@ -87,8 +94,8 @@ export class UrlString {
             !components.Protocol ||
             components.Protocol.toLowerCase() !== "https:"
         ) {
-            throw ClientConfigurationError.createInsecureAuthorityUriError(
-                this.urlString
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityUriInsecure
             );
         }
     }
@@ -155,8 +162,8 @@ export class UrlString {
         // If url string does not match regEx, we throw an error
         const match = this.urlString.match(regEx);
         if (!match) {
-            throw ClientConfigurationError.createUrlParseError(
-                `Given url string: ${this.urlString}`
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError
             );
         }
 
@@ -190,8 +197,8 @@ export class UrlString {
         const match = url.match(regEx);
 
         if (!match) {
-            throw ClientConfigurationError.createUrlParseError(
-                `Given url string: ${url}`
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError
             );
         }
 

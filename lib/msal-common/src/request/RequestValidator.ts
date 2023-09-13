@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { PromptValue, CodeChallengeMethodValues } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
 
@@ -17,7 +20,9 @@ export class RequestValidator {
      */
     static validateRedirectUri(redirectUri: string): void {
         if (!redirectUri) {
-            throw ClientConfigurationError.createRedirectUriEmptyError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.redirectUriEmpty
+            );
         }
     }
 
@@ -33,7 +38,9 @@ export class RequestValidator {
         }
 
         if (promptValues.indexOf(prompt) < 0) {
-            throw ClientConfigurationError.createInvalidPromptError(prompt);
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidPromptValue
+            );
         }
     }
 
@@ -41,7 +48,9 @@ export class RequestValidator {
         try {
             JSON.parse(claims);
         } catch (e) {
-            throw ClientConfigurationError.createInvalidClaimsRequestError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidClaims
+            );
         }
     }
 
@@ -55,7 +64,9 @@ export class RequestValidator {
         codeChallengeMethod: string
     ): void {
         if (!codeChallenge || !codeChallengeMethod) {
-            throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.pkceParamsMissing
+            );
         } else {
             this.validateCodeChallengeMethod(codeChallengeMethod);
         }
@@ -72,7 +83,9 @@ export class RequestValidator {
                 CodeChallengeMethodValues.S256,
             ].indexOf(codeChallengeMethod) < 0
         ) {
-            throw ClientConfigurationError.createInvalidCodeChallengeMethodError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidCodeChallengeMethod
+            );
         }
     }
 

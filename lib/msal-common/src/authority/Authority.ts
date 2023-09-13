@@ -26,7 +26,10 @@ import {
     InstanceDiscoveryMetadata,
     InstanceDiscoveryMetadataAliases,
 } from "./AuthorityMetadata";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
@@ -582,7 +585,9 @@ export class Authority {
                     this.authorityOptions.authorityMetadata
                 ) as OpenIdConfigResponse;
             } catch (e) {
-                throw ClientConfigurationError.createInvalidAuthorityMetadataError();
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthorityMetadata
+                );
             }
         }
 
@@ -825,7 +830,9 @@ export class Authority {
         this.logger.error(
             "Did not find cloud discovery metadata from network... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error."
         );
-        throw ClientConfigurationError.createUntrustedAuthorityError();
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.untrustedAuthority
+        );
     }
 
     /**
@@ -874,7 +881,9 @@ export class Authority {
                 this.logger.verbose(
                     "Unable to parse the cloud discovery metadata. Throwing Invalid Cloud Discovery Metadata Error."
                 );
-                throw ClientConfigurationError.createInvalidCloudDiscoveryMetadataError();
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
+                );
             }
         }
 

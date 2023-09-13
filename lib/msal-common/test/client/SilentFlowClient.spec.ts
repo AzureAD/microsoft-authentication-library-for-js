@@ -42,7 +42,10 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
-import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../../src/error/ClientConfigurationError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
@@ -485,22 +488,30 @@ describe("SilentFlowClient unit tests", () => {
             const client = new SilentFlowClient(config, stubPerformanceClient);
             //@ts-ignore
             await expect(client.acquireToken(null)).rejects.toMatchObject(
-                ClientConfigurationError.createEmptyTokenRequestError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.tokenRequestEmpty
+                )
             );
             //@ts-ignore
             await expect(client.acquireToken(undefined)).rejects.toMatchObject(
-                ClientConfigurationError.createEmptyTokenRequestError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.tokenRequestEmpty
+                )
             );
             //@ts-ignore
             await expect(client.acquireCachedToken(null)).rejects.toMatchObject(
-                ClientConfigurationError.createEmptyTokenRequestError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.tokenRequestEmpty
+                )
             );
 
             await expect(
                 //@ts-ignore
                 client.acquireCachedToken(undefined)
             ).rejects.toMatchObject(
-                ClientConfigurationError.createEmptyTokenRequestError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.tokenRequestEmpty
+                )
             );
         });
 
@@ -524,7 +535,9 @@ describe("SilentFlowClient unit tests", () => {
                     forceRefresh: false,
                 })
             ).rejects.toMatchObject(
-                ClientConfigurationError.createEmptyScopesArrayError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError
+                )
             );
         });
 
@@ -548,7 +561,9 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireToken(tokenRequest)
             ).rejects.toMatchObject(
-                ClientConfigurationError.createEmptyScopesArrayError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError
+                )
             );
         });
 
