@@ -1,0 +1,16 @@
+{
+  "name": "client-credential",
+  "version": "1.0.0",
+  "description": "Client Credential Regression Test",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "^2.0.0",
+    "benchmark": "^2.1.4"
+  }
+}

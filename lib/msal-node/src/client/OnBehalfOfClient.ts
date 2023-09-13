@@ -14,10 +14,11 @@ import {
     AuthToken,
     BaseClient,
     CacheOutcome,
-    ClientAuthError,
+    ClientAuthErrorCodes,
     ClientConfiguration,
     CommonOnBehalfOfRequest,
     Constants,
+    createClientAuthError,
     CredentialFilter,
     CredentialType,
     GrantType,
@@ -27,8 +28,10 @@ import {
     ResponseHandler,
     ScopeSet,
     TimeUtils,
+    TokenClaims,
     UrlString,
 } from "@azure/msal-common";
+import { EncodingUtils } from "../utils/EncodingUtils";
 
 /**
  * On-Behalf-Of client
@@ -99,7 +102,9 @@ export class OnBehalfOfClient extends BaseClient {
             this.logger.info(
                 "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties."
             );
-            throw ClientAuthError.createRefreshRequiredError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired
+            );
         } else if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
@@ -113,23 +118,23 @@ export class OnBehalfOfClient extends BaseClient {
             this.logger.info(
                 `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`
             );
-            throw ClientAuthError.createRefreshRequiredError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired
+            );
         }
 
         // fetch the idToken from cache
         const cachedIdToken = this.readIdTokenFromCacheForOBO(
             cachedAccessToken.homeAccountId
         );
-        let idTokenObject: AuthToken | undefined;
+        let idTokenClaims: TokenClaims | undefined;
         let cachedAccount: AccountEntity | null = null;
         if (cachedIdToken) {
-            idTokenObject = new AuthToken(
+            idTokenClaims = AuthToken.extractTokenClaims(
                 cachedIdToken.secret,
-                this.config.cryptoInterface
+                EncodingUtils.base64Decode
             );
-            const localAccountId = idTokenObject.claims.oid
-                ? idTokenObject.claims.oid
-                : idTokenObject.claims.sub;
+            const localAccountId = idTokenClaims.oid || idTokenClaims.sub;
             const accountInfo: AccountInfo = {
                 homeAccountId: cachedIdToken.homeAccountId,
                 environment: cachedIdToken.environment,
@@ -158,7 +163,7 @@ export class OnBehalfOfClient extends BaseClient {
             },
             true,
             request,
-            idTokenObject
+            idTokenClaims
         );
     }
 
@@ -229,7 +234,9 @@ export class OnBehalfOfClient extends BaseClient {
         if (numAccessTokens < 1) {
             return null;
         } else if (numAccessTokens > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens
+            );
         }
 
         return accessTokens[0] as AccessTokenEntity;

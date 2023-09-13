@@ -6,11 +6,13 @@
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
 import { buildClientInfo } from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
-import { AuthToken } from "../account/AuthToken";
 import { ScopeSet } from "../request/ScopeSet";
 import { AuthenticationResult } from "./AuthenticationResult";
 import { AccountEntity } from "../cache/entities/AccountEntity";
@@ -37,6 +39,8 @@ import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
+import { TokenClaims } from "../account/TokenClaims";
 
 /**
  * Class that handles response parsing.
@@ -83,8 +87,14 @@ export class ResponseHandler {
     ): void {
         if (!serverResponseHash.state || !cachedState) {
             throw serverResponseHash.state
-                ? ClientAuthError.createStateNotFoundError("Cached State")
-                : ClientAuthError.createStateNotFoundError("Server State");
+                ? createClientAuthError(
+                      ClientAuthErrorCodes.stateNotFound,
+                      "Cached State"
+                  )
+                : createClientAuthError(
+                      ClientAuthErrorCodes.stateNotFound,
+                      "Server State"
+                  );
         }
 
         let decodedServerResponseHash: string;
@@ -95,23 +105,23 @@ export class ResponseHandler {
                 serverResponseHash.state
             );
         } catch (e) {
-            throw ClientAuthError.createInvalidStateError(
-                serverResponseHash.state,
-                `Server response hash URI could not be decoded`
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidState,
+                serverResponseHash.state
             );
         }
 
         try {
             decodedCachedState = decodeURIComponent(cachedState);
         } catch (e) {
-            throw ClientAuthError.createInvalidStateError(
-                serverResponseHash.state,
-                `Cached state URI could not be decoded`
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidState,
+                serverResponseHash.state
             );
         }
 
         if (decodedServerResponseHash !== decodedCachedState) {
-            throw ClientAuthError.createStateMismatchError();
+            throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
         }
 
         // Check for error
@@ -244,28 +254,32 @@ export class ResponseHandler {
         );
 
         // create an idToken object (not entity)
-        let idTokenObj: AuthToken | undefined;
+        let idTokenClaims: TokenClaims | undefined;
         if (serverTokenResponse.id_token) {
-            idTokenObj = new AuthToken(
+            idTokenClaims = extractTokenClaims(
                 serverTokenResponse.id_token || Constants.EMPTY_STRING,
-                this.cryptoObj
+                this.cryptoObj.base64Decode
             );
 
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && authCodePayload.nonce) {
-                if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
-                    throw ClientAuthError.createNonceMismatchError();
+                if (idTokenClaims.nonce !== authCodePayload.nonce) {
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.nonceMismatch
+                    );
                 }
             }
 
             // token max_age check
             if (request.maxAge || request.maxAge === 0) {
-                const authTime = idTokenObj.claims.auth_time;
+                const authTime = idTokenClaims.auth_time;
                 if (!authTime) {
-                    throw ClientAuthError.createAuthTimeNotFoundError();
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.authTimeNotFound
+                    );
                 }
 
-                AuthToken.checkMaxAge(authTime, request.maxAge);
+                checkMaxAge(authTime, request.maxAge);
             }
         }
 
@@ -275,7 +289,7 @@ export class ResponseHandler {
             authority.authorityType,
             this.logger,
             this.cryptoObj,
-            idTokenObj?.claims
+            idTokenClaims
         );
 
         // save the response tokens
@@ -296,7 +310,7 @@ export class ResponseHandler {
             authority,
             reqTimestamp,
             request,
-            idTokenObj,
+            idTokenClaims,
             userAssertionHash,
             authCodePayload
         );
@@ -335,7 +349,7 @@ export class ResponseHandler {
                         cacheRecord,
                         false,
                         request,
-                        idTokenObj,
+                        idTokenClaims,
                         requestStateObj,
                         undefined,
                         serverRequestId
@@ -364,7 +378,7 @@ export class ResponseHandler {
             cacheRecord,
             false,
             request,
-            idTokenObj,
+            idTokenClaims,
             requestStateObj,
             serverTokenResponse,
             serverRequestId
@@ -382,31 +396,33 @@ export class ResponseHandler {
         authority: Authority,
         reqTimestamp: number,
         request: BaseAuthRequest,
-        idTokenObj?: AuthToken,
+        idTokenClaims?: TokenClaims,
         userAssertionHash?: string,
         authCodePayload?: AuthorizationCodePayload
     ): CacheRecord {
         const env = authority.getPreferredCache();
         if (!env) {
-            throw ClientAuthError.createInvalidCacheEnvironmentError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidCacheEnvironment
+            );
         }
 
         // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity | undefined;
         let cachedAccount: AccountEntity | undefined;
-        if (serverTokenResponse.id_token && !!idTokenObj) {
+        if (serverTokenResponse.id_token && !!idTokenClaims) {
             cachedIdToken = IdTokenEntity.createIdTokenEntity(
                 this.homeAccountIdentifier,
                 env,
-                serverTokenResponse.id_token || Constants.EMPTY_STRING,
+                serverTokenResponse.id_token,
                 this.clientId,
-                idTokenObj.claims.tid || Constants.EMPTY_STRING
+                idTokenClaims.tid || ""
             );
 
             cachedAccount = AccountEntity.createAccount(
                 {
                     homeAccountId: this.homeAccountIdentifier,
-                    idTokenClaims: idTokenObj.claims,
+                    idTokenClaims: idTokenClaims,
                     clientInfo: serverTokenResponse.client_info,
                     cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
                     msGraphHost: authCodePayload?.msgraph_host,
@@ -453,9 +469,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.access_token || Constants.EMPTY_STRING,
                 this.clientId,
-                idTokenObj
-                    ? idTokenObj.claims.tid || Constants.EMPTY_STRING
-                    : authority.tenant,
+                idTokenClaims?.tid || authority.tenant,
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
@@ -517,7 +531,7 @@ export class ResponseHandler {
         cacheRecord: CacheRecord,
         fromTokenCache: boolean,
         request: BaseAuthRequest,
-        idTokenObj?: AuthToken,
+        idTokenClaims?: TokenClaims,
         requestState?: RequestStateObject,
         serverTokenResponse?: ServerAuthorizationTokenResponse,
         requestId?: string
@@ -538,7 +552,9 @@ export class ResponseHandler {
                 const { secret, keyId } = cacheRecord.accessToken;
 
                 if (!keyId) {
-                    throw ClientAuthError.createKeyIdMissingError();
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.keyIdMissing
+                    );
                 }
 
                 accessToken = await popTokenGenerator.signPopToken(
@@ -569,13 +585,10 @@ export class ResponseHandler {
             familyId =
                 cacheRecord.appMetadata.familyId === THE_FAMILY_ID
                     ? THE_FAMILY_ID
-                    : Constants.EMPTY_STRING;
+                    : "";
         }
-        const uid =
-            idTokenObj?.claims.oid ||
-            idTokenObj?.claims.sub ||
-            Constants.EMPTY_STRING;
-        const tid = idTokenObj?.claims.tid || Constants.EMPTY_STRING;
+        const uid = idTokenClaims?.oid || idTokenClaims?.sub || "";
+        const tid = idTokenClaims?.tid || "";
 
         // for hybrid + native bridge enablement, send back the native account Id
         if (serverTokenResponse?.spa_accountid && !!cacheRecord.account) {
@@ -591,8 +604,8 @@ export class ResponseHandler {
             account: cacheRecord.account
                 ? cacheRecord.account.getAccountInfo()
                 : null,
-            idToken: idTokenObj ? idTokenObj.rawToken : Constants.EMPTY_STRING,
-            idTokenClaims: idTokenObj ? idTokenObj.claims : {},
+            idToken: cacheRecord?.idToken?.secret || "",
+            idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,

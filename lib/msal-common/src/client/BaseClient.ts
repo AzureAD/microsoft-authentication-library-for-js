@@ -19,7 +19,10 @@ import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { version, name } from "../packageMetadata";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../error/ClientAuthError";
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
@@ -180,8 +183,8 @@ export abstract class BaseClient {
      */
     updateAuthority(updatedAuthority: Authority): void {
         if (!updatedAuthority.discoveryComplete()) {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
-                "Updated authority has not completed endpoint discovery."
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
             );
         }
         this.authority = updatedAuthority;

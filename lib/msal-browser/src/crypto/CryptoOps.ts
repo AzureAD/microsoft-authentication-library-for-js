@@ -13,12 +13,15 @@ import {
     SignedHttpRequest,
     SignedHttpRequestParameters,
 } from "@azure/msal-common";
-import { Base64Encode } from "../encode/Base64Encode";
-import { Base64Decode } from "../encode/Base64Decode";
+import { base64Encode, urlEncode, urlEncodeArr } from "../encode/Base64Encode";
+import { base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { CryptoKeyStore } from "../cache/CryptoKeyStore";
 
 export type CachedKeyPair = {
@@ -34,8 +37,6 @@ export type CachedKeyPair = {
  */
 export class CryptoOps implements ICrypto {
     private browserCrypto: BrowserCrypto;
-    private b64Encode: Base64Encode;
-    private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
     private logger: Logger;
 
@@ -53,8 +54,6 @@ export class CryptoOps implements ICrypto {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto(this.logger);
-        this.b64Encode = new Base64Encode();
-        this.b64Decode = new Base64Decode();
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
         this.cache = new CryptoKeyStore(this.logger);
         this.performanceClient = performanceClient;
@@ -73,7 +72,7 @@ export class CryptoOps implements ICrypto {
      * @param input
      */
     base64Encode(input: string): string {
-        return this.b64Encode.encode(input);
+        return base64Encode(input);
     }
 
     /**
@@ -81,7 +80,7 @@ export class CryptoOps implements ICrypto {
      * @param input
      */
     base64Decode(input: string): string {
-        return this.b64Decode.decode(input);
+        return base64Decode(input);
     }
 
     /**
@@ -184,7 +183,9 @@ export class CryptoOps implements ICrypto {
         const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
 
         if (!cachedKeyPair) {
-            throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.cryptoKeyNotFound
+            );
         }
 
         // Get public key as JWK
@@ -195,24 +196,20 @@ export class CryptoOps implements ICrypto {
             BrowserStringUtils.getSortedObjectString(publicKeyJwk);
 
         // Base64URL encode public key thumbprint with keyId only: BASE64URL({ kid: "FULL_PUBLIC_KEY_HASH" })
-        const encodedKeyIdThumbprint = this.b64Encode.urlEncode(
-            JSON.stringify({ kid: kid })
-        );
+        const encodedKeyIdThumbprint = urlEncode(JSON.stringify({ kid: kid }));
 
         // Generate header
         const shrHeader = JoseHeader.getShrHeaderString({
             kid: encodedKeyIdThumbprint,
             alg: publicKeyJwk.alg,
         });
-        const encodedShrHeader = this.b64Encode.urlEncode(shrHeader);
+        const encodedShrHeader = urlEncode(shrHeader);
 
         // Generate payload
         payload.cnf = {
             jwk: JSON.parse(publicKeyJwkString),
         };
-        const encodedPayload = this.b64Encode.urlEncode(
-            JSON.stringify(payload)
-        );
+        const encodedPayload = urlEncode(JSON.stringify(payload));
 
         // Form token string
         const tokenString = `${encodedShrHeader}.${encodedPayload}`;
@@ -223,9 +220,7 @@ export class CryptoOps implements ICrypto {
             cachedKeyPair.privateKey,
             tokenBuffer
         );
-        const encodedSignature = this.b64Encode.urlEncodeArr(
-            new Uint8Array(signatureBuffer)
-        );
+        const encodedSignature = urlEncodeArr(new Uint8Array(signatureBuffer));
 
         const signedJwt = `${tokenString}.${encodedSignature}`;
 
@@ -247,6 +242,6 @@ export class CryptoOps implements ICrypto {
             plainText
         );
         const hashBytes = new Uint8Array(hashBuffer);
-        return this.b64Encode.urlEncodeArr(hashBytes);
+        return urlEncodeArr(hashBytes);
     }
 }

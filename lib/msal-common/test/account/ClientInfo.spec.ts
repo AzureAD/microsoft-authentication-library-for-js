@@ -13,7 +13,9 @@ import {
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import {
     ClientAuthError,
+    ClientAuthErrorCodes,
     ClientAuthErrorMessage,
+    createClientAuthError,
 } from "../../src/error/ClientAuthError";
 import { Constants } from "../../src";
 
@@ -119,7 +121,9 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                 ClientAuthError
             );
             expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(
-                ClientAuthErrorMessage.clientInfoDecodingError.desc
+                createClientAuthError(
+                    ClientAuthErrorCodes.clientInfoDecodingError
+                )
             );
         });
 

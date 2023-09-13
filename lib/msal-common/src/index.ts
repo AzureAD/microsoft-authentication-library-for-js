@@ -29,8 +29,7 @@ export {
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { AccountInfo, ActiveAccountFilters } from "./account/AccountInfo";
-export { AuthToken } from "./account/AuthToken";
-export { AuthToken as IdToken } from "./account/AuthToken";
+export * as AuthToken from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
@@ -145,6 +144,8 @@ export { ServerError } from "./error/ServerError";
 export {
     ClientAuthError,
     ClientAuthErrorMessage,
+    ClientAuthErrorCodes,
+    createClientAuthError,
 } from "./error/ClientAuthError";
 export {
     ClientConfigurationError,

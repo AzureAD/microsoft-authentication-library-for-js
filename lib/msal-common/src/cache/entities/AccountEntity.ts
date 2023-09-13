@@ -8,7 +8,10 @@ import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { AccountInfo } from "../../account/AccountInfo";
-import { ClientAuthError } from "../../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../../error/ClientAuthError";
 import { AuthorityType } from "../../authority/AuthorityType";
 import { Logger } from "../../logger/Logger";
 import { TokenClaims } from "../../account/TokenClaims";
@@ -140,7 +143,9 @@ export class AccountEntity {
             (authority && authority.getPreferredCache());
 
         if (!env) {
-            throw ClientAuthError.createInvalidCacheEnvironmentError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidCacheEnvironment
+            );
         }
 
         account.environment = env;

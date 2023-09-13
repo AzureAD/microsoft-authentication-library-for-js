@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix for source-map related errors #6398",
-  "packageName": "@azure/msal-react",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}

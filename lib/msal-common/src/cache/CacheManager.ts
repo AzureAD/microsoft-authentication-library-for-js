@@ -28,12 +28,15 @@ import { IdTokenEntity } from "./entities/IdTokenEntity";
 import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
 import { AuthError } from "../error/AuthError";
 import { ICacheManager } from "./interface/ICacheManager";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../error/ClientAuthError";
 import { AccountInfo } from "../account/AccountInfo";
 import { AppMetadataEntity } from "./entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "./entities/ThrottlingEntity";
-import { AuthToken } from "../account/AuthToken";
+import { extractTokenClaims } from "../account/AuthToken";
 import { ICrypto } from "../crypto/ICrypto";
 import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
@@ -271,10 +274,10 @@ export abstract class CacheManager implements ICacheManager {
         const idToken = this.getIdToken(accountInfo);
         if (idToken) {
             accountInfo.idToken = idToken.secret;
-            accountInfo.idTokenClaims = new AuthToken(
+            accountInfo.idTokenClaims = extractTokenClaims(
                 idToken.secret,
-                this.cryptoImpl
-            ).claims;
+                this.cryptoImpl.base64Decode
+            );
         }
         return accountInfo;
     }
@@ -288,7 +291,9 @@ export abstract class CacheManager implements ICacheManager {
         storeInCache?: StoreInCache
     ): Promise<void> {
         if (!cacheRecord) {
-            throw ClientAuthError.createNullOrUndefinedCacheRecord();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidCacheRecord
+            );
         }
 
         if (!!cacheRecord.account) {
@@ -777,7 +782,9 @@ export abstract class CacheManager implements ICacheManager {
                     try {
                         await this.cryptoImpl.removeTokenBindingKey(kid);
                     } catch (error) {
-                        throw ClientAuthError.createBindingKeyNotRemovedError();
+                        throw createClientAuthError(
+                            ClientAuthErrorCodes.bindingKeyNotRemoved
+                        );
                     }
                 }
             }
@@ -829,10 +836,10 @@ export abstract class CacheManager implements ICacheManager {
         const cachedAppMetadata = this.readAppMetadataFromCache(environment);
 
         if (cachedAccount && cachedIdToken) {
-            cachedAccount.idTokenClaims = new AuthToken(
+            cachedAccount.idTokenClaims = extractTokenClaims(
                 cachedIdToken.secret,
-                this.cryptoImpl
-            ).claims;
+                this.cryptoImpl.base64Decode
+            );
         }
 
         return {
@@ -1044,7 +1051,9 @@ export abstract class CacheManager implements ICacheManager {
                 "CacheManager:getAccessToken - Multiple access tokens found, clearing them"
             );
             accessTokens.forEach((accessToken) => {
-                this.removeAccessToken(accessToken.generateCredentialKey());
+                void this.removeAccessToken(
+                    accessToken.generateCredentialKey()
+                );
             });
             return null;
         }
@@ -1254,7 +1263,9 @@ export abstract class CacheManager implements ICacheManager {
         if (numAppMetadata < 1) {
             return null;
         } else if (numAppMetadata > 1) {
-            throw ClientAuthError.createMultipleMatchingAppMetadataInCacheError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingAppMetadata
+            );
         }
 
         return appMetadataEntries[0] as AppMetadataEntity;
