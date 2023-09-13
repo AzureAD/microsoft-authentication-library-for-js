@@ -286,11 +286,13 @@ export abstract class CacheManager implements ICacheManager {
 
         // Map tenant profile accounts to their tenantProfiles for baseAccount
         tenantProfileAccounts.forEach((tenantProfileAccount: AccountInfo) => {
+            const localTenantId = tenantProfileAccount.tenantId.trim();
+            const homeTenanttId = tenantProfileAccount.homeAccountId.split(".")[1].trim();
             tenantProfiles.set(
                 tenantProfileAccount.tenantId, { 
                     objectId: tenantProfileAccount.localAccountId,
                     tenantId: tenantProfileAccount.tenantId,
-                    isHomeTenant: tenantProfileAccount.tenantId === tenantProfileAccount.homeAccountId.split(".")[1]
+                    isHomeTenant: localTenantId === homeTenanttId
                 });
         });
         
