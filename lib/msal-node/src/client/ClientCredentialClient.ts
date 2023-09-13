@@ -91,7 +91,7 @@ export class ClientCredentialClient extends BaseClient {
         request: CommonClientCredentialRequest
     ): Promise<[AuthenticationResult | null, CacheOutcome]> {
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
-        
+
         // read the user-supplied cache into memory, if applicable
         let cacheContext;
         if (this.config.serializableCache && this.config.persistencePlugin) {
