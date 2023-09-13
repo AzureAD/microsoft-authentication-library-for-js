@@ -46,8 +46,13 @@ export class LoopbackClient implements ILoopbackClient {
             timeoutInMs?: number;
         } = {}
     ): Promise<void> {
-        const { successTemplate, errorTemplate, timeoutInMs } = options;
-        const timeout = timeoutInMs ?? LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS;
+        const successTemplate =
+            options.successTemplate ??
+            "Auth code was successfully acquired. You can close this window now.";
+        const errorTemplate =
+            options.errorTemplate ?? "Error occurred loading redirectUrl";
+        const timeoutInMs =
+            options.timeoutInMs ?? LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS;
 
         if (this.server) {
             return Promise.reject(
@@ -59,7 +64,7 @@ export class LoopbackClient implements ILoopbackClient {
             const timeoutId = setTimeout(() => {
                 this.closeServer();
                 reject(NodeAuthError.createLoopbackServerTimeoutError());
-            }, timeout).unref();
+            }, timeoutInMs).unref();
             this.server = http.createServer();
 
             this.server.on(
@@ -67,25 +72,17 @@ export class LoopbackClient implements ILoopbackClient {
                 (req: http.IncomingMessage, res: http.ServerResponse) => {
                     const url = req.url;
                     if (!url) {
-                        res.end(
-                            errorTemplate ||
-                                "Error occurred loading redirectUrl",
-                            () => {
-                                this.closeServer();
-                            }
-                        );
+                        res.end(errorTemplate, () => {
+                            this.closeServer();
+                        });
                         this.authResult.reject(
                             NodeAuthError.createUnableToLoadRedirectUrlError()
                         );
                         return;
                     } else if (url === CommonConstants.FORWARD_SLASH) {
-                        res.end(
-                            successTemplate ||
-                                "Auth code was successfully acquired. You can close this window now.",
-                            () => {
-                                this.closeServer();
-                            }
-                        );
+                        res.end(successTemplate, () => {
+                            this.closeServer();
+                        });
                         return;
                     }
 
