@@ -10,10 +10,11 @@ import { ServerAuthorizationCodeResponse } from "@azure/msal-common";
  * @public
  */
 export interface ILoopbackClient {
-    listenForAuthCode(
-        successTemplate?: string,
-        errorTemplate?: string
-    ): Promise<ServerAuthorizationCodeResponse>;
+    startServer(options: {
+        successTemplate?: string;
+        errorTemplate?: string;
+    }): Promise<void>;
+    waitForAuthCode(): Promise<ServerAuthorizationCodeResponse>;
     getRedirectUri(): string;
     closeServer(): void;
 }

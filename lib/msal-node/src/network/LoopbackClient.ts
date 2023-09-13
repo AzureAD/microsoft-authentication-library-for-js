@@ -10,12 +10,28 @@ import {
     HttpStatus,
 } from "@azure/msal-common";
 import http from "http";
+import net from "net";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { Constants, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants.js";
 import { ILoopbackClient } from "./ILoopbackClient.js";
 
 export class LoopbackClient implements ILoopbackClient {
-    private server: http.Server;
+    private server: http.Server | undefined;
+    private openSockets = new Set<net.Socket>();
+    private authResult: {
+        success?: ServerAuthorizationCodeResponse;
+        error?: NodeAuthError;
+        promise?: Promise<ServerAuthorizationCodeResponse>;
+        resolve: (value: ServerAuthorizationCodeResponse) => void;
+        reject: (error: NodeAuthError) => void;
+    } = {
+        resolve: (value) => {
+            this.authResult.success = value;
+        },
+        reject: (error) => {
+            this.authResult.error = error;
+        },
+    };
 
     /**
      * Spins up a loopback server which returns the server response when the localhost redirectUri is hit
@@ -23,76 +39,103 @@ export class LoopbackClient implements ILoopbackClient {
      * @param errorTemplate
      * @returns
      */
-    async listenForAuthCode(
-        successTemplate?: string,
-        errorTemplate?: string
-    ): Promise<ServerAuthorizationCodeResponse> {
-        if (!!this.server) {
-            throw NodeAuthError.createLoopbackServerAlreadyExistsError();
+    startServer(
+        options: {
+            successTemplate?: string;
+            errorTemplate?: string;
+            timeoutInMs?: number;
+        } = {}
+    ): Promise<void> {
+        const { successTemplate, errorTemplate, timeoutInMs } = options;
+        const timeout = timeoutInMs ?? LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS;
+
+        if (this.server) {
+            return Promise.reject(
+                NodeAuthError.createLoopbackServerAlreadyExistsError()
+            );
         }
 
-        const authCodeListener = new Promise<ServerAuthorizationCodeResponse>(
-            (resolve, reject) => {
-                this.server = http.createServer(
-                    async (
-                        req: http.IncomingMessage,
-                        res: http.ServerResponse
-                    ) => {
-                        const url = req.url;
-                        if (!url) {
-                            res.end(
-                                errorTemplate ||
-                                    "Error occurred loading redirectUrl"
-                            );
-                            reject(
-                                NodeAuthError.createUnableToLoadRedirectUrlError()
-                            );
-                            return;
-                        } else if (url === CommonConstants.FORWARD_SLASH) {
-                            res.end(
-                                successTemplate ||
-                                    "Auth code was successfully acquired. You can close this window now."
-                            );
-                            return;
-                        }
+        return new Promise<void>((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                this.closeServer();
+                reject(NodeAuthError.createLoopbackServerTimeoutError());
+            }, timeout).unref();
+            this.server = http.createServer();
 
-                        const authCodeResponse =
-                            UrlString.getDeserializedQueryString(url);
-                        if (authCodeResponse.code) {
-                            const redirectUri = await this.getRedirectUri();
-                            res.writeHead(HttpStatus.REDIRECT, {
-                                location: redirectUri,
-                            }); // Prevent auth code from being saved in the browser history
-                            res.end();
-                        }
-                        resolve(authCodeResponse);
+            this.server.on(
+                "request",
+                (req: http.IncomingMessage, res: http.ServerResponse) => {
+                    const url = req.url;
+                    if (!url) {
+                        res.end(
+                            errorTemplate ||
+                                "Error occurred loading redirectUrl",
+                            () => {
+                                this.closeServer();
+                            }
+                        );
+                        this.authResult.reject(
+                            NodeAuthError.createUnableToLoadRedirectUrlError()
+                        );
+                        return;
+                    } else if (url === CommonConstants.FORWARD_SLASH) {
+                        res.end(
+                            successTemplate ||
+                                "Auth code was successfully acquired. You can close this window now.",
+                            () => {
+                                this.closeServer();
+                            }
+                        );
+                        return;
                     }
-                );
-                this.server.listen(0); // Listen on any available port
-            }
-        );
 
-        // Wait for server to be listening
-        await new Promise<void>((resolve) => {
-            let ticks = 0;
-            const id = setInterval(() => {
-                if (
-                    LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS /
-                        LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS <
-                    ticks
-                ) {
-                    throw NodeAuthError.createLoopbackServerTimeoutError();
+                    const authCodeResponse =
+                        UrlString.getDeserializedQueryString(url);
+                    if (authCodeResponse.code) {
+                        res.writeHead(HttpStatus.REDIRECT, {
+                            location: "/",
+                        }); // Prevent auth code from being saved in the browser history
+                        res.end();
+                    }
+                    this.authResult.resolve(authCodeResponse);
                 }
-
-                if (this.server.listening) {
-                    clearInterval(id);
-                    resolve();
-                }
-                ticks++;
-            }, LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS);
+            );
+            this.server.on("connection", (socket) => {
+                this.openSockets.add(socket);
+                socket.once("close", () => {
+                    this.openSockets.delete(socket);
+                });
+            });
+            this.server.once("listening", () => {
+                clearTimeout(timeoutId);
+                resolve();
+            });
+            this.server.once("error", (e) => {
+                this.closeServer();
+                reject(e);
+            });
+            this.server.listen(0); // Listen on any available port
         });
+    }
 
-        return authCodeListener;
+    waitForAuthCode(): Promise<ServerAuthorizationCodeResponse> {
+        if (!this.server || !this.server.listening) {
+            return Promise.reject(
+                NodeAuthError.createNoLoopbackServerExistsError()
+            );
+        }
+        if (!this.authResult.promise) {
+            this.authResult.promise = new Promise((resolve, reject) => {
+                this.authResult.resolve = resolve;
+                this.authResult.reject = reject;
+                if (this.authResult.error) {
+                    reject(this.authResult.error);
+                } else if (this.authResult.success) {
+                    resolve(this.authResult.success);
+                }
+            });
+        }
+        return this.authResult.promise;
     }
 
     /**
@@ -100,10 +143,11 @@ export class LoopbackClient implements ILoopbackClient {
      * @returns
      */
     getRedirectUri(): string {
-        if (!this.server) {
+        if (!this.server || !this.server.listening) {
             throw NodeAuthError.createNoLoopbackServerExistsError();
         }
 
+        // address() returns null if server isn't listening yet or has closed
         const address = this.server.address();
         if (!address || typeof address === "string" || !address.port) {
             this.closeServer();
@@ -119,8 +163,16 @@ export class LoopbackClient implements ILoopbackClient {
      * Close the loopback server
      */
     closeServer(): void {
-        if (!!this.server) {
+        if (this.server) {
             this.server.close();
+            this.server = undefined;
+        }
+        // close() will not terminate any open connections
+        if (this.openSockets.size) {
+            for (const socket of this.openSockets) {
+                socket.destroy();
+            }
+            this.openSockets.clear();
         }
     }
 }

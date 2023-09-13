@@ -167,12 +167,11 @@ export class PublicClientApplication
         const loopbackClient: ILoopbackClient =
             customLoopbackClient || new LoopbackClient();
 
-        let authCodeListener: Promise<ServerAuthorizationCodeResponse>;
         try {
-            authCodeListener = loopbackClient.listenForAuthCode(
+            await loopbackClient.startServer({
                 successTemplate,
-                errorTemplate
-            );
+                errorTemplate,
+            });
             const redirectUri = loopbackClient.getRedirectUri();
 
             const validRequest: AuthorizationUrlRequest = {
@@ -187,9 +186,7 @@ export class PublicClientApplication
 
             const authCodeUrl = await this.getAuthCodeUrl(validRequest);
             await openBrowser(authCodeUrl);
-            const authCodeResponse = await authCodeListener.finally(() => {
-                loopbackClient.closeServer();
-            });
+            const authCodeResponse = await loopbackClient.waitForAuthCode();
 
             if (authCodeResponse.error) {
                 throw new ServerError(
@@ -209,9 +206,8 @@ export class PublicClientApplication
                 ...validRequest,
             };
             return this.acquireTokenByCode(tokenRequest);
-        } catch (e) {
+        } finally {
             loopbackClient.closeServer();
-            throw e;
         }
     }
 
