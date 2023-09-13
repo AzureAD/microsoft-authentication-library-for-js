@@ -185,11 +185,21 @@ export abstract class CacheManager implements ICacheManager {
     abstract updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
 
     /**
-     * Returns all accounts in cache. If multi-tenant accounts are enabled, the account objects will also include
-     * their respective tenant profiles.
+     * Returns all accounts in the cache that match the filter. If in multi-tenant mode, the accounts will be returned
+     * with their respective tenant profiles. If no filter is passed in, all accounts will be returned.
+     * @param accountFilter 
+     * @param multiTenantAccountsEnabled 
+     * @returns all accounts in the cache that match the filter
      */
-    getAllAccounts(multiTenantAccountsEnabled?: boolean): AccountInfo[] {
-        return (multiTenantAccountsEnabled) ? this.getAllAccountsMultiTenant() : this.getAllCachedAccounts();
+    getAllAccounts(accountFilter?: AccountFilter, multiTenantAccountsEnabled?: boolean): AccountInfo[] {
+        if (accountFilter) {
+            return this.getAccountsFilteredBy(accountFilter).map((accountEntity) => { 
+                const accountInfo = accountEntity.getAccountInfo();
+                return (multiTenantAccountsEnabled) ? this.buildMultiTenantAccount(accountInfo) : accountInfo;
+            });
+        } else {
+            return (multiTenantAccountsEnabled) ? this.getAllAccountsMultiTenant() : this.getAllCachedAccounts();
+        }
     }
 
     /**
@@ -285,21 +295,6 @@ export abstract class CacheManager implements ICacheManager {
         });
         
         return { ...baseAccount, tenantProfiles };
-    }
-
-    /**
-     * Returns all accounts in the cache that match the filter. If in multi-tenant mode, the accounts will be returned
-     * with their respective tenant profiles.
-     * @param accountFilter 
-     * @param multiTenantAccountsEnabled 
-     * @returns all accounts in the cache that match the filter
-     */
-    getAllAccountsFilteredBy(accountFilter: AccountFilter, multiTenantAccountsEnabled?: boolean): AccountInfo[] {
-        const fitleredAccounts: AccountInfo[] = this.getAccountsFilteredBy(accountFilter).map((accountEntity) => { return accountEntity.getAccountInfo(); });
-        if (multiTenantAccountsEnabled) {
-            return fitleredAccounts.map((accountInfo) => { return this.buildMultiTenantAccount(accountInfo); });
-        } 
-        return fitleredAccounts;
     }
 
     /** 

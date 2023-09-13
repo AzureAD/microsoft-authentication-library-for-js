@@ -759,26 +759,17 @@ export abstract class ClientApplication {
     // #region Account APIs
 
     /**
-     * Returns all accounts that MSAL currently has cached data for
+     * Returns all accounts matching the filter that MSAL currently has cached data for
      * (the account object is created at the time of successful login)
      * or empty array when no accounts are found. If multi-tenant accounts are enabled, each account object
-     * will also contain references to it's matching alterante tenant profiles. The account list may contain multiple accounts
+     * will also contain references to it's matching alternate tenant profiles. The account list may contain multiple accounts
      * for the same user if they have signed into multiple tenants.
+     * @param accountFilter - used to filter accounts
      * @returns Array of account objects in cache
      */
-    getAllAccounts(): AccountInfo[] {
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
         this.logger.verbose("getAllAccounts called");
-        return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts(this.config.auth.multiTenantAccountsEnabled) : [];
-    }
-
-    /**
-     * Returns all cached accounts that match the filter passed in.
-     * @param accountFilter 
-     * @returns All cached accounts that match the filter.
-     */
-    getAccountsByFilter(accountFilter: AccountFilter): AccountInfo[] {
-        this.logger.verbose("getAccountsByFilter called");
-        return this.isBrowserEnvironment ? this.browserStorage.getAllAccountsFilteredBy(accountFilter, this.config.auth.multiTenantAccountsEnabled) : [];
+        return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts(accountFilter, this.config.auth.multiTenantAccountsEnabled) : [];
     }
 
     /**
