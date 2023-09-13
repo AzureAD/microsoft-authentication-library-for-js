@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694561957153,
+  "lastUpdate": 1694630017475,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -152,6 +152,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.45%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a596d3ddd3ad48a58814ba575cd37b14302ed540",
+          "message": "Add DSTS not supported disclaimer (#6354)\n\nThis PR adds a warning about DSTS not being officially supported despite\r\nMSAL correctly processing DSTS authorities\r\n\r\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>",
+          "timestamp": "2023-09-13T11:29:14-07:00",
+          "tree_id": "b536d0f5f08cfdae9fc8d92e14bb7813467b9bd4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a596d3ddd3ad48a58814ba575cd37b14302ed540"
+        },
+        "date": 1694630016558,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 150233,
+            "range": "±1.44%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 151186,
+            "range": "±1.32%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
           }
         ]
       }
