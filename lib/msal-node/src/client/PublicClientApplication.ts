@@ -17,7 +17,6 @@ import {
     NativeSignOutRequest,
     AccountInfo,
     INativeBrokerPlugin,
-    ServerAuthorizationCodeResponse,
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
