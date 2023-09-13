@@ -10,8 +10,6 @@ export { ClientConfigurationErrorCodes };
 export const ClientConfigurationErrorMessages = {
     [ClientConfigurationErrorCodes.redirectUriEmpty]:
         "A redirect URI is required for all calls, and none has been set.",
-    [ClientConfigurationErrorCodes.postLogoutUriEmpty]:
-        "A post logout redirect has not been set.",
     [ClientConfigurationErrorCodes.claimsRequestParsingError]:
         "Could not parse the given claims request object.",
     [ClientConfigurationErrorCodes.authorityUriInsecure]:
@@ -21,10 +19,6 @@ export const ClientConfigurationErrorMessages = {
     [ClientConfigurationErrorCodes.urlEmptyError]: "URL was empty or null.",
     [ClientConfigurationErrorCodes.emptyInputScopesError]:
         "Scopes cannot be passed as null, undefined or empty array because they are required to obtain an access token.",
-    [ClientConfigurationErrorCodes.nonArrayInputScopesError]:
-        "Scopes cannot be passed as non-array.",
-    [ClientConfigurationErrorCodes.clientIdInputScopesError]:
-        "Client ID can only be provided as a single scope.",
     [ClientConfigurationErrorCodes.invalidPromptValue]:
         "Please see here for valid configuration options: https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#commonauthorizationurlrequest",
     [ClientConfigurationErrorCodes.invalidClaims]:
@@ -43,8 +37,6 @@ export const ClientConfigurationErrorMessages = {
         "Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, issuer fields.",
     [ClientConfigurationErrorCodes.untrustedAuthority]:
         "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter.",
-    [ClientConfigurationErrorCodes.invalidAzureCloudInstance]:
-        "Invalid AzureCloudInstance provided. Please refer MSAL JS docs: aks.ms/msaljs/azure_cloud_instance for valid values",
     [ClientConfigurationErrorCodes.missingSshJwk]:
         "Missing sshJwk in SSH certificate request. A stringified JSON Web Key is required when using the SSH authentication scheme.",
     [ClientConfigurationErrorCodes.missingSshKid]:
@@ -70,12 +62,6 @@ export const ClientConfigurationErrorMessage = {
         code: ClientConfigurationErrorCodes.redirectUriEmpty,
         desc: ClientConfigurationErrorMessages[
             ClientConfigurationErrorCodes.redirectUriEmpty
-        ],
-    },
-    postLogoutUriNotSet: {
-        code: ClientConfigurationErrorCodes.postLogoutUriEmpty,
-        desc: ClientConfigurationErrorMessages[
-            ClientConfigurationErrorCodes.postLogoutUriEmpty
         ],
     },
     claimsRequestParsingError: {
@@ -106,18 +92,6 @@ export const ClientConfigurationErrorMessage = {
         code: ClientConfigurationErrorCodes.emptyInputScopesError,
         desc: ClientConfigurationErrorMessages[
             ClientConfigurationErrorCodes.emptyInputScopesError
-        ],
-    },
-    nonArrayScopesError: {
-        code: ClientConfigurationErrorCodes.nonArrayInputScopesError,
-        desc: ClientConfigurationErrorMessages[
-            ClientConfigurationErrorCodes.nonArrayInputScopesError
-        ],
-    },
-    clientIdSingleScopeError: {
-        code: ClientConfigurationErrorCodes.clientIdInputScopesError,
-        desc: ClientConfigurationErrorMessages[
-            ClientConfigurationErrorCodes.clientIdInputScopesError
         ],
     },
     invalidPrompt: {
@@ -172,12 +146,6 @@ export const ClientConfigurationErrorMessage = {
         code: ClientConfigurationErrorCodes.untrustedAuthority,
         desc: ClientConfigurationErrorMessages[
             ClientConfigurationErrorCodes.untrustedAuthority
-        ],
-    },
-    invalidAzureCloudInstance: {
-        code: ClientConfigurationErrorCodes.invalidAzureCloudInstance,
-        desc: ClientConfigurationErrorMessages[
-            ClientConfigurationErrorCodes.invalidAzureCloudInstance
         ],
     },
     missingSshJwk: {

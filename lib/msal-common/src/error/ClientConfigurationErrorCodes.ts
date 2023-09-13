@@ -4,14 +4,11 @@
  */
 
 export const redirectUriEmpty = "redirect_uri_empty";
-export const postLogoutUriEmpty = "post_logout_uri_empty";
 export const claimsRequestParsingError = "claims_request_parsing_error";
 export const authorityUriInsecure = "authority_uri_insecure";
 export const urlParseError = "url_parse_error";
 export const urlEmptyError = "empty_url_error";
 export const emptyInputScopesError = "empty_input_scopes_error";
-export const nonArrayInputScopesError = "nonarray_input_scopes_error";
-export const clientIdInputScopesError = "clientid_input_scopes_error";
 export const invalidPromptValue = "invalid_prompt_value";
 export const invalidClaims = "invalid_claims";
 export const tokenRequestEmpty = "token_request_empty";
@@ -21,7 +18,6 @@ export const pkceParamsMissing = "pkce_params_missing";
 export const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 export const invalidAuthorityMetadata = "invalid_authority_metadata";
 export const untrustedAuthority = "untrusted_authority";
-export const invalidAzureCloudInstance = "invalid_azure_cloud_instance";
 export const missingSshJwk = "missing_ssh_jwk";
 export const missingSshKid = "missing_ssh_kid";
 export const missingNonceAuthenticationHeader =
