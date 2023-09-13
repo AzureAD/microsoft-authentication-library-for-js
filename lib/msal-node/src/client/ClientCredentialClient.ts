@@ -90,6 +90,8 @@ export class ClientCredentialClient extends BaseClient {
     private async getCachedAuthenticationResult(
         request: CommonClientCredentialRequest
     ): Promise<[AuthenticationResult | null, CacheOutcome]> {
+        let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
+        
         // read the user-supplied cache into memory, if applicable
         let cacheContext;
         if (this.config.serializableCache && this.config.persistencePlugin) {
@@ -136,6 +138,7 @@ export class ClientCredentialClient extends BaseClient {
             cachedAccessToken.refreshOn &&
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn.toString(), 0)
         ) {
+            lastCacheOutcome = CacheOutcome.PROACTIVELY_REFRESHED;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.PROACTIVELY_REFRESHED
             );
@@ -155,7 +158,7 @@ export class ClientCredentialClient extends BaseClient {
                 true,
                 request
             ),
-            CacheOutcome.PROACTIVELY_REFRESHED,
+            lastCacheOutcome,
         ];
     }
 
