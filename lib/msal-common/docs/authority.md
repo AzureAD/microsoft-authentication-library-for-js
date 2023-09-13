@@ -95,6 +95,8 @@ See [ADFS](./ADFS.md) for more.
 
 ### dSTS
 
+> :warning: DSTS does not currently support the Authorization Code Flow for Single-page Applications. Although MSAL JS libraries will recognize DSTS authorities, they cannot actually acquire tokens from DSTS yet.
+
 Given that dSTS also uses custom domains in its authority URLs and does not support instance discovery, dSTS authorities must also be explicitly included in the `knownAuthorities` configuration array.
 
 ```javascript
