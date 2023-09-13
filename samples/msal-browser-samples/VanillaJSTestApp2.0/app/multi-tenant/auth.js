@@ -11,8 +11,8 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 });
 
 function handleResponse() {
-    // getAccountsByFilter returns all cached accounts that match the filter. Use isHomeTenant filter to get the home accounts.
-    const homeAccounts = myMSALObj.getAccountsByFilter({ isHomeTenant: true });
+    // when a filter is passed into getAllAccounts, it returns all cached accounts that match the filter. Use isHomeTenant filter to get the home accounts.
+    const homeAccounts = myMSALObj.getAllAccounts({ isHomeTenant: true });
     if (!homeAccounts || homeAccounts.length < 1) {
         return;
     } else if (homeAccounts.length === 1) {

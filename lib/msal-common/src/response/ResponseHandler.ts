@@ -182,37 +182,13 @@ export class ResponseHandler {
                 cacheContext = new TokenCacheContext(this.serializableCache, true);
                 await this.persistencePlugin.beforeCacheAccess(cacheContext);
             }
-            /*
-             * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
-             * If not present in single-tenant mode, we should return null, as it's the case that another application called removeAccount in between
-             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
-             * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
-             * For multi-tenant mode, if the account object in the response is not in the cache but matches homeAccountId with another account in the
-             * cache, MSAL should cache the response account and credentials since they belong to a new tenant profile of the same account.
-             */
-            if (handlingRefreshTokenResponse && !forceCacheRefreshTokenResponse && cacheRecord.account) {
-                // Search for exact account match in cache
-                const key = cacheRecord.account.generateAccountKey();
-                const account = this.cacheStorage.getAccount(key);
-                
-                if (!account) {
-                    // No exact match found, search for another tenant profile of the same account
-                    if (this.multiTenantAccountsEnabled) {
-                        const homeAccountId = cacheRecord.account.homeAccountId;
-                        const crossTenantAccount = this.cacheStorage.getAccountInfoFilteredBy({homeAccountId});
-                        if(crossTenantAccount){
-                            this.logger.info("Account used to refresh tokens not in persistence, but another tenant profile for requested account is in persistence, refreshed tokens will be stored in the cache");
-                        } else {
-                            this.logger.warning("Neither the account used to refresh tokens nor a cross-tenant profile of it were found in persistence, refreshed tokens will not be stored in the cache");
-                            return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, serverRequestId);
-                        }
-                    } else {
-                        this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, serverRequestId);
-                    }
-                }
+
+            // Check if record should be cached because it either matches a cached account or one of it's tenant profiles
+            if (this.recordShouldBeCached(cacheRecord, handlingRefreshTokenResponse, forceCacheRefreshTokenResponse)) {
+                await this.cacheStorage.saveCacheRecord(cacheRecord);
+            } else {
+                return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, serverRequestId);
             }
-            await this.cacheStorage.saveCacheRecord(cacheRecord);
         } finally {
             if (this.persistencePlugin && this.serializableCache && cacheContext) {
                 this.logger.verbose("Persistence enabled, calling afterCacheAccess");
@@ -220,6 +196,48 @@ export class ResponseHandler {
             }
         }
         return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse, serverRequestId);
+    }
+
+    /**
+     * Determines whether a server token response should be cached or not factoring in whether it is a refreshed token request, if multi-tenant
+     * accounts are enabled and whether the account the tokens belong to is already in the cache.
+     * @param cacheRecord 
+     * @param handlingRefreshTokenResponse 
+     * @param forceCacheRefreshTokenResponse 
+     * @returns 
+     */
+    private recordShouldBeCached(cacheRecord: CacheRecord, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean): boolean {
+        /*
+         * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
+         * If not present in single-tenant mode, we should return null, as it's the case that another application called removeAccount in between
+         * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
+         * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
+         * For multi-tenant mode, if the account object in the response is not in the cache but matches homeAccountId with another account in the
+         * cache, MSAL should cache the response account and credentials since they belong to a new tenant profile of the same account.
+         */
+        if (handlingRefreshTokenResponse && !forceCacheRefreshTokenResponse && cacheRecord.account) {
+            // Search for exact account match in cache
+            const key = cacheRecord.account.generateAccountKey();
+            const account = this.cacheStorage.getAccount(key);
+            
+            if (!account) {
+                // No exact match found, search for another tenant profile of the same account
+                if (this.multiTenantAccountsEnabled) {
+                    const homeAccountId = cacheRecord.account.homeAccountId;
+                    const crossTenantAccount = this.cacheStorage.getAccountInfoFilteredBy({homeAccountId});
+                    if(crossTenantAccount){
+                        this.logger.info("Account used to refresh tokens not in persistence, but another tenant profile for requested account is in persistence, refreshed tokens will be stored in the cache");
+                        return true;
+                    } else {
+                        this.logger.warning("Neither the account used to refresh tokens nor a cross-tenant profile of it were found in persistence, refreshed tokens will not be stored in the cache");
+                    }
+                } else {
+                    this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
+                }
+            }
+            return false;
+        }
+        return true;
     }
 
     /**
