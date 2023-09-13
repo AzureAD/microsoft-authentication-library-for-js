@@ -15,7 +15,8 @@ import {
     AccountInfo,
     AuthenticationResult,
     ClientAuthErrorCodes,
-    ClientConfigurationError,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
     createClientAuthError,
     InteractionRequiredAuthError,
     NativeRequest,
@@ -1827,7 +1828,9 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual(
-                            ClientConfigurationError.createUntrustedAuthorityError()
+                            createClientConfigurationError(
+                                ClientConfigurationErrorCodes.untrustedAuthority
+                            )
                         );
                         done();
                     });
