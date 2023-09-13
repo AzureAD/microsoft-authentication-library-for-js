@@ -39,15 +39,17 @@ import { AccountInfo } from "../../src/account/AccountInfo";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { CommonSilentFlowRequest } from "../../src/request/CommonSilentFlowRequest";
-import { ClientAuthError } from "../../src/error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../../src/error/ClientAuthError";
 import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
-import { AuthToken } from "../../src/account/AuthToken";
+import * as AuthToken from "../../src/account/AuthToken";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
 import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
-import { Logger } from "../../src/logger/Logger";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
@@ -85,24 +87,9 @@ describe("RefreshTokenClient unit tests", () => {
         sinon.restore();
     });
 
-    const name = "test-client-id";
-    const version = "0.0.1";
-    const logger = new Logger({});
-    const applicationTelemetry = {
-        appName: "Test App",
-        appVersion: "1.0.0-test.0",
-    };
-
     let stubPerformanceClient: StubPerformanceClient;
     beforeEach(async () => {
-        stubPerformanceClient = new StubPerformanceClient(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            TEST_CONFIG.validAuthority,
-            logger,
-            name,
-            version,
-            applicationTelemetry
-        );
+        stubPerformanceClient = new StubPerformanceClient();
     });
 
     describe("Constructor", () => {
@@ -214,10 +201,11 @@ describe("RefreshTokenClient unit tests", () => {
             );
             sinon
                 .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    //@ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
                 )
-                .resolves(AUTHENTICATION_RESULT);
+                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
 
             let refreshTokenSize;
             await client.acquireToken(refreshTokenRequest).then(() => {
@@ -243,10 +231,15 @@ describe("RefreshTokenClient unit tests", () => {
             );
             sinon
                 .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    // @ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
                 )
-                .resolves(AUTHENTICATION_RESULT_NO_REFRESH_TOKEN);
+                // @ts-ignore
+                .resolves({
+                    ...AUTHENTICATION_RESULT_NO_REFRESH_TOKEN,
+                    headers: { ...AUTHENTICATION_RESULT_WITH_HEADERS.headers },
+                });
 
             let refreshTokenSize;
             await client.acquireToken(refreshTokenRequest).then(() => {
@@ -931,9 +924,6 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("includes the http version in Refresh token client(AT) measurement when received in server response", async () => {
-            sinon
-                .stub(RefreshTokenClient.prototype, <any>"executeTokenRequest")
-                .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
             const performanceClient = {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
@@ -949,18 +939,14 @@ describe("RefreshTokenClient unit tests", () => {
                 addFields: jest.fn(),
                 incrementFields: jest.fn(),
             };
-            performanceClient.startMeasurement.mockImplementation(() => {
-                return {
-                    add: (fields: { [key: string]: {} | undefined }) =>
-                        performanceClient.addFields(
-                            fields,
-                            TEST_CONFIG.CORRELATION_ID
-                        ),
-                    increment: jest.fn(),
-                    end: jest.fn(),
-                };
-            });
             const client = new RefreshTokenClient(config, performanceClient);
+            sinon
+                .stub(
+                    // @ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
+                )
+                .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
@@ -972,19 +958,18 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addFields).toBeCalledTimes(2);
             expect(performanceClient.addFields).toBeCalledWith(
                 {
                     httpVerToken: "xMsHttpVer",
+                    refreshTokenSize:
+                        AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token
+                            .length,
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
-            sinon
-                .stub(RefreshTokenClient.prototype, <any>"executeTokenRequest")
-                .resolves(AUTHENTICATION_RESULT);
             const performanceClient = {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
@@ -1000,18 +985,14 @@ describe("RefreshTokenClient unit tests", () => {
                 addFields: jest.fn(),
                 incrementFields: jest.fn(),
             };
-            performanceClient.startMeasurement.mockImplementation(() => {
-                return {
-                    add: (fields: { [key: string]: {} | undefined }) =>
-                        performanceClient.addFields(
-                            fields,
-                            TEST_CONFIG.CORRELATION_ID
-                        ),
-                    increment: jest.fn(),
-                    end: jest.fn(),
-                };
-            });
             const client = new RefreshTokenClient(config, performanceClient);
+            sinon
+                .stub(
+                    // @ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
+                )
+                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
@@ -1023,10 +1004,14 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addFields).toBeCalledTimes(1);
-            expect(performanceClient.addFields).not.toBeCalledWith({
-                httpVerToken: "xMsHttpVer",
-            });
+            expect(performanceClient.addFields).toBeCalledWith(
+                {
+                    httpVerToken: "",
+                    refreshTokenSize:
+                        AUTHENTICATION_RESULT.body.refresh_token.length,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
     });
 
@@ -1224,7 +1209,9 @@ describe("RefreshTokenClient unit tests", () => {
                     forceRefresh: false,
                 })
             ).rejects.toMatchObject(
-                ClientAuthError.createNoAccountInSilentRequestError()
+                createClientAuthError(
+                    ClientAuthErrorCodes.noAccountInSilentRequest
+                )
             );
         });
 

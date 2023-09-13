@@ -1,6 +1,6 @@
 {
-  "type": "prerelease",
-  "comment": "Remove isEmpty helper API",
+  "type": "patch",
+  "comment": "Fix monitorIframeForHash telemetry event name",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

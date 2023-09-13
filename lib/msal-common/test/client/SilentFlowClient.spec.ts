@@ -30,7 +30,7 @@ import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { AccountInfo } from "../../src/account/AccountInfo";
-import { AuthToken } from "../../src/account/AuthToken";
+import * as AuthToken from "../../src/account/AuthToken";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
@@ -38,7 +38,10 @@ import { TimeUtils } from "../../src/utils/TimeUtils";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 import { CommonSilentFlowRequest } from "../../src/request/CommonSilentFlowRequest";
 import { CacheManager } from "../../src/cache/CacheManager";
-import { ClientAuthError } from "../../src/error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../../src/error/ClientAuthError";
 import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest";
@@ -120,24 +123,11 @@ describe("SilentFlowClient unit tests", () => {
         sinon.restore();
     });
 
-    const name = "test-client-id";
-    const version = "0.0.1";
     const logger = new Logger({});
-    const applicationTelemetry = {
-        appName: "Test App",
-        appVersion: "1.0.0-test.0",
-    };
 
     let stubPerformanceClient: StubPerformanceClient;
     beforeEach(async () => {
-        stubPerformanceClient = new StubPerformanceClient(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            TEST_CONFIG.validAuthority,
-            logger,
-            name,
-            version,
-            applicationTelemetry
-        );
+        stubPerformanceClient = new StubPerformanceClient();
     });
 
     describe("Constructor", () => {
@@ -315,7 +305,7 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                ClientAuthError.createRefreshRequiredError()
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
             );
         });
 
@@ -463,7 +453,9 @@ describe("SilentFlowClient unit tests", () => {
                     forceRefresh: false,
                 })
             ).rejects.toMatchObject(
-                ClientAuthError.createNoAccountInSilentRequestError()
+                createClientAuthError(
+                    ClientAuthErrorCodes.noAccountInSilentRequest
+                )
             );
             await expect(
                 client.acquireCachedToken({
@@ -475,7 +467,9 @@ describe("SilentFlowClient unit tests", () => {
                     forceRefresh: false,
                 })
             ).rejects.toMatchObject(
-                ClientAuthError.createNoAccountInSilentRequestError()
+                createClientAuthError(
+                    ClientAuthErrorCodes.noAccountInSilentRequest
+                )
             );
         });
 
@@ -633,7 +627,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                ClientAuthError.createRefreshRequiredError()
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
             );
         });
 
@@ -675,7 +669,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                ClientAuthError.createRefreshRequiredError()
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
             );
         });
 
@@ -717,7 +711,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                ClientAuthError.createRefreshRequiredError()
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
             );
         });
 
@@ -757,7 +751,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                ClientAuthError.createRefreshRequiredError()
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
             );
         });
     });
@@ -948,7 +942,7 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                ClientAuthError.createMaxAgeTranspiredError()
+                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired)
             );
         });
 
@@ -974,7 +968,7 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                ClientAuthError.createAuthTimeNotFoundError()
+                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound)
             );
         });
 
@@ -993,7 +987,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
-                ClientAuthError.createRefreshRequiredError()
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
             );
         });
 

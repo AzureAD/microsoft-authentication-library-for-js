@@ -3,7 +3,6 @@ import {
     ClientConfigurationErrorMessage,
 } from "../../src/error/ClientConfigurationError";
 import { TEST_CONFIG } from "../test_kit/StringConstants";
-import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
 
 describe("ClientConfigurationError.ts Class Unit Tests", () => {
@@ -16,7 +15,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         );
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(TEST_ERROR_CODE);
@@ -33,7 +31,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ClientConfigurationError.createRedirectUriEmptyError();
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -60,7 +57,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -89,7 +85,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             );
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -120,7 +115,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             );
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -147,7 +141,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ClientConfigurationError.createUrlParseError("Url parse error");
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -174,7 +167,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ClientConfigurationError.createUrlEmptyError();
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -201,7 +193,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ClientConfigurationError.createEmptyScopesArrayError();
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -231,7 +222,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ]);
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -258,7 +248,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ClientConfigurationError.createInvalidPromptError("notaprompt");
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -285,7 +274,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ClientConfigurationError.createEmptyTokenRequestError();
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -312,7 +300,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ClientConfigurationError.createMissingSshJwkError();
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -339,7 +326,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ClientConfigurationError.createMissingSshKidError();
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(
@@ -366,7 +352,6 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             ClientConfigurationError.createAuthorityMismatchError();
 
         expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(

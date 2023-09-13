@@ -11,10 +11,13 @@ You can build confidential client applications with MSAL Node (web apps, daemon 
 
 Note: 1p apps may be required to also send `x5c`. This is the *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
 
-## Using certificates securely
+## Using secrets and certificates securely
 
-Certificates should be stored and deployed safely. Consider using Azure KeyVault for certificate storage and rotation. Passwords should never be hardcoded in source code. 
-Please see [certificates and secrets](https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets) for more information
+Secrets should never be hardcoded. The dotenv npm package can be used to store secrets or certificates in a .env file (located in project's root directory) that should be included in .gitignore to prevent accidental uploads of the secrets.
+
+Certificates can also be read-in from files via NodeJS's fs module. However, they should never be stored in the project's directory. Production apps should fetch certificates from [Azure KeyVault](https://azure.microsoft.com/products/key-vault), or other secure key vaults.
+
+Please see [certificates and secrets](https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets) for more information.
 
 See the MSAL sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
 
@@ -35,14 +38,15 @@ For more information, see: [Register your certificate with Microsoft identity pl
 
 ```javascript
 const msal = require('@azure/msal-node');
+require('dotenv').config(); // process.env now has the values defined in a .env file
 
 const config = {
     auth: {
         clientId: "YOUR_CLIENT_ID",
         authority: "https://login.microsoftonline.com/YOUR_TENANT_ID",
         clientCertificate: {
-            thumbprint: "CERT_THUMBPRINT", // a 40-digit hexadecimal string 
-            privateKey: "CERT_PRIVATE_KEY",
+            thumbprint: process.env.thumbprint, // a 40-digit hexadecimal string 
+            privateKey: process.env.privateKey,
         }
     }
 };
@@ -77,11 +81,11 @@ This can be done using Node's [crypto module](https://nodejs.org/docs/latest-v14
 const fs = require('fs');
 const crypto = require('crypto');
 
-const privateKeySource = fs.readFileSync('./example.key')
+const privateKeySource = fs.readFileSync('<path_to_key>/example.key')
 
 const privateKeyObject = crypto.createPrivateKey({
     key: privateKeySource,
-    passphrase: "YOUR_PASSPHRASE",
+    passphrase: process.env.YOUR_PASSPHRASE,
     format: 'pem'
 });
 
@@ -183,7 +187,7 @@ In such cases, you are responsible for cleaning the string before you pass them 
 const msal = require('@azure/msal-node');
 const fs = require('fs');
 
-const privateKeySource = fs.readFileSync('./certs/example.key');
+const privateKeySource = fs.readFileSync('<path_to_key>/certs/example.key');
 const privateKey = Buffer.from(privateKeySource, 'base64').toString().replace(/\r/g, "").replace(/\n/g, "");
 
 const config = {
@@ -191,7 +195,7 @@ const config = {
         clientId: "YOUR_CLIENT_ID",
         authority: "https://login.microsoftonline.com/YOUR_TENANT_ID",
         clientCertificate: {
-            thumbprint: "CERT_THUMBPRINT", // a 40-digit hexadecimal string
+            thumbprint: process.env.thumbprint, // a 40-digit hexadecimal string 
             privateKey: privateKey,
         }
     }

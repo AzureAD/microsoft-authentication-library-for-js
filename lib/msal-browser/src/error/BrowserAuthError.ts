@@ -4,186 +4,326 @@
  */
 
 import { AuthError } from "@azure/msal-common";
+import * as BrowserAuthErrorCodes from "./BrowserAuthErrorCodes";
+export { BrowserAuthErrorCodes }; // Allow importing as "BrowserAuthErrorCodes"
+
+const ErrorLink = "For more visit: aka.ms/msaljs/browser-errors";
 
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
  */
+export const BrowserAuthErrorMessages = {
+    [BrowserAuthErrorCodes.pkceNotCreated]:
+        "The PKCE code challenge and verifier could not be generated.",
+    [BrowserAuthErrorCodes.cryptoNonExistent]:
+        "The crypto object or function is not available.",
+    [BrowserAuthErrorCodes.emptyNavigateUri]:
+        "Navigation URI is empty. Please check stack trace for more info.",
+    [BrowserAuthErrorCodes.hashEmptyError]: `Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash. ${ErrorLink}`,
+    [BrowserAuthErrorCodes.noStateInHash]:
+        "Hash does not contain state. Please verify that the request originated from msal.",
+    [BrowserAuthErrorCodes.hashDoesNotContainKnownProperties]: `Hash does not contain known properites. Please verify that your redirectUri is not changing the hash.  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.unableToParseState]:
+        "Unable to parse state. Please verify that the request originated from msal.",
+    [BrowserAuthErrorCodes.stateInteractionTypeMismatch]:
+        "Hash contains state but the interaction type does not match the caller.",
+    [BrowserAuthErrorCodes.interactionInProgress]: `Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.   ${ErrorLink}`,
+    [BrowserAuthErrorCodes.popupWindowError]:
+        "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser.",
+    [BrowserAuthErrorCodes.emptyWindowError]:
+        "window.open returned null or undefined window object.",
+    [BrowserAuthErrorCodes.userCancelled]: "User cancelled the flow.",
+    [BrowserAuthErrorCodes.monitorPopupTimeout]: `Token acquisition in popup failed due to timeout.  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.monitorWindowTimeout]: `Token acquisition in iframe failed due to timeout.  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.redirectInIframe]:
+        "Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs.",
+    [BrowserAuthErrorCodes.blockIframeReload]: `Request was blocked inside an iframe because MSAL detected an authentication response.  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.blockNestedPopups]:
+        "Request was blocked inside a popup because MSAL detected it was running in a popup.",
+    [BrowserAuthErrorCodes.iframeClosedPrematurely]:
+        "The iframe being monitored was closed prematurely.",
+    [BrowserAuthErrorCodes.silentLogoutUnsupported]:
+        "Silent logout not supported. Please call logoutRedirect or logoutPopup instead.",
+    [BrowserAuthErrorCodes.noAccountError]:
+        "No account object provided to acquireTokenSilent and no active account has been set. Please call setActiveAccount or provide an account on the request.",
+    [BrowserAuthErrorCodes.silentPromptValueError]:
+        "The value given for the prompt value is not valid for silent requests - must be set to 'none' or 'no_session'.",
+    [BrowserAuthErrorCodes.noTokenRequestCacheError]:
+        "No token request found in cache.",
+    [BrowserAuthErrorCodes.unableToParseTokenRequestCacheError]:
+        "The cached token request could not be parsed.",
+    [BrowserAuthErrorCodes.noCachedAuthorityError]:
+        "No cached authority found.",
+    [BrowserAuthErrorCodes.authRequestNotSetError]:
+        "Auth Request not set. Please ensure initiateAuthRequest was called from the InteractionHandler",
+    [BrowserAuthErrorCodes.invalidCacheType]: "Invalid cache type",
+    [BrowserAuthErrorCodes.nonBrowserEnvironment]:
+        "Login and token requests are not supported in non-browser environments.",
+    [BrowserAuthErrorCodes.databaseNotOpen]: "Database is not open!",
+    [BrowserAuthErrorCodes.noNetworkConnectivity]:
+        "No network connectivity. Check your internet connection.",
+    [BrowserAuthErrorCodes.postRequestFailed]:
+        "Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'",
+    [BrowserAuthErrorCodes.getRequestFailed]:
+        "Network request failed. Please check the network trace to determine root cause.",
+    [BrowserAuthErrorCodes.failedToParseResponse]:
+        "Failed to parse network response. Check network trace.",
+    [BrowserAuthErrorCodes.unableToLoadToken]: "Error loading token to cache.",
+    [BrowserAuthErrorCodes.cryptoKeyNotFound]:
+        "Cryptographic Key or Keypair not found in browser storage.",
+    [BrowserAuthErrorCodes.authCodeRequired]:
+        "An authorization code must be provided (as the `code` property on the request) to this flow.",
+    [BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired]:
+        "An authorization code or nativeAccountId must be provided to this flow.",
+    [BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent]:
+        "Request cannot contain both spa code and native account id.",
+    [BrowserAuthErrorCodes.databaseUnavailable]:
+        "IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts.",
+    [BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform]: `Unable to acquire token from native platform.  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.nativeHandshakeTimeout]:
+        "Timed out while attempting to establish connection to browser extension",
+    [BrowserAuthErrorCodes.nativeExtensionNotInstalled]:
+        "Native extension is not installed. If you think this is a mistake call the initialize function.",
+    [BrowserAuthErrorCodes.nativeConnectionNotEstablished]: `Connection to native platform has not been established. Please install a compatible browser extension and run initialize().  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.uninitializedPublicClientApplication]: `You must call and await the initialize function before attempting to call any other MSAL API.  ${ErrorLink}`,
+    [BrowserAuthErrorCodes.nativePromptNotSupported]:
+        "The provided prompt is not supported by the native platform. This request should be routed to the web based flow.",
+};
+
+/**
+ * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
+ * @deprecated Use exported BrowserAuthErrorCodes instead.
+ * In your app you can do :
+ * ```
+ * import { BrowserAuthErrorCodes } from "@azure/msal-browser";
+ * ```
+ */
 export const BrowserAuthErrorMessage = {
     pkceNotGenerated: {
-        code: "pkce_not_created",
-        desc: "The PKCE code challenge and verifier could not be generated.",
+        code: BrowserAuthErrorCodes.pkceNotCreated,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.pkceNotCreated],
     },
     cryptoDoesNotExist: {
-        code: "crypto_nonexistent",
-        desc: "The crypto object or function is not available.",
+        code: BrowserAuthErrorCodes.cryptoNonExistent,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.cryptoNonExistent],
     },
     emptyNavigateUriError: {
-        code: "empty_navigate_uri",
-        desc: "Navigation URI is empty. Please check stack trace for more info.",
+        code: BrowserAuthErrorCodes.emptyNavigateUri,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.emptyNavigateUri],
     },
     hashEmptyError: {
-        code: "hash_empty_error",
-        desc: "Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash. For more visit: aka.ms/msaljs/browser-errors.",
+        code: BrowserAuthErrorCodes.hashEmptyError,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.hashEmptyError],
     },
     hashDoesNotContainStateError: {
-        code: "no_state_in_hash",
-        desc: "Hash does not contain state. Please verify that the request originated from msal.",
+        code: BrowserAuthErrorCodes.noStateInHash,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.noStateInHash],
     },
     hashDoesNotContainKnownPropertiesError: {
-        code: "hash_does_not_contain_known_properties",
-        desc: "Hash does not contain known properites. Please verify that your redirectUri is not changing the hash. For more visit: aka.ms/msaljs/browser-errors.",
+        code: BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+        ],
     },
     unableToParseStateError: {
-        code: "unable_to_parse_state",
-        desc: "Unable to parse state. Please verify that the request originated from msal.",
+        code: BrowserAuthErrorCodes.unableToParseState,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.unableToParseState
+        ],
     },
     stateInteractionTypeMismatchError: {
-        code: "state_interaction_type_mismatch",
-        desc: "Hash contains state but the interaction type does not match the caller.",
+        code: BrowserAuthErrorCodes.stateInteractionTypeMismatch,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.stateInteractionTypeMismatch
+        ],
     },
     interactionInProgress: {
-        code: "interaction_in_progress",
-        desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.  For more visit: aka.ms/msaljs/browser-errors.",
+        code: BrowserAuthErrorCodes.interactionInProgress,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.interactionInProgress
+        ],
     },
     popupWindowError: {
-        code: "popup_window_error",
-        desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser.",
+        code: BrowserAuthErrorCodes.popupWindowError,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.popupWindowError],
     },
     emptyWindowError: {
-        code: "empty_window_error",
-        desc: "window.open returned null or undefined window object.",
+        code: BrowserAuthErrorCodes.emptyWindowError,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.emptyWindowError],
     },
     userCancelledError: {
-        code: "user_cancelled",
-        desc: "User cancelled the flow.",
+        code: BrowserAuthErrorCodes.userCancelled,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.userCancelled],
     },
     monitorPopupTimeoutError: {
-        code: "monitor_window_timeout",
-        desc: "Token acquisition in popup failed due to timeout. For more visit: aka.ms/msaljs/browser-errors.",
+        code: BrowserAuthErrorCodes.monitorPopupTimeout,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.monitorPopupTimeout
+        ],
     },
     monitorIframeTimeoutError: {
-        code: "monitor_window_timeout",
-        desc: "Token acquisition in iframe failed due to timeout. For more visit: aka.ms/msaljs/browser-errors.",
+        code: BrowserAuthErrorCodes.monitorWindowTimeout,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.monitorWindowTimeout
+        ],
     },
     redirectInIframeError: {
-        code: "redirect_in_iframe",
-        desc: "Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs.",
+        code: BrowserAuthErrorCodes.redirectInIframe,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.redirectInIframe],
     },
     blockTokenRequestsInHiddenIframeError: {
-        code: "block_iframe_reload",
-        desc: "Request was blocked inside an iframe because MSAL detected an authentication response. For more visit: aka.ms/msaljs/browser-errors",
+        code: BrowserAuthErrorCodes.blockIframeReload,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.blockIframeReload],
     },
     blockAcquireTokenInPopupsError: {
-        code: "block_nested_popups",
-        desc: "Request was blocked inside a popup because MSAL detected it was running in a popup.",
+        code: BrowserAuthErrorCodes.blockNestedPopups,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.blockNestedPopups],
     },
     iframeClosedPrematurelyError: {
-        code: "iframe_closed_prematurely",
-        desc: "The iframe being monitored was closed prematurely.",
+        code: BrowserAuthErrorCodes.iframeClosedPrematurely,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.iframeClosedPrematurely
+        ],
     },
     silentLogoutUnsupportedError: {
-        code: "silent_logout_unsupported",
-        desc: "Silent logout not supported. Please call logoutRedirect or logoutPopup instead.",
+        code: BrowserAuthErrorCodes.silentLogoutUnsupported,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.silentLogoutUnsupported
+        ],
     },
     noAccountError: {
-        code: "no_account_error",
-        desc: "No account object provided to acquireTokenSilent and no active account has been set. Please call setActiveAccount or provide an account on the request.",
+        code: BrowserAuthErrorCodes.noAccountError,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.noAccountError],
     },
     silentPromptValueError: {
-        code: "silent_prompt_value_error",
-        desc: "The value given for the prompt value is not valid for silent requests - must be set to 'none' or 'no_session'.",
+        code: BrowserAuthErrorCodes.silentPromptValueError,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.silentPromptValueError
+        ],
     },
     noTokenRequestCacheError: {
-        code: "no_token_request_cache_error",
-        desc: "No token request found in cache.",
+        code: BrowserAuthErrorCodes.noTokenRequestCacheError,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.noTokenRequestCacheError
+        ],
     },
     unableToParseTokenRequestCacheError: {
-        code: "unable_to_parse_token_request_cache_error",
-        desc: "The cached token request could not be parsed.",
+        code: BrowserAuthErrorCodes.unableToParseTokenRequestCacheError,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
+        ],
     },
     noCachedAuthorityError: {
-        code: "no_cached_authority_error",
-        desc: "No cached authority found.",
+        code: BrowserAuthErrorCodes.noCachedAuthorityError,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.noCachedAuthorityError
+        ],
     },
     authRequestNotSet: {
-        code: "auth_request_not_set_error",
-        desc: "Auth Request not set. Please ensure initiateAuthRequest was called from the InteractionHandler",
+        code: BrowserAuthErrorCodes.authRequestNotSetError,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.authRequestNotSetError
+        ],
     },
     invalidCacheType: {
-        code: "invalid_cache_type",
-        desc: "Invalid cache type",
+        code: BrowserAuthErrorCodes.invalidCacheType,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.invalidCacheType],
     },
     notInBrowserEnvironment: {
-        code: "non_browser_environment",
-        desc: "Login and token requests are not supported in non-browser environments.",
+        code: BrowserAuthErrorCodes.nonBrowserEnvironment,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.nonBrowserEnvironment
+        ],
     },
     databaseNotOpen: {
-        code: "database_not_open",
-        desc: "Database is not open!",
+        code: BrowserAuthErrorCodes.databaseNotOpen,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.databaseNotOpen],
     },
     noNetworkConnectivity: {
-        code: "no_network_connectivity",
-        desc: "No network connectivity. Check your internet connection.",
+        code: BrowserAuthErrorCodes.noNetworkConnectivity,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.noNetworkConnectivity
+        ],
     },
     postRequestFailed: {
-        code: "post_request_failed",
-        desc: "Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'",
+        code: BrowserAuthErrorCodes.postRequestFailed,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.postRequestFailed],
     },
     getRequestFailed: {
-        code: "get_request_failed",
-        desc: "Network request failed. Please check the network trace to determine root cause.",
+        code: BrowserAuthErrorCodes.getRequestFailed,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.getRequestFailed],
     },
     failedToParseNetworkResponse: {
-        code: "failed_to_parse_response",
-        desc: "Failed to parse network response. Check network trace.",
+        code: BrowserAuthErrorCodes.failedToParseResponse,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.failedToParseResponse
+        ],
     },
     unableToLoadTokenError: {
-        code: "unable_to_load_token",
-        desc: "Error loading token to cache.",
+        code: BrowserAuthErrorCodes.unableToLoadToken,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.unableToLoadToken],
     },
     signingKeyNotFoundInStorage: {
-        code: "crypto_key_not_found",
-        desc: "Cryptographic Key or Keypair not found in browser storage.",
+        code: BrowserAuthErrorCodes.cryptoKeyNotFound,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.cryptoKeyNotFound],
     },
     authCodeRequired: {
-        code: "auth_code_required",
-        desc: "An authorization code must be provided (as the `code` property on the request) to this flow.",
+        code: BrowserAuthErrorCodes.authCodeRequired,
+        desc: BrowserAuthErrorMessages[BrowserAuthErrorCodes.authCodeRequired],
     },
     authCodeOrNativeAccountRequired: {
-        code: "auth_code_or_nativeAccountId_required",
-        desc: "An authorization code or nativeAccountId must be provided to this flow.",
+        code: BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
+        ],
     },
     spaCodeAndNativeAccountPresent: {
-        code: "spa_code_and_nativeAccountId_present",
-        desc: "Request cannot contain both spa code and native account id.",
+        code: BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent
+        ],
     },
     databaseUnavailable: {
-        code: "database_unavailable",
-        desc: "IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts.",
+        code: BrowserAuthErrorCodes.databaseUnavailable,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.databaseUnavailable
+        ],
     },
     unableToAcquireTokenFromNativePlatform: {
-        code: "unable_to_acquire_token_from_native_platform",
-        desc: "Unable to acquire token from native platform. For a list of possible reasons visit aka.ms/msaljs/browser-errors.",
+        code: BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform
+        ],
     },
     nativeHandshakeTimeout: {
-        code: "native_handshake_timeout",
-        desc: "Timed out while attempting to establish connection to browser extension",
+        code: BrowserAuthErrorCodes.nativeHandshakeTimeout,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.nativeHandshakeTimeout
+        ],
     },
     nativeExtensionNotInstalled: {
-        code: "native_extension_not_installed",
-        desc: "Native extension is not installed. If you think this is a mistake call the initialize function.",
+        code: BrowserAuthErrorCodes.nativeExtensionNotInstalled,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.nativeExtensionNotInstalled
+        ],
     },
     nativeConnectionNotEstablished: {
-        code: "native_connection_not_established",
-        desc: "Connection to native platform has not been established. Please install a compatible browser extension and run initialize(). For more please visit aka.ms/msaljs/browser-errors.",
+        code: BrowserAuthErrorCodes.nativeConnectionNotEstablished,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+        ],
     },
     uninitializedPublicClientApplication: {
-        code: "uninitialized_public_client_application",
-        desc: "You must call and await the initialize function before attempting to call any other MSAL API. For more please visit aka.ms/msaljs/browser-errors.",
+        code: BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+        ],
     },
     nativePromptNotSupported: {
-        code: "native_prompt_not_supported",
-        desc: "The provided prompt is not supported by the native platform. This request should be routed to the web based flow.",
+        code: BrowserAuthErrorCodes.nativePromptNotSupported,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.nativePromptNotSupported
+        ],
     },
 };
 
@@ -191,485 +331,14 @@ export const BrowserAuthErrorMessage = {
  * Browser library error class thrown by the MSAL.js library for SPAs
  */
 export class BrowserAuthError extends AuthError {
-    constructor(errorCode: string, errorMessage?: string) {
-        super(errorCode, errorMessage);
+    constructor(errorCode: string) {
+        super(errorCode, BrowserAuthErrorMessages[errorCode]);
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
         this.name = "BrowserAuthError";
     }
+}
 
-    /**
-     * Creates an error thrown when PKCE is not implemented.
-     * @param errDetail
-     */
-    static createPkceNotGeneratedError(errDetail: string): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.pkceNotGenerated.code,
-            `${BrowserAuthErrorMessage.pkceNotGenerated.desc} Detail:${errDetail}`
-        );
-    }
-
-    /**
-     * Creates an error thrown when the crypto object is unavailable.
-     * @param errDetail
-     */
-    static createCryptoNotAvailableError(errDetail: string): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.cryptoDoesNotExist.code,
-            `${BrowserAuthErrorMessage.cryptoDoesNotExist.desc} Detail:${errDetail}`
-        );
-    }
-
-    /**
-     * Creates an error thrown when the navigation URI is empty.
-     */
-    static createEmptyNavigationUriError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.emptyNavigateUriError.code,
-            BrowserAuthErrorMessage.emptyNavigateUriError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the hash string value is unexpectedly empty.
-     * @param hashValue
-     */
-    static createEmptyHashError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.hashEmptyError.code,
-            `${BrowserAuthErrorMessage.hashEmptyError.desc}`
-        );
-    }
-
-    /**
-     * Creates an error thrown when the hash string value is unexpectedly empty.
-     */
-    static createHashDoesNotContainStateError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.hashDoesNotContainStateError.code,
-            BrowserAuthErrorMessage.hashDoesNotContainStateError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the hash string value does not contain known properties
-     */
-    static createHashDoesNotContainKnownPropertiesError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.hashDoesNotContainKnownPropertiesError.code,
-            BrowserAuthErrorMessage.hashDoesNotContainKnownPropertiesError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the hash string value is unexpectedly empty.
-     */
-    static createUnableToParseStateError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.unableToParseStateError.code,
-            BrowserAuthErrorMessage.unableToParseStateError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the state value in the hash does not match the interaction type of the API attempting to consume it.
-     */
-    static createStateInteractionTypeMismatchError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.stateInteractionTypeMismatchError.code,
-            BrowserAuthErrorMessage.stateInteractionTypeMismatchError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when a browser interaction (redirect or popup) is in progress.
-     */
-    static createInteractionInProgressError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.interactionInProgress.code,
-            BrowserAuthErrorMessage.interactionInProgress.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the popup window could not be opened.
-     * @param errDetail
-     */
-    static createPopupWindowError(errDetail?: string): BrowserAuthError {
-        let errorMessage = BrowserAuthErrorMessage.popupWindowError.desc;
-        errorMessage = errDetail
-            ? `${errorMessage} Details: ${errDetail}`
-            : errorMessage;
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.popupWindowError.code,
-            errorMessage
-        );
-    }
-
-    /**
-     * Creates an error thrown when window.open returns an empty window object.
-     * @param errDetail
-     */
-    static createEmptyWindowCreatedError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.emptyWindowError.code,
-            BrowserAuthErrorMessage.emptyWindowError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the user closes a popup.
-     */
-    static createUserCancelledError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.userCancelledError.code,
-            BrowserAuthErrorMessage.userCancelledError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when monitorPopupFromHash times out for a given popup.
-     */
-    static createMonitorPopupTimeoutError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.monitorPopupTimeoutError.code,
-            BrowserAuthErrorMessage.monitorPopupTimeoutError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when monitorIframeFromHash times out for a given iframe.
-     */
-    static createMonitorIframeTimeoutError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.monitorIframeTimeoutError.code,
-            BrowserAuthErrorMessage.monitorIframeTimeoutError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when navigateWindow is called inside an iframe or brokered applications.
-     * @param windowParentCheck
-     */
-    static createRedirectInIframeError(
-        windowParentCheck: boolean
-    ): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.redirectInIframeError.code,
-            `${BrowserAuthErrorMessage.redirectInIframeError.desc} (window.parent !== window) => ${windowParentCheck}`
-        );
-    }
-
-    /**
-     * Creates an error thrown when an auth reload is done inside an iframe.
-     */
-    static createBlockReloadInHiddenIframeError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.code,
-            BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when a popup attempts to call an acquireToken API
-     * @returns
-     */
-    static createBlockAcquireTokenInPopupsError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code,
-            BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when an iframe is found to be closed before the timeout is reached.
-     */
-    static createIframeClosedPrematurelyError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.iframeClosedPrematurelyError.code,
-            BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the logout API is called on any of the silent interaction clients
-     */
-    static createSilentLogoutUnsupportedError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.silentLogoutUnsupportedError.code,
-            BrowserAuthErrorMessage.silentLogoutUnsupportedError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the account object is not provided in the acquireTokenSilent API.
-     */
-    static createNoAccountError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.noAccountError.code,
-            BrowserAuthErrorMessage.noAccountError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when a given prompt value is invalid for silent requests.
-     */
-    static createSilentPromptValueError(givenPrompt: string): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.silentPromptValueError.code,
-            `${BrowserAuthErrorMessage.silentPromptValueError.desc} Given value: ${givenPrompt}`
-        );
-    }
-
-    /**
-     * Creates an error thrown when the cached token request could not be retrieved from the cache
-     */
-    static createUnableToParseTokenRequestCacheError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.unableToParseTokenRequestCacheError.code,
-            BrowserAuthErrorMessage.unableToParseTokenRequestCacheError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the token request could not be retrieved from the cache
-     */
-    static createNoTokenRequestCacheError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.noTokenRequestCacheError.code,
-            BrowserAuthErrorMessage.noTokenRequestCacheError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when handleCodeResponse is called before initiateAuthRequest (InteractionHandler)
-     */
-    static createAuthRequestNotSetError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.authRequestNotSet.code,
-            BrowserAuthErrorMessage.authRequestNotSet.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the authority could not be retrieved from the cache
-     */
-    static createNoCachedAuthorityError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.noCachedAuthorityError.code,
-            BrowserAuthErrorMessage.noCachedAuthorityError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown if cache type is invalid.
-     */
-    static createInvalidCacheTypeError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.invalidCacheType.code,
-            `${BrowserAuthErrorMessage.invalidCacheType.desc}`
-        );
-    }
-
-    /**
-     * Create an error thrown when login and token requests are made from a non-browser environment
-     */
-    static createNonBrowserEnvironmentError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.notInBrowserEnvironment.code,
-            BrowserAuthErrorMessage.notInBrowserEnvironment.desc
-        );
-    }
-
-    /**
-     * Create an error thrown when indexDB database is not open
-     */
-    static createDatabaseNotOpenError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.databaseNotOpen.code,
-            BrowserAuthErrorMessage.databaseNotOpen.desc
-        );
-    }
-
-    /**
-     * Create an error thrown when token fetch fails due to no internet
-     */
-    static createNoNetworkConnectivityError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.noNetworkConnectivity.code,
-            BrowserAuthErrorMessage.noNetworkConnectivity.desc
-        );
-    }
-
-    /**
-     * Create an error thrown when token fetch fails due to reasons other than internet connectivity
-     */
-    static createPostRequestFailedError(
-        errorDesc: string,
-        endpoint: string
-    ): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.postRequestFailed.code,
-            `${
-                BrowserAuthErrorMessage.postRequestFailed.desc
-            } | Network client threw: ${errorDesc} | Attempted to reach: ${
-                endpoint.split("?")[0]
-            }`
-        );
-    }
-
-    /**
-     * Create an error thrown when get request fails due to reasons other than internet connectivity
-     */
-    static createGetRequestFailedError(
-        errorDesc: string,
-        endpoint: string
-    ): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.getRequestFailed.code,
-            `${
-                BrowserAuthErrorMessage.getRequestFailed.desc
-            } | Network client threw: ${errorDesc} | Attempted to reach: ${
-                endpoint.split("?")[0]
-            }`
-        );
-    }
-
-    /**
-     * Create an error thrown when network client fails to parse network response
-     */
-    static createFailedToParseNetworkResponseError(
-        endpoint: string
-    ): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.failedToParseNetworkResponse.code,
-            `${
-                BrowserAuthErrorMessage.failedToParseNetworkResponse.desc
-            } | Attempted to reach: ${endpoint.split("?")[0]}`
-        );
-    }
-
-    /**
-     * Create an error thrown when the necessary information is not available to sideload tokens
-     */
-    static createUnableToLoadTokenError(errorDetail: string): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.unableToLoadTokenError.code,
-            `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | ${errorDetail}`
-        );
-    }
-
-    /**
-     * Create an error thrown when the queried cryptographic key is not found in IndexedDB
-     */
-    static createSigningKeyNotFoundInStorageError(
-        keyId: string
-    ): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code,
-            `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`
-        );
-    }
-
-    /**
-     * Create an error when an authorization code is required but not provided
-     */
-    static createAuthCodeRequiredError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.authCodeRequired.code,
-            BrowserAuthErrorMessage.authCodeRequired.desc
-        );
-    }
-
-    /**
-     * Create an error when an authorization code or native account ID is required but not provided
-     */
-    static createAuthCodeOrNativeAccountIdRequiredError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.authCodeOrNativeAccountRequired.code,
-            BrowserAuthErrorMessage.authCodeOrNativeAccountRequired.desc
-        );
-    }
-
-    /**
-     * Create an error when both authorization code and native account ID are provided
-     */
-    static createSpaCodeAndNativeAccountIdPresentError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.spaCodeAndNativeAccountPresent.code,
-            BrowserAuthErrorMessage.spaCodeAndNativeAccountPresent.desc
-        );
-    }
-
-    /**
-     * Create an error when IndexedDB is unavailable
-     */
-    static createDatabaseUnavailableError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.databaseUnavailable.code,
-            BrowserAuthErrorMessage.databaseUnavailable.desc
-        );
-    }
-
-    /**
-     * Create an error when native token acquisition is not possible
-     */
-    static createUnableToAcquireTokenFromNativePlatformError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.unableToAcquireTokenFromNativePlatform.code,
-            BrowserAuthErrorMessage.unableToAcquireTokenFromNativePlatform.desc
-        );
-    }
-
-    /**
-     * Create an error thrown when Handshake with browser extension times out
-     */
-    static createNativeHandshakeTimeoutError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.nativeHandshakeTimeout.code,
-            BrowserAuthErrorMessage.nativeHandshakeTimeout.desc
-        );
-    }
-
-    /**
-     * Create an error thrown when browser extension is not installed
-     */
-    static createNativeExtensionNotInstalledError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.nativeExtensionNotInstalled.code,
-            BrowserAuthErrorMessage.nativeExtensionNotInstalled.desc
-        );
-    }
-
-    /**
-     * Create an error when native connection has not been established
-     * @returns
-     */
-    static createNativeConnectionNotEstablishedError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.nativeConnectionNotEstablished.code,
-            BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc
-        );
-    }
-
-    /**
-     * Create an error thrown when the initialize function hasn't been called
-     */
-    static createUninitializedPublicClientApplication(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.uninitializedPublicClientApplication.code,
-            BrowserAuthErrorMessage.uninitializedPublicClientApplication.desc
-        );
-    }
-
-    /**
-     * Create an error thrown when requesting a token directly from the native platform with an unsupported prompt parameter e.g. select_account, login or create
-     * These requests must go through eSTS to ensure eSTS is aware of the new account
-     */
-    static createNativePromptParameterNotSupportedError(): BrowserAuthError {
-        return new BrowserAuthError(
-            BrowserAuthErrorMessage.nativePromptNotSupported.code,
-            BrowserAuthErrorMessage.nativePromptNotSupported.desc
-        );
-    }
+export function createBrowserAuthError(errorCode: string): BrowserAuthError {
+    return new BrowserAuthError(errorCode);
 }
