@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+import {
+    BrowserConfigurationAuthErrorCodes,
+    createBrowserConfigurationAuthError,
+} from "../error/BrowserConfigurationAuthError";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { IWindowStorage } from "./IWindowStorage";
 
@@ -17,17 +20,12 @@ export class BrowserStorage implements IWindowStorage<string> {
 
     private validateWindowStorage(cacheLocation: string): void {
         if (
-            cacheLocation !== BrowserCacheLocation.LocalStorage &&
-            cacheLocation !== BrowserCacheLocation.SessionStorage
+            (cacheLocation !== BrowserCacheLocation.LocalStorage &&
+                cacheLocation !== BrowserCacheLocation.SessionStorage) ||
+            !window[cacheLocation]
         ) {
-            throw BrowserConfigurationAuthError.createStorageNotSupportedError(
-                cacheLocation
-            );
-        }
-        const storageSupported = !!window[cacheLocation];
-        if (!storageSupported) {
-            throw BrowserConfigurationAuthError.createStorageNotSupportedError(
-                cacheLocation
+            throw createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.storageNotSupported
             );
         }
     }

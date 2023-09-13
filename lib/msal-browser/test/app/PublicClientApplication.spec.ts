@@ -86,7 +86,6 @@ import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClien
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
 import {
     AuthorizationCodeRequest,
-    BrowserConfigurationAuthError,
     EndSessionRequest,
     version,
 } from "../../src";
@@ -103,6 +102,10 @@ import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 import { createClientAuthError } from "@azure/msal-common";
 import { ClientAuthErrorCodes } from "@azure/msal-common";
+import {
+    BrowserConfigurationAuthErrorCodes,
+    createBrowserConfigurationAuthError,
+} from "../../src/error/BrowserConfigurationAuthError";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -1372,7 +1375,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError()
+                createBrowserConfigurationAuthError(
+                    BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
+                )
             );
         });
 
