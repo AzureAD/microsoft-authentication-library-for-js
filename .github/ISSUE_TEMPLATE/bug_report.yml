@@ -6,7 +6,7 @@ body:
       attributes:
           value: |
               ## Before Submitting your Issue
-              Our GitHub issues are meant exclusively for bug reports. All issues regarding usage questions will be closed without comment. If you have a quesiton, please check to see if your question is answered in the FAQ for the library you are using:
+              Our GitHub issues are meant exclusively for bug reports and feature requests. Usage questions may be closed without comment. If you have a question, please check to see if your question is answered in the FAQ for the library you are using:
               - [@azure/msal-browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md)
               - [@azure/msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/faq.md)
               - [@azure/msal-angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/FAQ.md)
