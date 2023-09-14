@@ -25,7 +25,10 @@ import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
@@ -136,7 +139,9 @@ export class RefreshTokenClient extends BaseClient {
     ): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
-            throw ClientConfigurationError.createEmptyTokenRequestError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.tokenRequestEmpty
+            );
         }
 
         this.performanceClient?.addQueueMeasurement(
@@ -300,25 +305,26 @@ export class RefreshTokenClient extends BaseClient {
             sshKid: request.sshKid,
         };
 
-        return this.executePostToTokenEndpoint(
-            endpoint,
-            requestBody,
-            headers,
-            thumbprint,
-            request.correlationId
-        )
-            .then((result) => {
-                acquireTokenMeasurement?.end({
-                    success: true,
-                });
-                return result;
-            })
-            .catch((error) => {
-                acquireTokenMeasurement?.end({
-                    success: false,
-                });
-                throw error;
+        try {
+            const response = await this.executePostToTokenEndpoint(
+                endpoint,
+                requestBody,
+                headers,
+                thumbprint,
+                request.correlationId
+            );
+
+            acquireTokenMeasurement?.end({
+                success: true,
             });
+
+            return response;
+        } catch (error) {
+            acquireTokenMeasurement?.end({
+                success: false,
+            });
+            throw error;
+        }
     }
 
     /**
@@ -401,7 +407,9 @@ export class RefreshTokenClient extends BaseClient {
                 acquireTokenMeasurement?.end({
                     success: false,
                 });
-                throw ClientConfigurationError.createMissingSshJwkError();
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                );
             }
         }
 

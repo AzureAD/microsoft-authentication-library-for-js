@@ -28,7 +28,7 @@ export class ServerTelemetryManager {
     private regionUsed: string | undefined;
     private regionSource: RegionDiscoverySources | undefined;
     private regionOutcome: RegionDiscoveryOutcomes | undefined;
-    private cacheOutcome: CacheOutcome = CacheOutcome.NO_CACHE_HIT;
+    private cacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
 
     constructor(
         telemetryRequest: ServerTelemetryRequest,

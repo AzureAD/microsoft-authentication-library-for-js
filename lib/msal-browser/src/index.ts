@@ -117,6 +117,7 @@ export {
     ClientAuthErrorCodes,
     ClientAuthErrorMessage,
     ClientConfigurationError,
+    ClientConfigurationErrorCodes,
     ClientConfigurationErrorMessage,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,

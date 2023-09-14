@@ -152,6 +152,8 @@ export {
 export {
     ClientConfigurationError,
     ClientConfigurationErrorMessage,
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
 } from "./error/ClientConfigurationError";
 // Constants and Utils
 export {

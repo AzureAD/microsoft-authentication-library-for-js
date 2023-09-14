@@ -4,7 +4,10 @@
  */
 
 import { Authority } from "./Authority";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { INetworkModule } from "../network/INetworkModule";
 import {
     createClientAuthError,
@@ -93,7 +96,9 @@ export class AuthorityFactory {
     ): Authority {
         // Throw error if authority url is empty
         if (!authorityUrl) {
-            throw ClientConfigurationError.createUrlEmptyError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError
+            );
         }
 
         return new Authority(

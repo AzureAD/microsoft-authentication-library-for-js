@@ -8,7 +8,8 @@ import {
     AccountInfo,
     AccountEntity,
     TokenClaims,
-    ClientConfigurationError,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import { TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "../utils/StringConstants";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
@@ -168,7 +169,9 @@ describe("BaseInteractionClient", () => {
                 })
                 .catch((error) => {
                     expect(error).toStrictEqual(
-                        ClientConfigurationError.createAuthorityMismatchError()
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.authorityMismatch
+                        )
                     );
                 });
         });
