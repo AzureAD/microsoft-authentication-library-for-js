@@ -8,9 +8,10 @@ import {
     AuthenticationResult,
     AuthenticationScheme,
     ClientAuthErrorCodes,
-    ClientConfigurationError,
+    ClientConfigurationErrorCodes,
     Constants,
     createClientAuthError,
+    createClientConfigurationError,
     IdTokenClaims,
     INativeBrokerPlugin,
     InteractionRequiredAuthError,
@@ -606,7 +607,9 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                         ClientAuthErrorCodes.userCanceled
                     );
                 case ErrorStatus.AuthorityUntrusted:
-                    return ClientConfigurationError.createUntrustedAuthorityError();
+                    return createClientConfigurationError(
+                        ClientConfigurationErrorCodes.untrustedAuthority
+                    );
                 case ErrorStatus.UserSwitched:
                     // Not an error case, if there's customer demand we can surface this as a response property
                     return null;

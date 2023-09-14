@@ -43,7 +43,11 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
-import { CcsCredentialType, ClientConfigurationError } from "../../src";
+import {
+    CcsCredentialType,
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../../src";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 
 describe("AuthorizationCodeClient unit tests", () => {
@@ -2883,7 +2887,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     state: testState,
                 })
             ).rejects.toThrow(
-                ClientConfigurationError.createMissingSshJwkError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                )
             );
         });
 
