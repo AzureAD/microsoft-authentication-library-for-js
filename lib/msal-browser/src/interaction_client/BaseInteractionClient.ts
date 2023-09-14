@@ -14,7 +14,8 @@ import {
     UrlString,
     ServerTelemetryManager,
     ServerTelemetryRequest,
-    ClientConfigurationError,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
     Authority,
     AuthorityOptions,
     AuthorityFactory,
@@ -170,10 +171,14 @@ export abstract class BaseInteractionClient {
                 AuthenticationScheme.SSH
             ) {
                 if (!request.sshJwk) {
-                    throw ClientConfigurationError.createMissingSshJwkError();
+                    throw createClientConfigurationError(
+                        ClientConfigurationErrorCodes.missingSshJwk
+                    );
                 }
                 if (!request.sshKid) {
-                    throw ClientConfigurationError.createMissingSshKidError();
+                    throw createClientConfigurationError(
+                        ClientConfigurationErrorCodes.missingSshKid
+                    );
                 }
             }
             this.logger.verbose(
@@ -227,7 +232,9 @@ export abstract class BaseInteractionClient {
         );
 
         if (!discoveredAuthority.isAlias(account.environment)) {
-            throw ClientConfigurationError.createAuthorityMismatchError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityMismatch
+            );
         }
     }
 

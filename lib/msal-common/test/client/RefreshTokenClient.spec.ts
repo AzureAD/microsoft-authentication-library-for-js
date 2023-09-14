@@ -43,12 +43,18 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
-import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../../src/error/ClientConfigurationError";
 import * as AuthToken from "../../src/account/AuthToken";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
-import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
+import {
+    InteractionRequiredAuthErrorCodes,
+    createInteractionRequiredAuthError,
+} from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 
@@ -1233,14 +1239,18 @@ describe("RefreshTokenClient unit tests", () => {
                 //@ts-ignore
                 client.acquireTokenByRefreshToken(null)
             ).rejects.toMatchObject(
-                ClientConfigurationError.createEmptyTokenRequestError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.tokenRequestEmpty
+                )
             );
 
             await expect(
                 //@ts-ignore
                 client.acquireTokenByRefreshToken(undefined)
             ).rejects.toMatchObject(
-                ClientConfigurationError.createEmptyTokenRequestError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.tokenRequestEmpty
+                )
             );
         });
 
@@ -1284,7 +1294,9 @@ describe("RefreshTokenClient unit tests", () => {
             await expect(
                 client.acquireToken(tokenRequest)
             ).rejects.toMatchObject(
-                InteractionRequiredAuthError.createNoTokensFoundError()
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.noTokensFound
+                )
             );
         });
     });
