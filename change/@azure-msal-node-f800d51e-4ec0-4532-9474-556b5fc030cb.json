@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Include correlationId on POST API call #6383",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

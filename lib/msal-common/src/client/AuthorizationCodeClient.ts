@@ -25,7 +25,10 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
@@ -110,7 +113,9 @@ export class AuthorizationCodeClient extends BaseClient {
         );
 
         if (!request.code) {
-            throw ClientAuthError.createTokenRequestCannotBeMadeError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.requestCannotBeMade
+            );
         }
 
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -192,7 +197,9 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // throw when there is no auth code in the response
         if (!serverParams.code) {
-            throw ClientAuthError.createNoAuthCodeInServerResponseError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
+            );
         }
         return {
             ...serverParams,

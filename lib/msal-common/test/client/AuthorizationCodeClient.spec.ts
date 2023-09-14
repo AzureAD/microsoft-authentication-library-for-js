@@ -38,9 +38,11 @@ import { CommonAuthorizationUrlRequest } from "../../src/request/CommonAuthoriza
 import { TokenClaims } from "../../src/account/TokenClaims";
 import { ServerError } from "../../src/error/ServerError";
 import { CommonAuthorizationCodeRequest } from "../../src/request/CommonAuthorizationCodeRequest";
-import { AuthToken } from "../../src/account/AuthToken";
-import { ICrypto } from "../../src/crypto/ICrypto";
-import { ClientAuthError } from "../../src/error/ClientAuthError";
+import * as AuthToken from "../../src/account/AuthToken";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../../src/error/ClientAuthError";
 import { CcsCredentialType, ClientConfigurationError } from "../../src";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 
@@ -1220,7 +1222,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // @ts-ignore
                 client.acquireToken({ code: null }, null)
             ).rejects.toMatchObject(
-                ClientAuthError.createTokenRequestCannotBeMadeError()
+                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
@@ -1259,7 +1261,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // @ts-ignore
                 client.acquireToken(codeRequest, null)
             ).rejects.toMatchObject(
-                ClientAuthError.createTokenRequestCannotBeMadeError()
+                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
@@ -1709,7 +1711,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     state: testState,
                 })
             ).rejects.toMatchObject(
-                ClientAuthError.createMaxAgeTranspiredError()
+                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired)
             );
         });
 
@@ -1806,7 +1808,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     state: testState,
                 })
             ).rejects.toMatchObject(
-                ClientAuthError.createAuthTimeNotFoundError()
+                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound)
             );
         });
 
@@ -2454,7 +2456,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(AuthToken, "extractTokenClaims")
                 .callsFake(
-                    (encodedToken: string, crypto: ICrypto): TokenClaims => {
+                    (
+                        encodedToken: string,
+                        base64Decode: (val: string) => string
+                    ): TokenClaims => {
                         switch (encodedToken) {
                             case POP_AUTHENTICATION_RESULT.body.id_token:
                                 return idTokenClaims as TokenClaims;
@@ -2648,7 +2653,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(AuthToken, "extractTokenClaims")
                 .callsFake(
-                    (encodedToken: string, crypto: ICrypto): TokenClaims => {
+                    (
+                        encodedToken: string,
+                        base64Decode: (val: string) => string
+                    ): TokenClaims => {
                         switch (encodedToken) {
                             case POP_AUTHENTICATION_RESULT.body.id_token:
                                 return idTokenClaims as TokenClaims;
@@ -2835,7 +2843,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(AuthToken, "extractTokenClaims")
                 .callsFake(
-                    (encodedToken: string, crypto: ICrypto): TokenClaims => {
+                    (
+                        encodedToken: string,
+                        base64Decode: (val: string) => string
+                    ): TokenClaims => {
                         switch (encodedToken) {
                             case POP_AUTHENTICATION_RESULT.body.id_token:
                                 return idTokenClaims as TokenClaims;

@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Instrument ssoSilent #6383",
+  "comment": "Fix monitorIframeForHash telemetry event name",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

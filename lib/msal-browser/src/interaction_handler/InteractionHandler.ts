@@ -10,19 +10,20 @@ import {
     AuthorityFactory,
     Authority,
     INetworkModule,
-    ClientAuthError,
     CcsCredential,
     Logger,
     ServerError,
     IPerformanceClient,
     PerformanceEvents,
     invokeAsync,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import {
-    BrowserAuthError,
-    BrowserAuthErrorMessage,
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { AuthenticationResult } from "../response/AuthenticationResult";
@@ -70,14 +71,17 @@ export class InteractionHandler {
         this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (!locationHash) {
-            throw BrowserAuthError.createEmptyHashError();
+            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
         }
 
         // Handle code response.
         const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
         if (!requestState) {
-            throw ClientAuthError.createStateNotFoundError("Cached State");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.stateNotFound,
+                "Cached State"
+            );
         }
 
         let authCodeResponse;
@@ -89,10 +93,12 @@ export class InteractionHandler {
         } catch (e) {
             if (
                 e instanceof ServerError &&
-                e.subError === BrowserAuthErrorMessage.userCancelledError.code
+                e.subError === BrowserAuthErrorCodes.userCancelled
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
-                throw BrowserAuthError.createUserCancelledError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.userCancelled
+                );
             } else {
                 throw e;
             }
@@ -137,7 +143,10 @@ export class InteractionHandler {
         const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
         if (!requestState) {
-            throw ClientAuthError.createStateNotFoundError("Cached State");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.stateNotFound,
+                "Cached State"
+            );
         }
 
         // Get cached items

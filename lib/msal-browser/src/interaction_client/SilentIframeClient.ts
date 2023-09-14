@@ -24,7 +24,10 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
@@ -92,7 +95,9 @@ export class SilentIframeClient extends StandardInteractionClient {
             request.prompt !== PromptValue.NONE &&
             request.prompt !== PromptValue.NO_SESSION
         ) {
-            throw BrowserAuthError.createSilentPromptValueError(request.prompt);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.silentPromptValueError
+            );
         }
 
         // Create silent request
@@ -158,7 +163,9 @@ export class SilentIframeClient extends StandardInteractionClient {
     logout(): Promise<void> {
         // Synchronous so we must reject
         return Promise.reject(
-            BrowserAuthError.createSilentLogoutUnsupportedError()
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.silentLogoutUnsupported
+            )
         );
     }
 
@@ -224,7 +231,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await invokeAsync(
             silentHandler.monitorIframeForHash.bind(silentHandler),
-            PerformanceEvents.SilentHandlerInitiateAuthRequest,
+            PerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             silentRequest.correlationId
@@ -243,7 +250,9 @@ export class SilentIframeClient extends StandardInteractionClient {
                 "Account id found in hash, calling WAM for token"
             );
             if (!this.nativeMessageHandler) {
-                throw BrowserAuthError.createNativeConnectionNotEstablishedError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                );
             }
             const nativeInteractionClient = new NativeInteractionClient(
                 this.config,

@@ -9,7 +9,6 @@ import {
     AuthorityFactory,
     LogLevel,
     NetworkRequestOptions,
-    AuthToken,
     AzureCloudInstance,
 } from "@azure/msal-common";
 import {
@@ -227,7 +226,6 @@ describe("ClientConfiguration tests", () => {
             AuthorityFactory,
             "createDiscoveredInstance"
         ).mockReturnValue(Promise.resolve(authority));
-        jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue({});
 
         await new ConfidentialClientApplication(
             appConfig
@@ -292,7 +290,6 @@ describe("ClientConfiguration tests", () => {
             AuthorityFactory,
             "createDiscoveredInstance"
         ).mockReturnValue(Promise.resolve(authority));
-        jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue({});
 
         await new ConfidentialClientApplication(
             appConfig

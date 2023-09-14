@@ -19,7 +19,6 @@ import {
     IPerformanceClient,
     BaseAuthRequest,
     PromptValue,
-    ClientAuthError,
     InProgressPerformanceEvent,
     RequestThumbprint,
     ServerError,
@@ -27,6 +26,8 @@ import {
     ServerResponseType,
     UrlString,
     invokeAsync,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -66,7 +67,10 @@ import { SilentRequest } from "../request/SilentRequest";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
@@ -240,7 +244,7 @@ export class StandardController implements IController {
         operatingContext: BaseOperatingContext
     ): Promise<IController> {
         const controller = new StandardController(operatingContext);
-        controller.initialize();
+        await controller.initialize();
         return controller;
     }
 
@@ -285,6 +289,22 @@ export class StandardController implements IController {
                 this.logger.verbose(e as string);
             }
         }
+
+        if (!this.config.cache.claimsBasedCachingEnabled) {
+            this.logger.verbose(
+                "Claims-based caching is disabled. Clearing the previous cache with claims"
+            );
+
+            await invokeAsync(
+                this.browserStorage.clearTokensAndKeysWithClaims.bind(
+                    this.browserStorage
+                ),
+                PerformanceEvents.ClearTokensAndKeysWithClaims,
+                this.logger,
+                this.performanceClient
+            )();
+        }
+
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
 
@@ -847,7 +867,9 @@ export class StandardController implements IController {
         try {
             if (request.code && request.nativeAccountId) {
                 // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
-                throw BrowserAuthError.createSpaCodeAndNativeAccountIdPresentError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.spaCodeAndNativeAccountIdPresent
+                );
             } else if (request.code) {
                 const hybridAuthCode = request.code;
                 let response = this.hybridAuthCodeResponses.get(hybridAuthCode);
@@ -916,10 +938,14 @@ export class StandardController implements IController {
                         throw e;
                     });
                 } else {
-                    throw BrowserAuthError.createUnableToAcquireTokenFromNativePlatformError();
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform
+                    );
                 }
             } else {
-                throw BrowserAuthError.createAuthCodeOrNativeAccountIdRequiredError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
+                );
             }
         } catch (e) {
             this.eventHandler.emitEvent(
@@ -1015,7 +1041,9 @@ export class StandardController implements IController {
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
                 return silentCacheClient.acquireToken(commonRequest);
             default:
-                throw ClientAuthError.createRefreshRequiredError();
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired
+                );
         }
     }
 
@@ -1048,7 +1076,9 @@ export class StandardController implements IController {
                 );
                 return silentRefreshClient.acquireToken(commonRequest);
             default:
-                throw ClientAuthError.createRefreshRequiredError();
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired
+                );
         }
     }
 
@@ -1393,7 +1423,9 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
-            throw BrowserAuthError.createNativeConnectionNotEstablishedError();
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.nativeConnectionNotEstablished
+            );
         }
 
         const nativeClient = new NativeInteractionClient(
@@ -1810,7 +1842,7 @@ export class StandardController implements IController {
 
         const account = request.account || this.getActiveAccount();
         if (!account) {
-            throw BrowserAuthError.createNoAccountError();
+            throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
         }
 
         const thumbprint: RequestThumbprint = {

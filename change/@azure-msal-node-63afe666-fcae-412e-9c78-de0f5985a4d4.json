@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "close loopback server on error #6387",
+  "comment": "Refactor ClientAuthError for reduced size #6433",
   "packageName": "@azure/msal-node",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

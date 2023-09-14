@@ -39,7 +39,7 @@
     "beachball:release": "node ./.github/create-releases.js"
   },
   "workspaces": [
-    "eslint-config-msal",
+    "shared-configs/eslint-config-msal",
     "lib/msal-common",
     "lib/msal-browser",
     "lib/msal-node",
