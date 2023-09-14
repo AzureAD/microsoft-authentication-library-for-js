@@ -202,11 +202,13 @@ export class StandardController implements IController {
                   this.config.auth.clientId,
                   this.config.cache,
                   this.browserCrypto,
-                  this.logger
+                  this.logger,
+                  this.performanceClient
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
-                  this.logger
+                  this.logger,
+                  this.performanceClient
               );
 
         // initialize in memory storage for native flows
@@ -222,7 +224,8 @@ export class StandardController implements IController {
             this.config.auth.clientId,
             nativeCacheOptions,
             this.browserCrypto,
-            this.logger
+            this.logger,
+            this.performanceClient
         );
 
         // Initialize the token cache

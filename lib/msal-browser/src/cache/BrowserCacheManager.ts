@@ -33,6 +33,8 @@ import {
     AuthenticationScheme,
     createClientAuthError,
     ClientAuthErrorCodes,
+    PerformanceEvents,
+    IPerformanceClient,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import {
@@ -75,6 +77,8 @@ export class BrowserCacheManager extends CacheManager {
     protected temporaryCacheStorage: IWindowStorage<string>;
     // Logger instance
     protected logger: Logger;
+    // Performance client
+    protected readonly performanceClient: IPerformanceClient;
 
     // Cookie life calculation (hours * minutes * seconds * ms)
     protected readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
@@ -83,7 +87,8 @@ export class BrowserCacheManager extends CacheManager {
         clientId: string,
         cacheConfig: Required<CacheOptions>,
         cryptoImpl: ICrypto,
-        logger: Logger
+        logger: Logger,
+        performanceClient: IPerformanceClient
     ) {
         super(clientId, cryptoImpl, logger);
         this.cacheConfig = cacheConfig;
@@ -96,6 +101,7 @@ export class BrowserCacheManager extends CacheManager {
             this.cacheConfig.temporaryCacheLocation,
             this.cacheConfig.cacheLocation
         );
+        this.performanceClient = performanceClient;
 
         // Migrate cache entries from older versions of MSAL.
         if (cacheConfig.cacheMigrationEnabled) {
@@ -1364,6 +1370,10 @@ export class BrowserCacheManager extends CacheManager {
      * @returns
      */
     async clearTokensAndKeysWithClaims(): Promise<void> {
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.ClearTokensAndKeysWithClaims
+        );
+
         const tokenKeys = this.getTokenKeys();
 
         const removedAccessTokens: Array<Promise<void>> = [];
@@ -1982,7 +1992,8 @@ export class BrowserCacheManager extends CacheManager {
 
 export const DEFAULT_BROWSER_CACHE_MANAGER = (
     clientId: string,
-    logger: Logger
+    logger: Logger,
+    performanceClient: IPerformanceClient
 ): BrowserCacheManager => {
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
@@ -1996,6 +2007,7 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         clientId,
         cacheOptions,
         DEFAULT_CRYPTO_IMPLEMENTATION,
-        logger
+        logger,
+        performanceClient
     );
 };

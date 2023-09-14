@@ -54,6 +54,7 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -124,7 +125,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             configObj.cache,
             browserCrypto,
-            logger
+            logger,
+            getDefaultPerformanceClient()
         );
         authConfig = {
             authOptions: {

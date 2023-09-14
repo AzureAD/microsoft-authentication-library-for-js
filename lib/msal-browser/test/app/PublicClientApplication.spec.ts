@@ -106,6 +106,7 @@ import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../../src/error/BrowserConfigurationAuthError";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -1256,7 +1257,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                getDefaultPerformanceClient()
             );
             browserStorage.setInteractionInProgress(true);
             await expect(
@@ -1275,13 +1277,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                getDefaultPerformanceClient()
             );
             const secondInstanceStorage = new BrowserCacheManager(
                 "different-client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                getDefaultPerformanceClient()
             );
             secondInstanceStorage.setInteractionInProgress(true);
 
@@ -1897,7 +1901,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                getDefaultPerformanceClient()
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -4807,7 +4812,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                getDefaultPerformanceClient()
             );
             browserStorage.setInteractionInProgress(true);
 
