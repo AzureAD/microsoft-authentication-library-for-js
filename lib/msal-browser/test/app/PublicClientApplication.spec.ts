@@ -107,7 +107,6 @@ import {
     createBrowserConfigurationAuthError,
 } from "../../src/error/BrowserConfigurationAuthError";
 
-
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     cacheLocation: BrowserCacheLocation.SessionStorage,
