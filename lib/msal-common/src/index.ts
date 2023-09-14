@@ -137,7 +137,9 @@ export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
 export {
     InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
     InteractionRequiredAuthErrorMessage,
+    createInteractionRequiredAuthError,
 } from "./error/InteractionRequiredAuthError";
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ServerError } from "./error/ServerError";

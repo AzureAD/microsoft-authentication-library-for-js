@@ -40,7 +40,8 @@ import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import {
     InteractionRequiredAuthError,
-    InteractionRequiredAuthErrorMessage,
+    InteractionRequiredAuthErrorCodes,
+    createInteractionRequiredAuthError,
 } from "../error/InteractionRequiredAuthError";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
@@ -172,8 +173,7 @@ export class RefreshTokenClient extends BaseClient {
                 const noFamilyRTInCache =
                     e instanceof InteractionRequiredAuthError &&
                     e.errorCode ===
-                        InteractionRequiredAuthErrorMessage.noTokensFoundError
-                            .code;
+                        InteractionRequiredAuthErrorCodes.noTokensFound;
                 const clientMismatchErrorWithFamilyRT =
                     e instanceof ServerError &&
                     e.errorCode === Errors.INVALID_GRANT_ERROR &&
@@ -233,7 +233,9 @@ export class RefreshTokenClient extends BaseClient {
 
         if (!refreshToken) {
             atsMeasurement?.discard();
-            throw InteractionRequiredAuthError.createNoTokensFoundError();
+            throw createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.noTokensFound
+            );
         }
         // attach cached RT size to the current measurement
         atsMeasurement?.end({

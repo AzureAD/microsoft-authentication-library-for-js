@@ -40,16 +40,18 @@ import {
     CommonSilentFlowRequest,
     LogLevel,
     CommonAuthorizationCodeRequest,
-    InteractionRequiredAuthError,
     IdTokenEntity,
     CacheManager,
-    ClientAuthError,
     PersistentCacheKeys,
     Authority,
     AuthError,
     ProtocolMode,
     ServerResponseType,
     PerformanceEvents,
+    createClientAuthError,
+    ClientAuthErrorCodes,
+    createInteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -101,8 +103,6 @@ import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
-import { createClientAuthError } from "@azure/msal-common";
-import { ClientAuthErrorCodes } from "@azure/msal-common";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -1165,7 +1165,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireTokenRedirect")
                 .callsFake(async () => {
-                    throw InteractionRequiredAuthError.createNativeAccountUnavailableError();
+                    throw createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                    );
                 });
             const redirectSpy = sinon
                 .stub(RedirectClient.prototype, "acquireToken")
@@ -1795,7 +1797,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireToken")
                 .callsFake(async () => {
-                    throw InteractionRequiredAuthError.createNativeAccountUnavailableError();
+                    throw createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                    );
                 });
             const popupSpy = sinon
                 .stub(PopupClient.prototype, "acquireToken")

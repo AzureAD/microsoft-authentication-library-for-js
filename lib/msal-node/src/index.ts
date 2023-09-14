@@ -97,6 +97,7 @@ export {
     ClientConfigurationErrorCodes,
     ClientConfigurationErrorMessage,
     InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
     InteractionRequiredAuthErrorMessage,
     ServerError,
     // Network Interface
