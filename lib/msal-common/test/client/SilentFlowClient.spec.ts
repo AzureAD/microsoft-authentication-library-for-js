@@ -191,17 +191,20 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             const response = await client.acquireCachedToken(silentFlowRequest);
-            expect(response.authority).toBe(
+            const authResult: AuthenticationResult = response[0];
+            expect(authResult.authority).toBe(
                 `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
             );
-            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
-            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
-            expect(response.scopes).toEqual(testScopes);
-            expect(response.account).toEqual(testAccount);
-            expect(response.idToken).toEqual(testIdToken.secret);
-            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(response.accessToken).toEqual(testAccessTokenEntity.secret);
-            expect(response.state).toHaveLength(0);
+            expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(authResult.scopes).toEqual(testScopes);
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(testIdToken.secret);
+            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(authResult.accessToken).toEqual(
+                testAccessTokenEntity.secret
+            );
+            expect(authResult.state).toHaveLength(0);
         });
 
         it("acquireCachedToken does not throw when given empty object string for claims", async () => {
@@ -247,17 +250,20 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             const response = await client.acquireCachedToken(silentFlowRequest);
-            expect(response.authority).toEqual(
+            const authResult: AuthenticationResult = response[0];
+            expect(authResult.authority).toEqual(
                 `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
             );
-            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
-            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
-            expect(response.scopes).toEqual(testScopes);
-            expect(response.account).toEqual(testAccount);
-            expect(response.idToken).toEqual(testIdToken.secret);
-            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(response.accessToken).toEqual(testAccessTokenEntity.secret);
-            expect(response.state).toBe("");
+            expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(authResult.scopes).toEqual(testScopes);
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(testIdToken.secret);
+            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(authResult.accessToken).toEqual(
+                testAccessTokenEntity.secret
+            );
+            expect(authResult.state).toBe("");
         });
 
         it("acquireCachedToken throws when given valid claims with default configuration", async () => {
@@ -361,17 +367,20 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             const response = await client.acquireCachedToken(silentFlowRequest);
-            expect(response.authority).toEqual(
+            const authResult: AuthenticationResult = response[0];
+            expect(authResult.authority).toEqual(
                 `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
             );
-            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
-            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
-            expect(response.scopes).toEqual(testScopes);
-            expect(response.account).toEqual(testAccount);
-            expect(response.idToken).toEqual(testIdToken.secret);
-            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(response.accessToken).toEqual(testAccessTokenEntity.secret);
-            expect(response.state).toBe("");
+            expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(authResult.scopes).toEqual(testScopes);
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(testIdToken.secret);
+            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(authResult.accessToken).toEqual(
+                testAccessTokenEntity.secret
+            );
+            expect(authResult.state).toBe("");
         });
 
         it("acquireCachedToken returns correct token when max age is provided and has not transpired yet", async () => {
@@ -418,17 +427,20 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             const response = await client.acquireCachedToken(silentFlowRequest);
-            expect(response.authority).toBe(
+            const authResult: AuthenticationResult = response[0];
+            expect(authResult.authority).toBe(
                 `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
             );
-            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
-            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
-            expect(response.scopes).toEqual(testScopes);
-            expect(response.account).toEqual(testAccount);
-            expect(response.idToken).toEqual(testIdToken.secret);
-            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(response.accessToken).toEqual(testAccessTokenEntity.secret);
-            expect(response.state).toHaveLength(0);
+            expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(authResult.scopes).toEqual(testScopes);
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(testIdToken.secret);
+            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(authResult.accessToken).toEqual(
+                testAccessTokenEntity.secret
+            );
+            expect(authResult.state).toHaveLength(0);
         });
     });
 
@@ -906,8 +918,8 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: false,
             };
 
-            const authResult: AuthenticationResult =
-                await client.acquireCachedToken(silentFlowRequest);
+            const response = await client.acquireCachedToken(silentFlowRequest);
+            const authResult: AuthenticationResult = response[0];
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -1029,6 +1041,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testRefreshTokenEntity);
+            sinon
+                .stub(MockStorageClass.prototype, "getAccount")
+                .returns(testAccountEntity);
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -1038,26 +1053,66 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: false,
             };
 
-            const expectedRefreshRequest: CommonRefreshTokenRequest = {
-                ...silentFlowRequest,
-                refreshToken: testRefreshTokenEntity.secret,
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                ccsCredential: {
-                    credential: testAccount.homeAccountId,
-                    type: CcsCredentialType.HOME_ACCOUNT_ID,
-                },
-            };
+            if (!config.storageInterface) {
+                fail("config.storageInterface is undefined");
+            }
 
-            const refreshTokenSpy = sinon.stub(
-                RefreshTokenClient.prototype,
-                "acquireToken"
-            );
+            // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache at this point
+            const accessTokenKey: string | undefined = config.storageInterface
+                .getKeys()
+                .find((value) => value.indexOf("accesstoken") >= 0);
+            expect(accessTokenKey).toBeUndefined();
 
+            // Acquire a token (from the cache). The refresh_in value is expired, so there will be an asynchronous network request
+            // to refresh the token. That result will be stored in the cache.
             await client.acquireToken(silentFlowRequest);
-            expect(refreshTokenSpy.called).toBe(true);
-            expect(refreshTokenSpy.calledWith(expectedRefreshRequest)).toBe(
-                true
+
+            /**
+             * Wait up to two seconds for acquireToken and its mocked network requests to complete and
+             * populate the cache (in the background). Periodically check the cache to ensure the refreshed token
+             * exists (the network request was successful).
+             * @param cache config.storageInterface
+             * @returns AccessTokenEntity - the access token in the cache
+             */
+            const waitUntilAccessTokenInCacheThenReturnIt = async (
+                cache: CacheManager
+            ): Promise<AccessTokenEntity | null> => {
+                let counter: number = 0;
+                return await new Promise((resolve) => {
+                    // every one millisecond
+                    const interval = setInterval(() => {
+                        // look for the access token's key in the cache
+                        const accessTokenKey = cache
+                            .getKeys()
+                            .find((value) => value.indexOf("accesstoken") >= 0);
+
+                        // if the access token's key is in the cache
+                        if (accessTokenKey) {
+                            // use it to get the access token (from the cache)
+                            const accessTokenFromCache: AccessTokenEntity | null =
+                                cache.getAccessTokenCredential(accessTokenKey);
+                            // return it and clear the interval
+                            resolve(accessTokenFromCache);
+                            clearInterval(interval);
+                            // otherwise, if the access token's key is NOT in the cache (yet)
+                        } else {
+                            counter++;
+                            // if 2 seconds have elapsed while waiting for the access token's key to be in the cache,
+                            // exit the interval so that this test doesn't time out
+                            if (counter === 2000) {
+                                resolve(null);
+                            }
+                        }
+                    }, 1); // 1 millisecond
+                });
+            };
+            const accessTokenFromCache: AccessTokenEntity | null =
+                await waitUntilAccessTokenInCacheThenReturnIt(
+                    config.storageInterface
+                );
+
+            expect(accessTokenFromCache?.clientId).toEqual(
+                testAccessTokenEntity.clientId
             );
         });
 
@@ -1071,13 +1126,21 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"executePostToTokenEndpoint"
                 )
                 .callsFake((url: string) => {
-                    expect(
-                        url.includes(
-                            "/token?testParam1=testValue1&testParam3=testValue3"
-                        )
-                    ).toBeTruthy();
-                    expect(!url.includes("/token?testParam2=")).toBeTruthy();
-                    done();
+                    try {
+                        expect(
+                            url.includes(
+                                "/token?testParam1=testValue1&testParam3=testValue3"
+                            )
+                        ).toBeTruthy();
+                        expect(
+                            !url.includes("/token?testParam2=")
+                        ).toBeTruthy();
+                        done();
+                        return AUTHENTICATION_RESULT;
+                    } catch (error) {
+                        done(error);
+                        return error;
+                    }
                 });
             sinon
                 .stub(
@@ -1107,6 +1170,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testRefreshTokenEntity);
+            sinon
+                .stub(MockStorageClass.prototype, "getAccount")
+                .returns(testAccountEntity);
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
