@@ -51,7 +51,10 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { EventCallbackFunction, EventError } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
-import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+import {
+    BrowserConfigurationAuthErrorCodes,
+    createBrowserConfigurationAuthError,
+} from "../error/BrowserConfigurationAuthError";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EventHandler } from "../event/EventHandler";
@@ -1380,7 +1383,9 @@ export class StandardController implements IController {
                 BrowserCacheLocation.MemoryStorage &&
             !this.config.cache.storeAuthStateInCookie
         ) {
-            throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
+            throw createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
+            );
         }
 
         if (

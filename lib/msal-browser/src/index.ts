@@ -47,6 +47,7 @@ export {
 } from "./error/BrowserAuthError";
 export {
     BrowserConfigurationAuthError,
+    BrowserConfigurationAuthErrorCodes,
     BrowserConfigurationAuthErrorMessage,
 } from "./error/BrowserConfigurationAuthError";
 
