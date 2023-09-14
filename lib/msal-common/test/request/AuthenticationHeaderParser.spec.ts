@@ -4,7 +4,10 @@ import {
     TEST_POP_VALUES,
 } from "../test_kit/StringConstants";
 import { HeaderNames } from "../../src/utils/Constants";
-import { ClientConfigurationError } from "../../src";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../../src";
 
 describe("AuthenticationHeaderParser unit tests", () => {
     let headers: Record<string, string>;
@@ -40,7 +43,9 @@ describe("AuthenticationHeaderParser unit tests", () => {
                 {}
             );
             expect(() => authenticationHeaderParser.getShrNonce()).toThrow(
-                ClientConfigurationError.createMissingNonceAuthenticationHeadersError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingNonceAuthenticationHeader
+                )
             );
         });
 
@@ -51,9 +56,8 @@ describe("AuthenticationHeaderParser unit tests", () => {
                 headers
             );
             expect(() => authenticationHeaderParser.getShrNonce()).toThrow(
-                ClientConfigurationError.createInvalidAuthenticationHeaderError(
-                    HeaderNames.AuthenticationInfo,
-                    "nextnonce challenge is missing."
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthenticationHeader
                 )
             );
         });
@@ -65,9 +69,8 @@ describe("AuthenticationHeaderParser unit tests", () => {
                 headers
             );
             expect(() => authenticationHeaderParser.getShrNonce()).toThrow(
-                ClientConfigurationError.createInvalidAuthenticationHeaderError(
-                    HeaderNames.WWWAuthenticate,
-                    "nonce challenge is missing."
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthenticationHeader
                 )
             );
         });

@@ -14,7 +14,10 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheOutcome } from "../utils/Constants";
@@ -93,7 +96,9 @@ export class SilentFlowClient extends BaseClient {
 
         // Cannot renew token if no request object is given.
         if (!request) {
-            throw ClientConfigurationError.createEmptyTokenRequestError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.tokenRequestEmpty
+            );
         }
 
         if (request.forceRefresh) {
