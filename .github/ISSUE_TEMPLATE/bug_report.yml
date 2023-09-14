@@ -95,7 +95,7 @@ body:
     - type: textarea
       attributes:
           label: Sanitized Network Trace
-          description: "Please upload a sanitized network trace (preferably from Fiddler, but network .HAR files are acceptable) containing the requests and responses from the failed authentication scenario. **Important: Please make sure to properly scrub all sensitive information from the trace, including but not limited to access/refresh tokens, client secrets, identifiable user information, etc.** Bug reports without sanitized network traces can be closed without comment."
+          description: "Please upload a sanitized network trace (preferably from Fiddler, but network .HAR files are acceptable) containing the requests and responses from the failed authentication scenario. **Important: Please make sure to properly scrub all sensitive information from the trace, including but not limited to access/refresh tokens, client secrets, identifiable user information, etc.** Bug reports without sanitized network traces can be closed without comment. [Here's a guide](https://learn.microsoft.com/en-us/azure/azure-web-pubsub/howto-troubleshoot-network-trace) on how to collect a network trace."
 
     - type: textarea
       attributes:
