@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Created new tuple return type for SilentFlow acquireCachedToken (#6465)",
+  "packageName": "@azure/msal-browser",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
