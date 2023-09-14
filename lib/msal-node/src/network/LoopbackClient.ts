@@ -11,7 +11,7 @@ import {
 } from "@azure/msal-common";
 import http from "http";
 import { NodeAuthError } from "../error/NodeAuthError.js";
-import { Constants, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants.js";
+import { Constants } from "../utils/Constants.js";
 import { ILoopbackClient } from "./ILoopbackClient.js";
 
 export class LoopbackClient implements ILoopbackClient {
@@ -31,13 +31,10 @@ export class LoopbackClient implements ILoopbackClient {
             throw NodeAuthError.createLoopbackServerAlreadyExistsError();
         }
 
-        const authCodeListener = new Promise<ServerAuthorizationCodeResponse>(
+        return new Promise<ServerAuthorizationCodeResponse>(
             (resolve, reject) => {
                 this.server = http.createServer(
-                    async (
-                        req: http.IncomingMessage,
-                        res: http.ServerResponse
-                    ) => {
+                    (req: http.IncomingMessage, res: http.ServerResponse) => {
                         const url = req.url;
                         if (!url) {
                             res.end(
@@ -59,7 +56,7 @@ export class LoopbackClient implements ILoopbackClient {
                         const authCodeResponse =
                             UrlString.getDeserializedQueryString(url);
                         if (authCodeResponse.code) {
-                            const redirectUri = await this.getRedirectUri();
+                            const redirectUri = this.getRedirectUri();
                             res.writeHead(HttpStatus.REDIRECT, {
                                 location: redirectUri,
                             }); // Prevent auth code from being saved in the browser history
@@ -71,28 +68,6 @@ export class LoopbackClient implements ILoopbackClient {
                 this.server.listen(0); // Listen on any available port
             }
         );
-
-        // Wait for server to be listening
-        await new Promise<void>((resolve) => {
-            let ticks = 0;
-            const id = setInterval(() => {
-                if (
-                    LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS /
-                        LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS <
-                    ticks
-                ) {
-                    throw NodeAuthError.createLoopbackServerTimeoutError();
-                }
-
-                if (this.server.listening) {
-                    clearInterval(id);
-                    resolve();
-                }
-                ticks++;
-            }, LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS);
-        });
-
-        return authCodeListener;
     }
 
     /**
@@ -100,7 +75,7 @@ export class LoopbackClient implements ILoopbackClient {
      * @returns
      */
     getRedirectUri(): string {
-        if (!this.server) {
+        if (!this.server || !this.server.listening) {
             throw NodeAuthError.createNoLoopbackServerExistsError();
         }
 
