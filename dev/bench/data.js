@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694712533568,
+  "lastUpdate": 1694716780755,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -228,6 +228,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.66%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ae92c9a9fefcdc98b3bff206d66c9bc4db1db76c",
+          "message": "Refactor ClientConfigurationError for reduced size (#6471)\n\nSame changes as #6433 and #6414 but for ClientConfigurationError this\r\ntime",
+          "timestamp": "2023-09-14T11:34:42-07:00",
+          "tree_id": "287b29977132357bac41115b6404f391ccbeaabe",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ae92c9a9fefcdc98b3bff206d66c9bc4db1db76c"
+        },
+        "date": 1694716779361,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 144374,
+            "range": "±1.52%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 141957,
+            "range": "±1.26%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
