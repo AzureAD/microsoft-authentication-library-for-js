@@ -5,14 +5,16 @@
 
 import { Constants } from "../utils/Constants";
 import { AuthError } from "./AuthError";
+import * as InteractionRequiredAuthErrorCodes from "./InteractionRequiredAuthErrorCodes";
+export { InteractionRequiredAuthErrorCodes };
 
 /**
  * InteractionRequiredServerErrorMessage contains string constants used by error codes and messages returned by the server indicating interaction is required
  */
 export const InteractionRequiredServerErrorMessage = [
-    "interaction_required",
-    "consent_required",
-    "login_required",
+    InteractionRequiredAuthErrorCodes.interactionRequired,
+    InteractionRequiredAuthErrorCodes.consentRequired,
+    InteractionRequiredAuthErrorCodes.loginRequired,
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
@@ -23,17 +25,29 @@ export const InteractionRequiredAuthSubErrorMessage = [
     "consent_required",
 ];
 
+const InteractionRequiredAuthErrorMessages = {
+    [InteractionRequiredAuthErrorCodes.noTokensFound]:
+        "No refresh token found in the cache. Please sign-in.",
+    [InteractionRequiredAuthErrorCodes.nativeAccountUnavailable]:
+        "The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API.",
+};
+
 /**
  * Interaction required errors defined by the SDK
+ * @deprecated Use InteractionRequiredAuthErrorCodes instead
  */
 export const InteractionRequiredAuthErrorMessage = {
     noTokensFoundError: {
-        code: "no_tokens_found",
-        desc: "No refresh token found in the cache. Please sign-in.",
+        code: InteractionRequiredAuthErrorCodes.noTokensFound,
+        desc: InteractionRequiredAuthErrorMessages[
+            InteractionRequiredAuthErrorCodes.noTokensFound
+        ],
     },
     native_account_unavailable: {
-        code: "native_account_unavailable",
-        desc: "The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API.",
+        code: InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
+        desc: InteractionRequiredAuthErrorMessages[
+            InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+        ],
     },
 };
 
@@ -80,55 +94,46 @@ export class InteractionRequiredAuthError extends AuthError {
         this.claims = claims || Constants.EMPTY_STRING;
         this.name = "InteractionRequiredAuthError";
     }
+}
 
-    /**
-     * Helper function used to determine if an error thrown by the server requires interaction to resolve
-     * @param errorCode
-     * @param errorString
-     * @param subError
-     */
-    static isInteractionRequiredError(
-        errorCode?: string,
-        errorString?: string,
-        subError?: string
-    ): boolean {
-        const isInteractionRequiredErrorCode =
-            !!errorCode &&
-            InteractionRequiredServerErrorMessage.indexOf(errorCode) > -1;
-        const isInteractionRequiredSubError =
-            !!subError &&
-            InteractionRequiredAuthSubErrorMessage.indexOf(subError) > -1;
-        const isInteractionRequiredErrorDesc =
-            !!errorString &&
-            InteractionRequiredServerErrorMessage.some((irErrorCode) => {
-                return errorString.indexOf(irErrorCode) > -1;
-            });
+/**
+ * Helper function used to determine if an error thrown by the server requires interaction to resolve
+ * @param errorCode
+ * @param errorString
+ * @param subError
+ */
+export function isInteractionRequiredError(
+    errorCode?: string,
+    errorString?: string,
+    subError?: string
+): boolean {
+    const isInteractionRequiredErrorCode =
+        !!errorCode &&
+        InteractionRequiredServerErrorMessage.indexOf(errorCode) > -1;
+    const isInteractionRequiredSubError =
+        !!subError &&
+        InteractionRequiredAuthSubErrorMessage.indexOf(subError) > -1;
+    const isInteractionRequiredErrorDesc =
+        !!errorString &&
+        InteractionRequiredServerErrorMessage.some((irErrorCode) => {
+            return errorString.indexOf(irErrorCode) > -1;
+        });
 
-        return (
-            isInteractionRequiredErrorCode ||
-            isInteractionRequiredErrorDesc ||
-            isInteractionRequiredSubError
-        );
-    }
+    return (
+        isInteractionRequiredErrorCode ||
+        isInteractionRequiredErrorDesc ||
+        isInteractionRequiredSubError
+    );
+}
 
-    /**
-     * Creates an error thrown when the authorization code required for a token request is null or empty.
-     */
-    static createNoTokensFoundError(): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(
-            InteractionRequiredAuthErrorMessage.noTokensFoundError.code,
-            InteractionRequiredAuthErrorMessage.noTokensFoundError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when the native broker returns ACCOUNT_UNAVAILABLE status, indicating that the account was removed and interactive sign-in is required
-     * @returns
-     */
-    static createNativeAccountUnavailableError(): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(
-            InteractionRequiredAuthErrorMessage.native_account_unavailable.code,
-            InteractionRequiredAuthErrorMessage.native_account_unavailable.desc
-        );
-    }
+/**
+ * Creates an InteractionRequiredAuthError
+ */
+export function createInteractionRequiredAuthError(
+    errorCode: string
+): InteractionRequiredAuthError {
+    return new InteractionRequiredAuthError(
+        errorCode,
+        InteractionRequiredAuthErrorMessages[errorCode]
+    );
 }

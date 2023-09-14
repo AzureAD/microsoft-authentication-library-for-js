@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError, InteractionRequiredAuthError } from "@azure/msal-common";
+import {
+    AuthError,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
+    createInteractionRequiredAuthError,
+} from "@azure/msal-common";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -100,7 +105,9 @@ export class NativeAuthError extends AuthError {
         if (ext && ext.status) {
             switch (ext.status) {
                 case NativeStatusCode.ACCOUNT_UNAVAILABLE:
-                    return InteractionRequiredAuthError.createNativeAccountUnavailableError();
+                    return createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                    );
                 case NativeStatusCode.USER_INTERACTION_REQUIRED:
                     return new InteractionRequiredAuthError(code, description);
                 case NativeStatusCode.USER_CANCEL:

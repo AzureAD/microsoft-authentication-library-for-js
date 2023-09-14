@@ -40,16 +40,18 @@ import {
     CommonSilentFlowRequest,
     LogLevel,
     CommonAuthorizationCodeRequest,
-    InteractionRequiredAuthError,
     IdTokenEntity,
     CacheManager,
-    ClientAuthError,
     PersistentCacheKeys,
     Authority,
     AuthError,
     ProtocolMode,
     ServerResponseType,
     PerformanceEvents,
+    createClientAuthError,
+    ClientAuthErrorCodes,
+    createInteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -86,7 +88,6 @@ import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClien
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
 import {
     AuthorizationCodeRequest,
-    BrowserConfigurationAuthError,
     EndSessionRequest,
     version,
 } from "../../src";
@@ -101,8 +102,10 @@ import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
-import { createClientAuthError } from "@azure/msal-common";
-import { ClientAuthErrorCodes } from "@azure/msal-common";
+import {
+    BrowserConfigurationAuthErrorCodes,
+    createBrowserConfigurationAuthError,
+} from "../../src/error/BrowserConfigurationAuthError";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -1165,7 +1168,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireTokenRedirect")
                 .callsFake(async () => {
-                    throw InteractionRequiredAuthError.createNativeAccountUnavailableError();
+                    throw createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                    );
                 });
             const redirectSpy = sinon
                 .stub(RedirectClient.prototype, "acquireToken")
@@ -1372,7 +1377,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError()
+                createBrowserConfigurationAuthError(
+                    BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
+                )
             );
         });
 
@@ -1795,7 +1802,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireToken")
                 .callsFake(async () => {
-                    throw InteractionRequiredAuthError.createNativeAccountUnavailableError();
+                    throw createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                    );
                 });
             const popupSpy = sinon
                 .stub(PopupClient.prototype, "acquireToken")

@@ -91,10 +91,13 @@ export {
     AuthError,
     AuthErrorMessage,
     ClientAuthError,
+    ClientAuthErrorCodes,
     ClientAuthErrorMessage,
     ClientConfigurationError,
+    ClientConfigurationErrorCodes,
     ClientConfigurationErrorMessage,
     InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
     InteractionRequiredAuthErrorMessage,
     ServerError,
     // Network Interface

@@ -47,6 +47,7 @@ export {
 } from "./error/BrowserAuthError";
 export {
     BrowserConfigurationAuthError,
+    BrowserConfigurationAuthErrorCodes,
     BrowserConfigurationAuthErrorMessage,
 } from "./error/BrowserConfigurationAuthError";
 
@@ -117,8 +118,10 @@ export {
     ClientAuthErrorCodes,
     ClientAuthErrorMessage,
     ClientConfigurationError,
+    ClientConfigurationErrorCodes,
     ClientConfigurationErrorMessage,
     InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
     InteractionRequiredAuthErrorMessage,
     ServerError,
     // Network

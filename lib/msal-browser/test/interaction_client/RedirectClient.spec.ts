@@ -29,7 +29,6 @@ import {
     TokenClaims,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
-    AuthToken,
     PersistentCacheKeys,
     AuthorizationCodeClient,
     ResponseMode,
@@ -45,9 +44,10 @@ import {
     CommonEndSessionRequest,
     ServerTelemetryManager,
     AccountEntity,
-    ClientConfigurationError,
     AuthError,
     NetworkManager,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import {
@@ -1690,7 +1690,9 @@ describe("RedirectClient", () => {
             };
 
             expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(
-                ClientConfigurationError.createMissingSshJwkError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                )
             );
         });
 
@@ -1708,7 +1710,9 @@ describe("RedirectClient", () => {
             };
 
             expect(redirectClient.acquireToken(request)).rejects.toThrow(
-                ClientConfigurationError.createMissingSshKidError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshKid
+                )
             );
         });
 
