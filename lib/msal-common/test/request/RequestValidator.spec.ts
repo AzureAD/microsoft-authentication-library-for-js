@@ -1,7 +1,10 @@
 import { PromptValue } from "../../src/utils/Constants";
 import { RequestValidator } from "../../src/request/RequestValidator";
 import { TEST_CONFIG } from "../test_kit/StringConstants";
-import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../../src/error/ClientConfigurationError";
 
 describe("RequestValidator unit tests", () => {
     describe("ValidateRedirectUri tests", () => {
@@ -9,7 +12,9 @@ describe("RequestValidator unit tests", () => {
             expect(function () {
                 RequestValidator.validateRedirectUri("");
             }).toThrowError(
-                ClientConfigurationError.createRedirectUriEmptyError().message
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.redirectUriEmpty
+                )
             );
         });
     });
@@ -34,7 +39,9 @@ describe("RequestValidator unit tests", () => {
             expect(function () {
                 RequestValidator.validatePrompt("");
             }).toThrowError(
-                ClientConfigurationError.createInvalidPromptError("").message
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidPromptValue
+                )
             );
         });
     });
@@ -50,8 +57,9 @@ describe("RequestValidator unit tests", () => {
             expect(function () {
                 RequestValidator.validateClaims("invalid_claims_value");
             }).toThrowError(
-                ClientConfigurationError.createInvalidClaimsRequestError()
-                    .message
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims
+                )
             );
         });
     });
@@ -64,8 +72,9 @@ describe("RequestValidator unit tests", () => {
                     TEST_CONFIG.CODE_CHALLENGE_METHOD
                 );
             }).toThrowError(
-                ClientConfigurationError.createInvalidCodeChallengeParamsError()
-                    .message
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.pkceParamsMissing
+                )
             );
         });
 
@@ -76,8 +85,9 @@ describe("RequestValidator unit tests", () => {
                     "255"
                 );
             }).toThrowError(
-                ClientConfigurationError.createInvalidCodeChallengeMethodError()
-                    .message
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidCodeChallengeMethod
+                )
             );
         });
     });

@@ -42,7 +42,10 @@ import {
     buildClientInfo,
 } from "../account/ClientInfo";
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
@@ -216,7 +219,9 @@ export class AuthorizationCodeClient extends BaseClient {
     getLogoutUri(logoutRequest: CommonEndSessionRequest): string {
         // Throw error if logoutRequest is null/undefined
         if (!logoutRequest) {
-            throw ClientConfigurationError.createEmptyLogoutRequestError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.logoutRequestEmpty
+            );
         }
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
@@ -390,7 +395,9 @@ export class AuthorizationCodeClient extends BaseClient {
             if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
-                throw ClientConfigurationError.createMissingSshJwkError();
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                );
             }
         }
 

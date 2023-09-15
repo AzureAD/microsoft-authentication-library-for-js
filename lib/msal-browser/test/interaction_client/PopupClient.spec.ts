@@ -32,8 +32,8 @@ import {
     ServerTelemetryEntity,
     AccountEntity,
     CommonEndSessionRequest,
-    PersistentCacheKeys,
-    ClientConfigurationError,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
     Authority,
     CommonAuthorizationCodeRequest,
     AuthError,
@@ -177,7 +177,9 @@ describe("PopupClient", () => {
             };
 
             expect(popupClient.acquireToken(request)).rejects.toThrow(
-                ClientConfigurationError.createMissingSshJwkError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                )
             );
         });
 
@@ -195,7 +197,9 @@ describe("PopupClient", () => {
             };
 
             expect(popupClient.acquireToken(request)).rejects.toThrow(
-                ClientConfigurationError.createMissingSshKidError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshKid
+                )
             );
         });
 

@@ -17,9 +17,11 @@ import {
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
-    ClientConfigurationError,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
     IPerformanceClient,
     StubPerformanceClient,
+    Logger,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
@@ -323,7 +325,8 @@ export function buildConfiguration(
         pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
     };
 
-    const providedSystemOptions: BrowserSystemOptions = {
+    const providedSystemOptions: Required<BrowserSystemOptions> = {
+        ...DEFAULT_BROWSER_SYSTEM_OPTIONS,
         ...userInputSystem,
         loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };
@@ -341,10 +344,13 @@ export function buildConfiguration(
         userInputAuth?.protocolMode !== ProtocolMode.OIDC &&
         userInputAuth?.OIDCOptions
     ) {
-        // Logger has not been created yet
-        // eslint-disable-next-line no-console
-        console.warn(
-            ClientConfigurationError.createCannotSetOIDCOptionsError()
+        const logger = new Logger(providedSystemOptions.loggerOptions);
+        logger.warning(
+            JSON.stringify(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.cannotSetOIDCOptions
+                )
+            )
         );
     }
 
@@ -354,7 +360,9 @@ export function buildConfiguration(
         userInputAuth.protocolMode !== ProtocolMode.AAD &&
         providedSystemOptions?.allowNativeBroker
     ) {
-        throw ClientConfigurationError.createCannotAllowNativeBrokerError();
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.cannotAllowNativeBroker
+        );
     }
 
     const overlayedConfig: BrowserConfiguration = {
@@ -367,7 +375,7 @@ export function buildConfiguration(
             },
         },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
-        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
+        system: providedSystemOptions,
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
 

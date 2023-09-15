@@ -20,7 +20,10 @@ import { Authority } from "../authority/Authority";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
-import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
+import {
+    InteractionRequiredAuthError,
+    isInteractionRequiredError,
+} from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, RequestStateObject } from "../utils/ProtocolUtils";
@@ -131,7 +134,7 @@ export class ResponseHandler {
             serverResponseHash.suberror
         ) {
             if (
-                InteractionRequiredAuthError.isInteractionRequiredError(
+                isInteractionRequiredError(
                     serverResponseHash.error,
                     serverResponseHash.error_description,
                     serverResponseHash.suberror
@@ -211,7 +214,7 @@ export class ResponseHandler {
             }
 
             if (
-                InteractionRequiredAuthError.isInteractionRequiredError(
+                isInteractionRequiredError(
                     serverResponse.error,
                     serverResponse.error_description,
                     serverResponse.suberror

@@ -11,6 +11,7 @@ import {
     AzureCloudInstance,
     ProtocolMode,
     ServerResponseType,
+    Logger,
 } from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
@@ -292,7 +293,9 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.asyncPopups).toBe(true);
     });
     it("Setting OIDCOptions when in AAD protocol mode logs a warning", async () => {
-        jest.spyOn(global.console, "warn").mockImplementation();
+        const loggerSpy = jest
+            .spyOn(Logger.prototype, "warning")
+            .mockImplementation();
         buildConfiguration(
             {
                 auth: {
@@ -306,6 +309,6 @@ describe("Configuration.ts Class Unit Tests", () => {
             },
             true
         );
-        expect(console.warn).toBeCalled();
+        expect(loggerSpy).toBeCalled();
     });
 });
