@@ -33,6 +33,8 @@ import {
     AuthenticationScheme,
     createClientAuthError,
     ClientAuthErrorCodes,
+    PerformanceEvents,
+    IPerformanceClient,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import {
@@ -1360,10 +1362,16 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Clears all access tokes that have claims prior to saving the current one
-     * @param credential
+     * @param performanceClient {IPerformanceClient}
      * @returns
      */
-    async clearTokensAndKeysWithClaims(): Promise<void> {
+    async clearTokensAndKeysWithClaims(
+        performanceClient: IPerformanceClient
+    ): Promise<void> {
+        performanceClient.addQueueMeasurement(
+            PerformanceEvents.ClearTokensAndKeysWithClaims
+        );
+
         const tokenKeys = this.getTokenKeys();
 
         const removedAccessTokens: Array<Promise<void>> = [];

@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "use invoke for telem measurements",
+  "comment": "use invoke for telem measurements #6486",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

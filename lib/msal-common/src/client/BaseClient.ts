@@ -147,7 +147,7 @@ export abstract class BaseClient {
         correlationId: string
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.BaseClientCreateTokenRequestHeaders,
+            PerformanceEvents.BaseClientExecutePostToTokenEndpoint,
             correlationId
         );
         const response =
