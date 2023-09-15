@@ -11,7 +11,6 @@ import {
     AccountInfo,
     AzureCloudOptions,
     PerformanceEvents,
-    AuthError,
     invokeAsync,
 } from "@azure/msal-common";
 import { SilentRequest } from "../request/SilentRequest";
