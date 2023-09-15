@@ -397,8 +397,9 @@ export class RefreshTokenClient extends BaseClient {
                 PerformanceEvents.PopTokenGenerateCnf,
                 request.correlationId
             );
-            const reqCnfData = request.reqCnf ||
-                await popTokenGenerator.generateCnf(request);
+            const reqCnfData =
+                request.reqCnf ||
+                (await popTokenGenerator.generateCnf(request));
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {

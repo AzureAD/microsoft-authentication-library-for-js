@@ -861,8 +861,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             };
 
             const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-            const reqCnfData = request.reqCnf ||
-                await popTokenGenerator.generateCnf(shrParameters);
+            const reqCnfData =
+                request.reqCnf ||
+                (await popTokenGenerator.generateCnf(shrParameters));
 
             // SPAs require whole string to be passed to broker
             validatedRequest.reqCnf = reqCnfData.reqCnfString;
