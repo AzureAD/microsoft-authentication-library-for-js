@@ -11,6 +11,7 @@ import {
     Constants,
     IPerformanceClient,
     PerformanceEvents,
+    invokeAsync,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -65,8 +66,6 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
     async acquireToken(
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
-        this.logger.trace("SilentAuthCodeClient.acquireToken called");
-
         // Auth code payload is required
         if (!request.code) {
             throw createBrowserAuthError(
@@ -75,15 +74,13 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        this.performanceClient.setPreQueueTime(
+        const silentRequest: AuthorizationUrlRequest = await invokeAsync(
+            this.initializeAuthorizationRequest.bind(this),
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        const silentRequest: AuthorizationUrlRequest =
-            await this.initializeAuthorizationRequest(
-                request,
-                InteractionType.Silent
-            );
+        )(request, InteractionType.Silent);
         this.browserStorage.updateCacheEntries(
             silentRequest.state,
             silentRequest.nonce,
@@ -104,14 +101,13 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             };
 
             // Initialize the client
-            this.performanceClient.setPreQueueTime(
+            const clientConfig = await invokeAsync(
+                this.getClientConfiguration.bind(this),
                 PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+                this.logger,
+                this.performanceClient,
                 request.correlationId
-            );
-            const clientConfig = await this.getClientConfiguration(
-                serverTelemetryManager,
-                silentRequest.authority
-            );
+            )(serverTelemetryManager, silentRequest.authority);
             const authClient: HybridSpaAuthorizationCodeClient =
                 new HybridSpaAuthorizationCodeClient(clientConfig);
             this.logger.verbose("Auth code client created");
@@ -127,7 +123,13 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             );
 
             // Handle auth code parameters from request
-            return silentHandler.handleCodeResponseFromServer(
+            return invokeAsync(
+                silentHandler.handleCodeResponseFromServer.bind(silentHandler),
+                PerformanceEvents.HandleCodeResponseFromServer,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(
                 {
                     code: request.code,
                     msgraph_host: request.msGraphHost,
