@@ -123,6 +123,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
     async acquireToken(
         request: PopupRequest | SilentRequest | SsoSilentRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.NativeInteractionClientAcquireToken,
+            request.correlationId
+        );
         this.logger.trace("NativeInteractionClient - acquireToken called.");
 
         // start the perf measurement
