@@ -1275,8 +1275,7 @@ describe("RedirectClient", () => {
                 "different-client-id",
                 cacheConfig,
                 browserCrypto,
-                logger,
-                getDefaultPerformanceClient()
+                logger
             );
             secondInstanceStorage.setInteractionInProgress(true);
             browserStorage.setInteractionInProgress(false);
@@ -1784,8 +1783,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -1845,8 +1843,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
 
             sinon
@@ -1971,8 +1968,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2063,8 +2059,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2133,8 +2128,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(
@@ -2177,8 +2171,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2230,8 +2223,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
@@ -2303,8 +2295,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
@@ -2377,8 +2368,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
@@ -2450,8 +2440,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ID_TOKEN,
@@ -2513,8 +2502,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
@@ -2665,8 +2653,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2727,8 +2714,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(
@@ -2771,8 +2757,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2825,8 +2810,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
@@ -2889,8 +2873,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger,
-                getDefaultPerformanceClient()
+                testLogger
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,

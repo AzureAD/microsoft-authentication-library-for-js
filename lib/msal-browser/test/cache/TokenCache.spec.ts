@@ -35,7 +35,6 @@ import {
 } from "../utils/StringConstants";
 import { BrowserAuthErrorMessage, SilentRequest } from "../../src";
 import { base64Decode } from "../../src/encode/Base64Decode";
-import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 describe("TokenCache tests", () => {
     let configuration: BrowserConfiguration;
@@ -74,8 +73,7 @@ describe("TokenCache tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             cacheConfig,
             cryptoObj,
-            logger,
-            getDefaultPerformanceClient()
+            logger
         );
     });
 

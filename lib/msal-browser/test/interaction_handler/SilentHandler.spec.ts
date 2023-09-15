@@ -40,7 +40,6 @@ import {
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 const DEFAULT_POLL_INTERVAL_MS = 30;
@@ -163,8 +162,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             configObj.cache,
             browserCrypto,
-            logger,
-            getDefaultPerformanceClient()
+            logger
         );
         browserRequestLogger = new Logger(authConfig.loggerOptions!);
         performanceClient = {

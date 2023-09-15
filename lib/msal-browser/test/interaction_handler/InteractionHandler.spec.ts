@@ -52,7 +52,6 @@ import {
     TemporaryCacheKeys,
     BrowserConstants,
 } from "../../src/utils/BrowserConstants";
-import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
@@ -238,8 +237,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             configObj.cache,
             cryptoOpts,
-            logger,
-            getDefaultPerformanceClient()
+            logger
         );
     });
 
