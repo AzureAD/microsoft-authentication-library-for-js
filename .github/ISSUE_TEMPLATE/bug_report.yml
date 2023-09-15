@@ -90,7 +90,7 @@ body:
     - type: textarea
       attributes:
           label: Msal Logs
-          description: "Please provide verbose level log messages from msal. Bug reports without verbose MSAL logs will be closed without comment. Please look at our [Logging Guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f9b96af818fd2725b8a8d93df7a9968492b59030/lib/msal-browser/docs/logging.md#L1) for instructions on how to collect MSAL logs."
+          description: "Please provide verbose or trace level log messages from msal. Bug reports without verbose or trace MSAL logs will be closed without comment. Please look at our [Logging Guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logging.md) for instructions on how to collect MSAL logs."
 
     - type: textarea
       attributes:
