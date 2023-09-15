@@ -11,7 +11,7 @@ import {
     AccountInfo,
     AzureCloudOptions,
     PerformanceEvents,
-    AuthError,
+    invokeAsync,
 } from "@azure/msal-common";
 import { SilentRequest } from "../request/SilentRequest";
 import { ApiId } from "../utils/BrowserConstants";
@@ -30,10 +30,6 @@ export class SilentCacheClient extends StandardInteractionClient {
     async acquireToken(
         silentRequest: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        const acquireTokenMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.SilentCacheClientAcquireToken,
-            silentRequest.correlationId
-        );
         // Telemetry manager only used to increment cacheHits here
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow
@@ -52,10 +48,12 @@ export class SilentCacheClient extends StandardInteractionClient {
             );
             const authResponse = response[0] as AuthenticationResult;
 
-            acquireTokenMeasurement.end({
-                success: true,
-                fromCache: true,
-            });
+            this.performanceClient.addFields(
+                {
+                    fromCache: true,
+                },
+                silentRequest.correlationId
+            );
             return authResponse;
         } catch (error) {
             if (
@@ -66,14 +64,6 @@ export class SilentCacheClient extends StandardInteractionClient {
                     "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair."
                 );
             }
-            acquireTokenMeasurement.end({
-                errorCode:
-                    (error instanceof AuthError && error.errorCode) ||
-                    undefined,
-                subErrorCode:
-                    (error instanceof AuthError && error.subError) || undefined,
-                success: false,
-            });
             throw error;
         }
     }
@@ -99,15 +89,13 @@ export class SilentCacheClient extends StandardInteractionClient {
         azureCloudOptions?: AzureCloudOptions
     ): Promise<SilentFlowClient> {
         // Create auth module.
-        this.performanceClient.setPreQueueTime(
+        const clientConfig = await invokeAsync(
+            this.getClientConfiguration.bind(this),
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
-        const clientConfig = await this.getClientConfiguration(
-            serverTelemetryManager,
-            authorityUrl,
-            azureCloudOptions
-        );
+        )(serverTelemetryManager, authorityUrl, azureCloudOptions);
         return new SilentFlowClient(clientConfig, this.performanceClient);
     }
 
@@ -120,13 +108,16 @@ export class SilentCacheClient extends StandardInteractionClient {
             this.correlationId
         );
 
-        this.performanceClient.setPreQueueTime(
+        const baseRequest = await invokeAsync(
+            this.initializeBaseRequest.bind(this),
             PerformanceEvents.InitializeBaseRequest,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
+        )(request, account);
         return {
             ...request,
-            ...(await this.initializeBaseRequest(request, account)),
+            ...baseRequest,
             account: account,
             forceRefresh: request.forceRefresh || false,
         };

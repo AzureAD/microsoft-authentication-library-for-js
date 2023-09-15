@@ -11,6 +11,7 @@ import {
     Logger,
     IPerformanceClient,
     PerformanceEvents,
+    invokeAsync,
 } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import {
@@ -71,11 +72,13 @@ export class SilentHandler extends InteractionHandler {
         }
 
         if (this.navigateFrameWait) {
-            this.performanceClient.setPreQueueTime(
+            return await invokeAsync(
+                this.loadFrame.bind(this),
                 PerformanceEvents.SilentHandlerLoadFrame,
+                this.logger,
+                this.performanceClient,
                 this.authCodeRequest.correlationId
-            );
-            return await this.loadFrame(requestUrl);
+            )(requestUrl);
         }
         return this.loadFrameSync(requestUrl);
     }
