@@ -387,8 +387,9 @@ export class AuthorizationCodeClient extends BaseClient {
                 PerformanceEvents.PopTokenGenerateCnf,
                 request.correlationId
             );
-            const reqCnfData = request.reqCnf ||
-                await popTokenGenerator.generateCnf(request);
+            const reqCnfData =
+                request.reqCnf ||
+                (await popTokenGenerator.generateCnf(request));
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
@@ -666,9 +667,9 @@ export class AuthorizationCodeClient extends BaseClient {
                 const popTokenGenerator = new PopTokenGenerator(
                     this.cryptoUtils
                 );
-                // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
+                // SPAs require the whole string to be sent
                 const reqCnfData = await popTokenGenerator.generateCnf(request);
-                parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
+                parameterBuilder.addPopToken(reqCnfData.reqCnfString);
             }
         }
 
