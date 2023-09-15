@@ -670,7 +670,7 @@ export class Authority {
             }
 
             const autodetectedRegionName = await invokeAsync(
-                this.regionDiscovery.detectRegion.bind(this),
+                this.regionDiscovery.detectRegion.bind(this.regionDiscovery),
                 PerformanceEvents.RegionDiscoveryDetectRegion,
                 this.logger,
                 this.performanceClient,
