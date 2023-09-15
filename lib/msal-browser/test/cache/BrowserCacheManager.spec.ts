@@ -50,6 +50,7 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
 import { base64Decode } from "../../src/encode/Base64Decode";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -1174,8 +1175,12 @@ describe("BrowserCacheManager tests", () => {
                         )
                     ).toBeInstanceOf(AccessTokenEntity);
 
-                    browserSessionStorage.clearTokensAndKeysWithClaims();
-                    browserLocalStorage.clearTokensAndKeysWithClaims();
+                    browserSessionStorage.clearTokensAndKeysWithClaims(
+                        getDefaultPerformanceClient()
+                    );
+                    browserLocalStorage.clearTokensAndKeysWithClaims(
+                        getDefaultPerformanceClient()
+                    );
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(

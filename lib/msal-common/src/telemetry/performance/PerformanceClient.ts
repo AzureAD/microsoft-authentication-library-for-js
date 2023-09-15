@@ -227,7 +227,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         const queueMeasurement: QueueMeasurement = {
             eventName,
-            queueTime,
+            // Always default queue time to 0 for manually completed (improperly instrumented)
+            queueTime: manuallyCompleted ? 0 : queueTime,
             manuallyCompleted,
         };
 
