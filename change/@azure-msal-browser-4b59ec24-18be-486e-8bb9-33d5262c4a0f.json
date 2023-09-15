@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update telemetry measurements to use invoke",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
