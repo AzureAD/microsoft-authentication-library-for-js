@@ -30,6 +30,7 @@ import {
     TokenClaims,
     createClientAuthError,
     ClientAuthErrorCodes,
+    invokeAsync,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -860,9 +861,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             };
 
             const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-            const reqCnfData = await popTokenGenerator.generateCnf(
-                shrParameters
-            );
+            const reqCnfData = await invokeAsync(
+                popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                PerformanceEvents.PopTokenGenerateCnf,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(shrParameters, this.logger);
 
             // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
             validatedRequest.reqCnf = reqCnfData.reqCnfHash;

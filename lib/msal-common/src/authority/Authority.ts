@@ -51,6 +51,7 @@ import { Logger } from "../logger/Logger";
 import { AuthError } from "../error/AuthError";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { invokeAsync } from "../utils/FunctionWrappers";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -113,6 +114,7 @@ export class Authority {
         this.correlationId = correlationId;
         this.regionDiscovery = new RegionDiscovery(
             networkInterface,
+            this.logger,
             this.performanceClient,
             this.correlationId
         );
@@ -400,24 +402,24 @@ export class Authority {
             metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
         }
 
-        this.performanceClient?.setPreQueueTime(
+        const cloudDiscoverySource = await invokeAsync(
+            this.updateCloudDiscoveryMetadata.bind(this),
             PerformanceEvents.AuthorityUpdateCloudDiscoveryMetadata,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
-        const cloudDiscoverySource = await this.updateCloudDiscoveryMetadata(
-            metadataEntity
-        );
+        )(metadataEntity);
         this.canonicalAuthority = this.canonicalAuthority.replace(
             this.hostnameAndPort,
             metadataEntity.preferred_network
         );
-        this.performanceClient?.setPreQueueTime(
+        const endpointSource = await invokeAsync(
+            this.updateEndpointMetadata.bind(this),
             PerformanceEvents.AuthorityUpdateEndpointMetadata,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
-        const endpointSource = await this.updateEndpointMetadata(
-            metadataEntity
-        );
+        )(metadataEntity);
 
         if (
             cloudDiscoverySource !== AuthorityMetadataSource.CACHE &&
@@ -478,17 +480,13 @@ export class Authority {
                 if (
                     this.authorityOptions.azureRegionConfiguration?.azureRegion
                 ) {
-                    this.performanceClient?.setPreQueueTime(
+                    hardcodedMetadata = await invokeAsync(
+                        this.updateMetadataWithRegionalInformation.bind(this),
                         PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
+                        this.logger,
+                        this.performanceClient,
                         this.correlationId
-                    );
-                    this.logger.verbose(
-                        "Found azure region configuration. Updating endpoints with regional information."
-                    );
-                    hardcodedMetadata =
-                        await this.updateMetadataWithRegionalInformation(
-                            hardcodedMetadata
-                        );
+                    )(hardcodedMetadata);
                 }
 
                 metadataEntity.updateEndpointMetadata(hardcodedMetadata, false);
@@ -514,40 +512,29 @@ export class Authority {
             this.logger.verbose("The metadata entity is expired.");
         }
 
-        this.logger.verbose(
-            "Did not find cached endpoint metadata... Attempting to get endpoint metadata from the network."
-        );
-
-        this.performanceClient?.setPreQueueTime(
+        metadata = await invokeAsync(
+            this.getEndpointMetadataFromNetwork.bind(this),
             PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
-        metadata = await this.getEndpointMetadataFromNetwork();
+        )();
         if (metadata) {
-            this.logger.verbose(
-                "Endpoint metadata was successfully returned from getEndpointMetadataFromNetwork()"
-            );
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
-                this.performanceClient?.setPreQueueTime(
+                metadata = await invokeAsync(
+                    this.updateMetadataWithRegionalInformation.bind(this),
                     PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
+                    this.logger,
+                    this.performanceClient,
                     this.correlationId
-                );
-                this.logger.verbose(
-                    "Found azure region configuration. Updating endpoints with regional information."
-                );
-                metadata = await this.updateMetadataWithRegionalInformation(
-                    metadata
-                );
+                )(metadata);
             }
 
             metadataEntity.updateEndpointMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         } else {
             // Metadata could not be obtained from the config, cache, network or hardcoded values
-            this.logger.error(
-                "Did not find endpoint metadata from network... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error."
-            );
             throw createClientAuthError(
                 ClientAuthErrorCodes.openIdConfigError,
                 this.defaultOpenIdConfigurationEndpoint
@@ -605,10 +592,6 @@ export class Authority {
             this.correlationId
         );
 
-        const perfEvent = this.performanceClient?.startMeasurement(
-            PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork,
-            this.correlationId
-        );
         const options: ImdsOptions = {};
 
         /*
@@ -630,23 +613,14 @@ export class Authority {
                 );
             const isValidResponse = isOpenIdConfigResponse(response.body);
             if (isValidResponse) {
-                perfEvent?.end({ success: true });
                 return response.body;
             } else {
-                perfEvent?.end({
-                    success: false,
-                    errorCode: "invalid_response",
-                });
                 this.logger.verbose(
                     `Authority.getEndpointMetadataFromNetwork: could not parse response as OpenID configuration`
                 );
                 return null;
             }
         } catch (e) {
-            perfEvent?.end({
-                success: false,
-                errorCode: "request_failure",
-            });
             this.logger.verbose(
                 `Authority.getEndpointMetadataFromNetwork: ${e}`
             );
@@ -695,17 +669,17 @@ export class Authority {
                 );
             }
 
-            this.performanceClient?.setPreQueueTime(
+            const autodetectedRegionName = await invokeAsync(
+                this.regionDiscovery.detectRegion.bind(this),
                 PerformanceEvents.RegionDiscoveryDetectRegion,
+                this.logger,
+                this.performanceClient,
                 this.correlationId
+            )(
+                this.authorityOptions.azureRegionConfiguration
+                    ?.environmentRegion,
+                this.regionDiscoveryMetadata
             );
-
-            const autodetectedRegionName =
-                await this.regionDiscovery.detectRegion(
-                    this.authorityOptions.azureRegionConfiguration
-                        ?.environmentRegion,
-                    this.regionDiscoveryMetadata
-                );
 
             if (autodetectedRegionName) {
                 this.regionDiscoveryMetadata.region_outcome =
@@ -808,28 +782,20 @@ export class Authority {
             this.logger.verbose("The metadata entity is expired.");
         }
 
-        this.logger.verbose(
-            "Did not find cloud discovery metadata in the cache... Attempting to get cloud discovery metadata from the network."
-        );
-
-        this.performanceClient?.setPreQueueTime(
+        metadata = await invokeAsync(
+            this.getCloudDiscoveryMetadataFromNetwork.bind(this),
             PerformanceEvents.AuthorityGetCloudDiscoveryMetadataFromNetwork,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
-        metadata = await this.getCloudDiscoveryMetadataFromNetwork();
+        )();
 
         if (metadata) {
-            this.logger.verbose(
-                "cloud discovery metadata was successfully returned from getCloudDiscoveryMetadataFromNetwork()"
-            );
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         }
 
         // Metadata could not be obtained from the config, cache, network or hardcoded values
-        this.logger.error(
-            "Did not find cloud discovery metadata from network... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error."
-        );
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.untrustedAuthority
         );
