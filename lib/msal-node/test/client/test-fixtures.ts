@@ -11,7 +11,10 @@ import {
 } from "@azure/msal-common";
 
 import * as msalCommon from "@azure/msal-common";
-import { TEST_CONSTANTS } from "../utils/TestConstants";
+import {
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+    TEST_CONSTANTS,
+} from "../utils/TestConstants";
 
 // @ts-ignore
 const mockServerTelemetryManager: ServerTelemetryManager = {
@@ -53,6 +56,14 @@ export const fakeAuthority: Authority = {
         region_source: undefined,
         region_outcome: undefined,
     },
+    options: {
+        protocolMode: ProtocolMode.AAD,
+        knownAuthorities: [],
+        cloudDiscoveryMetadata: "",
+        authorityMetadata: "",
+    },
+    authorizationEndpoint:
+        DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint,
     resolveEndpointsAsync: () => {
         return new Promise<void>((resolve) => {
             resolve();
