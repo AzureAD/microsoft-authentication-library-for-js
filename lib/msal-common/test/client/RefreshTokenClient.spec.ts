@@ -18,6 +18,7 @@ import {
     AUTHENTICATION_RESULT_NO_REFRESH_TOKEN,
     AUTHENTICATION_RESULT_WITH_HEADERS,
     CORS_RESPONSE_HEADERS,
+    TEST_SSH_VALUES,
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import {
@@ -47,7 +48,6 @@ import {
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
-import * as AuthToken from "../../src/account/AuthToken";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
@@ -269,7 +269,7 @@ describe("RefreshTokenClient unit tests", () => {
 
         const testAccount: AccountInfo = {
             authorityType: "MSSTS",
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+            homeAccountId: ID_TOKEN_CLAIMS.sub,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
@@ -291,9 +291,6 @@ describe("RefreshTokenClient unit tests", () => {
                 .returns("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testRefreshTokenEntity);
@@ -549,7 +546,7 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.stub(
+            const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
@@ -584,7 +581,7 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.stub(
+            const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
@@ -609,6 +606,7 @@ describe("RefreshTokenClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
                 authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
@@ -619,7 +617,7 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.stub(
+            const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
@@ -1027,7 +1025,7 @@ describe("RefreshTokenClient unit tests", () => {
 
         const testAccount: AccountInfo = {
             authorityType: "MSSTS",
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+            homeAccountId: ID_TOKEN_CLAIMS.sub,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
@@ -1055,9 +1053,6 @@ describe("RefreshTokenClient unit tests", () => {
                     <any>"executePostToTokenEndpoint"
                 )
                 .resolves(AUTHENTICATION_RESULT_WITH_FOCI);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testFamilyRefreshTokenEntity);
@@ -1179,7 +1174,7 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.stub(
+            const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );

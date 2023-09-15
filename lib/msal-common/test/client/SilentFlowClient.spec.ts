@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 import {
     AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -168,9 +168,6 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
-            sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
             sinon
@@ -226,9 +223,6 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"getEndpointMetadataFromNetwork"
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
@@ -286,9 +280,6 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
-            sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
             sinon
@@ -334,9 +325,6 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"getEndpointMetadataFromNetwork"
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
@@ -402,9 +390,14 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"getEndpointMetadataFromNetwork"
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+
+            const idTokenClaimsWithAuthTime = {
+                ...ID_TOKEN_CLAIMS,
+                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+            };
             sinon
                 .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
+                .returns(idTokenClaimsWithAuthTime);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
@@ -440,9 +433,12 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(authResult.scopes).toEqual(testScopes);
-            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.account).toEqual({
+                ...testAccount,
+                idTokenClaims: idTokenClaimsWithAuthTime,
+            });
             expect(authResult.idToken).toEqual(testIdToken.secret);
-            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(authResult.idTokenClaims).toEqual(idTokenClaimsWithAuthTime);
             expect(authResult.accessToken).toEqual(
                 testAccessTokenEntity.secret
             );
@@ -628,9 +624,6 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
-            sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
             sinon
@@ -671,9 +664,6 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
-            sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
             sinon
@@ -713,9 +703,6 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
-            sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
             sinon
@@ -754,9 +741,6 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"getEndpointMetadataFromNetwork"
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
@@ -803,8 +787,6 @@ describe("SilentFlowClient unit tests", () => {
             nativeAccountId: undefined,
         };
 
-        let extractTokenClaims: SinonStub;
-
         beforeEach(async () => {
             sinon
                 .stub(
@@ -820,9 +802,6 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"executePostToTokenEndpoint"
                 )
                 .resolves(AUTHENTICATION_RESULT);
-            extractTokenClaims = sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
@@ -899,7 +878,7 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(true);
-            const refreshTokenClientSpy = sinon.stub(
+            const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
@@ -962,6 +941,14 @@ describe("SilentFlowClient unit tests", () => {
             const client = new SilentFlowClient(config, stubPerformanceClient);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
+            const idTokenClaimsWithAuthTime = {
+                ...ID_TOKEN_CLAIMS,
+                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+            };
+            sinon
+                .stub(AuthToken, "extractTokenClaims")
+                .returns(idTokenClaimsWithAuthTime);
+
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: testAccount,
@@ -979,12 +966,6 @@ describe("SilentFlowClient unit tests", () => {
         });
 
         it("Throws error if max age is requested and auth time is not included in the token claims", async () => {
-            const idTokenClaimsWithoutAuthTime = {
-                ...ID_TOKEN_CLAIMS,
-                auth_time: undefined,
-            };
-            extractTokenClaims.returns(idTokenClaimsWithoutAuthTime);
-
             const client = new SilentFlowClient(config, stubPerformanceClient);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
@@ -1039,9 +1020,6 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"executePostToTokenEndpoint"
                 )
                 .resolves(AUTHENTICATION_RESULT);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             testAccessTokenEntity.refreshOn = `${
                 Number(testAccessTokenEntity.cachedAt) - 1
             }`;
@@ -1168,9 +1146,6 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"getEndpointMetadataFromNetwork"
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             testAccessTokenEntity.refreshOn = `${
                 Number(testAccessTokenEntity.cachedAt) - 1
             }`;
