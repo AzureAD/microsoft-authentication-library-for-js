@@ -143,7 +143,6 @@ export abstract class BaseInteractionClient {
             PerformanceEvents.InitializeBaseRequest,
             request.correlationId
         );
-        this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
 
         if (account) {

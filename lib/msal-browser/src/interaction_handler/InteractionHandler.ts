@@ -68,7 +68,6 @@ export class InteractionHandler {
             PerformanceEvents.HandleCodeResponseFromHash,
             this.authCodeRequest.correlationId
         );
-        this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (!locationHash) {
             throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
@@ -104,16 +103,13 @@ export class InteractionHandler {
             }
         }
 
-        this.performanceClient.setPreQueueTime(
+        return invokeAsync(
+            this.handleCodeResponseFromServer.bind(this),
             PerformanceEvents.HandleCodeResponseFromServer,
+            this.logger,
+            this.performanceClient,
             this.authCodeRequest.correlationId
-        );
-        return this.handleCodeResponseFromServer(
-            authCodeResponse,
-            state,
-            authority,
-            networkModule
-        );
+        )(authCodeResponse, state, authority, networkModule);
     }
 
     /**
@@ -158,11 +154,13 @@ export class InteractionHandler {
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
-            this.performanceClient.setPreQueueTime(
+            await invokeAsync(
+                this.updateTokenEndpointAuthority.bind(this),
                 PerformanceEvents.UpdateTokenEndpointAuthority,
+                this.logger,
+                this.performanceClient,
                 this.authCodeRequest.correlationId
-            );
-            await this.updateTokenEndpointAuthority(
+            )(
                 authCodeResponse.cloud_instance_host_name,
                 authority,
                 networkModule

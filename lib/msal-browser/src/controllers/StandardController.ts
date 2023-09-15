@@ -1042,7 +1042,13 @@ export class StandardController implements IController {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
-                return silentCacheClient.acquireToken(commonRequest);
+                return invokeAsync(
+                    silentCacheClient.acquireToken.bind(silentCacheClient),
+                    PerformanceEvents.SilentCacheClientAcquireToken,
+                    this.logger,
+                    this.performanceClient,
+                    commonRequest.correlationId
+                )(commonRequest);
             default:
                 throw createClientAuthError(
                     ClientAuthErrorCodes.tokenRefreshRequired
@@ -1073,11 +1079,13 @@ export class StandardController implements IController {
                     commonRequest.correlationId
                 );
 
-                this.performanceClient.setPreQueueTime(
+                return invokeAsync(
+                    silentRefreshClient.acquireToken.bind(silentRefreshClient),
                     PerformanceEvents.SilentRefreshClientAcquireToken,
+                    this.logger,
+                    this.performanceClient,
                     commonRequest.correlationId
-                );
-                return silentRefreshClient.acquireToken(commonRequest);
+                )(commonRequest);
             default:
                 throw createClientAuthError(
                     ClientAuthErrorCodes.tokenRefreshRequired
@@ -1872,11 +1880,13 @@ export class StandardController implements IController {
                 correlationId
             );
 
-            this.performanceClient.setPreQueueTime(
+            const response = invokeAsync(
+                this.acquireTokenSilentAsync.bind(this),
                 PerformanceEvents.AcquireTokenSilentAsync,
+                this.logger,
+                this.performanceClient,
                 correlationId
-            );
-            const response = this.acquireTokenSilentAsync(
+            )(
                 {
                     ...request,
                     correlationId,
@@ -1993,15 +2003,15 @@ export class StandardController implements IController {
                 request.correlationId
             );
 
-            this.performanceClient.setPreQueueTime(
+            const silentRequest = await invokeAsync(
+                silentCacheClient.initializeSilentRequest.bind(
+                    silentCacheClient
+                ),
                 PerformanceEvents.InitializeSilentRequest,
+                this.logger,
+                this.performanceClient,
                 request.correlationId
-            );
-            const silentRequest =
-                await silentCacheClient.initializeSilentRequest(
-                    request,
-                    account
-                );
+            )(request, account);
 
             const requestWithCLP = {
                 ...request,
@@ -2010,72 +2020,75 @@ export class StandardController implements IController {
                     request.cacheLookupPolicy || CacheLookupPolicy.Default,
             };
 
-            this.performanceClient.setPreQueueTime(
+            result = invokeAsync(
+                this.acquireTokenFromCache.bind(this),
                 PerformanceEvents.AcquireTokenFromCache,
+                this.logger,
+                this.performanceClient,
                 silentRequest.correlationId
-            );
-            result = this.acquireTokenFromCache(
-                silentCacheClient,
-                silentRequest,
-                requestWithCLP
-            ).catch((cacheError: AuthError) => {
-                if (
-                    requestWithCLP.cacheLookupPolicy ===
-                    CacheLookupPolicy.AccessToken
-                ) {
-                    throw cacheError;
-                }
-
-                // block the reload if it occurred inside a hidden iframe
-                BrowserUtils.blockReloadInHiddenIframes();
-                this.eventHandler.emitEvent(
-                    EventType.ACQUIRE_TOKEN_NETWORK_START,
-                    InteractionType.Silent,
-                    silentRequest
-                );
-
-                this.performanceClient.setPreQueueTime(
-                    PerformanceEvents.AcquireTokenByRefreshToken,
-                    silentRequest.correlationId
-                );
-                return this.acquireTokenByRefreshToken(
-                    silentRequest,
-                    requestWithCLP
-                ).catch((refreshTokenError: AuthError) => {
-                    const isServerError =
-                        refreshTokenError instanceof ServerError;
-                    const isInteractionRequiredError =
-                        refreshTokenError instanceof
-                        InteractionRequiredAuthError;
-                    const isInvalidGrantError =
-                        refreshTokenError.errorCode ===
-                        BrowserConstants.INVALID_GRANT_ERROR;
-
+            )(silentCacheClient, silentRequest, requestWithCLP).catch(
+                (cacheError: AuthError) => {
                     if (
-                        (!isServerError ||
-                            !isInvalidGrantError ||
-                            isInteractionRequiredError ||
-                            requestWithCLP.cacheLookupPolicy ===
-                                CacheLookupPolicy.AccessTokenAndRefreshToken ||
-                            requestWithCLP.cacheLookupPolicy ===
-                                CacheLookupPolicy.RefreshToken) &&
-                        requestWithCLP.cacheLookupPolicy !==
-                            CacheLookupPolicy.Skip
+                        requestWithCLP.cacheLookupPolicy ===
+                        CacheLookupPolicy.AccessToken
                     ) {
-                        throw refreshTokenError;
+                        throw cacheError;
                     }
 
-                    this.logger.verbose(
-                        "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
-                        request.correlationId
+                    // block the reload if it occurred inside a hidden iframe
+                    BrowserUtils.blockReloadInHiddenIframes();
+                    this.eventHandler.emitEvent(
+                        EventType.ACQUIRE_TOKEN_NETWORK_START,
+                        InteractionType.Silent,
+                        silentRequest
                     );
-                    this.performanceClient.setPreQueueTime(
-                        PerformanceEvents.AcquireTokenBySilentIframe,
+
+                    return invokeAsync(
+                        this.acquireTokenByRefreshToken.bind(this),
+                        PerformanceEvents.AcquireTokenByRefreshToken,
+                        this.logger,
+                        this.performanceClient,
                         silentRequest.correlationId
+                    )(silentRequest, requestWithCLP).catch(
+                        (refreshTokenError: AuthError) => {
+                            const isServerError =
+                                refreshTokenError instanceof ServerError;
+                            const isInteractionRequiredError =
+                                refreshTokenError instanceof
+                                InteractionRequiredAuthError;
+                            const isInvalidGrantError =
+                                refreshTokenError.errorCode ===
+                                BrowserConstants.INVALID_GRANT_ERROR;
+
+                            if (
+                                (!isServerError ||
+                                    !isInvalidGrantError ||
+                                    isInteractionRequiredError ||
+                                    requestWithCLP.cacheLookupPolicy ===
+                                        CacheLookupPolicy.AccessTokenAndRefreshToken ||
+                                    requestWithCLP.cacheLookupPolicy ===
+                                        CacheLookupPolicy.RefreshToken) &&
+                                requestWithCLP.cacheLookupPolicy !==
+                                    CacheLookupPolicy.Skip
+                            ) {
+                                throw refreshTokenError;
+                            }
+
+                            this.logger.verbose(
+                                "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
+                                request.correlationId
+                            );
+                            return invokeAsync(
+                                this.acquireTokenBySilentIframe.bind(this),
+                                PerformanceEvents.AcquireTokenBySilentIframe,
+                                this.logger,
+                                this.performanceClient,
+                                silentRequest.correlationId
+                            )(silentRequest);
+                        }
                     );
-                    return this.acquireTokenBySilentIframe(silentRequest);
-                });
-            });
+                }
+            );
         }
 
         return result
