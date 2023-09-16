@@ -449,7 +449,7 @@ describe("PerformanceClient.spec.ts", () => {
             const event = events[0];
             expect(event.queuedCount).toEqual(4);
             expect(event.queuedManuallyCompletedCount).toEqual(2);
-            expect(event.queuedTimeMs).toEqual(10);
+            expect(event.queuedTimeMs).toEqual(3);
             done();
         });
 

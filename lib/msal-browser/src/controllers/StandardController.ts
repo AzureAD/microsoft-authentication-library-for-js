@@ -305,7 +305,7 @@ export class StandardController implements IController {
                 PerformanceEvents.ClearTokensAndKeysWithClaims,
                 this.logger,
                 this.performanceClient
-            )();
+            )(this.performanceClient);
         }
 
         this.initialized = true;
