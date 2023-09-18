@@ -74,6 +74,7 @@ export class AccountEntity {
             tenantId: this.realm,
             username: this.username,
             localAccountId: this.localAccountId,
+            idTokenClaims: this.idTokenClaims,
         });
     }
 
@@ -103,6 +104,8 @@ export class AccountEntity {
             accountInterface.homeAccountId,
             accountInterface.environment || Constants.EMPTY_STRING,
             accountInterface.tenantId || Constants.EMPTY_STRING,
+            accountInterface.idTokenClaims?.appid || Constants.EMPTY_STRING,
+
         ];
 
         return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
