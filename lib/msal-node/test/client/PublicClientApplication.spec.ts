@@ -6,6 +6,7 @@ import {
     TEST_CONSTANTS,
     TEST_DATA_CLIENT_INFO,
     mockAccountInfo,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
 } from "../utils/TestConstants";
 import {
     ClientConfiguration,
@@ -94,10 +95,12 @@ describe("PublicClientApplication", () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         mockTelemetryManager;
         setupAuthorityFactory_createDiscoveredInstance_mock();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     test("exports a class", () => {
@@ -809,11 +812,15 @@ describe("PublicClientApplication", () => {
         };
 
         const authApp = new PublicClientApplication(appConfig);
-        await authApp.getAuthCodeUrl(request);
-        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
-        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
+        const url = await authApp.getAuthCodeUrl(request);
+        expect(
+            url.startsWith(
+                DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint
+            )
+        ).toBe(true);
+        expect(url).toContain(appConfig.auth.clientId);
+        expect(url).toContain(encodeURIComponent(request.redirectUri));
+        expect(url).toContain(encodeURIComponent(request.scopes.join(" ")));
     });
 
     test("acquireTokenByUsernamePassword", async () => {
@@ -849,6 +856,12 @@ describe("PublicClientApplication", () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
+        const mockRefreshTokenClient =
+            getMsalCommonAutoMock().RefreshTokenClient;
+        jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+            (config) => new mockRefreshTokenClient(config)
+        );
+
         const authorityMock =
             setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
@@ -881,6 +894,12 @@ describe("PublicClientApplication", () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
             authority: TEST_CONSTANTS.ALTERNATE_AUTHORITY,
         };
+
+        const mockRefreshTokenClient =
+            getMsalCommonAutoMock().RefreshTokenClient;
+        jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+            (config) => new mockRefreshTokenClient(config)
+        );
 
         const authorityMock =
             setupAuthorityFactory_createDiscoveredInstance_mock();
@@ -925,6 +944,12 @@ describe("PublicClientApplication", () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
+        const mockRefreshTokenClient =
+            getMsalCommonAutoMock().RefreshTokenClient;
+        jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+            (config) => new mockRefreshTokenClient(config)
+        );
+
         const authorityMock =
             setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
@@ -968,6 +993,12 @@ describe("PublicClientApplication", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
+
+        const mockRefreshTokenClient =
+            getMsalCommonAutoMock().RefreshTokenClient;
+        jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+            (config) => new mockRefreshTokenClient(config)
+        );
 
         const authorityMock =
             setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
