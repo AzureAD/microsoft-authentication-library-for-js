@@ -6,10 +6,33 @@
 
 The `@azure/msal-browser` library provides the following APIs to access cached accounts:
 
-* `getAllAccounts()`: returns all the accounts currently in the cache. An application must choose an account to acquire tokens silently.
+* `getAllAccounts()`: returns all the accounts currently in the cache. A filter can be passed in to narrow down the returned accounts. An application must choose an account to acquire tokens silently.
+* `getAccountByFilter()`:  returns the first cached account that matches the filter passed in. The order in which accounts are read from the cache is arbitrary and there is no guarantee that the first account in the filtered list will be the same for any two calls of `getAccountByFilter`.
+
+#### Account Filter Object
+
+The following type represents the format to follow for the accountFilter object that can be passed into the APIs listed above. 
+
+>Note: A single account filter attribute is usually not guaranteed to uniquely identify a cached account object. Adding a combination of attributes that don't repeat together, such as `homeAccountId` + `localAccountId`, can help refine the search.
+
+``` typescript
+export type AccountFilter = {
+    homeAccountId?: string;
+    localAccountId?: string;
+    username?: string;
+    environment?: string;
+    realm?: string;
+    nativeAccountId?: string;
+    tenantProfile?: TenantProfile;
+    isHomeTenant?: boolean;
+};
+```
+
+The following `getAccount` APIs are marked for deprecation and will be removed in a future version of MSAL Browser. Please use `getAccountFilteredBy()` instead. 
 * `getAccountByHomeId()`: receives a `homeAccountId` string and returns the matching account from the cache.
 * `getAccountByLocalId()`: receives a `localAccountId` string and returns the matching account from the cache.
 * `getAccountByUsername()`: receives a `username` string and returns the matching account from the cache.
+
 
 The following is a usage examples that covers these APIs:
 
@@ -40,7 +63,7 @@ Now the `homeAccountId`, `localAccountId`, or `username` can be used to look up 
 ```javascript
 // This method attempts silent token acquisition and falls back on acquireTokenPopup
 async function getTokenPopup(request, account) {
-    request.account = myMSALObj.getAccountByHomeId(homeAccountId); // alternatively: myMSALObj.getAccountByLocalId(localAccountId) or myMSALObj.getAccountByUsername(username) 
+    request.account = myMSALObj.getAccountByFilter({ homeAccountId: homeAccountId }); // alternatively: { localAccountId: localAccountId } or { username: username }
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
        // Handle error
         return await myMSALObj.acquireTokenPopup(request);
@@ -83,3 +106,4 @@ Note: As of version 2.16.0 the active account is stored in the cache location co
 * Two apps hosted on different domains do not share account state due to browser storage being segemented by domain.
 * `getAllAccounts()` is not ordered and is not guaranteed to be in the same order across multiple calls
 * Each successful call to an acquireToken or login API will return exactly one account
+* As of 2.39.0, MSAL Browser supports [Multi-tenant Accounts](./multi-tenant-accounts.md).
