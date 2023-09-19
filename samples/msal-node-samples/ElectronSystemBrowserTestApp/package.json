@@ -38,7 +38,7 @@
         "@vercel/webpack-asset-relocator-loader": "1.7.3",
         "autoprefixer": "^10.4.13",
         "css-loader": "^6.0.0",
-        "e2e-test-utils": "file:../../e2eTestUtils",
+        "e2e-test-utils": "^0.0.1",
         "electron": "22.3.21",
         "eslint": "^8.0.1",
         "eslint-plugin-import": "^2.25.0",
@@ -54,7 +54,7 @@
         "ts-loader": "^9.2.2",
         "ts-node": "^10.0.0",
         "typescript": "~4.5.4",
-        "e2e-test-utils": "file:../../e2eTestUtils"
+        "e2e-test-utils": "^0.0.1"
     },
     "dependencies": {
         "@azure/msal-node": "^2.0.0-beta.0",
