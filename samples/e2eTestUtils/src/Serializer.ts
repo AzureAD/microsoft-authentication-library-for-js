@@ -8,7 +8,7 @@ export class Serializer {
      * serialize the JSON blob
      * @param data
      */
-    static serializeJSONBlob(data: object): string {
+    static serializeJSONBlob(data: any): string {
         return JSON.stringify(data);
     }
 
@@ -16,8 +16,8 @@ export class Serializer {
      * Serialize Accounts
      * @param accCache
      */
-    static serializeAccounts(accCache: object): Record<string, object> {
-        const accounts: Record<string, object> = {};
+    static serializeAccounts(accCache: any): Record<string, any> {
+        const accounts: Record<string, any> = {};
         Object.keys(accCache).map(function (key) {
             const accountEntity = accCache[key];
             accounts[key] = {
@@ -41,8 +41,8 @@ export class Serializer {
      * Serialize IdTokens
      * @param idTCache
      */
-    static serializeIdTokens(idTCache: object): Record<string, object> {
-        const idTokens: Record<string, object> = {};
+    static serializeIdTokens(idTCache: any): Record<string, any> {
+        const idTokens: Record<string, any> = {};
         Object.keys(idTCache).map(function (key) {
             const idTEntity = idTCache[key];
             idTokens[key] = {
@@ -62,8 +62,8 @@ export class Serializer {
      * Serializes AccessTokens
      * @param atCache
      */
-    static serializeAccessTokens(atCache: object): Record<string, object> {
-        const accessTokens: Record<string, object> = {};
+    static serializeAccessTokens(atCache: any): Record<string, any> {
+        const accessTokens: Record<string, any> = {};
         Object.keys(atCache).map(function (key) {
             const atEntity = atCache[key];
             accessTokens[key] = {
@@ -93,8 +93,8 @@ export class Serializer {
      * Serialize refreshTokens
      * @param rtCache
      */
-    static serializeRefreshTokens(rtCache: object): Record<string, object> {
-        const refreshTokens: Record<string, object> = {};
+    static serializeRefreshTokens(rtCache: any): Record<string, any> {
+        const refreshTokens: Record<string, any> = {};
         Object.keys(rtCache).map(function (key) {
             const rtEntity = rtCache[key];
             refreshTokens[key] = {
@@ -116,8 +116,8 @@ export class Serializer {
      * Serialize amdtCache
      * @param amdtCache
      */
-    static serializeAppMetadata(amdtCache: object): Record<string, object> {
-        const appMetadata: Record<string, object> = {};
+    static serializeAppMetadata(amdtCache: any): Record<string, any> {
+        const appMetadata: Record<string, any> = {};
         Object.keys(amdtCache).map(function (key) {
             const amdtEntity = amdtCache[key];
             appMetadata[key] = {
@@ -134,7 +134,7 @@ export class Serializer {
      * Serialize the cache
      * @param jsonContent
      */
-    static serializeAllCache(inMemCache: any): object {
+    static serializeAllCache(inMemCache: any): any {
         return {
             Account: this.serializeAccounts(inMemCache.accounts),
             IdToken: this.serializeIdTokens(inMemCache.idTokens),

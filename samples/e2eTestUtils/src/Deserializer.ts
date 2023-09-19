@@ -16,7 +16,7 @@ export class Deserializer {
         return deserializedCache;
     }
 
-    static toObject<T>(obj: T, json: object): T {
+    static toObject<T>(obj: any, json: any): T {
         for (const propertyName in json) {
             obj[propertyName] = json[propertyName];
         }
@@ -28,7 +28,7 @@ export class Deserializer {
      * @param accounts
      */
     static deserializeAccounts(accounts: Record<string, any>): any {
-        const accountObjects = {};
+        const accountObjects: any = {};
         if (accounts) {
             Object.keys(accounts).map(function (key) {
                 const serializedAcc = accounts[key];
@@ -58,7 +58,7 @@ export class Deserializer {
      * @param idTokens
      */
     static deserializeIdTokens(idTokens: Record<string, any>): any {
-        const idObjects = {};
+        const idObjects: any = {};
         if (idTokens) {
             Object.keys(idTokens).map(function (key) {
                 const serializedIdT = idTokens[key];
@@ -83,7 +83,7 @@ export class Deserializer {
      * @param accessTokens
      */
     static deserializeAccessTokens(accessTokens: Record<string, any>): any {
-        const atObjects = {};
+        const atObjects: any = {};
         if (accessTokens) {
             Object.keys(accessTokens).map(function (key) {
                 const serializedAT = accessTokens[key];
@@ -119,7 +119,7 @@ export class Deserializer {
      * @param refreshTokens
      */
     static deserializeRefreshTokens(refreshTokens: Record<string, any>): any {
-        const rtObjects = {};
+        const rtObjects: any = {};
         if (refreshTokens) {
             Object.keys(refreshTokens).map(function (key) {
                 const serializedRT = refreshTokens[key];
@@ -147,7 +147,7 @@ export class Deserializer {
      * @param appMetadata
      */
     static deserializeAppMetadata(appMetadata: Record<string, any>): any {
-        const appMetadataObjects = {};
+        const appMetadataObjects: any = {};
         if (appMetadata) {
             Object.keys(appMetadata).map(function (key) {
                 const serializedAmdt = appMetadata[key];
