@@ -199,9 +199,7 @@ export class PublicClientApplication
 
             const authCodeUrl = await this.getAuthCodeUrl(validRequest);
             await openBrowser(authCodeUrl);
-            await authCodeListener.finally(() => {
-                loopbackClient.closeServer();
-            });
+            await authCodeListener;
             if (authCodeListenerError) {
                 throw authCodeListenerError;
             }
@@ -224,9 +222,8 @@ export class PublicClientApplication
                 ...validRequest,
             };
             return this.acquireTokenByCode(tokenRequest);
-        } catch (e) {
+        } finally {
             loopbackClient.closeServer();
-            throw e;
         }
     }
 

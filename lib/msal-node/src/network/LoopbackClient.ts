@@ -15,7 +15,7 @@ import { Constants } from "../utils/Constants.js";
 import { ILoopbackClient } from "./ILoopbackClient.js";
 
 export class LoopbackClient implements ILoopbackClient {
-    private server: http.Server;
+    private server: http.Server | undefined;
 
     /**
      * Spins up a loopback server which returns the server response when the localhost redirectUri is hit
@@ -27,7 +27,7 @@ export class LoopbackClient implements ILoopbackClient {
         successTemplate?: string,
         errorTemplate?: string
     ): Promise<ServerAuthorizationCodeResponse> {
-        if (!!this.server) {
+        if (this.server) {
             throw NodeAuthError.createLoopbackServerAlreadyExistsError();
         }
 
@@ -94,8 +94,17 @@ export class LoopbackClient implements ILoopbackClient {
      * Close the loopback server
      */
     closeServer(): void {
-        if (!!this.server) {
+        if (this.server) {
+            // Only stops accepting new connections, server will close once open/idle connections are closed.
             this.server.close();
+
+            if (typeof this.server.closeAllConnections === "function") {
+                /*
+                 * Close open/idle connections. This API is available in Node versions 18.2 and higher
+                 */
+                this.server.closeAllConnections();
+            }
+            this.server = undefined;
         }
     }
 }
