@@ -9,10 +9,7 @@
         "@azure/keyvault-secrets": "^4.3.0",
         "dotenv": "^8.2.0",
         "axios": "^1.4.0",
-        "find-process": "^1.4.4",
-        "@azure/msal-browser": "^3.0.0",
-        "@azure/msal-common": "^14.0.0",
-        "@azure/msal-node": "^2.0.0"
+        "find-process": "^1.4.4"
     },
     "devDependencies": {
         "typescript": "^4.9.5"
