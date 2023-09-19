@@ -3,9 +3,9 @@ import { Deserializer } from "./Deserializer";
 import { Serializer } from "./Serializer";
 
 export type tokenMap = {
-    idTokens: object[];
-    accessTokens: object[];
-    refreshTokens: object[];
+    idTokens: any[];
+    accessTokens: any[];
+    refreshTokens: any[];
 };
 
 export class NodeCacheTestUtils {
@@ -22,6 +22,7 @@ export class NodeCacheTestUtils {
         Object.keys(tokenCache).forEach((cacheSectionKey: string) => {
             Object.keys(deserializedCache[cacheSectionKey]).map((cacheKey) => {
                 const cacheSection = deserializedCache[cacheSectionKey];
+                // @ts-ignore
                 tokenCache[cacheSectionKey].push(cacheSection[cacheKey]);
             });
         });
