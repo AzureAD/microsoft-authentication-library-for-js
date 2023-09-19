@@ -15,8 +15,8 @@ import {
 } from "./BrowserAuthError";
 
 import * as NativeAuthErrorCodes from "./NativeAuthErrorCodes";
-export { NativeAuthErrorCodes };
 import * as NativeStatusCodes from "../broker/nativeBroker/NativeStatusCodes";
+export { NativeAuthErrorCodes };
 
 export type OSError = {
     error?: number;
