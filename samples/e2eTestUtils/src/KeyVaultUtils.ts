@@ -15,7 +15,10 @@ export const getKeyVaultSecretClient = (): Promise<void> => {
         const keyVaultCredentials = new DefaultAzureCredential();
 
         try {
-            const client = await new SecretClient(process.env.KEY_VAULT_URL, keyVaultCredentials);
+            const client = await new SecretClient(
+                process.env["KEY_VAULT_URL"],
+                keyVaultCredentials
+            );
             resolve(client);
         } catch (error) {
             reject(error);
