@@ -8,21 +8,19 @@ import {
     Browser,
 } from "@playwright/test";
 
-import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "e2e-test-utils/src/Constants";
-import { LabClient } from "e2e-test-utils/src/LabClient";
-import { 
-    setupCredentials, 
-    SCREENSHOT_BASE_FOLDER_NAME, 
-    validateCacheLocation 
-} from "e2e-test-utils/src/TestUtils";
-
 import {
     Screenshot,
     enterCredentials,
     retrieveAuthCodeUrlFromBrowserContext,
-} from "e2e-test-utils/src/ElectronPlaywrightTestUtils";
+    NodeCacheTestUtils,
+    LabApiQueryParams,
+    AppTypes,
+    AzureEnvironments,
+    LabClient,
+    setupCredentials,
+    SCREENSHOT_BASE_FOLDER_NAME,
+    validateCacheLocation,
+} from "e2e-test-utils";
 import * as path from "path";
 
 let electronApp: ElectronApplication;
