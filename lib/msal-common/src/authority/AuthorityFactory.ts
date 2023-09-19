@@ -18,6 +18,7 @@ import { AuthorityOptions } from "./AuthorityOptions";
 import { Logger } from "../logger/Logger";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { invokeAsync } from "../utils/FunctionWrappers";
 
 /** @internal */
 export class AuthorityFactory {
@@ -61,12 +62,15 @@ export class AuthorityFactory {
             );
 
         try {
-            performanceClient?.setPreQueueTime(
+            await invokeAsync(
+                acquireTokenAuthority.resolveEndpointsAsync.bind(
+                    acquireTokenAuthority
+                ),
                 PerformanceEvents.AuthorityResolveEndpointsAsync,
+                logger,
+                performanceClient,
                 correlationId
-            );
-
-            await acquireTokenAuthority.resolveEndpointsAsync();
+            )();
             return acquireTokenAuthority;
         } catch (e) {
             throw createClientAuthError(
