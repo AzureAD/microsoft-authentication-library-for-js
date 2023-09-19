@@ -8,6 +8,8 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { invokeAsync } from "../utils/FunctionWrappers";
+import { Logger } from "../logger/Logger";
 
 /**
  * See eSTS docs for more info.
@@ -50,18 +52,21 @@ export class PopTokenGenerator {
      * @returns
      */
     async generateCnf(
-        request: SignedHttpRequestParameters
+        request: SignedHttpRequestParameters,
+        logger: Logger
     ): Promise<ReqCnfData> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.PopTokenGenerateCnf,
             request.correlationId
         );
 
-        this.performanceClient?.setPreQueueTime(
-            PerformanceEvents.PopTokenGenerateKid,
+        const reqCnf = await invokeAsync(
+            this.generateKid.bind(this),
+            PerformanceEvents.PopTokenGenerateCnf,
+            logger,
+            this.performanceClient,
             request.correlationId
-        );
-        const reqCnf = await this.generateKid(request);
+        )(request);
         const reqCnfString: string = this.cryptoUtils.base64Encode(
             JSON.stringify(reqCnf)
         );

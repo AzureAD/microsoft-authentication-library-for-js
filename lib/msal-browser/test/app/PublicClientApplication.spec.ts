@@ -5377,7 +5377,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .stub(PopupClient.prototype, "openSizedPopup")
                     .returns(popupWindow);
                 sinon.stub(PopupClient.prototype, "cleanPopup");
-                sinon.stub(Authority.prototype, "resolveEndpointsAsync");
             });
 
             it("Clears active account on logoutRedirect with no account", async () => {
