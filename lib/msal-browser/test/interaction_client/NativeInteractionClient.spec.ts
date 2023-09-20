@@ -34,7 +34,8 @@ import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import {
     NativeAuthError,
-    NativeAuthErrorMessage,
+    NativeAuthErrorCodes,
+    NativeAuthErrorMessages,
 } from "../../src/error/NativeAuthError";
 import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
@@ -441,11 +442,9 @@ describe("NativeInteractionClient Tests", () => {
                     scopes: ["User.Read"],
                 })
                 .catch((e) => {
-                    expect(e.errorCode).toBe(
-                        NativeAuthErrorMessage.userSwitch.code
-                    );
+                    expect(e.errorCode).toBe(NativeAuthErrorCodes.userSwitch);
                     expect(e.errorMessage).toBe(
-                        NativeAuthErrorMessage.userSwitch.desc
+                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
                     );
                     done();
                 });

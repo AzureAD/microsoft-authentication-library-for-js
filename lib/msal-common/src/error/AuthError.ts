@@ -4,18 +4,27 @@
  */
 
 import { Constants } from "../utils/Constants";
+import * as AuthErrorCodes from "./AuthErrorCodes";
+export { AuthErrorCodes };
+
+export const AuthErrorMessages = {
+    [AuthErrorCodes.unexpectedError]: "Unexpected error in authentication.",
+    [AuthErrorCodes.postRequestFailed]:
+        "Post request failed from the network, could be a 4xx/5xx or a network unavailability. Please check the exact error code for details.",
+};
 
 /**
  * AuthErrorMessage class containing string constants used by error codes and messages.
+ * @deprecated Use AuthErrorCodes instead
  */
 export const AuthErrorMessage = {
     unexpectedError: {
-        code: "unexpected_error",
-        desc: "Unexpected error in authentication.",
+        code: AuthErrorCodes.unexpectedError,
+        desc: AuthErrorMessages[AuthErrorCodes.unexpectedError],
     },
     postRequestFailed: {
-        code: "post_request_failed",
-        desc: "Post request failed from the network, could be a 4xx/5xx or a network unavailability. Please check the exact error code for details.",
+        code: AuthErrorCodes.postRequestFailed,
+        desc: AuthErrorMessages[AuthErrorCodes.postRequestFailed],
     },
 };
 
@@ -59,27 +68,16 @@ export class AuthError extends Error {
     setCorrelationId(correlationId: string): void {
         this.correlationId = correlationId;
     }
+}
 
-    /**
-     * Creates an error that is thrown when something unexpected happens in the library.
-     * @param errDesc
-     */
-    static createUnexpectedError(errDesc: string): AuthError {
-        return new AuthError(
-            AuthErrorMessage.unexpectedError.code,
-            `${AuthErrorMessage.unexpectedError.desc}: ${errDesc}`
-        );
-    }
-
-    /**
-     * Creates an error for post request failures.
-     * @param errDesc
-     * @returns
-     */
-    static createPostRequestFailed(errDesc: string): AuthError {
-        return new AuthError(
-            AuthErrorMessage.postRequestFailed.code,
-            `${AuthErrorMessage.postRequestFailed.desc}: ${errDesc}`
-        );
-    }
+export function createAuthError(
+    code: string,
+    additionalMessage?: string
+): AuthError {
+    return new AuthError(
+        code,
+        additionalMessage
+            ? `${AuthErrorMessages[code]} ${additionalMessage}`
+            : AuthErrorMessages[code]
+    );
 }
