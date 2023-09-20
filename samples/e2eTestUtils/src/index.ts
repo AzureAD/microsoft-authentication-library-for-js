@@ -24,6 +24,8 @@ export {
     b2cLocalAccountEnterCredentials,
     b2cMsaAccountEnterCredentials,
     retrieveAppConfiguration,
+    clickLogoutPopup,
+    clickLogoutRedirect,
     RETRY_TIMES,
     SAMPLE_HOME_URL,
     ONE_SECOND_IN_MS,
