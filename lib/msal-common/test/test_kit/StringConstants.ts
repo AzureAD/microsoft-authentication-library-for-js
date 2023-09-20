@@ -5,11 +5,7 @@
 
 // This file contains the string constants used by the test classes.
 
-import {
-    AuthenticationScheme,
-    Constants,
-    ONE_DAY_IN_MS,
-} from "../../src/utils/Constants";
+import { AuthenticationScheme, Constants } from "../../src/utils/Constants";
 import { RequestThumbprint, ThrottlingEntity, AccountInfo } from "../../src";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 
@@ -67,7 +63,6 @@ export const ID_TOKEN_CLAIMS = {
     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
     nonce: "123523",
     aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY",
-    auth_time: Date.now() - ONE_DAY_IN_MS * 2,
 };
 
 // Test Expiration Vals

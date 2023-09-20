@@ -5,7 +5,6 @@
 
 import { INetworkModule } from "../network/INetworkModule";
 import { DEFAULT_CRYPTO_IMPLEMENTATION, ICrypto } from "../crypto/ICrypto";
-import { AuthError } from "../error/AuthError";
 import { ILoggerCallback, Logger, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../packageMetadata";
@@ -17,6 +16,10 @@ import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { ClientCredentials } from "../account/ClientCredentials";
 import { ProtocolMode } from "../authority/ProtocolMode";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -177,14 +180,10 @@ const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
     async sendGetRequestAsync<T>(): Promise<T> {
-        const notImplErr =
-            "Network interface - sendGetRequestAsync() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async sendPostRequestAsync<T>(): Promise<T> {
-        const notImplErr =
-            "Network interface - sendPostRequestAsync() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
 };
 

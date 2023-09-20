@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import {
     AADServerParamKeys,
-    AuthError,
+    AuthErrorCodes,
     Authority,
     BaseClient,
     ClientAuthErrorCodes,
@@ -10,6 +10,7 @@ import {
     Constants,
     GrantType,
     ThrottlingConstants,
+    createAuthError,
     createClientAuthError,
 } from "@azure/msal-common";
 import {
@@ -649,7 +650,10 @@ describe("DeviceCodeClient unit tests", () => {
 
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(
-                AuthError.createPostRequestFailed("Service Unavailable")
+                createAuthError(
+                    AuthErrorCodes.postRequestFailed,
+                    "Service Unavailable"
+                )
             );
         }, 15000);
     });
