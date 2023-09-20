@@ -9,8 +9,8 @@ import {
 } from "@playwright/test";
 
 import {
-    Screenshot,
-    enterCredentials,
+    ScreenShotElectron,
+    enterCredentialsElectron,
     retrieveAuthCodeUrlFromBrowserContext,
     NodeCacheTestUtils,
     LabApiQueryParams,
@@ -84,7 +84,7 @@ test.describe("Acquire token", () => {
     });
 
     test("Acquire token by auth code", async () => {
-        const screenshot = new Screenshot(
+        const screenshot = new ScreenShotElectron(
             `${screenshotFolder}/AcquireTokenAuthCode`
         );
 
@@ -95,7 +95,12 @@ test.describe("Acquire token", () => {
         let AuthCodeUrl = await retrieveAuthCodeUrlFromBrowserContext(page);
 
         await browserPage.goto(AuthCodeUrl);
-        await enterCredentials(browserPage, screenshot, username, accountPwd);
+        await enterCredentialsElectron(
+            browserPage,
+            screenshot,
+            username,
+            accountPwd
+        );
         const cachedTokens = await NodeCacheTestUtils.waitForTokens(
             TEST_CACHE_LOCATION,
             2000

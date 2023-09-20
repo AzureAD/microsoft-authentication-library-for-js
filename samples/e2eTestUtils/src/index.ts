@@ -46,4 +46,8 @@ export { Browser, Page, BrowserContext } from "puppeteer";
 export { NodeCacheTestUtils } from "./NodeCacheTestUtils";
 export { storagePoller } from "./TestUtils";
 export { getKeyVaultSecretClient, getCredentials } from "./KeyVaultUtils";
-export { retrieveAuthCodeUrlFromBrowserContext } from "./ElectronPlaywrightTestUtils";
+export {
+    Screenshot as ScreenShotElectron,
+    enterCredentials as enterCredentialsElectron,
+    retrieveAuthCodeUrlFromBrowserContext,
+} from "./ElectronPlaywrightTestUtils";
