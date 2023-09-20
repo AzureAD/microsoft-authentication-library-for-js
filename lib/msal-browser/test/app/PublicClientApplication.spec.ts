@@ -4982,6 +4982,40 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             homeAccountId: testAccountInfo2.homeAccountId,
         };
 
+        // Account 3
+        const testAccountInfo3: AccountInfo = {
+            authorityType: "ADFS",
+            homeAccountId: "another-home-account-id",
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "yetAnotherExample@microsoft.com",
+            name: "Abe Lincoln Two",
+            localAccountId: TEST_CONFIG.OID,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined,
+        };
+
+        const testAccount3: AccountEntity = new AccountEntity();
+        testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
+        testAccount2.localAccountId = TEST_CONFIG.OID;
+        testAccount2.environment = testAccountInfo2.environment;
+        testAccount2.realm = testAccountInfo2.tenantId;
+        testAccount2.username = testAccountInfo2.username;
+        testAccount2.name = testAccountInfo2.name;
+        testAccount2.authorityType = "MSSTS";
+        testAccount2.clientInfo =
+            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+        const idTokenData3 = {
+            realm: testAccountInfo3.tenantId,
+            environment: testAccountInfo3.environment,
+            credentialType: "IdToken",
+            secret: TEST_TOKENS.IDTOKEN_V2,
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            homeAccountId: testAccountInfo3.homeAccountId,
+        };
+
         beforeEach(async () => {
             pca = (pca as any).controller;
             await pca.initialize();
@@ -5004,6 +5038,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.getBrowserStorage().setAccount(testAccount1);
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount2);
+            // @ts-ignore
+            pca.getBrowserStorage().setAccount(testAccount3);
 
             const idToken1 = CacheManager.toObject(
                 new IdTokenEntity(),
@@ -5018,6 +5054,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken2);
+
+            const idToken3 = CacheManager.toObject(
+                new IdTokenEntity(),
+                idTokenData3
+            );
+            // @ts-ignore
+            pca.getBrowserStorage().setIdTokenCredential(idToken3);
         });
 
         afterEach(() => {
@@ -5025,11 +5068,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.sessionStorage.clear();
         });
 
-        it("getAllAccounts returns all signed in accounts", () => {
+        it("getAllAccounts with no account filter returns all signed in accounts", () => {
             const accounts = pca.getAllAccounts();
             expect(accounts).toHaveLength(2);
             expect(accounts[0].idToken).not.toBeUndefined();
             expect(accounts[1].idToken).not.toBeUndefined();
+        });
+
+        it("getAllAccounts returns all accounts matching the filter passed in", () => {
+            const accounts = pca.getAllAccounts({ authorityType: "MSSTS" });
+            expect(accounts).toHaveLength(2);
+            expect(accounts[0].authorityType).toBe("MSSTS");
+            expect(accounts[1].authorityType).toBe("MSSTS");
         });
 
         it("getAllAccounts returns empty array if no accounts signed in", () => {

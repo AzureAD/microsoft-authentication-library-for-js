@@ -28,6 +28,7 @@ import {
     invokeAsync,
     createClientAuthError,
     ClientAuthErrorCodes,
+    AccountFilter,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -1184,15 +1185,14 @@ export class StandardController implements IController {
     // #region Account APIs
 
     /**
-     * Returns all accounts that MSAL currently has data for.
-     * (the account object is created at the time of successful login)
-     * or empty array when no accounts are found
-     * @returns Array of account objects in cache
+     * Returns all the accounts in the cache that match the optional filter. If no filter is provided, all accounts are returned.
+     * @param accountFilter - (Optional) filter to narrow down the accounts returned
+     * @returns Array of AccountInfo objects in cache
      */
-    getAllAccounts(): AccountInfo[] {
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
         this.logger.verbose("getAllAccounts called");
         return this.isBrowserEnvironment
-            ? this.browserStorage.getAllAccounts()
+            ? this.browserStorage.getAllAccounts(accountFilter)
             : [];
     }
 

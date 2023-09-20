@@ -9,6 +9,7 @@ import {
     PerformanceCallbackFunction,
     IPerformanceClient,
     CommonSilentFlowRequest,
+    AccountFilter,
 } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -70,7 +71,7 @@ export interface IController {
 
     getAccountByUsername(userName: string): AccountInfo | null;
 
-    getAllAccounts(): AccountInfo[];
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
 
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
 

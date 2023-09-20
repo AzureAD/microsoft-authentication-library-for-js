@@ -54,6 +54,7 @@ export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
 export {
     AccountCache,
+    AccountFilter,
     AccessTokenCache,
     IdTokenCache,
     RefreshTokenCache,

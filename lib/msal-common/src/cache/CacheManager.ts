@@ -222,9 +222,19 @@ export abstract class CacheManager implements ICacheManager {
     ): string;
 
     /**
-     * Returns all accounts in cache
+     * Returns all the accounts in the cache that match the optional filter. If no filter is provided, all accounts are returned.
+     * @param accountFilter - (Optional) filter to narrow down the accounts returned
+     * @returns Array of AccountInfo objects in cache
      */
-    getAllAccounts(): AccountInfo[] {
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
+        if (accountFilter) {
+            return this.getAccountsFilteredBy(accountFilter).map(
+                (accountEntity) => {
+                    return accountEntity.getAccountInfo();
+                }
+            );
+        }
+
         const allAccountKeys = this.getAccountKeys();
         if (allAccountKeys.length < 1) {
             return [];
@@ -243,16 +253,12 @@ export abstract class CacheManager implements ICacheManager {
             []
         );
 
-        if (accountEntities.length < 1) {
-            return [];
-        } else {
-            const allAccounts = accountEntities.map<AccountInfo>(
-                (accountEntity) => {
-                    return this.getAccountInfoFromEntity(accountEntity);
-                }
-            );
-            return allAccounts;
-        }
+        const allAccounts = accountEntities.map<AccountInfo>(
+            (accountEntity) => {
+                return this.getAccountInfoFromEntity(accountEntity);
+            }
+        );
+        return allAccounts;
     }
 
     /**
@@ -380,7 +386,7 @@ export abstract class CacheManager implements ICacheManager {
                 !this.isAccountKey(
                     cacheKey,
                     accountFilter.homeAccountId,
-                    accountFilter.realm
+                    accountFilter.tenantId
                 )
             ) {
                 // Don't parse value if the key doesn't match the account filters
