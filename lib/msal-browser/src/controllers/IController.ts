@@ -105,6 +105,7 @@ export interface IController {
     /** @internal */
     getConfiguration(): BrowserConfiguration;
 
+    /** @internal */
     hydrateCache(
         result: AuthenticationResult,
         request:
@@ -128,4 +129,7 @@ export interface IController {
         interactionType: InteractionType,
         isAppEmbedded?: boolean
     ): void;
+
+    /** @internal */
+    getCorrelationId(): string;
 }

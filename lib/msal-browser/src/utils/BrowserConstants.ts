@@ -140,6 +140,7 @@ export enum InteractionType {
     Redirect = "redirect",
     Popup = "popup",
     Silent = "silent",
+    SsoSilent = "ssoSilent",
     None = "none",
 }
 
