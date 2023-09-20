@@ -435,16 +435,19 @@ export abstract class CacheManager implements ICacheManager {
             if (
                 !!accountFilter.tenantId &&
                 !this.matchRealm(entity, accountFilter.tenantId)
-            )
-                if (
-                    !!accountFilter.nativeAccountId &&
-                    !this.matchNativeAccountId(
-                        entity,
-                        accountFilter.nativeAccountId
-                    )
-                ) {
-                    return;
-                }
+            ) {
+                return;
+            }
+
+            if (
+                !!accountFilter.nativeAccountId &&
+                !this.matchNativeAccountId(
+                    entity,
+                    accountFilter.nativeAccountId
+                )
+            ) {
+                return;
+            }
 
             if (
                 !!accountFilter.loginHint &&
