@@ -53,7 +53,10 @@ export type ValidCredentialType =
 /**
  * Account:	<home_account_id>-<environment>-<realm*>
  */
-export type AccountFilter = Partial<AccountInfo> & {
+export type AccountFilter = Omit<
+    Partial<AccountInfo>,
+    "idToken" | "idTokenClaims"
+> & {
     realm?: string;
     loginHint?: string;
 };

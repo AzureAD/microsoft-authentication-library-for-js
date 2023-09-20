@@ -190,11 +190,21 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
+     * Returns the first account found in the cache that matches the account filter passed in.
+     * @param accountFilter
+     * @returns The first account found in the cache matching the provided filter or null if no account could be found.
+     */
+    getAccountByFilter(accountFilter: AccountFilter): AccountInfo | null {
+        return this.controller.getAccountByFilter(accountFilter);
+    }
+
+    /**
      * Returns the signed in account matching homeAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
      * @param homeAccountId
      * @returns The account object stored in MSAL
+     * @deprecated - Use getAccountByFilter instead
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
         return this.controller.getAccountByHomeId(homeAccountId);
@@ -206,6 +216,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * or null when no matching account is found
      * @param localAccountId
      * @returns The account object stored in MSAL
+     * @deprecated - Use getAccountByFilter instead
      */
     getAccountByLocalId(localId: string): AccountInfo | null {
         return this.controller.getAccountByLocalId(localId);
@@ -218,6 +229,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * This API is provided for convenience but getAccountById should be used for best reliability
      * @param userName
      * @returns The account object stored in MSAL
+     * @deprecated - Use getAccountByFilter instead
      */
     getAccountByUsername(userName: string): AccountInfo | null {
         return this.controller.getAccountByUsername(userName);
