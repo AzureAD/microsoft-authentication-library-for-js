@@ -4,19 +4,14 @@
  */
 
 import { AuthError } from "./AuthError";
+import * as JoseHeaderErrorCodes from "./JoseHeaderErrorCodes";
+export { JoseHeaderErrorCodes };
 
-/**
- * ClientAuthErrorMessage class containing string constants used by error codes and messages.
- */
-export const JoseHeaderErrorMessage = {
-    missingKidError: {
-        code: "missing_kid_error",
-        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires a keyId to be configured as the 'kid' header claim. No 'kid' value was provided.",
-    },
-    missingAlgError: {
-        code: "missing_alg_error",
-        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided.",
-    },
+export const JoseHeaderErrorMessages = {
+    [JoseHeaderErrorCodes.missingKidError]:
+        "The JOSE Header for the requested JWT, JWS or JWK object requires a keyId to be configured as the 'kid' header claim. No 'kid' value was provided.",
+    [JoseHeaderErrorCodes.missingAlgError]:
+        "The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided.",
 };
 
 /**
@@ -29,24 +24,9 @@ export class JoseHeaderError extends AuthError {
 
         Object.setPrototypeOf(this, JoseHeaderError.prototype);
     }
+}
 
-    /**
-     * Creates an error thrown when keyId isn't set on JOSE header.
-     */
-    static createMissingKidError(): JoseHeaderError {
-        return new JoseHeaderError(
-            JoseHeaderErrorMessage.missingKidError.code,
-            JoseHeaderErrorMessage.missingKidError.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when algorithm isn't set on JOSE header.
-     */
-    static createMissingAlgError(): JoseHeaderError {
-        return new JoseHeaderError(
-            JoseHeaderErrorMessage.missingAlgError.code,
-            JoseHeaderErrorMessage.missingAlgError.desc
-        );
-    }
+/** Returns JoseHeaderError object */
+export function createJoseHeaderError(code: string): JoseHeaderError {
+    return new JoseHeaderError(code, JoseHeaderErrorMessages[code]);
 }

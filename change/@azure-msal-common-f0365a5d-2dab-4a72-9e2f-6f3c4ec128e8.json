@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Refactor JoseHeaderError and AuthError for reduced size #6497",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -67,7 +67,10 @@ import { ITokenCache } from "../cache/ITokenCache";
 import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { SilentRequest } from "../request/SilentRequest";
-import { NativeAuthError } from "../error/NativeAuthError";
+import {
+    NativeAuthError,
+    isFatalNativeAuthError,
+} from "../error/NativeAuthError";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
 import {
@@ -532,7 +535,10 @@ export class StandardController implements IController {
             result = nativeClient
                 .acquireTokenRedirect(request)
                 .catch((e: AuthError) => {
-                    if (e instanceof NativeAuthError && e.isFatal()) {
+                    if (
+                        e instanceof NativeAuthError &&
+                        isFatalNativeAuthError(e)
+                    ) {
                         this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         const redirectClient = this.createRedirectClient(
                             request.correlationId
@@ -634,7 +640,10 @@ export class StandardController implements IController {
                     return response;
                 })
                 .catch((e: AuthError) => {
-                    if (e instanceof NativeAuthError && e.isFatal()) {
+                    if (
+                        e instanceof NativeAuthError &&
+                        isFatalNativeAuthError(e)
+                    ) {
                         this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         const popupClient = this.createPopupClient(
                             request.correlationId
@@ -785,7 +794,7 @@ export class StandardController implements IController {
                 ApiId.ssoSilent
             ).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
-                if (e instanceof NativeAuthError && e.isFatal()) {
+                if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                     const silentIframeClient = this.createSilentIframeClient(
                         validRequest.correlationId
@@ -935,7 +944,10 @@ export class StandardController implements IController {
                         request.nativeAccountId
                     ).catch((e: AuthError) => {
                         // If native token acquisition fails for availability reasons fallback to standard flow
-                        if (e instanceof NativeAuthError && e.isFatal()) {
+                        if (
+                            e instanceof NativeAuthError &&
+                            isFatalNativeAuthError(e)
+                        ) {
                             this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         }
                         throw e;
@@ -1980,7 +1992,7 @@ export class StandardController implements IController {
                 ApiId.acquireTokenSilent_silentFlow
             ).catch(async (e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to web flow
-                if (e instanceof NativeAuthError && e.isFatal()) {
+                if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.logger.verbose(
                         "acquireTokenSilent - native platform unavailable, falling back to web flow"
                     );

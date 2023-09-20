@@ -4,6 +4,7 @@
  */
 
 import {
+    AuthErrorCodes,
     AuthenticationResult,
     BaseClient,
     ClientAuthErrorCodes,
@@ -17,10 +18,10 @@ import {
     ResponseHandler,
     ServerAuthorizationTokenResponse,
     ServerDeviceCodeResponse,
-    ServerError,
     StringUtils,
     TimeUtils,
     UrlString,
+    createAuthError,
     createClientAuthError,
 } from "@azure/msal-common";
 
@@ -300,7 +301,8 @@ export class DeviceCodeClient extends BaseClient {
                     this.logger.info(
                         "Unexpected error in polling from the server"
                     );
-                    throw ServerError.createPostRequestFailed(
+                    throw createAuthError(
+                        AuthErrorCodes.postRequestFailed,
                         response.body.error
                     );
                 }

@@ -90,6 +90,7 @@ export {
     // Error
     AuthError,
     AuthErrorMessage,
+    AuthErrorCodes,
     ClientAuthError,
     ClientAuthErrorCodes,
     ClientAuthErrorMessage,
