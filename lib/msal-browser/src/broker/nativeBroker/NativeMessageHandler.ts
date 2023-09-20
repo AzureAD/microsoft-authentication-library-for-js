@@ -10,6 +10,8 @@ import {
 import {
     Logger,
     AuthError,
+    createAuthError,
+    AuthErrorCodes,
     AuthenticationScheme,
     InProgressPerformanceEvent,
     PerformanceEvents,
@@ -20,7 +22,7 @@ import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,
 } from "./NativeRequest";
-import { NativeAuthError } from "../../error/NativeAuthError";
+import { createNativeAuthError } from "../../error/NativeAuthError";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -283,7 +285,7 @@ export class NativeMessageHandler {
                 );
                 if (response.status !== "Success") {
                     resolver.reject(
-                        NativeAuthError.createError(
+                        createNativeAuthError(
                             response.code,
                             response.description,
                             response.ext
@@ -295,7 +297,7 @@ export class NativeMessageHandler {
                         response.result["description"]
                     ) {
                         resolver.reject(
-                            NativeAuthError.createError(
+                            createNativeAuthError(
                                 response.result["code"],
                                 response.result["description"],
                                 response.result["ext"]
@@ -305,7 +307,8 @@ export class NativeMessageHandler {
                         resolver.resolve(response.result);
                     }
                 } else {
-                    throw AuthError.createUnexpectedError(
+                    throw createAuthError(
+                        AuthErrorCodes.unexpectedError,
                         "Event does not contain result."
                     );
                 }

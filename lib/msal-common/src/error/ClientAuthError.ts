@@ -87,6 +87,8 @@ export const ClientAuthErrorMessages = {
     [ClientAuthErrorCodes.userCanceled]: "User cancelled the flow.",
     [ClientAuthErrorCodes.missingTenantIdError]:
         "A tenant id - not common, organizations, or consumers - must be specified when using the client_credentials flow.",
+    [ClientAuthErrorCodes.methodNotImplemented]:
+        "This method has not been implemented",
 };
 
 /**

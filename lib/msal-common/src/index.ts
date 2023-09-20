@@ -141,7 +141,12 @@ export {
     InteractionRequiredAuthErrorMessage,
     createInteractionRequiredAuthError,
 } from "./error/InteractionRequiredAuthError";
-export { AuthError, AuthErrorMessage } from "./error/AuthError";
+export {
+    AuthError,
+    AuthErrorMessage,
+    AuthErrorCodes,
+    createAuthError,
+} from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
 export {
     ClientAuthError,

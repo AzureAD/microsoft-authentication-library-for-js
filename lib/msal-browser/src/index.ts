@@ -113,6 +113,7 @@ export {
     IdTokenClaims,
     // Error
     AuthError,
+    AuthErrorCodes,
     AuthErrorMessage,
     ClientAuthError,
     ClientAuthErrorCodes,
