@@ -444,6 +444,13 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
+            if (
+                !!accountFilter.loginHint &&
+                !this.matchLoginHint(entity, accountFilter.loginHint)
+            ) {
+                return;
+            }
+
             matchingAccounts.push(entity);
         });
 
@@ -1430,6 +1437,31 @@ export abstract class CacheManager implements ICacheManager {
         return !!(
             entity.nativeAccountId && nativeAccountId === entity.nativeAccountId
         );
+    }
+
+    /**
+     * helper to match loginHint which can be either:
+     * 1. login_hint ID token claim
+     * 2. username in cached account object
+     * 3. upn in ID token claims
+     * @param entity
+     * @param loginHint
+     * @returns
+     */
+    private matchLoginHint(entity: AccountEntity, loginHint: string): boolean {
+        if (entity.idTokenClaims?.login_hint === loginHint) {
+            return true;
+        }
+
+        if (entity.username === loginHint) {
+            return true;
+        }
+
+        if (entity.idTokenClaims?.upn === loginHint) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

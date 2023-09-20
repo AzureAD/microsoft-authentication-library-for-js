@@ -55,6 +55,7 @@ export type ValidCredentialType =
  */
 export type AccountFilter = Partial<AccountInfo> & {
     realm?: string;
+    loginHint?: string;
 };
 
 /**
