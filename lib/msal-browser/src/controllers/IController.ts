@@ -129,7 +129,4 @@ export interface IController {
         interactionType: InteractionType,
         isAppEmbedded?: boolean
     ): void;
-
-    /** @internal */
-    getCorrelationId(): string;
 }
