@@ -5,18 +5,22 @@
 
 import * as puppeteer from "puppeteer";
 import {
-    Screenshot, 
-    createFolder, 
-    setupCredentials, 
-    RETRY_TIMES, 
+    Screenshot,
+    createFolder,
+    setupCredentials,
+    RETRY_TIMES,
     enterCredentialsADFSWithConsent,
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
-    validateCacheLocation} from "e2e-test-utils/src/TestUtils";
-import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
-import { LabClient } from "e2e-test-utils/src/LabClient";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "e2e-test-utils/src/Constants";
+    validateCacheLocation,
+    NodeCacheTestUtils,
+    LabClient,
+    LabApiQueryParams,
+    AppTypes,
+    AzureEnvironments,
+    FederationProviders,
+    UserTypes,
+} from "e2e-test-utils";
 
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
 
@@ -32,7 +36,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/ADFS.json");
 
-describe('Device Code ADFS 2019 Tests', () => {
+describe("Device Code ADFS 2019 Tests", () => {
     jest.setTimeout(45000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
@@ -46,7 +50,7 @@ describe('Device Code ADFS 2019 Tests', () => {
 
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/device-code/adfs`;
 
-    beforeAll(async() => {
+    beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
@@ -57,12 +61,17 @@ describe('Device Code ADFS 2019 Tests', () => {
             azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
             federationProvider: FederationProviders.ADFS2019,
-            userType: UserTypes.FEDERATED
+            userType: UserTypes.FEDERATED,
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParms
+        );
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
     });
 
     afterAll(async () => {
@@ -70,7 +79,7 @@ describe('Device Code ADFS 2019 Tests', () => {
     });
 
     describe("Acquire Token", () => {
-        beforeAll(async() => {
+        beforeAll(async () => {
             clientConfig = { auth: config.authOptions, cache: { cachePlugin } };
             publicClientApplication = new PublicClientApplication(clientConfig);
         });
@@ -91,18 +100,36 @@ describe('Device Code ADFS 2019 Tests', () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
 
             const deviceCodeCallback = async (deviceCodeResponse: any) => {
-                const { userCode, verificationUri} = deviceCodeResponse;
-                await enterDeviceCode(page, screenshot, userCode, verificationUri);
-                await enterCredentialsADFSWithConsent(page, screenshot, username, accountPwd);
+                const { userCode, verificationUri } = deviceCodeResponse;
+                await enterDeviceCode(
+                    page,
+                    screenshot,
+                    userCode,
+                    verificationUri
+                );
+                await enterCredentialsADFSWithConsent(
+                    page,
+                    screenshot,
+                    username,
+                    accountPwd
+                );
                 await page.waitForSelector("#message");
-                await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
+                await screenshot.takeScreenshot(
+                    page,
+                    "SuccessfulDeviceCodeMessage"
+                );
             };
 
-            await getTokenDeviceCode(config, publicClientApplication, { deviceCodeCallback: deviceCodeCallback });
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            await getTokenDeviceCode(config, publicClientApplication, {
+                deviceCodeCallback: deviceCodeCallback,
+            });
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
-         });
+        });
     });
 });

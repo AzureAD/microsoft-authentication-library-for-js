@@ -7,11 +7,12 @@ import {
     getBrowser,
     getHomeUrl,
     pcaInitializedPoller,
-} from "e2e-test-utils/src/TestUtils";
-import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
-import { LabClient } from "e2e-test-utils/src/LabClient";
+    BrowserCacheUtils,
+    LabApiQueryParams,
+    AzureEnvironments,
+    AppTypes,
+    LabClient,
+} from "e2e-test-utils";
 import { JWK, JWT } from "jose";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
