@@ -9,6 +9,7 @@ import {
     PerformanceCallbackFunction,
     IPerformanceClient,
     CommonSilentFlowRequest,
+    BaseAuthRequest,
 } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -101,6 +102,8 @@ export interface IController {
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
 
     setNavigationClient(navigationClient: INavigationClient): void;
+
+    getRequestCorrelationId(request?: Partial<BaseAuthRequest>): string;
 
     /** @internal */
     getConfiguration(): BrowserConfiguration;
