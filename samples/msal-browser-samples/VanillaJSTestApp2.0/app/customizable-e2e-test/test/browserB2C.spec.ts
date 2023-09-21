@@ -12,16 +12,14 @@ import {
     getBrowser,
     getHomeUrl,
     pcaInitializedPoller,
-} from "e2e-test-utils/src/TestUtils";
-import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import {
+    BrowserCacheUtils,
+    LabApiQueryParams,
     AzureEnvironments,
     AppTypes,
     UserTypes,
     B2cProviders,
-} from "e2e-test-utils/src/Constants";
-import { LabClient } from "e2e-test-utils/src/LabClient";
+    LabClient,
+} from "e2e-test-utils";
 import {
     msalConfig as b2cMsalConfig,
     request as b2cTokenRequest,

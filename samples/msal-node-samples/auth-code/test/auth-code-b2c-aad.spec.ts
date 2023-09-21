@@ -9,15 +9,16 @@ import {
     createFolder,
     setupCredentials,
     b2cAadPpeAccountEnterCredentials,
-    RETRY_TIMES, 
+    RETRY_TIMES,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
-    SAMPLE_HOME_URL
-} from "e2e-test-utils/src/TestUtils";
-import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
-import { LabClient } from "e2e-test-utils/src/LabClient";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "e2e-test-utils/src/Constants";
+    SAMPLE_HOME_URL,
+    NodeCacheTestUtils,
+    LabClient,
+    LabApiQueryParams,
+    AppTypes,
+    AzureEnvironments,
+} from "e2e-test-utils";
 
 import { PublicClientApplication } from "@azure/msal-node";
 
@@ -47,7 +48,7 @@ describe("Auth Code B2C Tests (aad account)", () => {
 
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/b2c/aad-account`;
 
-    beforeAll(async() => {
+    beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
@@ -65,8 +66,13 @@ describe("Auth Code B2C Tests (aad account)", () => {
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParms
+        );
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
     });
 
     afterAll(async () => {
@@ -78,7 +84,10 @@ describe("Auth Code B2C Tests (aad account)", () => {
         let server: any;
 
         beforeAll(async () => {
-            publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+            publicClientApplication = new PublicClientApplication({
+                auth: config.authOptions,
+                cache: { cachePlugin },
+            });
 
             server = getTokenAuthCode(config, publicClientApplication, port);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
@@ -94,7 +103,7 @@ describe("Auth Code B2C Tests (aad account)", () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
-            page.on("dialog", async dialog => {
+            page.on("dialog", async (dialog) => {
                 console.log(dialog.message());
                 await dialog.dismiss();
             });
@@ -109,33 +118,67 @@ describe("Auth Code B2C Tests (aad account)", () => {
         it("Performs acquire token", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
             await page.goto(homeRoute);
-            await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            await b2cAadPpeAccountEnterCredentials(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
 
         it("Performs acquire token with prompt = 'login'", async () => {
-            const screenshot = new Screenshot(`${screenshotFolder}/PromptLogin`);
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/PromptLogin`
+            );
             await page.goto(`${homeRoute}/?prompt=login`);
-            await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+            await b2cAadPpeAccountEnterCredentials(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
 
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
 
         it("Performs acquire token with prompt = 'select_account'", async () => {
-            const screenshot = new Screenshot(`${screenshotFolder}/PromptSelectAccount`);
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/PromptSelectAccount`
+            );
             await page.goto(`${homeRoute}/?prompt=select_account`);
-            await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+            await b2cAadPpeAccountEnterCredentials(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
 
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -145,16 +188,28 @@ describe("Auth Code B2C Tests (aad account)", () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptNone`);
             // First log the user in first
             await page.goto(`${homeRoute}/?prompt=login`);
-            await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+            await b2cAadPpeAccountEnterCredentials(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
             await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
 
             // Reset the cache to prepare for the second login
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
 
             // Login without a prompt
-            await page.goto(`${homeRoute}/?prompt=none`, {waitUntil: "networkidle0"});
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            await page.goto(`${homeRoute}/?prompt=none`, {
+                waitUntil: "networkidle0",
+            });
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -164,11 +219,21 @@ describe("Auth Code B2C Tests (aad account)", () => {
             const screenshot = new Screenshot(`${screenshotFolder}/WithState`);
             const STATE_VALUE = "value_on_state";
             await page.goto(`${homeRoute}/?prompt=login&state=${STATE_VALUE}`);
-            await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+            await b2cAadPpeAccountEnterCredentials(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
             const url = page.url();
             expect(url.includes(`state=${STATE_VALUE}`)).toBe(true);
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
