@@ -65,7 +65,7 @@ export interface IController {
 
     disableAccountStorageEvents(): void;
 
-    getAccountByFilter(accountFilter: AccountFilter): AccountInfo | null;
+    getAccount(accountFilter: AccountFilter): AccountInfo | null;
 
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
 

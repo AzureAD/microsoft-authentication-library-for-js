@@ -5206,15 +5206,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).toBe(null);
         });
 
-        describe("getAccountByFilter", () => {
-            it("getAccountByFilter returns null if empty filter is passed in", () => {
-                const account = pca.getAccountByFilter({});
+        describe("getAccount", () => {
+            it("getAccount returns null if empty filter is passed in", () => {
+                const account = pca.getAccount({});
                 expect(account).toBe(null);
             });
 
             describe("loginHint filter", () => {
-                it("getAccountByFilter returns account specified using login_hint", () => {
-                    const account = pca.getAccountByFilter({
+                it("getAccount returns account specified using login_hint", () => {
+                    const account = pca.getAccount({
                         loginHint: "testLoginHint",
                     });
                     expect(account?.idToken).not.toBeUndefined();
@@ -5222,8 +5222,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         testAccountInfo3.homeAccountId
                     );
                 });
-                it("getAccountByFilter returns account specified using username", () => {
-                    const account = pca.getAccountByFilter({
+                it("getAccount returns account specified using username", () => {
+                    const account = pca.getAccount({
                         loginHint: "Unique Username",
                     });
                     expect(account?.idToken).not.toBeUndefined();
@@ -5231,8 +5231,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         testAccountInfo3.homeAccountId
                     );
                 });
-                it("getAccountByFilter returns account specified using upn", () => {
-                    const account = pca.getAccountByFilter({
+                it("getAccount returns account specified using upn", () => {
+                    const account = pca.getAccount({
                         loginHint: "testUpn",
                     });
                     expect(account?.idToken).not.toBeUndefined();
@@ -5242,32 +5242,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
             });
 
-            it("getAccountByFilter returns account specified using homeAccountId", () => {
-                const account = pca.getAccountByFilter({
+            it("getAccount returns account specified using homeAccountId", () => {
+                const account = pca.getAccount({
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 });
                 expect(account?.idToken).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
 
-            it("getAccountByFilter returns account specified using localAccountId", () => {
-                const account = pca.getAccountByFilter({
+            it("getAccount returns account specified using localAccountId", () => {
+                const account = pca.getAccount({
                     localAccountId: TEST_CONFIG.OID,
                 });
                 expect(account?.idToken).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
 
-            it("getAccountByFilter returns account specified using username", () => {
-                const account = pca.getAccountByFilter({
+            it("getAccount returns account specified using username", () => {
+                const account = pca.getAccount({
                     username: "example@microsoft.com",
                 });
                 expect(account?.idToken).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
 
-            it("getAccountByFilter returns account specified using a combination of homeAccountId and localAccountId", () => {
-                const account = pca.getAccountByFilter({
+            it("getAccount returns account specified using a combination of homeAccountId and localAccountId", () => {
+                const account = pca.getAccount({
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     localAccountId: TEST_CONFIG.OID,
                 });

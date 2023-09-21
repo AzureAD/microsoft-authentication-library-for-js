@@ -1213,12 +1213,10 @@ export class StandardController implements IController {
      * @param accountFilter
      * @returns The first account found in the cache matching the provided filter or null if no account could be found.
      */
-    getAccountByFilter(accountFilter: AccountFilter): AccountInfo | null {
-        this.logger.trace("getAccountByFilter called");
+    getAccount(accountFilter: AccountFilter): AccountInfo | null {
+        this.logger.trace("getAccount called");
         if (!accountFilter || Object.keys(accountFilter).length === 0) {
-            this.logger.warning(
-                "getAccountByFilter: No accountFilter provided"
-            );
+            this.logger.warning("getAccount: No accountFilter provided");
             return null;
         }
 
@@ -1227,17 +1225,17 @@ export class StandardController implements IController {
 
         if (account) {
             this.logger.verbose(
-                "getAccountByFilter: Account matching provided filter found, returning"
+                "getAccount: Account matching provided filter found, returning"
             );
             this.logger.verbosePii(
-                `getAccountByFilter: Returning signed-in account matching accountFilter: ${JSON.stringify(
+                `getAccount: Returning signed-in account matching accountFilter: ${JSON.stringify(
                     accountFilter
                 )}`
             );
             return account;
         } else {
             this.logger.verbose(
-                "getAccountByFilter: No matching account found, returning null"
+                "getAccount: No matching account found, returning null"
             );
             return null;
         }

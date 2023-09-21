@@ -194,8 +194,8 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param accountFilter
      * @returns The first account found in the cache matching the provided filter or null if no account could be found.
      */
-    getAccountByFilter(accountFilter: AccountFilter): AccountInfo | null {
-        return this.controller.getAccountByFilter(accountFilter);
+    getAccount(accountFilter: AccountFilter): AccountInfo | null {
+        return this.controller.getAccount(accountFilter);
     }
 
     /**
