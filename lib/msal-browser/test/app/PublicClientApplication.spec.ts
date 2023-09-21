@@ -2386,22 +2386,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
+
+            let ssoSilentFired = false;
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
 
-            let ssoSilentFired = false;
             sinon
                 .stub(EventHandler.prototype, "emitEvent")
                 .callsFake((eventType, interactionType) => {
                     if (
-                        eventType === EventType.LOGIN_START &&
+                        eventType === EventType.SSO_SILENT_START &&
                         interactionType === InteractionType.SsoSilent
                     ) {
                         ssoSilentFired = true;
                     }
                 });
-
             const response = await pca.ssoSilent({ scopes: ["openid"] });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);

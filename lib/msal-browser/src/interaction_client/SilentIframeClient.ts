@@ -112,7 +112,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 ...request,
                 prompt: request.prompt || PromptValue.NONE,
             },
-            InteractionType.SsoSilent
+            InteractionType.Silent
         );
         this.browserStorage.updateCacheEntries(
             silentRequest.state,
@@ -241,7 +241,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             UrlString.getDeserializedHash(hash);
         const state = this.validateAndExtractStateFromHash(
             serverParams,
-            InteractionType.SsoSilent,
+            InteractionType.Silent,
             authCodeRequest.correlationId
         );
 
