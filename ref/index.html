@@ -13,38 +13,33 @@
 <div class="tsd-page-title">
 <h2>Documentation</h2></div>
 <div class="tsd-panel tsd-typography"><a id="md:microsoft-authentication-library-for-javascript-msaljs" class="tsd-anchor"></a><h1><a href="#md:microsoft-authentication-library-for-javascript-msaljs">Microsoft Authentication Library for JavaScript (MSAL.js)</a></h1><p>The Microsoft Authentication Library for JavaScript enables both client-side and server-side JavaScript applications to authenticate users using <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-overview">Azure AD</a> for work and school accounts (AAD), Microsoft personal accounts (MSA), and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through <a href="https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers">Azure AD B2C</a> service. It also enables your app to get tokens to access <a href="https://www.microsoft.com/enterprise">Microsoft Cloud</a> services such as <a href="https://graph.microsoft.io">Microsoft Graph</a>.</p>
-<a id="md:repository" class="tsd-anchor"></a><h2><a href="#md:repository">Repository</a></h2><a id="md:core-and-wrapper-libraries" class="tsd-anchor"></a><h3><a href="#md:core-and-wrapper-libraries">Core and wrapper libraries</a></h3><p>The <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib"><code>lib</code></a> folder contains the source code for our libraries in active development. You will also find all the details about <strong>installing the libraries</strong> in their respective README.md.</p>
+<a id="md:repository" class="tsd-anchor"></a><h2><a href="#md:repository">Repository</a></h2><a id="md:core-wrapper-and-extensions-libraries" class="tsd-anchor"></a><h3><a href="#md:core-wrapper-and-extensions-libraries">Core, wrapper and extensions libraries</a></h3><p>The <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib"><code>lib</code></a> folder contains the source code for our libraries in active development. You will also find all the details about <strong>installing the libraries</strong> in their respective README.md.</p>
 <ul>
-<li><p><a href="lib/msal-node/">Microsoft Authentication Library for Node.js v1.x</a>: A <a href="https://nodejs.org/en/">Node.js</a> library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the following OAuth 2.0 protocols and is <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc">OpenID-compliant</a>:</p>
+<li><p><a href="lib/msal-node/">Microsoft Authentication Library for Node.js</a>: A <a href="https://nodejs.org/en/">Node.js</a> library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the following OAuth 2.0 protocols and is <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc">OpenID-compliant</a>:</p>
 <ul>
 <li><a href="https://oauth.net/2/grant-types/authorization-code/">Authorization Code Grant</a> with <a href="https://oauth.net/2/pkce/">PKCE</a></li>
 <li><a href="https://oauth.net/2/grant-types/device-code/">Device Code Grant</a></li>
 <li><a href="https://oauth.net/2/grant-types/refresh-token/">Refresh Token Grant</a></li>
 <li><a href="https://oauth.net/2/grant-types/client-credentials/">Client Credential Grant</a></li>
+<li><a href="https://docs.microsoft.com/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache">Silent Flow</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow">On-behalf-of Flow</a></li>
 </ul>
 </li>
-<li><p><a href="lib/msal-browser/">Microsoft Authentication Library for JavaScript v2.x</a>: A browser-based, framework-agnostic browser library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow">Authorization Code Flow with PKCE</a>, and is <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc">OpenID-compliant</a>.</p>
+<li><p><a href="lib/msal-browser/">Microsoft Authentication Library for JavaScript</a>: A browser-based, framework-agnostic browser library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow">Authorization Code Flow with PKCE</a>, and is <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc">OpenID-compliant</a>.</p>
 </li>
-<li><p><a href="lib/msal-react/">Microsoft Authentication Library for React v1.x</a>: A wrapper of the msal-browser 2.x library for apps using React.</p>
+<li><p><a href="lib/msal-react/">Microsoft Authentication Library for React</a>: A wrapper of the msal-browser library for apps using React.</p>
 </li>
-<li><p><a href="lib/msal-angular/">Microsoft Authentication Library for Angular v2.x</a>: A wrapper of the msal-browser 2.x library for apps using Angular framework.</p>
+<li><p><a href="lib/msal-angular/">Microsoft Authentication Library for Angular</a>: A wrapper of the msal-browser library for apps using Angular framework.</p>
 </li>
-<li><p><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/lib/msal-angular">Microsoft Authentication Library for Angular</a>: A wrapper of the core 1.x library for apps using Angular framework.</p>
+<li><p><a href="extensions/msal-node-extensions/">Microsoft Authentication Extensions for Node</a>: The Microsoft Authentication Extensions for Node offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence. It gives additional support to the Microsoft Authentication Library for Node (MSAL).</p>
 </li>
 </ul>
-<a id="md:libraries-in-maintenance" class="tsd-anchor"></a><h3><a href="#md:libraries-in-maintenance">Libraries in maintenance</a></h3><ul>
-<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/lib/msal-core">Microsoft Authentication Library for JavaScript v1.x</a>: A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-implicit-grant-flow">Implicit Grant Flow</a>, and is <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc">OpenID-compliant</a>.</li>
-</ul>
-<p>The <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/maintenance"><code>maintenance</code></a> folder in the <code>msal-lts</code> branch contains the source code for our libraries that are in maintenance mode (only receiving security fixes).</p>
+<a id="md:libraries-in-long-term-support-lts" class="tsd-anchor"></a><h3><a href="#md:libraries-in-long-term-support-lts">Libraries in Long-term Support (LTS)</a></h3><p>The following libraries, hosted on the <code>msal-lts</code> branch, are no longer in active development, but they are still receiving critical security bug fix support.</p>
 <ul>
-<li><p><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/maintenance/adal-node">Active Directory Authentication Library for Node.js</a>: A <a href="https://nodejs.org/en/">Node.js</a> library that enables authentication and token acquisition with the Microsoft Identity platform in Node.js applications.</p>
-</li>
-<li><p><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/maintenance/adal-angular">Active Directory Authentication Library for JavaScript</a>: A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 1.0 Implicit Grant Flow.</p>
-</li>
-<li><p><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/maintenance/msal-angularjs">Microsoft Authentication Library for AngularJS</a>: A wrapper of the core 1.x library for apps using the AngularJS framework.</p>
-</li>
-<li><p><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/maintenance/passport-azure-ad">Azure Active Directory Passport.js Plug-In</a>: a collection of <a href="http://passportjs.org/">Passport</a> strategies to help you integrate with Azure Active Directory. It includes OpenID Connect, WS-Federation, and SAML-P authentication and authorization.</p>
-</li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/lib/msal-browser">Microsoft Authentication Library for JavaScript v2.x</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/lib/msal-node">Microsoft Authentication Library for Node.js v1.x</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/lib/msal-react">Microsoft Authentication Library for React v1.x</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/lib/msal-angular">Microsoft Authentication Library for Angular v2.x</a></li>
 </ul>
 <a id="md:package-structure" class="tsd-anchor"></a><h3><a href="#md:package-structure">Package Structure</a></h3><p>We ship a number of different packages which are meant for different platforms. You can see the relationship between packages and different authentication flows they implement below.</p>
 <p><img src="docs/diagrams/png/PackageStructure.png" alt="Package Structure"></p>
@@ -61,7 +56,7 @@
 </ul>
 <a id="md:contribute" class="tsd-anchor"></a><h2><a href="#md:contribute">Contribute</a></h2><p>We enthusiastically welcome contributions and feedback. Please read the <a href="contributing.md">contributing guide</a> before you begin.</p>
 <a id="md:security-reporting" class="tsd-anchor"></a><h2><a href="#md:security-reporting">Security Reporting</a></h2><p>If you find a security issue with our libraries or services <a href="https://aka.ms/report-security-issue">please report it to the Microsoft Security Response Center (MSRC)</a> with as much detail as possible. Your submission may be eligible for a bounty through the <a href="http://aka.ms/bugbounty">Microsoft Bounty</a> program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting <a href="https://www.microsoft.com/msrc/technical-security-notifications">this page</a> and subscribing to Security Advisory Alerts.</p>
-<a id="md:license" class="tsd-anchor"></a><h2><a href="#md:license">License</a></h2><p>Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the &quot;License&quot;).</p>
+<a id="md:license" class="tsd-anchor"></a><h2><a href="#md:license">License</a></h2><p>Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License (the &quot;License&quot;).</p>
 <a id="md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct" class="tsd-anchor"></a><h2><a href="#md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct">We Value and Adhere to the Microsoft Open Source Code of Conduct</a></h2><p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>. For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a> or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
 </div></div>
 <div class="col-sidebar">
@@ -91,8 +86,8 @@
 <li><a href="#md:repository"><span>Repository</span></a></li>
 <li>
 <ul>
-<li><a href="#md:core-and-wrapper-libraries"><span>Core and wrapper libraries</span></a></li>
-<li><a href="#md:libraries-in-maintenance"><span>Libraries in maintenance</span></a></li>
+<li><a href="#md:core-wrapper-and-extensions-libraries"><span>Core, wrapper and extensions libraries</span></a></li>
+<li><a href="#md:libraries-in-long-term-support-lts"><span>Libraries in <wbr/>Long-<wbr/>term <wbr/>Support (LTS)</span></a></li>
 <li><a href="#md:package-structure"><span>Package <wbr/>Structure</span></a></li>
 <li><a href="#md:samples"><span>Samples</span></a></li></ul></li>
 <li><a href="#md:package-versioning"><span>Package versioning</span></a></li>
@@ -105,12 +100,12 @@
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="index.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Documentation</span></a>
 <ul class="tsd-small-nested-navigation">
-<li><a href="modules/_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.0</span></a></li>
-<li><a href="modules/_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.0.0</span></a></li>
-<li><a href="modules/_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.0.0</span></a></li>
-<li><a href="modules/_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.0.0</span></a></li>
-<li><a href="modules/_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.0.0</span></a></li>
-<li><a href="modules/_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.0.0</span></a></li></ul></nav></div></div></div>
+<li><a href="modules/_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.4</span></a></li>
+<li><a href="modules/_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.1.0</span></a></li>
+<li><a href="modules/_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.0.3</span></a></li>
+<li><a href="modules/_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.1.0</span></a></li>
+<li><a href="modules/_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.0.3</span></a></li>
+<li><a href="modules/_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.0.3</span></a></li></ul></nav></div></div></div>
 <div class="tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
 <div class="overlay"></div></body></html>

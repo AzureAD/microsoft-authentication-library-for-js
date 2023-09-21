@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@azure/msal-browser - v3.0.0 | Documentation</title><meta name="description" content="Documentation for Documentation"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@azure/msal-browser - v3.1.0 | Documentation</title><meta name="description" content="Documentation for Documentation"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -14,8 +14,8 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">Documentation</a></li>
 <li><a href="_azure_msal_browser.html">@azure/msal-browser</a></li></ul>
-<h1>Module @azure/msal-browser - v3.0.0</h1></div>
-<section class="tsd-panel tsd-typography"><a id="md:microsoft-authentication-library-for-javascript-msaljs-20-for-browser-based-single-page-applications" class="tsd-anchor"></a><h1><a href="#md:microsoft-authentication-library-for-javascript-msaljs-20-for-browser-based-single-page-applications">Microsoft Authentication Library for JavaScript (MSAL.js) 2.0 for Browser-Based Single-Page Applications</a></h1><p><a href="https://www.npmjs.com/package/@azure/msal-browser/"><img src="https://img.shields.io/npm/v/@azure/msal-browser.svg?style=flat" alt="npm version"></a>
+<h1>Module @azure/msal-browser - v3.1.0</h1></div>
+<section class="tsd-panel tsd-typography"><a id="md:microsoft-authentication-library-for-javascript-msaljs-for-browser-based-single-page-applications" class="tsd-anchor"></a><h1><a href="#md:microsoft-authentication-library-for-javascript-msaljs-for-browser-based-single-page-applications">Microsoft Authentication Library for JavaScript (MSAL.js) for Browser-Based Single-Page Applications</a></h1><p><a href="https://www.npmjs.com/package/@azure/msal-browser/"><img src="https://img.shields.io/npm/v/@azure/msal-browser.svg?style=flat" alt="npm version"></a>
 <a href="https://nodei.co/npm/@azure/msal-browser/"><img src="https://img.shields.io/npm/dm/@azure/msal-browser.svg" alt="npm version"></a>
 <a href="https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js"><img src="https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-browser" alt="codecov"></a></p>
 <table>
@@ -61,11 +61,10 @@
 </ul>
 <a id="md:installation" class="tsd-anchor"></a><h2><a href="#md:installation">Installation</a></h2><a id="md:via-npm" class="tsd-anchor"></a><h3><a href="#md:via-npm">Via NPM</a></h3><pre><code class="language-javascript"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">install</span><span class="hl-1"> @</span><span class="hl-0">azure</span><span class="hl-1">/</span><span class="hl-0">msal</span><span class="hl-1">-</span><span class="hl-0">browser</span>
 </code><button>Copy</button></pre>
-<a id="md:via-cdn" class="tsd-anchor"></a><h3><a href="#md:via-cdn">Via CDN</a></h3><!-- CDN_LATEST -->
-<pre><code class="language-html"><span class="hl-2">&lt;</span><span class="hl-3">script</span><span class="hl-4"> </span><span class="hl-5">type</span><span class="hl-4">=</span><span class="hl-6">&quot;text/javascript&quot;</span><span class="hl-4"> </span><span class="hl-5">src</span><span class="hl-4">=</span><span class="hl-6">&quot;https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js&quot;</span><span class="hl-2">&gt;&lt;/</span><span class="hl-3">script</span><span class="hl-2">&gt;</span>
-</code><button>Copy</button></pre>
-<p>See <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/cdn-usage.md">here</a> for more info on how to use this package from the Microsoft CDN.</p>
-<a id="md:usage" class="tsd-anchor"></a><h2><a href="#md:usage">Usage</a></h2><a id="md:migrating-from-previous-msal-versions" class="tsd-anchor"></a><h3><a href="#md:migrating-from-previous-msal-versions">Migrating from Previous MSAL Versions</a></h3><p>If you have MSAL v1.x currently running in your application, you can follow the instructions <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v1-migration.md">here</a> to migrate your application to using the <code>@azure/msal-browser</code> package.</p>
+<a id="md:usage" class="tsd-anchor"></a><h2><a href="#md:usage">Usage</a></h2><a id="md:migrating-from-previous-msal-versions" class="tsd-anchor"></a><h3><a href="#md:migrating-from-previous-msal-versions">Migrating from Previous MSAL Versions</a></h3><ul>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v1-migration.md">Migrating from MSAL v1.x to MSAL v2.x</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v2-migration.md">Migrating from MSAL v2.x to MSAL v3.x</a></li>
+</ul>
 <a id="md:msal-basics" class="tsd-anchor"></a><h3><a href="#md:msal-basics">MSAL Basics</a></h3><ol>
 <li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md">Initialization</a></li>
 <li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md">Logging in a User</a></li>
@@ -82,69 +81,6 @@
 <li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/instance-aware.md">Instance Aware Flow</a></li>
 </ul>
 <a id="md:samples" class="tsd-anchor"></a><h2><a href="#md:samples">Samples</a></h2><p>The <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples"><code>msal-browser-samples</code> folder</a> contains sample applications for our libraries.</p>
-<ul>
-<li>You can run any VanillaJSTestApp2.0 sample by changing the <code>authConfig.js</code> file in the respective folder to match your app registration and running the <code>npm</code> command <code>npm start -- -s &lt;sample-name&gt; -p &lt;port&gt;</code> in the VanillaJSTestApp2.0 folder.</li>
-<li>You can run the TypescriptTestApp2.0 sample by changing the <code>AuthModule.ts</code> file to match your app registration and running the <code>npm</code> command <code>npm start</code> in the TypescriptTestApp2.0 folder.</li>
-</ul>
-<p>Additionally, the <code>msal-angular-v2-samples</code> folder contains an Angular 10 sample app that uses msal-browser.</p>
-<ul>
-<li>You can run the angular10-browser sample by changing the <code>app.module.ts</code> file to match your app registration and running the <code>npm</code> command <code>npm start</code> in the angular-10-browser-sample folder.</li>
-</ul>
-<p>Here is a complete list of samples for the MSAL.js 2.x library:</p>
-<table>
-<thead>
-<tr>
-<th>Sample</th>
-<th>Description</th>
-<th>How to Run</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/TypescriptTestApp2.0">TypeScript Sample</a></td>
-<td>A TypeScript sample showing usage of MSAL 2.0 with the Microsoft Graph API.</td>
-<td><code>npm start</code></td>
-</tr>
-<tr>
-<td><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/default">Basic Auth Sample</a></td>
-<td>A vanilla JavaScript sample showing basic usage of the MSAL 2.0 library (<code>@azure/msal-browser</code> package) with the Microsoft Graph API.</td>
-<td><code>npm start -- -s default</code></td>
-</tr>
-<tr>
-<td><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/multipleResources">Multiple Resources Sample</a></td>
-<td>A vanilla JS sample showing usage of MSAL 2.0 with authentication on page load with a redirect.</td>
-<td><code>npm start -- -s multipleResources</code></td>
-</tr>
-<tr>
-<td><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/onPageLoad">On Page Load Sample</a></td>
-<td>A vanilla JS sample showing usage of MSAL 2.0 with authentication on page load with a redirect.</td>
-<td><code>npm start -- -s onPageLoad</code></td>
-</tr>
-<tr>
-<td><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/ssoSilent">ssoSilent() Sample</a></td>
-<td>A vanilla JS sample showing usage of the ssoSilent API, allowing you to sign in a user silently if a context exists on the authentication server.</td>
-<td><code>npm start -- -s ssoSilent</code></td>
-</tr>
-<tr>
-<td><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/ie11-sample">Internet Explorer 11 Sample</a></td>
-<td>A vanilla JS sample showing usage of <code>@azure/msal-browser</code> in an application designed to run in Internet Explorer 11.</td>
-<td><code>npm start -- -s ie11-sample</code></td>
-</tr>
-<tr>
-<td><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-browser-sample">Angular 10 Sample</a></td>
-<td>An Angular 10 sample showing usage of MSAL 2.0 with the Microsoft Graph API.</td>
-<td><code>npm start</code></td>
-</tr>
-<tr>
-<td><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/HybridSample">Hybrid Spa Sample (w/ MSAL Node)</a></td>
-<td>Sample demonstrating how to use <code>acquireTokenByCode</code> to perform SSO for applications that leverage server-side and client-side authentication using MSAL Browser and MSAL Node.</td>
-<td><code>npm start</code></td>
-</tr>
-<tr>
-<td><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/vue3-sample-app">Vue 3 Sample</a></td>
-<td>A Vue 3 sample showing usage of MSAL 2.0 with the Microsoft Graph API.</td>
-<td><code>npm start</code></td>
-</tr>
-</tbody></table>
 <p>More instructions to run the samples can be found in the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/Readme.md"><code>README.md</code> file</a> of the VanillaJSTestApp2.0 folder.</p>
 <p>More advanced samples backed with a tutorial can be found in the <a href="https://github.com/Azure-Samples">Azure Samples</a> space on GitHub:</p>
 <ul>
@@ -160,31 +96,35 @@
 </ul>
 <a id="md:build-and-test" class="tsd-anchor"></a><h2><a href="#md:build-and-test">Build and Test</a></h2><p>See the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md"><code>contributing.md</code></a> file for more information.</p>
 <a id="md:building-the-package" class="tsd-anchor"></a><h3><a href="#md:building-the-package">Building the package</a></h3><p>To build the <code>@azure/msal-browser</code> library, you can do the following:</p>
-<pre><code class="language-bash"><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">Change</span><span class="hl-1"> </span><span class="hl-8">to</span><span class="hl-1"> </span><span class="hl-8">the</span><span class="hl-1"> </span><span class="hl-8">msal-browser</span><span class="hl-1"> </span><span class="hl-8">package</span><span class="hl-1"> </span><span class="hl-8">directory</span><br/><span class="hl-7">cd</span><span class="hl-1"> </span><span class="hl-8">lib/msal-browser/</span><br/><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">To</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">build</span><span class="hl-1"> </span><span class="hl-8">only</span><span class="hl-1"> </span><span class="hl-8">for</span><span class="hl-1"> </span><span class="hl-8">browser</span><span class="hl-1"> </span><span class="hl-8">package</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">build</span>
+<pre><code class="language-bash"><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">Change</span><span class="hl-1"> </span><span class="hl-3">to</span><span class="hl-1"> </span><span class="hl-3">the</span><span class="hl-1"> </span><span class="hl-3">msal-browser</span><span class="hl-1"> </span><span class="hl-3">package</span><span class="hl-1"> </span><span class="hl-3">directory</span><br/><span class="hl-2">cd</span><span class="hl-1"> </span><span class="hl-3">lib/msal-browser/</span><br/><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">To</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build</span><span class="hl-1"> </span><span class="hl-3">only</span><span class="hl-1"> </span><span class="hl-3">for</span><span class="hl-1"> </span><span class="hl-3">browser</span><span class="hl-1"> </span><span class="hl-3">package</span><br/><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build</span>
 </code><button>Copy</button></pre>
 <p>To build both the <code>@azure/msal-browser</code> library and <code>@azure/msal-common</code> libraries, you can do the following:</p>
-<pre><code class="language-bash"><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">Change</span><span class="hl-1"> </span><span class="hl-8">to</span><span class="hl-1"> </span><span class="hl-8">the</span><span class="hl-1"> </span><span class="hl-8">msal-browser</span><span class="hl-1"> </span><span class="hl-8">package</span><span class="hl-1"> </span><span class="hl-8">directory</span><br/><span class="hl-7">cd</span><span class="hl-1"> </span><span class="hl-8">lib/msal-browser/</span><br/><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">To</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">build</span><span class="hl-1"> </span><span class="hl-8">only</span><span class="hl-1"> </span><span class="hl-8">for</span><span class="hl-1"> </span><span class="hl-8">browser</span><span class="hl-1"> </span><span class="hl-8">package</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">build:all</span>
+<pre><code class="language-bash"><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">Change</span><span class="hl-1"> </span><span class="hl-3">to</span><span class="hl-1"> </span><span class="hl-3">the</span><span class="hl-1"> </span><span class="hl-3">msal-browser</span><span class="hl-1"> </span><span class="hl-3">package</span><span class="hl-1"> </span><span class="hl-3">directory</span><br/><span class="hl-2">cd</span><span class="hl-1"> </span><span class="hl-3">lib/msal-browser/</span><br/><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">To</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build</span><span class="hl-1"> </span><span class="hl-3">only</span><span class="hl-1"> </span><span class="hl-3">for</span><span class="hl-1"> </span><span class="hl-3">browser</span><span class="hl-1"> </span><span class="hl-3">package</span><br/><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build:all</span>
 </code><button>Copy</button></pre>
-<a id="md:running-tests" class="tsd-anchor"></a><h3><a href="#md:running-tests">Running Tests</a></h3><p><code>@azure/msal-browser</code> uses <a href="https://mochajs.org/">mocha</a> and <a href="https://www.chaijs.com/">chai</a> to run unit tests, as well as Istanbul&#39;s <a href="https://github.com/istanbuljs/nyc">nyc</a> tool for code coverage.</p>
-<pre><code class="language-bash"><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">To</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">tests</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">test</span><br/><span class="hl-7">//</span><span class="hl-1"> </span><span class="hl-8">To</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">tests</span><span class="hl-1"> </span><span class="hl-8">with</span><span class="hl-1"> </span><span class="hl-8">code</span><span class="hl-1"> </span><span class="hl-8">coverage</span><br/><span class="hl-7">npm</span><span class="hl-1"> </span><span class="hl-8">run</span><span class="hl-1"> </span><span class="hl-8">test:coverage:only</span>
+<a id="md:running-tests" class="tsd-anchor"></a><h3><a href="#md:running-tests">Running Tests</a></h3><p><code>@azure/msal-browser</code> uses <a href="https://jestjs.io">jest</a> to run unit tests.</p>
+<pre><code class="language-bash"><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">To</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">tests</span><br/><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-3">test</span><br/><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">To</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">tests</span><span class="hl-1"> </span><span class="hl-3">with</span><span class="hl-1"> </span><span class="hl-3">code</span><span class="hl-1"> </span><span class="hl-3">coverage</span><br/><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:coverage</span>
 </code><button>Copy</button></pre>
 <a id="md:framework-wrappers" class="tsd-anchor"></a><h2><a href="#md:framework-wrappers">Framework Wrappers</a></h2><p>If you are using a framework such as Angular or React you may be interested in using one of our wrapper libraries:</p>
 <ul>
 <li>Angular: <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular">@azure/msal-angular v2</a></li>
 <li>React: <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react">@azure/msal-react</a></li>
 </ul>
-<a id="md:implicit-flow-vs-authorization-code-flow-with-pkce" class="tsd-anchor"></a><h2><a href="#md:implicit-flow-vs-authorization-code-flow-with-pkce">Implicit Flow vs Authorization Code Flow with PKCE</a></h2><p>MSAL.js 1.x implemented the <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-implicit-grant-flow">Implicit Grant Flow</a>, as defined by the OAuth 2.0 protocol and <a href="https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc">OpenID</a>.</p>
-<p>Our goal is that the library abstracts enough of the protocol away so that you can get plug and play authentication, but it is important to know and understand the implicit flow from a security perspective. The MSAL 1.x client for single-page applications runs in the context of a web browser which cannot manage client secrets securely. It uses the implicit flow, which optimized for single-page applications and has one less hop between client and server so tokens are returned directly to the browser. These aspects make it naturally less secure. These security concerns are mitigated per standard practices such as: use of short lived tokens (and so no refresh tokens are returned), the library requiring a registered redirect URI for the app, and library matching the request and response with a unique nonce and state parameter. You can read more about the <a href="https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-04#section-9.8.6">disadvantages of the implicit flow here</a>.</p>
-<p>The MSAL library will now support the Authorization Code Flow with PKCE for Browser-Based Applications without a backend web server.
-We plan to continue support for the implicit flow in the <code>msal-core</code> library.</p>
-<p>You can learn further details about <code>@azure/msal-browser</code> functionality documented in our <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs">docs folder</a> and find complete <a href="#samples">code samples</a>.</p>
 <a id="md:security-reporting" class="tsd-anchor"></a><h2><a href="#md:security-reporting">Security Reporting</a></h2><p>If you find a security issue with our libraries or services please report it to <a href="mailto:secure@microsoft.com">secure@microsoft.com</a> with as much detail as possible. Your submission may be eligible for a bounty through the <a href="http://aka.ms/bugbounty">Microsoft Bounty</a> program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting <a href="https://technet.microsoft.com/security/dd252948">this page</a> and subscribing to Security Advisory Alerts.</p>
-<a id="md:license" class="tsd-anchor"></a><h2><a href="#md:license">License</a></h2><p>Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License.</p>
+<a id="md:license" class="tsd-anchor"></a><h2><a href="#md:license">License</a></h2><p>Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License.</p>
 <a id="md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct" class="tsd-anchor"></a><h2><a href="#md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct">We Value and Adhere to the Microsoft Open Source Code of Conduct</a></h2><p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>. For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a> or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
 </section>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <h3 class="tsd-index-heading uppercase">Index</h3>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Namespaces</h3>
+<div class="tsd-index-list"><a href="_azure_msal_browser.AuthErrorCodes.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Auth<wbr/>Error<wbr/>Codes</span></a>
+<a href="_azure_msal_browser.BrowserAuthErrorCodes.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Browser<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a>
+<a href="_azure_msal_browser.BrowserConfigurationAuthErrorCodes.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Browser<wbr/>Configuration<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a>
+<a href="_azure_msal_browser.ClientAuthErrorCodes.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Client<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a>
+<a href="_azure_msal_browser.ClientConfigurationErrorCodes.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Client<wbr/>Configuration<wbr/>Error<wbr/>Codes</span></a>
+<a href="_azure_msal_browser.InteractionRequiredAuthErrorCodes.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a>
+</div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Enumerations</h3>
 <div class="tsd-index-list"><a href="../enums/_azure_msal_browser.InteractionType.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-8"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-enum)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.45 16V7.24H14.49V8.224H10.518V10.936H14.07V11.908H10.518V15.016H14.49V16H9.45Z" fill="var(--color-text)"></path></g></svg><span>Interaction<wbr/>Type</span></a>
@@ -199,12 +139,14 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <a href="../classes/_azure_msal_browser.BrowserConfigurationAuthError.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Configuration<wbr/>Auth<wbr/>Error</span></a>
 <a href="../classes/_azure_msal_browser.BrowserPerformanceClient.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Performance<wbr/>Client</span></a>
 <a href="../classes/_azure_msal_browser.BrowserPerformanceMeasurement.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Performance<wbr/>Measurement</span></a>
+<a href="../classes/_azure_msal_browser.BrowserStorage.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Storage</span></a>
 <a href="../classes/_azure_msal_browser.BrowserUtils.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Utils</span></a>
 <a href="../classes/_azure_msal_browser.ClientAuthError.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Client<wbr/>Auth<wbr/>Error</span></a>
 <a href="../classes/_azure_msal_browser.ClientConfigurationError.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Client<wbr/>Configuration<wbr/>Error</span></a>
 <a href="../classes/_azure_msal_browser.EventMessageUtils.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Event<wbr/>Message<wbr/>Utils</span></a>
 <a href="../classes/_azure_msal_browser.InteractionRequiredAuthError.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error</span></a>
 <a href="../classes/_azure_msal_browser.Logger.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Logger</span></a>
+<a href="../classes/_azure_msal_browser.MemoryStorage.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Memory<wbr/>Storage</span></a>
 <a href="../classes/_azure_msal_browser.NavigationClient.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Navigation<wbr/>Client</span></a>
 <a href="../classes/_azure_msal_browser.PublicClientApplication.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Public<wbr/>Client<wbr/>Application</span></a>
 <a href="../classes/_azure_msal_browser.ServerError.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Server<wbr/>Error</span></a>
@@ -236,6 +178,7 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <a href="../types/_azure_msal_browser.BrowserTelemetryOptions.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Browser<wbr/>Telemetry<wbr/>Options</span></a>
 <a href="../types/_azure_msal_browser.CacheLookupPolicy.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Cache<wbr/>Lookup<wbr/>Policy</span></a>
 <a href="../types/_azure_msal_browser.CacheOptions.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Cache<wbr/>Options</span></a>
+<a href="../types/_azure_msal_browser.ClearCacheRequest.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Clear<wbr/>Cache<wbr/>Request</span></a>
 <a href="../types/_azure_msal_browser.Configuration.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Configuration</span></a>
 <a href="../types/_azure_msal_browser.EndSessionPopupRequest.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>End<wbr/>Session<wbr/>Popup<wbr/>Request</span></a>
 <a href="../types/_azure_msal_browser.EndSessionRequest.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>End<wbr/>Session<wbr/>Request</span></a>
@@ -246,6 +189,7 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <a href="../types/_azure_msal_browser.EventType.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Event<wbr/>Type</span></a>
 <a href="../types/_azure_msal_browser.ExternalTokenResponse.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>External<wbr/>Token<wbr/>Response</span></a>
 <a href="../types/_azure_msal_browser.IdTokenClaims.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Id<wbr/>Token<wbr/>Claims</span></a>
+<a href="../types/_azure_msal_browser.InProgressPerformanceEvent.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>In<wbr/>Progress<wbr/>Performance<wbr/>Event</span></a>
 <a href="../types/_azure_msal_browser.InteractionStatus.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Interaction<wbr/>Status</span></a>
 <a href="../types/_azure_msal_browser.LoadTokenOptions.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Load<wbr/>Token<wbr/>Options</span></a>
 <a href="../types/_azure_msal_browser.NavigationOptions.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Navigation<wbr/>Options</span></a>
@@ -269,18 +213,18 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Variables</h3>
 <div class="tsd-index-list"><a href="../variables/_azure_msal_browser.ApiId-1.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-32"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-variable)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.106 16L8.85 7.24H9.966L11.454 13.192C11.558 13.608 11.646 13.996 11.718 14.356C11.79 14.708 11.842 14.976 11.874 15.16C11.906 14.976 11.954 14.708 12.018 14.356C12.09 13.996 12.178 13.608 12.282 13.192L13.758 7.24H14.85L12.582 16H11.106Z" fill="var(--color-text)"></path></g></svg><span>Api<wbr/>Id</span></a>
-<a href="../variables/_azure_msal_browser.AuthErrorMessage.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Auth<wbr/>Error<wbr/>Message</span></a>
+<a href="../variables/_azure_msal_browser.AuthErrorMessage.html" class="tsd-index-link deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Auth<wbr/>Error<wbr/>Message</span></a>
 <a href="../variables/_azure_msal_browser.AuthenticationScheme-1.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Authentication<wbr/>Scheme</span></a>
 <a href="../variables/_azure_msal_browser.AzureCloudInstance-1.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Azure<wbr/>Cloud<wbr/>Instance</span></a>
-<a href="../variables/_azure_msal_browser.BrowserAuthErrorMessage.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Browser<wbr/>Auth<wbr/>Error<wbr/>Message</span></a>
+<a href="../variables/_azure_msal_browser.BrowserAuthErrorMessage.html" class="tsd-index-link deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Browser<wbr/>Auth<wbr/>Error<wbr/>Message</span></a>
 <a href="../variables/_azure_msal_browser.BrowserCacheLocation-1.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Browser<wbr/>Cache<wbr/>Location</span></a>
-<a href="../variables/_azure_msal_browser.BrowserConfigurationAuthErrorMessage.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Browser<wbr/>Configuration<wbr/>Auth<wbr/>Error<wbr/>Message</span></a>
+<a href="../variables/_azure_msal_browser.BrowserConfigurationAuthErrorMessage.html" class="tsd-index-link deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Browser<wbr/>Configuration<wbr/>Auth<wbr/>Error<wbr/>Message</span></a>
 <a href="../variables/_azure_msal_browser.CacheLookupPolicy-1.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Cache<wbr/>Lookup<wbr/>Policy</span></a>
-<a href="../variables/_azure_msal_browser.ClientAuthErrorMessage.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Client<wbr/>Auth<wbr/>Error<wbr/>Message</span></a>
-<a href="../variables/_azure_msal_browser.ClientConfigurationErrorMessage.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Client<wbr/>Configuration<wbr/>Error<wbr/>Message</span></a>
+<a href="../variables/_azure_msal_browser.ClientAuthErrorMessage.html" class="tsd-index-link deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Client<wbr/>Auth<wbr/>Error<wbr/>Message</span></a>
+<a href="../variables/_azure_msal_browser.ClientConfigurationErrorMessage.html" class="tsd-index-link deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Client<wbr/>Configuration<wbr/>Error<wbr/>Message</span></a>
 <a href="../variables/_azure_msal_browser.DEFAULT_IFRAME_TIMEOUT_MS.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>DEFAULT_<wbr/>IFRAME_<wbr/>TIMEOUT_<wbr/>MS</span></a>
 <a href="../variables/_azure_msal_browser.EventType-1.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Event<wbr/>Type</span></a>
-<a href="../variables/_azure_msal_browser.InteractionRequiredAuthErrorMessage.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error<wbr/>Message</span></a>
+<a href="../variables/_azure_msal_browser.InteractionRequiredAuthErrorMessage.html" class="tsd-index-link deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error<wbr/>Message</span></a>
 <a href="../variables/_azure_msal_browser.InteractionStatus-1.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Interaction<wbr/>Status</span></a>
 <a href="../variables/_azure_msal_browser.OIDC_DEFAULT_SCOPES.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>OIDC_<wbr/>DEFAULT_<wbr/>SCOPES</span></a>
 <a href="../variables/_azure_msal_browser.PromptValue.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Prompt<wbr/>Value</span></a>
@@ -311,7 +255,7 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <ul>
 <li>
 <ul>
-<li><a href="#md:microsoft-authentication-library-for-javascript-msaljs-20-for-browser-based-single-page-applications"><span>Microsoft <wbr/>Authentication <wbr/>Library for <wbr/>Java<wbr/>Script (MSAL.js) 2.0 for <wbr/>Browser-<wbr/>Based <wbr/>Single-<wbr/>Page <wbr/>Applications</span></a></li>
+<li><a href="#md:microsoft-authentication-library-for-javascript-msaljs-for-browser-based-single-page-applications"><span>Microsoft <wbr/>Authentication <wbr/>Library for <wbr/>Java<wbr/>Script (MSAL.js) for <wbr/>Browser-<wbr/>Based <wbr/>Single-<wbr/>Page <wbr/>Applications</span></a></li>
 <li>
 <ul>
 <li><a href="#md:about"><span>About</span></a></li>
@@ -321,8 +265,7 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <li><a href="#md:installation"><span>Installation</span></a></li>
 <li>
 <ul>
-<li><a href="#md:via-npm"><span>Via NPM</span></a></li>
-<li><a href="#md:via-cdn"><span>Via CDN</span></a></li></ul></li>
+<li><a href="#md:via-npm"><span>Via NPM</span></a></li></ul></li>
 <li><a href="#md:usage"><span>Usage</span></a></li>
 <li>
 <ul>
@@ -336,18 +279,23 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <li><a href="#md:building-the-package"><span>Building the package</span></a></li>
 <li><a href="#md:running-tests"><span>Running <wbr/>Tests</span></a></li></ul></li>
 <li><a href="#md:framework-wrappers"><span>Framework <wbr/>Wrappers</span></a></li>
-<li><a href="#md:implicit-flow-vs-authorization-code-flow-with-pkce"><span>Implicit <wbr/>Flow vs <wbr/>Authorization <wbr/>Code <wbr/>Flow with PKCE</span></a></li>
 <li><a href="#md:security-reporting"><span>Security <wbr/>Reporting</span></a></li>
 <li><a href="#md:license"><span>License</span></a></li>
 <li><a href="#md:we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct"><span>We <wbr/>Value and <wbr/>Adhere to the <wbr/>Microsoft <wbr/>Open <wbr/>Source <wbr/>Code of <wbr/>Conduct</span></a></li></ul></li></ul></li></ul></div></details></div>
 <div class="site-menu">
-<nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Documentation</span></a>
+<nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Documentation</span></a>
 <ul class="tsd-small-nested-navigation">
-<li><a href="_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.0</span></a></li>
+<li><a href="_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.4</span></a></li>
 <li>
-<details class="tsd-index-accordion" open data-key="@azure/msal-browser"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="_azure_msal_browser.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.0.0</span></a></summary>
+<details class="tsd-index-accordion" open data-key="@azure/msal-browser"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="_azure_msal_browser.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.1.0</span></a></summary>
 <div class="tsd-accordion-details">
 <ul class="tsd-nested-navigation">
+<li><a href="_azure_msal_browser.AuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Auth<wbr/>Error<wbr/>Codes</span></a></li>
+<li><a href="_azure_msal_browser.BrowserAuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Browser<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a></li>
+<li><a href="_azure_msal_browser.BrowserConfigurationAuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Browser<wbr/>Configuration<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a></li>
+<li><a href="_azure_msal_browser.ClientAuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Client<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a></li>
+<li><a href="_azure_msal_browser.ClientConfigurationErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Client<wbr/>Configuration<wbr/>Error<wbr/>Codes</span></a></li>
+<li><a href="_azure_msal_browser.InteractionRequiredAuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a></li>
 <li><a href="../enums/_azure_msal_browser.InteractionType.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-8"></use></svg><span>Interaction<wbr/>Type</span></a></li>
 <li><a href="../enums/_azure_msal_browser.LogLevel.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-8"></use></svg><span>Log<wbr/>Level</span></a></li>
 <li><a href="../enums/_azure_msal_browser.PerformanceEvents.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-8"></use></svg><span>Performance<wbr/>Events</span></a></li>
@@ -357,12 +305,14 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <li><a href="../classes/_azure_msal_browser.BrowserConfigurationAuthError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Configuration<wbr/>Auth<wbr/>Error</span></a></li>
 <li><a href="../classes/_azure_msal_browser.BrowserPerformanceClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Performance<wbr/>Client</span></a></li>
 <li><a href="../classes/_azure_msal_browser.BrowserPerformanceMeasurement.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Performance<wbr/>Measurement</span></a></li>
+<li><a href="../classes/_azure_msal_browser.BrowserStorage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Storage</span></a></li>
 <li><a href="../classes/_azure_msal_browser.BrowserUtils.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Utils</span></a></li>
 <li><a href="../classes/_azure_msal_browser.ClientAuthError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Client<wbr/>Auth<wbr/>Error</span></a></li>
 <li><a href="../classes/_azure_msal_browser.ClientConfigurationError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Client<wbr/>Configuration<wbr/>Error</span></a></li>
 <li><a href="../classes/_azure_msal_browser.EventMessageUtils.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Event<wbr/>Message<wbr/>Utils</span></a></li>
 <li><a href="../classes/_azure_msal_browser.InteractionRequiredAuthError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error</span></a></li>
 <li><a href="../classes/_azure_msal_browser.Logger.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Logger</span></a></li>
+<li><a href="../classes/_azure_msal_browser.MemoryStorage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Memory<wbr/>Storage</span></a></li>
 <li><a href="../classes/_azure_msal_browser.NavigationClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Navigation<wbr/>Client</span></a></li>
 <li><a href="../classes/_azure_msal_browser.PublicClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Public<wbr/>Client<wbr/>Application</span></a></li>
 <li><a href="../classes/_azure_msal_browser.ServerError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Server<wbr/>Error</span></a></li>
@@ -388,6 +338,7 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <li><a href="../types/_azure_msal_browser.BrowserTelemetryOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Browser<wbr/>Telemetry<wbr/>Options</span></a></li>
 <li><a href="../types/_azure_msal_browser.CacheLookupPolicy.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Cache<wbr/>Lookup<wbr/>Policy</span></a></li>
 <li><a href="../types/_azure_msal_browser.CacheOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Cache<wbr/>Options</span></a></li>
+<li><a href="../types/_azure_msal_browser.ClearCacheRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Clear<wbr/>Cache<wbr/>Request</span></a></li>
 <li><a href="../types/_azure_msal_browser.Configuration.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Configuration</span></a></li>
 <li><a href="../types/_azure_msal_browser.EndSessionPopupRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>End<wbr/>Session<wbr/>Popup<wbr/>Request</span></a></li>
 <li><a href="../types/_azure_msal_browser.EndSessionRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>End<wbr/>Session<wbr/>Request</span></a></li>
@@ -398,6 +349,7 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <li><a href="../types/_azure_msal_browser.EventType.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Event<wbr/>Type</span></a></li>
 <li><a href="../types/_azure_msal_browser.ExternalTokenResponse.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>External<wbr/>Token<wbr/>Response</span></a></li>
 <li><a href="../types/_azure_msal_browser.IdTokenClaims.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Id<wbr/>Token<wbr/>Claims</span></a></li>
+<li><a href="../types/_azure_msal_browser.InProgressPerformanceEvent.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>In<wbr/>Progress<wbr/>Performance<wbr/>Event</span></a></li>
 <li><a href="../types/_azure_msal_browser.InteractionStatus.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Interaction<wbr/>Status</span></a></li>
 <li><a href="../types/_azure_msal_browser.LoadTokenOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Load<wbr/>Token<wbr/>Options</span></a></li>
 <li><a href="../types/_azure_msal_browser.NavigationOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Navigation<wbr/>Options</span></a></li>
@@ -418,18 +370,18 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <li><a href="../types/_azure_msal_browser.SsoSilentRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Sso<wbr/>Silent<wbr/>Request</span></a></li>
 <li><a href="../types/_azure_msal_browser.WrapperSKU.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>WrapperSKU</span></a></li>
 <li><a href="../variables/_azure_msal_browser.ApiId-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Api<wbr/>Id</span></a></li>
-<li><a href="../variables/_azure_msal_browser.AuthErrorMessage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Auth<wbr/>Error<wbr/>Message</span></a></li>
+<li><a href="../variables/_azure_msal_browser.AuthErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Auth<wbr/>Error<wbr/>Message</span></a></li>
 <li><a href="../variables/_azure_msal_browser.AuthenticationScheme-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Authentication<wbr/>Scheme</span></a></li>
 <li><a href="../variables/_azure_msal_browser.AzureCloudInstance-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Azure<wbr/>Cloud<wbr/>Instance</span></a></li>
-<li><a href="../variables/_azure_msal_browser.BrowserAuthErrorMessage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Browser<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
+<li><a href="../variables/_azure_msal_browser.BrowserAuthErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Browser<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
 <li><a href="../variables/_azure_msal_browser.BrowserCacheLocation-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Browser<wbr/>Cache<wbr/>Location</span></a></li>
-<li><a href="../variables/_azure_msal_browser.BrowserConfigurationAuthErrorMessage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Browser<wbr/>Configuration<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
+<li><a href="../variables/_azure_msal_browser.BrowserConfigurationAuthErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Browser<wbr/>Configuration<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
 <li><a href="../variables/_azure_msal_browser.CacheLookupPolicy-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Cache<wbr/>Lookup<wbr/>Policy</span></a></li>
-<li><a href="../variables/_azure_msal_browser.ClientAuthErrorMessage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Client<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
-<li><a href="../variables/_azure_msal_browser.ClientConfigurationErrorMessage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Client<wbr/>Configuration<wbr/>Error<wbr/>Message</span></a></li>
+<li><a href="../variables/_azure_msal_browser.ClientAuthErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Client<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
+<li><a href="../variables/_azure_msal_browser.ClientConfigurationErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Client<wbr/>Configuration<wbr/>Error<wbr/>Message</span></a></li>
 <li><a href="../variables/_azure_msal_browser.DEFAULT_IFRAME_TIMEOUT_MS.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>DEFAULT_<wbr/>IFRAME_<wbr/>TIMEOUT_<wbr/>MS</span></a></li>
 <li><a href="../variables/_azure_msal_browser.EventType-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Event<wbr/>Type</span></a></li>
-<li><a href="../variables/_azure_msal_browser.InteractionRequiredAuthErrorMessage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
+<li><a href="../variables/_azure_msal_browser.InteractionRequiredAuthErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
 <li><a href="../variables/_azure_msal_browser.InteractionStatus-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Interaction<wbr/>Status</span></a></li>
 <li><a href="../variables/_azure_msal_browser.OIDC_DEFAULT_SCOPES.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>OIDC_<wbr/>DEFAULT_<wbr/>SCOPES</span></a></li>
 <li><a href="../variables/_azure_msal_browser.PromptValue.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Prompt<wbr/>Value</span></a></li>
@@ -438,10 +390,10 @@ We plan to continue support for the implicit flow in the <code>msal-core</code> 
 <li><a href="../variables/_azure_msal_browser.WrapperSKU-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>WrapperSKU</span></a></li>
 <li><a href="../variables/_azure_msal_browser.stubbedPublicClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>stubbed<wbr/>Public<wbr/>Client<wbr/>Application</span></a></li>
 <li><a href="../variables/_azure_msal_browser.version.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>version</span></a></li></ul></div></details></li>
-<li><a href="_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.0.0</span></a></li>
-<li><a href="_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.0.0</span></a></li>
-<li><a href="_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.0.0</span></a></li>
-<li><a href="_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.0.0</span></a></li></ul></nav></div></div></div>
+<li><a href="_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.0.3</span></a></li>
+<li><a href="_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.1.0</span></a></li>
+<li><a href="_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.0.3</span></a></li>
+<li><a href="_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.0.3</span></a></li></ul></nav></div></div></div>
 <div class="tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
 <div class="overlay"></div></body></html>
