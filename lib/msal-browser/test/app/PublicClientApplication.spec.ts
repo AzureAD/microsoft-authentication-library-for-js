@@ -2364,7 +2364,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
-        it.only("Calls SilentIframeClient.acquireToken and returns its response", async () => {
+        it("Calls SilentIframeClient.acquireToken and returns its response", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
