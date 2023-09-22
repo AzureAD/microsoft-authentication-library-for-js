@@ -69,7 +69,6 @@ import {
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { base64Decode } from "../encode/Base64Decode";
-import { ReqCnfData } from "lib/msal-common/src/crypto/PopTokenGenerator";
 
 const BrokerServerParamKeys = {
     BROKER_CLIENT_ID: "brk_client_id",
