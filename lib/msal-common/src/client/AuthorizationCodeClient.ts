@@ -383,13 +383,17 @@ export class AuthorizationCodeClient extends BaseClient {
                 this.performanceClient
             );
 
-            this.performanceClient?.setPreQueueTime(
-                PerformanceEvents.PopTokenGenerateCnf,
-                request.correlationId
-            );
-            const reqCnfData =
-                request.reqCnf ||
-                (await popTokenGenerator.generateCnf(request));
+            let reqCnfData = request.reqCnf;
+            if (!reqCnfData) {
+                reqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(request, this.logger);
+            }
+
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
@@ -667,9 +671,16 @@ export class AuthorizationCodeClient extends BaseClient {
                 const popTokenGenerator = new PopTokenGenerator(
                     this.cryptoUtils
                 );
-                // SPAs require the whole string to be sent
-                const reqCnfData = await popTokenGenerator.generateCnf(request);
-                parameterBuilder.addPopToken(reqCnfData.reqCnfString);
+
+                // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
+                const reqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(request, this.logger);
+                parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
             }
         }
 

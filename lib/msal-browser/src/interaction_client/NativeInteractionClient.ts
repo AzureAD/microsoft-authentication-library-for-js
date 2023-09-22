@@ -30,6 +30,9 @@ import {
     TokenClaims,
     createClientAuthError,
     ClientAuthErrorCodes,
+    invokeAsync,
+    createAuthError,
+    AuthErrorCodes,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -50,7 +53,12 @@ import {
     NativeTokenRequest,
 } from "../broker/nativeBroker/NativeRequest";
 import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse";
-import { NativeAuthError } from "../error/NativeAuthError";
+import {
+    NativeAuthError,
+    NativeAuthErrorCodes,
+    createNativeAuthError,
+    isFatalNativeAuthError,
+} from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
@@ -61,6 +69,7 @@ import {
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { base64Decode } from "../encode/Base64Decode";
+import { ReqCnfData } from "lib/msal-common/src/crypto/PopTokenGenerator";
 
 const BrokerServerParamKeys = {
     BROKER_CLIENT_ID: "brk_client_id",
@@ -276,7 +285,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.validateNativeResponse(response);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
-            if (e instanceof NativeAuthError && e.isFatal()) {
+            if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                 throw e;
             }
         }
@@ -389,7 +398,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         if (response.account.id !== request.accountId) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
-            throw NativeAuthError.createUserSwitchError();
+            throw createNativeAuthError(NativeAuthErrorCodes.userSwitch);
         }
 
         // Get the preferred_cache domain for the given authority
@@ -724,7 +733,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
         ) {
             return response as NativeResponse;
         } else {
-            throw NativeAuthError.createUnexpectedError(
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
                 "Response missing expected properties."
             );
         }
@@ -865,9 +875,18 @@ export class NativeInteractionClient extends BaseInteractionClient {
             };
 
             const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-            const reqCnfData =
-                request.reqCnf ||
-                (await popTokenGenerator.generateCnf(shrParameters));
+
+            // generate reqCnf if not provided in the request
+            let reqCnfData = request.reqCnf;
+            if (!reqCnfData) {
+                reqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(shrParameters, this.logger);
+            }
 
             // SPAs require whole string to be passed to broker
             validatedRequest.reqCnf = reqCnfData.reqCnfString;

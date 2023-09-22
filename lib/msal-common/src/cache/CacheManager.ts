@@ -26,7 +26,6 @@ import { AccountEntity } from "./entities/AccountEntity";
 import { AccessTokenEntity } from "./entities/AccessTokenEntity";
 import { IdTokenEntity } from "./entities/IdTokenEntity";
 import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
-import { AuthError } from "../error/AuthError";
 import { ICacheManager } from "./interface/ICacheManager";
 import {
     createClientAuthError,
@@ -1506,123 +1505,75 @@ export abstract class CacheManager implements ICacheManager {
 /** @internal */
 export class DefaultStorageClass extends CacheManager {
     setAccount(): void {
-        const notImplErr =
-            "Storage interface - setAccount() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getAccount(): AccountEntity {
-        const notImplErr =
-            "Storage interface - getAccount() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     setIdTokenCredential(): void {
-        const notImplErr =
-            "Storage interface - setIdTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getIdTokenCredential(): IdTokenEntity {
-        const notImplErr =
-            "Storage interface - getIdTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     setAccessTokenCredential(): void {
-        const notImplErr =
-            "Storage interface - setAccessTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getAccessTokenCredential(): AccessTokenEntity {
-        const notImplErr =
-            "Storage interface - getAccessTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     setRefreshTokenCredential(): void {
-        const notImplErr =
-            "Storage interface - setRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getRefreshTokenCredential(): RefreshTokenEntity {
-        const notImplErr =
-            "Storage interface - getRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     setAppMetadata(): void {
-        const notImplErr =
-            "Storage interface - setAppMetadata() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getAppMetadata(): AppMetadataEntity {
-        const notImplErr =
-            "Storage interface - getAppMetadata() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     setServerTelemetry(): void {
-        const notImplErr =
-            "Storage interface - setServerTelemetry() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getServerTelemetry(): ServerTelemetryEntity {
-        const notImplErr =
-            "Storage interface - getServerTelemetry() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     setAuthorityMetadata(): void {
-        const notImplErr =
-            "Storage interface - setAuthorityMetadata() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getAuthorityMetadata(): AuthorityMetadataEntity | null {
-        const notImplErr =
-            "Storage interface - getAuthorityMetadata() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getAuthorityMetadataKeys(): Array<string> {
-        const notImplErr =
-            "Storage interface - getAuthorityMetadataKeys() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     setThrottlingCache(): void {
-        const notImplErr =
-            "Storage interface - setThrottlingCache() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getThrottlingCache(): ThrottlingEntity {
-        const notImplErr =
-            "Storage interface - getThrottlingCache() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     removeItem(): boolean {
-        const notImplErr =
-            "Storage interface - removeItem() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     containsKey(): boolean {
-        const notImplErr =
-            "Storage interface - containsKey() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getKeys(): string[] {
-        const notImplErr =
-            "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getAccountKeys(): string[] {
-        const notImplErr =
-            "Storage interface - getAccountKeys() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getTokenKeys(): TokenKeys {
-        const notImplErr =
-            "Storage interface - getTokenKeys() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     async clear(): Promise<void> {
-        const notImplErr =
-            "Storage interface - clear() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     updateCredentialCacheKey(): string {
-        const notImplErr =
-            "Storage interface - updateCredentialCacheKey() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
 }

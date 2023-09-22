@@ -94,7 +94,7 @@ describe("StandardInteractionClient", () => {
         );
         sinon
             .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .returns(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon
             .stub(FetchClient.prototype, "sendGetRequestAsync")
             .callsFake((url) => {

@@ -14,6 +14,7 @@ import { TimeUtils } from "../../src/utils/TimeUtils";
 import { UrlString } from "../../src/url/UrlString";
 import { AuthenticationScheme } from "../../src/utils/Constants";
 import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
+import { Logger } from "../../src/logger/Logger";
 
 describe("PopTokenGenerator Unit Tests", () => {
     afterEach(() => {
@@ -83,7 +84,10 @@ describe("PopTokenGenerator Unit Tests", () => {
         };
         it("Generates the req_cnf correctly", async () => {
             const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
-            const reqCnfData = await popTokenGenerator.generateCnf(testRequest);
+            const reqCnfData = await popTokenGenerator.generateCnf(
+                testRequest,
+                new Logger({})
+            );
             expect(reqCnfData.reqCnfString).toBe(
                 TEST_POP_VALUES.ENCODED_REQ_CNF
             );
