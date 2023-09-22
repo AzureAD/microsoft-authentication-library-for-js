@@ -672,7 +672,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     this.cryptoUtils
                 );
 
-                // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
+                // req_cnf is always sent as a string for SPAs
                 let reqCnfData = request.reqCnf;
                 if (!reqCnfData) {
                     reqCnfData = await invokeAsync(
