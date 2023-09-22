@@ -673,14 +673,17 @@ export class AuthorizationCodeClient extends BaseClient {
                 );
 
                 // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-                const reqCnfData = await invokeAsync(
-                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                    PerformanceEvents.PopTokenGenerateCnf,
-                    this.logger,
-                    this.performanceClient,
-                    request.correlationId
-                )(request, this.logger);
-                parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
+                let reqCnfData = request.reqCnf;
+                if (!reqCnfData) {
+                    reqCnfData = await invokeAsync(
+                        popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                        PerformanceEvents.PopTokenGenerateCnf,
+                        this.logger,
+                        this.performanceClient,
+                        request.correlationId
+                    )(request, this.logger);
+                }
+                parameterBuilder.addPopToken(reqCnfData.reqCnfString);
             }
         }
 
