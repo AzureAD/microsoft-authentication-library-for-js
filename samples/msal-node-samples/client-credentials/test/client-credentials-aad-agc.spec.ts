@@ -3,9 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
 import { ConfidentialClientApplication } from "@azure/msal-node";
-import {RETRY_TIMES, validateCacheLocation} from "e2e-test-utils/src/TestUtils";
+import {
+    RETRY_TIMES,
+    validateCacheLocation,
+    NodeCacheTestUtils,
+} from "e2e-test-utils";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc.cache.json`;
 
@@ -17,12 +20,14 @@ const authOptions = {
     clientId: process.env.AZURE_CLIENT_ID,
     clientSecret: process.env.AZURE_CLIENT_SECRET,
     authority: `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    knownAuthorities: [`${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`],
+    knownAuthorities: [
+        `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
+    ],
 };
 
 const clientCredentialRequestScopes = [`${process.env.GRAPH_URL}/.default`];
 
-describe('Client Credentials AAD AGC Tests', () => {
+describe("Client Credentials AAD AGC Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
 
@@ -43,20 +48,37 @@ describe('Client Credentials AAD AGC Tests', () => {
         });
 
         afterAll(async () => {
-            if (server) await server.close()
-        })
+            if (server) await server.close();
+        });
 
         it("Performs acquire token", async () => {
-            confidentialClientApplication = new ConfidentialClientApplication({ auth: authOptions, cache: { cachePlugin }});
-            server = await getClientCredentialsToken(confidentialClientApplication, clientCredentialRequestScopes);
-            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            confidentialClientApplication = new ConfidentialClientApplication({
+                auth: authOptions,
+                cache: { cachePlugin },
+            });
+            server = await getClientCredentialsToken(
+                confidentialClientApplication,
+                clientCredentialRequestScopes
+            );
+            const cachedTokens = await NodeCacheTestUtils.getTokens(
+                TEST_CACHE_LOCATION
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
         });
 
         it("Performs acquire token through regional authorities", async () => {
-            confidentialClientApplication = new ConfidentialClientApplication({ auth: authOptions, cache: { cachePlugin }});
-            server = await getClientCredentialsToken(confidentialClientApplication, clientCredentialRequestScopes, { region: "usseceast" });
-            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            confidentialClientApplication = new ConfidentialClientApplication({
+                auth: authOptions,
+                cache: { cachePlugin },
+            });
+            server = await getClientCredentialsToken(
+                confidentialClientApplication,
+                clientCredentialRequestScopes,
+                { region: "usseceast" }
+            );
+            const cachedTokens = await NodeCacheTestUtils.getTokens(
+                TEST_CACHE_LOCATION
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
         });
     });
