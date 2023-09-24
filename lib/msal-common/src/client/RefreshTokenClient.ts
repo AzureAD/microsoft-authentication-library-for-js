@@ -259,7 +259,9 @@ export class RefreshTokenClient extends BaseClient {
             request.ccsCredential
         );
         const thumbprint: RequestThumbprint = {
-            clientId: this.config.authOptions.clientId,
+            clientId:
+                request.tokenBodyParameters?.clientId ||
+                this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes,
             claims: request.claims,
