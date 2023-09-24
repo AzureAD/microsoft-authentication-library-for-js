@@ -17,6 +17,7 @@ import {
     AuthenticationScheme,
     Errors,
     HeaderNames,
+    AADServerParamKeys,
 } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
@@ -293,7 +294,10 @@ export class RefreshTokenClient extends BaseClient {
         const correlationId = request.correlationId;
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        parameterBuilder.addClientId(
+            request.tokenQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                this.config.authOptions.clientId
+        );
 
         parameterBuilder.addScopes(
             request.scopes,
