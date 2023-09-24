@@ -299,6 +299,10 @@ export class RefreshTokenClient extends BaseClient {
                 this.config.authOptions.clientId
         );
 
+        if (request.redirectUri) {
+            parameterBuilder.addRedirectUri(request.redirectUri);
+        }
+
         parameterBuilder.addScopes(
             request.scopes,
             true,
