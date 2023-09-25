@@ -1,6 +1,5 @@
 import * as AuthToken from "../../src/account/AuthToken";
 import {
-    TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     RANDOM_TEST_GUID,
     TEST_URIS,
@@ -8,7 +7,7 @@ import {
     TEST_CRYPTO_VALUES,
     TEST_TOKENS,
 } from "../test_kit/StringConstants";
-import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
+import { ICrypto } from "../../src/crypto/ICrypto";
 import {
     ClientAuthErrorMessage,
     ClientAuthError,
@@ -61,12 +60,6 @@ describe("AuthToken.ts Class Unit Tests", () => {
                     default:
                         return input;
                 }
-            },
-            async generatePkceCodes(): Promise<PkceCodes> {
-                return {
-                    challenge: TEST_CONFIG.TEST_CHALLENGE,
-                    verifier: TEST_CONFIG.TEST_VERIFIER,
-                };
             },
             async getPublicKeyThumbprint(): Promise<string> {
                 return TEST_POP_VALUES.KID;
