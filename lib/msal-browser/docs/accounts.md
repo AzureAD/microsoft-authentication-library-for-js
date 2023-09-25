@@ -15,7 +15,7 @@ The [AccountFilter](https://azuread.github.io/microsoft-authentication-library-f
 
 > Note: A single account filter attribute is usually not guaranteed to uniquely identify a cached account object. Adding a combination of attributes that don't repeat together, such as `homeAccountId` + `localAccountId`, can help refine the search.
 
-> Note: `realm` is the name given to `tenantId` in the cache.
+> Note: `realm` is `tenantId` in the cache.
 
 The following `getAccountBy` APIs are marked for deprecation and will be removed in a future version of MSAL. Please migrate to `getAccount()`:
 
