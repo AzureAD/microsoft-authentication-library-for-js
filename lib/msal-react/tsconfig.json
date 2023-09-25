@@ -17,6 +17,7 @@
     "rootDir": "./",
     "outDir": "./dist",
     "strict": true,
+    "composite": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
@@ -31,10 +32,5 @@
       "jest",
       "react"
     ]
-  },
-  "references": [
-    {
-      "path": "../msal-browser"
-    }
-  ]
+  }
 }

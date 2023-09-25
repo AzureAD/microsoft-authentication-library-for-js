@@ -1,7 +1,11 @@
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
-import {RETRY_TIMES, retrieveAppConfiguration, validateCacheLocation} from "e2e-test-utils/src/TestUtils";
-import { LabClient } from "e2e-test-utils/src/LabClient";
+import {
+    RETRY_TIMES,
+    retrieveAppConfiguration,
+    validateCacheLocation,
+    LabApiQueryParams,
+    NodeCacheTestUtils,
+    LabClient,
+} from "e2e-test-utils";
 import { ConfidentialClientApplication } from "@azure/msal-node";
 import config from "../config/AAD.json";
 
@@ -17,7 +21,7 @@ let authority;
 
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
-describe('Client Credentials AAD Prod Tests', () => {
+describe("Client Credentials AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
 
@@ -27,13 +31,18 @@ describe('Client Credentials AAD Prod Tests', () => {
         const labApiParms: LabApiQueryParams = {
             appType: "cloud",
             publicClient: "no",
-            signInAudience: "azureadmyorg"
+            signInAudience: "azureadmyorg",
         };
 
-
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
-        [clientID, clientSecret, authority] = await retrieveAppConfiguration(envResponse[0], labClient, true);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParms
+        );
+        [clientID, clientSecret, authority] = await retrieveAppConfiguration(
+            envResponse[0],
+            labClient,
+            true
+        );
 
         // Update the complete config
         config.authOptions.clientId = clientID;
@@ -54,20 +63,37 @@ describe('Client Credentials AAD Prod Tests', () => {
         });
 
         afterAll(async () => {
-            if (server) await server.close()
-        })
+            if (server) await server.close();
+        });
 
         it("Performs acquire token", async () => {
-            confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
-            server = await getClientCredentialsToken(confidentialClientApplication, clientCredentialRequestScopes);
-            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            confidentialClientApplication = new ConfidentialClientApplication({
+                auth: config.authOptions,
+                cache: { cachePlugin },
+            });
+            server = await getClientCredentialsToken(
+                confidentialClientApplication,
+                clientCredentialRequestScopes
+            );
+            const cachedTokens = await NodeCacheTestUtils.getTokens(
+                TEST_CACHE_LOCATION
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
         });
 
         it("Performs acquire token through regional authorities", async () => {
-            confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
-            server = await getClientCredentialsToken(confidentialClientApplication, clientCredentialRequestScopes, { region: "westus2" });
-            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            confidentialClientApplication = new ConfidentialClientApplication({
+                auth: config.authOptions,
+                cache: { cachePlugin },
+            });
+            server = await getClientCredentialsToken(
+                confidentialClientApplication,
+                clientCredentialRequestScopes,
+                { region: "westus2" }
+            );
+            const cachedTokens = await NodeCacheTestUtils.getTokens(
+                TEST_CACHE_LOCATION
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
         });
     });
