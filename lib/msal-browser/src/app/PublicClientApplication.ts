@@ -229,7 +229,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * This API is provided for convenience but getAccountById should be used for best reliability
      * @param userName
      * @returns The account object stored in MSAL
-     * @deprecated - Use getAccountByFilter instead
+     * @deprecated - Use getAccount instead
      */
     getAccountByUsername(userName: string): AccountInfo | null {
         return this.controller.getAccountByUsername(userName);

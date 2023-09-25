@@ -1215,7 +1215,7 @@ export class StandardController implements IController {
      */
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
         this.logger.trace("getAccount called");
-        if (!accountFilter || Object.keys(accountFilter).length === 0) {
+        if (Object.keys(accountFilter).length === 0) {
             this.logger.warning("getAccount: No accountFilter provided");
             return null;
         }
@@ -1226,11 +1226,6 @@ export class StandardController implements IController {
         if (account) {
             this.logger.verbose(
                 "getAccount: Account matching provided filter found, returning"
-            );
-            this.logger.verbosePii(
-                `getAccount: Returning signed-in account matching accountFilter: ${JSON.stringify(
-                    accountFilter
-                )}`
             );
             return account;
         } else {
