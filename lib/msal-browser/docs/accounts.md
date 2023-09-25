@@ -110,7 +110,7 @@ Passing `username` as `username`
 ```javascript
 const accountUsername = userProfile.username;
 const accountFilter = {
-    username: accountUsername; // More performant filtering
+    username: accountUsername;
 };
 request.account = myMSALObj.getAccount(accountFilter);
 return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
