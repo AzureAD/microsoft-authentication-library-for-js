@@ -8,7 +8,11 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
-import { Logger } from "@azure/msal-common";
+import {
+    IPerformanceClient,
+    Logger,
+    PerformanceEvents,
+} from "@azure/msal-common";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 
 /**
@@ -51,7 +55,15 @@ export function validateCryptoAvailable(logger: Logger): void {
  * Returns a sha-256 hash of the given dataString as an ArrayBuffer.
  * @param dataString
  */
-export async function sha256Digest(dataString: string): Promise<ArrayBuffer> {
+export async function sha256Digest(
+    dataString: string,
+    performanceClient?: IPerformanceClient,
+    correlationId?: string
+): Promise<ArrayBuffer> {
+    performanceClient?.addQueueMeasurement(
+        PerformanceEvents.Sha256Digest,
+        correlationId
+    );
     const data = BrowserStringUtils.stringToUtf8Arr(dataString);
     // MSR Crypto wants object with name property, instead of string
     return window.crypto.subtle.digest(

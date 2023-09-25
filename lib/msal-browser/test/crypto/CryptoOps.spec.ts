@@ -2,13 +2,14 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
-import { TEST_URIS } from "../utils/StringConstants";
+import { RANDOM_TEST_GUID, TEST_URIS } from "../utils/StringConstants";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { generatePkceCodes } from "../../src/crypto/PkceGenerator";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 let mockDatabase = {
     "TestDB.keys": {},
@@ -240,7 +241,11 @@ describe("CryptoOps.ts Unit Tests", () => {
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
          */
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
-        const generatedCodes: PkceCodes = await generatePkceCodes();
+        const generatedCodes: PkceCodes = await generatePkceCodes(
+            new StubPerformanceClient(),
+            new Logger({}),
+            RANDOM_TEST_GUID
+        );
         expect(regExp.test(generatedCodes.challenge)).toBe(true);
         expect(regExp.test(generatedCodes.verifier)).toBe(true);
     });

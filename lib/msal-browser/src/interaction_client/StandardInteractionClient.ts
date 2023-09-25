@@ -65,7 +65,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )();
+        )(this.performanceClient, this.logger, this.correlationId);
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,

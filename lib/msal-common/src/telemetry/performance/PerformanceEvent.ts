@@ -273,6 +273,10 @@ export const PerformanceEvents = {
      * Crypto Operations
      */
     GeneratePkceCodes: "generatePkceCodes",
+    GenerateCodeVerifier: "generateCodeVerifier",
+    GenerateCodeChallengeFromVerifier: "generateCodeChallengeFromVerifier",
+    Sha256Digest: "sha256Digest",
+    GetRandomValues: "getRandomValues",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
