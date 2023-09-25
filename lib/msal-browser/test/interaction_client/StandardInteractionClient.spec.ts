@@ -25,7 +25,7 @@ import {
 } from "../utils/StringConstants";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
+import * as PkceGenerator from "../../src/crypto/PkceGenerator";
 import { FetchClient } from "../../src/network/FetchClient";
 import { InteractionType } from "../../src/utils/BrowserConstants";
 
@@ -114,6 +114,7 @@ describe("StandardInteractionClient", () => {
     });
 
     afterEach(() => {
+        jest.restoreAllMocks();
         sinon.restore();
     });
 
@@ -131,7 +132,7 @@ describe("StandardInteractionClient", () => {
                 TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
         };
 
-        sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+        jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
             challenge: TEST_CONFIG.TEST_CHALLENGE,
             verifier: TEST_CONFIG.TEST_VERIFIER,
         });

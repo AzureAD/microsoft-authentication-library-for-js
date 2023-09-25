@@ -268,6 +268,11 @@ export const PerformanceEvents = {
      * Cache operations
      */
     ClearTokensAndKeysWithClaims: "clearTokensAndKeysWithClaims",
+
+    /**
+     * Crypto Operations
+     */
+    GeneratePkceCodes: "generatePkceCodes",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];

@@ -64,6 +64,8 @@ import {
     NativeConstants,
 } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
+import * as PkceGenerator from "../../src/crypto/PkceGenerator";
 import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
@@ -148,7 +150,6 @@ function stubProvider(pca: PublicClientApplication) {
                 pca.getLogger(),
                 2000,
                 perfClient,
-                new CryptoOps(new Logger({})),
                 "test-extensionId"
             );
         });
@@ -181,6 +182,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     afterEach(() => {
         sinon.restore();
+        jest.restoreAllMocks();
         window.location.hash = "";
         window.sessionStorage.clear();
         window.localStorage.clear();
@@ -936,13 +938,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ).toBeTruthy();
                     return Promise.resolve(done());
                 });
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
 
             // @ts-ignore
             pca.loginRedirect(null);
@@ -2417,9 +2419,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
@@ -2458,9 +2460,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
@@ -2503,9 +2505,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .rejects({
@@ -2856,9 +2858,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentAuthCodeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
@@ -2900,9 +2902,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentAuthCodeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
@@ -2956,9 +2958,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentAuthCodeClient.prototype, "acquireToken")
                 .rejects({
@@ -3368,9 +3370,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
@@ -3474,9 +3476,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
@@ -3570,9 +3572,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
@@ -3788,9 +3790,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
@@ -4159,13 +4161,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentTokenHelperStub = sinon
                 .stub(SilentIframeClient.prototype, <any>"silentTokenHelper")
                 .resolves(testTokenResponse);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(ProtocolUtils, "setRequestState")
                 .returns(TEST_STATE_VALUES.TEST_STATE_SILENT);
@@ -4245,9 +4247,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
 
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(ProtocolUtils, "setRequestState")
                 .returns(TEST_STATE_VALUES.TEST_STATE_SILENT);
@@ -4321,9 +4323,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
 
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(true);
@@ -4380,9 +4382,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
 
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(true);
@@ -4450,9 +4452,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
 
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(ProtocolUtils, "setRequestState")
                 .returns(TEST_STATE_VALUES.TEST_STATE_SILENT);
