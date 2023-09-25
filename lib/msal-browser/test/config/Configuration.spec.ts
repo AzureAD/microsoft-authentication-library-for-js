@@ -49,6 +49,7 @@ describe("Configuration.ts Class Unit Tests", () => {
             AzureCloudInstance.None
         );
         expect(emptyConfig.auth?.azureCloudOptions?.tenant).toBe("");
+        expect(emptyConfig.auth?.multiTenantAccountsEnabled).toBe(false);
         // Cache config checks
         expect(emptyConfig.cache).toBeDefined();
         expect(emptyConfig.cache?.cacheLocation).toBeDefined();
@@ -242,6 +243,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                     postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                     navigateToLoginRequestUrl: false,
+                    multiTenantAccountsEnabled: true,
                 },
                 cache: {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
@@ -272,6 +274,7 @@ describe("Configuration.ts Class Unit Tests", () => {
             TEST_URIS.TEST_LOGOUT_URI
         );
         expect(newConfig.auth.navigateToLoginRequestUrl).toBe(false);
+        expect(newConfig.auth.multiTenantAccountsEnabled).toBe(true);
         // Cache config checks
         expect(newConfig.cache).not.toBeNull();
         expect(newConfig.cache?.cacheLocation).not.toBeNull();
