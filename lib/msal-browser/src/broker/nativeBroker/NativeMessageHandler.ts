@@ -16,7 +16,6 @@ import {
     InProgressPerformanceEvent,
     PerformanceEvents,
     IPerformanceClient,
-    ICrypto,
 } from "@azure/msal-common";
 import {
     NativeExtensionRequest,
