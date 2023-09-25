@@ -1364,10 +1364,7 @@ export abstract class CacheManager implements ICacheManager {
      * @returns true if the downcased name properties are present and match in the filter and the entity
      */
     private matchName(entity: AccountEntity, name: string): boolean {
-        return !!(
-            typeof entity.name === "string" &&
-            name.toLowerCase() === entity.name.toLowerCase()
-        );
+        return !!(name.toLowerCase() === entity.name?.toLowerCase());
     }
 
     /**
