@@ -204,7 +204,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * or null when no matching account is found
      * @param homeAccountId
      * @returns The account object stored in MSAL
-     * @deprecated - Use getAccountByFilter instead
+     * @deprecated - Use getAccount instead
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
         return this.controller.getAccountByHomeId(homeAccountId);
