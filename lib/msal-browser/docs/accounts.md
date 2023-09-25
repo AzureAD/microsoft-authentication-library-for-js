@@ -136,7 +136,7 @@ return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
 
 The `@azure/msal-browser` library also provides 2 convenient APIs to help you keep track of which account is currently "active" and should be used for token requests.
 
--   `getActiveAccount()`: Returns the currently active account
+-   `getActiveAccount()`: Returns the current active account
 -   `setActiveAccount()`: Receives an account object and sets it as the active account
 
 Deciding which account to use to acquire tokens is app dependent, however, once you've determined which account you wish to use, simply call the `setActiveAccount()` API with the chosen account object. Any `acquireToken`, `login` or `ssoSilent` calls will now use the active account by default if a different account is not specified in the individual request. To clear the currently active account you can call `setActiveAccount(null)`.
