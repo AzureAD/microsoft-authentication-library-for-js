@@ -3,6 +3,37 @@
  * Licensed under the MIT License.
  */
 
+// MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
+export const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
+export const SECRET_HEADER_NAME: string = "X-IDENTITY-HEADER";
+export const DEFAULT_MANAGED_IDENTITY_ID = "system_assigned_managed_identity";
+
+/**
+ * Managed Identity Ids
+ */
+export const ManagedIdentityIdType = {
+    SYSTEM_ASSIGNED: "system-assigned",
+    USER_ASSIGNED_CLIENT_ID: "user-assigned-client-id",
+    USER_ASSIGNED_RESOURCE_ID: "user-assigned-resource-id",
+    USER_ASSIGNED_OBJECT_ID: "user-assigned-object-id",
+} as const;
+export type ManagedIdentityIdType =
+    (typeof ManagedIdentityIdType)[keyof typeof ManagedIdentityIdType];
+
+/**
+ * Managed Identity Authentication Sources
+ */
+export const ManagedIdentitySource = {
+    NONE: "None", // default
+    IMDS: "Imds",
+    APP_SERVICE: "AppService",
+    AZURE_ARC: "AzureArc",
+    CLOUD_SHELL: "CloudShell",
+    SERVICE_FABRIC: "ServiceFabric",
+} as const;
+export type ManagedIdentitySource =
+    (typeof ManagedIdentitySource)[keyof typeof ManagedIdentitySource];
+
 /**
  * http methods
  */

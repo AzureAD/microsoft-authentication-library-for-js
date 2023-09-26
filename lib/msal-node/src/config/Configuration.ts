@@ -18,6 +18,10 @@ import {
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
 import https from "https";
+import {
+    DEFAULT_MANAGED_IDENTITY_ID,
+    ManagedIdentityIdType,
+} from "../utils/Constants.js";
 
 /**
  * - clientId               - Client id of the application.
@@ -105,6 +109,14 @@ export type Configuration = {
     cache?: CacheOptions;
     system?: NodeSystemOptions;
     telemetry?: NodeTelemetryOptions;
+};
+
+export type ManagedIdentityConfiguration = {
+    forceRefresh?: boolean;
+    id?: string;
+    resourceType: ManagedIdentityIdType;
+    resourceUri: string;
+    system?: NodeSystemOptions;
 };
 
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
@@ -197,5 +209,38 @@ export function buildAppConfiguration({
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
+    };
+}
+
+export type ManagedIdentityNodeConfiguration = {
+    forceRefresh: boolean;
+    id: string;
+    resourceType: ManagedIdentityIdType;
+    resourceUri: string;
+    system: NodeSystemOptions;
+};
+
+export function buildManagedIdentityConfiguration({
+    forceRefresh: forceRefresh,
+    id: id,
+    resourceType: resourceType,
+    resourceUri: resourceUri,
+    system: system,
+}: ManagedIdentityConfiguration): ManagedIdentityNodeConfiguration {
+    const systemOptions: Required<NodeSystemOptions> = {
+        ...DEFAULT_SYSTEM_OPTIONS,
+        loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
+        networkClient: new HttpClient(
+            system?.proxyUrl,
+            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
+        ),
+    };
+
+    return {
+        forceRefresh: forceRefresh || false,
+        id: id || DEFAULT_MANAGED_IDENTITY_ID,
+        resourceType: resourceType,
+        resourceUri: resourceUri,
+        system: { ...systemOptions, ...system },
     };
 }
