@@ -27,6 +27,8 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
             }
         );
+        // Auth options checks
+        expect(emptyConfig.authOptions.multiTenantAccountsEnabled).toBe(false);
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).not.toBeNull();
         expect(emptyConfig.cryptoInterface.base64Decode).not.toBeNull();
@@ -162,6 +164,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             //@ts-ignore
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                multiTenantAccountsEnabled: true,
             },
             cryptoInterface: {
                 createNewGuid: (): string => {
@@ -232,6 +235,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             },
         });
         cacheStorageMock.setAccount(MockCache.acc);
+        // Auth options tests
+        expect(newConfig.authOptions.clientId).toBe(TEST_CONFIG.MSAL_CLIENT_ID);
+        expect(newConfig.authOptions.multiTenantAccountsEnabled).toBe(true);
         // Crypto interface tests
         expect(newConfig.cryptoInterface).not.toBeNull();
         expect(newConfig.cryptoInterface.base64Decode).not.toBeNull();

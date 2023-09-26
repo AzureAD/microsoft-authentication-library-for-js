@@ -81,6 +81,7 @@ export type CommonClientConfiguration = {
  * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache      - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
+ * - multiTenantAccountsEnabled  - A flag to enable multi tenant account support. Defaults to false.
  * @internal
  */
 export type AuthOptions = {
@@ -89,6 +90,7 @@ export type AuthOptions = {
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
+    multiTenantAccountsEnabled?: boolean;
 };
 
 /**
@@ -271,6 +273,7 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
         clientCapabilities: [],
         azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         skipAuthorityMetadataCache: false,
+        multiTenantAccountsEnabled: false,
         ...authOptions,
     };
 }
