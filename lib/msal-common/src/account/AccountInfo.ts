@@ -14,7 +14,6 @@ import { TokenClaims } from "./TokenClaims";
  * - name                   - Full name for the account, including given name and family name
  * - idToken                - raw ID token
  * - idTokenClaims          - Object contains claims from ID token
- * - localAccountId         - The user's account ID
  * - nativeAccountId        - The user's native account ID
  */
 export type AccountInfo = {
