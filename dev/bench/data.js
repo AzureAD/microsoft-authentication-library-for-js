@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1695751924419,
+  "lastUpdate": 1695845444673,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -798,6 +798,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.48%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "781325ba46c8c7eb216b8fff8eebda253aadfea9",
+          "message": "Instrument Crypto APIs (#6512)\n\n- Adds instrumentation for Crypto APIs, specifically around PKCE\r\ngeneration\r\n- Also refactors `PkceGenerator` and `BrowserCrypto` classes into pure\r\nfunctions for better minification and simpler usage",
+          "timestamp": "2023-09-27T13:05:31-07:00",
+          "tree_id": "30a649f89d1a155afc5afcb0da055eab6ef7158b",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/781325ba46c8c7eb216b8fff8eebda253aadfea9"
+        },
+        "date": 1695845443031,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 142463,
+            "range": "±1.71%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 141135,
+            "range": "±1.65%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
           }
         ]
       }
