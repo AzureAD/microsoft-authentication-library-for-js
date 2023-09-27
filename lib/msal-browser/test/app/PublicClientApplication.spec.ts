@@ -4984,6 +4984,80 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             homeAccountId: testAccountInfo2.homeAccountId,
         };
 
+        // Account 3
+        const testAccountInfo3: AccountInfo = {
+            authorityType: "ADFS",
+            homeAccountId: "another-home-account-id",
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "Unique Username",
+            name: "Abe Lincoln Two",
+            localAccountId: TEST_CONFIG.OID,
+            idToken: TEST_TOKENS.ID_TOKEN_V2_WITH_LOGIN_HINT,
+            idTokenClaims: { ...ID_TOKEN_CLAIMS, login_hint: "testLoginHint" },
+            nativeAccountId: undefined,
+        };
+
+        const testAccount3: AccountEntity = new AccountEntity();
+        testAccount3.homeAccountId = testAccountInfo3.homeAccountId;
+        testAccount3.localAccountId = TEST_CONFIG.OID;
+        testAccount3.environment = testAccountInfo3.environment;
+        testAccount3.realm = testAccountInfo3.tenantId;
+        testAccount3.username = testAccountInfo3.username;
+        testAccount3.name = testAccountInfo3.name;
+        testAccount3.authorityType = "ADFS";
+
+        testAccount3.clientInfo =
+            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+        testAccount3.idTokenClaims = testAccountInfo3.idTokenClaims;
+
+        const idTokenData3 = {
+            realm: testAccountInfo3.tenantId,
+            environment: testAccountInfo3.environment,
+            credentialType: "IdToken",
+            secret: TEST_TOKENS.IDTOKEN_V2,
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            homeAccountId: testAccountInfo3.homeAccountId,
+            login_hint: "testLoginHint",
+        };
+
+        // Account 4
+        const testAccountInfo4: AccountInfo = {
+            authorityType: "MSA",
+            homeAccountId: "upn-account-id",
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "Upn User",
+            name: "Abe Lincoln Three",
+            localAccountId: TEST_CONFIG.OID,
+            idToken: TEST_TOKENS.ID_TOKEN_V2_WITH_UPN,
+            idTokenClaims: { ...ID_TOKEN_CLAIMS, upn: "testUpn" },
+            nativeAccountId: undefined,
+        };
+
+        const testAccount4: AccountEntity = new AccountEntity();
+        testAccount4.homeAccountId = testAccountInfo4.homeAccountId;
+        testAccount4.localAccountId = TEST_CONFIG.OID;
+        testAccount4.environment = testAccountInfo4.environment;
+        testAccount4.realm = testAccountInfo4.tenantId;
+        testAccount4.username = testAccountInfo4.username;
+        testAccount4.name = testAccountInfo4.name;
+        testAccount4.authorityType = "MSA";
+
+        testAccount4.clientInfo =
+            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+        testAccount4.idTokenClaims = testAccountInfo4.idTokenClaims;
+
+        const idTokenData4 = {
+            realm: testAccountInfo4.tenantId,
+            environment: testAccountInfo4.environment,
+            credentialType: "IdToken",
+            secret: TEST_TOKENS.IDTOKEN_V2,
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            homeAccountId: testAccountInfo4.homeAccountId,
+            upn: "testUpn",
+        };
+
         beforeEach(async () => {
             pca = (pca as any).controller;
             await pca.initialize();
@@ -5006,6 +5080,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.getBrowserStorage().setAccount(testAccount1);
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount2);
+            // @ts-ignore
+            pca.getBrowserStorage().setAccount(testAccount3);
+            // @ts-ignore
+            pca.getBrowserStorage().setAccount(testAccount4);
 
             const idToken1 = CacheManager.toObject(
                 new IdTokenEntity(),
@@ -5020,6 +5098,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken2);
+
+            const idToken3 = CacheManager.toObject(
+                new IdTokenEntity(),
+                idTokenData3
+            );
+            // @ts-ignore
+            pca.getBrowserStorage().setIdTokenCredential(idToken3);
+
+            const idToken4 = CacheManager.toObject(
+                new IdTokenEntity(),
+                idTokenData4
+            );
+            // @ts-ignore
+            pca.getBrowserStorage().setIdTokenCredential(idToken4);
         });
 
         afterEach(() => {
@@ -5027,11 +5119,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.sessionStorage.clear();
         });
 
-        it("getAllAccounts returns all signed in accounts", () => {
+        it("getAllAccounts with no account filter returns all signed in accounts", () => {
             const accounts = pca.getAllAccounts();
-            expect(accounts).toHaveLength(2);
+            expect(accounts).toHaveLength(4);
             expect(accounts[0].idToken).not.toBeUndefined();
             expect(accounts[1].idToken).not.toBeUndefined();
+            expect(accounts[2].idToken).not.toBeUndefined();
+            expect(accounts[3].idToken).not.toBeUndefined();
+        });
+
+        it("getAllAccounts returns all accounts matching the filter passed in", () => {
+            const accounts = pca.getAllAccounts({ authorityType: "MSSTS" });
+            expect(accounts).toHaveLength(2);
+            expect(accounts[0].authorityType).toBe("MSSTS");
+            expect(accounts[1].authorityType).toBe("MSSTS");
         });
 
         it("getAllAccounts returns empty array if no accounts signed in", () => {
@@ -5105,6 +5206,76 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // @ts-ignore
             const account = pca.getAccountByLocalId(null);
             expect(account).toBe(null);
+        });
+
+        describe("getAccount", () => {
+            it("getAccount returns null if empty filter is passed in", () => {
+                const account = pca.getAccount({});
+                expect(account).toBe(null);
+            });
+
+            describe("loginHint filter", () => {
+                it("getAccount returns account specified using login_hint", () => {
+                    const account = pca.getAccount({
+                        loginHint: "testLoginHint",
+                    });
+                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.homeAccountId).toEqual(
+                        testAccountInfo3.homeAccountId
+                    );
+                });
+                it("getAccount returns account specified using username", () => {
+                    const account = pca.getAccount({
+                        loginHint: "Unique Username",
+                    });
+                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.homeAccountId).toEqual(
+                        testAccountInfo3.homeAccountId
+                    );
+                });
+                it("getAccount returns account specified using upn", () => {
+                    const account = pca.getAccount({
+                        loginHint: "testUpn",
+                    });
+                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.homeAccountId).toEqual(
+                        testAccountInfo4.homeAccountId
+                    );
+                });
+            });
+
+            it("getAccount returns account specified using homeAccountId", () => {
+                const account = pca.getAccount({
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                });
+                expect(account?.idToken).not.toBeUndefined();
+                expect(account).toEqual(testAccountInfo1);
+            });
+
+            it("getAccount returns account specified using localAccountId", () => {
+                const account = pca.getAccount({
+                    localAccountId: TEST_CONFIG.OID,
+                });
+                expect(account?.idToken).not.toBeUndefined();
+                expect(account).toEqual(testAccountInfo1);
+            });
+
+            it("getAccount returns account specified using username", () => {
+                const account = pca.getAccount({
+                    username: "example@microsoft.com",
+                });
+                expect(account?.idToken).not.toBeUndefined();
+                expect(account).toEqual(testAccountInfo1);
+            });
+
+            it("getAccount returns account specified using a combination of homeAccountId and localAccountId", () => {
+                const account = pca.getAccount({
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_CONFIG.OID,
+                });
+                expect(account?.idToken).not.toBeUndefined();
+                expect(account).toEqual(testAccountInfo1);
+            });
         });
     });
 
