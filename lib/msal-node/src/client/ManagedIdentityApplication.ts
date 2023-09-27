@@ -45,10 +45,10 @@ export class ManagedIdentityApplication {
         | Imds;
 
     constructor(
-        configuration: ManagedIdentityConfiguration,
-        managedIdentityId: ManagedIdentityId
+        managedIdentityId: ManagedIdentityId,
+        configuration?: ManagedIdentityConfiguration,
     ) {
-        this.config = buildManagedIdentityConfiguration(configuration);
+        this.config = buildManagedIdentityConfiguration(configuration || {});
         this.managedIdentityId = managedIdentityId;
 
         this.logger = new Logger(
