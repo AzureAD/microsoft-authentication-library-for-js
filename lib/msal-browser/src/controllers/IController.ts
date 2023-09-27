@@ -103,8 +103,6 @@ export interface IController {
 
     setNavigationClient(navigationClient: INavigationClient): void;
 
-    getRequestCorrelationId(request?: Partial<BaseAuthRequest>): string;
-
     /** @internal */
     getConfiguration(): BrowserConfiguration;
 

@@ -1789,7 +1789,9 @@ export class StandardController implements IController {
      * @param {?Partial<BaseAuthRequest>} [request]
      * @returns {string}
      */
-    getRequestCorrelationId(request?: Partial<BaseAuthRequest>): string {
+    protected getRequestCorrelationId(
+        request?: Partial<BaseAuthRequest>
+    ): string {
         if (request?.correlationId) {
             return request.correlationId;
         }
