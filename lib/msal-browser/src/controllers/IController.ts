@@ -9,7 +9,6 @@ import {
     PerformanceCallbackFunction,
     IPerformanceClient,
     CommonSilentFlowRequest,
-    BaseAuthRequest,
 } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
