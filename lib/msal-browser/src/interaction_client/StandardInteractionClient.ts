@@ -41,6 +41,8 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { generatePkceCodes } from "../crypto/PkceGenerator";
+import { createNewGuid } from "../crypto/BrowserCrypto";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -57,8 +59,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
             request.correlationId
         );
-        const generatedPkceParams =
-            await this.browserCrypto.generatePkceCodes();
+        const generatedPkceParams = await invokeAsync(
+            generatePkceCodes,
+            PerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(this.performanceClient, this.logger, this.correlationId);
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -86,8 +93,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         );
 
         const validLogoutRequest: CommonEndSessionRequest = {
-            correlationId:
-                this.correlationId || this.browserCrypto.createNewGuid(),
+            correlationId: this.correlationId || createNewGuid(),
             ...logoutRequest,
         };
 
@@ -412,7 +418,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             ...baseRequest,
             redirectUri: redirectUri,
             state: state,
-            nonce: request.nonce || this.browserCrypto.createNewGuid(),
+            nonce: request.nonce || createNewGuid(),
             responseMode: this.config.auth.OIDCOptions
                 .serverResponseType as ResponseMode,
         };

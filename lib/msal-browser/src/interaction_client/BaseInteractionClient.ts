@@ -37,6 +37,7 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { createNewGuid } from "../crypto/BrowserCrypto";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -68,8 +69,7 @@ export abstract class BaseInteractionClient {
         this.eventHandler = eventHandler;
         this.navigationClient = navigationClient;
         this.nativeMessageHandler = nativeMessageHandler;
-        this.correlationId =
-            correlationId || this.browserCrypto.createNewGuid();
+        this.correlationId = correlationId || createNewGuid();
         this.logger = logger.clone(
             BrowserConstants.MSAL_SKU,
             version,

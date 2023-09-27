@@ -6,7 +6,6 @@
 import {
     AccountInfo,
     ICrypto,
-    PkceCodes,
     AuthenticationResult,
     createClientAuthError,
     ClientAuthErrorCodes,
@@ -103,9 +102,6 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     base64Encode: (): string => {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async getPublicKeyThumbprint(): Promise<string> {
