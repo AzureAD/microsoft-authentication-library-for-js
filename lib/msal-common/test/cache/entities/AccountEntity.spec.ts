@@ -7,11 +7,10 @@ import {
     NetworkRequestOptions,
     INetworkModule,
 } from "../../../src/network/INetworkModule";
-import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
+import { ICrypto } from "../../../src/crypto/ICrypto";
 import {
     RANDOM_TEST_GUID,
     TEST_DATA_CLIENT_INFO,
-    TEST_CONFIG,
     TEST_TOKENS,
     TEST_URIS,
     TEST_POP_VALUES,
@@ -54,12 +53,6 @@ const cryptoInterface: ICrypto = {
             default:
                 return input;
         }
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
-        return {
-            challenge: TEST_CONFIG.TEST_CHALLENGE,
-            verifier: TEST_CONFIG.TEST_VERIFIER,
-        };
     },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;

@@ -221,9 +221,19 @@ export abstract class CacheManager implements ICacheManager {
     ): string;
 
     /**
-     * Returns all accounts in cache
+     * Returns all the accounts in the cache that match the optional filter. If no filter is provided, all accounts are returned.
+     * @param accountFilter - (Optional) filter to narrow down the accounts returned
+     * @returns Array of AccountInfo objects in cache
      */
-    getAllAccounts(): AccountInfo[] {
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
+        if (accountFilter) {
+            return this.getAccountsFilteredBy(accountFilter).map(
+                (accountEntity) => {
+                    return accountEntity.getAccountInfo();
+                }
+            );
+        }
+
         const allAccountKeys = this.getAccountKeys();
         if (allAccountKeys.length < 1) {
             return [];
@@ -242,16 +252,12 @@ export abstract class CacheManager implements ICacheManager {
             []
         );
 
-        if (accountEntities.length < 1) {
-            return [];
-        } else {
-            const allAccounts = accountEntities.map<AccountInfo>(
-                (accountEntity) => {
-                    return this.getAccountInfoFromEntity(accountEntity);
-                }
-            );
-            return allAccounts;
-        }
+        const allAccounts = accountEntities.map<AccountInfo>(
+            (accountEntity) => {
+                return this.getAccountInfoFromEntity(accountEntity);
+            }
+        );
+        return allAccounts;
     }
 
     /**
@@ -364,11 +370,9 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * retrieve accounts matching all provided filters; if no filter is set, get all accounts
-     * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
-     * @param homeAccountId
-     * @param environment
-     * @param realm
+     * Retrieve accounts matching all provided filters; if no filter is set, get all accounts
+     * Not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
+     * @param accountFilter - An object containing Account properties to filter by
      */
     getAccountsFilteredBy(accountFilter: AccountFilter): AccountEntity[] {
         const allAccountKeys = this.getAccountKeys();
@@ -379,7 +383,7 @@ export abstract class CacheManager implements ICacheManager {
                 !this.isAccountKey(
                     cacheKey,
                     accountFilter.homeAccountId,
-                    accountFilter.realm
+                    accountFilter.tenantId
                 )
             ) {
                 // Don't parse value if the key doesn't match the account filters
@@ -427,12 +431,41 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
+            // tenantId is another name for realm
+            if (
+                !!accountFilter.tenantId &&
+                !this.matchRealm(entity, accountFilter.tenantId)
+            ) {
+                return;
+            }
+
             if (
                 !!accountFilter.nativeAccountId &&
                 !this.matchNativeAccountId(
                     entity,
                     accountFilter.nativeAccountId
                 )
+            ) {
+                return;
+            }
+
+            if (
+                !!accountFilter.loginHint &&
+                !this.matchLoginHint(entity, accountFilter.loginHint)
+            ) {
+                return;
+            }
+
+            if (
+                !!accountFilter.authorityType &&
+                !this.matchAuthorityType(entity, accountFilter.authorityType)
+            ) {
+                return;
+            }
+
+            if (
+                !!accountFilter.name &&
+                !this.matchName(entity, accountFilter.name)
             ) {
                 return;
             }
@@ -1325,6 +1358,16 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * helper to match names
+     * @param entity
+     * @param name
+     * @returns true if the downcased name properties are present and match in the filter and the entity
+     */
+    private matchName(entity: AccountEntity, name: string): boolean {
+        return !!(name.toLowerCase() === entity.name?.toLowerCase());
+    }
+
+    /**
      * helper to match assertion
      * @param value
      * @param oboAssertion
@@ -1422,6 +1465,41 @@ export abstract class CacheManager implements ICacheManager {
     ): boolean {
         return !!(
             entity.nativeAccountId && nativeAccountId === entity.nativeAccountId
+        );
+    }
+
+    /**
+     * helper to match loginHint which can be either:
+     * 1. login_hint ID token claim
+     * 2. username in cached account object
+     * 3. upn in ID token claims
+     * @param entity
+     * @param loginHint
+     * @returns
+     */
+    private matchLoginHint(entity: AccountEntity, loginHint: string): boolean {
+        if (entity.idTokenClaims?.login_hint === loginHint) {
+            return true;
+        }
+
+        if (entity.username === loginHint) {
+            return true;
+        }
+
+        if (entity.idTokenClaims?.upn === loginHint) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private matchAuthorityType(
+        entity: AccountEntity,
+        authorityType: string
+    ): boolean {
+        return !!(
+            entity.authorityType &&
+            authorityType.toLowerCase() === entity.authorityType.toLowerCase()
         );
     }
 

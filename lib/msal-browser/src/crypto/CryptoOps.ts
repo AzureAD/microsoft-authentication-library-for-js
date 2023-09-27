@@ -9,14 +9,12 @@ import {
     JoseHeader,
     Logger,
     PerformanceEvents,
-    PkceCodes,
     SignedHttpRequest,
     SignedHttpRequestParameters,
 } from "@azure/msal-common";
 import { base64Encode, urlEncode, urlEncodeArr } from "../encode/Base64Encode";
 import { base64Decode } from "../encode/Base64Decode";
-import { PkceGenerator } from "./PkceGenerator";
-import { BrowserCrypto } from "./BrowserCrypto";
+import * as BrowserCrypto from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import {
     createBrowserAuthError,
@@ -36,8 +34,6 @@ export type CachedKeyPair = {
  * implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).
  */
 export class CryptoOps implements ICrypto {
-    private browserCrypto: BrowserCrypto;
-    private pkceGenerator: PkceGenerator;
     private logger: Logger;
 
     /**
@@ -53,8 +49,7 @@ export class CryptoOps implements ICrypto {
     constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
-        this.browserCrypto = new BrowserCrypto(this.logger);
-        this.pkceGenerator = new PkceGenerator(this.browserCrypto);
+        BrowserCrypto.validateCryptoAvailable(logger);
         this.cache = new CryptoKeyStore(this.logger);
         this.performanceClient = performanceClient;
     }
@@ -64,7 +59,7 @@ export class CryptoOps implements ICrypto {
      * @returns string (GUID)
      */
     createNewGuid(): string {
-        return window.crypto.randomUUID();
+        return BrowserCrypto.createNewGuid();
     }
 
     /**
@@ -84,13 +79,6 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
-     * Generates PKCE codes used in Authorization Code Flow.
-     */
-    async generatePkceCodes(): Promise<PkceCodes> {
-        return this.pkceGenerator.generateCodes();
-    }
-
-    /**
      * Generates a keypair, stores it and returns a thumbprint
      * @param request
      */
@@ -104,13 +92,13 @@ export class CryptoOps implements ICrypto {
             );
 
         // Generate Keypair
-        const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(
+        const keyPair: CryptoKeyPair = await BrowserCrypto.generateKeyPair(
             CryptoOps.EXTRACTABLE,
             CryptoOps.POP_KEY_USAGES
         );
 
         // Generate Thumbprint for Public Key
-        const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(
+        const publicKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
             keyPair.publicKey
         );
 
@@ -125,12 +113,12 @@ export class CryptoOps implements ICrypto {
         const publicJwkHash = await this.hashString(publicJwkString);
 
         // Generate Thumbprint for Private Key
-        const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(
+        const privateKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
             keyPair.privateKey
         );
         // Re-import private key to make it unextractable
         const unextractablePrivateKey: CryptoKey =
-            await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
+            await BrowserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
         await this.cache.asymmetricKeys.setItem(publicJwkHash, {
@@ -189,7 +177,7 @@ export class CryptoOps implements ICrypto {
         }
 
         // Get public key as JWK
-        const publicKeyJwk = await this.browserCrypto.exportJwk(
+        const publicKeyJwk = await BrowserCrypto.exportJwk(
             cachedKeyPair.publicKey
         );
         const publicKeyJwkString =
@@ -216,7 +204,7 @@ export class CryptoOps implements ICrypto {
 
         // Sign token
         const tokenBuffer = BrowserStringUtils.stringToUtf8Arr(tokenString);
-        const signatureBuffer = await this.browserCrypto.sign(
+        const signatureBuffer = await BrowserCrypto.sign(
             cachedKeyPair.privateKey,
             tokenBuffer
         );
@@ -238,7 +226,7 @@ export class CryptoOps implements ICrypto {
      * @param plainText
      */
     async hashString(plainText: string): Promise<string> {
-        const hashBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(
+        const hashBuffer: ArrayBuffer = await BrowserCrypto.sha256Digest(
             plainText
         );
         const hashBytes = new Uint8Array(hashBuffer);
