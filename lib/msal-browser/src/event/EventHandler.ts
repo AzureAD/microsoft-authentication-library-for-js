@@ -17,6 +17,7 @@ import {
     EventPayload,
 } from "./EventMessage";
 import { EventType } from "./EventType";
+import { createNewGuid } from "../crypto/BrowserCrypto";
 
 export class EventHandler {
     // Callback for subscribing to events
@@ -40,7 +41,7 @@ export class EventHandler {
      */
     addEventCallback(callback: EventCallbackFunction): string | null {
         if (typeof window !== "undefined") {
-            const callbackId = this.browserCrypto.createNewGuid();
+            const callbackId = createNewGuid();
             this.eventCallbacks.set(callbackId, callback);
             this.logger.verbose(
                 `Event callback registered with id: ${callbackId}`

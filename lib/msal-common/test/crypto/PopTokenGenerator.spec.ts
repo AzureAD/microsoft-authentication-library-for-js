@@ -8,7 +8,7 @@ import {
     TEST_CRYPTO_VALUES,
 } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
-import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
+import { ICrypto } from "../../src/crypto/ICrypto";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { UrlString } from "../../src/url/UrlString";
@@ -50,12 +50,6 @@ describe("PopTokenGenerator Unit Tests", () => {
                 default:
                     return input;
             }
-        },
-        async generatePkceCodes(): Promise<PkceCodes> {
-            return {
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            };
         },
         async getPublicKeyThumbprint(): Promise<string> {
             return TEST_POP_VALUES.KID;
