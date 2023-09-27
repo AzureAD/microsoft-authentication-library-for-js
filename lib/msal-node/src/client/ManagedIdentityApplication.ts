@@ -4,6 +4,7 @@
  */
 
 import {
+    AuthenticationResult,
     CacheManager,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     DefaultStorageClass,
@@ -12,7 +13,6 @@ import {
     LoggerOptions,
     NetworkManager,
 } from "@azure/msal-common";
-import { ManagedIdentityIdType } from "../utils/Constants";
 import { ServiceFabric } from "./ManagedIdentitySources/ServiceFabric";
 import { AppService } from "./ManagedIdentitySources/AppService";
 import { CloudShell } from "./ManagedIdentitySources/CloudShell";
@@ -24,18 +24,19 @@ import {
     buildManagedIdentityConfiguration,
 } from "../config/Configuration";
 import { version, name } from "../packageMetadata.js";
+import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
+import { ManagedIdentityId } from "../config/ManagedIdentityId";
 
 /**
  * Class to initialize a managed identity and identify the service
  */
-export class ManagedIdentityClient {
+export class ManagedIdentityApplication {
+    private managedIdentityId: ManagedIdentityId;
     private config: ManagedIdentityNodeConfiguration;
     private logger: Logger;
     private cacheManager: CacheManager;
-    protected networkClient: INetworkModule;
-    protected networkManager: NetworkManager;
+    private networkManager: NetworkManager;
 
-    private isUserAssigned: boolean;
     private identitySource:
         | ServiceFabric
         | AppService
@@ -43,62 +44,41 @@ export class ManagedIdentityClient {
         | AzureArc
         | Imds;
 
-    /*
-     * system assigned, user doesn't pass anything
-     * user assigned, client id or resource id
-     */
-
-    constructor(configuration: ManagedIdentityConfiguration) {
+    constructor(
+        configuration: ManagedIdentityConfiguration,
+        managedIdentityId: ManagedIdentityId
+    ) {
         this.config = buildManagedIdentityConfiguration(configuration);
+        this.managedIdentityId = managedIdentityId;
 
         this.logger = new Logger(
-            this.config.system.loggerOptions as LoggerOptions,
+            this.config.system.loggerOptions,
             name,
             version
         );
 
-        (this.cacheManager = new DefaultStorageClass(
-            this.config.id,
+        this.cacheManager = new DefaultStorageClass(
+            this.managedIdentityId.id,
             DEFAULT_CRYPTO_IMPLEMENTATION,
             this.logger
-        )),
-            (this.networkClient = this.config.system
-                .networkClient as INetworkModule);
-        this.networkManager = new NetworkManager(
-            this.networkClient,
-            this.cacheManager
         );
 
-        switch (this.config.resourceType) {
-            case ManagedIdentityIdType.SYSTEM_ASSIGNED:
-                this.isUserAssigned = false;
-                break;
-            case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
-            case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
-            case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
-                this.isUserAssigned = true;
-                break;
-            default:
-                // TODO: throw error
-                break;
-        }
+        const networkClient: INetworkModule = this.config.system
+                .networkClient;
+        this.networkManager = new NetworkManager(
+            networkClient,
+            this.cacheManager
+        );
 
         this.identitySource = this.selectManagedIdentitySource();
     }
 
-    /*
-     * TODO: implement this method; currently is DOTNET implementation
-     *
-     * public async sendTokenRequestAsync(
-     *     parameters: AcquireTokenForManagedIdentityParameters,
-     *     cancellationToken: number
-     * ): ManagedIdentityResponse {
-     *     return await this.identitySource.authenticateAsync(
-     *         parameters,
-     *         cancellationToken
-     *     );
-     * }
-     */
+    // TODO: implement this method
+    public async acquireToken(
+        request: ManagedIdentityRequest,
+    ): Promise<AuthenticationResult | null> {
+        // 
+    }
 
     /**
      * Tries to create a managed identity source for all sources
@@ -120,33 +100,34 @@ export class ManagedIdentityClient {
                     this.logger,
                     this.cacheManager,
                     this.networkManager,
-                    this.isUserAssigned
+                    this.managedIdentityId
                 ) ||
                 AppService.tryCreate(
                     this.config,
                     this.logger,
                     this.cacheManager,
-                    this.networkManager
+                    this.networkManager,
+                    this.managedIdentityId
                 ) ||
                 CloudShell.tryCreate(
                     this.config,
                     this.logger,
                     this.cacheManager,
                     this.networkManager,
-                    this.isUserAssigned
+                    this.managedIdentityId
                 ) ||
                 AzureArc.tryCreate(
                     this.config,
                     this.logger,
                     this.cacheManager,
                     this.networkManager,
-                    this.isUserAssigned
+                    this.managedIdentityId
                 ) ||
                 Imds.tryCreate(
                     this.config,
                     this.logger,
                     this.cacheManager,
-                    this.networkManager
+                    this.managedIdentityId
                 )
             );
         } catch (error) {

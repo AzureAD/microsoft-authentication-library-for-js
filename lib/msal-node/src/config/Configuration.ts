@@ -111,13 +111,13 @@ export type Configuration = {
     telemetry?: NodeTelemetryOptions;
 };
 
-export type ManagedIdentityConfiguration = {
-    forceRefresh?: boolean;
-    id?: string;
-    resourceType: ManagedIdentityIdType;
-    resourceUri: string;
-    system?: NodeSystemOptions;
-};
+export type ManagedIdentityConfiguration = Omit<
+    Configuration,
+    | "auth"
+    | "broker"
+    | "cache"
+    | "telemetry"
+>
 
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientId: Constants.EMPTY_STRING,
@@ -212,19 +212,15 @@ export function buildAppConfiguration({
     };
 }
 
-export type ManagedIdentityNodeConfiguration = {
-    forceRefresh: boolean;
-    id: string;
-    resourceType: ManagedIdentityIdType;
-    resourceUri: string;
-    system: NodeSystemOptions;
-};
+export type ManagedIdentityNodeConfiguration = Omit<
+    NodeConfiguration,
+    | "auth"
+    | "broker"
+    | "cache"
+    | "telemetry"
+>
 
 export function buildManagedIdentityConfiguration({
-    forceRefresh: forceRefresh,
-    id: id,
-    resourceType: resourceType,
-    resourceUri: resourceUri,
     system: system,
 }: ManagedIdentityConfiguration): ManagedIdentityNodeConfiguration {
     const systemOptions: Required<NodeSystemOptions> = {
@@ -237,10 +233,6 @@ export function buildManagedIdentityConfiguration({
     };
 
     return {
-        forceRefresh: forceRefresh || false,
-        id: id || DEFAULT_MANAGED_IDENTITY_ID,
-        resourceType: resourceType,
-        resourceUri: resourceUri,
         system: { ...systemOptions, ...system },
     };
 }
