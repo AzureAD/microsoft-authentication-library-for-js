@@ -360,7 +360,7 @@ describe("CacheManager.ts test cases", () => {
             };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).toEqual(1);
+            expect(Object.keys(accounts).length).toEqual(3);
             sinon.restore();
 
             const wrongFilter: AccountFilter = { environment: "Wrong Env" };
@@ -374,7 +374,7 @@ describe("CacheManager.ts test cases", () => {
             const successFilter: AccountFilter = { realm: "microsoft" };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).toEqual(1);
+            expect(Object.keys(accounts).length).toEqual(3);
 
             const wrongFilter: AccountFilter = { realm: "Wrong Realm" };
             accounts =
@@ -395,6 +395,51 @@ describe("CacheManager.ts test cases", () => {
             accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
             expect(Object.keys(accounts).length).toEqual(0);
+        });
+
+        it("loginHint filter matching login_hint ID token claim", () => {
+            // filter by loginHint
+            const successFilter: AccountFilter = {
+                loginHint: "testLoginHint",
+            };
+            let accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            expect(accounts.length).toEqual(1);
+
+            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
+            accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            expect(accounts.length).toBe(0);
+        });
+
+        it("loginHint filter matching username", () => {
+            // filter by loginHint
+            const successFilter: AccountFilter = {
+                loginHint: "Jane Doe",
+            };
+            let accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            expect(accounts.length).toEqual(1);
+
+            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
+            accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            expect(accounts.length).toBe(0);
+        });
+
+        it("loginHint filter matching upn ID token claim", () => {
+            // filter by loginHint
+            const successFilter: AccountFilter = {
+                loginHint: "testUpn",
+            };
+            let accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            expect(accounts.length).toEqual(1);
+
+            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
+            accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            expect(accounts.length).toBe(0);
         });
     });
 
