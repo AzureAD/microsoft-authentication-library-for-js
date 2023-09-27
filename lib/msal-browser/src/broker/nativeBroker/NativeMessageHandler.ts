@@ -16,7 +16,6 @@ import {
     InProgressPerformanceEvent,
     PerformanceEvents,
     IPerformanceClient,
-    ICrypto,
 } from "@azure/msal-common";
 import {
     NativeExtensionRequest,
@@ -28,6 +27,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../../error/BrowserAuthError";
 import { BrowserConfiguration } from "../../config/Configuration";
+import { createNewGuid } from "../../crypto/BrowserCrypto";
 
 type ResponseResolvers<T> = {
     resolve: (value: T | PromiseLike<T>) => void;
@@ -40,7 +40,6 @@ export class NativeMessageHandler {
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
-    private crypto: ICrypto;
     private readonly handshakeTimeoutMs: number;
     private timeoutId: number | undefined;
     private resolvers: Map<string, ResponseResolvers<object>>;
@@ -54,7 +53,6 @@ export class NativeMessageHandler {
         logger: Logger,
         handshakeTimeoutMs: number,
         performanceClient: IPerformanceClient,
-        crypto: ICrypto,
         extensionId?: string
     ) {
         this.logger = logger;
@@ -68,7 +66,6 @@ export class NativeMessageHandler {
         this.handshakeEvent = performanceClient.startMeasurement(
             PerformanceEvents.NativeMessageHandlerHandshake
         );
-        this.crypto = crypto;
     }
 
     /**
@@ -80,7 +77,7 @@ export class NativeMessageHandler {
         const req: NativeExtensionRequest = {
             channel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
-            responseId: this.crypto.createNewGuid(),
+            responseId: createNewGuid(),
             body: body,
         };
 
@@ -109,8 +106,7 @@ export class NativeMessageHandler {
     static async createProvider(
         logger: Logger,
         handshakeTimeoutMs: number,
-        performanceClient: IPerformanceClient,
-        crypto: ICrypto
+        performanceClient: IPerformanceClient
     ): Promise<NativeMessageHandler> {
         logger.trace("NativeMessageHandler - createProvider called.");
         try {
@@ -118,7 +114,6 @@ export class NativeMessageHandler {
                 logger,
                 handshakeTimeoutMs,
                 performanceClient,
-                crypto,
                 NativeConstants.PREFERRED_EXTENSION_ID
             );
             await preferredProvider.sendHandshakeRequest();
@@ -128,8 +123,7 @@ export class NativeMessageHandler {
             const backupProvider = new NativeMessageHandler(
                 logger,
                 handshakeTimeoutMs,
-                performanceClient,
-                crypto
+                performanceClient
             );
             await backupProvider.sendHandshakeRequest();
             return backupProvider;
@@ -149,7 +143,7 @@ export class NativeMessageHandler {
         const req: NativeExtensionRequest = {
             channel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
-            responseId: this.crypto.createNewGuid(),
+            responseId: createNewGuid(),
             body: {
                 method: NativeExtensionMethod.HandshakeRequest,
             },
