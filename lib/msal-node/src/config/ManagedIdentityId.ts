@@ -3,17 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { DEFAULT_MANAGED_IDENTITY_ID, ManagedIdentityIdType } from "../utils/Constants";
+import {
+    DEFAULT_MANAGED_IDENTITY_ID,
+    ManagedIdentityIdType,
+} from "../utils/Constants";
 
 export class ManagedIdentityId {
     private _id: string;
     private idType: ManagedIdentityIdType;
     private isUserAssignedId: boolean;
 
-    constructor(
-        idType: ManagedIdentityIdType,
-        id?: string
-    ) {
+    constructor(idType: ManagedIdentityIdType, id?: string) {
         this.idType = idType;
         this._id = id || DEFAULT_MANAGED_IDENTITY_ID;
 
@@ -44,9 +44,14 @@ export class ManagedIdentityId {
      * @param clientId Client id of the user assigned managed identity assigned to the azure resource
      * @returns Instance of ManagedIdentityId
      */
-    public static createUserAssignedClientId(clientId: string): ManagedIdentityId {
+    public static createUserAssignedClientId(
+        clientId: string
+    ): ManagedIdentityId {
         // TODO: throw exception if clientId is null
-        return new ManagedIdentityId(ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID, clientId);
+        return new ManagedIdentityId(
+            ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID,
+            clientId
+        );
     }
 
     /**
@@ -54,9 +59,14 @@ export class ManagedIdentityId {
      * @param resourceId Resource id of the user assigned managed identity assigned to the azure resource
      * @returns Instance of ManagedIdentityId
      */
-    public static createUserAssignedResourceId(resourceId: string): ManagedIdentityId {
+    public static createUserAssignedResourceId(
+        resourceId: string
+    ): ManagedIdentityId {
         // TODO: throw exception if resourceID is null
-        return new ManagedIdentityId(ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID, resourceId);
+        return new ManagedIdentityId(
+            ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID,
+            resourceId
+        );
     }
 
     /**
@@ -64,11 +74,16 @@ export class ManagedIdentityId {
      * @param objectId Object id of the user assigned managed identity assigned to the azure resource
      * @returns Instance of ManagedIdentityId
      */
-    public static createUserAssignedObjectId(objectId: string): ManagedIdentityId {
+    public static createUserAssignedObjectId(
+        objectId: string
+    ): ManagedIdentityId {
         // TODO: throw exception if objectId is null
-        return new ManagedIdentityId(ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID, objectId);
+        return new ManagedIdentityId(
+            ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID,
+            objectId
+        );
     }
-    
+
     public get id(): string {
         return this._id;
     }

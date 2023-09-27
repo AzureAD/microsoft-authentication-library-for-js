@@ -46,7 +46,7 @@ export class ManagedIdentityApplication {
 
     constructor(
         managedIdentityId: ManagedIdentityId,
-        configuration?: ManagedIdentityConfiguration,
+        configuration?: ManagedIdentityConfiguration
     ) {
         this.config = buildManagedIdentityConfiguration(configuration || {});
         this.managedIdentityId = managedIdentityId;
@@ -63,8 +63,7 @@ export class ManagedIdentityApplication {
             this.logger
         );
 
-        const networkClient: INetworkModule = this.config.system
-                .networkClient;
+        const networkClient: INetworkModule = this.config.system.networkClient;
         this.networkManager = new NetworkManager(
             networkClient,
             this.cacheManager
@@ -75,9 +74,9 @@ export class ManagedIdentityApplication {
 
     // TODO: implement this method
     public async acquireToken(
-        request: ManagedIdentityRequest,
+        request: ManagedIdentityRequest
     ): Promise<AuthenticationResult | null> {
-        // 
+        //
     }
 
     /**

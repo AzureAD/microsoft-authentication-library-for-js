@@ -113,11 +113,8 @@ export type Configuration = {
 
 export type ManagedIdentityConfiguration = Omit<
     Configuration,
-    | "auth"
-    | "broker"
-    | "cache"
-    | "telemetry"
->
+    "auth" | "broker" | "cache" | "telemetry"
+>;
 
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientId: Constants.EMPTY_STRING,
@@ -214,11 +211,8 @@ export function buildAppConfiguration({
 
 export type ManagedIdentityNodeConfiguration = Omit<
     NodeConfiguration,
-    | "auth"
-    | "broker"
-    | "cache"
-    | "telemetry"
->
+    "auth" | "broker" | "cache" | "telemetry"
+>;
 
 export function buildManagedIdentityConfiguration({
     system: system,
