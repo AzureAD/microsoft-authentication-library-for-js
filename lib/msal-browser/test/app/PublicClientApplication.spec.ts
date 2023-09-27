@@ -2397,7 +2397,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .callsFake((eventType, interactionType) => {
                     if (
                         eventType === EventType.SSO_SILENT_START &&
-                        interactionType === InteractionType.SsoSilent
+                        interactionType === InteractionType.Silent
                     ) {
                         ssoSilentFired = true;
                     }

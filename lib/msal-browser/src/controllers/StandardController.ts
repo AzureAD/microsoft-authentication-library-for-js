@@ -767,7 +767,7 @@ export class StandardController implements IController {
             prompt: request.prompt,
             correlationId: correlationId,
         };
-        this.preflightBrowserEnvironmentCheck(InteractionType.SsoSilent);
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.ssoSilentMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.SsoSilent,
             correlationId
@@ -782,7 +782,7 @@ export class StandardController implements IController {
         this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(
             EventType.SSO_SILENT_START,
-            InteractionType.SsoSilent,
+            InteractionType.Silent,
             validRequest
         );
 
@@ -814,7 +814,7 @@ export class StandardController implements IController {
             .then((response) => {
                 this.eventHandler.emitEvent(
                     EventType.SSO_SILENT_SUCCESS,
-                    InteractionType.SsoSilent,
+                    InteractionType.Silent,
                     response
                 );
                 this.ssoSilentMeasurement?.add({
@@ -831,7 +831,7 @@ export class StandardController implements IController {
             .catch((e: AuthError) => {
                 this.eventHandler.emitEvent(
                     EventType.SSO_SILENT_FAILURE,
-                    InteractionType.SsoSilent,
+                    InteractionType.Silent,
                     null,
                     e
                 );
