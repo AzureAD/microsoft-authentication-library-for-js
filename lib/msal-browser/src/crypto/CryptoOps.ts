@@ -14,15 +14,7 @@ import {
 } from "@azure/msal-common";
 import { base64Encode, urlEncode, urlEncodeArr } from "../encode/Base64Encode";
 import { base64Decode } from "../encode/Base64Decode";
-import {
-    createNewGuid,
-    exportJwk,
-    generateKeyPair,
-    importJwk,
-    sha256Digest,
-    sign,
-    validateCryptoAvailable,
-} from "./BrowserCrypto";
+import * as BrowserCrypto from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import {
     createBrowserAuthError,
@@ -57,7 +49,7 @@ export class CryptoOps implements ICrypto {
     constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
-        validateCryptoAvailable(logger);
+        BrowserCrypto.validateCryptoAvailable(logger);
         this.cache = new CryptoKeyStore(this.logger);
         this.performanceClient = performanceClient;
     }
@@ -67,7 +59,7 @@ export class CryptoOps implements ICrypto {
      * @returns string (GUID)
      */
     createNewGuid(): string {
-        return createNewGuid();
+        return BrowserCrypto.createNewGuid();
     }
 
     /**
@@ -100,13 +92,15 @@ export class CryptoOps implements ICrypto {
             );
 
         // Generate Keypair
-        const keyPair: CryptoKeyPair = await generateKeyPair(
+        const keyPair: CryptoKeyPair = await BrowserCrypto.generateKeyPair(
             CryptoOps.EXTRACTABLE,
             CryptoOps.POP_KEY_USAGES
         );
 
         // Generate Thumbprint for Public Key
-        const publicKeyJwk: JsonWebKey = await exportJwk(keyPair.publicKey);
+        const publicKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
+            keyPair.publicKey
+        );
 
         const pubKeyThumprintObj: JsonWebKey = {
             e: publicKeyJwk.e,
@@ -119,13 +113,12 @@ export class CryptoOps implements ICrypto {
         const publicJwkHash = await this.hashString(publicJwkString);
 
         // Generate Thumbprint for Private Key
-        const privateKeyJwk: JsonWebKey = await exportJwk(keyPair.privateKey);
-        // Re-import private key to make it unextractable
-        const unextractablePrivateKey: CryptoKey = await importJwk(
-            privateKeyJwk,
-            false,
-            ["sign"]
+        const privateKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
+            keyPair.privateKey
         );
+        // Re-import private key to make it unextractable
+        const unextractablePrivateKey: CryptoKey =
+            await BrowserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
         await this.cache.asymmetricKeys.setItem(publicJwkHash, {
@@ -184,7 +177,9 @@ export class CryptoOps implements ICrypto {
         }
 
         // Get public key as JWK
-        const publicKeyJwk = await exportJwk(cachedKeyPair.publicKey);
+        const publicKeyJwk = await BrowserCrypto.exportJwk(
+            cachedKeyPair.publicKey
+        );
         const publicKeyJwkString =
             BrowserStringUtils.getSortedObjectString(publicKeyJwk);
 
@@ -209,7 +204,7 @@ export class CryptoOps implements ICrypto {
 
         // Sign token
         const tokenBuffer = BrowserStringUtils.stringToUtf8Arr(tokenString);
-        const signatureBuffer = await sign(
+        const signatureBuffer = await BrowserCrypto.sign(
             cachedKeyPair.privateKey,
             tokenBuffer
         );
@@ -231,7 +226,9 @@ export class CryptoOps implements ICrypto {
      * @param plainText
      */
     async hashString(plainText: string): Promise<string> {
-        const hashBuffer: ArrayBuffer = await sha256Digest(plainText);
+        const hashBuffer: ArrayBuffer = await BrowserCrypto.sha256Digest(
+            plainText
+        );
         const hashBytes = new Uint8Array(hashBuffer);
         return urlEncodeArr(hashBytes);
     }
