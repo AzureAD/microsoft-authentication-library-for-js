@@ -105,7 +105,6 @@ export interface IController {
     /** @internal */
     getConfiguration(): BrowserConfiguration;
 
-    /** @internal */
     hydrateCache(
         result: AuthenticationResult,
         request:
