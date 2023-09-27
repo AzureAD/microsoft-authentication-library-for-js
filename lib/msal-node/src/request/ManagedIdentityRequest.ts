@@ -9,6 +9,6 @@
  * - resourceUri  - the URI of the managed identity
  */
 export type ManagedIdentityRequest = {
-    forceRefresh: boolean;
+    forceRefresh?: boolean;
     resourceUri: string;
 };
