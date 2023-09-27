@@ -104,6 +104,7 @@ export class LoopbackClient implements ILoopbackClient {
                  */
                 this.server.closeAllConnections();
             }
+            this.server.unref();
             this.server = undefined;
         }
     }
