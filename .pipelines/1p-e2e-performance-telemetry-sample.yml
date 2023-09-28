@@ -3,6 +3,9 @@ trigger: none # Disable push triggers
 pr:
 - dev
 
+pool:
+  vmImage: ubuntu-latest
+
 steps:
 - task: NodeTool@0
   displayName: 'Install Node.js'
