@@ -65,7 +65,6 @@ export async function sha256Digest(
         correlationId
     );
     const data = BrowserStringUtils.stringToUtf8Arr(dataString);
-    // MSR Crypto wants object with name property, instead of string
     return window.crypto.subtle.digest(
         S256_HASH_ALG,
         data
