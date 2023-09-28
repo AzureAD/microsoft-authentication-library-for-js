@@ -145,9 +145,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 base64Encode: (input: string): string => {
                     return "testEncodedString";
                 },
-                generatePkceCodes: async (): Promise<PkceCodes> => {
-                    return testPkceCodes;
-                },
                 getPublicKeyThumbprint: async (): Promise<string> => {
                     return TEST_POP_VALUES.ENCODED_REQ_CNF;
                 },

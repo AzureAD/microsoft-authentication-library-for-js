@@ -6,7 +6,6 @@
 import {
     ClientConfiguration,
     Constants,
-    PkceCodes,
     AccountEntity,
     AppMetadataEntity,
     ThrottlingEntity,
@@ -219,12 +218,6 @@ export const mockCrypto = {
     },
     base64Encode(input: string): string {
         return Buffer.from(input, "utf-8").toString("base64");
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
-        return {
-            challenge: TEST_CONFIG.TEST_CHALLENGE,
-            verifier: TEST_CONFIG.TEST_VERIFIER,
-        };
     },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
