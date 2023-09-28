@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use the proper algo name for `window.crypto.subtle.digest()` #6521",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
