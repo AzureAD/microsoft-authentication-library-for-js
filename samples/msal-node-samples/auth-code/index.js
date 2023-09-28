@@ -7,6 +7,7 @@ const express = require("express");
 const session = require("express-session")
 const msal = require('@azure/msal-node');
 const url = require('url');
+require('dotenv').config();
 
 /**
  * Command line arguments can be used to configure:
@@ -27,13 +28,13 @@ const cachePlugin = require('../cachePlugin')(cacheLocation);
  * /config directory.
  *
  * You can create your own configuration file and replace the path inside the "config" require statement below
- * with the path to your custom configuraiton.
+ * with the path to your custom configuration.
  */
 const scenario = argv.s || "customConfig";
 const config = require(`./config/${scenario}.json`);
 
 const sessionConfig = {
-    secret: 'ENTER_YOUR_SECRET_HERE',
+    secret: process.env.SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -54,7 +55,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
 
     app.get("/", (req, res) => {
         // if redirectUri is set to the main route "/", redirect to "/redirect" route for handling authZ code
-        if (req.query.code ) return res.redirect(url.format({pathname: "/redirect", query: req.query}));
+        if (req.query.code) return res.redirect(url.format({ pathname: "/redirect", query: req.query }));
 
         const { authCodeUrlParameters } = requestConfig;
 
@@ -62,18 +63,18 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
 
         if (req.query) {
             // Check for the state parameter
-             /**
-             * MSAL Node supports the OAuth2.0 state parameter which is used to prevent CSRF attacks.
-             * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
-             * used to populate the state value if none is provided.
-             * 
-             * The generated state is then cached and passed as part of authCodeUrlParameters during authentication request.
-             * The cached state must then be passed as part of authCodeResponse in ClientApplicaiton.acquireTokenByCode API call, 
-             * to be validated before the authorization code is sent to the server in exchange for an access token.
-             * 
-             * For more information about state,
-             * visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6
-             */
+            /**
+            * MSAL Node supports the OAuth2.0 state parameter which is used to prevent CSRF attacks.
+            * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
+            * used to populate the state value if none is provided.
+            * 
+            * The generated state is then cached and passed as part of authCodeUrlParameters during authentication request.
+            * The cached state must then be passed as part of authCodeResponse in ClientApplicaiton.acquireTokenByCode API call, 
+            * to be validated before the authorization code is sent to the server in exchange for an access token.
+            * 
+            * For more information about state,
+            * visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6
+            */
             authCodeUrlParameters.state = req.query.state ? req.query.state : cryptoProvider.createNewGuid();
             // Check for nonce parameter
             /**
@@ -101,7 +102,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
 
         req.session.nonce = authCodeUrlParameters.nonce //switch to a more persistent storage method.
         req.session.state = authCodeUrlParameters.state
-        
+
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.getAuthCodeUrl API.
@@ -118,9 +119,9 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     });
 
     app.get("/redirect", (req, res) => {
-        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code, state:req.query.state };
-        const authCodeResponse = { 
-            nonce: req.session.nonce, 
+        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code, state: req.query.state };
+        const authCodeResponse = {
+            nonce: req.session.nonce,
             code: req.query.code,
             state: req.session.state
         };
@@ -157,13 +158,13 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
  * If the script was executed manually, it will initialize a PublicClientApplication object
  * and execute the sample application.
  */
- if(argv.$0 === "index.js") {
-    const loggerOptions = {
-        loggerCallback(loglevel, message, containsPii) {
-            console.log(message);
+if (argv.$0 === "index.js") {
+    const loggerOptions = {
+        loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
         },
-            piiLoggingEnabled: false,
-        logLevel: msal.LogLevel.Verbose,
+        piiLoggingEnabled: false,
+        logLevel: msal.LogLevel.Verbose,
     }
 
     // Build MSAL ClientApplication Configuration object
@@ -185,7 +186,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
 
     // Execute sample application with the configured MSAL PublicClientApplication
     return getTokenAuthCode(config, publicClientApplication, null);
- }
+}
 
 // The application code is exported so it can be executed in automation environments
- module.exports = getTokenAuthCode;
+module.exports = getTokenAuthCode;
