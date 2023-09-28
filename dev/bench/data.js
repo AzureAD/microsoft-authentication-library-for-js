@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1695845444673,
+  "lastUpdate": 1695860152520,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -836,6 +836,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.65%",
             "unit": "ops/sec",
             "extra": "228 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b69ed83ede29bd39b04eb71ae7c15f0a983e0442",
+          "message": "Fix LoopbackClient issues (#6481)\n\nThis PR fixes 2 bugs in the LoopbackClient:\r\n\r\n1. If the server doesn't spin up immediately, getting the redirectUri\r\nwill fail. Addressed by moving the setInterval out of the\r\n`listenForAuthCode` function and instead wrapping the `getRedirectUri`\r\nwith it\r\n1. If the listener throws before the promise is awaited the rejection\r\nbecomes unhandled. Addressed by attaching the catch handler on promise\r\ncreation and storing the error for later.",
+          "timestamp": "2023-09-28T00:10:55Z",
+          "tree_id": "802e7f614d89c123380d1b2fa9d602773383bfdf",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b69ed83ede29bd39b04eb71ae7c15f0a983e0442"
+        },
+        "date": 1695860151488,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 143515,
+            "range": "±1.48%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 142231,
+            "range": "±1.42%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
