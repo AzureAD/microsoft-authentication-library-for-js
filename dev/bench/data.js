@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1695937402216,
+  "lastUpdate": 1696012017066,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -950,6 +950,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.39%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1ed195242f08b9637ef7654f59687db0b5d885ab",
+          "message": "Add 1p e2e performance telemetry pipeline (#6520)\n\n- Add 1p e2e performance telemetry pipeline.",
+          "timestamp": "2023-09-29T14:22:32-04:00",
+          "tree_id": "5f26b8e855c060d85ebc85577769e76b69933afa",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1ed195242f08b9637ef7654f59687db0b5d885ab"
+        },
+        "date": 1696012015964,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 153299,
+            "range": "±1.25%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 153148,
+            "range": "±1.30%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
