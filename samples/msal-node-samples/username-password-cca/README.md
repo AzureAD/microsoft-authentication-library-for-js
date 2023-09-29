@@ -29,18 +29,26 @@ Locate the folder where `package.json` resides in your terminal. Then type:
    - In the **Client secrets** section, select **New client secret**.
    - Type a key description (for instance `app secret`),
    - Select one of the available key durations (6 months, 12 months or Custom) as per your security posture.
-   - The generated key value will be displayed when you select the **Add** button. Copy and save the generated value for use in later steps.
+   - The generated key value will be displayed when you select the **Add** button. Copy and add this client secret to the `.env` file as `CLIENT_SECRET`.
 
 Before running the sample, you will need to replace the values in the configuration object:
+
+**index.js**
 
 ```javascript
 const msalConfig = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
-        clientSecret: "ENTER_CLIENT_SECRET"
+        clientSecret: process.env.CLIENT_SECRET
     },
 };
+```
+
+**.env file**
+
+```
+CLIENT_SECRET=<your client secret here>
 ```
 
 ## Run the app

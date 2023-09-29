@@ -34,12 +34,12 @@ For other supported account types, review the other [Authority options](https://
 
 #### **Client Secret**
 
-If your AzureAD app registration is configured as a Confidential Client Application, you'll have to add a `clientSecret` attribute to the configuration and change the `PublicClientApplication` object in the sample's `index.js` file into a `ConfidentialClientApplication` object.
+If your AzureAD app registration is configured as a Confidential Client Application, you'll have to add a `clientSecret` attribute to a `.env` file and change the `PublicClientApplication` object in the sample's `index.js` file into a `ConfidentialClientApplication` object.
 
 This secret helps prevent third parties from using your app registration.
-Click on `Certificates and Secrets` in the left nav.
-Click `New Client Secret` and pick an expiry.
-Click the `Copy to Clipboard` icon, and add the secret to the config object in `./config/customConfig.json`.
+1. Click on `Certificates and Secrets` in the left nav.
+1. Click `New Client Secret` and pick an expiry.
+1. Click the `Copy to Clipboard` icon, add this client secret to the `.env` file as `CLIENT_SECRET`.
 
 **silent-flow/config/customConfig.json**
 ```json
@@ -48,8 +48,6 @@ Click the `Copy to Clipboard` icon, and add the secret to the config object in `
         {
             "clientId": "YOUR_CLIENT_ID",
             "authority": "YOUR_AUTHORITY",
-            "clientSecret": "YOUR_CLIENT_SECRET"
-
         },
     "request":
     {
@@ -70,6 +68,12 @@ Click the `Copy to Clipboard` icon, and add the secret to the config object in `
         "endpoint": "https://graph.microsoft.com/v1.0/me"
     }
 }
+```
+
+**.env file**
+
+```
+CLIENT_SECRET=<your client secret here>
 ```
 
 **silent-flow/index.js**

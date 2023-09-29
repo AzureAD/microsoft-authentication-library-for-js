@@ -169,7 +169,12 @@ if (argv.$0 === "index.js") {
 
     // Build MSAL ClientApplication Configuration object
     const clientConfig = {
-        auth: config.authOptions,
+        auth: {
+            clientId: config.authOptions.clientId,
+            authority: config.authOptions.authority,
+            clientSecret: process.env.CLIENT_SECRET,
+            knownAuthorities: [config.authOptions.knownAuthorities]
+        },
         cache: {
             cachePlugin
         },
