@@ -34,7 +34,7 @@ const scenario = argv.s || "customConfig";
 const config = require(`./config/${scenario}.json`);
 
 const sessionConfig = {
-    secret: process.env.SECRET,
+    secret: process.env.CLIENT_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
