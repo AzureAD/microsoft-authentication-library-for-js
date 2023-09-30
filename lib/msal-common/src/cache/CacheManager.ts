@@ -226,38 +226,11 @@ export abstract class CacheManager implements ICacheManager {
      * @returns Array of AccountInfo objects in cache
      */
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
-        if (accountFilter) {
-            return this.getAccountsFilteredBy(accountFilter).map(
-                (accountEntity) => {
-                    return accountEntity.getAccountInfo();
-                }
-            );
-        }
-
-        const allAccountKeys = this.getAccountKeys();
-        if (allAccountKeys.length < 1) {
-            return [];
-        }
-
-        const accountEntities: AccountEntity[] = allAccountKeys.reduce(
-            (accounts: AccountEntity[], key: string) => {
-                const entity: AccountEntity | null = this.getAccount(key);
-
-                if (!entity) {
-                    return accounts;
-                }
-                accounts.push(entity);
-                return accounts;
-            },
-            []
-        );
-
-        const allAccounts = accountEntities.map<AccountInfo>(
+        return this.getAccountsFilteredBy(accountFilter || {}).map(
             (accountEntity) => {
                 return this.getAccountInfoFromEntity(accountEntity);
             }
         );
-        return allAccounts;
     }
 
     /**
