@@ -302,6 +302,8 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (!!cacheRecord.account) {
+            // Remove ID token claims before saving account entity
+            cacheRecord.account.idTokenClaims = undefined;
             this.setAccount(cacheRecord.account);
         }
 
@@ -853,6 +855,7 @@ export abstract class CacheManager implements ICacheManager {
         environment: string
     ): CacheRecord {
         const tokenKeys = this.getTokenKeys();
+        debugger;
         const cachedAccount = this.readAccountFromCache(account);
         const cachedIdToken = this.getIdToken(account, tokenKeys);
         const cachedAccessToken = this.getAccessToken(
