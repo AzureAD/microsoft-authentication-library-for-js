@@ -159,7 +159,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
+            authority,
+            false
         );
 
         expect(acc.generateAccountKey()).toEqual(

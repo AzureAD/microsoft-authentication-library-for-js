@@ -92,6 +92,9 @@ export const TEST_TOKENS = {
     // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Fake credential used for testing purposes")]
     ID_TOKEN_V2_WITH_UPN:
         "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFJa3pxRlZyU2FTYUZIeTc4MmJidGFRIiwidmVyIjoiMi4wIiwiYWlvIjoiRGYyVVZYTDFpeCFsTUNXTVNPSkJjRmF0emNHZnZGR2hqS3Y4cTVnMHg3MzJkUjVNQjVCaXN2R1FPN1lXQnlqZDhpUURMcSFlR2JJRGFreXA1bW5PcmNkcUhlWVNubHRlcFFtUnA2QUlaOGpZIiwiaXNzIjoiaHR0cHM6Ly9sb2dpbi5taWNyb3NvZnRvbmxpbmUuY29tLzkxODgwNDBkLTZjNjctNGM1Yi1iMTEyLTM2YTMwNGI2NmRhZC92Mi4wIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiQWJlTGlAbWljcm9zb2Z0LmNvbSIsIm9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC02NmYzLTMzMzJlY2E3ZWE4MSIsIm5vbmNlIjoiMTIzNTIzIiwidGlkIjoiMzMzODA0MGQtNmM2Ny00YzViLWIxMTItMzZhMzA0YjY2ZGFkIiwiYXVkIjoiNmNiMDQwMTgtYTNmNS00NmE3LWI5OTUtOTQwYzc4ZjVhZWYzIiwibmJmIjoiMTUzNjM2MTQxMSIsIm5hbWUiOiJBYmUgTGluY29sbiIsImV4cCI6IjE1MzYzNjE0MTEiLCJpYXQiOiIxNTM2MzYxNDExIiwidXBuIjoidGVzdFVwbiJ9._8gXqY4qn4A8v_et5fESz-82BU4ad2F_v2msO9CcvIA",
+    // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Fake credential used for testing purposes")]
+    GUEST_ID_TOKEN_V2:
+        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2ZXIiOiIyLjAiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vZ3Vlc3QtdGVuYW50LWlkL3YyLjAiLCJzdWIiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFJa3pxRlZyU2FTYUZIeTc4MmJidGFRIiwiYXVkIjoiNmNiMDQwMTgtYTNmNS00NmE3LWI5OTUtOTQwYzc4ZjVhZWYzIiwiZXhwIjoxNTM2MzYxNDExLCJpYXQiOjE1MzYyNzQ3MTEsIm5iZiI6MTUzNjI3NDcxMSwibmFtZSI6IkFiZSBMaW5jb2xuIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiQWJlTGlAbWljcm9zb2Z0LmNvbSIsIm9pZCI6Imd1ZXN0LWxvY2FsLWFjY291bnQtaWQiLCJ0aWQiOiJndWVzdC10ZW5hbnQtaWQiLCJub25jZSI6IjEyMzUyMyIsImFpbyI6IkRmMlVWWEwxaXghbE1DV01TT0pCY0ZhdHpjR2Z2Rkdoakt2OHE1ZzB4NzMyZFI1TUI1QmlzdkdRTzdZV0J5amQ4aVFETHEhZUdiSURha3lwNW1uT3JjZHFIZVlTbmx0ZXBRbVJwNkFJWjhqWSJ9._aH8s6Y01uvuIcZ9NmsTats9P1i7zuVz-SX7rjFECNk",
 };
 
 export const ID_TOKEN_CLAIMS = {
@@ -108,6 +111,33 @@ export const ID_TOKEN_CLAIMS = {
     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
     nonce: "123523",
     aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY",
+};
+
+export const GUEST_ID_TOKEN_CLAIMS = {
+    ...ID_TOKEN_CLAIMS,
+    iss: "https://login.microsoftonline.com/guest-tenant-id/v2.0",
+    oid: "guest-local-account-id",
+    tid: "guest-tenant-id",
+};
+
+// Test AccountInfo
+export const TEST_HOME_ACCOUNT_INFO = {
+    homeAccountId: ID_TOKEN_CLAIMS.oid + "." + ID_TOKEN_CLAIMS.tid,
+    environment: "login.windows.net",
+    tenantId: ID_TOKEN_CLAIMS.tid,
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    localAccountId: ID_TOKEN_CLAIMS.oid,
+    name: ID_TOKEN_CLAIMS.name,
+    idToken: TEST_TOKENS.GUEST_ID_TOKEN_V2,
+    idTokenClaims: GUEST_ID_TOKEN_CLAIMS,
+    authorityType: "MSSTS",
+};
+
+// Test Guest AccountInfo
+export const TEST_GUEST_ACCOUNT_INFO = {
+    ...TEST_HOME_ACCOUNT_INFO,
+    tenantId: GUEST_ID_TOKEN_CLAIMS.tid,
+    localAccountId: GUEST_ID_TOKEN_CLAIMS.oid,
 };
 
 // Test Expiration Vals
