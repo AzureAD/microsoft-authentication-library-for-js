@@ -6,7 +6,7 @@
 import { Separators, CacheAccountType, Constants } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
-import { buildClientInfo } from "../../account/ClientInfo";
+import { ClientInfo, buildClientInfo } from "../../account/ClientInfo";
 import { AccountInfo } from "../../account/AccountInfo";
 import {
     createClientAuthError,
@@ -26,9 +26,9 @@ import { ProtocolMode } from "../../authority/ProtocolMode";
  *
  * Value Schema:
  * {
- *      homeAccountId: home account identifier for the auth scheme,
+ *      homeAccountId: home account identifier for the auth scheme
  *      environment: entity that issued the token, represented as a full host
- *      realm: Full tenant or organizational identifier that the account belongs to
+ *      realm: Full home tenant or organizational identifier that the account belongs to
  *      localAccountId: Original tenant-specific accountID, usually used for legacy cases
  *      username: primary username that represents the user, usually corresponds to preferred_username in the v2 endpt
  *      authorityType: Accounts authority type as a string
@@ -37,6 +37,7 @@ import { ProtocolMode } from "../../authority/ProtocolMode";
  *      lastModificationApp:
  *      idTokenClaims: Object containing claims parsed from ID token
  *      nativeAccountId: Account identifier on the native device
+ *      tenants: Array of strings that represent a unique identifier for the tenants that the account has been authenticated with. This property is only available when multiTenantAccountsEnabled is set to true.
  * }
  * @internal
  */
@@ -55,6 +56,7 @@ export class AccountEntity {
     msGraphHost?: string;
     idTokenClaims?: TokenClaims;
     nativeAccountId?: string;
+    tenants?: Array<string>;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -91,6 +93,7 @@ export class AccountEntity {
             idTokenClaims: this.idTokenClaims,
             nativeAccountId: this.nativeAccountId,
             authorityType: this.authorityType,
+            tenants: this.tenants,
         };
     }
 
@@ -122,7 +125,8 @@ export class AccountEntity {
             environment?: string;
             nativeAccountId?: string;
         },
-        authority: Authority
+        authority: Authority,
+        cryptoObj?: ICrypto
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -132,6 +136,19 @@ export class AccountEntity {
             account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         } else {
             account.authorityType = CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        }
+
+        let clientInfo: ClientInfo | undefined;
+
+        try {
+            if (accountDetails.clientInfo && cryptoObj) {
+                clientInfo = buildClientInfo(
+                    accountDetails.clientInfo,
+                    cryptoObj
+                );
+            }
+        } catch (e) {
+            throw e;
         }
 
         account.clientInfo = accountDetails.clientInfo;
@@ -149,14 +166,17 @@ export class AccountEntity {
         }
 
         account.environment = env;
-        // non AAD scenarios can have empty realm
+
         account.realm =
-            accountDetails.idTokenClaims.tid || Constants.EMPTY_STRING;
+            clientInfo?.utid ||
+            accountDetails.idTokenClaims.tid ||
+            Constants.EMPTY_STRING;
 
         account.idTokenClaims = accountDetails.idTokenClaims;
 
         // How do you account for MSA CID here?
         account.localAccountId =
+            clientInfo?.uid || // If home tenant is available, set it's uid as localAccountId
             accountDetails.idTokenClaims.oid ||
             accountDetails.idTokenClaims.sub ||
             Constants.EMPTY_STRING;
@@ -227,31 +247,30 @@ export class AccountEntity {
         cryptoObj: ICrypto,
         idTokenClaims?: TokenClaims
     ): string {
-        const accountId = idTokenClaims?.sub
-            ? idTokenClaims.sub
-            : Constants.EMPTY_STRING;
-
-        // since ADFS does not have tid and does not set client_info
+        // since ADFS/DSTS does not have tid and does not set client_info
         if (
-            authType === AuthorityType.Adfs ||
-            authType === AuthorityType.Dsts
+            !(
+                authType === AuthorityType.Adfs ||
+                authType === AuthorityType.Dsts
+            )
         ) {
-            return accountId;
-        }
-
-        // for cases where there is clientInfo
-        if (serverClientInfo) {
-            try {
-                const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
-                if (clientInfo.uid && clientInfo.utid) {
-                    return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
-                }
-            } catch (e) {}
+            // for cases where there is clientInfo
+            if (serverClientInfo) {
+                try {
+                    const clientInfo = buildClientInfo(
+                        serverClientInfo,
+                        cryptoObj
+                    );
+                    if (clientInfo.uid && clientInfo.utid) {
+                        return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
+                    }
+                } catch (e) {}
+            }
+            logger.verbose("No client info in response");
         }
 
         // default to "sub" claim
-        logger.verbose("No client info in response");
-        return accountId;
+        return idTokenClaims?.sub ? idTokenClaims.sub : Constants.EMPTY_STRING;
     }
 
     /**

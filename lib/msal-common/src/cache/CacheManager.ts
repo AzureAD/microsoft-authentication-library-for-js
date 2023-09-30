@@ -42,6 +42,7 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
 import { StoreInCache } from "../request/StoreInCache";
+import { Authority } from "../authority/Authority";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -226,38 +227,11 @@ export abstract class CacheManager implements ICacheManager {
      * @returns Array of AccountInfo objects in cache
      */
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
-        if (accountFilter) {
-            return this.getAccountsFilteredBy(accountFilter).map(
-                (accountEntity) => {
-                    return accountEntity.getAccountInfo();
-                }
-            );
-        }
-
-        const allAccountKeys = this.getAccountKeys();
-        if (allAccountKeys.length < 1) {
-            return [];
-        }
-
-        const accountEntities: AccountEntity[] = allAccountKeys.reduce(
-            (accounts: AccountEntity[], key: string) => {
-                const entity: AccountEntity | null = this.getAccount(key);
-
-                if (!entity) {
-                    return accounts;
-                }
-                accounts.push(entity);
-                return accounts;
-            },
-            []
-        );
-
-        const allAccounts = accountEntities.map<AccountInfo>(
+        return this.getAccountsFilteredBy(accountFilter || {}).map(
             (accountEntity) => {
-                return this.getAccountInfoFromEntity(accountEntity);
+                return accountEntity.getAccountInfo();
             }
         );
-        return allAccounts;
     }
 
     /**
@@ -376,26 +350,52 @@ export abstract class CacheManager implements ICacheManager {
      */
     getAccountsFilteredBy(accountFilter: AccountFilter): AccountEntity[] {
         const allAccountKeys = this.getAccountKeys();
+        const allAccountEntities: AccountEntity[] = [];
         const matchingAccounts: AccountEntity[] = [];
-
+        // Build account entities that belong to the user across tenants
         allAccountKeys.forEach((cacheKey) => {
-            if (
-                !this.isAccountKey(
-                    cacheKey,
-                    accountFilter.homeAccountId,
-                    accountFilter.tenantId
-                )
-            ) {
+            // Only consider accounts that belong to the user in question
+            if (!this.isAccountKey(cacheKey, accountFilter.homeAccountId)) {
                 // Don't parse value if the key doesn't match the account filters
                 return;
             }
 
-            const entity: AccountEntity | null = this.getAccount(cacheKey);
+            // Get home account or base entity
+            const baseEntity: AccountEntity | null = this.getAccount(cacheKey);
 
-            if (!entity) {
+            if (!baseEntity) {
                 return;
             }
 
+            // Build a full account entity for each ID token associated with the account
+            const baseAccountInfo: AccountInfo = baseEntity.getAccountInfo();
+            baseEntity.tenants?.forEach((tenantId: string) => {
+                const idToken = this.getIdToken(
+                    baseAccountInfo,
+                    undefined,
+                    tenantId
+                );
+                if (idToken) {
+                    try {
+                        const idTokenClaims = extractTokenClaims(
+                            idToken.secret,
+                            this.cryptoImpl.base64Decode
+                        );
+                        const tenantProfileEntity: AccountEntity =
+                            AccountEntity.createFromAccountInfo({
+                                ...baseAccountInfo,
+                            });
+                        tenantProfileEntity.idTokenClaims = idTokenClaims;
+                        allAccountEntities.push(tenantProfileEntity);
+                    } catch (e) {
+                        throw e; // TODO: handle error
+                    }
+                }
+            });
+        });
+
+        // Classic filter
+        allAccountEntities.forEach((entity) => {
             if (
                 !!accountFilter.homeAccountId &&
                 !this.matchHomeAccountId(entity, accountFilter.homeAccountId)
@@ -850,15 +850,24 @@ export abstract class CacheManager implements ICacheManager {
     readCacheRecord(
         account: AccountInfo,
         request: BaseAuthRequest,
-        environment: string
+        environment: string,
+        multiTenantAccountsEnabled?: boolean
     ): CacheRecord {
+        const requestTenantId = multiTenantAccountsEnabled
+            ? Authority.getTenantFromAuthorityString(request.authority)
+            : undefined;
         const tokenKeys = this.getTokenKeys();
         const cachedAccount = this.readAccountFromCache(account);
-        const cachedIdToken = this.getIdToken(account, tokenKeys);
+        const cachedIdToken = this.getIdToken(
+            account,
+            tokenKeys,
+            requestTenantId
+        );
         const cachedAccessToken = this.getAccessToken(
             account,
             request,
-            tokenKeys
+            tokenKeys,
+            requestTenantId
         );
         const cachedRefreshToken = this.getRefreshToken(
             account,
@@ -901,7 +910,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     getIdToken(
         account: AccountInfo,
-        tokenKeys?: TokenKeys
+        tokenKeys?: TokenKeys,
+        targetRealm?: string
     ): IdTokenEntity | null {
         this.commonLogger.trace("CacheManager - getIdToken called");
         const idTokenFilter: CredentialFilter = {
@@ -909,7 +919,7 @@ export abstract class CacheManager implements ICacheManager {
             environment: account.environment,
             credentialType: CredentialType.ID_TOKEN,
             clientId: this.clientId,
-            realm: account.tenantId,
+            realm: targetRealm || account.tenantId,
         };
 
         const idTokens: IdTokenEntity[] = this.getIdTokensByFilter(
@@ -1021,7 +1031,8 @@ export abstract class CacheManager implements ICacheManager {
     getAccessToken(
         account: AccountInfo,
         request: BaseAuthRequest,
-        tokenKeys?: TokenKeys
+        tokenKeys?: TokenKeys,
+        targetRealm?: string
     ): AccessTokenEntity | null {
         this.commonLogger.trace("CacheManager - getAccessToken called");
         const scopes = ScopeSet.createSearchScopes(request.scopes);
@@ -1043,7 +1054,7 @@ export abstract class CacheManager implements ICacheManager {
             environment: account.environment,
             credentialType: credentialType,
             clientId: this.clientId,
-            realm: account.tenantId,
+            realm: targetRealm || account.tenantId,
             target: scopes,
             tokenType: authScheme,
             keyId: request.sshKid,

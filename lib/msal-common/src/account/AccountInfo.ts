@@ -15,6 +15,7 @@ import { TokenClaims } from "./TokenClaims";
  * - idToken                - raw ID token
  * - idTokenClaims          - Object contains claims from ID token
  * - nativeAccountId        - The user's native account ID
+ * - tenants                - Array of strings that represent a unique identifier for the tenants that the account has been authenticated with. This property is only available when multiTenantAccountsEnabled is set to true.
  */
 export type AccountInfo = {
     homeAccountId: string;
@@ -35,6 +36,7 @@ export type AccountInfo = {
     };
     nativeAccountId?: string;
     authorityType?: string;
+    tenants?: Array<string>;
 };
 
 export type ActiveAccountFilters = {

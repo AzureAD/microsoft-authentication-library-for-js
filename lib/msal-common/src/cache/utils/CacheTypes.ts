@@ -76,6 +76,7 @@ export type CredentialFilter = {
     tokenType?: AuthenticationScheme;
     keyId?: string;
     requestedClaimsHash?: string;
+    loginHint?: string;
 };
 
 /**

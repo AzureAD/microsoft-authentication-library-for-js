@@ -421,16 +421,11 @@ export class ResponseHandler {
                 this.clientId,
                 idTokenClaims.tid || ""
             );
-
-            cachedAccount = AccountEntity.createAccount(
-                {
-                    homeAccountId: this.homeAccountIdentifier,
-                    idTokenClaims: idTokenClaims,
-                    clientInfo: serverTokenResponse.client_info,
-                    cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
-                    msGraphHost: authCodePayload?.msgraph_host,
-                },
-                authority
+            cachedAccount = this.setCachedAccount(
+                authority,
+                serverTokenResponse,
+                idTokenClaims,
+                authCodePayload
             );
         }
 
@@ -516,6 +511,49 @@ export class ResponseHandler {
             cachedRefreshToken,
             cachedAppMetadata
         );
+    }
+
+    private setCachedAccount(
+        authority: Authority,
+        serverTokenResponse: ServerAuthorizationTokenResponse,
+        idTokenClaims: TokenClaims,
+        authCodePayload?: AuthorizationCodePayload
+    ): AccountEntity | undefined {
+        this.logger.verbose("setCachedAccount called");
+        const responseTenantId = idTokenClaims.tid || Constants.EMPTY_STRING;
+
+        // Check if base account is already cached
+        const accountKeys = this.cacheStorage.getAccountKeys();
+        const baseAccountKey = accountKeys.find((accountKey: string) => {
+            return accountKey.startsWith(this.homeAccountIdentifier);
+        });
+
+        let cachedAccount: AccountEntity | null = null;
+        if (baseAccountKey) {
+            cachedAccount = this.cacheStorage.getAccount(baseAccountKey);
+        }
+
+        const baseAccount =
+            cachedAccount ||
+            AccountEntity.createAccount(
+                {
+                    homeAccountId: this.homeAccountIdentifier,
+                    idTokenClaims: idTokenClaims,
+                    clientInfo: serverTokenResponse.client_info,
+                    cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
+                    msGraphHost: authCodePayload?.msgraph_host,
+                },
+                authority,
+                this.cryptoObj
+            );
+
+        // home account already in cache, add guest tenant profile
+        const tenants = baseAccount.tenants || [];
+        if (!tenants.includes(responseTenantId)) {
+            tenants.push(responseTenantId);
+        }
+        baseAccount.tenants = tenants;
+        return baseAccount;
     }
 
     /**

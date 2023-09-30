@@ -140,7 +140,8 @@ export class SilentFlowClient extends BaseClient {
         const cacheRecord = this.cacheManager.readCacheRecord(
             request.account,
             request,
-            environment
+            environment,
+            this.config.authOptions.multiTenantAccountsEnabled
         );
 
         if (!cacheRecord.accessToken) {

@@ -1204,4 +1204,20 @@ export class Authority {
 
         return ciamAuthority;
     }
+
+    /**
+     * Extract tenantId from authority
+     */
+    static getTenantFromAuthorityString(authority: string): string | undefined {
+        const authorityUrl = new UrlString(authority);
+        const authorityUrlComponents = authorityUrl.getUrlComponents();
+        /**
+         * Tenant ID is the path after the domain:
+         *  AAD Authority - domain/tenantId
+         *  B2C Authority - domain/tenantId?/tfp?/policy
+         */
+        return authorityUrlComponents.PathSegments.join(
+            Constants.FORWARD_SLASH
+        );
+    }
 }

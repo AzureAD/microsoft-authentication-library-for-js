@@ -432,6 +432,8 @@ export class BrowserCacheManager extends CacheManager {
     setAccount(account: AccountEntity): void {
         this.logger.trace("BrowserCacheManager.setAccount called");
         const key = account.generateAccountKey();
+        // ID token claims should be obtained from cached ID token to ensure they're not incorrectly overwritten by a different app's ID token
+        account.idTokenClaims = undefined;
         this.setItem(key, JSON.stringify(account));
         this.addAccountKeyToMap(key);
     }
