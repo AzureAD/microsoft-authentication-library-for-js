@@ -85,6 +85,7 @@ import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { IController } from "./IController";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { createNewGuid } from "../crypto/BrowserCrypto";
 
 export class StandardController implements IController {
     // OperatingContext
@@ -289,8 +290,7 @@ export class StandardController implements IController {
                     await NativeMessageHandler.createProvider(
                         this.logger,
                         this.config.system.nativeBrokerHandshakeTimeout,
-                        this.performanceClient,
-                        this.browserCrypto
+                        this.performanceClient
                     );
             } catch (e) {
                 this.logger.verbose(e as string);
@@ -1826,7 +1826,7 @@ export class StandardController implements IController {
         }
 
         if (this.isBrowserEnvironment) {
-            return this.browserCrypto.createNewGuid();
+            return createNewGuid();
         }
 
         /*

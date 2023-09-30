@@ -46,10 +46,6 @@ export interface ICrypto {
      */
     base64Decode(input: string): string;
     /**
-     * Generate PKCE codes for OAuth. See RFC here: https://tools.ietf.org/html/rfc7636
-     */
-    generatePkceCodes(): Promise<PkceCodes>;
-    /**
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
@@ -89,9 +85,6 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     base64Encode: (): string => {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async getPublicKeyThumbprint(): Promise<string> {

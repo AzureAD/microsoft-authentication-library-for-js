@@ -2,7 +2,6 @@ import {
     CommonClientConfiguration,
     buildClientConfiguration,
 } from "../../src/config/ClientConfiguration";
-import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Logger, LogLevel } from "../../src/logger/Logger";
@@ -49,12 +48,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() =>
             emptyConfig.cryptoInterface.base64Encode("test input")
         ).toThrowError(AuthError);
-        expect(emptyConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
-        await expect(
-            emptyConfig.cryptoInterface.generatePkceCodes()
-        ).rejects.toMatchObject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
-        );
         // Storage interface checks
         expect(emptyConfig.storageInterface).not.toBeNull();
         expect(emptyConfig.storageInterface.clear).not.toBeNull();
@@ -150,11 +143,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         new Logger({})
     );
 
-    const testPkceCodes = {
-        challenge: "TestChallenge",
-        verifier: "TestVerifier",
-    } as PkceCodes;
-
     const testNetworkResult = {
         testParam: "testValue",
     };
@@ -175,9 +163,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
                 base64Encode: (input: string): string => {
                     return "testEncodedString";
-                },
-                generatePkceCodes: async (): Promise<PkceCodes> => {
-                    return testPkceCodes;
                 },
                 async getPublicKeyThumbprint(): Promise<string> {
                     return TEST_POP_VALUES.KID;
@@ -247,10 +232,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.cryptoInterface.base64Encode).not.toBeNull();
         expect(newConfig.cryptoInterface.base64Encode("testString")).toBe(
             "testEncodedString"
-        );
-        expect(newConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
-        expect(newConfig.cryptoInterface.generatePkceCodes()).resolves.toBe(
-            testPkceCodes
         );
         expect(newConfig.cryptoInterface.removeTokenBindingKey).not.toBeNull();
         expect(
