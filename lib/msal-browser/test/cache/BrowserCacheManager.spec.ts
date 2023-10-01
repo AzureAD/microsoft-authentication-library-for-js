@@ -1547,15 +1547,12 @@ describe("BrowserCacheManager tests", () => {
                         .returns(false);
                     browserSessionStorage.setAuthorityMetadata(key, testObj);
                     browserLocalStorage.setAuthorityMetadata(key, testObj);
-
                     expect(
                         browserSessionStorage.getAuthorityMetadata(key)
                     ).toBeNull();
                     expect(
                         browserLocalStorage.getAuthorityMetadata(key)
                     ).toBeNull();
-                    expect(browserSessionStorage.containsKey(key)).toBe(false);
-                    expect(browserLocalStorage.containsKey(key)).toBe(false);
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
@@ -1564,7 +1561,7 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(expect.arrayContaining([key]));
                 });
 
-                it("setAuthorityMetadata() and getAuthorityMetadata() sets and returns AuthorityMetadataEntity in-memory", () => {
+                it("setAuthorityMetadata() and getAuthorityMetadata() sets and returns AuthorityMetadataEntity in configured cache location", () => {
                     browserSessionStorage.setAuthorityMetadata(key, testObj);
                     browserLocalStorage.setAuthorityMetadata(key, testObj);
 
@@ -1574,8 +1571,8 @@ describe("BrowserCacheManager tests", () => {
                     expect(
                         browserLocalStorage.getAuthorityMetadata(key)
                     ).toEqual(testObj);
-                    expect(browserSessionStorage.containsKey(key)).toBe(false);
-                    expect(browserLocalStorage.containsKey(key)).toBe(false);
+                    expect(browserSessionStorage.containsKey(key)).toBe(true);
+                    expect(browserLocalStorage.containsKey(key)).toBe(true);
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
@@ -2501,8 +2498,6 @@ describe("BrowserCacheManager tests", () => {
                     expect(
                         browserLocalStorage.getAuthorityMetadata(key)
                     ).toBeNull();
-                    expect(browserSessionStorage.containsKey(key)).toBe(false);
-                    expect(browserLocalStorage.containsKey(key)).toBe(false);
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
@@ -2511,7 +2506,7 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(expect.arrayContaining([key]));
                 });
 
-                it("setAuthorityMetadata() and getAuthorityMetadata() sets and returns AuthorityMetadataEntity in-memory", () => {
+                it("setAuthorityMetadata() and getAuthorityMetadata() sets and returns AuthorityMetadataEntity in configured cache location", () => {
                     browserSessionStorage.setAuthorityMetadata(key, testObj);
                     browserLocalStorage.setAuthorityMetadata(key, testObj);
 
@@ -2521,8 +2516,8 @@ describe("BrowserCacheManager tests", () => {
                     expect(
                         browserLocalStorage.getAuthorityMetadata(key)
                     ).toEqual(testObj);
-                    expect(browserSessionStorage.containsKey(key)).toBe(false);
-                    expect(browserLocalStorage.containsKey(key)).toBe(false);
+                    expect(browserSessionStorage.containsKey(key)).toBe(true);
+                    expect(browserLocalStorage.containsKey(key)).toBe(true);
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));

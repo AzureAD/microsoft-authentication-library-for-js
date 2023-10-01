@@ -4031,7 +4031,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -4089,7 +4089,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await silentRequest3.catch(() => {});
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(atsSpy.calledOnce).toBe(true);
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
