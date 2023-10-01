@@ -815,6 +815,20 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * Removes all authority metadata objects from cache.
+     */
+    removeAuthorityMetadata(): boolean {
+        const allCacheKeys = this.getKeys();
+        allCacheKeys.forEach((cacheKey) => {
+            if (this.isAuthorityMetadata(cacheKey)) {
+                this.removeItem(cacheKey);
+            }
+        });
+
+        return true;
+    }
+
+    /**
      * Retrieve the cached credentials into a cacherecord
      * @param account
      * @param clientId
@@ -828,7 +842,6 @@ export abstract class CacheManager implements ICacheManager {
         environment: string
     ): CacheRecord {
         const tokenKeys = this.getTokenKeys();
-        debugger;
         const cachedAccount = this.readAccountFromCache(account);
         const cachedIdToken = this.getIdToken(account, tokenKeys);
         const cachedAccessToken = this.getAccessToken(

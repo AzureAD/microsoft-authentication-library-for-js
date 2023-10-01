@@ -934,7 +934,7 @@ export class BrowserCacheManager extends CacheManager {
      *
      */
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
-        const value = this.internalStorage.getItem(key);
+        const value = this.temporaryCacheStorage.getItem(key);
         if (!value) {
             this.logger.trace(
                 "BrowserCacheManager.getAuthorityMetadata: called, no cache hit"
@@ -964,7 +964,7 @@ export class BrowserCacheManager extends CacheManager {
      *
      */
     getAuthorityMetadataKeys(): Array<string> {
-        const allKeys = this.internalStorage.getKeys();
+        const allKeys = this.temporaryCacheStorage.getKeys();
         return allKeys.filter((key) => {
             return this.isAuthorityMetadata(key);
         });
@@ -1002,7 +1002,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     setAuthorityMetadata(key: string, entity: AuthorityMetadataEntity): void {
         this.logger.trace("BrowserCacheManager.setAuthorityMetadata called");
-        this.internalStorage.setItem(key, JSON.stringify(entity));
+        this.temporaryCacheStorage.setItem(key, JSON.stringify(entity));
     }
 
     /**
@@ -1343,6 +1343,7 @@ export class BrowserCacheManager extends CacheManager {
         // Removes all accounts and their credentials
         await this.removeAllAccounts();
         this.removeAppMetadata();
+        this.removeAuthorityMetadata();
 
         // Removes all remaining MSAL cache items
         this.getKeys().forEach((cacheKey: string) => {
