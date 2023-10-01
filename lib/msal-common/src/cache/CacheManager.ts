@@ -226,11 +226,13 @@ export abstract class CacheManager implements ICacheManager {
      * @returns Array of AccountInfo objects in cache
      */
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
-        return this.getAccountsFilteredBy(accountFilter || {}).map(
-            (accountEntity) => {
+        return this.getAccountsFilteredBy(accountFilter || {})
+            .map((accountEntity) => {
                 return this.getAccountInfoFromEntity(accountEntity);
-            }
-        );
+            })
+            .filter((accoutnInfo) => {
+                return accoutnInfo.idTokenClaims;
+            });
     }
 
     /**
@@ -239,7 +241,14 @@ export abstract class CacheManager implements ICacheManager {
     getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
         const allAccounts = this.getAccountsFilteredBy(accountFilter);
         if (allAccounts.length > 0) {
-            return this.getAccountInfoFromEntity(allAccounts[0]);
+            const validAccounts = allAccounts
+                .map((accountEntity) => {
+                    return this.getAccountInfoFromEntity(accountEntity);
+                })
+                .filter((accountInfo) => {
+                    return accountInfo.idTokenClaims;
+                });
+            return validAccounts[0];
         } else {
             return null;
         }
