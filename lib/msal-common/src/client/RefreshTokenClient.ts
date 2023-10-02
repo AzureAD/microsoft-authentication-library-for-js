@@ -17,6 +17,7 @@ import {
     AuthenticationScheme,
     Errors,
     HeaderNames,
+    AADServerParamKeys,
 } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
@@ -258,7 +259,9 @@ export class RefreshTokenClient extends BaseClient {
             request.ccsCredential
         );
         const thumbprint: RequestThumbprint = {
-            clientId: this.config.authOptions.clientId,
+            clientId:
+                request.tokenBodyParameters?.clientId ||
+                this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes,
             claims: request.claims,
@@ -293,7 +296,14 @@ export class RefreshTokenClient extends BaseClient {
         const correlationId = request.correlationId;
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        parameterBuilder.addClientId(
+            request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                this.config.authOptions.clientId
+        );
+
+        if (request.redirectUri) {
+            parameterBuilder.addRedirectUri(request.redirectUri);
+        }
 
         parameterBuilder.addScopes(
             request.scopes,
@@ -398,6 +408,13 @@ export class RefreshTokenClient extends BaseClient {
                     break;
             }
         }
+
+        if (request.tokenBodyParameters) {
+            parameterBuilder.addExtraQueryParameters(
+                request.tokenBodyParameters
+            );
+        }
+
         return parameterBuilder.createQueryString();
     }
 }
