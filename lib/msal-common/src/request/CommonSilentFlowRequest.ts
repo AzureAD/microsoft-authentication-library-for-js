@@ -4,6 +4,7 @@
  */
 
 import { AccountInfo } from "../account/AccountInfo";
+import { StringDict } from "../utils/MsalTypes";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
@@ -21,4 +22,5 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
 export type CommonSilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
     forceRefresh: boolean;
+    tokenBodyParameters?: StringDict;
 };
