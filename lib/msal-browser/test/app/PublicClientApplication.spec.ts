@@ -2223,6 +2223,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .callsFake(async () => {
                     return testTokenResponse;
                 });
+
             const response = await pca.ssoSilent({
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -2387,14 +2388,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
+
+            let ssoSilentFired = false;
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
 
+            sinon
+                .stub(EventHandler.prototype, "emitEvent")
+                .callsFake((eventType, interactionType) => {
+                    if (
+                        eventType === EventType.SSO_SILENT_START &&
+                        interactionType === InteractionType.Silent
+                    ) {
+                        ssoSilentFired = true;
+                    }
+                });
             const response = await pca.ssoSilent({ scopes: ["openid"] });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
             expect(silentClientSpy.calledOnce).toBe(true);
+            expect(ssoSilentFired).toBe(true);
         });
 
         it("emits expect performance event when successful ", (done) => {
