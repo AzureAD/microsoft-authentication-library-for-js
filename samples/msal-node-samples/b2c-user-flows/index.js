@@ -46,7 +46,7 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
      * and set them as desired. Visit: https://www.npmjs.com/package/express-session
      */
     const sessionConfig = {
-        secret: process.env.CLIENT_SECRET,
+        secret: process.env.AZURE_CLIENT_SECRET,
         resave: false,
         saveUninitialized: false,
         cookie: {
@@ -383,7 +383,7 @@ if (argv.$0 === "index.js") {
         auth: {
             clientId: config.authOptions.clientId,
             authority: config.policies.authorities.signUpSignIn.authority,
-            clientSecret: process.env.CLIENT_SECRET,
+            clientSecret: process.env.AZURE_CLIENT_SECRET,
             knownAuthorities: [config.policies.authorityDomain],
         },
         cache: {

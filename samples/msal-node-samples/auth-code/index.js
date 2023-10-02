@@ -34,7 +34,7 @@ const scenario = argv.s || "customConfig";
 const config = require(`./config/${scenario}.json`);
 
 const sessionConfig = {
-    secret: process.env.CLIENT_SECRET,
+    secret: process.env.AZURE_CLIENT_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -172,7 +172,7 @@ if (argv.$0 === "index.js") {
         auth: {
             clientId: config.authOptions.clientId,
             authority: config.authOptions.authority,
-            clientSecret: process.env.CLIENT_SECRET,
+            clientSecret: process.env.AZURE_CLIENT_SECRET,
             knownAuthorities: [config.authOptions.knownAuthorities]
         },
         cache: {
