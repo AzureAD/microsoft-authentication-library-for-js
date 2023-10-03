@@ -15,7 +15,7 @@ jobs:
     name: Performance regression check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
       - name: Run benchmark
         run: cd regression-tests/msal-node/client-credential && npm install && node index.js | tee output.txt
