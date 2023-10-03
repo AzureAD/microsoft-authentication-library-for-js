@@ -29,11 +29,15 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
-import { SilentHandler } from "../interaction_handler/SilentHandler";
+import {
+    initiateAuthRequest,
+    monitorIframeForHash,
+} from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { InteractionHandler } from "../interaction_handler/InteractionHandler";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -179,9 +183,10 @@ export class SilentIframeClient extends StandardInteractionClient {
         authClient: AuthorizationCodeClient,
         silentRequest: AuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
+        const correlationId = silentRequest.correlationId;
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.SilentIframeClientTokenHelper,
-            silentRequest.correlationId
+            correlationId
         );
 
         // Create auth code request and generate PKCE params
@@ -191,7 +196,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
                 this.logger,
                 this.performanceClient,
-                silentRequest.correlationId
+                correlationId
             )(silentRequest);
 
         // Create authorize request url
@@ -200,7 +205,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             PerformanceEvents.GetAuthCodeUrl,
             this.logger,
             this.performanceClient,
-            silentRequest.correlationId
+            correlationId
         )({
             ...silentRequest,
             nativeBroker: NativeMessageHandler.isNativeAvailable(
@@ -212,37 +217,64 @@ export class SilentIframeClient extends StandardInteractionClient {
         });
 
         // Create silent handler
-        const silentHandler = new SilentHandler(
+        const interactionHandler = new InteractionHandler(
             authClient,
             this.browserStorage,
             authCodeRequest,
             this.logger,
-            this.config.system,
             this.performanceClient
         );
         // Get the frame handle for the silent request
         const msalFrame = await invokeAsync(
-            silentHandler.initiateAuthRequest.bind(silentHandler),
+            initiateAuthRequest,
             PerformanceEvents.SilentHandlerInitiateAuthRequest,
             this.logger,
             this.performanceClient,
-            silentRequest.correlationId
-        )(navigateUrl);
+            correlationId
+        )(
+            navigateUrl,
+            this.performanceClient,
+            this.logger,
+            correlationId,
+            this.config.system.navigateFrameWait
+        );
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await invokeAsync(
-            silentHandler.monitorIframeForHash.bind(silentHandler),
+            monitorIframeForHash,
             PerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
-            silentRequest.correlationId
-        )(msalFrame, this.config.system.iframeHashTimeout);
+            correlationId
+        )(
+            msalFrame,
+            this.config.system.iframeHashTimeout,
+            this.config.system.pollIntervalMilliseconds,
+            this.performanceClient,
+            this.logger,
+            correlationId
+        );
+        if (!hash) {
+            // No hash is present
+            this.logger.error(
+                "The request has returned to the redirectUri but a hash is not present in the iframe. It's likely that the hash has been removed or the page has been redirected by code running on the redirectUri page."
+            );
+            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
+        } else if (!UrlString.hashContainsKnownProperties(hash)) {
+            this.logger.error(
+                "A hash is present in the iframe but it does not contain known properties. It's likely that the hash has been replaced by code running on the redirectUri page."
+            );
+            this.logger.errorPii(`The hash detected in the iframe is: ${hash}`);
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+            );
+        }
         // Deserialize hash fragment response parameters.
         const serverParams: ServerAuthorizationCodeResponse =
             UrlString.getDeserializedHash(hash);
         const state = this.validateAndExtractStateFromHash(
             serverParams,
             InteractionType.Silent,
-            authCodeRequest.correlationId
+            correlationId
         );
 
         if (serverParams.accountId) {
@@ -266,7 +298,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.nativeMessageHandler,
                 serverParams.accountId,
                 this.browserStorage,
-                this.correlationId
+                correlationId
             );
             const { userRequestState } = ProtocolUtils.parseRequestState(
                 this.browserCrypto,
@@ -279,7 +311,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 PerformanceEvents.NativeInteractionClientAcquireToken,
                 this.logger,
                 this.performanceClient,
-                silentRequest.correlationId
+                correlationId
             )({
                 ...silentRequest,
                 state: userRequestState,
@@ -291,11 +323,13 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         // Handle response from hash string
         return invokeAsync(
-            silentHandler.handleCodeResponseFromHash.bind(silentHandler),
+            interactionHandler.handleCodeResponseFromHash.bind(
+                interactionHandler
+            ),
             PerformanceEvents.HandleCodeResponseFromHash,
             this.logger,
             this.performanceClient,
-            silentRequest.correlationId
+            correlationId
         )(hash, state, authClient.authority, this.networkClient);
     }
 }
