@@ -546,7 +546,6 @@ describe("ResponseHandler.ts", () => {
                 scopes: ["openid", "profile", "User.Read", "email"],
                 reqCnf: {
                     kid: TEST_POP_VALUES.KID,
-                    reqCnfHash: "some hash",
                     reqCnfString: "Some String",
                 },
             };

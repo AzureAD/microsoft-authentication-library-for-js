@@ -144,7 +144,6 @@ export const TEST_POP_VALUES = {
 
 export const TEST_REQ_CNF_DATA = {
     kid: TEST_POP_VALUES.KID,
-    reqCnfHash: TEST_POP_VALUES.ENCODED_REQ_CNF,
     reqCnfString: TEST_POP_VALUES.DECODED_REQ_CNF,
 };
 
