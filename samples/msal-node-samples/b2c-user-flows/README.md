@@ -37,14 +37,24 @@ In `customConfig.json`, we create a `policies` object to store authority strings
     },
 ```
 
+An exception is the client secret, which must be stored in an `.env` file instead of the configuration.
+
+**.env file**
+
+```
+CLIENT_SECRET=<your client secret here>
+```
+
 In `index.js`, we setup the configuration object expected by MSAL Node `confidentialClientApplication` class constructor:
+
+**index.js**
 
 ```javascript
     const confidentialClientConfig = {
         auth: {
             clientId: config.authOptions.clientId,
             authority: config.policies.authorities.signUpSignIn.authority,
-            clientSecret: config.authOptions.clientSecret,
+            clientSecret: process.env.CLIENT_SECRET,
             knownAuthorities: [config.policies.authorityDomain],
         }
     };

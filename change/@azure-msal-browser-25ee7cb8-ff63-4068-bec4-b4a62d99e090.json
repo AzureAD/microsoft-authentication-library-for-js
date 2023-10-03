@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add tokenBodyParameters support in RefreshTokenClient #6504",
+    "packageName": "@azure/msal-browser",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}
