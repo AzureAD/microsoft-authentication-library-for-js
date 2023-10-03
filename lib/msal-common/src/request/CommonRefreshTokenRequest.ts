@@ -5,6 +5,7 @@
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
 import { CcsCredential } from "../account/CcsCredential";
+import { StringDict } from "../utils/MsalTypes";
 
 /**
  * CommonRefreshTokenRequest
@@ -22,4 +23,6 @@ export type CommonRefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
     ccsCredential?: CcsCredential;
     forceCache?: boolean;
+    tokenBodyParameters?: StringDict;
+    redirectUri?: string;
 };

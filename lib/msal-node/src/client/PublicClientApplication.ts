@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { ApiId, Constants } from "../utils/Constants.js";
+import {
+    ApiId,
+    Constants,
+    LOOPBACK_SERVER_CONSTANTS,
+} from "../utils/Constants.js";
 import {
     AuthenticationResult,
     CommonDeviceCodeRequest,
@@ -26,7 +30,7 @@ import { DeviceCodeRequest } from "../request/DeviceCodeRequest.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { InteractiveRequest } from "../request/InteractiveRequest.js";
-import { NodeAuthError } from "../error/NodeAuthError.js";
+import { NodeAuthError, NodeAuthErrorMessage } from "../error/NodeAuthError.js";
 import { LoopbackClient } from "../network/LoopbackClient.js";
 import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 import { SignOutRequest } from "../request/SignOutRequest.js";
@@ -167,13 +171,21 @@ export class PublicClientApplication
         const loopbackClient: ILoopbackClient =
             customLoopbackClient || new LoopbackClient();
 
-        let authCodeListener: Promise<ServerAuthorizationCodeResponse>;
+        let authCodeResponse: ServerAuthorizationCodeResponse = {};
+        let authCodeListenerError: AuthError | null = null;
         try {
-            authCodeListener = loopbackClient.listenForAuthCode(
-                successTemplate,
-                errorTemplate
-            );
-            const redirectUri = loopbackClient.getRedirectUri();
+            const authCodeListener = loopbackClient
+                .listenForAuthCode(successTemplate, errorTemplate)
+                .then((response) => {
+                    authCodeResponse = response;
+                })
+                .catch((e) => {
+                    // Store the promise instead of throwing so we can control when its thrown
+                    authCodeListenerError = e;
+                });
+
+            // Wait for server to be listening
+            const redirectUri = await this.waitForRedirectUri(loopbackClient);
 
             const validRequest: AuthorizationUrlRequest = {
                 ...remainingProperties,
@@ -187,9 +199,10 @@ export class PublicClientApplication
 
             const authCodeUrl = await this.getAuthCodeUrl(validRequest);
             await openBrowser(authCodeUrl);
-            const authCodeResponse = await authCodeListener.finally(() => {
-                loopbackClient.closeServer();
-            });
+            await authCodeListener;
+            if (authCodeListenerError) {
+                throw authCodeListenerError;
+            }
 
             if (authCodeResponse.error) {
                 throw new ServerError(
@@ -209,9 +222,8 @@ export class PublicClientApplication
                 ...validRequest,
             };
             return this.acquireTokenByCode(tokenRequest);
-        } catch (e) {
+        } finally {
             loopbackClient.closeServer();
-            throw e;
         }
     }
 
@@ -279,5 +291,49 @@ export class PublicClientApplication
         }
 
         return this.getTokenCache().getAllAccounts();
+    }
+
+    /**
+     * Attempts to retrieve the redirectUri from the loopback server. If the loopback server does not start listening for requests within the timeout this will throw.
+     * @param loopbackClient
+     * @returns
+     */
+    private async waitForRedirectUri(
+        loopbackClient: ILoopbackClient
+    ): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            let ticks = 0;
+            const id = setInterval(() => {
+                if (
+                    LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS /
+                        LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS <
+                    ticks
+                ) {
+                    clearInterval(id);
+                    reject(NodeAuthError.createLoopbackServerTimeoutError());
+                    return;
+                }
+
+                try {
+                    const r = loopbackClient.getRedirectUri();
+                    clearInterval(id);
+                    resolve(r);
+                    return;
+                } catch (e) {
+                    if (
+                        e instanceof AuthError &&
+                        e.errorCode ===
+                            NodeAuthErrorMessage.noLoopbackServerExists.code
+                    ) {
+                        // Loopback server is not listening yet
+                        ticks++;
+                        return;
+                    }
+                    clearInterval(id);
+                    reject(e);
+                    return;
+                }
+            }, LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS);
+        });
     }
 }

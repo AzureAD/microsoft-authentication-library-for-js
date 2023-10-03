@@ -4,12 +4,13 @@
  */
 
 var msal = require("@azure/msal-node");
+require('dotenv').config();
 
 const msalConfig = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
-        clientSecret: "ENTER_CLIENT_SECRET"
+        clientSecret: process.env.CLIENT_SECRET
     }
 };
 

@@ -180,6 +180,37 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
+        it("Adds tokenBodyParameters to the /token request", (done) => {
+            sinon
+                .stub(
+                    RefreshTokenClient.prototype,
+                    <any>"executePostToTokenEndpoint"
+                )
+                .callsFake(async (url: string, body: string) => {
+                    expect(body).toContain("testParam=testValue");
+                    done();
+                });
+
+            const client = new RefreshTokenClient(config);
+
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                tokenBodyParameters: {
+                    testParam: "testValue",
+                },
+            };
+
+            client.acquireToken(refreshTokenRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
         it("Checks whether performance telemetry startMeasurement method is called", async () => {
             const spy = jest.spyOn(stubPerformanceClient, "startMeasurement");
 

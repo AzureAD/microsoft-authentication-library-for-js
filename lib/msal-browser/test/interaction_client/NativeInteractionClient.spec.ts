@@ -124,8 +124,7 @@ describe("NativeInteractionClient Tests", () => {
         wamProvider = new NativeMessageHandler(
             pca.getLogger(),
             2000,
-            getDefaultPerformanceClient(),
-            new CryptoOps(new Logger({}))
+            getDefaultPerformanceClient()
         );
 
         nativeInteractionClient = new NativeInteractionClient(
