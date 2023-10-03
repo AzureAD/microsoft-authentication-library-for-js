@@ -17,5 +17,8 @@
         "express": "^4.17.1",
         "express-session": "^1.17.2",
         "underscore": "^1.13.3"
+    },
+    "devDependencies": {
+        "dotenv": "^16.3.1"
     }
 }

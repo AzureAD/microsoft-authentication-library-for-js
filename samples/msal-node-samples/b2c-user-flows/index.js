@@ -7,6 +7,7 @@ const session = require('express-session');
 const hbs = require('express-handlebars');
 const msal = require('@azure/msal-node');
 const url = require('url');
+require('dotenv').config();
 
 const fetch = require('./fetch');
 const config = require('./config/customConfig.json');
@@ -21,6 +22,7 @@ const argv = require("../cliArgs");
 const SERVER_PORT = argv.p || 3000;
 const cacheLocation = argv.c || "./data/cache.json";
 const cachePlugin = require('../cachePlugin')(cacheLocation);
+
 
 const APP_STAGES = {
     SIGN_IN: 'sign_in',
@@ -44,7 +46,7 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
      * and set them as desired. Visit: https://www.npmjs.com/package/express-session
      */
     const sessionConfig = {
-        secret: 'ENTER_YOUR_SECRET_HERE',
+        secret: process.env.AZURE_CLIENT_SECRET,
         resave: false,
         saveUninitialized: false,
         cookie: {
@@ -172,7 +174,7 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
 
     app.get('/', function (req, res, next) {
         // if redirectUri is set to the main route "/", redirect to "/redirect" route for handling authZ code
-        if (req.query.code ) return res.redirect(url.format({pathname: "/redirect", query: req.query}));
+        if (req.query.code) return res.redirect(url.format({ pathname: "/redirect", query: req.query }));
 
         res.render('index', {
             isAuthenticated: req.session.isAuthenticated,
@@ -381,7 +383,7 @@ if (argv.$0 === "index.js") {
         auth: {
             clientId: config.authOptions.clientId,
             authority: config.policies.authorities.signUpSignIn.authority,
-            clientSecret: config.authOptions.clientSecret,
+            clientSecret: process.env.AZURE_CLIENT_SECRET,
             knownAuthorities: [config.policies.authorityDomain],
         },
         cache: {
