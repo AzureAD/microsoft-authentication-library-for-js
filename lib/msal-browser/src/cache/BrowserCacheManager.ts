@@ -1343,7 +1343,6 @@ export class BrowserCacheManager extends CacheManager {
         // Removes all accounts and their credentials
         await this.removeAllAccounts();
         this.removeAppMetadata();
-        this.removeAuthorityMetadata();
 
         // Removes all remaining MSAL cache items
         this.getKeys().forEach((cacheKey: string) => {

@@ -1026,15 +1026,6 @@ describe("CacheManager.ts test cases", () => {
         ).toBeUndefined();
     });
 
-    it("removeAuthorityMetadata", () => {
-        mockCache.cacheManager.removeAuthorityMetadata();
-        expect(
-            mockCache.cacheManager.getAuthorityMetadata(
-                `authority-metadata-${CACHE_MOCKS.MOCK_CLIENT_ID}-login.windows.net`
-            )
-        ).toBeUndefined();
-    });
-
     it("removeAllAccounts", async () => {
         const ac = new AccountEntity();
         ac.homeAccountId = "someUid.someUtid";
