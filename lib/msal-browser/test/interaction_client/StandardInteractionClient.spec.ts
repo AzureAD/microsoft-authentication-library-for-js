@@ -142,7 +142,7 @@ describe("StandardInteractionClient", () => {
             await testClient.initializeAuthorizationCodeRequest(request);
         expect(request.codeChallenge).toBe(TEST_CONFIG.TEST_CHALLENGE);
         expect(authCodeRequest.codeVerifier).toBe(TEST_CONFIG.TEST_VERIFIER);
-        expect(authCodeRequest.reqCnf).toBeUndefined;
+        expect(authCodeRequest.public).toBeUndefined;
     });
 
     it("initializeAuthorizationCodeRequest validates the request and does not influence undefined reqCnf param", async () => {
@@ -159,7 +159,7 @@ describe("StandardInteractionClient", () => {
                 TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
         };
 
-        sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+        jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
             challenge: TEST_CONFIG.TEST_CHALLENGE,
             verifier: TEST_CONFIG.TEST_VERIFIER,
         });
@@ -184,7 +184,7 @@ describe("StandardInteractionClient", () => {
             reqCnf: TEST_REQ_CNF_DATA,
         };
 
-        sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+        jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
             challenge: TEST_CONFIG.TEST_CHALLENGE,
             verifier: TEST_CONFIG.TEST_VERIFIER,
         });
