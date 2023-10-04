@@ -85,7 +85,6 @@ export async function monitorIframeForHash(
          * Polling for iframes can be purely timing based,
          * since we don't need to account for interaction.
          */
-        let intervalId: number;
         const timeoutId = window.setTimeout(() => {
             window.clearInterval(intervalId);
             reject(
@@ -95,7 +94,7 @@ export async function monitorIframeForHash(
             );
         }, timeout);
 
-        intervalId = window.setInterval(() => {
+        const intervalId = window.setInterval(() => {
             let href: string = "";
             const contentWindow = iframe.contentWindow;
             try {
