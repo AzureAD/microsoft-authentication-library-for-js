@@ -1,7 +1,6 @@
 {
     "authOptions": {
         "clientId": "ENTER_CLIENT_ID_HERE",
-        "clientSecret": "ENTER_CLIENT_SECRET_HERE",
         "redirectUri": "http://localhost:3000/redirect"
     },
     "policies": {
