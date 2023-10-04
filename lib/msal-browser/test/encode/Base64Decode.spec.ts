@@ -115,7 +115,7 @@ describe("Base64Decode.ts Unit Tests", () => {
             );
         });
 
-        it("Decode idtokenclaims with special characters thorws invalid string error", (done) => {
+        it("Decoding invalid base64 string throws error", (done) => {
             // Id token claims B64
             const idTokenClaims: IdTokenClaims = {
                 ver: "2.0",
