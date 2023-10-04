@@ -1028,10 +1028,9 @@ export class BrowserCacheManager extends CacheManager {
                 );
                 return null;
             }
-            const activeAccount =
-                this.getAccountInfoByFilter({
-                    localAccountId: activeAccountValueLocal,
-                })[0] || null;
+            const activeAccount = this.getAccountInfoFilteredBy({
+                localAccountId: activeAccountValueLocal,
+            });
             if (activeAccount) {
                 this.logger.trace(
                     "BrowserCacheManager.getActiveAccount: Legacy active account cache schema found"
@@ -1051,12 +1050,11 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.getActiveAccount: Active account filters schema found"
             );
-            return (
-                this.getAccountInfoByFilter({
-                    homeAccountId: activeAccountValueObj.homeAccountId,
-                    localAccountId: activeAccountValueObj.localAccountId,
-                })[0] || null
-            );
+            return this.getAccountInfoFilteredBy({
+                homeAccountId: activeAccountValueObj.homeAccountId,
+                localAccountId: activeAccountValueObj.localAccountId,
+                tenantId: activeAccountValueObj.tenantId,
+            });
         }
         this.logger.trace(
             "BrowserCacheManager.getActiveAccount: No active account found"
@@ -1080,6 +1078,7 @@ export class BrowserCacheManager extends CacheManager {
             const activeAccountValue: ActiveAccountFilters = {
                 homeAccountId: account.homeAccountId,
                 localAccountId: account.localAccountId,
+                tenantId: account.tenantId,
             };
             this.browserStorage.setItem(
                 activeAccountKey,
@@ -1096,59 +1095,6 @@ export class BrowserCacheManager extends CacheManager {
             this.browserStorage.removeItem(activeAccountKey);
             this.browserStorage.removeItem(activeAccountKeyLocal);
         }
-    }
-
-    /**
-     * Gets a list of accounts that match all of the filters provided
-     * @param account
-     */
-    getAccountInfoByFilter(
-        accountFilter: Partial<Omit<AccountInfo, "idTokenClaims" | "name">>
-    ): AccountInfo[] {
-        const allAccounts = this.getAllAccounts();
-        this.logger.trace(
-            `BrowserCacheManager.getAccountInfoByFilter: total ${allAccounts.length} accounts found`
-        );
-
-        return allAccounts.filter((accountObj) => {
-            if (
-                accountFilter.username &&
-                accountFilter.username.toLowerCase() !==
-                    accountObj.username.toLowerCase()
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.homeAccountId &&
-                accountFilter.homeAccountId !== accountObj.homeAccountId
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.localAccountId &&
-                accountFilter.localAccountId !== accountObj.localAccountId
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.tenantId &&
-                accountFilter.tenantId !== accountObj.tenantId
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.environment &&
-                accountFilter.environment !== accountObj.environment
-            ) {
-                return false;
-            }
-
-            return true;
-        });
     }
 
     /**

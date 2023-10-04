@@ -375,6 +375,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
+
         return ResponseHandler.generateAuthenticationResult(
             this.cryptoObj,
             authority,
@@ -422,15 +423,11 @@ export class ResponseHandler {
                 idTokenClaims.tid || ""
             );
 
-            cachedAccount = AccountEntity.createAccount(
-                {
-                    homeAccountId: this.homeAccountIdentifier,
-                    idTokenClaims: idTokenClaims,
-                    clientInfo: serverTokenResponse.client_info,
-                    cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
-                    msGraphHost: authCodePayload?.msgraph_host,
-                },
-                authority
+            cachedAccount = this.setCachedAccount(
+                authority,
+                serverTokenResponse,
+                idTokenClaims,
+                authCodePayload
             );
         }
 
@@ -518,6 +515,48 @@ export class ResponseHandler {
         );
     }
 
+    private setCachedAccount(
+        authority: Authority,
+        serverTokenResponse: ServerAuthorizationTokenResponse,
+        idTokenClaims: TokenClaims,
+        authCodePayload?: AuthorizationCodePayload
+    ): AccountEntity | undefined {
+        this.logger.verbose("setCachedAccount called");
+        const responseTenantId = idTokenClaims.tid || Constants.EMPTY_STRING;
+
+        // Check if base account is already cached
+        const accountKeys = this.cacheStorage.getAccountKeys();
+        const baseAccountKey = accountKeys.find((accountKey: string) => {
+            return accountKey.startsWith(this.homeAccountIdentifier);
+        });
+
+        let cachedAccount: AccountEntity | null = null;
+        if (baseAccountKey) {
+            cachedAccount = this.cacheStorage.getAccount(baseAccountKey);
+        }
+
+        const baseAccount =
+            cachedAccount ||
+            AccountEntity.createAccount(
+                {
+                    homeAccountId: this.homeAccountIdentifier,
+                    idTokenClaims: idTokenClaims,
+                    clientInfo: serverTokenResponse.client_info,
+                    cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
+                    msGraphHost: authCodePayload?.msgraph_host,
+                },
+                authority,
+                this.cryptoObj
+            );
+
+        const tenants = baseAccount.tenants || [];
+        if (!tenants.includes(responseTenantId)) {
+            tenants.push(responseTenantId);
+        }
+        baseAccount.tenants = tenants;
+        return baseAccount;
+    }
+
     /**
      * Creates an @AuthenticationResult from @CacheRecord , @IdToken , and a boolean that states whether or not the result is from cache.
      *
@@ -582,6 +621,10 @@ export class ResponseHandler {
                     Number(cacheRecord.accessToken.refreshOn) * 1000
                 );
             }
+        }
+
+        if (cacheRecord.account && idTokenClaims) {
+            cacheRecord.account.updateTenantProfile(idTokenClaims);
         }
 
         if (cacheRecord.appMetadata) {

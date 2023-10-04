@@ -6,7 +6,7 @@
 import { Separators, CacheAccountType, Constants } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
-import { buildClientInfo } from "../../account/ClientInfo";
+import { ClientInfo, buildClientInfo } from "../../account/ClientInfo";
 import { AccountInfo } from "../../account/AccountInfo";
 import {
     createClientAuthError,
@@ -55,6 +55,7 @@ export class AccountEntity {
     msGraphHost?: string;
     idTokenClaims?: TokenClaims;
     nativeAccountId?: string;
+    tenants?: string[];
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -91,7 +92,17 @@ export class AccountEntity {
             idTokenClaims: this.idTokenClaims,
             nativeAccountId: this.nativeAccountId,
             authorityType: this.authorityType,
+            tenants: this.tenants,
         };
+    }
+
+    /**
+     * Update attributes that are sourced from ID token claims and vary by tenant profile
+     */
+    updateTenantProfile(idTokenClaims: TokenClaims): void {
+        this.idTokenClaims = idTokenClaims;
+        this.realm = idTokenClaims.tid || Constants.EMPTY_STRING;
+        this.name = idTokenClaims.name || Constants.EMPTY_STRING;
     }
 
     /**
@@ -99,10 +110,11 @@ export class AccountEntity {
      * @param accountInterface
      */
     static generateAccountCacheKey(accountInterface: AccountInfo): string {
+        const homeTenantId = accountInterface.homeAccountId.split(".")[1];
         const accountKey = [
             accountInterface.homeAccountId,
             accountInterface.environment || Constants.EMPTY_STRING,
-            accountInterface.tenantId || Constants.EMPTY_STRING,
+            homeTenantId || accountInterface.tenantId || Constants.EMPTY_STRING,
         ];
 
         return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -122,7 +134,8 @@ export class AccountEntity {
             environment?: string;
             nativeAccountId?: string;
         },
-        authority: Authority
+        authority: Authority,
+        cryptoObj?: ICrypto
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -132,6 +145,19 @@ export class AccountEntity {
             account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         } else {
             account.authorityType = CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        }
+
+        let clientInfo: ClientInfo | undefined;
+
+        try {
+            if (accountDetails.clientInfo && cryptoObj) {
+                clientInfo = buildClientInfo(
+                    accountDetails.clientInfo,
+                    cryptoObj
+                );
+            }
+        } catch (e) {
+            throw e;
         }
 
         account.clientInfo = accountDetails.clientInfo;
@@ -151,12 +177,15 @@ export class AccountEntity {
         account.environment = env;
         // non AAD scenarios can have empty realm
         account.realm =
-            accountDetails.idTokenClaims.tid || Constants.EMPTY_STRING;
+            clientInfo?.utid ||
+            accountDetails.idTokenClaims.tid ||
+            Constants.EMPTY_STRING;
 
         account.idTokenClaims = accountDetails.idTokenClaims;
 
         // How do you account for MSA CID here?
         account.localAccountId =
+            clientInfo?.uid ||
             accountDetails.idTokenClaims.oid ||
             accountDetails.idTokenClaims.sub ||
             Constants.EMPTY_STRING;
@@ -227,31 +256,30 @@ export class AccountEntity {
         cryptoObj: ICrypto,
         idTokenClaims?: TokenClaims
     ): string {
-        const accountId = idTokenClaims?.sub
-            ? idTokenClaims.sub
-            : Constants.EMPTY_STRING;
-
-        // since ADFS does not have tid and does not set client_info
+        // since ADFS/DSTS do not have tid and does not set client_info
         if (
-            authType === AuthorityType.Adfs ||
-            authType === AuthorityType.Dsts
+            !(
+                authType === AuthorityType.Adfs ||
+                authType === AuthorityType.Dsts
+            )
         ) {
-            return accountId;
-        }
-
-        // for cases where there is clientInfo
-        if (serverClientInfo) {
-            try {
-                const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
-                if (clientInfo.uid && clientInfo.utid) {
-                    return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
-                }
-            } catch (e) {}
+            // for cases where there is clientInfo
+            if (serverClientInfo) {
+                try {
+                    const clientInfo = buildClientInfo(
+                        serverClientInfo,
+                        cryptoObj
+                    );
+                    if (clientInfo.uid && clientInfo.utid) {
+                        return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
+                    }
+                } catch (e) {}
+            }
+            logger.verbose("No client info in response");
         }
 
         // default to "sub" claim
-        logger.verbose("No client info in response");
-        return accountId;
+        return idTokenClaims?.sub ? idTokenClaims.sub : Constants.EMPTY_STRING;
     }
 
     /**

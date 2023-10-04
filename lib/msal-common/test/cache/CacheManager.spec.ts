@@ -261,12 +261,66 @@ describe("CacheManager.ts test cases", () => {
         });
     });
 
-    it("getAccounts (gets all AccountInfo objects)", async () => {
+    it("getAllAccounts (gets all AccountInfo objects)", async () => {
         const accounts = mockCache.cacheManager.getAllAccounts();
 
         expect(accounts).not.toBeNull();
         expect(accounts[0].idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
         expect(accounts[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+    });
+
+    describe("getAllAccounts with loginHint filter", () => {
+        it("loginHint filter matching login_hint ID token claim", () => {
+            // filter by loginHint = login_hint
+            const loginHint = "testLoginHint";
+            const successFilter: AccountFilter = {
+                loginHint: loginHint,
+            };
+            jest.spyOn(mockCrypto, "base64Decode").mockReturnValueOnce(
+                JSON.stringify({ login_hint: loginHint })
+            );
+            let accounts = mockCache.cacheManager.getAllAccounts(successFilter);
+            expect(accounts.length).toEqual(1);
+
+            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
+            accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+            expect(accounts.length).toBe(0);
+        });
+
+        it("loginHint filter matching username", () => {
+            // filter by loginHint = preferred_username
+            const username = "janedoe@microsoft.com";
+            const successFilter: AccountFilter = {
+                loginHint: username,
+            };
+            jest.spyOn(mockCrypto, "base64Decode").mockReturnValueOnce(
+                JSON.stringify({ preferred_username: username })
+            );
+            let accounts = mockCache.cacheManager.getAllAccounts(successFilter);
+            expect(accounts.length).toEqual(1);
+
+            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
+            accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+            expect(accounts.length).toBe(0);
+        });
+
+        it("loginHint filter matching upn ID token claim", () => {
+            // filter by loginHint = upn
+            const upn = "testUpn";
+            const successFilter: AccountFilter = {
+                loginHint: upn,
+            };
+
+            jest.spyOn(mockCrypto, "base64Decode").mockReturnValueOnce(
+                JSON.stringify({ upn: upn })
+            );
+            let accounts = mockCache.cacheManager.getAllAccounts(successFilter);
+            expect(accounts.length).toEqual(1);
+
+            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
+            accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+            expect(accounts.length).toBe(0);
+        });
     });
 
     it("getAccount (gets one AccountEntity object)", async () => {
@@ -360,7 +414,7 @@ describe("CacheManager.ts test cases", () => {
             };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).toEqual(3);
+            expect(Object.keys(accounts).length).toEqual(1);
             sinon.restore();
 
             const wrongFilter: AccountFilter = { environment: "Wrong Env" };
@@ -374,7 +428,7 @@ describe("CacheManager.ts test cases", () => {
             const successFilter: AccountFilter = { realm: "microsoft" };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).toEqual(3);
+            expect(Object.keys(accounts).length).toEqual(1);
 
             const wrongFilter: AccountFilter = { realm: "Wrong Realm" };
             accounts =
@@ -395,51 +449,6 @@ describe("CacheManager.ts test cases", () => {
             accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
             expect(Object.keys(accounts).length).toEqual(0);
-        });
-
-        it("loginHint filter matching login_hint ID token claim", () => {
-            // filter by loginHint
-            const successFilter: AccountFilter = {
-                loginHint: "testLoginHint",
-            };
-            let accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(accounts.length).toEqual(1);
-
-            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
-            accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
-            expect(accounts.length).toBe(0);
-        });
-
-        it("loginHint filter matching username", () => {
-            // filter by loginHint
-            const successFilter: AccountFilter = {
-                loginHint: "Jane Doe",
-            };
-            let accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(accounts.length).toEqual(1);
-
-            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
-            accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
-            expect(accounts.length).toBe(0);
-        });
-
-        it("loginHint filter matching upn ID token claim", () => {
-            // filter by loginHint
-            const successFilter: AccountFilter = {
-                loginHint: "testUpn",
-            };
-            let accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(accounts.length).toEqual(1);
-
-            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
-            accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
-            expect(accounts.length).toBe(0);
         });
     });
 
@@ -1048,15 +1057,15 @@ describe("CacheManager.ts test cases", () => {
     it("removeAccount", async () => {
         expect(
             mockCache.cacheManager.getAccount(
-                "uid.utid-login.microsoftonline.com-microsoft"
+                "uid.utid-login.microsoftonline.com-utid"
             )
         ).not.toBeNull();
         await mockCache.cacheManager.removeAccount(
-            "uid.utid-login.microsoftonline.com-microsoft"
+            "uid.utid-login.microsoftonline.com-utid"
         );
         expect(
             mockCache.cacheManager.getAccount(
-                "uid.utid-login.microsoftonline.com-microsoft"
+                "uid.utid-login.microsoftonline.com-utid"
             )
         ).toBeNull();
     });

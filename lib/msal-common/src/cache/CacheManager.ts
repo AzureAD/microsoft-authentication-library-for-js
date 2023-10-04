@@ -10,6 +10,7 @@ import {
     AppMetadataFilter,
     AppMetadataCache,
     TokenKeys,
+    TenantProfileFilter,
 } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
 import {
@@ -42,6 +43,8 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
 import { StoreInCache } from "../request/StoreInCache";
+import { Authority } from "../authority/Authority";
+import { TokenClaims } from "../account/TokenClaims";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -226,13 +229,10 @@ export abstract class CacheManager implements ICacheManager {
      * @returns Array of AccountInfo objects in cache
      */
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
-        return this.getAccountsFilteredBy(accountFilter || {})
-            .map((accountEntity) => {
-                return this.getAccountInfoFromEntity(accountEntity);
-            })
-            .filter((accoutnInfo) => {
-                return accoutnInfo.idTokenClaims;
-            });
+        return this.buildTenantProfiles(
+            this.getAccountsFilteredBy(accountFilter || {}),
+            accountFilter
+        );
     }
 
     /**
@@ -241,31 +241,117 @@ export abstract class CacheManager implements ICacheManager {
     getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
         const allAccounts = this.getAccountsFilteredBy(accountFilter);
         if (allAccounts.length > 0) {
-            const validAccounts = allAccounts
-                .map((accountEntity) => {
-                    return this.getAccountInfoFromEntity(accountEntity);
-                })
-                .filter((accountInfo) => {
-                    return accountInfo.idTokenClaims;
-                });
+            const validAccounts = this.buildTenantProfiles(
+                allAccounts,
+                accountFilter
+            );
             return validAccounts[0];
         } else {
             return null;
         }
     }
 
-    private getAccountInfoFromEntity(
-        accountEntity: AccountEntity
+    /**
+     * Matches filtered account entities with cached ID tokens that match the tenant profile-specific account filters
+     * and builds the account info objects from the matching ID token's claims
+     * @param cachedAccounts
+     * @param accountFilter
+     * @returns Array of AccountInfo objects that match account and tenant profile filters
+     */
+    private buildTenantProfiles(
+        cachedAccounts: AccountEntity[],
+        accountFilter?: AccountFilter
+    ): AccountInfo[] {
+        return cachedAccounts
+            .map((accountEntity) => {
+                return this.getAccountInfoForTenantProfile(
+                    accountEntity,
+                    accountFilter
+                );
+            })
+            .filter((accountInfo) => {
+                // Tenant Profiles with matching ID tokens in the cache will have ID token claims
+                return accountInfo.idTokenClaims;
+            });
+    }
+
+    private getAccountInfoForTenantProfile(
+        accountEntity: AccountEntity,
+        accountFilter?: AccountFilter
     ): AccountInfo {
-        const accountInfo = accountEntity.getAccountInfo();
-        const idToken = this.getIdToken(accountInfo);
+        const tenantProfileFilter: TenantProfileFilter = {
+            localAccountId: accountFilter?.localAccountId,
+            loginHint: accountFilter?.loginHint,
+            name: accountFilter?.name,
+            sid: accountFilter?.sid,
+        };
+        return this.getAccountInfoFromEntity(
+            accountEntity,
+            accountFilter?.tenantId,
+            tenantProfileFilter
+        );
+    }
+
+    private getAccountInfoFromEntity(
+        accountEntity: AccountEntity,
+        targetTenantId?: string,
+        tenantProfileFilter?: TenantProfileFilter
+    ): AccountInfo {
+        let accountInfo = accountEntity.getAccountInfo();
+        const idToken = this.getIdToken(accountInfo, undefined, targetTenantId);
+
         if (idToken) {
-            accountInfo.idToken = idToken.secret;
-            accountInfo.idTokenClaims = extractTokenClaims(
+            const idTokenClaims = extractTokenClaims(
                 idToken.secret,
                 this.cryptoImpl.base64Decode
             );
+            // Tenant Profile filtering
+            if (tenantProfileFilter) {
+                if (
+                    !!tenantProfileFilter.localAccountId &&
+                    !this.matchLocalAccountId(
+                        idTokenClaims,
+                        tenantProfileFilter.localAccountId
+                    )
+                ) {
+                    return accountInfo;
+                }
+
+                if (
+                    !!tenantProfileFilter.loginHint &&
+                    !this.matchLoginHint(
+                        idTokenClaims,
+                        tenantProfileFilter.loginHint
+                    )
+                ) {
+                    return accountInfo;
+                }
+
+                if (
+                    !!tenantProfileFilter.name &&
+                    !this.matchName(idTokenClaims, tenantProfileFilter.name)
+                ) {
+                    return accountInfo;
+                }
+
+                if (
+                    !!tenantProfileFilter.sid &&
+                    !this.matchSid(idTokenClaims, tenantProfileFilter.sid)
+                ) {
+                    return accountInfo;
+                }
+            }
+
+            accountInfo = {
+                ...accountInfo,
+                idToken: idToken.secret,
+                idTokenClaims: idTokenClaims,
+                localAccountId: idTokenClaims.oid || accountInfo.localAccountId,
+                name: idTokenClaims.name || accountInfo.name,
+                tenantId: idToken.realm || accountInfo.tenantId,
+            };
         }
+
         return accountInfo;
     }
 
@@ -363,13 +449,7 @@ export abstract class CacheManager implements ICacheManager {
         const matchingAccounts: AccountEntity[] = [];
 
         allAccountKeys.forEach((cacheKey) => {
-            if (
-                !this.isAccountKey(
-                    cacheKey,
-                    accountFilter.homeAccountId,
-                    accountFilter.tenantId
-                )
-            ) {
+            if (!this.isAccountKey(cacheKey, accountFilter.homeAccountId)) {
                 // Don't parse value if the key doesn't match the account filters
                 return;
             }
@@ -383,13 +463,6 @@ export abstract class CacheManager implements ICacheManager {
             if (
                 !!accountFilter.homeAccountId &&
                 !this.matchHomeAccountId(entity, accountFilter.homeAccountId)
-            ) {
-                return;
-            }
-
-            if (
-                !!accountFilter.localAccountId &&
-                !this.matchLocalAccountId(entity, accountFilter.localAccountId)
             ) {
                 return;
             }
@@ -415,14 +488,6 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            // tenantId is another name for realm
-            if (
-                !!accountFilter.tenantId &&
-                !this.matchRealm(entity, accountFilter.tenantId)
-            ) {
-                return;
-            }
-
             if (
                 !!accountFilter.nativeAccountId &&
                 !this.matchNativeAccountId(
@@ -434,22 +499,8 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             if (
-                !!accountFilter.loginHint &&
-                !this.matchLoginHint(entity, accountFilter.loginHint)
-            ) {
-                return;
-            }
-
-            if (
                 !!accountFilter.authorityType &&
                 !this.matchAuthorityType(entity, accountFilter.authorityType)
-            ) {
-                return;
-            }
-
-            if (
-                !!accountFilter.name &&
-                !this.matchName(entity, accountFilter.name)
             ) {
                 return;
             }
@@ -836,13 +887,21 @@ export abstract class CacheManager implements ICacheManager {
         request: BaseAuthRequest,
         environment: string
     ): CacheRecord {
+        const requestTenantId = Authority.getTenantFromAuthorityString(
+            request.authority
+        );
         const tokenKeys = this.getTokenKeys();
         const cachedAccount = this.readAccountFromCache(account);
-        const cachedIdToken = this.getIdToken(account, tokenKeys);
+        const cachedIdToken = this.getIdToken(
+            account,
+            tokenKeys,
+            requestTenantId
+        );
         const cachedAccessToken = this.getAccessToken(
             account,
             request,
-            tokenKeys
+            tokenKeys,
+            requestTenantId
         );
         const cachedRefreshToken = this.getRefreshToken(
             account,
@@ -852,10 +911,16 @@ export abstract class CacheManager implements ICacheManager {
         const cachedAppMetadata = this.readAppMetadataFromCache(environment);
 
         if (cachedAccount && cachedIdToken) {
-            cachedAccount.idTokenClaims = extractTokenClaims(
+            const idTokenClaims = extractTokenClaims(
                 cachedIdToken.secret,
                 this.cryptoImpl.base64Decode
             );
+
+            cachedAccount.idTokenClaims = idTokenClaims;
+            cachedAccount.localAccountId =
+                idTokenClaims.oid || cachedAccount.localAccountId;
+            cachedAccount.name = idTokenClaims.name || cachedAccount.name;
+            cachedAccount.realm = idTokenClaims.tid || cachedAccount.realm;
         }
 
         return {
@@ -885,7 +950,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     getIdToken(
         account: AccountInfo,
-        tokenKeys?: TokenKeys
+        tokenKeys?: TokenKeys,
+        targetRealm?: string
     ): IdTokenEntity | null {
         this.commonLogger.trace("CacheManager - getIdToken called");
         const idTokenFilter: CredentialFilter = {
@@ -893,7 +959,7 @@ export abstract class CacheManager implements ICacheManager {
             environment: account.environment,
             credentialType: CredentialType.ID_TOKEN,
             clientId: this.clientId,
-            realm: account.tenantId,
+            realm: targetRealm || account.tenantId,
         };
 
         const idTokens: IdTokenEntity[] = this.getIdTokensByFilter(
@@ -1005,7 +1071,8 @@ export abstract class CacheManager implements ICacheManager {
     getAccessToken(
         account: AccountInfo,
         request: BaseAuthRequest,
-        tokenKeys?: TokenKeys
+        tokenKeys?: TokenKeys,
+        targetRealm?: string
     ): AccessTokenEntity | null {
         this.commonLogger.trace("CacheManager - getAccessToken called");
         const scopes = ScopeSet.createSearchScopes(request.scopes);
@@ -1027,7 +1094,7 @@ export abstract class CacheManager implements ICacheManager {
             environment: account.environment,
             credentialType: credentialType,
             clientId: this.clientId,
-            realm: account.tenantId,
+            realm: targetRealm || account.tenantId,
             target: scopes,
             tokenType: authScheme,
             keyId: request.sshKid,
@@ -1319,13 +1386,31 @@ export abstract class CacheManager implements ICacheManager {
      * @returns
      */
     private matchLocalAccountId(
-        entity: AccountEntity,
+        claims: TokenClaims,
         localAccountId: string
     ): boolean {
-        return !!(
-            typeof entity.localAccountId === "string" &&
-            localAccountId === entity.localAccountId
-        );
+        const idTokenLocalAccountId = claims.oid || claims.sub;
+        return localAccountId === idTokenLocalAccountId;
+    }
+
+    /**
+     * helper to match names
+     * @param entity
+     * @param name
+     * @returns true if the downcased name properties are present and match in the filter and the entity
+     */
+    private matchName(claims: TokenClaims, name: string): boolean {
+        return !!(name.toLowerCase() === claims.name?.toLowerCase());
+    }
+
+    /**
+     * helper to match sid
+     * @param claims
+     * @param sid
+     * @returns true if the sid claim in the token matches the sid in the filter
+     */
+    private matchSid(claims: TokenClaims, sid: string): boolean {
+        return !!(sid === claims.sid);
     }
 
     /**
@@ -1339,16 +1424,6 @@ export abstract class CacheManager implements ICacheManager {
             typeof entity.username === "string" &&
             username.toLowerCase() === entity.username.toLowerCase()
         );
-    }
-
-    /**
-     * helper to match names
-     * @param entity
-     * @param name
-     * @returns true if the downcased name properties are present and match in the filter and the entity
-     */
-    private matchName(entity: AccountEntity, name: string): boolean {
-        return !!(name.toLowerCase() === entity.name?.toLowerCase());
     }
 
     /**
@@ -1461,16 +1536,16 @@ export abstract class CacheManager implements ICacheManager {
      * @param loginHint
      * @returns
      */
-    private matchLoginHint(entity: AccountEntity, loginHint: string): boolean {
-        if (entity.idTokenClaims?.login_hint === loginHint) {
+    private matchLoginHint(claims: TokenClaims, loginHint: string): boolean {
+        if (claims.login_hint === loginHint) {
             return true;
         }
 
-        if (entity.username === loginHint) {
+        if (claims.preferred_username === loginHint) {
             return true;
         }
 
-        if (entity.idTokenClaims?.upn === loginHint) {
+        if (claims.upn === loginHint) {
             return true;
         }
 
