@@ -18,8 +18,9 @@ import {
 } from "../../src/error/ClientConfigurationError";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import {
-    ClientAuthErrorMessage,
     ClientAuthError,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
@@ -294,22 +295,34 @@ describe("Authority.ts Class Unit Tests", () => {
                     logger
                 );
                 expect(() => authority.authorizationEndpoint).toThrowError(
-                    ClientAuthErrorMessage.endpointResolutionError.desc
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError
+                    )
                 );
                 expect(() => authority.tokenEndpoint).toThrowError(
-                    ClientAuthErrorMessage.endpointResolutionError.desc
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError
+                    )
                 );
                 expect(() => authority.endSessionEndpoint).toThrowError(
-                    ClientAuthErrorMessage.endpointResolutionError.desc
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError
+                    )
                 );
                 expect(() => authority.deviceCodeEndpoint).toThrowError(
-                    ClientAuthErrorMessage.endpointResolutionError.desc
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError
+                    )
                 );
                 expect(() => authority.selfSignedJwtAudience).toThrowError(
-                    ClientAuthErrorMessage.endpointResolutionError.desc
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError
+                    )
                 );
                 expect(() => authority.jwksUri).toThrowError(
-                    ClientAuthErrorMessage.endpointResolutionError.desc
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError
+                    )
                 );
             });
 
@@ -1044,7 +1057,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 await authority.resolveEndpointsAsync();
 
                 expect(() => authority.endSessionEndpoint).toThrowError(
-                    ClientAuthError.createLogoutNotSupportedError()
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endSessionEndpointNotSupported
+                    )
                 );
             });
 
@@ -1569,12 +1584,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientAuthError);
-                    expect(
-                        e.errorMessage.includes(
-                            ClientAuthErrorMessage.unableToGetOpenidConfigError
-                                .desc
-                        )
-                    ).toBe(true);
+                    expect(e.errorCode).toBe(
+                        ClientAuthErrorCodes.openIdConfigError
+                    );
                     done();
                 });
             });
@@ -2488,7 +2500,9 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("getPreferredCache throws error if discovery is not complete", () => {
                 expect(() => authority.getPreferredCache()).toThrowError(
-                    ClientAuthErrorMessage.endpointResolutionError.desc
+                    createClientAuthError(
+                        ClientAuthErrorCodes.endpointResolutionError
+                    )
                 );
             });
         });
@@ -2540,6 +2554,32 @@ describe("Authority.ts Class Unit Tests", () => {
             await authority.resolveEndpointsAsync();
             expect(endpoint).toBe(
                 `${authorityUrl}/v2.0/.well-known/openid-configuration`
+            );
+        });
+
+        it("v2 is not added to authority if already provided", async () => {
+            const authorityUrl =
+                "https://login.microsoftonline.com/test-tenant-id/v2.0";
+            let endpoint = "";
+            authority = new Authority(
+                authorityUrl,
+                networkInterface,
+                mockStorage,
+                { ...authorityOptions, knownAuthorities: [authorityUrl] },
+                logger
+            );
+            jest.spyOn(
+                networkInterface,
+                <any>"sendGetRequestAsync"
+            ).mockImplementation((openIdConfigEndpoint) => {
+                // @ts-ignore
+                endpoint = openIdConfigEndpoint;
+                return DEFAULT_OPENID_CONFIG_RESPONSE;
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(endpoint).toBe(
+                `${authorityUrl}/.well-known/openid-configuration`
             );
         });
 

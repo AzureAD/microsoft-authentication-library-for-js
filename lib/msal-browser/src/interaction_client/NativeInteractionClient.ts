@@ -22,12 +22,17 @@ import {
     PerformanceEvents,
     IdTokenEntity,
     AccessTokenEntity,
-    ClientAuthError,
     AuthError,
     CommonSilentFlowRequest,
     AccountInfo,
     CacheRecord,
     AADServerParamKeys,
+    TokenClaims,
+    createClientAuthError,
+    ClientAuthErrorCodes,
+    invokeAsync,
+    createAuthError,
+    AuthErrorCodes,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -48,13 +53,22 @@ import {
     NativeTokenRequest,
 } from "../broker/nativeBroker/NativeRequest";
 import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse";
-import { NativeAuthError } from "../error/NativeAuthError";
+import {
+    NativeAuthError,
+    NativeAuthErrorCodes,
+    createNativeAuthError,
+    isFatalNativeAuthError,
+} from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { base64Decode } from "../encode/Base64Decode";
 
 const BrokerServerParamKeys = {
     BROKER_CLIENT_ID: "brk_client_id",
@@ -117,6 +131,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
     async acquireToken(
         request: PopupRequest | SilentRequest | SsoSilentRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.NativeInteractionClientAcquireToken,
+            request.correlationId
+        );
         this.logger.trace("NativeInteractionClient - acquireToken called.");
 
         // start the perf measurement
@@ -217,14 +235,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.warning(
                 "NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided"
             );
-            throw ClientAuthError.createNoAccountFoundError();
+            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
         // fetch the account from browser cache
         const account = this.browserStorage.getAccountInfoFilteredBy({
             nativeAccountId,
         });
         if (!account) {
-            throw ClientAuthError.createNoAccountFoundError();
+            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
 
         // leverage silent flow for cached tokens retrieval
@@ -266,7 +284,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.validateNativeResponse(response);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
-            if (e instanceof NativeAuthError && e.isFatal()) {
+            if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                 throw e;
             }
         }
@@ -379,22 +397,25 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         if (response.account.id !== request.accountId) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
-            throw NativeAuthError.createUserSwitchError();
+            throw createNativeAuthError(NativeAuthErrorCodes.userSwitch);
         }
 
         // Get the preferred_cache domain for the given authority
         const authority = await this.getDiscoveredAuthority(request.authority);
 
         // generate identifiers
-        const idTokenObj = this.createIdTokenObj(response);
+        const idTokenClaims = AuthToken.extractTokenClaims(
+            response.id_token,
+            base64Decode
+        );
         const homeAccountIdentifier = this.createHomeAccountIdentifier(
             response,
-            idTokenObj
+            idTokenClaims
         );
         const accountEntity = AccountEntity.createAccount(
             {
                 homeAccountId: homeAccountIdentifier,
-                idTokenClaims: idTokenObj.claims,
+                idTokenClaims: idTokenClaims,
                 clientInfo: response.client_info,
                 nativeAccountId: response.account.id,
             },
@@ -405,7 +426,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const result = await this.generateAuthenticationResult(
             response,
             request,
-            idTokenObj,
+            idTokenClaims,
             accountEntity,
             authority.canonicalAuthority,
             reqTimestamp
@@ -417,25 +438,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             request,
             homeAccountIdentifier,
-            idTokenObj,
+            idTokenClaims,
             result.accessToken,
             result.tenantId,
             reqTimestamp
         );
 
         return result;
-    }
-
-    /**
-     * Create an idToken Object (not entity)
-     * @param response
-     * @returns
-     */
-    protected createIdTokenObj(response: NativeResponse): AuthToken {
-        return new AuthToken(
-            response.id_token || Constants.EMPTY_STRING,
-            this.browserCrypto
-        );
     }
 
     /**
@@ -446,7 +455,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     protected createHomeAccountIdentifier(
         response: NativeResponse,
-        idTokenObj: AuthToken
+        idTokenClaims: TokenClaims
     ): string {
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(
@@ -454,7 +463,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             AuthorityType.Default,
             this.logger,
             this.browserCrypto,
-            idTokenObj.claims
+            idTokenClaims
         );
 
         return homeAccountIdentifier;
@@ -514,7 +523,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
              * PopTokenGenerator to query the full key for signing
              */
             if (!request.keyId) {
-                throw ClientAuthError.createKeyIdMissingError();
+                throw createClientAuthError(ClientAuthErrorCodes.keyIdMissing);
             }
             return await popTokenGenerator.signPopToken(
                 response.access_token,
@@ -539,7 +548,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected async generateAuthenticationResult(
         response: NativeResponse,
         request: NativeTokenRequest,
-        idTokenObj: AuthToken,
+        idTokenClaims: TokenClaims,
         accountEntity: AccountEntity,
         authority: string,
         reqTimestamp: number
@@ -555,12 +564,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const accountProperties = response.account.properties || {};
         const uid =
             accountProperties["UID"] ||
-            idTokenObj.claims.oid ||
-            idTokenObj.claims.sub ||
+            idTokenClaims.oid ||
+            idTokenClaims.sub ||
             Constants.EMPTY_STRING;
         const tid =
             accountProperties["TenantId"] ||
-            idTokenObj.claims.tid ||
+            idTokenClaims.tid ||
             Constants.EMPTY_STRING;
 
         // generate PoP token as needed
@@ -580,7 +589,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             scopes: responseScopes.asArray(),
             account: accountEntity.getAccountInfo(),
             idToken: response.id_token,
-            idTokenClaims: idTokenObj.claims,
+            idTokenClaims: idTokenClaims,
             accessToken: responseAccessToken,
             fromCache: mats ? this.isResponseFromCache(mats) : false,
             expiresOn: new Date(
@@ -625,7 +634,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         response: NativeResponse,
         request: NativeTokenRequest,
         homeAccountIdentifier: string,
-        idTokenObj: AuthToken,
+        idTokenClaims: TokenClaims,
         responseAccessToken: string,
         tenantId: string,
         reqTimestamp: number
@@ -634,9 +643,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             IdTokenEntity.createIdTokenEntity(
                 homeAccountIdentifier,
                 request.authority,
-                response.id_token || Constants.EMPTY_STRING,
+                response.id_token || "",
                 request.clientId,
-                idTokenObj.claims.tid || Constants.EMPTY_STRING
+                idTokenClaims.tid || ""
             );
 
         // cache accessToken in inmemory storage
@@ -655,9 +664,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 request.authority,
                 responseAccessToken,
                 request.clientId,
-                idTokenObj
-                    ? idTokenObj.claims.tid || Constants.EMPTY_STRING
-                    : tenantId,
+                idTokenClaims.tid || tenantId,
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 0,
@@ -670,7 +677,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             cachedAccessToken
         );
 
-        this.nativeStorageManager.saveCacheRecord(
+        void this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
             request.storeInCache
         );
@@ -725,7 +732,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
         ) {
             return response as NativeResponse;
         } else {
-            throw NativeAuthError.createUnexpectedError(
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
                 "Response missing expected properties."
             );
         }
@@ -825,7 +833,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     this.logger.trace(
                         `initializeNativeRequest: prompt = ${request.prompt} is not compatible with native flow`
                     );
-                    throw BrowserAuthError.createNativePromptParameterNotSupportedError();
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.nativePromptNotSupported
+                    );
             }
         };
 
@@ -863,9 +873,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             };
 
             const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-            const reqCnfData = await popTokenGenerator.generateCnf(
-                shrParameters
-            );
+            const reqCnfData = await invokeAsync(
+                popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                PerformanceEvents.PopTokenGenerateCnf,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(shrParameters, this.logger);
 
             // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
             validatedRequest.reqCnf = reqCnfData.reqCnfHash;

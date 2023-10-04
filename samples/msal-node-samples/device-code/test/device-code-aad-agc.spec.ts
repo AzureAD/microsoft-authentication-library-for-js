@@ -5,18 +5,19 @@
 
 import * as puppeteer from "puppeteer";
 import {
-    Screenshot, 
-    createFolder, 
-    RETRY_TIMES, 
+    Screenshot,
+    createFolder,
+    RETRY_TIMES,
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
-    validateCacheLocation
-} from "e2e-test-utils/src/TestUtils";
-import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
+    validateCacheLocation,
+    NodeCacheTestUtils,
+    getKeyVaultSecretClient,
+    getCredentials,
+} from "e2e-test-utils";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
-import { getKeyVaultSecretClient, getCredentials } from "e2e-test-utils/src/KeyVaultUtils";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc.cache.json`;
@@ -32,13 +33,15 @@ const config = require("../config/AAD-AGC.json");
 config.authOptions = {
     clientId: process.env.AZURE_CLIENT_ID,
     authority: `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    knownAuthorities: [`${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`],
+    knownAuthorities: [
+        `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
+    ],
 };
 config.resourceApi = {
     endpoint: `${process.env.GRAPH_URL}/v1.0/me`,
 };
 
-describe('Device Code AAD AGC Tests', () => {
+describe("Device Code AAD AGC Tests", () => {
     jest.setTimeout(45000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
@@ -67,7 +70,6 @@ describe('Device Code AAD AGC Tests', () => {
     });
 
     describe("Acquire Token", () => {
-
         beforeAll(async () => {
             clientConfig = { auth: config.authOptions, cache: { cachePlugin } };
             publicClientApplication = new PublicClientApplication(clientConfig);
@@ -89,19 +91,32 @@ describe('Device Code AAD AGC Tests', () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
 
             const deviceCodeCallback = async (deviceCodeResponse: any) => {
-                const { userCode, verificationUri} = deviceCodeResponse;
-                await enterDeviceCode(page, screenshot, userCode, verificationUri);
+                const { userCode, verificationUri } = deviceCodeResponse;
+                await enterDeviceCode(
+                    page,
+                    screenshot,
+                    userCode,
+                    verificationUri
+                );
                 await approveRemoteConnect(page, screenshot);
                 await enterCredentials(page, screenshot, username, password);
                 await page.waitForSelector("#message");
-                await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
+                await screenshot.takeScreenshot(
+                    page,
+                    "SuccessfulDeviceCodeMessage"
+                );
             };
 
-            await getTokenDeviceCode(config, publicClientApplication, { deviceCodeCallback: deviceCodeCallback });
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            await getTokenDeviceCode(config, publicClientApplication, {
+                deviceCodeCallback: deviceCodeCallback,
+            });
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
-         });
+        });
     });
 });

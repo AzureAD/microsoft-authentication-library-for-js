@@ -31,11 +31,13 @@ import {
     NetworkManager,
 } from "@azure/msal-common";
 import {
-    BrowserAuthError,
+    createBrowserAuthError,
     BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
+import * as PkceGenerator from "../../src/crypto/PkceGenerator";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { ApiId, AuthenticationResult } from "../../src";
@@ -86,6 +88,7 @@ describe("SilentIframeClient", () => {
 
     afterEach(() => {
         sinon.restore();
+        jest.restoreAllMocks();
         window.location.hash = "";
         window.sessionStorage.clear();
         window.localStorage.clear();
@@ -110,7 +113,9 @@ describe("SilentIframeClient", () => {
             await expect(
                 silentIframeClient.acquireToken(req)
             ).rejects.toMatchObject(
-                BrowserAuthError.createSilentPromptValueError(req.prompt || "")
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.silentPromptValueError
+                )
             );
         });
 
@@ -120,19 +125,25 @@ describe("SilentIframeClient", () => {
                 .resolves(testNavUrl);
             sinon
                 .stub(SilentHandler.prototype, "monitorIframeForHash")
-                .rejects(BrowserAuthError.createMonitorIframeTimeoutError());
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                .rejects(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.monitorWindowTimeout
+                    )
+                );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const telemetryStub = sinon
                 .stub(ServerTelemetryManager.prototype, "cacheFailedRequest")
                 .callsFake((e) => {
                     expect(e).toMatchObject(
-                        BrowserAuthError.createMonitorIframeTimeoutError()
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.monitorWindowTimeout
+                        )
                     );
                 });
             const browserStorageSpy = sinon.spy(
@@ -163,13 +174,13 @@ describe("SilentIframeClient", () => {
             sinon
                 .stub(SilentHandler.prototype, "monitorIframeForHash")
                 .rejects(testError);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
 
             silentIframeClient
                 .acquireToken({
@@ -239,13 +250,13 @@ describe("SilentIframeClient", () => {
             sinon
                 .stub(SilentHandler.prototype, "handleCodeResponseFromHash")
                 .resolves(testTokenResponse);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
@@ -311,13 +322,13 @@ describe("SilentIframeClient", () => {
             sinon
                 .stub(SilentHandler.prototype, "handleCodeResponseFromHash")
                 .resolves(testTokenResponse);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -425,13 +436,13 @@ describe("SilentIframeClient", () => {
             sinon
                 .stub(NativeInteractionClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -527,13 +538,13 @@ describe("SilentIframeClient", () => {
             sinon
                 .stub(NativeInteractionClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             silentIframeClient
                 .acquireToken({
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -564,6 +575,13 @@ describe("SilentIframeClient", () => {
                     NetworkManager.prototype,
                     "sendPostRequest"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
             });
 
             it("does not store idToken if storeInCache.idToken = false", async () => {
@@ -646,7 +664,9 @@ describe("SilentIframeClient", () => {
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(
-                BrowserAuthError.createSilentLogoutUnsupportedError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.silentLogoutUnsupported
+                )
             );
         });
     });

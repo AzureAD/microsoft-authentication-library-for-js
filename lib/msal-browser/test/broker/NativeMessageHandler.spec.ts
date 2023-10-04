@@ -76,8 +76,7 @@ describe("NativeMessageHandler Tests", () => {
             const wamMessageHandler = await NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient,
-                cryptoInterface
+                performanceClient
             );
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
@@ -126,8 +125,7 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient,
-                cryptoInterface
+                performanceClient
             ).then(() => {
                 window.removeEventListener("message", eventHandler, true);
             });
@@ -164,8 +162,7 @@ describe("NativeMessageHandler Tests", () => {
             const wamMessageHandler = await NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient,
-                cryptoInterface
+                performanceClient
             );
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
@@ -176,8 +173,7 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient,
-                cryptoInterface
+                performanceClient
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(
@@ -200,8 +196,7 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient,
-                cryptoInterface
+                performanceClient
             )
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
@@ -239,8 +234,7 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient,
-                cryptoInterface
+                performanceClient
             ).catch(() => {
                 if (callbackDone) {
                     done();
@@ -296,8 +290,7 @@ describe("NativeMessageHandler Tests", () => {
             const wamMessageHandler = await NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient,
-                cryptoInterface
+                performanceClient
             );
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
@@ -354,8 +347,7 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient,
-                cryptoInterface
+                performanceClient
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler
@@ -421,8 +413,7 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient,
-                cryptoInterface
+                performanceClient
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler
@@ -486,8 +477,7 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient,
-                cryptoInterface
+                performanceClient
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler

@@ -5,12 +5,13 @@
 
 import { InteractionType } from "./BrowserConstants";
 import {
-    ClientAuthError,
     ICrypto,
     RequestStateObject,
     ProtocolUtils,
     ServerAuthorizationCodeResponse,
     UrlString,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 
 export type BrowserStateObject = {
@@ -36,7 +37,7 @@ export class BrowserProtocolUtils {
                 ProtocolUtils.parseRequestState(browserCrypto, state);
             return requestStateObj.libraryState.meta as BrowserStateObject;
         } catch (e) {
-            throw ClientAuthError.createInvalidStateError(state, e as string);
+            throw createClientAuthError(ClientAuthErrorCodes.invalidState);
         }
     }
 

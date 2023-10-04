@@ -29,7 +29,6 @@ import {
     TokenClaims,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
-    AuthToken,
     PersistentCacheKeys,
     AuthorizationCodeClient,
     ResponseMode,
@@ -45,9 +44,10 @@ import {
     CommonEndSessionRequest,
     ServerTelemetryManager,
     AccountEntity,
-    ClientConfigurationError,
     AuthError,
     NetworkManager,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import {
@@ -56,14 +56,17 @@ import {
     BrowserCacheLocation,
     InteractionType,
 } from "../../src/utils/BrowserConstants";
-import { Base64Encode } from "../../src/encode/Base64Encode";
+import { base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
-    BrowserAuthError,
+    createBrowserAuthError,
     BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
+import * as PkceGenerator from "../../src/crypto/PkceGenerator";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
@@ -121,9 +124,9 @@ describe("RedirectClient", () => {
         pca = (pca as any).controller;
         await pca.initialize();
 
-        sinon
-            .stub(CryptoOps.prototype, "createNewGuid")
-            .returns(RANDOM_TEST_GUID);
+        jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+            RANDOM_TEST_GUID
+        );
 
         // @ts-ignore
         browserStorage = pca.browserStorage;
@@ -275,7 +278,6 @@ describe("RedirectClient", () => {
         });
 
         it("gets hash from cache and processes response", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -319,7 +321,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -441,7 +443,7 @@ describe("RedirectClient", () => {
                 pca.nativeInternalStorage,
                 nativeMessageHandler
             );
-            const b64Encode = new Base64Encode();
+
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -485,7 +487,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -600,7 +602,7 @@ describe("RedirectClient", () => {
                 //@ts-ignore
                 pca.nativeInternalStorage
             );
-            const b64Encode = new Base64Encode();
+
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -644,7 +646,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
 
             redirectClient.handleRedirectPromise().catch((e) => {
@@ -659,7 +661,6 @@ describe("RedirectClient", () => {
         });
 
         it("throws no cached authority error if authority is not in cache", (done) => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -699,12 +700,14 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
 
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createNoCachedAuthorityError()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.noCachedAuthorityError
+                    )
                 );
                 expect(window.sessionStorage.length).toEqual(1); // telemetry
                 done();
@@ -761,7 +764,6 @@ describe("RedirectClient", () => {
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is the same", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -804,7 +806,7 @@ describe("RedirectClient", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -922,7 +924,6 @@ describe("RedirectClient", () => {
         });
 
         it("calls custom navigateInternal function then processes hash", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -965,7 +966,7 @@ describe("RedirectClient", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse: NetworkResponse<ServerAuthorizationTokenResponse> =
                 {
@@ -1100,7 +1101,6 @@ describe("RedirectClient", () => {
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -1143,7 +1143,7 @@ describe("RedirectClient", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -1692,7 +1692,9 @@ describe("RedirectClient", () => {
             };
 
             expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(
-                ClientConfigurationError.createMissingSshJwkError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                )
             );
         });
 
@@ -1710,7 +1712,9 @@ describe("RedirectClient", () => {
             };
 
             expect(redirectClient.acquireToken(request)).rejects.toThrow(
-                ClientConfigurationError.createMissingSshKidError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshKid
+                )
             );
         });
 
@@ -1725,7 +1729,7 @@ describe("RedirectClient", () => {
                         Promise.reject(err);
                     }
                 });
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -1757,7 +1761,7 @@ describe("RedirectClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -1828,7 +1832,7 @@ describe("RedirectClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -1942,7 +1946,7 @@ describe("RedirectClient", () => {
                 loginHint: testIdTokenClaims.preferred_username || "",
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2033,7 +2037,7 @@ describe("RedirectClient", () => {
                 account: testAccount,
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2102,7 +2106,7 @@ describe("RedirectClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2171,7 +2175,7 @@ describe("RedirectClient", () => {
                 browserCrypto,
                 testLogger
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2183,12 +2187,7 @@ describe("RedirectClient", () => {
             };
             sinon
                 .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .throws(
-                    new BrowserAuthError(
-                        testError.errorCode,
-                        testError.errorMessage
-                    )
-                );
+                .throws(createBrowserAuthError(testError.errorCode));
             try {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
@@ -2205,7 +2204,6 @@ describe("RedirectClient", () => {
                     ApiId.acquireTokenRedirect
                 );
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
-                expect(e).toMatchObject(testError);
             }
         });
 
@@ -2221,7 +2219,6 @@ describe("RedirectClient", () => {
                 ver: "1.0",
                 upn: "AbeLincoln@contoso.com",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(
@@ -2238,7 +2235,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2294,7 +2291,6 @@ describe("RedirectClient", () => {
                 ver: "1.0",
                 preferred_username: "AbeLincoln@contoso.com",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(
@@ -2311,7 +2307,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2368,7 +2364,6 @@ describe("RedirectClient", () => {
                 upn: "AbeLincol_gmail.com#EXT#@AbeLincolgmail.onmicrosoft.com",
                 preferred_username: "AbeLincoln@contoso.com",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(
@@ -2385,7 +2380,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2441,7 +2436,6 @@ describe("RedirectClient", () => {
                 ver: "1.0",
                 preferred_username: "AbeLincoln@contoso.com",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(
@@ -2459,7 +2453,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2504,18 +2498,6 @@ describe("RedirectClient", () => {
         });
 
         it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
-            const idTokenClaims: TokenClaims = {
-                iss: "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-                exp: 1536279024,
-                name: "abeli",
-                nonce: "123523",
-                oid: "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
-                sub: "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
-                tid: "fa15d692-e9c7-4460-a743-29f2956fd429",
-                ver: "1.0",
-                upn: "AbeLincoln@contoso.com",
-            };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(
@@ -2532,7 +2514,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2583,7 +2565,7 @@ describe("RedirectClient", () => {
                     expect(navigateUrl).toEqual(testNavUrl);
                     return Promise.resolve(done());
                 });
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2625,7 +2607,7 @@ describe("RedirectClient", () => {
                         return Promise.resolve();
                     }
                 );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2651,7 +2633,7 @@ describe("RedirectClient", () => {
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2712,7 +2694,7 @@ describe("RedirectClient", () => {
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2779,7 +2761,7 @@ describe("RedirectClient", () => {
                 browserCrypto,
                 testLogger
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2824,7 +2806,6 @@ describe("RedirectClient", () => {
                 ver: "1.0",
                 upn: "AbeLincoln@contoso.com",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(
@@ -2841,7 +2822,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2888,18 +2869,6 @@ describe("RedirectClient", () => {
         });
 
         it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
-            const idTokenClaims: TokenClaims = {
-                iss: "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-                exp: 1536279024,
-                name: "abeli",
-                nonce: "123523",
-                oid: "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
-                sub: "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
-                tid: "fa15d692-e9c7-4460-a743-29f2956fd429",
-                ver: "1.0",
-                upn: "AbeLincoln@contoso.com",
-            };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(
@@ -2916,7 +2885,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2972,6 +2941,13 @@ describe("RedirectClient", () => {
                     NetworkManager.prototype,
                     "sendPostRequest"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
             });
 
             it("does not store idToken if storeInCache.idToken = false", async () => {
@@ -3612,7 +3588,9 @@ describe("RedirectClient", () => {
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
-            const testError = BrowserAuthError.createEmptyNavigationUriError();
+            const testError = createBrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUri
+            );
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
                 .callsFake((): Promise<boolean> => {

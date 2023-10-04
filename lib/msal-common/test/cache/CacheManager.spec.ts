@@ -24,8 +24,8 @@ import {
     TEST_TOKEN_LIFETIMES,
 } from "../test_kit/StringConstants";
 import {
-    ClientAuthError,
-    ClientAuthErrorMessage,
+    ClientAuthErrorCodes,
+    createClientAuthError,
 } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
@@ -360,7 +360,7 @@ describe("CacheManager.ts test cases", () => {
             };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).toEqual(1);
+            expect(Object.keys(accounts).length).toEqual(3);
             sinon.restore();
 
             const wrongFilter: AccountFilter = { environment: "Wrong Env" };
@@ -374,7 +374,7 @@ describe("CacheManager.ts test cases", () => {
             const successFilter: AccountFilter = { realm: "microsoft" };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).toEqual(1);
+            expect(Object.keys(accounts).length).toEqual(3);
 
             const wrongFilter: AccountFilter = { realm: "Wrong Realm" };
             accounts =
@@ -395,6 +395,51 @@ describe("CacheManager.ts test cases", () => {
             accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
             expect(Object.keys(accounts).length).toEqual(0);
+        });
+
+        it("loginHint filter matching login_hint ID token claim", () => {
+            // filter by loginHint
+            const successFilter: AccountFilter = {
+                loginHint: "testLoginHint",
+            };
+            let accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            expect(accounts.length).toEqual(1);
+
+            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
+            accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            expect(accounts.length).toBe(0);
+        });
+
+        it("loginHint filter matching username", () => {
+            // filter by loginHint
+            const successFilter: AccountFilter = {
+                loginHint: "Jane Doe",
+            };
+            let accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            expect(accounts.length).toEqual(1);
+
+            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
+            accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            expect(accounts.length).toBe(0);
+        });
+
+        it("loginHint filter matching upn ID token claim", () => {
+            // filter by loginHint
+            const successFilter: AccountFilter = {
+                loginHint: "testUpn",
+            };
+            let accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            expect(accounts.length).toEqual(1);
+
+            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
+            accounts =
+                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            expect(accounts.length).toBe(0);
         });
     });
 
@@ -1133,7 +1178,9 @@ describe("CacheManager.ts test cases", () => {
             mockCache.cacheManager.removeAccessToken(
                 atWithAuthScheme.generateCredentialKey()
             )
-        ).rejects.toThrow(ClientAuthError.createBindingKeyNotRemovedError());
+        ).rejects.toThrow(
+            createClientAuthError(ClientAuthErrorCodes.bindingKeyNotRemoved)
+        );
     });
 
     it("getAccessToken matches multiple tokens, removes them and returns null", async () => {
@@ -1311,14 +1358,6 @@ describe("CacheManager.ts test cases", () => {
                 silentFlowRequest
             )
         ).toEqual(mockedAtEntity);
-        expect(() =>
-            mockCache.cacheManager.getAccessToken(
-                mockedAccountInfo,
-                silentFlowRequest
-            )
-        ).not.toThrowError(
-            `${ClientAuthErrorMessage.multipleMatchingTokens.desc}`
-        );
     });
 
     it("getAccessToken matches a Bearer Token when Authentication Scheme is set to bearer (lowercase from adfs)", () => {
@@ -1473,14 +1512,6 @@ describe("CacheManager.ts test cases", () => {
                 silentFlowRequest
             )
         ).toEqual(mockedPopAtEntity);
-        expect(() =>
-            mockCache.cacheManager.getAccessToken(
-                mockedAccountInfo,
-                silentFlowRequest
-            )
-        ).not.toThrowError(
-            `${ClientAuthErrorMessage.multipleMatchingTokens.desc}`
-        );
     });
 
     it("getAccessToken only matches an SSH Certificate when Authentication Scheme is set to ssh-cert", () => {
@@ -1578,14 +1609,6 @@ describe("CacheManager.ts test cases", () => {
                 silentFlowRequest
             )
         ).toEqual(mockedSshAtEntity);
-        expect(() =>
-            mockCache.cacheManager.getAccessToken(
-                mockedAccountInfo,
-                silentFlowRequest
-            )
-        ).not.toThrowError(
-            `${ClientAuthErrorMessage.multipleMatchingTokens.desc}`
-        );
     });
 
     it("readAccountFromCache", () => {

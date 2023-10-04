@@ -17,7 +17,10 @@ import {
     HeaderNames,
 } from "../utils/Constants";
 import { ScopeSet } from "./ScopeSet";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "./RequestValidator";
 import {
@@ -330,7 +333,9 @@ export class RequestParameterBuilder {
                 encodeURIComponent(codeChallengeMethod)
             );
         } else {
-            throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.pkceParamsMissing
+            );
         }
     }
 
@@ -480,7 +485,9 @@ export class RequestParameterBuilder {
             try {
                 mergedClaims = JSON.parse(claims);
             } catch (e) {
-                throw ClientConfigurationError.createInvalidClaimsRequestError();
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims
+                );
             }
         }
 

@@ -40,15 +40,18 @@ import {
     CommonSilentFlowRequest,
     LogLevel,
     CommonAuthorizationCodeRequest,
-    InteractionRequiredAuthError,
     IdTokenEntity,
     CacheManager,
-    ClientAuthError,
     PersistentCacheKeys,
     Authority,
     AuthError,
     ProtocolMode,
     ServerResponseType,
+    PerformanceEvents,
+    createClientAuthError,
+    ClientAuthErrorCodes,
+    createInteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -61,6 +64,8 @@ import {
     NativeConstants,
 } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
+import * as PkceGenerator from "../../src/crypto/PkceGenerator";
 import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
@@ -70,11 +75,13 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { EventMessage } from "../../src/event/EventMessage";
 import { EventHandler } from "../../src/event/EventHandler";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
-import { Base64Encode } from "../../src/encode/Base64Encode";
+import { base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
+    createBrowserAuthError,
     BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
@@ -83,7 +90,6 @@ import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClien
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
 import {
     AuthorizationCodeRequest,
-    BrowserConfigurationAuthError,
     EndSessionRequest,
     version,
 } from "../../src";
@@ -98,6 +104,10 @@ import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
+import {
+    BrowserConfigurationAuthErrorCodes,
+    createBrowserConfigurationAuthError,
+} from "../../src/error/BrowserConfigurationAuthError";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -140,7 +150,6 @@ function stubProvider(pca: PublicClientApplication) {
                 pca.getLogger(),
                 2000,
                 perfClient,
-                new CryptoOps(new Logger({})),
                 "test-extensionId"
             );
         });
@@ -173,6 +182,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     afterEach(() => {
         sinon.restore();
+        jest.restoreAllMocks();
         window.location.hash = "";
         window.sessionStorage.clear();
         window.localStorage.clear();
@@ -270,7 +280,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(apps[i].controller.initialized).toBeTruthy();
                     expect(
                         // @ts-ignore
-                        apps[i].controller.getNativeExtensionProvider()
+                        apps[i].controller.nativeExtensionProvider
                     ).toBeInstanceOf(NativeMessageHandler);
                 }
             } finally {
@@ -360,7 +370,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     nativeProviders += apps[
                         i
                         // @ts-ignore
-                    ].controller.getNativeExtensionProvider()
+                    ].controller.nativeExtensionProvider
                         ? 1
                         : 0;
                 }
@@ -660,7 +670,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
-            const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -704,7 +713,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                b64Encode.encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -889,7 +898,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             pca = (pca as any).controller;
             await expect(pca.loginRedirect()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -927,13 +938,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ).toBeTruthy();
                     return Promise.resolve(done());
                 });
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
 
             // @ts-ignore
             pca.loginRedirect(null);
@@ -956,7 +967,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
         it("goes directly to the native broker if nativeAccountId is present", async () => {
@@ -1016,12 +1029,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events.length).toBe(1);
-                const event = events[0];
-                expect(event.success).toBeTruthy();
-                expect(event.allowNativeBroker).toBeTruthy();
-                pca.removePerformanceCallback(callbackId);
-                done();
+                expect(events.length).toBeGreaterThanOrEqual(1);
+                for (const event of events) {
+                    if (
+                        event.name ===
+                        PerformanceEvents.ClearTokensAndKeysWithClaims
+                    ) {
+                        expect(event.success).toBeTruthy();
+                    }
+
+                    if (
+                        event.name ===
+                        PerformanceEvents.InitializeClientApplication
+                    ) {
+                        expect(event.success).toBeTruthy();
+                        expect(event.allowNativeBroker).toBeTruthy();
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    }
+                }
             });
 
             stubProvider(pca);
@@ -1144,7 +1170,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireTokenRedirect")
                 .callsFake(async () => {
-                    throw InteractionRequiredAuthError.createNativeAccountUnavailableError();
+                    throw createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                    );
                 });
             const redirectSpy = sinon
                 .stub(RedirectClient.prototype, "acquireToken")
@@ -1236,7 +1264,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: ["openid"] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                )
             );
         });
 
@@ -1268,7 +1298,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: ["openid"] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                )
             );
         });
 
@@ -1311,7 +1343,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createRedirectInIframeError(true)
+                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
             );
         });
 
@@ -1324,7 +1356,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -1345,7 +1379,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError()
+                createBrowserConfigurationAuthError(
+                    BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
+                )
             );
         });
 
@@ -1439,7 +1475,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             pca = (pca as any).controller;
             await expect(pca.loginPopup()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -1545,7 +1583,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -1764,7 +1804,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireToken")
                 .callsFake(async () => {
-                    throw InteractionRequiredAuthError.createNativeAccountUnavailableError();
+                    throw createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                    );
                 });
             const popupSpy = sinon
                 .stub(PopupClient.prototype, "acquireToken")
@@ -1864,7 +1906,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                )
             );
         });
 
@@ -1880,7 +1924,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -2123,7 +2169,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -2175,6 +2223,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .callsFake(async () => {
                     return testTokenResponse;
                 });
+
             const response = await pca.ssoSilent({
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -2311,7 +2360,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -2337,14 +2388,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
+
+            let ssoSilentFired = false;
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
 
+            sinon
+                .stub(EventHandler.prototype, "emitEvent")
+                .callsFake((eventType, interactionType) => {
+                    if (
+                        eventType === EventType.SSO_SILENT_START &&
+                        interactionType === InteractionType.Silent
+                    ) {
+                        ssoSilentFired = true;
+                    }
+                });
             const response = await pca.ssoSilent({ scopes: ["openid"] });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
             expect(silentClientSpy.calledOnce).toBe(true);
+            expect(ssoSilentFired).toBe(true);
         });
 
         it("emits expect performance event when successful ", (done) => {
@@ -2369,9 +2433,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
@@ -2410,9 +2474,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
@@ -2455,9 +2519,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .rejects({
@@ -2491,7 +2555,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenByCode({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -2635,7 +2701,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.acquireTokenByCode({})).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -2776,7 +2844,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("throws an error if falsey code is provided", () => {
             expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(
-                BrowserAuthError.createAuthCodeOrNativeAccountIdRequiredError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
+                )
             );
         });
 
@@ -2802,9 +2872,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentAuthCodeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
@@ -2846,9 +2916,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentAuthCodeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
@@ -2902,9 +2972,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const silentClientSpy = sinon
                 .stub(SilentAuthCodeClient.prototype, "acquireToken")
                 .rejects({
@@ -2935,7 +3005,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws No Account error if no account is provided", async () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
-            ).rejects.toMatchObject(BrowserAuthError.createNoAccountError());
+            ).rejects.toMatchObject(
+                createBrowserAuthError(BrowserAuthErrorCodes.noAccountError)
+            );
         });
 
         it("throws an error if initialize was not called prior", async () => {
@@ -2950,7 +3022,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
             ).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -3310,9 +3384,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
@@ -3416,9 +3490,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
@@ -3512,9 +3586,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
@@ -3730,9 +3804,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
@@ -4101,13 +4175,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentTokenHelperStub = sinon
                 .stub(SilentIframeClient.prototype, <any>"silentTokenHelper")
                 .resolves(testTokenResponse);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(ProtocolUtils, "setRequestState")
                 .returns(TEST_STATE_VALUES.TEST_STATE_SILENT);
@@ -4187,9 +4261,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
 
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(ProtocolUtils, "setRequestState")
                 .returns(TEST_STATE_VALUES.TEST_STATE_SILENT);
@@ -4263,9 +4337,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
 
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(true);
@@ -4322,9 +4396,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
 
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(true);
@@ -4392,9 +4466,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
 
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(ProtocolUtils, "setRequestState")
                 .returns(TEST_STATE_VALUES.TEST_STATE_SILENT);
@@ -4449,8 +4523,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
 
-            const refreshRequiredCacheError =
-                ClientAuthError.createRefreshRequiredError();
+            const refreshRequiredCacheError = createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired
+            );
             const refreshRequiredServerError = new ServerError(
                 BrowserConstants.INVALID_GRANT_ERROR,
                 "Refresh Token expired"
@@ -4622,7 +4697,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.logout()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -4664,7 +4741,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.logoutRedirect()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -4692,7 +4771,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws an error if inside an iframe", async () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             await expect(pca.logoutRedirect()).rejects.toMatchObject(
-                BrowserAuthError.createRedirectInIframeError(true)
+                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
             );
         });
     });
@@ -4710,7 +4789,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(pca.logoutPopup()).rejects.toMatchObject(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 
@@ -4747,7 +4828,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             browserStorage.setInteractionInProgress(true);
 
             await expect(pca.logoutPopup()).rejects.toMatchObject(
-                BrowserAuthError.createInteractionInProgressError()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.interactionInProgress
+                )
             );
         });
     });
@@ -4915,6 +4998,80 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             homeAccountId: testAccountInfo2.homeAccountId,
         };
 
+        // Account 3
+        const testAccountInfo3: AccountInfo = {
+            authorityType: "ADFS",
+            homeAccountId: "another-home-account-id",
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "Unique Username",
+            name: "Abe Lincoln Two",
+            localAccountId: TEST_CONFIG.OID,
+            idToken: TEST_TOKENS.ID_TOKEN_V2_WITH_LOGIN_HINT,
+            idTokenClaims: { ...ID_TOKEN_CLAIMS, login_hint: "testLoginHint" },
+            nativeAccountId: undefined,
+        };
+
+        const testAccount3: AccountEntity = new AccountEntity();
+        testAccount3.homeAccountId = testAccountInfo3.homeAccountId;
+        testAccount3.localAccountId = TEST_CONFIG.OID;
+        testAccount3.environment = testAccountInfo3.environment;
+        testAccount3.realm = testAccountInfo3.tenantId;
+        testAccount3.username = testAccountInfo3.username;
+        testAccount3.name = testAccountInfo3.name;
+        testAccount3.authorityType = "ADFS";
+
+        testAccount3.clientInfo =
+            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+        testAccount3.idTokenClaims = testAccountInfo3.idTokenClaims;
+
+        const idTokenData3 = {
+            realm: testAccountInfo3.tenantId,
+            environment: testAccountInfo3.environment,
+            credentialType: "IdToken",
+            secret: TEST_TOKENS.IDTOKEN_V2,
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            homeAccountId: testAccountInfo3.homeAccountId,
+            login_hint: "testLoginHint",
+        };
+
+        // Account 4
+        const testAccountInfo4: AccountInfo = {
+            authorityType: "MSA",
+            homeAccountId: "upn-account-id",
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "Upn User",
+            name: "Abe Lincoln Three",
+            localAccountId: TEST_CONFIG.OID,
+            idToken: TEST_TOKENS.ID_TOKEN_V2_WITH_UPN,
+            idTokenClaims: { ...ID_TOKEN_CLAIMS, upn: "testUpn" },
+            nativeAccountId: undefined,
+        };
+
+        const testAccount4: AccountEntity = new AccountEntity();
+        testAccount4.homeAccountId = testAccountInfo4.homeAccountId;
+        testAccount4.localAccountId = TEST_CONFIG.OID;
+        testAccount4.environment = testAccountInfo4.environment;
+        testAccount4.realm = testAccountInfo4.tenantId;
+        testAccount4.username = testAccountInfo4.username;
+        testAccount4.name = testAccountInfo4.name;
+        testAccount4.authorityType = "MSA";
+
+        testAccount4.clientInfo =
+            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+        testAccount4.idTokenClaims = testAccountInfo4.idTokenClaims;
+
+        const idTokenData4 = {
+            realm: testAccountInfo4.tenantId,
+            environment: testAccountInfo4.environment,
+            credentialType: "IdToken",
+            secret: TEST_TOKENS.IDTOKEN_V2,
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            homeAccountId: testAccountInfo4.homeAccountId,
+            upn: "testUpn",
+        };
+
         beforeEach(async () => {
             pca = (pca as any).controller;
             await pca.initialize();
@@ -4937,6 +5094,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.getBrowserStorage().setAccount(testAccount1);
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount2);
+            // @ts-ignore
+            pca.getBrowserStorage().setAccount(testAccount3);
+            // @ts-ignore
+            pca.getBrowserStorage().setAccount(testAccount4);
 
             const idToken1 = CacheManager.toObject(
                 new IdTokenEntity(),
@@ -4951,6 +5112,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken2);
+
+            const idToken3 = CacheManager.toObject(
+                new IdTokenEntity(),
+                idTokenData3
+            );
+            // @ts-ignore
+            pca.getBrowserStorage().setIdTokenCredential(idToken3);
+
+            const idToken4 = CacheManager.toObject(
+                new IdTokenEntity(),
+                idTokenData4
+            );
+            // @ts-ignore
+            pca.getBrowserStorage().setIdTokenCredential(idToken4);
         });
 
         afterEach(() => {
@@ -4958,11 +5133,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.sessionStorage.clear();
         });
 
-        it("getAllAccounts returns all signed in accounts", () => {
+        it("getAllAccounts with no account filter returns all signed in accounts", () => {
             const accounts = pca.getAllAccounts();
-            expect(accounts).toHaveLength(2);
+            expect(accounts).toHaveLength(4);
             expect(accounts[0].idToken).not.toBeUndefined();
             expect(accounts[1].idToken).not.toBeUndefined();
+            expect(accounts[2].idToken).not.toBeUndefined();
+            expect(accounts[3].idToken).not.toBeUndefined();
+        });
+
+        it("getAllAccounts returns all accounts matching the filter passed in", () => {
+            const accounts = pca.getAllAccounts({ authorityType: "MSSTS" });
+            expect(accounts).toHaveLength(2);
+            expect(accounts[0].authorityType).toBe("MSSTS");
+            expect(accounts[1].authorityType).toBe("MSSTS");
         });
 
         it("getAllAccounts returns empty array if no accounts signed in", () => {
@@ -5036,6 +5220,76 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // @ts-ignore
             const account = pca.getAccountByLocalId(null);
             expect(account).toBe(null);
+        });
+
+        describe("getAccount", () => {
+            it("getAccount returns null if empty filter is passed in", () => {
+                const account = pca.getAccount({});
+                expect(account).toBe(null);
+            });
+
+            describe("loginHint filter", () => {
+                it("getAccount returns account specified using login_hint", () => {
+                    const account = pca.getAccount({
+                        loginHint: "testLoginHint",
+                    });
+                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.homeAccountId).toEqual(
+                        testAccountInfo3.homeAccountId
+                    );
+                });
+                it("getAccount returns account specified using username", () => {
+                    const account = pca.getAccount({
+                        loginHint: "Unique Username",
+                    });
+                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.homeAccountId).toEqual(
+                        testAccountInfo3.homeAccountId
+                    );
+                });
+                it("getAccount returns account specified using upn", () => {
+                    const account = pca.getAccount({
+                        loginHint: "testUpn",
+                    });
+                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.homeAccountId).toEqual(
+                        testAccountInfo4.homeAccountId
+                    );
+                });
+            });
+
+            it("getAccount returns account specified using homeAccountId", () => {
+                const account = pca.getAccount({
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                });
+                expect(account?.idToken).not.toBeUndefined();
+                expect(account).toEqual(testAccountInfo1);
+            });
+
+            it("getAccount returns account specified using localAccountId", () => {
+                const account = pca.getAccount({
+                    localAccountId: TEST_CONFIG.OID,
+                });
+                expect(account?.idToken).not.toBeUndefined();
+                expect(account).toEqual(testAccountInfo1);
+            });
+
+            it("getAccount returns account specified using username", () => {
+                const account = pca.getAccount({
+                    username: "example@microsoft.com",
+                });
+                expect(account?.idToken).not.toBeUndefined();
+                expect(account).toEqual(testAccountInfo1);
+            });
+
+            it("getAccount returns account specified using a combination of homeAccountId and localAccountId", () => {
+                const account = pca.getAccount({
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_CONFIG.OID,
+                });
+                expect(account?.idToken).not.toBeUndefined();
+                expect(account).toEqual(testAccountInfo1);
+            });
         });
     });
 
@@ -5310,7 +5564,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .stub(PopupClient.prototype, "openSizedPopup")
                     .returns(popupWindow);
                 sinon.stub(PopupClient.prototype, "cleanPopup");
-                sinon.stub(Authority.prototype, "resolveEndpointsAsync");
             });
 
             it("Clears active account on logoutRedirect with no account", async () => {
@@ -5454,7 +5707,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 // @ts-ignore
                 pca.preflightBrowserEnvironmentCheck(InteractionType.Popup)
             ).toThrow(
-                BrowserAuthError.createUninitializedPublicClientApplication()
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                )
             );
         });
 

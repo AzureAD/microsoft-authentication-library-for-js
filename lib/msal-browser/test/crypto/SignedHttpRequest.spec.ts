@@ -1,9 +1,9 @@
 import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
-import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
 import { AuthToken, Logger } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
+import { base64Decode } from "../../src/encode/Base64Decode";
 
 let mockDatabase = {
     "TestDB.keys": {},
@@ -13,7 +13,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
     jest.setTimeout(30000);
 
     beforeEach(() => {
-        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation(
+        jest.spyOn(BrowserCrypto, "sha256Digest").mockImplementation(
             (): Promise<ArrayBuffer> => {
                 return Promise.resolve(
                     createHash("SHA256")
@@ -81,7 +81,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
 
         const decodedToken = AuthToken.extractTokenClaims(
             popToken,
-            new CryptoOps(new Logger({}))
+            base64Decode
         );
 
         expect(decodedToken.nonce).toEqual("test-nonce");

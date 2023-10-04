@@ -29,8 +29,7 @@ export {
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { AccountInfo, ActiveAccountFilters } from "./account/AccountInfo";
-export { AuthToken } from "./account/AuthToken";
-export { AuthToken as IdToken } from "./account/AuthToken";
+export * as AuthToken from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
@@ -55,6 +54,7 @@ export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
 export {
     AccountCache,
+    AccountFilter,
     AccessTokenCache,
     IdTokenCache,
     RefreshTokenCache,
@@ -138,17 +138,28 @@ export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
 export {
     InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
     InteractionRequiredAuthErrorMessage,
+    createInteractionRequiredAuthError,
 } from "./error/InteractionRequiredAuthError";
-export { AuthError, AuthErrorMessage } from "./error/AuthError";
+export {
+    AuthError,
+    AuthErrorMessage,
+    AuthErrorCodes,
+    createAuthError,
+} from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
 export {
     ClientAuthError,
     ClientAuthErrorMessage,
+    ClientAuthErrorCodes,
+    createClientAuthError,
 } from "./error/ClientAuthError";
 export {
     ClientConfigurationError,
     ClientConfigurationErrorMessage,
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
 } from "./error/ClientConfigurationError";
 // Constants and Utils
 export {
@@ -185,6 +196,7 @@ export {
     LibraryStateObject,
 } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
+export * from "./utils/FunctionWrappers";
 // Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";

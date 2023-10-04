@@ -4,14 +4,21 @@
  */
 
 import { Authority } from "./Authority";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { INetworkModule } from "../network/INetworkModule";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
 import { Logger } from "../logger/Logger";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { invokeAsync } from "../utils/FunctionWrappers";
 
 /** @internal */
 export class AuthorityFactory {
@@ -55,16 +62,19 @@ export class AuthorityFactory {
             );
 
         try {
-            performanceClient?.setPreQueueTime(
+            await invokeAsync(
+                acquireTokenAuthority.resolveEndpointsAsync.bind(
+                    acquireTokenAuthority
+                ),
                 PerformanceEvents.AuthorityResolveEndpointsAsync,
+                logger,
+                performanceClient,
                 correlationId
-            );
-
-            await acquireTokenAuthority.resolveEndpointsAsync();
+            )();
             return acquireTokenAuthority;
         } catch (e) {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
-                e as string
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
             );
         }
     }
@@ -90,7 +100,9 @@ export class AuthorityFactory {
     ): Authority {
         // Throw error if authority url is empty
         if (!authorityUrl) {
-            throw ClientConfigurationError.createUrlEmptyError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError
+            );
         }
 
         return new Authority(

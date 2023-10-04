@@ -2,6 +2,117 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 05 Sep 2023 22:13:47 GMT",
+      "version": "3.1.0",
+      "tag": "@azure/msal-browser_v3.1.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "dc5ec8dd1491c5d07971e215f9a74f900bb30af6",
+            "comment": "Clear claims from cache when config is not set #6430"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a5a93f9944739924d73917b49ebaab2430b87743",
+            "comment": "Add a linter rule to avoid floating promises #6421"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "72e3963095f82c3a0f4d21b2e2d4e4a25dfa60a9",
+            "comment": "Make AuthToken methods instead of class #6423"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5d050542c3f24a5d5ded1b9b1eb7e49d73cd5b8d",
+            "comment": "Make `eventName` of type string for `BrowserPerformanceClient` and `PerformanceClient` #6386"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "39ff93c407886f9d3883f814d4439f36dba69b11",
+            "comment": "Refactor BrowserAuthError to reduce size"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2ef47fe40e817cfd4428ed75dd8dbf11a3f13632",
+            "comment": "Make base64 encoder and decoder methods instead of classes #6416"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ca09bbd8c4ea6848d95a552b08dce2d7ccd8fcae",
+            "comment": "Instrument ssoSilent #6383"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0046b300428f9c0899af70fa30eac02a93b39cc7",
+            "comment": "Fix for source-map related errors #6398"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "59fb3e847bedbd3cb4594291a7a462fcc2e9cb3c",
+            "comment": "Remove legacy code (IE11 Detection, XHRClient and custom GUID Generator)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2096e5ab5706227dcf39fd15efdf4315e1905f8a",
+            "comment": "Remove redundant controller internal methods and classes from internals #6413"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "eba1c90fd10a8d2ffb521a4670662fe3a6b1a5fe",
+            "comment": "New API to silently clear cache #6374"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "54ea1713810f7dfef3bec7f78937c8a95fab9119",
+            "comment": "Remove browser internals #6420"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.3",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7b0c4cbfc05b32145acbbb9308d945eb4dd85d31",
+            "comment": "Update lint step"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1e7ac8c21451783cc25303e9be5713daa1350343",
+            "comment": "shared jest config"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "566f47811deff3c282513ec19e45be58dbda294d",
+            "comment": "Remove isEmpty helper API"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 18 Aug 2023 18:40:03 GMT",
       "tag": "@azure/msal-browser_v3.0.2",
       "version": "3.0.2",

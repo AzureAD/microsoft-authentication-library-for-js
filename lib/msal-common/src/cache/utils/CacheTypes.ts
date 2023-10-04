@@ -13,6 +13,7 @@ import { ThrottlingEntity } from "../entities/ThrottlingEntity";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
 import { AuthenticationScheme } from "../../utils/Constants";
 import { ScopeSet } from "../../request/ScopeSet";
+import { AccountInfo } from "../../account/AccountInfo";
 
 /** @internal */
 export type AccountCache = Record<string, AccountEntity>;
@@ -52,13 +53,12 @@ export type ValidCredentialType =
 /**
  * Account:	<home_account_id>-<environment>-<realm*>
  */
-export type AccountFilter = {
-    homeAccountId?: string;
-    localAccountId?: string;
-    username?: string;
-    environment?: string;
+export type AccountFilter = Omit<
+    Partial<AccountInfo>,
+    "idToken" | "idTokenClaims"
+> & {
     realm?: string;
-    nativeAccountId?: string;
+    loginHint?: string;
 };
 
 /**

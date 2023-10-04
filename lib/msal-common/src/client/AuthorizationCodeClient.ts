@@ -25,7 +25,10 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
@@ -39,10 +42,14 @@ import {
     buildClientInfo,
 } from "../account/ClientInfo";
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { invokeAsync } from "../utils/FunctionWrappers";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -80,11 +87,13 @@ export class AuthorizationCodeClient extends BaseClient {
             request.correlationId
         );
 
-        this.performanceClient?.setPreQueueTime(
+        const queryString = await invokeAsync(
+            this.createAuthCodeUrlQueryString.bind(this),
             PerformanceEvents.AuthClientCreateQueryString,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        const queryString = await this.createAuthCodeUrlQueryString(request);
+        )(request);
 
         return UrlString.appendQueryString(
             this.authority.authorizationEndpoint,
@@ -101,41 +110,29 @@ export class AuthorizationCodeClient extends BaseClient {
         request: CommonAuthorizationCodeRequest,
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
-        if (!request || !request.code) {
-            throw ClientAuthError.createTokenRequestCannotBeMadeError();
-        }
-
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.AuthClientAcquireToken,
             request.correlationId
         );
 
-        const atsMeasurement = this.performanceClient?.startMeasurement(
-            // @ts-ignore
-            "AuthCodeClientAcquireToken",
-            request.correlationId
-        );
-        this.logger.info("in acquireToken call in auth-code client");
+        if (!request.code) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.requestCannotBeMade
+            );
+        }
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        this.performanceClient?.setPreQueueTime(
+        const response = await invokeAsync(
+            this.executeTokenRequest.bind(this),
             PerformanceEvents.AuthClientExecuteTokenRequest,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        const response = await this.executeTokenRequest(
-            this.authority,
-            request
-        );
+        )(this.authority, request);
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
-        const httpVerAuthority =
-            response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
-        if (httpVerAuthority) {
-            atsMeasurement?.add({
-                httpVerAuthority,
-            });
-        }
+
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -149,40 +146,23 @@ export class AuthorizationCodeClient extends BaseClient {
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
 
-        this.performanceClient?.setPreQueueTime(
+        return invokeAsync(
+            responseHandler.handleServerTokenResponse.bind(responseHandler),
             PerformanceEvents.HandleServerTokenResponse,
+            this.logger,
+            this.performanceClient,
             request.correlationId
+        )(
+            response.body,
+            this.authority,
+            reqTimestamp,
+            request,
+            authCodePayload,
+            undefined,
+            undefined,
+            undefined,
+            requestId
         );
-        return responseHandler
-            .handleServerTokenResponse(
-                response.body,
-                this.authority,
-                reqTimestamp,
-                request,
-                authCodePayload,
-                undefined,
-                undefined,
-                undefined,
-                requestId
-            )
-            .then((result: AuthenticationResult) => {
-                atsMeasurement?.end({
-                    success: true,
-                });
-                return result;
-            })
-            .catch((error) => {
-                this.logger.verbose(
-                    "Error in fetching token in ACC",
-                    request.correlationId
-                );
-                atsMeasurement?.end({
-                    errorCode: error.errorCode,
-                    subErrorCode: error.subError,
-                    success: false,
-                });
-                throw error;
-            });
     }
 
     /**
@@ -220,7 +200,9 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // throw when there is no auth code in the response
         if (!serverParams.code) {
-            throw ClientAuthError.createNoAuthCodeInServerResponseError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
+            );
         }
         return {
             ...serverParams,
@@ -237,7 +219,9 @@ export class AuthorizationCodeClient extends BaseClient {
     getLogoutUri(logoutRequest: CommonEndSessionRequest): string {
         // Throw error if logoutRequest is null/undefined
         if (!logoutRequest) {
-            throw ClientConfigurationError.createEmptyLogoutRequestError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.logoutRequestEmpty
+            );
         }
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
@@ -261,10 +245,6 @@ export class AuthorizationCodeClient extends BaseClient {
             PerformanceEvents.AuthClientExecuteTokenRequest,
             request.correlationId
         );
-        this.performanceClient?.setPreQueueTime(
-            PerformanceEvents.AuthClientCreateTokenRequestBody,
-            request.correlationId
-        );
 
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
@@ -272,7 +252,13 @@ export class AuthorizationCodeClient extends BaseClient {
             queryParametersString
         );
 
-        const requestBody = await this.createTokenRequestBody(request);
+        const requestBody = await invokeAsync(
+            this.createTokenRequestBody.bind(this),
+            PerformanceEvents.AuthClientCreateTokenRequestBody,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(request);
 
         let ccsCredential: CcsCredential | undefined = undefined;
         if (request.clientInfo) {
@@ -296,7 +282,9 @@ export class AuthorizationCodeClient extends BaseClient {
         );
 
         const thumbprint: RequestThumbprint = {
-            clientId: this.config.authOptions.clientId,
+            clientId:
+                request.tokenBodyParameters?.clientId ||
+                this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes,
             claims: request.claims,
@@ -307,12 +295,13 @@ export class AuthorizationCodeClient extends BaseClient {
             sshKid: request.sshKid,
         };
 
-        return this.executePostToTokenEndpoint(
-            endpoint,
-            requestBody,
-            headers,
-            thumbprint
-        );
+        return invokeAsync(
+            this.executePostToTokenEndpoint.bind(this),
+            PerformanceEvents.BaseClientExecutePostToTokenEndpoint,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
     }
 
     /**
@@ -396,18 +385,22 @@ export class AuthorizationCodeClient extends BaseClient {
                 this.performanceClient
             );
 
-            this.performanceClient?.setPreQueueTime(
+            const reqCnfData = await invokeAsync(
+                popTokenGenerator.generateCnf.bind(popTokenGenerator),
                 PerformanceEvents.PopTokenGenerateCnf,
+                this.logger,
+                this.performanceClient,
                 request.correlationId
-            );
-            const reqCnfData = await popTokenGenerator.generateCnf(request);
+            )(request, this.logger);
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
-                throw ClientConfigurationError.createMissingSshJwkError();
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                );
             }
         }
 
@@ -677,7 +670,13 @@ export class AuthorizationCodeClient extends BaseClient {
                     this.cryptoUtils
                 );
                 // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-                const reqCnfData = await popTokenGenerator.generateCnf(request);
+                const reqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(request, this.logger);
                 parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
             }
         }

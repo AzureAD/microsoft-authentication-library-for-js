@@ -20,8 +20,9 @@ import {
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
 import sinon from "sinon";
 import {
-    ClientConfigurationError,
+    ClientConfigurationErrorCodes,
     ClientConfigurationErrorMessage,
+    createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
 
 describe("RequestParameterBuilder unit tests", () => {
@@ -329,8 +330,9 @@ describe("RequestParameterBuilder unit tests", () => {
                 ""
             )
         ).toThrowError(
-            ClientConfigurationError.createInvalidCodeChallengeParamsError()
-                .errorMessage
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.pkceParamsMissing
+            )
         );
     });
 
@@ -342,8 +344,9 @@ describe("RequestParameterBuilder unit tests", () => {
                 AADServerParamKeys.CODE_CHALLENGE_METHOD
             )
         ).toThrowError(
-            ClientConfigurationError.createInvalidCodeChallengeParamsError()
-                .errorMessage
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.pkceParamsMissing
+            )
         );
     });
 

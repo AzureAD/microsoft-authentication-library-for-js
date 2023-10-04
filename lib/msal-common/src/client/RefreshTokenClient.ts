@@ -17,6 +17,7 @@ import {
     AuthenticationScheme,
     Errors,
     HeaderNames,
+    AADServerParamKeys,
 } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
@@ -25,8 +26,14 @@ import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
@@ -34,10 +41,12 @@ import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import {
     InteractionRequiredAuthError,
-    InteractionRequiredAuthErrorMessage,
+    InteractionRequiredAuthErrorCodes,
+    createInteractionRequiredAuthError,
 } from "../error/InteractionRequiredAuthError";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { invokeAsync } from "../utils/FunctionWrappers";
 /**
  * OAuth2.0 refresh token client
  * @internal
@@ -57,32 +66,14 @@ export class RefreshTokenClient extends BaseClient {
             request.correlationId
         );
 
-        const atsMeasurement = this.performanceClient?.startMeasurement(
-            PerformanceEvents.RefreshTokenClientAcquireToken,
-            request.correlationId
-        );
-        this.logger.verbose(
-            "RefreshTokenClientAcquireToken called",
-            request.correlationId
-        );
         const reqTimestamp = TimeUtils.nowSeconds();
-        this.performanceClient?.setPreQueueTime(
+        const response = await invokeAsync(
+            this.executeTokenRequest.bind(this),
             PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        const response = await this.executeTokenRequest(
-            request,
-            this.authority
-        );
-        const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
-        atsMeasurement?.add({
-            refreshTokenSize: response.body.refresh_token?.length || 0,
-        });
-        if (httpVerToken) {
-            atsMeasurement?.add({
-                httpVerToken,
-            });
-        }
+        )(request, this.authority);
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
@@ -96,40 +87,23 @@ export class RefreshTokenClient extends BaseClient {
         );
         responseHandler.validateTokenResponse(response.body);
 
-        this.performanceClient?.setPreQueueTime(
+        return invokeAsync(
+            responseHandler.handleServerTokenResponse.bind(responseHandler),
             PerformanceEvents.HandleServerTokenResponse,
+            this.logger,
+            this.performanceClient,
             request.correlationId
+        )(
+            response.body,
+            this.authority,
+            reqTimestamp,
+            request,
+            undefined,
+            undefined,
+            true,
+            request.forceCache,
+            requestId
         );
-        return responseHandler
-            .handleServerTokenResponse(
-                response.body,
-                this.authority,
-                reqTimestamp,
-                request,
-                undefined,
-                undefined,
-                true,
-                request.forceCache,
-                requestId
-            )
-            .then((result: AuthenticationResult) => {
-                atsMeasurement?.end({
-                    success: true,
-                });
-                return result;
-            })
-            .catch((error) => {
-                this.logger.verbose(
-                    "Error in fetching refresh token",
-                    request.correlationId
-                );
-                atsMeasurement?.end({
-                    errorCode: error.errorCode,
-                    subErrorCode: error.subError,
-                    success: false,
-                });
-                throw error;
-            });
     }
 
     /**
@@ -141,7 +115,9 @@ export class RefreshTokenClient extends BaseClient {
     ): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
-            throw ClientConfigurationError.createEmptyTokenRequestError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.tokenRequestEmpty
+            );
         }
 
         this.performanceClient?.addQueueMeasurement(
@@ -151,7 +127,9 @@ export class RefreshTokenClient extends BaseClient {
 
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
-            throw ClientAuthError.createNoAccountInSilentRequestError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.noAccountInSilentRequest
+            );
         }
 
         // try checking if FOCI is enabled for the given application
@@ -162,17 +140,18 @@ export class RefreshTokenClient extends BaseClient {
         // if the app is part of the family, retrive a Family refresh token if present and make a refreshTokenRequest
         if (isFOCI) {
             try {
-                this.performanceClient?.setPreQueueTime(
+                return invokeAsync(
+                    this.acquireTokenWithCachedRefreshToken.bind(this),
                     PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
+                    this.logger,
+                    this.performanceClient,
                     request.correlationId
-                );
-                return this.acquireTokenWithCachedRefreshToken(request, true);
+                )(request, true);
             } catch (e) {
                 const noFamilyRTInCache =
                     e instanceof InteractionRequiredAuthError &&
                     e.errorCode ===
-                        InteractionRequiredAuthErrorMessage.noTokensFoundError
-                            .code;
+                        InteractionRequiredAuthErrorCodes.noTokensFound;
                 const clientMismatchErrorWithFamilyRT =
                     e instanceof ServerError &&
                     e.errorCode === Errors.INVALID_GRANT_ERROR &&
@@ -180,14 +159,13 @@ export class RefreshTokenClient extends BaseClient {
 
                 // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
                 if (noFamilyRTInCache || clientMismatchErrorWithFamilyRT) {
-                    this.performanceClient?.setPreQueueTime(
+                    return invokeAsync(
+                        this.acquireTokenWithCachedRefreshToken.bind(this),
                         PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
+                        this.logger,
+                        this.performanceClient,
                         request.correlationId
-                    );
-                    return this.acquireTokenWithCachedRefreshToken(
-                        request,
-                        false
-                    );
+                    )(request, false);
                     // throw in all other cases
                 } else {
                     throw e;
@@ -195,11 +173,13 @@ export class RefreshTokenClient extends BaseClient {
             }
         }
         // fall back to application refresh token acquisition
-        this.performanceClient?.setPreQueueTime(
+        return invokeAsync(
+            this.acquireTokenWithCachedRefreshToken.bind(this),
             PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        return this.acquireTokenWithCachedRefreshToken(request, false);
+        )(request, false);
     }
 
     /**
@@ -216,28 +196,17 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         // fetches family RT or application RT based on FOCI value
-
-        const atsMeasurement = this.performanceClient?.startMeasurement(
-            PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
-            request.correlationId
-        );
-        this.logger.verbose(
-            "RefreshTokenClientAcquireTokenWithCachedRefreshToken called",
-            request.correlationId
-        );
         const refreshToken = this.cacheManager.getRefreshToken(
             request.account,
             foci
         );
 
         if (!refreshToken) {
-            atsMeasurement?.discard();
-            throw InteractionRequiredAuthError.createNoTokensFoundError();
+            throw createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.noTokensFound
+            );
         }
         // attach cached RT size to the current measurement
-        atsMeasurement?.end({
-            success: true,
-        });
 
         const refreshTokenRequest: CommonRefreshTokenRequest = {
             ...request,
@@ -250,11 +219,13 @@ export class RefreshTokenClient extends BaseClient {
             },
         };
 
-        this.performanceClient?.setPreQueueTime(
+        return invokeAsync(
+            this.acquireToken.bind(this),
             PerformanceEvents.RefreshTokenClientAcquireToken,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        return this.acquireToken(refreshTokenRequest);
+        )(refreshTokenRequest);
     }
 
     /**
@@ -270,15 +241,6 @@ export class RefreshTokenClient extends BaseClient {
             PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
             request.correlationId
         );
-        const acquireTokenMeasurement =
-            this.performanceClient?.startMeasurement(
-                PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
-                request.correlationId
-            );
-        this.performanceClient?.setPreQueueTime(
-            PerformanceEvents.RefreshTokenClientCreateTokenRequestBody,
-            request.correlationId
-        );
 
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
@@ -286,12 +248,20 @@ export class RefreshTokenClient extends BaseClient {
             queryParametersString
         );
 
-        const requestBody = await this.createTokenRequestBody(request);
+        const requestBody = await invokeAsync(
+            this.createTokenRequestBody.bind(this),
+            PerformanceEvents.RefreshTokenClientCreateTokenRequestBody,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(
             request.ccsCredential
         );
         const thumbprint: RequestThumbprint = {
-            clientId: this.config.authOptions.clientId,
+            clientId:
+                request.tokenBodyParameters?.clientId ||
+                this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes,
             claims: request.claims,
@@ -302,24 +272,13 @@ export class RefreshTokenClient extends BaseClient {
             sshKid: request.sshKid,
         };
 
-        return this.executePostToTokenEndpoint(
-            endpoint,
-            requestBody,
-            headers,
-            thumbprint
-        )
-            .then((result) => {
-                acquireTokenMeasurement?.end({
-                    success: true,
-                });
-                return result;
-            })
-            .catch((error) => {
-                acquireTokenMeasurement?.end({
-                    success: false,
-                });
-                throw error;
-            });
+        return invokeAsync(
+            this.executePostToTokenEndpoint.bind(this),
+            PerformanceEvents.BaseClientExecutePostToTokenEndpoint,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
     }
 
     /**
@@ -335,14 +294,16 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         const correlationId = request.correlationId;
-        const acquireTokenMeasurement =
-            this.performanceClient?.startMeasurement(
-                PerformanceEvents.BaseClientCreateTokenRequestHeaders,
-                correlationId
-            );
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        parameterBuilder.addClientId(
+            request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                this.config.authOptions.clientId
+        );
+
+        if (request.redirectUri) {
+            parameterBuilder.addRedirectUri(request.redirectUri);
+        }
 
         parameterBuilder.addScopes(
             request.scopes,
@@ -388,21 +349,22 @@ export class RefreshTokenClient extends BaseClient {
                 this.cryptoUtils,
                 this.performanceClient
             );
-            this.performanceClient?.setPreQueueTime(
+            const reqCnfData = await invokeAsync(
+                popTokenGenerator.generateCnf.bind(popTokenGenerator),
                 PerformanceEvents.PopTokenGenerateCnf,
+                this.logger,
+                this.performanceClient,
                 request.correlationId
-            );
-            const reqCnfData = await popTokenGenerator.generateCnf(request);
+            )(request, this.logger);
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
-                acquireTokenMeasurement?.end({
-                    success: false,
-                });
-                throw ClientConfigurationError.createMissingSshJwkError();
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                );
             }
         }
 
@@ -442,9 +404,13 @@ export class RefreshTokenClient extends BaseClient {
                     break;
             }
         }
-        acquireTokenMeasurement?.end({
-            success: true,
-        });
+
+        if (request.tokenBodyParameters) {
+            parameterBuilder.addExtraQueryParameters(
+                request.tokenBodyParameters
+            );
+        }
+
         return parameterBuilder.createQueryString();
     }
 }

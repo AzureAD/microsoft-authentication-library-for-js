@@ -10,18 +10,20 @@ import {
     AuthorityFactory,
     Authority,
     INetworkModule,
-    ClientAuthError,
     CcsCredential,
     Logger,
     ServerError,
     IPerformanceClient,
     PerformanceEvents,
+    invokeAsync,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import {
-    BrowserAuthError,
-    BrowserAuthErrorMessage,
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { AuthenticationResult } from "../response/AuthenticationResult";
@@ -66,17 +68,19 @@ export class InteractionHandler {
             PerformanceEvents.HandleCodeResponseFromHash,
             this.authCodeRequest.correlationId
         );
-        this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (!locationHash) {
-            throw BrowserAuthError.createEmptyHashError();
+            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
         }
 
         // Handle code response.
         const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
         if (!requestState) {
-            throw ClientAuthError.createStateNotFoundError("Cached State");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.stateNotFound,
+                "Cached State"
+            );
         }
 
         let authCodeResponse;
@@ -88,25 +92,24 @@ export class InteractionHandler {
         } catch (e) {
             if (
                 e instanceof ServerError &&
-                e.subError === BrowserAuthErrorMessage.userCancelledError.code
+                e.subError === BrowserAuthErrorCodes.userCancelled
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
-                throw BrowserAuthError.createUserCancelledError();
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.userCancelled
+                );
             } else {
                 throw e;
             }
         }
 
-        this.performanceClient.setPreQueueTime(
+        return invokeAsync(
+            this.handleCodeResponseFromServer.bind(this),
             PerformanceEvents.HandleCodeResponseFromServer,
+            this.logger,
+            this.performanceClient,
             this.authCodeRequest.correlationId
-        );
-        return this.handleCodeResponseFromServer(
-            authCodeResponse,
-            state,
-            authority,
-            networkModule
-        );
+        )(authCodeResponse, state, authority, networkModule);
     }
 
     /**
@@ -136,7 +139,10 @@ export class InteractionHandler {
         const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
         if (!requestState) {
-            throw ClientAuthError.createStateNotFoundError("Cached State");
+            throw createClientAuthError(
+                ClientAuthErrorCodes.stateNotFound,
+                "Cached State"
+            );
         }
 
         // Get cached items
@@ -148,11 +154,13 @@ export class InteractionHandler {
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
-            this.performanceClient.setPreQueueTime(
+            await invokeAsync(
+                this.updateTokenEndpointAuthority.bind(this),
                 PerformanceEvents.UpdateTokenEndpointAuthority,
+                this.logger,
+                this.performanceClient,
                 this.authCodeRequest.correlationId
-            );
-            await this.updateTokenEndpointAuthority(
+            )(
                 authCodeResponse.cloud_instance_host_name,
                 authority,
                 networkModule
@@ -177,14 +185,13 @@ export class InteractionHandler {
         }
 
         // Acquire token with retrieved code.
-        this.performanceClient.setPreQueueTime(
+        const tokenResponse = (await invokeAsync(
+            this.authModule.acquireToken.bind(this.authModule),
             PerformanceEvents.AuthClientAcquireToken,
+            this.logger,
+            this.performanceClient,
             this.authCodeRequest.correlationId
-        );
-        const tokenResponse = (await this.authModule.acquireToken(
-            this.authCodeRequest,
-            authCodeResponse
-        )) as AuthenticationResult;
+        )(this.authCodeRequest, authCodeResponse)) as AuthenticationResult;
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }

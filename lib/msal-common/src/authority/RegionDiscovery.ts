@@ -15,10 +15,14 @@ import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { invokeAsync } from "../utils/FunctionWrappers";
+import { Logger } from "../logger/Logger";
 
 export class RegionDiscovery {
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
+    // Logger
+    private logger: Logger;
     // Performance client
     protected performanceClient: IPerformanceClient | undefined;
     // CorrelationId
@@ -32,10 +36,12 @@ export class RegionDiscovery {
 
     constructor(
         networkInterface: INetworkModule,
+        logger: Logger,
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ) {
         this.networkInterface = networkInterface;
+        this.logger = logger;
         this.performanceClient = performanceClient;
         this.correlationId = correlationId;
     }
@@ -62,14 +68,13 @@ export class RegionDiscovery {
             const options = RegionDiscovery.IMDS_OPTIONS;
 
             try {
-                this.performanceClient?.setPreQueueTime(
+                const localIMDSVersionResponse = await invokeAsync(
+                    this.getRegionFromIMDS.bind(this),
                     PerformanceEvents.RegionDiscoveryGetRegionFromIMDS,
+                    this.logger,
+                    this.performanceClient,
                     this.correlationId
-                );
-                const localIMDSVersionResponse = await this.getRegionFromIMDS(
-                    Constants.IMDS_VERSION,
-                    options
-                );
+                )(Constants.IMDS_VERSION, options);
                 if (
                     localIMDSVersionResponse.status ===
                     ResponseCodes.httpSuccess
@@ -84,28 +89,26 @@ export class RegionDiscovery {
                     localIMDSVersionResponse.status ===
                     ResponseCodes.httpBadRequest
                 ) {
-                    this.performanceClient?.setPreQueueTime(
+                    const currentIMDSVersion = await invokeAsync(
+                        this.getCurrentVersion.bind(this),
                         PerformanceEvents.RegionDiscoveryGetCurrentVersion,
+                        this.logger,
+                        this.performanceClient,
                         this.correlationId
-                    );
-                    const currentIMDSVersion = await this.getCurrentVersion(
-                        options
-                    );
+                    )(options);
                     if (!currentIMDSVersion) {
                         regionDiscoveryMetadata.region_source =
                             RegionDiscoverySources.FAILED_AUTO_DETECTION;
                         return null;
                     }
 
-                    this.performanceClient?.setPreQueueTime(
+                    const currentIMDSVersionResponse = await invokeAsync(
+                        this.getRegionFromIMDS.bind(this),
                         PerformanceEvents.RegionDiscoveryGetRegionFromIMDS,
+                        this.logger,
+                        this.performanceClient,
                         this.correlationId
-                    );
-                    const currentIMDSVersionResponse =
-                        await this.getRegionFromIMDS(
-                            currentIMDSVersion,
-                            options
-                        );
+                    )(currentIMDSVersion, options);
                     if (
                         currentIMDSVersionResponse.status ===
                         ResponseCodes.httpSuccess

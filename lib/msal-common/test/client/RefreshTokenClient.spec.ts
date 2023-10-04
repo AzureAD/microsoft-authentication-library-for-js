@@ -18,6 +18,7 @@ import {
     AUTHENTICATION_RESULT_NO_REFRESH_TOKEN,
     AUTHENTICATION_RESULT_WITH_HEADERS,
     CORS_RESPONSE_HEADERS,
+    TEST_SSH_VALUES,
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import {
@@ -39,15 +40,22 @@ import { AccountInfo } from "../../src/account/AccountInfo";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { CommonSilentFlowRequest } from "../../src/request/CommonSilentFlowRequest";
-import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
-import { AuthToken } from "../../src/account/AuthToken";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../../src/error/ClientAuthError";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../../src/error/ClientConfigurationError";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
-import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
+import {
+    InteractionRequiredAuthErrorCodes,
+    createInteractionRequiredAuthError,
+} from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
-import { Logger } from "../../src/logger/Logger";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
@@ -85,24 +93,9 @@ describe("RefreshTokenClient unit tests", () => {
         sinon.restore();
     });
 
-    const name = "test-client-id";
-    const version = "0.0.1";
-    const logger = new Logger({});
-    const applicationTelemetry = {
-        appName: "Test App",
-        appVersion: "1.0.0-test.0",
-    };
-
     let stubPerformanceClient: StubPerformanceClient;
     beforeEach(async () => {
-        stubPerformanceClient = new StubPerformanceClient(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            TEST_CONFIG.validAuthority,
-            logger,
-            name,
-            version,
-            applicationTelemetry
-        );
+        stubPerformanceClient = new StubPerformanceClient();
     });
 
     describe("Constructor", () => {
@@ -187,6 +180,37 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
+        it("Adds tokenBodyParameters to the /token request", (done) => {
+            sinon
+                .stub(
+                    RefreshTokenClient.prototype,
+                    <any>"executePostToTokenEndpoint"
+                )
+                .callsFake(async (url: string, body: string) => {
+                    expect(body).toContain("testParam=testValue");
+                    done();
+                });
+
+            const client = new RefreshTokenClient(config);
+
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                tokenBodyParameters: {
+                    testParam: "testValue",
+                },
+            };
+
+            client.acquireToken(refreshTokenRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
         it("Checks whether performance telemetry startMeasurement method is called", async () => {
             const spy = jest.spyOn(stubPerformanceClient, "startMeasurement");
 
@@ -214,10 +238,11 @@ describe("RefreshTokenClient unit tests", () => {
             );
             sinon
                 .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    //@ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
                 )
-                .resolves(AUTHENTICATION_RESULT);
+                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
 
             let refreshTokenSize;
             await client.acquireToken(refreshTokenRequest).then(() => {
@@ -243,10 +268,15 @@ describe("RefreshTokenClient unit tests", () => {
             );
             sinon
                 .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    // @ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
                 )
-                .resolves(AUTHENTICATION_RESULT_NO_REFRESH_TOKEN);
+                // @ts-ignore
+                .resolves({
+                    ...AUTHENTICATION_RESULT_NO_REFRESH_TOKEN,
+                    headers: { ...AUTHENTICATION_RESULT_WITH_HEADERS.headers },
+                });
 
             let refreshTokenSize;
             await client.acquireToken(refreshTokenRequest).then(() => {
@@ -270,7 +300,7 @@ describe("RefreshTokenClient unit tests", () => {
 
         const testAccount: AccountInfo = {
             authorityType: "MSSTS",
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+            homeAccountId: ID_TOKEN_CLAIMS.sub,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
@@ -292,9 +322,6 @@ describe("RefreshTokenClient unit tests", () => {
                 .returns("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testRefreshTokenEntity);
@@ -550,7 +577,7 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.stub(
+            const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
@@ -585,7 +612,7 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.stub(
+            const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
@@ -610,6 +637,7 @@ describe("RefreshTokenClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
                 authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
@@ -620,7 +648,7 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.stub(
+            const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
@@ -931,9 +959,6 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("includes the http version in Refresh token client(AT) measurement when received in server response", async () => {
-            sinon
-                .stub(RefreshTokenClient.prototype, <any>"executeTokenRequest")
-                .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
             const performanceClient = {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
@@ -949,18 +974,14 @@ describe("RefreshTokenClient unit tests", () => {
                 addFields: jest.fn(),
                 incrementFields: jest.fn(),
             };
-            performanceClient.startMeasurement.mockImplementation(() => {
-                return {
-                    add: (fields: { [key: string]: {} | undefined }) =>
-                        performanceClient.addFields(
-                            fields,
-                            TEST_CONFIG.CORRELATION_ID
-                        ),
-                    increment: jest.fn(),
-                    end: jest.fn(),
-                };
-            });
             const client = new RefreshTokenClient(config, performanceClient);
+            sinon
+                .stub(
+                    // @ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
+                )
+                .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
@@ -972,19 +993,18 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addFields).toBeCalledTimes(2);
             expect(performanceClient.addFields).toBeCalledWith(
                 {
                     httpVerToken: "xMsHttpVer",
+                    refreshTokenSize:
+                        AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token
+                            .length,
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
-            sinon
-                .stub(RefreshTokenClient.prototype, <any>"executeTokenRequest")
-                .resolves(AUTHENTICATION_RESULT);
             const performanceClient = {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
@@ -1000,18 +1020,14 @@ describe("RefreshTokenClient unit tests", () => {
                 addFields: jest.fn(),
                 incrementFields: jest.fn(),
             };
-            performanceClient.startMeasurement.mockImplementation(() => {
-                return {
-                    add: (fields: { [key: string]: {} | undefined }) =>
-                        performanceClient.addFields(
-                            fields,
-                            TEST_CONFIG.CORRELATION_ID
-                        ),
-                    increment: jest.fn(),
-                    end: jest.fn(),
-                };
-            });
             const client = new RefreshTokenClient(config, performanceClient);
+            sinon
+                .stub(
+                    // @ts-ignore
+                    client.networkManager,
+                    "sendPostRequest"
+                )
+                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
@@ -1023,10 +1039,14 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addFields).toBeCalledTimes(1);
-            expect(performanceClient.addFields).not.toBeCalledWith({
-                httpVerToken: "xMsHttpVer",
-            });
+            expect(performanceClient.addFields).toBeCalledWith(
+                {
+                    httpVerToken: "",
+                    refreshTokenSize:
+                        AUTHENTICATION_RESULT.body.refresh_token.length,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
     });
 
@@ -1036,7 +1056,7 @@ describe("RefreshTokenClient unit tests", () => {
 
         const testAccount: AccountInfo = {
             authorityType: "MSSTS",
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+            homeAccountId: ID_TOKEN_CLAIMS.sub,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
@@ -1064,9 +1084,6 @@ describe("RefreshTokenClient unit tests", () => {
                     <any>"executePostToTokenEndpoint"
                 )
                 .resolves(AUTHENTICATION_RESULT_WITH_FOCI);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testFamilyRefreshTokenEntity);
@@ -1188,7 +1205,7 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.stub(
+            const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
@@ -1224,7 +1241,9 @@ describe("RefreshTokenClient unit tests", () => {
                     forceRefresh: false,
                 })
             ).rejects.toMatchObject(
-                ClientAuthError.createNoAccountInSilentRequestError()
+                createClientAuthError(
+                    ClientAuthErrorCodes.noAccountInSilentRequest
+                )
             );
         });
 
@@ -1246,14 +1265,18 @@ describe("RefreshTokenClient unit tests", () => {
                 //@ts-ignore
                 client.acquireTokenByRefreshToken(null)
             ).rejects.toMatchObject(
-                ClientConfigurationError.createEmptyTokenRequestError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.tokenRequestEmpty
+                )
             );
 
             await expect(
                 //@ts-ignore
                 client.acquireTokenByRefreshToken(undefined)
             ).rejects.toMatchObject(
-                ClientConfigurationError.createEmptyTokenRequestError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.tokenRequestEmpty
+                )
             );
         });
 
@@ -1297,7 +1320,9 @@ describe("RefreshTokenClient unit tests", () => {
             await expect(
                 client.acquireToken(tokenRequest)
             ).rejects.toMatchObject(
-                InteractionRequiredAuthError.createNoTokensFoundError()
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.noTokensFound
+                )
             );
         });
     });

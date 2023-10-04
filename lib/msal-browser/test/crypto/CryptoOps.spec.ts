@@ -1,11 +1,15 @@
 import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
-import { TEST_URIS } from "../utils/StringConstants";
-import { BrowserAuthError } from "../../src";
-import { ModernBrowserCrypto } from "../../src/crypto/ModernBrowserCrypto";
+import { RANDOM_TEST_GUID, TEST_URIS } from "../utils/StringConstants";
+import {
+    createBrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
+import { generatePkceCodes } from "../../src/crypto/PkceGenerator";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 let mockDatabase = {
     "TestDB.keys": {},
@@ -13,10 +17,8 @@ let mockDatabase = {
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
-    let browserCrypto: BrowserCrypto;
 
     beforeEach(() => {
-        browserCrypto = new BrowserCrypto(new Logger({}));
         cryptoObj = new CryptoOps(new Logger({}));
 
         // Mock DatabaseStorage
@@ -225,9 +227,8 @@ describe("CryptoOps.ts Unit Tests", () => {
     });
 
     it("generatePkceCode() creates a valid Pkce code", async () => {
-        //@ts-ignore
         jest.spyOn(
-            BrowserCrypto.prototype as any,
+            BrowserCrypto,
             "sha256Digest"
             // @ts-ignore
         ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
@@ -240,16 +241,19 @@ describe("CryptoOps.ts Unit Tests", () => {
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
          */
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
-        const generatedCodes: PkceCodes = await cryptoObj.generatePkceCodes();
+        const generatedCodes: PkceCodes = await generatePkceCodes(
+            new StubPerformanceClient(),
+            new Logger({}),
+            RANDOM_TEST_GUID
+        );
         expect(regExp.test(generatedCodes.challenge)).toBe(true);
         expect(regExp.test(generatedCodes.verifier)).toBe(true);
     });
 
     it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
         jest.setTimeout(30000);
-        //@ts-ignore
         jest.spyOn(
-            BrowserCrypto.prototype as any,
+            BrowserCrypto,
             "sha256Digest"
             // @ts-ignore
         ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
@@ -257,11 +261,8 @@ describe("CryptoOps.ts Unit Tests", () => {
                 createHash("SHA256").update(Buffer.from(data)).digest()
             );
         });
-        const generateKeyPairSpy = jest.spyOn(
-            BrowserCrypto.prototype,
-            "generateKeyPair"
-        );
-        const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
+        const generateKeyPairSpy = jest.spyOn(BrowserCrypto, "generateKeyPair");
+        const exportJwkSpy = jest.spyOn(BrowserCrypto, "exportJwk");
         const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({
             resourceRequestMethod: "POST",
             resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS,
@@ -281,9 +282,8 @@ describe("CryptoOps.ts Unit Tests", () => {
     }, 30000);
 
     it("removeTokenBindingKey() removes the specified key from storage", async () => {
-        //@ts-ignore
         jest.spyOn(
-            BrowserCrypto.prototype as any,
+            BrowserCrypto,
             "sha256Digest"
             // @ts-ignore
         ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
@@ -304,15 +304,12 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
         expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(
-            BrowserAuthError.createSigningKeyNotFoundInStorageError(
-                "testString"
-            )
+            createBrowserAuthError(BrowserAuthErrorCodes.cryptoKeyNotFound)
         );
     }, 30000);
 
     it("hashString() returns a valid SHA-256 hash of an input string", async () => {
-        //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation(
+        jest.spyOn(BrowserCrypto, "sha256Digest").mockImplementation(
             // @ts-ignore
             (data: Uint8Array): Promise<ArrayBuffer> => {
                 return Promise.resolve(
@@ -324,23 +321,12 @@ describe("CryptoOps.ts Unit Tests", () => {
         const result = await cryptoObj.hashString("testString");
         expect(regExp.test(result)).toBe(true);
     });
+    it("throws if crypto is unavailable", () => {
+        const mockedWindow = window;
+        //@ts-ignore
+        delete mockedWindow.crypto;
+        jest.spyOn(global, "window", "get").mockReturnValue(mockedWindow);
 
-    describe("Browser Crypto Interfaces", () => {
-        it("uses modern crypto if available", () => {
-            const crypto = new BrowserCrypto(new Logger({}));
-            // @ts-ignore
-            expect(crypto.subtleCrypto).toBeInstanceOf(ModernBrowserCrypto);
-        });
-
-        it("throws if crypto is unavailable", () => {
-            jest.spyOn(
-                BrowserCrypto.prototype,
-                // @ts-ignore
-                "hasBrowserCrypto"
-                // @ts-ignore
-            ).mockReturnValue(false);
-
-            expect(() => new BrowserCrypto(new Logger({}))).toThrow();
-        });
+        expect(() => new CryptoOps(new Logger({}))).toThrow();
     });
 });

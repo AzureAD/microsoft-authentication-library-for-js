@@ -170,7 +170,6 @@ describe("PerformanceClient.spec.ts", () => {
         mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toBe(1);
             expect(events[0].correlationId).toBe(correlationId);
-            expect(events[0].httpVerAuthority).toBe(authority);
             expect(events[0].extensionId).toBe(extensionId);
             done();
         });
@@ -450,7 +449,7 @@ describe("PerformanceClient.spec.ts", () => {
             const event = events[0];
             expect(event.queuedCount).toEqual(4);
             expect(event.queuedManuallyCompletedCount).toEqual(2);
-            expect(event.queuedTimeMs).toEqual(10);
+            expect(event.queuedTimeMs).toEqual(3);
             done();
         });
 

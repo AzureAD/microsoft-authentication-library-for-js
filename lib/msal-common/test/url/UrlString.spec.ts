@@ -2,7 +2,8 @@ import { TEST_URIS, TEST_HASHES } from "../test_kit/StringConstants";
 import { UrlString } from "../../src/url/UrlString";
 import {
     ClientConfigurationError,
-    ClientConfigurationErrorMessage,
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
 import { IUri } from "../../src/url/IUri";
 import sinon from "sinon";
@@ -20,7 +21,9 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("constructor throws error if uri is empty or null", () => {
         // @ts-ignore
         expect(() => new UrlString(null)).toThrowError(
-            ClientConfigurationErrorMessage.urlEmptyError.desc
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError
+            )
         );
         // @ts-ignore
         expect(() => new UrlString(null)).toThrowError(
@@ -28,7 +31,9 @@ describe("UrlString.ts Class Unit Tests", () => {
         );
 
         expect(() => new UrlString("")).toThrowError(
-            ClientConfigurationErrorMessage.urlEmptyError.desc
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError
+            )
         );
         expect(() => new UrlString("")).toThrowError(ClientConfigurationError);
     });
@@ -40,7 +45,9 @@ describe("UrlString.ts Class Unit Tests", () => {
             .throws(urlComponentError);
         let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI);
         expect(() => urlObj.validateAsUri()).toThrowError(
-            `${ClientConfigurationErrorMessage.urlParseError.desc} Given Error: ${urlComponentError}`
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError
+            )
         );
         expect(() => urlObj.validateAsUri()).toThrowError(
             ClientConfigurationError
@@ -51,7 +58,9 @@ describe("UrlString.ts Class Unit Tests", () => {
         const insecureUrlString = "http://login.microsoft.com/common";
         let urlObj = new UrlString(insecureUrlString);
         expect(() => urlObj.validateAsUri()).toThrowError(
-            `${ClientConfigurationErrorMessage.authorityUriInsecure.desc} Given URI: ${insecureUrlString}`
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityUriInsecure
+            )
         );
         expect(() => urlObj.validateAsUri()).toThrowError(
             ClientConfigurationError

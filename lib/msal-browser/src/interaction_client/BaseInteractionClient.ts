@@ -14,7 +14,8 @@ import {
     UrlString,
     ServerTelemetryManager,
     ServerTelemetryRequest,
-    ClientConfigurationError,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
     Authority,
     AuthorityOptions,
     AuthorityFactory,
@@ -36,6 +37,7 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { createNewGuid } from "../crypto/BrowserCrypto";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -67,8 +69,7 @@ export abstract class BaseInteractionClient {
         this.eventHandler = eventHandler;
         this.navigationClient = navigationClient;
         this.nativeMessageHandler = nativeMessageHandler;
-        this.correlationId =
-            correlationId || this.browserCrypto.createNewGuid();
+        this.correlationId = correlationId || createNewGuid();
         this.logger = logger.clone(
             BrowserConstants.MSAL_SKU,
             version,
@@ -142,7 +143,6 @@ export abstract class BaseInteractionClient {
             PerformanceEvents.InitializeBaseRequest,
             request.correlationId
         );
-        this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
 
         if (account) {
@@ -170,10 +170,14 @@ export abstract class BaseInteractionClient {
                 AuthenticationScheme.SSH
             ) {
                 if (!request.sshJwk) {
-                    throw ClientConfigurationError.createMissingSshJwkError();
+                    throw createClientConfigurationError(
+                        ClientConfigurationErrorCodes.missingSshJwk
+                    );
                 }
                 if (!request.sshKid) {
-                    throw ClientConfigurationError.createMissingSshKidError();
+                    throw createClientConfigurationError(
+                        ClientConfigurationErrorCodes.missingSshKid
+                    );
                 }
             }
             this.logger.verbose(
@@ -227,7 +231,9 @@ export abstract class BaseInteractionClient {
         );
 
         if (!discoveredAuthority.isAlias(account.environment)) {
-            throw ClientConfigurationError.createAuthorityMismatchError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityMismatch
+            );
         }
     }
 

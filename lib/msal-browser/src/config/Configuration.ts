@@ -12,15 +12,16 @@ import {
     ProtocolMode,
     OIDCOptions,
     ServerResponseType,
-    Logger,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
-    ClientConfigurationError,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
     IPerformanceClient,
     StubPerformanceClient,
+    Logger,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
@@ -29,7 +30,6 @@ import {
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
 import { FetchClient } from "../network/FetchClient";
-import { name, version } from "../packageMetadata";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -325,7 +325,8 @@ export function buildConfiguration(
         pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
     };
 
-    const providedSystemOptions: BrowserSystemOptions = {
+    const providedSystemOptions: Required<BrowserSystemOptions> = {
+        ...DEFAULT_BROWSER_SYSTEM_OPTIONS,
         ...userInputSystem,
         loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };
@@ -335,17 +336,7 @@ export function buildConfiguration(
             appName: Constants.EMPTY_STRING,
             appVersion: Constants.EMPTY_STRING,
         },
-        client: new StubPerformanceClient(
-            DEFAULT_AUTH_OPTIONS.clientId,
-            DEFAULT_AUTH_OPTIONS.authority,
-            new Logger(DEFAULT_LOGGER_OPTIONS, name, version),
-            name,
-            version,
-            {
-                appName: Constants.EMPTY_STRING,
-                appVersion: Constants.EMPTY_STRING,
-            }
-        ),
+        client: new StubPerformanceClient(),
     };
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
@@ -353,10 +344,13 @@ export function buildConfiguration(
         userInputAuth?.protocolMode !== ProtocolMode.OIDC &&
         userInputAuth?.OIDCOptions
     ) {
-        // Logger has not been created yet
-        // eslint-disable-next-line no-console
-        console.warn(
-            ClientConfigurationError.createCannotSetOIDCOptionsError()
+        const logger = new Logger(providedSystemOptions.loggerOptions);
+        logger.warning(
+            JSON.stringify(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.cannotSetOIDCOptions
+                )
+            )
         );
     }
 
@@ -366,7 +360,9 @@ export function buildConfiguration(
         userInputAuth.protocolMode !== ProtocolMode.AAD &&
         providedSystemOptions?.allowNativeBroker
     ) {
-        throw ClientConfigurationError.createCannotAllowNativeBrokerError();
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.cannotAllowNativeBroker
+        );
     }
 
     const overlayedConfig: BrowserConfiguration = {
@@ -379,7 +375,7 @@ export function buildConfiguration(
             },
         },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
-        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
+        system: providedSystemOptions,
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
 
