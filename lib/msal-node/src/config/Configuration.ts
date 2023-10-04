@@ -18,10 +18,6 @@ import {
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
 import https from "https";
-import {
-    DEFAULT_MANAGED_IDENTITY_ID,
-    ManagedIdentityIdType,
-} from "../utils/Constants.js";
 
 /**
  * - clientId               - Client id of the application.

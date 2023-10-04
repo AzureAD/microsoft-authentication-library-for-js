@@ -4,9 +4,16 @@
  */
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
-export const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
 export const SECRET_HEADER_NAME: string = "X-IDENTITY-HEADER";
+
+export const MANAGED_IDENTITY_CLIENT_ID = "client_id";
+export const MANAGED_IDENTITY_OBJECT_ID = "object_id";
+export const MANAGED_IDENTITY_RESOURCE_ID = "mi_res_id";
 export const DEFAULT_MANAGED_IDENTITY_ID = "system_assigned_managed_identity";
+export const MANAGED_IDENTITY_DEFAULT_TENANT = "managed_identity";
+
+export const MANAGED_IDENTITY_TIMEOUT_ERROR: string =
+    "[Managed Identity] Authentication unavailable. The request to the managed identity endpoint timed out.";
 
 /**
  * Managed Identity Ids

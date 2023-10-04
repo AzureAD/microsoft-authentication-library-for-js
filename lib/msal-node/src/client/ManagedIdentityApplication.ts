@@ -10,7 +10,6 @@ import {
     DefaultStorageClass,
     INetworkModule,
     Logger,
-    LoggerOptions,
     NetworkManager,
 } from "@azure/msal-common";
 import { ServiceFabric } from "./ManagedIdentitySources/ServiceFabric";
@@ -26,6 +25,7 @@ import {
 import { version, name } from "../packageMetadata.js";
 import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { ManagedIdentityId } from "../config/ManagedIdentityId";
+import { CryptoProvider } from "../crypto/CryptoProvider";
 
 /**
  * Class to initialize a managed identity and identify the service
@@ -33,8 +33,10 @@ import { ManagedIdentityId } from "../config/ManagedIdentityId";
 export class ManagedIdentityApplication {
     private managedIdentityId: ManagedIdentityId;
     private config: ManagedIdentityNodeConfiguration;
+    protected readonly cryptoProvider: CryptoProvider;
     private logger: Logger;
     private cacheManager: CacheManager;
+    private networkClient: INetworkModule;
     private networkManager: NetworkManager;
 
     private identitySource:
@@ -51,6 +53,8 @@ export class ManagedIdentityApplication {
         this.config = buildManagedIdentityConfiguration(configuration || {});
         this.managedIdentityId = managedIdentityId;
 
+        this.cryptoProvider = new CryptoProvider();
+
         this.logger = new Logger(
             this.config.system.loggerOptions,
             name,
@@ -63,9 +67,9 @@ export class ManagedIdentityApplication {
             this.logger
         );
 
-        const networkClient: INetworkModule = this.config.system.networkClient;
+        this.networkClient = this.config.system.networkClient;
         this.networkManager = new NetworkManager(
-            networkClient,
+            this.networkClient,
             this.cacheManager
         );
 
@@ -74,9 +78,18 @@ export class ManagedIdentityApplication {
 
     // TODO: implement this method
     public async acquireToken(
-        request: ManagedIdentityRequest
+        managedIdentityRequest: ManagedIdentityRequest,
+        managedIdentityId: ManagedIdentityId
     ): Promise<AuthenticationResult | null> {
-        //
+        /*
+         * TODO: check forceRefresh flag
+         * TODO: check cache
+         */
+
+        return await this.identitySource.authenticateWithMSI(
+            managedIdentityRequest,
+            managedIdentityId
+        );
     }
 
     /**
@@ -92,43 +105,52 @@ export class ManagedIdentityApplication {
         | AzureArc
         | Imds {
         try {
-            return (
-                // parameters are based on DOTNET implementations
-                ServiceFabric.tryCreate(
-                    this.config,
-                    this.logger,
-                    this.cacheManager,
-                    this.networkManager,
-                    this.managedIdentityId
-                ) ||
-                AppService.tryCreate(
-                    this.config,
-                    this.logger,
-                    this.cacheManager,
-                    this.networkManager,
-                    this.managedIdentityId
-                ) ||
-                CloudShell.tryCreate(
-                    this.config,
-                    this.logger,
-                    this.cacheManager,
-                    this.networkManager,
-                    this.managedIdentityId
-                ) ||
-                AzureArc.tryCreate(
-                    this.config,
-                    this.logger,
-                    this.cacheManager,
-                    this.networkManager,
-                    this.managedIdentityId
-                ) ||
-                Imds.tryCreate(
-                    this.config,
-                    this.logger,
-                    this.cacheManager,
-                    this.managedIdentityId
-                )
+            const source = AppService.tryCreate(
+                this.logger,
+                this.cacheManager,
+                this.networkClient,
+                this.networkManager,
+                this.cryptoProvider
             );
+
+            /*
+             * ||
+             *  ServiceFabric.tryCreate(
+             *      this.logger,
+             *      this.cacheManager,
+             *      this.networkClient,
+             *      this.networkManager,
+             *      this.cryptoProvider
+             *  ) ||
+             *  // *** AppService goes here ***
+             *  CloudShell.tryCreate(
+             *      this.logger,
+             *      this.cacheManager,
+             *      this.networkClient,
+             *      this.networkManager,
+             *      this.cryptoProvider
+             *  ) ||
+             *  AzureArc.tryCreate(
+             *      this.logger,
+             *      this.cacheManager,
+             *      this.networkClient,
+             *      this.networkManager,
+             *      this.cryptoProvider
+             *  ) ||
+             *  Imds.tryCreate(
+             *      this.logger,
+             *      this.cacheManager,
+             *      this.networkClient,
+             *      this.networkManager,
+             *      this.cryptoProvider
+             *  )
+             */
+
+            if (!source) {
+                // TODO: implement better error
+                throw "Unable to create a source";
+            }
+            return source;
         } catch (error) {
             // TODO: throw exception
             throw error;

@@ -10,21 +10,21 @@ import {
 
 export class ManagedIdentityId {
     private _id: string;
-    private idType: ManagedIdentityIdType;
-    private isUserAssignedId: boolean;
+    private _idType: ManagedIdentityIdType;
+    private _isUserAssignedId: boolean;
 
     constructor(idType: ManagedIdentityIdType, id?: string) {
-        this.idType = idType;
+        this._idType = idType;
         this._id = id || DEFAULT_MANAGED_IDENTITY_ID;
 
         switch (idType) {
             case ManagedIdentityIdType.SYSTEM_ASSIGNED:
-                this.isUserAssignedId = false;
+                this._isUserAssignedId = false;
                 break;
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
             case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
             case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
-                this.isUserAssignedId = true;
+                this._isUserAssignedId = true;
                 break;
             default:
                 // TODO: throw error
@@ -49,7 +49,7 @@ export class ManagedIdentityId {
     ): ManagedIdentityId {
         // TODO: throw exception if clientId is null
         return new ManagedIdentityId(
-            ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID,
+            ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID,
             clientId
         );
     }
@@ -79,12 +79,20 @@ export class ManagedIdentityId {
     ): ManagedIdentityId {
         // TODO: throw exception if objectId is null
         return new ManagedIdentityId(
-            ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID,
+            ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID,
             objectId
         );
     }
 
     public get id(): string {
         return this._id;
+    }
+
+    public get idType(): ManagedIdentityIdType {
+        return this._idType;
+    }
+
+    public get isUserAssignedId(): boolean {
+        return this._isUserAssignedId;
     }
 }
