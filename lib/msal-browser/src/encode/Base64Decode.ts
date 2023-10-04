@@ -3,6 +3,11 @@
  * Licensed under the MIT License.
  */
 
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError";
+
 /**
  * Class which exposes APIs to decode base64 strings to plaintext. See here for implementation details:
  * https://developer.mozilla.org/en-US/docs/Glossary/Base64#the_unicode_problem
@@ -32,7 +37,9 @@ function base64DecToArr(base64String: string): Uint8Array {
             encodedString += "=";
             break;
         default:
-            throw new Error("Invalid base64 string");
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidBase64String
+            );
     }
     const binString = atob(encodedString);
     return Uint8Array.from(binString, (m) => m.codePointAt(0) || 0);

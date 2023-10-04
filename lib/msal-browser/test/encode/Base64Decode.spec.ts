@@ -8,6 +8,7 @@ import {
 } from "../utils/StringConstants";
 import { base64Encode } from "../../src/encode/Base64Encode";
 import { CommonAuthorizationCodeRequest } from "@azure/msal-common";
+import { BrowserAuthError, BrowserAuthErrorCodes } from "../../src";
 
 describe("Base64Decode.ts Unit Tests", () => {
     describe("decode", () => {
@@ -112,6 +113,31 @@ describe("Base64Decode.ts Unit Tests", () => {
             expect(base64Decode(base64Encode(stringifiedClaims))).toBe(
                 stringifiedClaims
             );
+        });
+
+        it("Decode idtokenclaims with special characters thorws invalid string error", (done) => {
+            // Id token claims B64
+            const idTokenClaims: IdTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "TeamSpirit_制御ポリシー博俊 中",
+                preferred_username: "charTest@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const stringifiedClaims = JSON.stringify(idTokenClaims);
+            const encodedBase64String = base64Encode(stringifiedClaims) + "=";
+            try {
+                const decodedString = base64Decode(encodedBase64String);
+            } catch (e) {
+                expect((e as any).errorCode).toBe(
+                    BrowserAuthErrorCodes.invalidBase64String
+                );
+                done();
+            }
         });
 
         it("Percent encoded URI", () => {
