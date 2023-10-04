@@ -1,8 +1,35 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 05 Sep 2023 22:13:47 GMT and should not be manually modified.
+This log was last generated on Wed, 04 Oct 2023 23:09:44 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.2.0
+
+Wed, 04 Oct 2023 23:09:44 GMT
+
+### Minor changes
+
+- Add getAccount and enhance account filtering #6499 (hemoral@microsoft.com)
+- Refactor BrowserConfigurationAuthError #6473 (thomas.norling@microsoft.com)
+- Modified proactive refresh in silent-flow to also return the cached token when the token needs to be refreshed #6397. (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v14.1.0
+
+### Patches
+
+- Add missing queue measurement instrumentation #6480 (kshabelko@microsoft.com)
+- Bug fix: id token Base64 decoding #6535 (lalimasharda@microsoft.com)
+- Refactor ClientConfigurationError #6471 (thomas.norling@microsoft.com)
+- Refactor InteractionRequiredAuthError #6472 (thomas.norling@microsoft.com)
+- Add tokenBodyParameters support in RefreshTokenClient #6504 (sameera.gajjarapu@microsoft.com)
+- Update telemetry measurements to use invoke #6484 (thomas.norling@microsoft.com)
+- Refactor NativeAuthError, JoseHeaderError and AuthError for reduced size #6497 (thomas.norling@microsoft.com)
+- use invoke for telem measurements #6486 (thomas.norling@microsoft.com)
+- Use the proper algo name for `window.crypto.subtle.digest()` #6521 (kshabelko@microsoft.com)
+- Fix monitorIframeForHash telemetry event name (thomas.norling@microsoft.com)
+- Instrument Crypto APIs #6512 (thomas.norling@microsoft.com)
+- Refactor ClientAuthError for reduced size #6433 (thomas.norling@microsoft.com)
+- doc: JSDoc for deprecated BrowserAuthErrorMessage (renaud.aste@ocea-sb.com)
 
 ## 3.1.0
 

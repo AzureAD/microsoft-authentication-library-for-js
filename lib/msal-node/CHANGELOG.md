@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 05 Sep 2023 22:13:47 GMT and should not be manually modified.
+This log was last generated on Wed, 04 Oct 2023 23:09:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.2.0
+
+Wed, 04 Oct 2023 23:09:45 GMT
+
+### Minor changes
+
+- Modified proactive refresh in silent-flow to also return the cached token when the token needs to be refreshed #6397 (rginsburg@microsoft.com)
+- Fix unhandled rejections & problems getting redirectUri in LoopbackClient #6481 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.1.0
+
+### Patches
+
+- Refactor ClientConfigurationError #6471 (thomas.norling@microsoft.com)
+- Refactor ClientAuthError for reduced size #6433 (thomas.norling@microsoft.com)
+- Refactor AuthError for reduced size #6497 (thomas.norling@microsoft.com)
+- Refactor InteractionRequiredAuthError #6472 (thomas.norling@microsoft.com)
 
 ## 2.1.0
 

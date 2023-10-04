@@ -1,8 +1,29 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 05 Sep 2023 22:13:47 GMT and should not be manually modified.
+This log was last generated on Wed, 04 Oct 2023 23:09:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.1.0
+
+Wed, 04 Oct 2023 23:09:45 GMT
+
+### Minor changes
+
+- Modified proactive refresh in silent-flow to also return the cached token when the token needs to be refreshed #6397 (rginsburg@microsoft.com)
+- Add getAccount and enhance account filtering #6499 (hemoral@microsoft.com)
+
+### Patches
+
+- Add missing queue measurement instrumentation #6480 (kshabelko@microsoft.com)
+- use invoke for telem measurements #6486 (thomas.norling@microsoft.com)
+- Refactor ClientConfigurationError #6471 (thomas.norling@microsoft.com)
+- Add tokenBodyParameters support in RefreshTokenClient #6504 (sameera.gajjarapu@microsoft.com)
+- Refactor InteractionRequiredAuthError #6472 (thomas.norling@microsoft.com)
+- Instrument Crypto APIs #6512 (thomas.norling@microsoft.com)
+- Do not add v2.0 to authority endpoint if already exists #6457 (kshabelko@microsoft.com)
+- Refactor JoseHeaderError and AuthError for reduced size #6497 (thomas.norling@microsoft.com)
+- Refactor ClientAuthError for reduced size #6433 (thomas.norling@microsoft.com)
 
 ## 14.0.3
 

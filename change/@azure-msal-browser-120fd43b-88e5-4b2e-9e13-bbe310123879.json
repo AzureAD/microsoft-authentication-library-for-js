@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Bug fix: id token Base64 decoding #6535",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}
