@@ -142,7 +142,7 @@ describe("StandardInteractionClient", () => {
             await testClient.initializeAuthorizationCodeRequest(request);
         expect(request.codeChallenge).toBe(TEST_CONFIG.TEST_CHALLENGE);
         expect(authCodeRequest.codeVerifier).toBe(TEST_CONFIG.TEST_VERIFIER);
-        expect(authCodeRequest.public).toBeUndefined;
+        expect(authCodeRequest.reqCnf).toBeUndefined;
     });
 
     it("initializeAuthorizationCodeRequest validates the request and does not influence undefined reqCnf param", async () => {
