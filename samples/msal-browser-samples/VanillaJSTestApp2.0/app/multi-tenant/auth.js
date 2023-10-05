@@ -40,10 +40,11 @@ async function pickActiveAccountAndTenantProfile(homeAccount) {
 }
 
 async function setActiveAccount(tenantId) {
+    console.log("Set to: ", tenantId);
     // Sets the active account to the cached account object matching the tenant profile selected by the user.
     let activeAccount = myMSALObj.getActiveAccount();
-    const tenantProfile = activeAccount.tenantProfiles.get(tenantId);
-    const newActiveAccount = myMSALObj.getAccountByFilter({ tenantProfile: tenantProfile});
+    const newActiveAccount = myMSALObj.getAccount({ tenantId: tenantId });
+    console.log(newActiveAccount);
     if (newActiveAccount) {
         myMSALObj.setActiveAccount(newActiveAccount);
         accountId = activeAccount.homeAccountId;

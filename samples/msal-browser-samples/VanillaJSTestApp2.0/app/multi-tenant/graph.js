@@ -26,6 +26,7 @@ async function seeProfile() {
         const response = await getTokenRedirect(request, currentAcc).catch(error => {
             console.log(error);
         });
+        console.log(response);
         callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
     }
 }
