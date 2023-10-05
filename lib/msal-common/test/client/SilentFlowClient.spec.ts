@@ -795,7 +795,7 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             AUTHENTICATION_RESULT.body.client_info =
-                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
@@ -1013,7 +1013,7 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             AUTHENTICATION_RESULT.body.client_info =
-                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             sinon
                 .stub(
                     RefreshTokenClient.prototype,

@@ -179,7 +179,7 @@ describe("NativeInteractionClient Tests", () => {
 
         sinon
             .stub(CacheManager.prototype, "getAccountInfoFilteredBy")
-            .returns(testAccountInfo);
+            .returns({ ...testAccountInfo, idTokenClaims: ID_TOKEN_CLAIMS });
 
         sinon
             .stub(CacheManager.prototype, "readCacheRecord")

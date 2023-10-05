@@ -128,7 +128,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         const ac = new AccountEntity();
         Object.assign(ac, mockAccountEntity);
         expect(ac.generateAccountKey()).toEqual(
-            "uid.utid-login.microsoftonline.com-microsoft"
+            "uid.utid-login.microsoftonline.com-utid"
         );
     });
 

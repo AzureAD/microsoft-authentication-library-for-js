@@ -22,6 +22,7 @@ import {
     TEST_CRYPTO_VALUES,
     TEST_ACCOUNT_INFO,
     TEST_TOKEN_LIFETIMES,
+    ID_TOKEN_ALT_CLAIMS,
 } from "../test_kit/StringConstants";
 import {
     ClientAuthErrorCodes,
@@ -261,65 +262,217 @@ describe("CacheManager.ts test cases", () => {
         });
     });
 
-    it("getAllAccounts (gets all AccountInfo objects)", async () => {
-        const accounts = mockCache.cacheManager.getAllAccounts();
+    describe("getAllAccounts", () => {
+        const account1 = CACHE_MOCKS.MOCK_ACCOUNT_INFO;
+        const account2 = CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID;
+        it("getAllAccounts (gets all AccountInfo objects)", async () => {
+            const accounts = mockCache.cacheManager.getAllAccounts();
 
-        expect(accounts).not.toBeNull();
-        expect(accounts[0].idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-        expect(accounts[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-    });
-
-    describe("getAllAccounts with loginHint filter", () => {
-        it("loginHint filter matching login_hint ID token claim", () => {
-            // filter by loginHint = login_hint
-            const loginHint = "testLoginHint";
-            const successFilter: AccountFilter = {
-                loginHint: loginHint,
-            };
-            jest.spyOn(mockCrypto, "base64Decode").mockReturnValueOnce(
-                JSON.stringify({ login_hint: loginHint })
-            );
-            let accounts = mockCache.cacheManager.getAllAccounts(successFilter);
-            expect(accounts.length).toEqual(1);
-
-            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
-            accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
-            expect(accounts.length).toBe(0);
+            expect(accounts).not.toBeNull();
+            expect(accounts[0].idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+            expect(accounts[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
         });
 
-        it("loginHint filter matching username", () => {
-            // filter by loginHint = preferred_username
-            const username = "janedoe@microsoft.com";
-            const successFilter: AccountFilter = {
-                loginHint: username,
-            };
-            jest.spyOn(mockCrypto, "base64Decode").mockReturnValueOnce(
-                JSON.stringify({ preferred_username: username })
-            );
-            let accounts = mockCache.cacheManager.getAllAccounts(successFilter);
-            expect(accounts.length).toEqual(1);
+        describe("getAllAccounts with loginHint filter", () => {
+            it("loginHint filter matching login_hint ID token claim", () => {
+                // filter by loginHint = login_hint
+                const loginHint = "testLoginHint";
+                const successFilter: AccountFilter = {
+                    loginHint: loginHint,
+                };
+                jest.spyOn(mockCrypto, "base64Decode").mockReturnValueOnce(
+                    JSON.stringify({ login_hint: loginHint })
+                );
+                let accounts =
+                    mockCache.cacheManager.getAllAccounts(successFilter);
+                expect(accounts.length).toEqual(1);
 
-            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
-            accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
-            expect(accounts.length).toBe(0);
+                const wrongFilter: AccountFilter = {
+                    loginHint: "WrongHint",
+                };
+                accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+                expect(accounts.length).toBe(0);
+            });
+
+            it("loginHint filter matching username", () => {
+                // filter by loginHint = preferred_username
+                const username = "janedoe@microsoft.com";
+                const successFilter: AccountFilter = {
+                    loginHint: username,
+                };
+                jest.spyOn(mockCrypto, "base64Decode").mockReturnValueOnce(
+                    JSON.stringify({ preferred_username: username })
+                );
+                let accounts =
+                    mockCache.cacheManager.getAllAccounts(successFilter);
+                expect(accounts.length).toEqual(1);
+
+                const wrongFilter: AccountFilter = {
+                    loginHint: "WrongHint",
+                };
+                accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+                expect(accounts.length).toBe(0);
+            });
+
+            it("loginHint filter matching upn ID token claim", () => {
+                // filter by loginHint = upn
+                const upn = "testUpn";
+                const successFilter: AccountFilter = {
+                    loginHint: upn,
+                };
+
+                jest.spyOn(mockCrypto, "base64Decode").mockReturnValueOnce(
+                    JSON.stringify({ upn: upn })
+                );
+                let accounts =
+                    mockCache.cacheManager.getAllAccounts(successFilter);
+                expect(accounts.length).toEqual(1);
+
+                const wrongFilter: AccountFilter = {
+                    loginHint: "WrongHint",
+                };
+                accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+                expect(accounts.length).toBe(0);
+            });
         });
 
-        it("loginHint filter matching upn ID token claim", () => {
-            // filter by loginHint = upn
-            const upn = "testUpn";
-            const successFilter: AccountFilter = {
-                loginHint: upn,
+        it("Matches accounts by username", () => {
+            expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(2);
+            const account1Filter = { username: account1.username };
+            const account2Filter = { username: account2.username };
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)[0]
+                    .username
+            ).toBe(account1.username);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)[0]
+                    .username
+            ).toBe(account2.username);
+        });
+
+        it("Matches accounts by homeAccountId", () => {
+            expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(2);
+            const account1Filter = {
+                homeAccountId: account1.homeAccountId,
             };
+            const account2Filter = {
+                homeAccountId: account2.homeAccountId,
+            };
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)[0]
+                    .homeAccountId
+            ).toBe(account1.homeAccountId);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)[0]
+                    .homeAccountId
+            ).toBe(account2.homeAccountId);
+        });
 
-            jest.spyOn(mockCrypto, "base64Decode").mockReturnValueOnce(
-                JSON.stringify({ upn: upn })
-            );
-            let accounts = mockCache.cacheManager.getAllAccounts(successFilter);
-            expect(accounts.length).toEqual(1);
+        it("Matches accounts by localAccountId", () => {
+            expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(2);
+            // Local account ID is sourced from ID token claims so for this test we compare against the decoded ID token claims instead of mock account object
+            const account1Filter = {
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+            };
+            const account2Filter = {
+                localAccountId: ID_TOKEN_ALT_CLAIMS.oid,
+            };
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)[0]
+                    .localAccountId
+            ).toBe(account1Filter.localAccountId);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)[0]
+                    .localAccountId
+            ).toBe(account2Filter.localAccountId);
+        });
 
-            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
-            accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
-            expect(accounts.length).toBe(0);
+        it("Matches accounts by tenantId", () => {
+            expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(2);
+            const account1Filter = {
+                tenantId: account1.tenantId,
+            };
+            const account2Filter = {
+                tenantId: account2.tenantId,
+            };
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)[0]
+                    .tenantId
+            ).toBe(account1Filter.tenantId);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)[0]
+                    .tenantId
+            ).toBe(account2Filter.tenantId);
+        });
+
+        it("Matches accounts by environment", () => {
+            expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(2);
+            const account1Filter = { environment: account1.environment };
+            const account2Filter = { environment: account2.environment };
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)[0]
+                    .environment
+            ).toBe(account1.environment);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)[0]
+                    .environment
+            ).toBe(account2.environment);
+        });
+
+        it("Matches accounts by all filters", () => {
+            expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(2);
+            const account1Filter = {
+                ...account1,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+            };
+            const account2Filter = {
+                ...account2,
+                localAccountId: ID_TOKEN_ALT_CLAIMS.oid,
+            };
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account1Filter)[0]
+                    .localAccountId
+            ).toBe(account1Filter.localAccountId);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)
+            ).toHaveLength(1);
+            expect(
+                mockCache.cacheManager.getAllAccounts(account2Filter)[0]
+                    .localAccountId
+            ).toBe(account2Filter.localAccountId);
         });
     });
 
@@ -425,7 +578,7 @@ describe("CacheManager.ts test cases", () => {
 
         it("realm filter", () => {
             // filter by realm
-            const successFilter: AccountFilter = { realm: "microsoft" };
+            const successFilter: AccountFilter = { realm: "utid" };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
             expect(Object.keys(accounts).length).toEqual(1);

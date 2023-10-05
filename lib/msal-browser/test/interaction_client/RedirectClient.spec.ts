@@ -3655,6 +3655,9 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 name: testIdTokenClaims.name || "",
                 nativeAccountId: undefined,
+                tenants: testIdTokenClaims.tid
+                    ? [testIdTokenClaims.tid]
+                    : undefined,
             };
 
             const testAccount: AccountEntity = new AccountEntity();
@@ -3668,6 +3671,7 @@ describe("RedirectClient", () => {
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
             testAccount.idTokenClaims = testIdTokenClaims;
+            testAccount.tenants = testAccountInfo.tenants;
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,

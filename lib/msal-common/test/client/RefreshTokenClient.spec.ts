@@ -300,7 +300,7 @@ describe("RefreshTokenClient unit tests", () => {
 
         const testAccount: AccountInfo = {
             authorityType: "MSSTS",
-            homeAccountId: ID_TOKEN_CLAIMS.sub,
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
@@ -308,6 +308,7 @@ describe("RefreshTokenClient unit tests", () => {
             localAccountId: ID_TOKEN_CLAIMS.oid,
             idTokenClaims: ID_TOKEN_CLAIMS,
             nativeAccountId: undefined,
+            tenants: [ID_TOKEN_CLAIMS.tid],
         };
 
         beforeEach(async () => {
@@ -321,7 +322,7 @@ describe("RefreshTokenClient unit tests", () => {
                 .stub(Authority.prototype, "getPreferredCache")
                 .returns("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info =
-                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testRefreshTokenEntity);
@@ -1056,7 +1057,7 @@ describe("RefreshTokenClient unit tests", () => {
 
         const testAccount: AccountInfo = {
             authorityType: "MSSTS",
-            homeAccountId: ID_TOKEN_CLAIMS.sub,
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
@@ -1064,6 +1065,7 @@ describe("RefreshTokenClient unit tests", () => {
             localAccountId: ID_TOKEN_CLAIMS.oid,
             idTokenClaims: ID_TOKEN_CLAIMS,
             nativeAccountId: undefined,
+            tenants: [ID_TOKEN_CLAIMS.tid],
         };
 
         beforeEach(async () => {
@@ -1077,7 +1079,7 @@ describe("RefreshTokenClient unit tests", () => {
                 .stub(Authority.prototype, "getPreferredCache")
                 .returns("login.windows.net");
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info =
-                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             sinon
                 .stub(
                     RefreshTokenClient.prototype,

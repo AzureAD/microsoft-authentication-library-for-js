@@ -48,7 +48,7 @@ export class MockCache {
         const accountData = {
             username: "John Doe",
             localAccountId: "object1234",
-            realm: "microsoft",
+            realm: "utid",
             environment: "login.microsoftonline.com",
             homeAccountId: "uid.utid",
             authorityType: "MSSTS",
@@ -58,11 +58,11 @@ export class MockCache {
         this.cacheManager.setAccount(account);
 
         const accountDataWithNativeAccountId = {
-            username: "John Doe",
+            username: "Jane Doe",
             localAccountId: "object1234",
-            realm: "microsoft",
-            environment: "login.microsoftonline.com",
-            homeAccountId: "uid.utid",
+            realm: "utid2",
+            environment: "login.windows.net",
+            homeAccountId: "uid.utid2",
             authorityType: "MSSTS",
             clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
             nativeAccountId: "mocked_native_account_id",
@@ -77,7 +77,7 @@ export class MockCache {
     // create id token entries in the cache
     createIdTokenEntries(): void {
         const idTokenData = {
-            realm: "microsoft",
+            realm: "utid",
             environment: "login.microsoftonline.com",
             credentialType: "IdToken",
             secret: TEST_TOKENS.IDTOKEN_V2,
@@ -86,6 +86,20 @@ export class MockCache {
         };
         const idToken = CacheManager.toObject(new IdTokenEntity(), idTokenData);
         this.cacheManager.setIdTokenCredential(idToken);
+
+        const idTokenData2 = {
+            realm: "utid2",
+            environment: "login.windows.net",
+            credentialType: "IdToken",
+            secret: TEST_TOKENS.IDTOKEN_V2_ALT,
+            clientId: "mock_client_id",
+            homeAccountId: "uid.utid2",
+        };
+        const idToken2 = CacheManager.toObject(
+            new IdTokenEntity(),
+            idTokenData2
+        );
+        this.cacheManager.setIdTokenCredential(idToken2);
     }
 
     // create access token entries in the cache
