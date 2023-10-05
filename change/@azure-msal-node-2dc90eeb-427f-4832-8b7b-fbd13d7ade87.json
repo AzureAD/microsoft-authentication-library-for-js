@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "expose the api from msal-node imported from common",
-  "packageName": "@azure/msal-node",
-  "email": "email not defined",
-  "dependentChangeType": "patch"
-}

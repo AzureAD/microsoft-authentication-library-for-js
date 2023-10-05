@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Tue, 05 Sep 2023 22:13:48 GMT and should not be manually modified.
+This log was last generated on Thu, 05 Oct 2023 18:06:40 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.4
+
+Thu, 05 Oct 2023 18:06:40 GMT
+
+### Patches
+
+- Refactor ClientAuthError for reduced size #6433 (thomas.norling@microsoft.com)
+- Refactor ClientConfigurationError #6471 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.1.0
 
 ## 1.0.3
 
