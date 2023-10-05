@@ -5,7 +5,6 @@
 
 import {
     CacheManager,
-    INetworkModule,
     Logger,
     NetworkManager,
     UrlString,
@@ -36,19 +35,12 @@ export class AppService extends BaseManagedIdentitySource {
     constructor(
         logger: Logger,
         cacheManager: CacheManager,
-        networkClient: INetworkModule,
         networkManager: NetworkManager,
         cryptoProvider: CryptoProvider,
         endpoint: string,
         secret: string
     ) {
-        super(
-            logger,
-            cacheManager,
-            networkClient,
-            networkManager,
-            cryptoProvider
-        );
+        super(logger, cacheManager, networkManager, cryptoProvider);
 
         this._endpoint = endpoint;
         this._secret = secret;
@@ -57,7 +49,6 @@ export class AppService extends BaseManagedIdentitySource {
     public static tryCreate(
         logger: Logger,
         cacheManager: CacheManager,
-        networkClient: INetworkModule,
         networkManager: NetworkManager,
         cryptoProvider: CryptoProvider
     ): AppService | null {
@@ -74,7 +65,6 @@ export class AppService extends BaseManagedIdentitySource {
             ? new AppService(
                   logger,
                   cacheManager,
-                  networkClient,
                   networkManager,
                   cryptoProvider,
                   endpoint as string,
@@ -96,7 +86,7 @@ export class AppService extends BaseManagedIdentitySource {
         request.headers[SECRET_HEADER_NAME] = this._secret;
         request.queryParameters["api-version"] = APP_SERVICE_MSI_API_VERSION;
         request.queryParameters["resource"] = resourceUri;
-        // TODO: add bodyParamters ???
+        // bodyParamters calculated in BaseManagedIdentity.authenticateWithMSI
 
         switch (managedIdentityId.idType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:

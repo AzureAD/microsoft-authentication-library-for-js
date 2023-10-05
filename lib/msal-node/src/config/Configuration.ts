@@ -14,6 +14,7 @@ import {
     AzureCloudOptions,
     ApplicationTelemetry,
     INativeBrokerPlugin,
+    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
@@ -83,6 +84,8 @@ export type NodeSystemOptions = {
     networkClient?: INetworkModule;
     proxyUrl?: string;
     customAgentOptions?: http.AgentOptions | https.AgentOptions;
+    tokenRenewalOffsetSeconds?: number;
+    cancellationToken?: number;
 };
 
 export type NodeTelemetryOptions = {
@@ -151,6 +154,8 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
+    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+    cancellationToken: undefined,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {

@@ -36,7 +36,8 @@ export class HttpClient implements INetworkModule {
      */
     async sendGetRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
+        cancellationToken?: number
     ): Promise<NetworkResponse<T>> {
         if (this.proxyUrl) {
             return networkRequestViaProxy(
@@ -44,14 +45,16 @@ export class HttpClient implements INetworkModule {
                 this.proxyUrl,
                 HttpMethod.GET,
                 options,
-                this.customAgentOptions as http.AgentOptions
+                this.customAgentOptions as http.AgentOptions,
+                cancellationToken
             );
         } else {
             return networkRequestViaHttps(
                 url,
                 HttpMethod.GET,
                 options,
-                this.customAgentOptions as https.AgentOptions
+                this.customAgentOptions as https.AgentOptions,
+                cancellationToken
             );
         }
     }

@@ -43,7 +43,44 @@ export class NetworkManager {
     }
 
     /**
-     * Wraps sendPostRequestAsync with necessary preflight and postflight logic
+     * Wraps the networkClient's sendGetRequestAsync with necessary preflight and postflight logic
+     * Managed Identity sends GET requests to communicate to the following managed identity sources:
+     * App Service, Azure Arc, Imds, Service Fabric
+     *
+     * @param thumbprint
+     * @param tokenEndpoint
+     * @param options
+     */
+    async sendGetRequest<T extends ServerAuthorizationTokenResponse>(
+        thumbprint: RequestThumbprint,
+        tokenEndpoint: string,
+        options: NetworkRequestOptions,
+        cancellationToken?: number
+    ): Promise<NetworkResponse<T>> {
+        ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
+
+        let response;
+        try {
+            response = await this.networkClient.sendGetRequestAsync<T>(
+                tokenEndpoint,
+                options,
+                cancellationToken
+            );
+        } catch (e) {
+            if (e instanceof AuthError) {
+                throw e;
+            } else {
+                throw createClientAuthError(ClientAuthErrorCodes.networkError);
+            }
+        }
+
+        ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
+
+        return response;
+    }
+
+    /**
+     * Wraps the networkClient's sendPostRequestAsync with necessary preflight and postflight logic
      * @param thumbprint
      * @param tokenEndpoint
      * @param options
@@ -51,7 +88,8 @@ export class NetworkManager {
     async sendPostRequest<T extends ServerAuthorizationTokenResponse>(
         thumbprint: RequestThumbprint,
         tokenEndpoint: string,
-        options: NetworkRequestOptions
+        options: NetworkRequestOptions,
+        cancellationToken?: number
     ): Promise<NetworkResponse<T>> {
         ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
 
@@ -59,7 +97,8 @@ export class NetworkManager {
         try {
             response = await this.networkClient.sendPostRequestAsync<T>(
                 tokenEndpoint,
-                options
+                options,
+                cancellationToken
             );
         } catch (e) {
             if (e instanceof AuthError) {

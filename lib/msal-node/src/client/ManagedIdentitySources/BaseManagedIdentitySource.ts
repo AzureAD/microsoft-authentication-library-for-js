@@ -9,7 +9,6 @@ import {
     CacheManager,
     Constants,
     HeaderNames,
-    INetworkModule,
     Logger,
     NetworkManager,
     NetworkRequestOptions,
@@ -22,24 +21,22 @@ import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRe
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest";
 import { ServerManagedIdentityTokenResponse } from "../../response/ServerManagedIdentityTokenResponse";
+import { HttpMethod } from "../../utils/Constants";
 
 export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
     private cacheManager: CacheManager;
-    private networkClient: INetworkModule;
     private networkManager: NetworkManager;
     protected readonly cryptoProvider: CryptoProvider;
 
     constructor(
         logger: Logger,
         cacheManager: CacheManager,
-        networkClient: INetworkModule,
         networkManager: NetworkManager,
         cryptoProvider: CryptoProvider
     ) {
         this.logger = logger;
         this.cacheManager = cacheManager;
-        this.networkClient = networkClient;
         this.networkManager = networkManager;
         this.cryptoProvider = cryptoProvider;
     }
@@ -50,11 +47,10 @@ export abstract class BaseManagedIdentitySource {
     ): ManagedIdentityRequestParameters;
 
     public async authenticateWithMSI(
-        // httpMethod: HttpMethod,
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId,
-        fakeAuthority: Authority
-        // cancellationToken?: number // timeout
+        fakeAuthority: Authority,
+        cancellationToken?: number
     ): Promise<AuthenticationResult | null> {
         const networkRequest: ManagedIdentityRequestParameters =
             this.createRequest(
@@ -80,14 +76,25 @@ export abstract class BaseManagedIdentitySource {
         let serverTokenResponse: ServerManagedIdentityTokenResponse;
         let response;
         try {
-            // TODO: implement get request? get request would also include cancellation token
-
-            response =
-                await this.networkManager.sendPostRequest<ServerManagedIdentityTokenResponse>(
-                    thumbprint,
-                    networkRequest.computeUri(),
-                    networkRequestOptions
-                );
+            // Sources that send GET requests: Cloud Shell
+            if (networkRequest.httpMethod === HttpMethod.GET) {
+                response =
+                    await this.networkManager.sendGetRequest<ServerManagedIdentityTokenResponse>(
+                        thumbprint,
+                        networkRequest.computeUri(),
+                        networkRequestOptions,
+                        cancellationToken
+                    );
+                // Sources that send POST requests: App Service, Azure Arc, IMDS, Service Fabric
+            } else {
+                response =
+                    await this.networkManager.sendPostRequest<ServerManagedIdentityTokenResponse>(
+                        thumbprint,
+                        networkRequest.computeUri(),
+                        networkRequestOptions,
+                        cancellationToken
+                    );
+            }
 
             serverTokenResponse = response.body;
             serverTokenResponse.status = response.status;

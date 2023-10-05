@@ -7,7 +7,10 @@ import { INetworkModule } from "../network/INetworkModule";
 import { DEFAULT_CRYPTO_IMPLEMENTATION, ICrypto } from "../crypto/ICrypto";
 import { AuthError } from "../error/AuthError";
 import { ILoggerCallback, Logger, LogLevel } from "../logger/Logger";
-import { Constants } from "../utils/Constants";
+import {
+    Constants,
+    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+} from "../utils/Constants";
 import { version } from "../packageMetadata";
 import { Authority } from "../authority/Authority";
 import { AzureCloudInstance } from "../authority/AuthorityOptions";
@@ -17,9 +20,6 @@ import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { ClientCredentials } from "../account/ClientCredentials";
 import { ProtocolMode } from "../authority/ProtocolMode";
-
-// Token renewal offset default in seconds
-const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.

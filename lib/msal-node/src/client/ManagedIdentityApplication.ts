@@ -9,6 +9,7 @@ import {
     Authority,
     AuthorityOptions,
     CacheManager,
+    ClientAuthErrorCodes,
     Constants,
     CredentialFilter,
     CredentialType,
@@ -21,6 +22,7 @@ import {
     ResponseHandler,
     ScopeSet,
     TimeUtils,
+    createClientAuthError,
 } from "@azure/msal-common";
 import { ServiceFabric } from "./ManagedIdentitySources/ServiceFabric";
 import { AppService } from "./ManagedIdentitySources/AppService";
@@ -41,7 +43,6 @@ import { CryptoProvider } from "../crypto/CryptoProvider";
  * Class to initialize a managed identity and identify the service
  */
 export class ManagedIdentityApplication {
-    private managedIdentityRequest: ManagedIdentityRequest;
     private managedIdentityId: ManagedIdentityId;
 
     private config: ManagedIdentityNodeConfiguration;
@@ -105,7 +106,12 @@ export class ManagedIdentityApplication {
         );
     }
 
-    // TODO: implement this method
+    /**
+     * Acquire an access token from the cache or the managed identity
+     * @param managedIdentityRequest
+     * @param managedIdentityId
+     * @returns the access token
+     */
     public async acquireToken(
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId
@@ -118,11 +124,18 @@ export class ManagedIdentityApplication {
             (await this.identitySource.authenticateWithMSI(
                 managedIdentityRequest,
                 managedIdentityId,
-                this.fakeAuthority
+                this.fakeAuthority,
+                this.config.system.cancellationToken
             ))
         );
     }
 
+    /**
+     * Attempts to get the access token from the cache, then validate it
+     * @param managedIdentityRequest
+     * @param managedIdentityId
+     * @returns the cached token if it exists, otherwise null
+     */
     private async getCachedToken(
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId
@@ -131,39 +144,22 @@ export class ManagedIdentityApplication {
             return null;
         }
 
-        // TODO: persistencePlugin ??? beforeCacheAccess(cacheContext) ???
-
         const cachedAccessToken = this.readAccessTokenFromCache(
             managedIdentityRequest.resourceRequestUri,
             managedIdentityId.id
         );
 
-        // TODO: persistencePlugin ??? afterCacheAccess(cacheContext) ???
-
-        // must refresh due to non-existent access_token
         if (!cachedAccessToken) {
-            /*
-             * TODO: implement telemetry ???
-             * this.serverTelemetryManager?.setCacheOutcome(
-             *     CacheOutcome.NO_CACHED_ACCESS_TOKEN
-             * );
-             */
             return null;
         }
 
-        // must refresh due to the expires_in value
+        // check if token is expired
         if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
-                5000 // implement this --> this.config.systemOptions.tokenRenewalOffsetSeconds
+                this.config.system.tokenRenewalOffsetSeconds
             )
         ) {
-            /*
-             * TODO: implement telemetry ???
-             * this.serverTelemetryManager?.setCacheOutcome(
-             *  CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
-             * );
-             */
             return null;
         }
 
@@ -177,7 +173,7 @@ export class ManagedIdentityApplication {
                 refreshToken: null,
                 appMetadata: null,
             },
-            true, // fromTokenCache
+            true, // from cache
             {
                 ...managedIdentityRequest,
                 authority: this.fakeAuthority.canonicalAuthority,
@@ -188,7 +184,10 @@ export class ManagedIdentityApplication {
     }
 
     /**
-     * Reads access token from the cache
+     * Attempts to read the access token from the cache
+     * @param resourceUri
+     * @param id
+     * @returns the cached token if it exists, otherwise null
      */
     private readAccessTokenFromCache(
         resourceUri: string,
@@ -210,22 +209,17 @@ export class ManagedIdentityApplication {
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {
-            // TODO: implement error message
-            /*
-             * throw createClientAuthError(
-             *     ClientAuthErrorCodes.multipleMatchingTokens
-             * );
-             */
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens
+            );
         }
         return accessTokens[0] as AccessTokenEntity;
     }
 
     /**
      * Tries to create a managed identity source for all sources
-     * @param request the managed identity request
      * @returns the managed identity Source
      */
-    // TODO: update return type
     private selectManagedIdentitySource():
         | ServiceFabric
         | AppService
@@ -236,17 +230,14 @@ export class ManagedIdentityApplication {
             const source = AppService.tryCreate(
                 this.logger,
                 this.cacheManager,
-                this.networkClient,
                 this.networkManager,
                 this.cryptoProvider
             );
 
             /*
-             * ||
              *  ServiceFabric.tryCreate(
              *      this.logger,
              *      this.cacheManager,
-             *      this.networkClient,
              *      this.networkManager,
              *      this.cryptoProvider
              *  ) ||
@@ -254,21 +245,18 @@ export class ManagedIdentityApplication {
              *  CloudShell.tryCreate(
              *      this.logger,
              *      this.cacheManager,
-             *      this.networkClient,
              *      this.networkManager,
              *      this.cryptoProvider
              *  ) ||
              *  AzureArc.tryCreate(
              *      this.logger,
              *      this.cacheManager,
-             *      this.networkClient,
              *      this.networkManager,
              *      this.cryptoProvider
              *  ) ||
              *  Imds.tryCreate(
              *      this.logger,
              *      this.cacheManager,
-             *      this.networkClient,
              *      this.networkManager,
              *      this.cryptoProvider
              *  )
@@ -276,7 +264,7 @@ export class ManagedIdentityApplication {
 
             if (!source) {
                 // TODO: implement better error
-                throw "Unable to create a source";
+                throw new Error("Unable to create a source");
             }
             return source;
         } catch (error) {
