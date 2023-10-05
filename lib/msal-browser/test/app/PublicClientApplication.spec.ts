@@ -21,6 +21,7 @@ import {
     testNavUrlNoRequest,
     TEST_SSH_VALUES,
     TEST_CRYPTO_VALUES,
+    ID_TOKEN_ALT_CLAIMS,
 } from "../utils/StringConstants";
 import {
     AuthorityMetadataEntity,
@@ -4844,7 +4845,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
             username: "example@microsoft.com",
             name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID,
+            localAccountId: ID_TOKEN_CLAIMS.oid,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
             nativeAccountId: undefined,
@@ -4852,7 +4853,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount1: AccountEntity = new AccountEntity();
         testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
-        testAccount1.localAccountId = TEST_CONFIG.OID;
+        testAccount1.localAccountId = testAccountInfo1.localAccountId;
         testAccount1.environment = testAccountInfo1.environment;
         testAccount1.realm = testAccountInfo1.tenantId;
         testAccount1.username = testAccountInfo1.username;
@@ -4929,16 +4930,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("getAccount tests", () => {
+    describe.only("getAccount tests", () => {
         // Account 1
         const testAccountInfo1: AccountInfo = {
             authorityType: "MSSTS",
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-            username: "example@microsoft.com",
+            username: ID_TOKEN_CLAIMS.preferred_username,
             name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID,
+            localAccountId: ID_TOKEN_CLAIMS.oid,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
             nativeAccountId: undefined,
@@ -4972,15 +4973,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
             username: "anotherExample@microsoft.com",
             name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-            idTokenClaims: ID_TOKEN_CLAIMS,
+            localAccountId: ID_TOKEN_ALT_CLAIMS.oid,
+            idToken: TEST_TOKENS.IDTOKEN_V2_ALT,
+            idTokenClaims: ID_TOKEN_ALT_CLAIMS,
             nativeAccountId: undefined,
         };
 
         const testAccount2: AccountEntity = new AccountEntity();
         testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
-        testAccount2.localAccountId = TEST_CONFIG.OID;
+        testAccount2.localAccountId = ID_TOKEN_ALT_CLAIMS.oid;
         testAccount2.environment = testAccountInfo2.environment;
         testAccount2.realm = testAccountInfo2.tenantId;
         testAccount2.username = testAccountInfo2.username;
@@ -4993,7 +4994,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             realm: testAccountInfo2.tenantId,
             environment: testAccountInfo2.environment,
             credentialType: "IdToken",
-            secret: TEST_TOKENS.IDTOKEN_V2,
+            secret: TEST_TOKENS.IDTOKEN_V2_ALT,
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo2.homeAccountId,
         };
@@ -5008,7 +5009,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             name: "Abe Lincoln Two",
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.ID_TOKEN_V2_WITH_LOGIN_HINT,
-            idTokenClaims: { ...ID_TOKEN_CLAIMS, login_hint: "testLoginHint" },
             nativeAccountId: undefined,
         };
 
@@ -5023,13 +5023,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         testAccount3.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount3.idTokenClaims = testAccountInfo3.idTokenClaims;
 
         const idTokenData3 = {
             realm: testAccountInfo3.tenantId,
             environment: testAccountInfo3.environment,
             credentialType: "IdToken",
-            secret: TEST_TOKENS.IDTOKEN_V2,
+            secret: TEST_TOKENS.ID_TOKEN_V2_WITH_LOGIN_HINT,
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo3.homeAccountId,
             login_hint: "testLoginHint",
@@ -5045,7 +5044,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             name: "Abe Lincoln Three",
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.ID_TOKEN_V2_WITH_UPN,
-            idTokenClaims: { ...ID_TOKEN_CLAIMS, upn: "testUpn" },
             nativeAccountId: undefined,
         };
 
@@ -5060,13 +5058,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         testAccount4.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount4.idTokenClaims = testAccountInfo4.idTokenClaims;
 
         const idTokenData4 = {
             realm: testAccountInfo4.tenantId,
             environment: testAccountInfo4.environment,
             credentialType: "IdToken",
-            secret: TEST_TOKENS.IDTOKEN_V2,
+            secret: TEST_TOKENS.ID_TOKEN_V2_WITH_UPN,
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo4.homeAccountId,
             upn: "testUpn",
@@ -5156,13 +5153,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("getAccountByUsername returns account specified", () => {
-            const account = pca.getAccountByUsername("example@microsoft.com");
+            const account = pca.getAccountByUsername("AbeLi@microsoft.com");
             expect(account?.idToken).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
 
         it("getAccountByUsername returns account specified with case mismatch", () => {
-            const account = pca.getAccountByUsername("Example@Microsoft.com");
+            const account = pca.getAccountByUsername("abeli@Microsoft.com");
             expect(account?.idToken).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
 
@@ -5206,7 +5203,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("getAccountByLocalId returns account specified", () => {
-            const account = pca.getAccountByLocalId(TEST_CONFIG.OID);
+            const account = pca.getAccountByLocalId(ID_TOKEN_CLAIMS.oid);
             expect(account?.idToken).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
@@ -5240,11 +5237,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 it("getAccount returns account specified using username", () => {
                     const account = pca.getAccount({
-                        loginHint: "Unique Username",
+                        loginHint: ID_TOKEN_ALT_CLAIMS.preferred_username,
                     });
                     expect(account?.idToken).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
-                        testAccountInfo3.homeAccountId
+                        testAccountInfo2.homeAccountId
                     );
                 });
                 it("getAccount returns account specified using upn", () => {
@@ -5268,7 +5265,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("getAccount returns account specified using localAccountId", () => {
                 const account = pca.getAccount({
-                    localAccountId: TEST_CONFIG.OID,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
                 });
                 expect(account?.idToken).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
@@ -5276,7 +5273,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("getAccount returns account specified using username", () => {
                 const account = pca.getAccount({
-                    username: "example@microsoft.com",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
                 });
                 expect(account?.idToken).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
@@ -5284,8 +5281,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("getAccount returns account specified using a combination of homeAccountId and localAccountId", () => {
                 const account = pca.getAccount({
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                    localAccountId: TEST_CONFIG.OID,
+                    homeAccountId: testAccountInfo1.homeAccountId,
+                    localAccountId: testAccountInfo1.localAccountId,
                 });
                 expect(account?.idToken).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
