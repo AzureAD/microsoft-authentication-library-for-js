@@ -2,6 +2,41 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Thu, 05 Oct 2023 18:06:40 GMT",
+      "version": "1.0.4",
+      "tag": "@azure/msal-node-extensions_v1.0.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "4d75b093973b1c0b01feb4601f07d10390d44dd2",
+            "comment": "Refactor ClientAuthError for reduced size #6433"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "ae92c9a9fefcdc98b3bff206d66c9bc4db1db76c",
+            "comment": "Refactor ClientConfigurationError #6471"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.1.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "fbbb9060775198412eead3e844ef6f4d1968cea3",
+            "comment": "Turn off composite/project references"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Sep 2023 22:13:48 GMT",
       "version": "1.0.3",
       "tag": "@azure/msal-node-extensions_v1.0.3",

@@ -2,6 +2,85 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 05 Oct 2023 18:06:40 GMT",
+      "version": "2.2.0",
+      "tag": "@azure/msal-node_v2.2.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "@azure/msal-node",
+            "commit": "1d42d78e4d9894c7de2c04a91828acc6140a0648",
+            "comment": "expose the api from msal-node imported from common"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5f19f7f29e8eeac7c53030598c1bf6fc7a96c615",
+            "comment": "Refactor InteractionRequiredAuthError #6472"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0cad734bb8ded0a17c9eeedfd8d25c7717bbf6a7",
+            "comment": "Refactor AuthError for reduced size #6497"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4d75b093973b1c0b01feb4601f07d10390d44dd2",
+            "comment": "Refactor ClientAuthError for reduced size #6433"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ae92c9a9fefcdc98b3bff206d66c9bc4db1db76c",
+            "comment": "Refactor ClientConfigurationError #6471"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "781325ba46c8c7eb216b8fff8eebda253aadfea9",
+            "comment": "Update tests #6512"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "fbbb9060775198412eead3e844ef6f4d1968cea3",
+            "comment": "Turn off composite/project references"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "74e928111fbd6954b93fc4d11dfb6d1c44a0a7c5",
+            "comment": "Fix PCA test mocks"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b69ed83ede29bd39b04eb71ae7c15f0a983e0442",
+            "comment": "Fix unhandled rejections & problems getting redirectUri in LoopbackClient #6481"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "3f74c7263ffb405a3183186640945337fbf5cfd4",
+            "comment": "Modified proactive refresh in silent-flow to also return the cached token when the token needs to be refreshed #6397"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.1.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Sep 2023 22:13:47 GMT",
       "version": "2.1.0",
       "tag": "@azure/msal-node_v2.1.0",

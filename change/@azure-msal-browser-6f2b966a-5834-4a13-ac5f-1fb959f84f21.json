@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add getAccount and enhance account filtering #6499",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
