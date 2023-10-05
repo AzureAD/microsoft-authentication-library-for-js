@@ -4,13 +4,23 @@
  */
 
 import {
+    AccessTokenEntity,
     AuthenticationResult,
+    Authority,
+    AuthorityOptions,
     CacheManager,
+    Constants,
+    CredentialFilter,
+    CredentialType,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     DefaultStorageClass,
     INetworkModule,
     Logger,
     NetworkManager,
+    ProtocolMode,
+    ResponseHandler,
+    ScopeSet,
+    TimeUtils,
 } from "@azure/msal-common";
 import { ServiceFabric } from "./ManagedIdentitySources/ServiceFabric";
 import { AppService } from "./ManagedIdentitySources/AppService";
@@ -31,13 +41,16 @@ import { CryptoProvider } from "../crypto/CryptoProvider";
  * Class to initialize a managed identity and identify the service
  */
 export class ManagedIdentityApplication {
+    private managedIdentityRequest: ManagedIdentityRequest;
     private managedIdentityId: ManagedIdentityId;
+
     private config: ManagedIdentityNodeConfiguration;
-    protected readonly cryptoProvider: CryptoProvider;
+
     private logger: Logger;
     private cacheManager: CacheManager;
     private networkClient: INetworkModule;
     private networkManager: NetworkManager;
+    private cryptoProvider: CryptoProvider;
 
     private identitySource:
         | ServiceFabric
@@ -46,14 +59,14 @@ export class ManagedIdentityApplication {
         | AzureArc
         | Imds;
 
+    private fakeAuthority: Authority;
+
     constructor(
         managedIdentityId: ManagedIdentityId,
         configuration?: ManagedIdentityConfiguration
     ) {
         this.config = buildManagedIdentityConfiguration(configuration || {});
         this.managedIdentityId = managedIdentityId;
-
-        this.cryptoProvider = new CryptoProvider();
 
         this.logger = new Logger(
             this.config.system.loggerOptions,
@@ -73,7 +86,23 @@ export class ManagedIdentityApplication {
             this.cacheManager
         );
 
+        this.cryptoProvider = new CryptoProvider();
+
         this.identitySource = this.selectManagedIdentitySource();
+
+        const fakeAuthorityOptions: AuthorityOptions = {
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: "",
+        };
+        this.fakeAuthority = new Authority(
+            Constants.DEFAULT_AUTHORITY,
+            this.networkClient,
+            this.cacheManager,
+            fakeAuthorityOptions,
+            this.logger
+        );
     }
 
     // TODO: implement this method
@@ -81,15 +110,114 @@ export class ManagedIdentityApplication {
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId
     ): Promise<AuthenticationResult | null> {
-        /*
-         * TODO: check forceRefresh flag
-         * TODO: check cache
-         */
-
-        return await this.identitySource.authenticateWithMSI(
-            managedIdentityRequest,
-            managedIdentityId
+        return (
+            (await this.getCachedToken(
+                managedIdentityRequest,
+                managedIdentityId
+            )) ||
+            (await this.identitySource.authenticateWithMSI(
+                managedIdentityRequest,
+                managedIdentityId,
+                this.fakeAuthority
+            ))
         );
+    }
+
+    private async getCachedToken(
+        managedIdentityRequest: ManagedIdentityRequest,
+        managedIdentityId: ManagedIdentityId
+    ): Promise<AuthenticationResult | null> {
+        if (managedIdentityRequest.forceRefresh) {
+            return null;
+        }
+
+        // TODO: persistencePlugin ??? beforeCacheAccess(cacheContext) ???
+
+        const cachedAccessToken = this.readAccessTokenFromCache(
+            managedIdentityRequest.resourceRequestUri,
+            managedIdentityId.id
+        );
+
+        // TODO: persistencePlugin ??? afterCacheAccess(cacheContext) ???
+
+        // must refresh due to non-existent access_token
+        if (!cachedAccessToken) {
+            /*
+             * TODO: implement telemetry ???
+             * this.serverTelemetryManager?.setCacheOutcome(
+             *     CacheOutcome.NO_CACHED_ACCESS_TOKEN
+             * );
+             */
+            return null;
+        }
+
+        // must refresh due to the expires_in value
+        if (
+            TimeUtils.isTokenExpired(
+                cachedAccessToken.expiresOn,
+                5000 // implement this --> this.config.systemOptions.tokenRenewalOffsetSeconds
+            )
+        ) {
+            /*
+             * TODO: implement telemetry ???
+             * this.serverTelemetryManager?.setCacheOutcome(
+             *  CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
+             * );
+             */
+            return null;
+        }
+
+        return await ResponseHandler.generateAuthenticationResult(
+            this.cryptoProvider,
+            this.fakeAuthority,
+            {
+                account: null,
+                idToken: null,
+                accessToken: cachedAccessToken,
+                refreshToken: null,
+                appMetadata: null,
+            },
+            true, // fromTokenCache
+            {
+                ...managedIdentityRequest,
+                authority: this.fakeAuthority.canonicalAuthority,
+                correlationId: managedIdentityId.id,
+                scopes: [managedIdentityRequest.resourceRequestUri],
+            }
+        );
+    }
+
+    /**
+     * Reads access token from the cache
+     */
+    private readAccessTokenFromCache(
+        resourceUri: string,
+        id: string
+    ): AccessTokenEntity | null {
+        const accessTokenFilter: CredentialFilter = {
+            homeAccountId: Constants.EMPTY_STRING,
+            environment:
+                this.fakeAuthority.canonicalAuthorityUrlComponents
+                    .HostNameAndPort,
+            credentialType: CredentialType.ACCESS_TOKEN,
+            clientId: id || "",
+            realm: this.fakeAuthority.tenant,
+            target: ScopeSet.createSearchScopes([resourceUri]),
+        };
+
+        const accessTokens =
+            this.cacheManager.getAccessTokensByFilter(accessTokenFilter);
+        if (accessTokens.length < 1) {
+            return null;
+        } else if (accessTokens.length > 1) {
+            // TODO: implement error message
+            /*
+             * throw createClientAuthError(
+             *     ClientAuthErrorCodes.multipleMatchingTokens
+             * );
+             */
+        }
+        return accessTokens[0] as AccessTokenEntity;
     }
 
     /**
