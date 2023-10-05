@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Turn off composite/project references",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}
