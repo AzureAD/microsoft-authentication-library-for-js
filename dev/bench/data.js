@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696461211627,
+  "lastUpdate": 1696526029053,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1178,6 +1178,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.40%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kaghiya@microsoft.com",
+            "name": "KarishmaGhiya",
+            "username": "KarishmaGhiya"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1d42d78e4d9894c7de2c04a91828acc6140a0648",
+          "message": "[Msal node] expose the type through msal-node imported from common (#6538)\n\n- Exposing the type needed from @azure/msal-common through\r\n@azure/msal-node (`INativeBrokerPlugin`)",
+          "timestamp": "2023-10-05T10:08:58-07:00",
+          "tree_id": "be2b298e71b5f6dfa70b38eb142b2581847bf3b3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1d42d78e4d9894c7de2c04a91828acc6140a0648"
+        },
+        "date": 1696526027837,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 150008,
+            "range": "±1.40%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 150147,
+            "range": "±1.32%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
