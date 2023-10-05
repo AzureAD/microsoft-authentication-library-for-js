@@ -111,7 +111,7 @@ const networkRequestViaProxy = <T>(
         headers: headers,
     };
 
-    if (timeout) {
+    if (!!timeout) {
         tunnelRequestOptions.timeout = timeout;
     }
 
@@ -293,7 +293,7 @@ const networkRequestViaHttps = <T>(
         ...NetworkUtils.urlToHttpOptions(url),
     };
 
-    if (timeout) {
+    if (!!timeout) {
         customOptions.timeout = timeout;
     }
 
@@ -312,7 +312,7 @@ const networkRequestViaHttps = <T>(
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
         const request = https.request(customOptions);
 
-        if (timeout) {
+        if (!!timeout) {
             request.on("timeout", () => {
                 request.destroy();
                 reject(new Error("Request time out"));

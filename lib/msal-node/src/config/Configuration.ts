@@ -155,7 +155,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     proxyUrl: Constants.EMPTY_STRING,
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    cancellationToken: undefined,
+    cancellationToken: 0,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
