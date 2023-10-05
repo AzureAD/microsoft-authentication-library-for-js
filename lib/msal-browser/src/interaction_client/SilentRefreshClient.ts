@@ -19,6 +19,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import * as BrowserUtils from "../utils/BrowserUtils";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**
@@ -44,6 +45,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
             ...request,
             ...baseRequest,
         };
+        BrowserUtils.preconnect(baseRequest.authority);
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow
         );

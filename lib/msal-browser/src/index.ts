@@ -32,7 +32,9 @@ export {
     ApiId,
     CacheLookupPolicy,
 } from "./utils/BrowserConstants";
-export { BrowserUtils } from "./utils/BrowserUtils";
+
+import * as BrowserUtils from "./utils/BrowserUtils";
+export { BrowserUtils };
 
 /*
  * export { IController} from "./controllers/IController";

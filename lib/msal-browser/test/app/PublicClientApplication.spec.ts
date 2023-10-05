@@ -83,7 +83,7 @@ import {
     BrowserAuthErrorMessage,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
-import { BrowserUtils } from "../../src/utils/BrowserUtils";
+import * as BrowserUtils from "../../src/utils/BrowserUtils";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
