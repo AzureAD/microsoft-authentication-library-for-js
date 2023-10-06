@@ -149,7 +149,7 @@ export function blockAPICallsBeforeInitialize(initialized: boolean): void {
  * @param loginDomain Authority domain, including https protocol e.g. https://login.microsoftonline.com
  * @returns
  */
-export function preconnect(authority: string) {
+export function preconnect(authority: string): void {
     const link = document.createElement("link");
     link.rel = "preconnect";
     link.href = new URL(authority).origin;
