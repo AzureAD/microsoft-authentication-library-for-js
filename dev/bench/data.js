@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696599008412,
+  "lastUpdate": 1696616579033,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1292,6 +1292,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.53%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e1348188036acb2f5d182e1979722429c5a0539b",
+          "message": "Bump electron from 22.3.24 to 22.3.25 in /samples/msal-node-samples/ElectronSystemBrowserTestApp (#6542)\n\nBumps [electron](https://github.com/electron/electron) from 22.3.24 to\r\n22.3.25.\r\n<details>\r\n<summary>Release notes</summary>\r\n<p><em>Sourced from <a\r\nhref=\"https://github.com/electron/electron/releases\">electron's\r\nreleases</a>.</em></p>\r\n<blockquote>\r\n<h2>electron v22.3.25</h2>\r\n<h1>Release Notes for v22.3.25</h1>\r\n<h2>Other Changes</h2>\r\n<ul>\r\n<li>Security: backported fix for CVE-2023-5217. <a\r\nhref=\"https://redirect.github.com/electron/electron/pull/40026\">#40026</a></li>\r\n</ul>\r\n</blockquote>\r\n</details>\r\n<details>\r\n<summary>Commits</summary>\r\n<ul>\r\n<li><a\r\nhref=\"https://github.com/electron/electron/commit/1c1c13234f606f80b5684d4846f4ab52df4a9d28\"><code>1c1c132</code></a>\r\nchore: cherry-pick 3fbd1dca6a4d from libvpx (<a\r\nhref=\"https://redirect.github.com/electron/electron/issues/40026\">#40026</a>)</li>\r\n<li><a\r\nhref=\"https://github.com/electron/electron/commit/d892c2b1c8e53e0ed9dc887989f0a9fe3239fe56\"><code>d892c2b</code></a>\r\nbuild: fixup autoninja (<a\r\nhref=\"https://redirect.github.com/electron/electron/issues/39899\">#39899</a>)</li>\r\n<li><a\r\nhref=\"https://github.com/electron/electron/commit/6132e80a4f109056ad303052341e2f278284eb67\"><code>6132e80</code></a>\r\nbuild: run on circle hosts for forks (<a\r\nhref=\"https://redirect.github.com/electron/electron/issues/39865\">#39865</a>)</li>\r\n<li><a\r\nhref=\"https://github.com/electron/electron/commit/a953199af39a587ca510bbb6486f118ffa12fe8f\"><code>a953199</code></a>\r\nbuild: use aks backed runners for linux builds (<a\r\nhref=\"https://redirect.github.com/electron/electron/issues/39838\">#39838</a>)</li>\r\n<li>See full diff in <a\r\nhref=\"https://github.com/electron/electron/compare/v22.3.24...v22.3.25\">compare\r\nview</a></li>\r\n</ul>\r\n</details>\r\n<br />\r\n\r\n\r\n[![Dependabot compatibility\r\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=electron&package-manager=npm_and_yarn&previous-version=22.3.24&new-version=22.3.25)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\r\n\r\nDependabot will resolve any conflicts with this PR as long as you don't\r\nalter it yourself. You can also trigger a rebase manually by commenting\r\n`@dependabot rebase`.\r\n\r\n[//]: # (dependabot-automerge-start)\r\n[//]: # (dependabot-automerge-end)\r\n\r\n---\r\n\r\n<details>\r\n<summary>Dependabot commands and options</summary>\r\n<br />\r\n\r\nYou can trigger Dependabot actions by commenting on this PR:\r\n- `@dependabot rebase` will rebase this PR\r\n- `@dependabot recreate` will recreate this PR, overwriting any edits\r\nthat have been made to it\r\n- `@dependabot merge` will merge this PR after your CI passes on it\r\n- `@dependabot squash and merge` will squash and merge this PR after\r\nyour CI passes on it\r\n- `@dependabot cancel merge` will cancel a previously requested merge\r\nand block automerging\r\n- `@dependabot reopen` will reopen this PR if it is closed\r\n- `@dependabot close` will close this PR and stop Dependabot recreating\r\nit. You can achieve the same result by closing it manually\r\n- `@dependabot show <dependency name> ignore conditions` will show all\r\nof the ignore conditions of the specified dependency\r\n- `@dependabot ignore this major version` will close this PR and stop\r\nDependabot creating any more for this major version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this minor version` will close this PR and stop\r\nDependabot creating any more for this minor version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this dependency` will close this PR and stop\r\nDependabot creating any more for this dependency (unless you reopen the\r\nPR or upgrade to it yourself)\r\nYou can disable automated security fix PRs for this repo from the\r\n[Security Alerts\r\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\r\n\r\n</details>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2023-10-06T18:18:01Z",
+          "tree_id": "c5e071c9a47ca0f03f1cb9e2267aa1b0aabdbcd2",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e1348188036acb2f5d182e1979722429c5a0539b"
+        },
+        "date": 1696616577082,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 146598,
+            "range": "±1.41%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 148763,
+            "range": "±1.29%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
           }
         ]
       }
