@@ -145,7 +145,7 @@ export class ManagedIdentityApplication {
         }
 
         const cachedAccessToken = this.readAccessTokenFromCache(
-            managedIdentityRequest.resourceRequestUri,
+            managedIdentityRequest.resourceUri,
             managedIdentityId.id
         );
 
@@ -174,11 +174,12 @@ export class ManagedIdentityApplication {
                 appMetadata: null,
             },
             true, // from cache
+            // BaseAuthRequest
             {
                 ...managedIdentityRequest,
                 authority: this.fakeAuthority.canonicalAuthority,
                 correlationId: managedIdentityId.id,
-                scopes: [managedIdentityRequest.resourceRequestUri],
+                scopes: [managedIdentityRequest.resourceUri],
             }
         );
     }

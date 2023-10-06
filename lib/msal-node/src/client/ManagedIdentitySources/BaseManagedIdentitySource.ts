@@ -128,7 +128,13 @@ export abstract class BaseManagedIdentitySource {
             serverTokenResponse,
             fakeAuthority,
             reqTimestamp,
-            managedIdentityRequest
+            // BaseAuthRequest
+            {
+                ...managedIdentityRequest,
+                authority: fakeAuthority.canonicalAuthority,
+                correlationId: managedIdentityId.id,
+                scopes: [managedIdentityRequest.resourceUri],
+            }
         );
 
         return tokenResponse;
