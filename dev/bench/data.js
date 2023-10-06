@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696531893727,
+  "lastUpdate": 1696599008412,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1254,6 +1254,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.30%",
             "unit": "ops/sec",
             "extra": "229 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "26bdb77289ef28708c50860287132a397138729f",
+          "message": "Enable e2e https support (#6543)\n\n- Enable e2e https support.",
+          "timestamp": "2023-10-06T09:24:30-04:00",
+          "tree_id": "3c6163d8bec19c9431250c0fe81b4115ffa2afa6",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/26bdb77289ef28708c50860287132a397138729f"
+        },
+        "date": 1696599007050,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 139485,
+            "range": "±1.18%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 137327,
+            "range": "±1.53%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
