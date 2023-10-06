@@ -8,7 +8,7 @@
  * @module @azure/msal-browser
  */
 
-import * as BrowserUtils from "../utils/BrowserUtils";
+import * as BrowserUtils from "./utils/BrowserUtils";
 export { BrowserUtils };
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
