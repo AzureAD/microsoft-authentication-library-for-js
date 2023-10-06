@@ -5,8 +5,8 @@
 
 import {
     CacheManager,
+    INetworkModule,
     Logger,
-    NetworkManager,
     UrlString,
 } from "@azure/msal-common";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
@@ -35,12 +35,12 @@ export class AppService extends BaseManagedIdentitySource {
     constructor(
         logger: Logger,
         cacheManager: CacheManager,
-        networkManager: NetworkManager,
+        networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         endpoint: string,
         secret: string
     ) {
-        super(logger, cacheManager, networkManager, cryptoProvider);
+        super(logger, cacheManager, networkClient, cryptoProvider);
 
         this._endpoint = endpoint;
         this._secret = secret;
@@ -49,7 +49,7 @@ export class AppService extends BaseManagedIdentitySource {
     public static tryCreate(
         logger: Logger,
         cacheManager: CacheManager,
-        networkManager: NetworkManager,
+        networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): AppService | null {
         const secret: string | undefined = process.env["IdentityHeader"];
@@ -65,7 +65,7 @@ export class AppService extends BaseManagedIdentitySource {
             ? new AppService(
                   logger,
                   cacheManager,
-                  networkManager,
+                  networkClient,
                   cryptoProvider,
                   endpoint as string,
                   secret as string

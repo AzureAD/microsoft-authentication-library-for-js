@@ -17,7 +17,6 @@ import {
     DefaultStorageClass,
     INetworkModule,
     Logger,
-    NetworkManager,
     ProtocolMode,
     ResponseHandler,
     ScopeSet,
@@ -50,7 +49,6 @@ export class ManagedIdentityApplication {
     private logger: Logger;
     private cacheManager: CacheManager;
     private networkClient: INetworkModule;
-    private networkManager: NetworkManager;
     private cryptoProvider: CryptoProvider;
 
     private identitySource:
@@ -82,10 +80,6 @@ export class ManagedIdentityApplication {
         );
 
         this.networkClient = this.config.system.networkClient;
-        this.networkManager = new NetworkManager(
-            this.networkClient,
-            this.cacheManager
-        );
 
         this.cryptoProvider = new CryptoProvider();
 
@@ -231,7 +225,7 @@ export class ManagedIdentityApplication {
             const source = AppService.tryCreate(
                 this.logger,
                 this.cacheManager,
-                this.networkManager,
+                this.networkClient,
                 this.cryptoProvider
             );
 
@@ -239,26 +233,26 @@ export class ManagedIdentityApplication {
              *  ServiceFabric.tryCreate(
              *      this.logger,
              *      this.cacheManager,
-             *      this.networkManager,
+             *      this.networkClient,
              *      this.cryptoProvider
              *  ) ||
              *  // *** AppService goes here ***
              *  CloudShell.tryCreate(
              *      this.logger,
              *      this.cacheManager,
-             *      this.networkManager,
+             *      this.networkClient,
              *      this.cryptoProvider
              *  ) ||
              *  AzureArc.tryCreate(
              *      this.logger,
              *      this.cacheManager,
-             *      this.networkManager,
+             *      this.networkClient,
              *      this.cryptoProvider
              *  ) ||
              *  Imds.tryCreate(
              *      this.logger,
              *      this.cacheManager,
-             *      this.networkManager,
+             *      this.networkClient,
              *      this.cryptoProvider
              *  )
              */

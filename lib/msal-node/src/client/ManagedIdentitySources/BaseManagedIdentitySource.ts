@@ -9,10 +9,9 @@ import {
     CacheManager,
     Constants,
     HeaderNames,
+    INetworkModule,
     Logger,
-    NetworkManager,
     NetworkRequestOptions,
-    RequestThumbprint,
     ResponseHandler,
     TimeUtils,
 } from "@azure/msal-common";
@@ -26,18 +25,18 @@ import { HttpMethod } from "../../utils/Constants";
 export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
     private cacheManager: CacheManager;
-    private networkManager: NetworkManager;
+    private networkClient: INetworkModule;
     protected readonly cryptoProvider: CryptoProvider;
 
     constructor(
         logger: Logger,
         cacheManager: CacheManager,
-        networkManager: NetworkManager,
+        networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ) {
         this.logger = logger;
         this.cacheManager = cacheManager;
-        this.networkManager = networkManager;
+        this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
     }
 
@@ -66,12 +65,6 @@ export abstract class BaseManagedIdentitySource {
                 networkRequest.computeParametersBodyString();
         }
 
-        const thumbprint: RequestThumbprint = {
-            clientId: managedIdentityId.id || "",
-            authority: Constants.DEFAULT_AUTHORITY,
-            scopes: [managedIdentityRequest.resourceUri],
-        };
-
         const reqTimestamp = TimeUtils.nowSeconds();
         let serverTokenResponse: ServerManagedIdentityTokenResponse;
         let response;
@@ -79,8 +72,7 @@ export abstract class BaseManagedIdentitySource {
             // Sources that send GET requests: Cloud Shell
             if (networkRequest.httpMethod === HttpMethod.GET) {
                 response =
-                    await this.networkManager.sendGetRequest<ServerManagedIdentityTokenResponse>(
-                        thumbprint,
+                    await this.networkClient.sendGetRequestAsync<ServerManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions,
                         cancellationToken
@@ -88,8 +80,7 @@ export abstract class BaseManagedIdentitySource {
                 // Sources that send POST requests: App Service, Azure Arc, IMDS, Service Fabric
             } else {
                 response =
-                    await this.networkManager.sendPostRequest<ServerManagedIdentityTokenResponse>(
-                        thumbprint,
+                    await this.networkClient.sendPostRequestAsync<ServerManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions,
                         cancellationToken
