@@ -14,11 +14,12 @@ import {
     AzureCloudOptions,
     ApplicationTelemetry,
     INativeBrokerPlugin,
-    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
 import https from "https";
+import { ManagedIdentityId } from "./ManagedIdentityId.js";
+import { ManagedIdentityIdType } from "../utils/Constants.js";
 
 /**
  * - clientId               - Client id of the application.
@@ -84,8 +85,6 @@ export type NodeSystemOptions = {
     networkClient?: INetworkModule;
     proxyUrl?: string;
     customAgentOptions?: http.AgentOptions | https.AgentOptions;
-    tokenRenewalOffsetSeconds?: number;
-    cancellationToken?: number;
 };
 
 export type NodeTelemetryOptions = {
@@ -110,10 +109,11 @@ export type Configuration = {
     telemetry?: NodeTelemetryOptions;
 };
 
-export type ManagedIdentityConfiguration = Omit<
-    Configuration,
-    "auth" | "broker" | "cache" | "telemetry"
->;
+export type ManagedIdentityConfiguration = {
+    id?: string;
+    idType: ManagedIdentityIdType;
+    system?: NodeSystemOptions;
+};
 
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientId: Constants.EMPTY_STRING,
@@ -154,8 +154,6 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
-    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    cancellationToken: 0,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
@@ -210,14 +208,21 @@ export function buildAppConfiguration({
     };
 }
 
-export type ManagedIdentityNodeConfiguration = Omit<
-    NodeConfiguration,
-    "auth" | "broker" | "cache" | "telemetry"
->;
+export type ManagedIdentityNodeConfiguration = {
+    managedIdentityId: ManagedIdentityId;
+    system: Required<NodeSystemOptions>;
+};
 
 export function buildManagedIdentityConfiguration({
-    system: system,
+    id,
+    idType,
+    system,
 }: ManagedIdentityConfiguration): ManagedIdentityNodeConfiguration {
+    const managedIdentityId: ManagedIdentityId = new ManagedIdentityId(
+        idType,
+        id
+    );
+
     const systemOptions: Required<NodeSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
@@ -228,6 +233,7 @@ export function buildManagedIdentityConfiguration({
     };
 
     return {
+        managedIdentityId: managedIdentityId,
         system: { ...systemOptions, ...system },
     };
 }

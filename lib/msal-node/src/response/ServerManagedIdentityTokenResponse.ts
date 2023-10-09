@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerAuthorizationTokenResponse } from "@azure/msal-common/response/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "@azure/msal-common";
 
 /**
  * //

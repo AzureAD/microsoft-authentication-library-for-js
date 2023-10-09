@@ -14,6 +14,7 @@ import {
     CredentialFilter,
     CredentialType,
     DEFAULT_CRYPTO_IMPLEMENTATION,
+    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     DefaultStorageClass,
     INetworkModule,
     Logger,
@@ -60,12 +61,9 @@ export class ManagedIdentityApplication {
 
     private fakeAuthority: Authority;
 
-    constructor(
-        managedIdentityId: ManagedIdentityId,
-        configuration?: ManagedIdentityConfiguration
-    ) {
-        this.config = buildManagedIdentityConfiguration(configuration || {});
-        this.managedIdentityId = managedIdentityId;
+    constructor(configuration: ManagedIdentityConfiguration) {
+        this.config = buildManagedIdentityConfiguration(configuration);
+        this.managedIdentityId = this.config.managedIdentityId;
 
         this.logger = new Logger(
             this.config.system.loggerOptions,
@@ -74,7 +72,7 @@ export class ManagedIdentityApplication {
         );
 
         this.cacheManager = new DefaultStorageClass(
-            this.managedIdentityId.id,
+            this.managedIdentityId.getId,
             DEFAULT_CRYPTO_IMPLEMENTATION,
             this.logger
         );
@@ -118,8 +116,7 @@ export class ManagedIdentityApplication {
             (await this.identitySource.authenticateWithMSI(
                 managedIdentityRequest,
                 managedIdentityId,
-                this.fakeAuthority,
-                this.config.system.cancellationToken
+                this.fakeAuthority
             ))
         );
     }
@@ -139,8 +136,8 @@ export class ManagedIdentityApplication {
         }
 
         const cachedAccessToken = this.readAccessTokenFromCache(
-            managedIdentityRequest.resourceUri,
-            managedIdentityId.id
+            managedIdentityRequest.resource,
+            managedIdentityId.getId
         );
 
         if (!cachedAccessToken) {
@@ -151,7 +148,7 @@ export class ManagedIdentityApplication {
         if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
-                this.config.system.tokenRenewalOffsetSeconds
+                DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
             )
         ) {
             return null;
@@ -172,20 +169,20 @@ export class ManagedIdentityApplication {
             {
                 ...managedIdentityRequest,
                 authority: this.fakeAuthority.canonicalAuthority,
-                correlationId: managedIdentityId.id,
-                scopes: [managedIdentityRequest.resourceUri],
+                correlationId: managedIdentityId.getId,
+                scopes: [managedIdentityRequest.resource],
             }
         );
     }
 
     /**
      * Attempts to read the access token from the cache
-     * @param resourceUri
+     * @param resource
      * @param id
      * @returns the cached token if it exists, otherwise null
      */
     private readAccessTokenFromCache(
-        resourceUri: string,
+        resource: string,
         id: string
     ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
@@ -196,7 +193,7 @@ export class ManagedIdentityApplication {
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: id || "",
             realm: this.fakeAuthority.tenant,
-            target: ScopeSet.createSearchScopes([resourceUri]),
+            target: ScopeSet.createSearchScopes([resource]),
         };
 
         const accessTokens =

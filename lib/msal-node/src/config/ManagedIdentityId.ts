@@ -9,22 +9,22 @@ import {
 } from "../utils/Constants";
 
 export class ManagedIdentityId {
-    private _id: string;
-    private _idType: ManagedIdentityIdType;
-    private _isUserAssignedId: boolean;
+    private id: string;
+    private idType: ManagedIdentityIdType;
+    private isUserAssignedId: boolean;
 
     constructor(idType: ManagedIdentityIdType, id?: string) {
-        this._idType = idType;
-        this._id = id || DEFAULT_MANAGED_IDENTITY_ID;
+        this.idType = idType;
+        this.id = id || DEFAULT_MANAGED_IDENTITY_ID;
 
         switch (idType) {
             case ManagedIdentityIdType.SYSTEM_ASSIGNED:
-                this._isUserAssignedId = false;
+                this.isUserAssignedId = false;
                 break;
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
             case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
             case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
-                this._isUserAssignedId = true;
+                this.isUserAssignedId = true;
                 break;
             default:
                 // TODO: throw error
@@ -84,15 +84,15 @@ export class ManagedIdentityId {
         );
     }
 
-    public get id(): string {
-        return this._id;
+    public get getId(): string {
+        return this.id;
     }
 
-    public get idType(): ManagedIdentityIdType {
-        return this._idType;
+    public get getIdType(): ManagedIdentityIdType {
+        return this.idType;
     }
 
-    public get isUserAssignedId(): boolean {
-        return this._isUserAssignedId;
+    public get getIsUserAssignedId(): boolean {
+        return this.isUserAssignedId;
     }
 }

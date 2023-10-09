@@ -48,12 +48,11 @@ export abstract class BaseManagedIdentitySource {
     public async authenticateWithMSI(
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId,
-        fakeAuthority: Authority,
-        cancellationToken?: number
+        fakeAuthority: Authority
     ): Promise<AuthenticationResult | null> {
         const networkRequest: ManagedIdentityRequestParameters =
             this.createRequest(
-                managedIdentityRequest.resourceUri,
+                managedIdentityRequest.resource,
                 managedIdentityId
             );
 
@@ -74,16 +73,14 @@ export abstract class BaseManagedIdentitySource {
                 response =
                     await this.networkClient.sendGetRequestAsync<ServerManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
-                        networkRequestOptions,
-                        cancellationToken
+                        networkRequestOptions
                     );
                 // Sources that send POST requests: App Service, Azure Arc, IMDS, Service Fabric
             } else {
                 response =
                     await this.networkClient.sendPostRequestAsync<ServerManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
-                        networkRequestOptions,
-                        cancellationToken
+                        networkRequestOptions
                     );
             }
 
@@ -105,7 +102,7 @@ export abstract class BaseManagedIdentitySource {
         }
 
         const responseHandler = new ResponseHandler(
-            managedIdentityId.id,
+            managedIdentityId.getId,
             this.cacheManager,
             this.cryptoProvider,
             this.logger,
@@ -123,8 +120,8 @@ export abstract class BaseManagedIdentitySource {
             {
                 ...managedIdentityRequest,
                 authority: fakeAuthority.canonicalAuthority,
-                correlationId: managedIdentityId.id,
-                scopes: [managedIdentityRequest.resourceUri],
+                correlationId: managedIdentityId.getId,
+                scopes: [managedIdentityRequest.resource],
             }
         );
 

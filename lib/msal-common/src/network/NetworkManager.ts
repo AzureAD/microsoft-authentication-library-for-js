@@ -43,7 +43,7 @@ export class NetworkManager {
     }
 
     /**
-     * Wraps the networkClient's sendPostRequestAsync with necessary preflight and postflight logic
+     * Wraps sendPostRequestAsync with necessary preflight and postflight logic
      * @param thumbprint
      * @param tokenEndpoint
      * @param options

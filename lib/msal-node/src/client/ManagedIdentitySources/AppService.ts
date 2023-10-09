@@ -74,7 +74,7 @@ export class AppService extends BaseManagedIdentitySource {
     }
 
     public createRequest(
-        resourceUri: string,
+        resource: string,
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =
@@ -85,16 +85,16 @@ export class AppService extends BaseManagedIdentitySource {
 
         request.headers[SECRET_HEADER_NAME] = this._secret;
         request.queryParameters["api-version"] = APP_SERVICE_MSI_API_VERSION;
-        request.queryParameters["resource"] = resourceUri;
+        request.queryParameters["resource"] = resource;
         // bodyParamters calculated in BaseManagedIdentity.authenticateWithMSI
 
-        switch (managedIdentityId.idType) {
+        switch (managedIdentityId.getIdType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
                 this.logger.info(
                     "[Managed Identity] Adding user assigned client id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_CLIENT_ID] =
-                    managedIdentityId.id;
+                    managedIdentityId.getId;
                 break;
 
             case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
@@ -102,7 +102,7 @@ export class AppService extends BaseManagedIdentitySource {
                     "[Managed Identity] Adding user assigned resource id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_RESOURCE_ID] =
-                    managedIdentityId.id;
+                    managedIdentityId.getId;
                 break;
 
             case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
@@ -110,7 +110,7 @@ export class AppService extends BaseManagedIdentitySource {
                     "[Managed Identity] Adding user assigned object id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_OBJECT_ID] =
-                    managedIdentityId.id;
+                    managedIdentityId.getId;
                 break;
         }
 

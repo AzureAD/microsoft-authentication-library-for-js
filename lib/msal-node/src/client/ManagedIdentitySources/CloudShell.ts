@@ -10,7 +10,7 @@ import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
 export class CloudShell extends BaseManagedIdentitySource {
     public createRequest(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _resourceUri: string,
+        _resource: string,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters {
