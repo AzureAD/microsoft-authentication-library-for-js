@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Refactor NativeAuthError, JoseHeaderError and AuthError for reduced size #6497",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

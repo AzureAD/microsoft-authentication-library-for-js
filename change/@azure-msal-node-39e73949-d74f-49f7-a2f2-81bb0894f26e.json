@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Fix unhandled rejections & problems getting redirectUri in LoopbackClient #6481",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -120,6 +120,7 @@ export {
     IAppTokenProvider,
     AppTokenProviderParameters,
     AppTokenProviderResult,
+    INativeBrokerPlugin,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata.js";

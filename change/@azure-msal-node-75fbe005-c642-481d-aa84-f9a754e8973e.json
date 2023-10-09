@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Refactor AuthError for reduced size #6497",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
