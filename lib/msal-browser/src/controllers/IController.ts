@@ -23,13 +23,9 @@ import { ITokenCache } from "../cache/ITokenCache";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
 import { EventHandler } from "../event/EventHandler";
-import { PopupClient } from "../interaction_client/PopupClient";
-import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 
 export interface IController {
     initialize(): Promise<void>;
@@ -128,32 +124,6 @@ export interface IController {
     getPerformanceClient(): IPerformanceClient;
 
     /** @internal */
-    getEventHandler(): EventHandler;
-    /*
-     *
-     *getBrowserStorage(): BrowserCacheManager;
-     *
-     *getNativeInternalStorage(): BrowserCacheManager;
-     *
-     */
-    getBrowserStorage(): BrowserCacheManager;
-
-    getNativeInternalStorage(): BrowserCacheManager;
-
-    getBrowserCrypto(): ICrypto;
-
-    getPerformanceClient(): IPerformanceClient;
-
-    getNativeExtensionProvider(): NativeMessageHandler | undefined;
-
-    setNativeExtensionProvider(
-        provider: NativeMessageHandler | undefined
-    ): void;
-
-    getNativeAccountId(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest
-    ): string;
-
     getEventHandler(): EventHandler;
 
     /** @internal */

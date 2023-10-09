@@ -47,6 +47,10 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
         return this.activeAccount;
     }
 
+    setActiveAccount(account: AccountInfo): void {
+        this.activeAccount = account;
+    }
+
     /**
      * Checks whether the operating context is available.
      * Confirms that the code is running a browser rather.  This is required.
@@ -61,10 +65,15 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
             if (typeof window !== "undefined") {
                 const bridgeProxy: IBridgeProxy = await BridgeProxy.create();
                 /*
-                 * Because we want to get SSO we need to grab the active account as part of initialization
+                 * Because we want single sign on we need to attempt to
+                 * grab the active account as part of initialization
                  * this.activeAccount = await bridgeProxy.getActiveAccount();
                  */
-                this.activeAccount = await bridgeProxy.getActiveAccount();
+                try {
+                    this.activeAccount = await bridgeProxy.getActiveAccount();
+                } catch (e) {
+                    this.activeAccount = undefined;
+                }
                 this.bridgeProxy = bridgeProxy;
                 this.available = bridgeProxy !== undefined;
             } else {

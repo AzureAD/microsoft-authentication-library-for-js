@@ -27,7 +27,6 @@ export type BridgeRequestEnvelope = {
     clientLibrary?: string;
     clientLibraryVersion?: string;
     requestId: string;
-    apiKey?: string;
     body?:
         | TokenRequest
         | AccountByHomeIdRequest

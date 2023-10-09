@@ -13,6 +13,7 @@ import {
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     PerformanceEvents,
+    AccountFilter,
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -25,6 +26,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { SilentRequest } from "../request/SilentRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ApiId, WrapperSKU, InteractionType } from "../utils/BrowserConstants";
 import { IController } from "./IController";
 import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
@@ -38,6 +40,7 @@ import { EventCallbackFunction, EventError } from "../event/EventMessage";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -153,6 +156,8 @@ export class NestedAppAuthController implements IController {
                     naaRequest,
                     response
                 );
+
+            this.operatingContext.setActiveAccount(result.account);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Popup,
@@ -221,6 +226,8 @@ export class NestedAppAuthController implements IController {
                     naaRequest,
                     response
                 );
+
+            this.operatingContext.setActiveAccount(result.account);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Silent,
@@ -330,7 +337,12 @@ export class NestedAppAuthController implements IController {
     disableAccountStorageEvents(): void {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getAccount(accountFilter: AccountFilter): AccountInfo | null {
+        throw NestedAppAuthError.createUnsupportedError();
+    }
+
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
         const currentAccount = this.operatingContext.getActiveAccount();
         if (currentAccount !== undefined) {
@@ -345,7 +357,7 @@ export class NestedAppAuthController implements IController {
             return null;
         }
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     getAccountByLocalId(localId: string): AccountInfo | null {
         const currentAccount = this.operatingContext.getActiveAccount();
         if (currentAccount !== undefined) {
@@ -360,7 +372,7 @@ export class NestedAppAuthController implements IController {
             return null;
         }
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     getAccountByUsername(userName: string): AccountInfo | null {
         const currentAccount = this.operatingContext.getActiveAccount();
         if (currentAccount !== undefined) {
@@ -549,6 +561,25 @@ export class NestedAppAuthController implements IController {
     createSilentIframeClient(
         correlationId?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
     ): SilentIframeClient {
+        throw NestedAppAuthError.createUnsupportedError();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        throw NestedAppAuthError.createUnsupportedError();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async hydrateCache(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        result: AuthenticationResult,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
+    ): Promise<void> {
         throw NestedAppAuthError.createUnsupportedError();
     }
 }

@@ -11,6 +11,7 @@ import {
     InteractionRequiredAuthError,
     AuthenticationResult,
     Logger,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter";
@@ -108,9 +109,8 @@ describe("NestedAppAuthAdapter tests", () => {
                 BRIDGE_ERROR_NOT_NETWORK
             );
             expect(error instanceof ClientAuthError).toBe(true);
-            expect(error.errorCode).toBe(BRIDGE_ERROR_NOT_NETWORK.code);
-            expect(error.errorMessage).toBe(
-                BRIDGE_ERROR_NOT_NETWORK.description
+            expect(error.errorCode).toBe(
+                ClientAuthErrorCodes.noNetworkConnectivity
             );
         });
 
@@ -120,8 +120,9 @@ describe("NestedAppAuthAdapter tests", () => {
                 BRIDGE_ERROR_DISABLED
             );
             expect(error instanceof ClientAuthError).toBe(true);
-            expect(error.errorCode).toBe(BRIDGE_ERROR_DISABLED.code);
-            expect(error.errorMessage).toBe(BRIDGE_ERROR_DISABLED.description);
+            expect(error.errorCode).toBe(
+                ClientAuthErrorCodes.nestedAppAuthBridgeDisabled
+            );
         });
 
         // Account Unavailable
@@ -130,10 +131,7 @@ describe("NestedAppAuthAdapter tests", () => {
                 BRIDGE_ERROR_ACCOUNT_UNAVAILABLE
             );
             expect(error instanceof ClientAuthError).toBe(true);
-            expect(error.errorCode).toBe(BRIDGE_ERROR_ACCOUNT_UNAVAILABLE.code);
-            expect(error.errorMessage).toBe(
-                BRIDGE_ERROR_ACCOUNT_UNAVAILABLE.description
-            );
+            expect(error.errorCode).toBe(ClientAuthErrorCodes.noAccountFound);
         });
 
         // Nested App Auth Unavailable
@@ -142,10 +140,6 @@ describe("NestedAppAuthAdapter tests", () => {
                 BRIDGE_ERROR_NAA_UNAVAILABLE
             );
             expect(error instanceof ClientAuthError).toBe(true);
-            expect(error.errorCode).toBe(BRIDGE_ERROR_NAA_UNAVAILABLE.code);
-            expect(error.errorMessage).toBe(
-                BRIDGE_ERROR_NAA_UNAVAILABLE.description
-            );
         });
 
         // User Cancelled
@@ -154,10 +148,7 @@ describe("NestedAppAuthAdapter tests", () => {
                 BRIDGE_ERROR_USER_CANCEL
             );
             expect(error instanceof ClientAuthError).toBe(true);
-            expect(error.errorCode).toBe(BRIDGE_ERROR_USER_CANCEL.code);
-            expect(error.errorMessage).toBe(
-                BRIDGE_ERROR_USER_CANCEL.description
-            );
+            expect(error.errorCode).toBe(ClientAuthErrorCodes.userCanceled);
         });
 
         // Transient

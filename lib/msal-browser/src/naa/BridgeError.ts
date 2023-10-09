@@ -14,8 +14,5 @@ export type BridgeError = {
 };
 
 export function isBridgeError(error: unknown): error is BridgeError {
-    return (
-        (error as BridgeError).status !== undefined &&
-        (error as BridgeError).code !== undefined
-    );
+    return (error as BridgeError).status !== undefined;
 }

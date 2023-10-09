@@ -19,11 +19,14 @@ import {
     ICrypto,
     Logger,
     AuthToken,
+    TokenClaims,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { isBridgeError } from "../BridgeError";
 import { BridgeStatusCode } from "../BridgeStatusCode";
 import { SilentRequest } from "../../request/SilentRequest";
 import { AuthenticationResult } from "../../response/AuthenticationResult";
+import {} from "../../error/BrowserAuthErrorCodes";
 
 export class NestedAppAuthAdapter {
     protected crypto: ICrypto;
@@ -64,7 +67,7 @@ export class NestedAppAuthAdapter {
             correlationId:
                 request.correlationId !== undefined
                     ? request.correlationId
-                    : "",
+                    : this.crypto.createNewGuid(),
             prompt: request.prompt !== undefined ? request.prompt : "",
             claims: request.claims !== undefined ? request.claims : "",
             authenticationScheme:
@@ -122,12 +125,7 @@ export class NestedAppAuthAdapter {
             TimeUtils.nowSeconds() + (response.expires_in || 0) * 1000
         );
 
-        let authToken: AuthToken | undefined;
-        if (response.id_token !== undefined) {
-            authToken = new AuthToken(response.id_token, this.crypto);
-        } else {
-            authToken = undefined;
-        }
+        const account = this.fromNaaAccountInfo(response.account);
 
         const authenticationResult: AuthenticationResult = {
             authority: response.account.environment,
@@ -136,7 +134,10 @@ export class NestedAppAuthAdapter {
             scopes: response.scope.split(" "),
             account: this.fromNaaAccountInfo(response.account),
             idToken: response.id_token !== undefined ? response.id_token : "",
-            idTokenClaims: authToken !== undefined ? authToken.claims : {},
+            idTokenClaims:
+                account.idTokenClaims !== undefined
+                    ? account.idTokenClaims
+                    : {},
             accessToken: response.access_token,
             fromCache: true,
             expiresOn: expiresOn,
@@ -153,7 +154,39 @@ export class NestedAppAuthAdapter {
         return authenticationResult;
     }
 
+    /*
+     *  export type AccountInfo = {
+     *     homeAccountId: string;
+     *     environment: string;
+     *     tenantId: string;
+     *     username: string;
+     *     localAccountId: string;
+     *     name?: string;
+     *     idToken?: string;
+     *     idTokenClaims?: TokenClaims & {
+     *         [key: string]:
+     *             | string
+     *             | number
+     *             | string[]
+     *             | object
+     *             | undefined
+     *             | unknown;
+     *     };
+     *     nativeAccountId?: string;
+     *     authorityType?: string;
+     * };
+     */
     public fromNaaAccountInfo(fromAccount: NaaAccountInfo): MsalAccountInfo {
+        let tokenClaims: TokenClaims | undefined;
+        if (fromAccount.idToken !== undefined) {
+            tokenClaims = AuthToken.extractTokenClaims(
+                fromAccount.idToken,
+                this.crypto.base64Decode
+            );
+        } else {
+            tokenClaims = undefined;
+        }
+
         const account: MsalAccountInfo = {
             homeAccountId: fromAccount.homeAccountId,
             environment: fromAccount.environment,
@@ -161,7 +194,8 @@ export class NestedAppAuthAdapter {
             username: fromAccount.username,
             localAccountId: fromAccount.localAccountId,
             name: fromAccount.name,
-            idTokenClaims: {},
+            idToken: fromAccount.idToken,
+            idTokenClaims: tokenClaims,
         };
 
         return account;
@@ -183,9 +217,21 @@ export class NestedAppAuthAdapter {
         if (isBridgeError(error)) {
             switch (error.status) {
                 case BridgeStatusCode.USER_CANCEL:
+                    return new ClientAuthError(
+                        ClientAuthErrorCodes.userCanceled
+                    );
                 case BridgeStatusCode.NO_NETWORK:
+                    return new ClientAuthError(
+                        ClientAuthErrorCodes.noNetworkConnectivity
+                    );
                 case BridgeStatusCode.ACCOUNT_UNAVAILABLE:
+                    return new ClientAuthError(
+                        ClientAuthErrorCodes.noAccountFound
+                    );
                 case BridgeStatusCode.DISABLED:
+                    return new ClientAuthError(
+                        ClientAuthErrorCodes.nestedAppAuthBridgeDisabled
+                    );
                 case BridgeStatusCode.NESTED_APP_AUTH_UNAVAILABLE:
                     return new ClientAuthError(error.code, error.description);
                 case BridgeStatusCode.TRANSIENT_ERROR:

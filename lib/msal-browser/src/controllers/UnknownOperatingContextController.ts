@@ -12,6 +12,7 @@ import {
     ICrypto,
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
+    AccountFilter,
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -29,6 +30,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { SilentRequest } from "../request/SilentRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ApiId, WrapperSKU, InteractionType } from "../utils/BrowserConstants";
 import { IController } from "./IController";
@@ -37,6 +39,7 @@ import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { EventHandler } from "../event/EventHandler";
 import { EventCallbackFunction } from "../event/EventMessage";
+import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 /**
  * UnknownOperatingContextController class
@@ -154,6 +157,13 @@ export class UnknownOperatingContextController implements IController {
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as EventHandler;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getAccount(accountFilter: AccountFilter): AccountInfo | null {
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        return null;
     }
 
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
@@ -496,5 +506,25 @@ export class UnknownOperatingContextController implements IController {
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as SilentIframeClient;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async hydrateCache(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        result: AuthenticationResult,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
+    ): Promise<void> {
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
     }
 }

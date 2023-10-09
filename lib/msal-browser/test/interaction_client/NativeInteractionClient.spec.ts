@@ -122,8 +122,7 @@ describe("NativeInteractionClient Tests", () => {
         wamProvider = new NativeMessageHandler(
             pca.getLogger(),
             2000,
-            getDefaultPerformanceClient(),
-            new CryptoOps(new Logger({}))
+            getDefaultPerformanceClient()
         );
         // @ts-ignore
         nativeInteractionClient = new NativeInteractionClient(
@@ -149,12 +148,14 @@ describe("NativeInteractionClient Tests", () => {
         );
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
+
+        await pca.initialize();
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;

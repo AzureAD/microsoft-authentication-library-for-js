@@ -80,8 +80,8 @@ import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
     createBrowserAuthError,
-    BrowserAuthErrorMessage,
     BrowserAuthErrorCodes,
+    BrowserAuthErrorMessage,
 } from "../../src/error/BrowserAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
@@ -162,7 +162,6 @@ function stubProvider(config: Configuration) {
                 logger,
                 2000,
                 performanceClient,
-                new CryptoOps(new Logger({})),
                 "test-extensionId"
             );
         });
@@ -937,7 +936,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca.loginRedirect();
             } catch (e) {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -1007,7 +1008,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca.acquireTokenRedirect({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -1415,7 +1418,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.acquireTokenRedirect({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -1538,7 +1543,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.loginPopup();
             } catch (e) {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -2245,7 +2252,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.ssoSilent({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -2444,7 +2453,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.ssoSilent({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -2640,7 +2651,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.acquireTokenByCode({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -2793,7 +2806,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.acquireTokenByCode({});
             } catch (e) {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -3115,7 +3130,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.acquireTokenSilent({ scopes: [] });
             } catch (e) {
                 expect(e).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -4798,7 +4815,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca.logout();
             } catch (error: any) {
                 expect(error).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -4844,7 +4863,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.logoutRedirect();
             } catch (error: any) {
                 expect(error).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -4894,7 +4915,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.logoutPopup();
             } catch (error: any) {
                 expect(error).toMatchObject(
-                    BrowserAuthError.createUninitializedPublicClientApplication()
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
                 );
             }
         });
@@ -5889,20 +5912,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("hydrates internal cache if provided AuthenticationResult came from native broker", async () => {
-            pca = new PublicClientApplication({
+            let config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
                     allowNativeBroker: true,
                 },
-            });
+            };
+            pca = new PublicClientApplication(config);
+
+            stubProvider(config);
+            await pca.initialize();
 
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
-
-            stubProvider(pca);
-            await pca.initialize();
 
             const nativeAccount = {
                 ...testAccount,

@@ -61,7 +61,6 @@ export class BridgeProxy implements IBridgeProxy {
             window.nestedAppAuthBridge.addEventListener(
                 "message",
                 (response: string) => {
-                    window.console.log(response);
                     const responseEnvelope: BridgeResponseEnvelope =
                         JSON.parse(response);
                     const request = BridgeProxy.bridgeRequests.find(
@@ -181,7 +180,6 @@ export class BridgeProxy implements IBridgeProxy {
             messageType: "NestedAppAuthRequest",
             method: method,
             requestId: BridgeProxy.getRandomId(),
-            apiKey: "test_key",
             body: request,
         };
 
