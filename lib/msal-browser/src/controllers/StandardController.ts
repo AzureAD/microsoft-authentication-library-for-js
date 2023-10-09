@@ -29,8 +29,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountFilter,
-    AuthorityFactory,
-    AuthorityOptions,
+    buildStaticAuthorityOptions,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -209,7 +208,8 @@ export class StandardController implements IController {
                   this.config.auth.clientId,
                   this.config.cache,
                   this.browserCrypto,
-                  this.logger
+                  this.logger,
+                  buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
@@ -248,8 +248,6 @@ export class StandardController implements IController {
         // Register listener functions
         this.trackPageVisibilityWithMeasurement =
             this.trackPageVisibilityWithMeasurement.bind(this);
-        // Load local authority metadata into memory
-        this.loadLocalAuthorityMetadata();
     }
 
     static async createController(
@@ -258,27 +256,6 @@ export class StandardController implements IController {
         const controller = new StandardController(operatingContext);
         await controller.initialize();
         return controller;
-    }
-
-    private loadLocalAuthorityMetadata(): void {
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: this.config.auth.protocolMode,
-            OIDCOptions: this.config.auth.OIDCOptions,
-            knownAuthorities: this.config.auth.knownAuthorities,
-            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-            authorityMetadata: this.config.auth.authorityMetadata,
-        };
-
-        const locallyDiscoveredAuthorityInstance =
-            AuthorityFactory.createInstance(
-                this.config.auth.authority,
-                this.networkClient,
-                this.browserStorage,
-                authorityOptions,
-                this.logger,
-                this.performanceClient
-            );
-        locallyDiscoveredAuthorityInstance.resolveEndpointsFromLocalSources();
     }
 
     private trackPageVisibility(): void {

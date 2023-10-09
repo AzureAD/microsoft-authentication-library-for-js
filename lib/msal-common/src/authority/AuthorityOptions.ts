@@ -15,6 +15,16 @@ export type AuthorityOptions = {
     authorityMetadata: string;
     skipAuthorityMetadataCache?: boolean;
     azureRegionConfiguration?: AzureRegionConfiguration;
+    authority?: string;
+};
+
+export type StaticAuthorityOptions = Partial<
+    Pick<
+        AuthorityOptions,
+        "knownAuthorities" | "cloudDiscoveryMetadata" | "authorityMetadata"
+    >
+> & {
+    canonicalAuthority?: string;
 };
 
 export const AzureCloudInstance = {

@@ -22,8 +22,6 @@ import {
     AccountInfo,
     INativeBrokerPlugin,
     ServerAuthorizationCodeResponse,
-    AuthorityOptions,
-    AuthorityFactory,
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -68,7 +66,6 @@ export class PublicClientApplication
      */
     constructor(configuration: Configuration) {
         super(configuration);
-        this.loadLocalAuthorityMetadata();
         if (this.config.broker.nativeBrokerPlugin) {
             if (this.config.broker.nativeBrokerPlugin.isBrokerAvailable) {
                 this.nativeBrokerPlugin = this.config.broker.nativeBrokerPlugin;
@@ -81,25 +78,6 @@ export class PublicClientApplication
                 );
             }
         }
-    }
-
-    private loadLocalAuthorityMetadata(): void {
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: this.config.auth.protocolMode,
-            knownAuthorities: this.config.auth.knownAuthorities,
-            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-            authorityMetadata: this.config.auth.authorityMetadata,
-        };
-
-        const locallyDiscoveredAuthorityInstance =
-            AuthorityFactory.createInstance(
-                this.config.auth.authority,
-                this.config.system.networkClient,
-                this.storage,
-                authorityOptions,
-                this.logger
-            );
-        locallyDiscoveredAuthorityInstance.resolveEndpointsFromLocalSources();
     }
 
     /**

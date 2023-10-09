@@ -42,6 +42,11 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
 import { StoreInCache } from "../request/StoreInCache";
+import {
+    getAliasesFromConfigMetadata,
+    getHardcodedAliasesForCanonicalAuthority,
+} from "../authority/AuthorityMetadata";
+import { StaticAuthorityOptions } from "../authority/AuthorityOptions";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -52,11 +57,18 @@ export abstract class CacheManager implements ICacheManager {
     protected cryptoImpl: ICrypto;
     // Instance of logger for functions defined in the msal-common layer
     private commonLogger: Logger;
+    private staticAuthorityOptions?: StaticAuthorityOptions;
 
-    constructor(clientId: string, cryptoImpl: ICrypto, logger: Logger) {
+    constructor(
+        clientId: string,
+        cryptoImpl: ICrypto,
+        logger: Logger,
+        staticAuthorityOptions?: StaticAuthorityOptions
+    ) {
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
         this.commonLogger = logger.clone(name, version);
+        this.staticAuthorityOptions = staticAuthorityOptions;
     }
 
     /**
@@ -230,8 +242,8 @@ export abstract class CacheManager implements ICacheManager {
             .map((accountEntity) => {
                 return this.getAccountInfoFromEntity(accountEntity);
             })
-            .filter((accoutnInfo) => {
-                return accoutnInfo.idTokenClaims;
+            .filter((accountInfo) => {
+                return accountInfo.idTokenClaims;
             });
     }
 
@@ -1375,6 +1387,21 @@ export abstract class CacheManager implements ICacheManager {
         entity: AccountEntity | CredentialEntity | AppMetadataEntity,
         environment: string
     ): boolean {
+        // Check static authority options first for cases where authority metadata has not been resolved and cached yet
+        if (this.staticAuthorityOptions) {
+            const staticAliases =
+                getAliasesFromConfigMetadata(
+                    this.staticAuthorityOptions.cloudDiscoveryMetadata
+                ) ||
+                getHardcodedAliasesForCanonicalAuthority(
+                    this.staticAuthorityOptions.canonicalAuthority
+                ) ||
+                this.staticAuthorityOptions.knownAuthorities;
+            if (staticAliases && staticAliases.includes(entity.environment)) {
+                return true;
+            }
+        }
+        // Query metadata cache if no static authority configuration has aliases that match enviroment
         const cloudMetadata = this.getAuthorityMetadataByAlias(environment);
         if (
             cloudMetadata &&
@@ -1382,7 +1409,6 @@ export abstract class CacheManager implements ICacheManager {
         ) {
             return true;
         }
-
         return false;
     }
 

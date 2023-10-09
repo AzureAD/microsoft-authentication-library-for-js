@@ -35,6 +35,7 @@ import {
     ClientAuthErrorCodes,
     PerformanceEvents,
     IPerformanceClient,
+    StaticAuthorityOptions,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import {
@@ -77,6 +78,7 @@ export class BrowserCacheManager extends CacheManager {
     protected temporaryCacheStorage: IWindowStorage<string>;
     // Logger instance
     protected logger: Logger;
+    // Static authority options
 
     // Cookie life calculation (hours * minutes * seconds * ms)
     protected readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
@@ -85,9 +87,10 @@ export class BrowserCacheManager extends CacheManager {
         clientId: string,
         cacheConfig: Required<CacheOptions>,
         cryptoImpl: ICrypto,
-        logger: Logger
+        logger: Logger,
+        staticAuthorityOptions?: StaticAuthorityOptions
     ) {
-        super(clientId, cryptoImpl, logger);
+        super(clientId, cryptoImpl, logger, staticAuthorityOptions);
         this.cacheConfig = cacheConfig;
         this.logger = logger;
         this.internalStorage = new MemoryStorage();

@@ -3,6 +3,13 @@
  * Licensed under the MIT License.
  */
 
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../error/ClientConfigurationError";
+import { UrlString } from "../url/UrlString";
+import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
+
 export const rawMetdataJSON = {
     endpointMetadata: {
         "https://login.microsoftonline.com/common/": {
@@ -950,4 +957,85 @@ for (const key in InstanceDiscoveryMetadata) {
             InstanceDiscoveryMetadataAliases.add(alias);
         }
     }
+}
+
+/**
+ * Returns aliases for the given canonical authority if found in hardcoded Instance Discovery Metadata or null if not found
+ * @param canonicalAuthority
+ * @returns
+ */
+export function getHardcodedAliasesForCanonicalAuthority(
+    canonicalAuthority?: string
+): string[] | null {
+    if (canonicalAuthority) {
+        const instanceDiscoveryMetadata =
+            getCloudDiscoveryMetadataFromHardcodedValues(canonicalAuthority);
+        if (instanceDiscoveryMetadata) {
+            return instanceDiscoveryMetadata.aliases;
+        }
+    }
+    return null;
+}
+
+/**
+ * Returns aliases for from the raw cloud discovery metadata given in configuration or null if no configuration was provided
+ * @param rawCloudDiscoveryMetadata
+ * @returns
+ */
+export function getAliasesFromConfigMetadata(
+    rawCloudDiscoveryMetadata?: string
+): string[] | null {
+    if (rawCloudDiscoveryMetadata) {
+        try {
+            const metadata = JSON.parse(rawCloudDiscoveryMetadata);
+            if (metadata) {
+                return metadata.aliases;
+            }
+        } catch (e) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
+            );
+        }
+    }
+    return null;
+}
+
+/**
+ * Searches instance discovery network response for the entry that contains the host in the aliases list
+ * @param response
+ * @param authority
+ */
+export function getCloudDiscoveryMetadataFromNetworkResponse(
+    response: CloudDiscoveryMetadata[],
+    authority: string
+): CloudDiscoveryMetadata | null {
+    for (let i = 0; i < response.length; i++) {
+        const metadata = response[i];
+        if (metadata.aliases.includes(authority)) {
+            return metadata;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Get cloud discovery metadata for common authorities
+ */
+export function getCloudDiscoveryMetadataFromHardcodedValues(
+    canonicalAuthority: string
+): CloudDiscoveryMetadata | null {
+    const canonicalAuthorityUrlComponents = new UrlString(
+        canonicalAuthority
+    ).getUrlComponents();
+
+    if (canonicalAuthority in InstanceDiscoveryMetadata) {
+        const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
+            InstanceDiscoveryMetadata[canonicalAuthority].metadata,
+            canonicalAuthorityUrlComponents.HostNameAndPort
+        );
+        return metadata;
+    }
+
+    return null;
 }
