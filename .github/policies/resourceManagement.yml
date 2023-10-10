@@ -43,20 +43,6 @@ configuration:
       - closeIssue
     - description: 
       frequencies:
-      - hourly:
-          hour: 12
-      filters:
-      - isOpen
-      - isIssue
-      - hasLabel:
-          label: 'Needs: Attention :wave:'
-      - noActivitySince:
-          days: 5
-      actions:
-      - addReply:
-          reply: This issue requires attention from the MSAL.js team and has not seen activity in **5 days**. ${assignees} please follow up.
-    - description: 
-      frequencies:
       - weekday:
           day: Monday
           time: 8:00
@@ -203,19 +189,6 @@ configuration:
       - isAction:
           action: Labeled
       - hasLabel:
-          label: public-client
-      then:
-      - assignIcmUsers:
-          teamId: 80279
-          primary: True
-          secondary: False
-      description: 
-    - if:
-      - payloadType: Issues
-      - not: isAssignedToSomeone
-      - isAction:
-          action: Labeled
-      - hasLabel:
           label: confidential-client
       then:
       - assignIcmUsers:
@@ -249,16 +222,6 @@ configuration:
         - addLabel:
             label: 'Needs: Attention :wave:'
       description: "Removes the 'Needs: Author Feedback' label and adds the 'Needs: Attention :wave:' label when the issue author comments on an issue"
-    - if:
-      - payloadType: Issue_Comment
-      - not: isOpen
-      - isActivitySender:
-          issueAuthor: true
-      then:
-        - addLabel:
-            label: 'Needs: Attention :wave:'
-        - reopenIssue
-      description: "If author comments on closed issue, reopen"
 
 onFailure: 
 onSuccess: 
