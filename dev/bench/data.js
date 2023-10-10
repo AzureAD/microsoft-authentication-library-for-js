@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696617052859,
+  "lastUpdate": 1696965579334,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1406,6 +1406,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.17%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d3184cd28b468a889bd2480b4d6a60a43d61b69f",
+          "message": "Update issue bot (#6552)\n\n- Removes task which posts reminders for the team to respond to issues\r\n- Removes task which reopens closed issues when the author comments.\r\nThis is buggy with the new system since \"close and comment\" cannot be\r\ndifferentiated anymore\r\n- Removes auto-assignment to OCE",
+          "timestamp": "2023-10-10T12:14:18-07:00",
+          "tree_id": "4fbfdec3b18994baf172c69813e713ba6714de1c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d3184cd28b468a889bd2480b4d6a60a43d61b69f"
+        },
+        "date": 1696965578210,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 150339,
+            "range": "±1.67%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 148431,
+            "range": "±1.52%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
           }
         ]
       }
