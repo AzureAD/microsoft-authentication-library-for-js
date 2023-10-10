@@ -189,19 +189,6 @@ configuration:
       - isAction:
           action: Labeled
       - hasLabel:
-          label: public-client
-      then:
-      - assignIcmUsers:
-          teamId: 80279
-          primary: True
-          secondary: False
-      description: 
-    - if:
-      - payloadType: Issues
-      - not: isAssignedToSomeone
-      - isAction:
-          action: Labeled
-      - hasLabel:
           label: confidential-client
       then:
       - assignIcmUsers:
