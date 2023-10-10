@@ -232,6 +232,8 @@ export class NodeStorage extends CacheManager {
      */
     setAccount(account: AccountEntity): void {
         const accountKey = account.generateAccountKey();
+        // Remove ID token claims before saving account entity
+        account.idTokenClaims = undefined;
         this.setItem(accountKey, account);
     }
 

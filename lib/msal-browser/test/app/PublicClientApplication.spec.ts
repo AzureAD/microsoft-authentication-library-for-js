@@ -5029,7 +5029,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             realm: testAccountInfo3.tenantId,
             environment: testAccountInfo3.environment,
             credentialType: "IdToken",
-            secret: TEST_TOKENS.IDTOKEN_V2,
+            secret: TEST_TOKENS.ID_TOKEN_V2_WITH_LOGIN_HINT,
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo3.homeAccountId,
             login_hint: "testLoginHint",
@@ -5066,7 +5066,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             realm: testAccountInfo4.tenantId,
             environment: testAccountInfo4.environment,
             credentialType: "IdToken",
-            secret: TEST_TOKENS.IDTOKEN_V2,
+            secret: TEST_TOKENS.ID_TOKEN_V2_WITH_UPN,
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo4.homeAccountId,
             upn: "testUpn",
@@ -5297,12 +5297,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         // Account 1
         const testAccountInfo1: AccountInfo = {
             authorityType: "MSSTS",
-            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
             environment: "login.windows.net",
-            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            tenantId: ID_TOKEN_CLAIMS.tid,
             username: "example@microsoft.com",
             name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID,
+            localAccountId: ID_TOKEN_CLAIMS.oid,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
             nativeAccountId: undefined,
@@ -5310,7 +5310,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount1: AccountEntity = new AccountEntity();
         testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
-        testAccount1.localAccountId = TEST_CONFIG.OID;
+        testAccount1.localAccountId = testAccountInfo1.localAccountId;
         testAccount1.environment = testAccountInfo1.environment;
         testAccount1.realm = testAccountInfo1.tenantId;
         testAccount1.username = testAccountInfo1.username;
@@ -5318,7 +5318,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.authorityType = "MSSTS";
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount1.idTokenClaims = ID_TOKEN_CLAIMS;
 
         const idTokenData1 = {
             realm: testAccountInfo1.tenantId,
@@ -5474,6 +5473,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 // @ts-ignore
                 const localStorage = pcaLocal.browserStorage;
                 localStorage.setAccount(testAccount1);
+                localStorage.setIdTokenCredential(idToken1);
                 localStorage.setItem(
                     localStorage.generateCacheKey(
                         PersistentCacheKeys.ACTIVE_ACCOUNT
@@ -5733,8 +5733,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("hydrateCache tests", () => {
         const testAccount: AccountInfo = {
             authorityType: "MSSTS",
-            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-            localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+            homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
+            localAccountId: ID_TOKEN_CLAIMS.oid,
             environment: "login.windows.net",
             tenantId: ID_TOKEN_CLAIMS.tid,
             username: ID_TOKEN_CLAIMS.preferred_username,
@@ -5828,7 +5828,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.hydrateCache(nativeResult, nativeRequest);
 
             const result = await pca.acquireTokenSilent(nativeRequest); // Get tokens from the cache
-
             // Verify tokens were returned from internal memory
             expect(result.accessToken).toEqual(nativeResult.accessToken);
             expect(result.idToken).toEqual(nativeResult.idToken);

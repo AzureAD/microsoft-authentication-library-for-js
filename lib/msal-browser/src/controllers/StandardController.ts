@@ -1561,10 +1561,10 @@ export class StandardController implements IController {
     ): string {
         const account =
             request.account ||
-            this.browserStorage.getAccountInfoByHints(
-                request.loginHint,
-                request.sid
-            ) ||
+            this.browserStorage.getAccountInfoFilteredBy({
+                loginHint: request.loginHint,
+                sid: request.sid,
+            }) ||
             this.getActiveAccount();
 
         return (account && account.nativeAccountId) || "";

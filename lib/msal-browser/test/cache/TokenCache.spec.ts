@@ -245,7 +245,6 @@ describe("TokenCache tests", () => {
                 tenantId: TEST_CONFIG.MSAL_TENANT_ID,
                 username: "AbeLi@microsoft.com",
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
-                idTokenClaims: testIdTokenClaims,
                 name: testIdTokenClaims.name,
                 nativeAccountId: undefined,
             };

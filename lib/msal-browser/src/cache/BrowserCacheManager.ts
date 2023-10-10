@@ -434,6 +434,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     setAccount(account: AccountEntity): void {
         this.logger.trace("BrowserCacheManager.setAccount called");
+        // Remove ID token claims before saving account entity
+        account.idTokenClaims = undefined;
         const key = account.generateAccountKey();
         this.setItem(key, JSON.stringify(account));
         this.addAccountKeyToMap(key);
@@ -1031,10 +1033,9 @@ export class BrowserCacheManager extends CacheManager {
                 );
                 return null;
             }
-            const activeAccount =
-                this.getAccountInfoByFilter({
-                    localAccountId: activeAccountValueLocal,
-                })[0] || null;
+            const activeAccount = this.getAccountInfoFilteredBy({
+                localAccountId: activeAccountValueLocal,
+            });
             if (activeAccount) {
                 this.logger.trace(
                     "BrowserCacheManager.getActiveAccount: Legacy active account cache schema found"
@@ -1054,12 +1055,10 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.getActiveAccount: Active account filters schema found"
             );
-            return (
-                this.getAccountInfoByFilter({
-                    homeAccountId: activeAccountValueObj.homeAccountId,
-                    localAccountId: activeAccountValueObj.localAccountId,
-                })[0] || null
-            );
+            return this.getAccountInfoFilteredBy({
+                homeAccountId: activeAccountValueObj.homeAccountId,
+                localAccountId: activeAccountValueObj.localAccountId,
+            });
         }
         this.logger.trace(
             "BrowserCacheManager.getActiveAccount: No active account found"
@@ -1099,94 +1098,6 @@ export class BrowserCacheManager extends CacheManager {
             this.browserStorage.removeItem(activeAccountKey);
             this.browserStorage.removeItem(activeAccountKeyLocal);
         }
-    }
-
-    /**
-     * Gets a list of accounts that match all of the filters provided
-     * @param account
-     */
-    getAccountInfoByFilter(
-        accountFilter: Partial<Omit<AccountInfo, "idTokenClaims" | "name">>
-    ): AccountInfo[] {
-        const allAccounts = this.getAllAccounts();
-        this.logger.trace(
-            `BrowserCacheManager.getAccountInfoByFilter: total ${allAccounts.length} accounts found`
-        );
-
-        return allAccounts.filter((accountObj) => {
-            if (
-                accountFilter.username &&
-                accountFilter.username.toLowerCase() !==
-                    accountObj.username.toLowerCase()
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.homeAccountId &&
-                accountFilter.homeAccountId !== accountObj.homeAccountId
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.localAccountId &&
-                accountFilter.localAccountId !== accountObj.localAccountId
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.tenantId &&
-                accountFilter.tenantId !== accountObj.tenantId
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.environment &&
-                accountFilter.environment !== accountObj.environment
-            ) {
-                return false;
-            }
-
-            return true;
-        });
-    }
-
-    /**
-     * Checks the cache for accounts matching loginHint or SID
-     * @param loginHint
-     * @param sid
-     */
-    getAccountInfoByHints(
-        loginHint?: string,
-        sid?: string
-    ): AccountInfo | null {
-        const matchingAccounts = this.getAllAccounts().filter((accountInfo) => {
-            if (sid) {
-                const accountSid =
-                    accountInfo.idTokenClaims &&
-                    accountInfo.idTokenClaims["sid"];
-                return sid === accountSid;
-            }
-
-            if (loginHint) {
-                return loginHint === accountInfo.username;
-            }
-
-            return false;
-        });
-
-        if (matchingAccounts.length === 1) {
-            return matchingAccounts[0];
-        } else if (matchingAccounts.length > 1) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.multipleMatchingAccounts
-            );
-        }
-
-        return null;
     }
 
     /**
