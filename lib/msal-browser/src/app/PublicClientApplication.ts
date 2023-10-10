@@ -22,7 +22,6 @@ import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ControllerFactory } from "../controllers/ControllerFactory";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
-import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
