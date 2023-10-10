@@ -4,31 +4,62 @@
  */
 
 import {
+    ManagedIdentityErrorCodes,
+    createManagedIdentityError,
+} from "../error/ManagedIdentityError";
+import {
     DEFAULT_MANAGED_IDENTITY_ID,
     ManagedIdentityIdType,
 } from "../utils/Constants";
+import { ManagedIdentityIdParams } from "./Configuration";
 
 export class ManagedIdentityId {
     private id: string;
     private idType: ManagedIdentityIdType;
     private isUserAssignedId: boolean;
 
-    constructor(idType: ManagedIdentityIdType, id?: string) {
-        this.idType = idType;
-        this.id = id || DEFAULT_MANAGED_IDENTITY_ID;
+    constructor(managedIdentityIdParams?: ManagedIdentityIdParams) {
+        const userAssignedClientId =
+            managedIdentityIdParams?.userAssignedClientId;
+        const userAssignedResourceId =
+            managedIdentityIdParams?.userAssignedResourceId;
+        const userAssignedObjectId =
+            managedIdentityIdParams?.userAssignedObjectId;
 
-        switch (idType) {
-            case ManagedIdentityIdType.SYSTEM_ASSIGNED:
-                this.isUserAssignedId = false;
-                break;
-            case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
-            case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
-            case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
-                this.isUserAssignedId = true;
-                break;
-            default:
-                // TODO: throw error
-                break;
+        if (userAssignedClientId) {
+            if (userAssignedResourceId || userAssignedObjectId) {
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
+                );
+            }
+
+            this.id = userAssignedClientId;
+            this.idType = ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID;
+            this.isUserAssignedId = true;
+        } else if (userAssignedResourceId) {
+            if (userAssignedClientId || userAssignedObjectId) {
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
+                );
+            }
+
+            this.id = userAssignedResourceId;
+            this.idType = ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID;
+            this.isUserAssignedId = true;
+        } else if (userAssignedObjectId) {
+            if (userAssignedClientId || userAssignedResourceId) {
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
+                );
+            }
+
+            this.id = userAssignedObjectId;
+            this.idType = ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID;
+            this.isUserAssignedId = true;
+        } else {
+            this.id = DEFAULT_MANAGED_IDENTITY_ID;
+            this.idType = ManagedIdentityIdType.SYSTEM_ASSIGNED;
+            this.isUserAssignedId = false;
         }
     }
 
@@ -36,7 +67,7 @@ export class ManagedIdentityId {
      * Creates an instance of ManagedIdentityId for a system assigned managed identity
      */
     public static createSystemAssigned(): ManagedIdentityId {
-        return new ManagedIdentityId(ManagedIdentityIdType.SYSTEM_ASSIGNED);
+        return new ManagedIdentityId();
     }
 
     /**
@@ -47,11 +78,13 @@ export class ManagedIdentityId {
     public static createUserAssignedClientId(
         clientId: string
     ): ManagedIdentityId {
-        // TODO: throw exception if clientId is null
-        return new ManagedIdentityId(
-            ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID,
-            clientId
-        );
+        if (!clientId) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.missingId
+            );
+        }
+
+        return new ManagedIdentityId({ userAssignedClientId: clientId });
     }
 
     /**
@@ -62,11 +95,13 @@ export class ManagedIdentityId {
     public static createUserAssignedResourceId(
         resourceId: string
     ): ManagedIdentityId {
-        // TODO: throw exception if resourceID is null
-        return new ManagedIdentityId(
-            ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID,
-            resourceId
-        );
+        if (!resourceId) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.missingId
+            );
+        }
+
+        return new ManagedIdentityId({ userAssignedResourceId: resourceId });
     }
 
     /**
@@ -77,11 +112,13 @@ export class ManagedIdentityId {
     public static createUserAssignedObjectId(
         objectId: string
     ): ManagedIdentityId {
-        // TODO: throw exception if objectId is null
-        return new ManagedIdentityId(
-            ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID,
-            objectId
-        );
+        if (!objectId) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.missingId
+            );
+        }
+
+        return new ManagedIdentityId({ userAssignedObjectId: objectId });
     }
 
     public get getId(): string {

@@ -109,9 +109,14 @@ export type Configuration = {
     telemetry?: NodeTelemetryOptions;
 };
 
+export type ManagedIdentityIdParams = {
+    userAssignedClientId?: string;
+    userAssignedResourceId?: string;
+    userAssignedObjectId?: string;
+};
+
 export type ManagedIdentityConfiguration = {
-    id?: string;
-    idType: ManagedIdentityIdType;
+    managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
 };
 
@@ -214,13 +219,11 @@ export type ManagedIdentityNodeConfiguration = {
 };
 
 export function buildManagedIdentityConfiguration({
-    id,
-    idType,
+    managedIdentityIdParams,
     system,
 }: ManagedIdentityConfiguration): ManagedIdentityNodeConfiguration {
     const managedIdentityId: ManagedIdentityId = new ManagedIdentityId(
-        idType,
-        id
+        managedIdentityIdParams
     );
 
     const systemOptions: Required<NodeSystemOptions> = {

@@ -38,6 +38,10 @@ import { version, name } from "../packageMetadata.js";
 import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { ManagedIdentityId } from "../config/ManagedIdentityId";
 import { CryptoProvider } from "../crypto/CryptoProvider";
+import {
+    ManagedIdentityErrorCodes,
+    createManagedIdentityError,
+} from "../error/ManagedIdentityError";
 
 /**
  * Class to initialize a managed identity and identify the service
@@ -59,6 +63,7 @@ export class ManagedIdentityApplication {
         | AzureArc
         | Imds;
 
+    // authority needs to be faked to re-use existing functionality in msal-common: caching in responseHandler, etc.
     private fakeAuthority: Authority;
 
     constructor(configuration: ManagedIdentityConfiguration) {
@@ -255,12 +260,13 @@ export class ManagedIdentityApplication {
              */
 
             if (!source) {
-                // TODO: implement better error
-                throw new Error("Unable to create a source");
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.unableToCreateSource
+                );
             }
             return source;
         } catch (error) {
-            // TODO: throw exception
+            // throw error that was bubbled up
             throw error;
         }
     }

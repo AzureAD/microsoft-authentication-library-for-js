@@ -4,9 +4,11 @@
  */
 
 import {
+    AuthError,
     AuthenticationResult,
     Authority,
     CacheManager,
+    ClientAuthErrorCodes,
     Constants,
     HeaderNames,
     INetworkModule,
@@ -14,6 +16,7 @@ import {
     NetworkRequestOptions,
     ResponseHandler,
     TimeUtils,
+    createClientAuthError,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
@@ -97,8 +100,11 @@ export abstract class BaseManagedIdentitySource {
                     serverTokenResponse.correlationId;
             }
         } catch (error) {
-            // TODO: implement exception
-            throw error;
+            if (error instanceof AuthError) {
+                throw error;
+            } else {
+                throw createClientAuthError(ClientAuthErrorCodes.networkError);
+            }
         }
 
         const responseHandler = new ResponseHandler(

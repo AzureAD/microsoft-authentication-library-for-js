@@ -4,30 +4,33 @@
  */
 
 import { AuthError } from "@azure/msal-common";
+import * as ManagedIdentityErrorCodes from "./ManagedIdentityErrorCodes";
+export { ManagedIdentityErrorCodes };
 
 /**
  * ManagedIdentityErrorMessage class containing string constants used by error codes and messages.
  */
-export const ManagedIdentityErrorMessage = {
-    invalidManagedIdentityIdType: {
-        code: "invalid_managed_identity_id_type",
-        desc: "Provided ManagedIdentityIdType is not of type ManagedIdentityIdType.",
-    },
+export const ManagedIdentityErrorMessages = {
+    [ManagedIdentityErrorCodes.invalidManagedIdentityIdType]:
+        "More than one ManagedIdentityIdType was provided.",
+    [ManagedIdentityErrorCodes.missingId]:
+        "A ManagedIdentityId id was not provided.",
+    [ManagedIdentityErrorCodes.unableToCreateSource]:
+        "Unable to create a Managed Identity source based on environment variables.",
+    [ManagedIdentityErrorCodes.urlParseError]:
+        "The Managed Identity's 'IdentityEndpoint' environment variable is malformed.",
 };
 
 export class ManagedIdentityError extends AuthError {
-    constructor(errorCode: string, errorMessage?: string) {
-        super(errorCode, errorMessage);
+    constructor(errorCode: string) {
+        super(errorCode, ManagedIdentityErrorMessages[errorCode]);
         this.name = "ManagedIdentityError";
+        Object.setPrototypeOf(this, ManagedIdentityError.prototype);
     }
+}
 
-    /**
-     * Create an error thrown if the developer provides a ManagedIdentityIdType that is not of type ManagedIdentityIdType
-     */
-    static createInvalidManagedIdentityIdTypeError(): ManagedIdentityError {
-        return new ManagedIdentityError(
-            ManagedIdentityErrorMessage.invalidManagedIdentityIdType.code,
-            `${ManagedIdentityErrorMessage.invalidManagedIdentityIdType.desc}`
-        );
-    }
+export function createManagedIdentityError(
+    errorCode: string
+): ManagedIdentityError {
+    return new ManagedIdentityError(errorCode);
 }

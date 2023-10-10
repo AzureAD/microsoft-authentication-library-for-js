@@ -21,6 +21,10 @@ import {
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
+import {
+    ManagedIdentityErrorCodes,
+    createManagedIdentityError,
+} from "../../error/ManagedIdentityError";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 export const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
@@ -137,18 +141,12 @@ const validateEnvironmentVariables = (
         endpointUrlString = new UrlString(endpoint).urlString;
     } catch (error) {
         logger.info(
-            "[Managed Identity] App service managed identity is unavailable because one or both of the 'IdentityEndpoint' environment variable is malformed."
+            "[Managed Identity] App service managed identity is unavailable because the 'IdentityEndpoint' environment variable is malformed."
         );
 
-        throw error;
-
-        // TODO: throw below exception from .net
-        /*
-         * throw new MsalManagedIdentityException(MsalError.InvalidManagedIdentityEndpoint, string.Format(
-         *     CultureInfo.InvariantCulture, MsalErrorMessage.ManagedIdentityEndpointInvalidUriError, "IDENTITY_ENDPOINT", msiEndpoint, "App Service"),
-         *     ex, ManagedIdentitySource.AppService
-         * );
-         */
+        throw createManagedIdentityError(
+            ManagedIdentityErrorCodes.urlParseError
+        );
     }
 
     logger.info(
