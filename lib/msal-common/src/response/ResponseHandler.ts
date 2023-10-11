@@ -602,15 +602,7 @@ export class ResponseHandler {
 
         let accountInfo: AccountInfo | null = null;
         if (cacheRecord.account && idTokenClaims) {
-            const fullAccountEntity: AccountEntity = Object.assign(
-                new AccountEntity(),
-                {
-                    ...cacheRecord.account,
-                    idTokenClaims: idTokenClaims,
-                }
-            );
-            accountInfo = fullAccountEntity.getAccountInfo();
-        }
+            accountInfo = { ...cacheRecord.account.getAccountInfo(), idTokenClaims };
 
         return {
             authority: authority.canonicalAuthority,
