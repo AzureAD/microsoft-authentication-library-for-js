@@ -5256,6 +5256,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         testAccountInfo4.homeAccountId
                     );
                 });
+                it("getAccount returns account specified using sid", () => {
+                    const account = pca.getAccount({
+                        sid: "testSid",
+                    });
+                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.homeAccountId).toEqual(
+                        testAccountInfo3.homeAccountId
+                    );
+                });
             });
 
             it("getAccount returns account specified using homeAccountId", () => {

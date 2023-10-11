@@ -33,7 +33,6 @@ import {
     invokeAsync,
     createAuthError,
     AuthErrorCodes,
-    updateAccountInfo,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -257,12 +256,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 silentRequest
             );
 
-            const fullAccount =
-                result.idToken && result.idTokenClaims
-                    ? updateAccountInfo(account, {
-                          idTokenClaims: result.idTokenClaims as TokenClaims,
-                      })
-                    : account;
+            const fullAccount = {
+                ...account,
+                idTokenClaims: result?.idTokenClaims as TokenClaims,
+            };
 
             return {
                 ...result,

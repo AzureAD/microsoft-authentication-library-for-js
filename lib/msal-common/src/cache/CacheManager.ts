@@ -1432,10 +1432,15 @@ export abstract class CacheManager implements ICacheManager {
                     this.staticAuthorityOptions.canonicalAuthority
                 ) ||
                 this.staticAuthorityOptions.knownAuthorities;
-            if (staticAliases && staticAliases.includes(entity.environment)) {
+            if (
+                staticAliases &&
+                staticAliases.includes(environment) &&
+                staticAliases.includes(entity.environment)
+            ) {
                 return true;
             }
         }
+
         // Query metadata cache if no static authority configuration has aliases that match enviroment
         const cloudMetadata = this.getAuthorityMetadataByAlias(environment);
         if (

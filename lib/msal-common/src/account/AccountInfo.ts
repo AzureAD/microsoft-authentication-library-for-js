@@ -41,10 +41,3 @@ export type ActiveAccountFilters = {
     homeAccountId: string;
     localAccountId: string;
 };
-
-export function updateAccountInfo(
-    accountInfo: AccountInfo,
-    updatedAttributes: Partial<AccountInfo>
-): AccountInfo {
-    return { ...accountInfo, ...updatedAttributes };
-}

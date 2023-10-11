@@ -600,17 +600,12 @@ export class ResponseHandler {
                 serverTokenResponse?.spa_accountid;
         }
 
-        let accountInfo: AccountInfo | null = null;
-        if (cacheRecord.account && idTokenClaims) {
-            const fullAccountEntity: AccountEntity = Object.assign(
-                new AccountEntity(),
-                {
-                    ...cacheRecord.account,
-                    idTokenClaims: idTokenClaims,
-                }
-            );
-            accountInfo = fullAccountEntity.getAccountInfo();
-        }
+        const accountInfo: AccountInfo | null = cacheRecord.account
+            ? {
+                  ...cacheRecord.account.getAccountInfo(),
+                  idTokenClaims,
+              }
+            : null;
 
         return {
             authority: authority.canonicalAuthority,

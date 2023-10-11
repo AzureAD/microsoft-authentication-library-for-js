@@ -28,11 +28,7 @@ export {
 } from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
-export {
-    AccountInfo,
-    ActiveAccountFilters,
-    updateAccountInfo,
-} from "./account/AccountInfo";
+export { AccountInfo, ActiveAccountFilters } from "./account/AccountInfo";
 export * as AuthToken from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";

@@ -13,6 +13,7 @@ import {
     IdTokenEntity,
     RefreshTokenEntity,
     Logger,
+    StaticAuthorityOptions,
 } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
 import { TEST_TOKENS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
@@ -20,11 +21,16 @@ import { TEST_TOKENS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 export class MockCache {
     cacheManager: MockStorageClass;
 
-    constructor(clientId: string, cryptoImpl: ICrypto) {
+    constructor(
+        clientId: string,
+        cryptoImpl: ICrypto,
+        staticAuthorityOptions?: StaticAuthorityOptions
+    ) {
         this.cacheManager = new MockStorageClass(
             clientId,
             cryptoImpl,
-            new Logger({})
+            new Logger({}),
+            staticAuthorityOptions
         );
     }
 
