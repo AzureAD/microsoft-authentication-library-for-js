@@ -51,7 +51,7 @@ import {
     IdTokenEntity,
     CredentialType,
 } from "@azure/msal-common";
-import { BrowserUtils } from "../../src/utils/BrowserUtils";
+import * as BrowserUtils from "../../src/utils/BrowserUtils";
 import {
     TemporaryCacheKeys,
     ApiId,

@@ -30,7 +30,7 @@ import {
 } from "../utils/BrowserConstants";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import * as BrowserUtils from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
@@ -211,6 +211,7 @@ export class PopupClient extends StandardInteractionClient {
             request,
             InteractionType.Popup
         );
+        BrowserUtils.preconnect(validRequest.authority);
         this.browserStorage.updateCacheEntries(
             validRequest.state,
             validRequest.nonce,

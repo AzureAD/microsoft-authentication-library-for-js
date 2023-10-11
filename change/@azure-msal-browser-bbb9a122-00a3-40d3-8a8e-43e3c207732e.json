@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Preconnect to authority to speed up /token calls #6550",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

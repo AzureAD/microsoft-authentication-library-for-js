@@ -46,7 +46,7 @@ import {
     DEFAULT_REQUEST,
     BrowserConstants,
 } from "../utils/BrowserConstants";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import * as BrowserUtils from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
