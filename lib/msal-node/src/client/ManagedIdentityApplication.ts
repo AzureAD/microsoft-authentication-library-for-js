@@ -41,8 +41,9 @@ export class ManagedIdentityApplication {
     // authority needs to be faked to re-use existing functionality in msal-common: caching in responseHandler, etc.
     private fakeAuthority: Authority;
 
-    constructor(configuration: ManagedIdentityConfiguration) {
-        this.config = buildManagedIdentityConfiguration(configuration);
+    constructor(configuration?: ManagedIdentityConfiguration) {
+        // undefined config means the managed identity is system-assigned
+        this.config = buildManagedIdentityConfiguration(configuration || {});
 
         this.logger = new Logger(
             this.config.system.loggerOptions,
