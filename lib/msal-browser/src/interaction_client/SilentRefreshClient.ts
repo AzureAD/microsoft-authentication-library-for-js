@@ -45,7 +45,6 @@ export class SilentRefreshClient extends StandardInteractionClient {
             ...request,
             ...baseRequest,
         };
-        BrowserUtils.preconnect(baseRequest.authority);
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow
         );
