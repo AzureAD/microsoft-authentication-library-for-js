@@ -205,7 +205,6 @@ export class AccountEntity {
 
         account.username = accountInfo.username;
         account.name = accountInfo.name;
-        account.idTokenClaims = accountInfo.idTokenClaims;
 
         account.cloudGraphHostName = cloudGraphHostName;
         account.msGraphHost = msGraphHost;
