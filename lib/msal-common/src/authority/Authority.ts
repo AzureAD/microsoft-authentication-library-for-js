@@ -1263,12 +1263,26 @@ export function formatAuthorityUri(authorityUri: string): string {
 export function buildStaticAuthorityOptions(
     authOptions: Partial<AuthorityOptions>
 ): StaticAuthorityOptions {
+    const rawCloudDiscoveryMetadata = authOptions.cloudDiscoveryMetadata;
+    let cloudDiscoveryMetadata: CloudDiscoveryMetadata[] | undefined =
+        undefined;
+    if (rawCloudDiscoveryMetadata) {
+        try {
+            cloudDiscoveryMetadata = JSON.parse(
+                rawCloudDiscoveryMetadata
+            ).metadata;
+        } catch (e) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
+            );
+        }
+    }
     return {
         canonicalAuthority: authOptions.authority
             ? formatAuthorityUri(authOptions.authority)
             : undefined,
         knownAuthorities: authOptions.knownAuthorities,
-        cloudDiscoveryMetadata: authOptions.cloudDiscoveryMetadata,
+        cloudDiscoveryMetadata: cloudDiscoveryMetadata,
         authorityMetadata: authOptions.authorityMetadata,
     };
 }

@@ -1425,6 +1425,7 @@ export abstract class CacheManager implements ICacheManager {
         if (this.staticAuthorityOptions) {
             const staticAliases =
                 getAliasesFromConfigMetadata(
+                    this.staticAuthorityOptions.canonicalAuthority,
                     this.staticAuthorityOptions.cloudDiscoveryMetadata
                 ) ||
                 getHardcodedAliasesForCanonicalAuthority(

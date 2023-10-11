@@ -983,20 +983,23 @@ export function getHardcodedAliasesForCanonicalAuthority(
  * @returns
  */
 export function getAliasesFromConfigMetadata(
-    rawCloudDiscoveryMetadata?: string
+    canonicalAuthority?: string,
+    cloudDiscoveryMetadata?: CloudDiscoveryMetadata[]
 ): string[] | null {
-    if (rawCloudDiscoveryMetadata) {
-        try {
-            const metadata = JSON.parse(rawCloudDiscoveryMetadata);
-            if (metadata) {
-                return metadata.aliases;
-            }
-        } catch (e) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
-            );
+    if (canonicalAuthority && cloudDiscoveryMetadata) {
+        const canonicalAuthorityUrlComponents = new UrlString(
+            canonicalAuthority
+        ).getUrlComponents();
+        const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
+            cloudDiscoveryMetadata,
+            canonicalAuthorityUrlComponents.HostNameAndPort
+        );
+
+        if (metadata) {
+            return metadata.aliases;
         }
     }
+
     return null;
 }
 
