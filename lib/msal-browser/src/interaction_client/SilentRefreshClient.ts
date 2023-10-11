@@ -19,7 +19,6 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import * as BrowserUtils from "../utils/BrowserUtils";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**
