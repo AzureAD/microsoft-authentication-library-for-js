@@ -435,9 +435,9 @@ export class BrowserCacheManager extends CacheManager {
     setAccount(account: AccountEntity): void {
         this.logger.trace("BrowserCacheManager.setAccount called");
         // Remove ID token claims before saving account entity
-        account.idTokenClaims = undefined;
+        const baseAccount = { ...account, idTokenClaims: undefined };
         const key = account.generateAccountKey();
-        this.setItem(key, JSON.stringify(account));
+        this.setItem(key, JSON.stringify(baseAccount));
         this.addAccountKeyToMap(key);
     }
 

@@ -3,10 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ClientConfigurationErrorCodes,
-    createClientConfigurationError,
-} from "../error/ClientConfigurationError";
 import { UrlString } from "../url/UrlString";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 
