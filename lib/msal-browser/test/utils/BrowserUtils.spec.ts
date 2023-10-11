@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { TEST_URIS } from "./StringConstants";
+import { TEST_CONFIG, TEST_URIS } from "./StringConstants";
 import {
     BrowserUtils,
     BrowserAuthError,
@@ -118,5 +118,20 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         it("doesnt throw when not inside an iframe", () => {
             BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
         });
+    });
+
+    it("adds preconnect to header then removes after some time", () => {
+        jest.useFakeTimers();
+        BrowserUtils.preconnect(TEST_CONFIG.validAuthority);
+
+        const preconnectLink = document.querySelector("link");
+        expect(preconnectLink).toBeTruthy();
+        expect(preconnectLink?.getAttribute("rel")).toBe("preconnect");
+        expect(preconnectLink?.getAttribute("href")).toBe(
+            new URL(TEST_CONFIG.validAuthority).origin
+        );
+
+        jest.runAllTimers();
+        expect(document.querySelector("link")).toBeFalsy();
     });
 });
