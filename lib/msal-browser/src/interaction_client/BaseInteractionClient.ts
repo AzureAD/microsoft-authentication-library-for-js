@@ -32,7 +32,7 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../packageMetadata";
 import { BrowserConstants } from "../utils/BrowserConstants";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import * as BrowserUtils from "../utils/BrowserUtils";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
