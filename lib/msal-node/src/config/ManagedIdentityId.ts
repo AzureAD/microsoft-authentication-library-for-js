@@ -70,56 +70,62 @@ export class ManagedIdentityId {
         return new ManagedIdentityId();
     }
 
-    /**
-     * Creates an instance of ManagedIdentityId for a user assigned managed identity from a client id
-     * @param clientId Client id of the user assigned managed identity assigned to the azure resource
-     * @returns Instance of ManagedIdentityId
+    // /**
+    //  * Creates an instance of ManagedIdentityId for a user assigned managed identity from a client id
+    //  * @param clientId Client id of the user assigned managed identity assigned to the azure resource
+    //  * @returns Instance of ManagedIdentityId
+    //  */
+    // public static createUserAssignedClientId(
+    //     clientId: string
+    // ): ManagedIdentityId {
+    //     if (!clientId) {
+    //         throw createManagedIdentityError(
+    //             ManagedIdentityErrorCodes.missingId
+    //         );
+    //     }
+
+    /*
+     *     return new ManagedIdentityId({ userAssignedClientId: clientId });
+     * }
      */
-    public static createUserAssignedClientId(
-        clientId: string
-    ): ManagedIdentityId {
-        if (!clientId) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.missingId
-            );
-        }
 
-        return new ManagedIdentityId({ userAssignedClientId: clientId });
-    }
+    // /**
+    //  * Creates an instance of ManagedIdentityId for a user assigned managed identity from a resource id
+    //  * @param resourceId Resource id of the user assigned managed identity assigned to the azure resource
+    //  * @returns Instance of ManagedIdentityId
+    //  */
+    // public static createUserAssignedResourceId(
+    //     resourceId: string
+    // ): ManagedIdentityId {
+    //     if (!resourceId) {
+    //         throw createManagedIdentityError(
+    //             ManagedIdentityErrorCodes.missingId
+    //         );
+    //     }
 
-    /**
-     * Creates an instance of ManagedIdentityId for a user assigned managed identity from a resource id
-     * @param resourceId Resource id of the user assigned managed identity assigned to the azure resource
-     * @returns Instance of ManagedIdentityId
+    /*
+     *     return new ManagedIdentityId({ userAssignedResourceId: resourceId });
+     * }
      */
-    public static createUserAssignedResourceId(
-        resourceId: string
-    ): ManagedIdentityId {
-        if (!resourceId) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.missingId
-            );
-        }
 
-        return new ManagedIdentityId({ userAssignedResourceId: resourceId });
-    }
+    // /**
+    //  * Creates an instance of ManagedIdentityId for a user assigned managed identity from an object id
+    //  * @param objectId Object id of the user assigned managed identity assigned to the azure resource
+    //  * @returns Instance of ManagedIdentityId
+    //  */
+    // public static createUserAssignedObjectId(
+    //     objectId: string
+    // ): ManagedIdentityId {
+    //     if (!objectId) {
+    //         throw createManagedIdentityError(
+    //             ManagedIdentityErrorCodes.missingId
+    //         );
+    //     }
 
-    /**
-     * Creates an instance of ManagedIdentityId for a user assigned managed identity from an object id
-     * @param objectId Object id of the user assigned managed identity assigned to the azure resource
-     * @returns Instance of ManagedIdentityId
+    /*
+     *     return new ManagedIdentityId({ userAssignedObjectId: objectId });
+     * }
      */
-    public static createUserAssignedObjectId(
-        objectId: string
-    ): ManagedIdentityId {
-        if (!objectId) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.missingId
-            );
-        }
-
-        return new ManagedIdentityId({ userAssignedObjectId: objectId });
-    }
 
     public get getId(): string {
         return this.id;

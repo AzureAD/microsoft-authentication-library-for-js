@@ -29,7 +29,7 @@ export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
     private cacheManager: CacheManager;
     private networkClient: INetworkModule;
-    protected readonly cryptoProvider: CryptoProvider;
+    private cryptoProvider: CryptoProvider;
 
     constructor(
         logger: Logger,
@@ -51,8 +51,9 @@ export abstract class BaseManagedIdentitySource {
     public async authenticateWithMSI(
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId,
-        fakeAuthority: Authority
-    ): Promise<AuthenticationResult | null> {
+        fakeAuthority: Authority,
+        refreshAccessToken?: boolean
+    ): Promise<AuthenticationResult> {
         const networkRequest: ManagedIdentityRequestParameters =
             this.createRequest(
                 managedIdentityRequest.resource,
@@ -116,19 +117,16 @@ export abstract class BaseManagedIdentitySource {
             null
         );
 
-        responseHandler.validateTokenResponse(serverTokenResponse);
+        responseHandler.validateTokenResponse(
+            serverTokenResponse,
+            refreshAccessToken
+        );
 
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             serverTokenResponse,
             fakeAuthority,
             reqTimestamp,
-            // BaseAuthRequest
-            {
-                ...managedIdentityRequest,
-                authority: fakeAuthority.canonicalAuthority,
-                correlationId: managedIdentityId.getId,
-                scopes: [managedIdentityRequest.resource],
-            }
+            managedIdentityRequest
         );
 
         return tokenResponse;

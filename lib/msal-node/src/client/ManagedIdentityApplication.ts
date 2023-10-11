@@ -4,31 +4,18 @@
  */
 
 import {
-    AccessTokenEntity,
     AuthenticationResult,
     Authority,
     AuthorityOptions,
     CacheManager,
-    ClientAuthErrorCodes,
+    CacheOutcome,
     Constants,
-    CredentialFilter,
-    CredentialType,
     DEFAULT_CRYPTO_IMPLEMENTATION,
-    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     DefaultStorageClass,
     INetworkModule,
     Logger,
     ProtocolMode,
-    ResponseHandler,
-    ScopeSet,
-    TimeUtils,
-    createClientAuthError,
 } from "@azure/msal-common";
-import { ServiceFabric } from "./ManagedIdentitySources/ServiceFabric";
-import { AppService } from "./ManagedIdentitySources/AppService";
-import { CloudShell } from "./ManagedIdentitySources/CloudShell";
-import { AzureArc } from "./ManagedIdentitySources/AzureArc";
-import { Imds } from "./ManagedIdentitySources/Imds";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
@@ -36,19 +23,14 @@ import {
 } from "../config/Configuration";
 import { version, name } from "../packageMetadata.js";
 import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
-import { ManagedIdentityId } from "../config/ManagedIdentityId";
 import { CryptoProvider } from "../crypto/CryptoProvider";
-import {
-    ManagedIdentityErrorCodes,
-    createManagedIdentityError,
-} from "../error/ManagedIdentityError";
+import { ClientCredentialClient } from "./ClientCredentialClient";
+import { ManagedIdentityClient } from "./ManagedIdentityClient";
 
 /**
  * Class to initialize a managed identity and identify the service
  */
 export class ManagedIdentityApplication {
-    private managedIdentityId: ManagedIdentityId;
-
     private config: ManagedIdentityNodeConfiguration;
 
     private logger: Logger;
@@ -56,19 +38,11 @@ export class ManagedIdentityApplication {
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
 
-    private identitySource:
-        | ServiceFabric
-        | AppService
-        | CloudShell
-        | AzureArc
-        | Imds;
-
     // authority needs to be faked to re-use existing functionality in msal-common: caching in responseHandler, etc.
     private fakeAuthority: Authority;
 
     constructor(configuration: ManagedIdentityConfiguration) {
         this.config = buildManagedIdentityConfiguration(configuration);
-        this.managedIdentityId = this.config.managedIdentityId;
 
         this.logger = new Logger(
             this.config.system.loggerOptions,
@@ -77,7 +51,7 @@ export class ManagedIdentityApplication {
         );
 
         this.cacheManager = new DefaultStorageClass(
-            this.managedIdentityId.getId,
+            this.config.managedIdentityId.getId,
             DEFAULT_CRYPTO_IMPLEMENTATION,
             this.logger
         );
@@ -85,8 +59,6 @@ export class ManagedIdentityApplication {
         this.networkClient = this.config.system.networkClient;
 
         this.cryptoProvider = new CryptoProvider();
-
-        this.identitySource = this.selectManagedIdentitySource();
 
         const fakeAuthorityOptions: AuthorityOptions = {
             protocolMode: ProtocolMode.AAD,
@@ -106,168 +78,75 @@ export class ManagedIdentityApplication {
     /**
      * Acquire an access token from the cache or the managed identity
      * @param managedIdentityRequest
-     * @param managedIdentityId
      * @returns the access token
      */
     public async acquireToken(
-        managedIdentityRequest: ManagedIdentityRequest,
-        managedIdentityId: ManagedIdentityId
+        managedIdentityRequest: ManagedIdentityRequest
     ): Promise<AuthenticationResult | null> {
-        return (
-            (await this.getCachedToken(
-                managedIdentityRequest,
-                managedIdentityId
-            )) ||
-            (await this.identitySource.authenticateWithMSI(
-                managedIdentityRequest,
-                managedIdentityId,
-                this.fakeAuthority
-            ))
-        );
-    }
-
-    /**
-     * Attempts to get the access token from the cache, then validate it
-     * @param managedIdentityRequest
-     * @param managedIdentityId
-     * @returns the cached token if it exists, otherwise null
-     */
-    private async getCachedToken(
-        managedIdentityRequest: ManagedIdentityRequest,
-        managedIdentityId: ManagedIdentityId
-    ): Promise<AuthenticationResult | null> {
-        if (managedIdentityRequest.forceRefresh) {
-            return null;
-        }
-
-        const cachedAccessToken = this.readAccessTokenFromCache(
-            managedIdentityRequest.resource,
-            managedIdentityId.getId
-        );
-
-        if (!cachedAccessToken) {
-            return null;
-        }
-
-        // check if token is expired
-        if (
-            TimeUtils.isTokenExpired(
-                cachedAccessToken.expiresOn,
-                DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
-            )
-        ) {
-            return null;
-        }
-
-        return await ResponseHandler.generateAuthenticationResult(
-            this.cryptoProvider,
-            this.fakeAuthority,
-            {
-                account: null,
-                idToken: null,
-                accessToken: cachedAccessToken,
-                refreshToken: null,
-                appMetadata: null,
-            },
-            true, // from cache
-            // BaseAuthRequest
-            {
-                ...managedIdentityRequest,
-                authority: this.fakeAuthority.canonicalAuthority,
-                correlationId: managedIdentityId.getId,
-                scopes: [managedIdentityRequest.resource],
-            }
-        );
-    }
-
-    /**
-     * Attempts to read the access token from the cache
-     * @param resource
-     * @param id
-     * @returns the cached token if it exists, otherwise null
-     */
-    private readAccessTokenFromCache(
-        resource: string,
-        id: string
-    ): AccessTokenEntity | null {
-        const accessTokenFilter: CredentialFilter = {
-            homeAccountId: Constants.EMPTY_STRING,
-            environment:
-                this.fakeAuthority.canonicalAuthorityUrlComponents
-                    .HostNameAndPort,
-            credentialType: CredentialType.ACCESS_TOKEN,
-            clientId: id || "",
-            realm: this.fakeAuthority.tenant,
-            target: ScopeSet.createSearchScopes([resource]),
-        };
-
-        const accessTokens =
-            this.cacheManager.getAccessTokensByFilter(accessTokenFilter);
-        if (accessTokens.length < 1) {
-            return null;
-        } else if (accessTokens.length > 1) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.multipleMatchingTokens
-            );
-        }
-        return accessTokens[0] as AccessTokenEntity;
-    }
-
-    /**
-     * Tries to create a managed identity source for all sources
-     * @returns the managed identity Source
-     */
-    private selectManagedIdentitySource():
-        | ServiceFabric
-        | AppService
-        | CloudShell
-        | AzureArc
-        | Imds {
-        try {
-            const source = AppService.tryCreate(
+        const managedIdentityClient: ManagedIdentityClient =
+            new ManagedIdentityClient(
                 this.logger,
                 this.cacheManager,
                 this.networkClient,
                 this.cryptoProvider
             );
 
-            /*
-             *  ServiceFabric.tryCreate(
-             *      this.logger,
-             *      this.cacheManager,
-             *      this.networkClient,
-             *      this.cryptoProvider
-             *  ) ||
-             *  // *** AppService goes here ***
-             *  CloudShell.tryCreate(
-             *      this.logger,
-             *      this.cacheManager,
-             *      this.networkClient,
-             *      this.cryptoProvider
-             *  ) ||
-             *  AzureArc.tryCreate(
-             *      this.logger,
-             *      this.cacheManager,
-             *      this.networkClient,
-             *      this.cryptoProvider
-             *  ) ||
-             *  Imds.tryCreate(
-             *      this.logger,
-             *      this.cacheManager,
-             *      this.networkClient,
-             *      this.cryptoProvider
-             *  )
-             */
+        /*
+         * the managedIdentityRequest's resource may be passed in as "{ResourceIdUri}" or {ResourceIdUri/.default}
+         * if "/.default" is present, delete it
+         */
+        managedIdentityRequest.scopes = [
+            managedIdentityRequest.resource.replace("/.default", ""),
+        ];
+        managedIdentityRequest.authority =
+            this.fakeAuthority.canonicalAuthority;
+        managedIdentityRequest.correlationId =
+            this.config.managedIdentityId.getId;
 
-            if (!source) {
-                throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToCreateSource
+        if (managedIdentityRequest.forceRefresh) {
+            // make a network call to the managed identity source
+            return await managedIdentityClient.sendMSITokenRequest(
+                managedIdentityRequest,
+                this.config.managedIdentityId,
+                this.fakeAuthority
+            );
+        }
+
+        const [cachedAuthenticationResult, lastCacheOutcome] =
+            await ClientCredentialClient.getCachedAuthenticationResult(
+                managedIdentityRequest,
+                this.config,
+                this.cryptoProvider,
+                this.fakeAuthority,
+                this.cacheManager
+            );
+
+        if (cachedAuthenticationResult) {
+            // if the token is not expired but must be refreshed; get a new one in the background
+            if (lastCacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
+                this.logger.info(
+                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+                );
+
+                // make a network call to the managed identity source; refresh the access token in the background
+                const refreshAccessToken = true;
+                await managedIdentityClient.sendMSITokenRequest(
+                    managedIdentityRequest,
+                    this.config.managedIdentityId,
+                    this.fakeAuthority,
+                    refreshAccessToken
                 );
             }
-            return source;
-        } catch (error) {
-            // throw error that was bubbled up
-            throw error;
+
+            // return the cached token
+            return cachedAuthenticationResult;
+        } else {
+            // make a network call to the managed identity source
+            return await managedIdentityClient.sendMSITokenRequest(
+                managedIdentityRequest,
+                this.config.managedIdentityId,
+                this.fakeAuthority
+            );
         }
     }
 }

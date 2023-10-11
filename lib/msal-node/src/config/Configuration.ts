@@ -19,7 +19,6 @@ import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
 import https from "https";
 import { ManagedIdentityId } from "./ManagedIdentityId.js";
-import { ManagedIdentityIdType } from "../utils/Constants.js";
 
 /**
  * - clientId               - Client id of the application.
