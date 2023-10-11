@@ -1339,7 +1339,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws an error if inside an iframe", async () => {
-            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            const mockParentWindow = { ...window };
+            jest.spyOn(window, "parent", "get").mockReturnValue(
+                mockParentWindow
+            );
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
@@ -4769,7 +4772,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws an error if inside an iframe", async () => {
-            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            const mockParentWindow = { ...window };
+            jest.spyOn(window, "parent", "get").mockReturnValue(
+                mockParentWindow
+            );
             await expect(pca.logoutRedirect()).rejects.toMatchObject(
                 createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
             );

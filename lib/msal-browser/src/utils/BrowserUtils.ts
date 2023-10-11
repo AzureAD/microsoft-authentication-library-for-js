@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, UrlString } from "@azure/msal-common";
+import { UrlString } from "@azure/msal-common";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -15,12 +15,12 @@ import { InteractionType, BrowserConstants } from "./BrowserConstants";
  */
 export function clearHash(contentWindow: Window): void {
     // Office.js sets history.replaceState to null
-    contentWindow.location.hash = Constants.EMPTY_STRING;
+    contentWindow.location.hash = "";
     if (typeof contentWindow.history.replaceState === "function") {
         // Full removes "#" from url
         contentWindow.history.replaceState(
             null,
-            Constants.EMPTY_STRING,
+            "",
             `${contentWindow.location.origin}${contentWindow.location.pathname}${contentWindow.location.search}`
         );
     }
@@ -32,8 +32,7 @@ export function clearHash(contentWindow: Window): void {
 export function replaceHash(url: string): void {
     const urlParts = url.split("#");
     urlParts.shift(); // Remove part before the hash
-    window.location.hash =
-        urlParts.length > 0 ? urlParts.join("#") : Constants.EMPTY_STRING;
+    window.location.hash = urlParts.length > 0 ? urlParts.join("#") : "";
 }
 
 /**
