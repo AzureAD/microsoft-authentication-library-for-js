@@ -1283,6 +1283,5 @@ export function buildStaticAuthorityOptions(
             : undefined,
         knownAuthorities: authOptions.knownAuthorities,
         cloudDiscoveryMetadata: cloudDiscoveryMetadata,
-        authorityMetadata: authOptions.authorityMetadata,
     };
 }

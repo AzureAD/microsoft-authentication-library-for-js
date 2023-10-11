@@ -20,7 +20,7 @@ export type AuthorityOptions = {
 };
 
 export type StaticAuthorityOptions = Partial<
-    Pick<AuthorityOptions, "knownAuthorities" | "authorityMetadata">
+    Pick<AuthorityOptions, "knownAuthorities">
 > & {
     canonicalAuthority?: string;
     cloudDiscoveryMetadata?: CloudDiscoveryMetadata[];

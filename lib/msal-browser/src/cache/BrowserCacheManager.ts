@@ -78,7 +78,6 @@ export class BrowserCacheManager extends CacheManager {
     protected temporaryCacheStorage: IWindowStorage<string>;
     // Logger instance
     protected logger: Logger;
-    // Static authority options
 
     // Cookie life calculation (hours * minutes * seconds * ms)
     protected readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
