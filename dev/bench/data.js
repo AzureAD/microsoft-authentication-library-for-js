@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696965579334,
+  "lastUpdate": 1697063251372,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1444,6 +1444,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.52%",
             "unit": "ops/sec",
             "extra": "228 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3f02f79c53c5904494e7d8bc15ffab36971a7f26",
+          "message": "Implement preconnect to speed up /token calls, refactor static class methods to exported methods for better minification (#6550)\n\nAdds a\r\n[preconnect](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel/preconnect)\r\nlink element to the document header in flows where we're reasonably sure\r\nwe will hit the /token endpoint (acquireTokenPopup, ssoSilent,\r\nacquireTokenSilent after RT expiration). This tells the browser to start\r\nresolving DNS and establishing the SSL connection so that when the\r\n/token call is made it doesn't need to wait for these steps to complete\r\n(can take up to 300ms). This is a short lived connection and the browser\r\nwill kill it if not used promptly so I've included a cleanup function on\r\na timer (10s)\r\n\r\nAlso de-classed BrowserUtils for size reduction while I was adding a new\r\nfunction there anyway.",
+          "timestamp": "2023-10-11T15:22:03-07:00",
+          "tree_id": "f481528b2820df0c38d926ee522efbee7cbf134a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3f02f79c53c5904494e7d8bc15ffab36971a7f26"
+        },
+        "date": 1697063249983,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 132127,
+            "range": "±1.47%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 129739,
+            "range": "±1.36%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
           }
         ]
       }
