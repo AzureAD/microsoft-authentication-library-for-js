@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Replace custom encoder with TextEncoder in code challenge generator",
+  "comment": "Replace custom encoder with TextEncoder in code challenge generator #6560",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
