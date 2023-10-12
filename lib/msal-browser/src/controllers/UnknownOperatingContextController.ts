@@ -125,106 +125,19 @@ export class UnknownOperatingContextController implements IController {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
-        this.logger.trace("getAccount called");
-        if (Object.keys(accountFilter).length === 0) {
-            this.logger.warning("getAccount: No accountFilter provided");
-            return null;
-        }
-
-        const account: AccountInfo | null =
-            this.browserStorage.getAccountInfoFilteredBy(accountFilter);
-
-        if (account) {
-            this.logger.verbose(
-                "getAccount: Account matching provided filter found, returning"
-            );
-            return account;
-        } else {
-            this.logger.verbose(
-                "getAccount: No matching account found, returning null"
-            );
-            return null;
-        }
+        return null;
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        this.logger.trace("getAccountByHomeId called");
-        if (!homeAccountId) {
-            this.logger.warning(
-                "getAccountByHomeId: No homeAccountId provided"
-            );
-            return null;
-        }
-
-        const account = this.browserStorage.getAccountInfoFilteredBy({
-            homeAccountId,
-        });
-        if (account) {
-            this.logger.verbose(
-                "getAccountByHomeId: Account matching homeAccountId found, returning"
-            );
-            this.logger.verbosePii(
-                `getAccountByHomeId: Returning signed-in accounts matching homeAccountId: ${homeAccountId}`
-            );
-            return account;
-        } else {
-            this.logger.verbose(
-                "getAccountByHomeId: No matching account found, returning null"
-            );
-            return null;
-        }
+        return null;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        this.logger.trace("getAccountByLocalId called");
-        if (!localAccountId) {
-            this.logger.warning(
-                "getAccountByLocalId: No localAccountId provided"
-            );
-            return null;
-        }
-
-        const account = this.browserStorage.getAccountInfoFilteredBy({
-            localAccountId,
-        });
-        if (account) {
-            this.logger.verbose(
-                "getAccountByLocalId: Account matching localAccountId found, returning"
-            );
-            this.logger.verbosePii(
-                `getAccountByLocalId: Returning signed-in accounts matching localAccountId: ${localAccountId}`
-            );
-            return account;
-        } else {
-            this.logger.verbose(
-                "getAccountByLocalId: No matching account found, returning null"
-            );
-            return null;
-        }
+        return null;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAccountByUsername(username: string): AccountInfo | null {
-        this.logger.trace("getAccountByUsername called");
-        if (!username) {
-            this.logger.warning("getAccountByUsername: No username provided");
-            return null;
-        }
-
-        const account = this.browserStorage.getAccountInfoFilteredBy({
-            username,
-        });
-        if (account) {
-            this.logger.verbose(
-                "getAccountByUsername: Account matching username found, returning"
-            );
-            this.logger.verbosePii(
-                `getAccountByUsername: Returning signed-in accounts matching username: ${username}`
-            );
-            return account;
-        } else {
-            this.logger.verbose(
-                "getAccountByUsername: No matching account found, returning null"
-            );
-            return null;
-        }
+        return null;
     }
     getAllAccounts(): AccountInfo[] {
         return [];
