@@ -64,7 +64,7 @@ export class ClientCredentialClient extends BaseClient {
         }
 
         const [cachedAuthenticationResult, lastCacheOutcome] =
-            await ClientCredentialClient.getCachedAuthenticationResult(
+            await this.getCachedAuthenticationResult(
                 request,
                 this.config,
                 this.cryptoUtils,
@@ -99,7 +99,7 @@ export class ClientCredentialClient extends BaseClient {
     /**
      * looks up cache if the tokens are cached already
      */
-    public static async getCachedAuthenticationResult(
+    public async getCachedAuthenticationResult(
         request: CommonClientCredentialRequest,
         config: ClientConfiguration | ManagedIdentityConfiguration,
         cryptoUtils: ICrypto,
@@ -130,7 +130,7 @@ export class ClientCredentialClient extends BaseClient {
 
         const cachedAccessToken = this.readAccessTokenFromCache(
             authority,
-            managedIdentityConfiguration.managedIdentityId.getId ||
+            managedIdentityConfiguration.managedIdentityId?.getId ||
                 clientConfiguration.authOptions.clientId,
             new ScopeSet(request.scopes || []),
             cacheManager
@@ -200,7 +200,7 @@ export class ClientCredentialClient extends BaseClient {
     /**
      * Reads access token from the cache
      */
-    private static readAccessTokenFromCache(
+    private readAccessTokenFromCache(
         authority: Authority,
         id: string,
         scopeSet: ScopeSet,

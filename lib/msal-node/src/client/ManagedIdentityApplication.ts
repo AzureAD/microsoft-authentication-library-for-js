@@ -4,11 +4,13 @@
  */
 
 import {
+    AuthOptions,
     AuthenticationResult,
     Authority,
     AuthorityOptions,
     CacheManager,
     CacheOutcome,
+    ClientConfiguration,
     Constants,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     DefaultStorageClass,
@@ -40,6 +42,9 @@ export class ManagedIdentityApplication {
 
     // authority needs to be faked to re-use existing functionality in msal-common: caching in responseHandler, etc.
     private fakeAuthority: Authority;
+
+    // the ClientCredentialClient class needs to be faked to call it's getCachedAuthenticationResult method
+    private fakeClientCredentialClient: ClientCredentialClient;
 
     constructor(configuration?: ManagedIdentityConfiguration) {
         // undefined config means the managed identity is system-assigned
@@ -74,6 +79,13 @@ export class ManagedIdentityApplication {
             fakeAuthorityOptions,
             this.logger
         );
+
+        this.fakeClientCredentialClient = new ClientCredentialClient({
+            authOptions: {
+                clientId: this.config.managedIdentityId.getId,
+                authority: this.fakeAuthority,
+            } as AuthOptions,
+        } as ClientConfiguration);
     }
 
     /**
@@ -114,7 +126,7 @@ export class ManagedIdentityApplication {
         }
 
         const [cachedAuthenticationResult, lastCacheOutcome] =
-            await ClientCredentialClient.getCachedAuthenticationResult(
+            await this.fakeClientCredentialClient.getCachedAuthenticationResult(
                 managedIdentityRequest,
                 this.config,
                 this.cryptoProvider,
