@@ -237,6 +237,7 @@ export class AccountEntity {
 
         account.cloudGraphHostName = cloudGraphHostName;
         account.msGraphHost = msGraphHost;
+        account.tenants = accountInfo.tenants;
 
         return account;
     }

@@ -4942,23 +4942,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             authorityType: "MSSTS",
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             environment: "login.windows.net",
-            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            tenantId: ID_TOKEN_CLAIMS.tid,
             username: ID_TOKEN_CLAIMS.preferred_username,
             name: "Abe Lincoln",
             localAccountId: ID_TOKEN_CLAIMS.oid,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
             nativeAccountId: undefined,
+            tenants: [ID_TOKEN_CLAIMS.tid],
         };
 
-        const testAccount1: AccountEntity = new AccountEntity();
-        testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
-        testAccount1.localAccountId = TEST_CONFIG.OID;
-        testAccount1.environment = testAccountInfo1.environment;
-        testAccount1.realm = testAccountInfo1.tenantId;
-        testAccount1.username = testAccountInfo1.username;
-        testAccount1.name = testAccountInfo1.name;
-        testAccount1.authorityType = "MSSTS";
+        const testAccount1: AccountEntity =
+            AccountEntity.createFromAccountInfo(testAccountInfo1);
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
@@ -4976,23 +4971,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             authorityType: "MSSTS",
             homeAccountId: "different-home-account-id",
             environment: "login.windows.net",
-            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            tenantId: ID_TOKEN_ALT_CLAIMS.tid,
             username: "anotherExample@microsoft.com",
             name: "Abe Lincoln",
             localAccountId: ID_TOKEN_ALT_CLAIMS.oid,
             idToken: TEST_TOKENS.IDTOKEN_V2_ALT,
             idTokenClaims: ID_TOKEN_ALT_CLAIMS,
             nativeAccountId: undefined,
+            tenants: [ID_TOKEN_ALT_CLAIMS.tid],
         };
 
-        const testAccount2: AccountEntity = new AccountEntity();
-        testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
-        testAccount2.localAccountId = ID_TOKEN_ALT_CLAIMS.oid;
-        testAccount2.environment = testAccountInfo2.environment;
-        testAccount2.realm = testAccountInfo2.tenantId;
-        testAccount2.username = testAccountInfo2.username;
-        testAccount2.name = testAccountInfo2.name;
-        testAccount2.authorityType = "MSSTS";
+        const testAccount2: AccountEntity =
+            AccountEntity.createFromAccountInfo(testAccountInfo2);
         testAccount2.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
@@ -5018,14 +5008,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             nativeAccountId: undefined,
         };
 
-        const testAccount3: AccountEntity = new AccountEntity();
-        testAccount3.homeAccountId = testAccountInfo3.homeAccountId;
-        testAccount3.localAccountId = TEST_CONFIG.OID;
-        testAccount3.environment = testAccountInfo3.environment;
-        testAccount3.realm = testAccountInfo3.tenantId;
-        testAccount3.username = testAccountInfo3.username;
-        testAccount3.name = testAccountInfo3.name;
-        testAccount3.authorityType = "ADFS";
+        const testAccount3: AccountEntity =
+            AccountEntity.createFromAccountInfo(testAccountInfo3);
 
         testAccount3.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
@@ -5053,14 +5037,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             nativeAccountId: undefined,
         };
 
-        const testAccount4: AccountEntity = new AccountEntity();
-        testAccount4.homeAccountId = testAccountInfo4.homeAccountId;
-        testAccount4.localAccountId = TEST_CONFIG.OID;
-        testAccount4.environment = testAccountInfo4.environment;
-        testAccount4.realm = testAccountInfo4.tenantId;
-        testAccount4.username = testAccountInfo4.username;
-        testAccount4.name = testAccountInfo4.name;
-        testAccount4.authorityType = "MSA";
+        const testAccount4: AccountEntity =
+            AccountEntity.createFromAccountInfo(testAccountInfo4);
 
         testAccount4.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
