@@ -247,6 +247,7 @@ describe("TokenCache tests", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
                 name: testIdTokenClaims.name,
                 nativeAccountId: undefined,
+                tenants: [TEST_CONFIG.MSAL_TENANT_ID],
             };
             const testAccountKey =
                 AccountEntity.generateAccountCacheKey(testAccountInfo);

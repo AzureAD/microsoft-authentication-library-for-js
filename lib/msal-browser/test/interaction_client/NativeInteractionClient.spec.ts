@@ -60,6 +60,7 @@ testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
 testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
 testAccountEntity.nativeAccountId = "nativeAccountId";
+testAccountEntity.tenants = [ID_TOKEN_CLAIMS.tid];
 
 const testAccountInfo: AccountInfo = {
     ...testAccountEntity.getAccountInfo(),
@@ -229,6 +230,7 @@ describe("NativeInteractionClient Tests", () => {
                 name: ID_TOKEN_CLAIMS.name,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id,
+                tenants: [ID_TOKEN_CLAIMS.tid],
             };
             sinon
                 .stub(NativeMessageHandler.prototype, "sendMessage")
@@ -307,6 +309,7 @@ describe("NativeInteractionClient Tests", () => {
                 name: ID_TOKEN_CLAIMS.name,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id,
+                tenants: [ID_TOKEN_CLAIMS.tid],
             };
             sinon
                 .stub(NativeMessageHandler.prototype, "sendMessage")
@@ -352,6 +355,7 @@ describe("NativeInteractionClient Tests", () => {
                 name: ID_TOKEN_CLAIMS.name,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id,
+                tenants: [ID_TOKEN_CLAIMS.tid],
             };
             sinon
                 .stub(NativeMessageHandler.prototype, "sendMessage")
@@ -397,6 +401,7 @@ describe("NativeInteractionClient Tests", () => {
                 name: ID_TOKEN_CLAIMS.name,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id,
+                tenants: [ID_TOKEN_CLAIMS.tid],
             };
             sinon
                 .stub(NativeMessageHandler.prototype, "sendMessage")
@@ -473,6 +478,7 @@ describe("NativeInteractionClient Tests", () => {
                 name: ID_TOKEN_CLAIMS.name,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id,
+                tenants: [ID_TOKEN_CLAIMS.tid],
             };
             sinon
                 .stub(NativeMessageHandler.prototype, "sendMessage")
@@ -544,6 +550,7 @@ describe("NativeInteractionClient Tests", () => {
                 name: ID_TOKEN_CLAIMS.name,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id,
+                tenants: [ID_TOKEN_CLAIMS.tid],
             };
             sinon
                 .stub(NativeMessageHandler.prototype, "sendMessage")
@@ -764,6 +771,7 @@ describe("NativeInteractionClient Tests", () => {
                 name: ID_TOKEN_CLAIMS.name,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id,
+                tenants: [ID_TOKEN_CLAIMS.tid],
             };
 
             sinon
@@ -829,6 +837,7 @@ describe("NativeInteractionClient Tests", () => {
                 name: ID_TOKEN_CLAIMS.name,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id,
+                tenants: [ID_TOKEN_CLAIMS.tid],
             };
 
             sinon

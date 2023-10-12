@@ -1100,44 +1100,6 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     *<<<<<<< HEAD
-     * Checks the cache for accounts matching loginHint or SID
-     * @param loginHint
-     * @param sid
-     */
-    getAccountInfoByHints(
-        loginHint?: string,
-        sid?: string
-    ): AccountInfo | null {
-        const matchingAccounts = this.getAllAccounts().filter((accountInfo) => {
-            if (sid) {
-                const accountSid =
-                    accountInfo.idTokenClaims &&
-                    accountInfo.idTokenClaims["sid"];
-                return sid === accountSid;
-            }
-
-            if (loginHint) {
-                return loginHint === accountInfo.username;
-            }
-
-            return false;
-        });
-
-        if (matchingAccounts.length === 1) {
-            return matchingAccounts[0];
-        } else if (matchingAccounts.length > 1) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.multipleMatchingAccounts
-            );
-        }
-
-        return null;
-    }
-
-    /**
-     *=======
-     *>>>>>>> cached-account-change
      * fetch throttling entity from the platform cache
      * @param throttlingCacheKey
      */

@@ -419,12 +419,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             idTokenClaims
         );
+
+        const tenantId = idTokenClaims.tid;
         const accountEntity = AccountEntity.createAccount(
             {
                 homeAccountId: homeAccountIdentifier,
                 idTokenClaims: idTokenClaims,
                 clientInfo: response.client_info,
                 nativeAccountId: response.account.id,
+                tenants: tenantId ? [tenantId] : [],
             },
             authority
         );
