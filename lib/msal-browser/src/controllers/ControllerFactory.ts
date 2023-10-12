@@ -25,6 +25,15 @@ export class ControllerFactory {
         this.logger = new Logger(loggerOptions, name, version);
     }
 
+    async createV3Controller(): Promise<IController> {
+        const standard = new StandardOperatingContext(this.config);
+
+        await standard.initialize();
+
+        const controller = await import("./StandardController");
+        return await controller.StandardController.createController(standard);
+    }
+
     async createController(): Promise<IController | null> {
         const standard = new StandardOperatingContext(this.config);
         const teamsApp = new TeamsAppOperatingContext(this.config);

@@ -13,12 +13,8 @@
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
 
-/*
- * import * as internals from "./internals";
- * export { internals };
- */
-
 export { PublicClientApplication } from "./app/PublicClientApplication";
+export { PublicClientNext } from "./app/PublicClientNext";
 export { IController } from "./controllers/IController";
 export {
     Configuration,
@@ -38,11 +34,6 @@ export {
     CacheLookupPolicy,
 } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
-
-/*
- * export { IController} from "./controllers/IController";
- * export { StandardController } from "./controllers/StandardController";
- */
 
 // Browser Errors
 export {

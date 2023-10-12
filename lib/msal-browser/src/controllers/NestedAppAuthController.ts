@@ -17,8 +17,6 @@ import {
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
-import { PopupClient } from "../interaction_client/PopupClient";
-import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
@@ -39,7 +37,6 @@ import { EventType } from "../event/EventType";
 import { EventCallbackFunction, EventError } from "../event/EventMessage";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export class NestedAppAuthController implements IController {
@@ -101,18 +98,7 @@ export class NestedAppAuthController implements IController {
     getBrowserStorage(): BrowserCacheManager {
         throw NestedAppAuthError.createUnsupportedError();
     }
-    getNativeInternalStorage(): BrowserCacheManager {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    getNativeExtensionProvider(): NativeMessageHandler | undefined {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    setNativeExtensionProvider(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        provider: NativeMessageHandler | undefined
-    ): void {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
+
     getEventHandler(): EventHandler {
         return this.eventHandler;
     }
@@ -341,6 +327,7 @@ export class NestedAppAuthController implements IController {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
         throw NestedAppAuthError.createUnsupportedError();
+        // TODO: Look at standard implementation
     }
 
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
@@ -506,26 +493,7 @@ export class NestedAppAuthController implements IController {
     getPerformanceClient(): IPerformanceClient {
         throw NestedAppAuthError.createUnsupportedError();
     }
-    getNativeAccountId(
-        request: // eslint-disable-line @typescript-eslint/no-unused-vars
-        | Partial<
-                  Omit<
-                      CommonAuthorizationUrlRequest,
-                      | "requestedClaimsHash"
-                      | "responseMode"
-                      | "codeChallenge"
-                      | "codeChallengeMethod"
-                      | "nativeBroker"
-                  >
-              >
-            | PopupRequest
-            | RedirectRequest
-    ): string {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    getNavigationClient(): INavigationClient {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
+
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
         throw NestedAppAuthError.createUnsupportedError();
     }
@@ -533,34 +501,6 @@ export class NestedAppAuthController implements IController {
         interactionType: InteractionType, // eslint-disable-line @typescript-eslint/no-unused-vars
         setInteractionInProgress?: boolean | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
     ): void {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    canUseNative(
-        request: // eslint-disable-line @typescript-eslint/no-unused-vars
-        | Partial<
-                  Omit<
-                      CommonAuthorizationUrlRequest,
-                      | "requestedClaimsHash"
-                      | "responseMode"
-                      | "codeChallenge"
-                      | "codeChallengeMethod"
-                      | "nativeBroker"
-                  >
-              >
-            | PopupRequest
-            | RedirectRequest,
-        accountId?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): boolean {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    createPopupClient(correlationId?: string | undefined): PopupClient {
-        // eslint-disable-line @typescript-eslint/no-unused-vars
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    createSilentIframeClient(
-        correlationId?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): SilentIframeClient {
         throw NestedAppAuthError.createUnsupportedError();
     }
 

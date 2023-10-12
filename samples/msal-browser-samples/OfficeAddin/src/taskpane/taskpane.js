@@ -3,7 +3,7 @@
  * See LICENSE in the project root for license information.
  */
 
-import { PublicClientApplication } from "@azure/msal-browser";
+import { PublicClientNext } from "@azure/msal-browser";
 
 /* global document, Office, Word */
 
@@ -45,7 +45,7 @@ const loginRequest = {
 
 let pca = undefined;
 
-PublicClientApplication.createPublicClientApplication(msalConfig).then((result) => {
+PublicClientNext.createPublicClientApplication(msalConfig).then((result) => {
   pca = result;
   ssoGetToken();
 });

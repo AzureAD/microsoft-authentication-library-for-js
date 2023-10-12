@@ -21,33 +21,46 @@ import {
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ControllerFactory } from "../controllers/ControllerFactory";
-import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
-import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
-import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { AuthenticationResult } from "../response/AuthenticationResult";
+import { UnknownOperatingContextController } from "../controllers/UnknownOperatingContextController";
+import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext";
 
 /**
- * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
- * to obtain JWT tokens as described in the OAuth 2.0 Authorization Code Flow with PKCE specification.
+ * PublicClientNext is an early look at the planned implementation of PublicClientApplication in the next major version of MSAL.js.
+ * It contains support for multiple API implementations based on the runtime environment that it is running in.
+ *
+ * The goals of these changes are to provide a clean separation of behavior between different operating contexts (Nested App Auth, Platform Brokers, Plain old Browser, etc.)
+ * while still providing a consistent API surface for developers.
+ *
  */
-export class PublicClientApplication implements IPublicClientApplication {
-    protected controller: IController;
+export class PublicClientNext implements IPublicClientApplication {
+    /*
+     * Definite assignment assertion used below
+     * https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-7.html#definite-assignment-assertions
+     */
+    protected controller!: IController;
+    protected configuration: Configuration;
 
     public static async createPublicClientApplication(
         configuration: Configuration
     ): Promise<IPublicClientApplication> {
         const factory = new ControllerFactory(configuration);
-        const controller = await factory.createV3Controller();
-        const pca = new PublicClientApplication(configuration, controller);
-
+        const controller = await factory.createController();
+        let pca;
+        if (controller !== null) {
+            pca = new PublicClientNext(configuration, controller);
+        } else {
+            pca = new PublicClientNext(configuration);
+        }
         return pca;
     }
 
     /**
      * @constructor
-     * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
+     * Constructor for the PublicClientNext used to instantiate the PublicClientNext object
      *
      * Important attributes in the Configuration object for auth are:
      * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview
@@ -67,14 +80,18 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param configuration Object for the MSAL PublicClientApplication instance
      * @param IController Optional parameter to explictly set the controller. (Will be removed when we remove public constructor)
      */
-    public constructor(configuration: Configuration, controller?: IController) {
+    private constructor(
+        configuration: Configuration,
+        controller?: IController
+    ) {
+        this.configuration = configuration;
         if (controller) {
             this.controller = controller;
         } else {
-            const standardOperatingContext = new StandardOperatingContext(
-                configuration
+            const operatingContext = new UnknownOperatingContext(configuration);
+            this.controller = new UnknownOperatingContextController(
+                operatingContext
             );
-            this.controller = new StandardController(standardOperatingContext);
         }
     }
 
@@ -82,7 +99,15 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      */
     async initialize(): Promise<void> {
-        return this.controller.initialize();
+        if (this.controller instanceof UnknownOperatingContextController) {
+            const factory = new ControllerFactory(this.configuration);
+            const result = await factory.createController();
+            if (result !== null) {
+                this.controller = result;
+            }
+            return this.controller.initialize();
+        }
+        return Promise.resolve();
     }
 
     /**

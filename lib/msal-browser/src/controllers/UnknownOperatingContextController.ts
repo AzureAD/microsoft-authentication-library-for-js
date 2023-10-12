@@ -16,9 +16,6 @@ import {
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { PopupClient } from "../interaction_client/PopupClient";
-import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import {
     BrowserCacheManager,
     DEFAULT_BROWSER_CACHE_MANAGER,
@@ -52,7 +49,8 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest";
  *
  * - Only includes implementation for getAccounts and handleRedirectPromise
  *   - All other methods are will throw initialization error (because either initialize method or the factory method were not used)
- *   - This controller is necessary for React Native wrapper.... hopefully can be removed in the future
+ *   - This controller is necessary for React Native wrapper, server side rendering and any other scenario where we don't have a DOM
+ *
  */
 export class UnknownOperatingContextController implements IController {
     // OperatingContext
@@ -117,53 +115,33 @@ export class UnknownOperatingContextController implements IController {
     getBrowserStorage(): BrowserCacheManager {
         return this.browserStorage;
     }
-    getNativeInternalStorage(): BrowserCacheManager {
-        return this.browserStorage;
-    }
-    getNativeExtensionProvider(): NativeMessageHandler | undefined {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
-        return undefined;
-    }
-    setNativeExtensionProvider(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        provider: NativeMessageHandler | undefined
-    ): void {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
-        return undefined;
-    }
-    getNativeAccountId(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request:
-            | PopupRequest
-            | RedirectRequest
-            | Partial<
-                  Omit<
-                      CommonAuthorizationUrlRequest,
-                      | "responseMode"
-                      | "codeChallenge"
-                      | "codeChallengeMethod"
-                      | "requestedClaimsHash"
-                      | "nativeBroker"
-                  >
-              >
-    ): string {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
-        return "";
-    }
+
     getEventHandler(): EventHandler {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
-        return {} as EventHandler;
+        return this.eventHandler;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
-        return null;
+        this.logger.trace("getAccount called");
+        if (Object.keys(accountFilter).length === 0) {
+            this.logger.warning("getAccount: No accountFilter provided");
+            return null;
+        }
+
+        const account: AccountInfo | null =
+            this.browserStorage.getAccountInfoFilteredBy(accountFilter);
+
+        if (account) {
+            this.logger.verbose(
+                "getAccount: Account matching provided filter found, returning"
+            );
+            return account;
+        } else {
+            this.logger.verbose(
+                "getAccount: No matching account found, returning null"
+            );
+            return null;
+        }
     }
 
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
@@ -246,7 +224,6 @@ export class UnknownOperatingContextController implements IController {
         }
     }
     getAllAccounts(): AccountInfo[] {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
         return [];
     }
     initialize(): Promise<void> {
@@ -452,11 +429,6 @@ export class UnknownOperatingContextController implements IController {
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as IPerformanceClient;
     }
-    getNavigationClient(): INavigationClient {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
-        return {} as INavigationClient;
-    }
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
@@ -471,42 +443,7 @@ export class UnknownOperatingContextController implements IController {
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
     }
-    canUseNative(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request:
-            | PopupRequest
-            | RedirectRequest
-            | Partial<
-                  Omit<
-                      CommonAuthorizationUrlRequest,
-                      | "responseMode"
-                      | "codeChallenge"
-                      | "codeChallengeMethod"
-                      | "requestedClaimsHash"
-                      | "nativeBroker"
-                  >
-              >,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        accountId?: string | undefined
-    ): boolean {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
-        return false;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    createPopupClient(correlationId?: string | undefined): PopupClient {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
-        return {} as PopupClient;
-    }
-    createSilentIframeClient(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        correlationId?: string | undefined
-    ): SilentIframeClient {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
-        return {} as SilentIframeClient;
-    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);

@@ -930,6 +930,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
+            await pca.initialize();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
             try {
@@ -1002,6 +1003,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
+            await pca.initialize();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
             try {
@@ -4811,6 +4813,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
+            await pca.initialize();
             try {
                 pca.logout();
             } catch (error: any) {
