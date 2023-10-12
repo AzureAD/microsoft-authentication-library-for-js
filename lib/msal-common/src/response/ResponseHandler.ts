@@ -545,6 +545,7 @@ export class ResponseHandler {
                     clientInfo: serverTokenResponse.client_info,
                     cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
                     msGraphHost: authCodePayload?.msgraph_host,
+                    tenants: [responseTenantId],
                 },
                 authority,
                 this.cryptoObj
@@ -555,6 +556,7 @@ export class ResponseHandler {
             tenants.push(responseTenantId);
         }
         baseAccount.tenants = tenants;
+
         return baseAccount;
     }
 

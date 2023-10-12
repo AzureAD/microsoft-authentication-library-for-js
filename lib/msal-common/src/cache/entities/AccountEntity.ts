@@ -133,6 +133,7 @@ export class AccountEntity {
             msGraphHost?: string;
             environment?: string;
             nativeAccountId?: string;
+            tenants?: string[];
         },
         authority: Authority,
         cryptoObj?: ICrypto
@@ -180,6 +181,8 @@ export class AccountEntity {
             clientInfo?.utid ||
             accountDetails.idTokenClaims.tid ||
             Constants.EMPTY_STRING;
+
+        account.tenants = accountDetails.tenants || [];
 
         // How do you account for MSA CID here?
         account.localAccountId =

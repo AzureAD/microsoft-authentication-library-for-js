@@ -233,6 +233,7 @@ export const mockAccountInfo: AccountInfo = {
     idToken: TEST_CONSTANTS.ID_TOKEN,
     name: ID_TOKEN_CLAIMS.name,
     nativeAccountId: undefined,
+    tenants: [ID_TOKEN_CLAIMS.tid],
 };
 
 export const mockNativeAccountInfo: AccountInfo = {
