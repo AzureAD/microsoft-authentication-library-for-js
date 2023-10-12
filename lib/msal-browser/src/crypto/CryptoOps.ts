@@ -15,7 +15,6 @@ import {
 import { base64Encode, urlEncode, urlEncodeArr } from "../encode/Base64Encode";
 import { base64Decode } from "../encode/Base64Decode";
 import * as BrowserCrypto from "./BrowserCrypto";
-import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -109,7 +108,7 @@ export class CryptoOps implements ICrypto {
         };
 
         const publicJwkString: string =
-            BrowserStringUtils.getSortedObjectString(pubKeyThumprintObj);
+            getSortedObjectString(pubKeyThumprintObj);
         const publicJwkHash = await this.hashString(publicJwkString);
 
         // Generate Thumbprint for Private Key
@@ -180,8 +179,7 @@ export class CryptoOps implements ICrypto {
         const publicKeyJwk = await BrowserCrypto.exportJwk(
             cachedKeyPair.publicKey
         );
-        const publicKeyJwkString =
-            BrowserStringUtils.getSortedObjectString(publicKeyJwk);
+        const publicKeyJwkString = getSortedObjectString(publicKeyJwk);
 
         // Base64URL encode public key thumbprint with keyId only: BASE64URL({ kid: "FULL_PUBLIC_KEY_HASH" })
         const encodedKeyIdThumbprint = urlEncode(JSON.stringify({ kid: kid }));
@@ -203,7 +201,8 @@ export class CryptoOps implements ICrypto {
         const tokenString = `${encodedShrHeader}.${encodedPayload}`;
 
         // Sign token
-        const tokenBuffer = BrowserStringUtils.stringToUtf8Arr(tokenString);
+        const encoder = new TextEncoder();
+        const tokenBuffer = encoder.encode(tokenString);
         const signatureBuffer = await BrowserCrypto.sign(
             cachedKeyPair.privateKey,
             tokenBuffer
@@ -232,4 +231,8 @@ export class CryptoOps implements ICrypto {
         const hashBytes = new Uint8Array(hashBuffer);
         return urlEncodeArr(hashBytes);
     }
+}
+
+function getSortedObjectString(obj: object): string {
+    return JSON.stringify(obj, Object.keys(obj).sort());
 }
