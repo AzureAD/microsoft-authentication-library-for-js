@@ -50,6 +50,7 @@ export class Serializer {
                 client_info: accountEntity.clientInfo,
                 last_modification_time: accountEntity.lastModificationTime,
                 last_modification_app: accountEntity.lastModificationApp,
+                tenants: accountEntity.tenants,
             };
         });
 

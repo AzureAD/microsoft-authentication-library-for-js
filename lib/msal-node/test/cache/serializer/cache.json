@@ -1,13 +1,14 @@
 {
     "Account": {
-        "uid.utid-login.microsoftonline.com-microsoft": {
+        "uid.utid-login.microsoftonline.com-utid": {
             "username": "John Doe",
             "local_account_id": "object1234",
-            "realm": "microsoft",
+            "realm": "utid",
             "environment": "login.microsoftonline.com",
             "home_account_id": "uid.utid",
             "authority_type": "MSSTS",
-            "client_info": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+            "client_info": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+            "tenants": ["utid"]
         }
     },
     "RefreshToken": {
@@ -28,11 +29,11 @@
         }
     },
     "AccessToken": {
-        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--": {
+        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-utid-scope1 scope2 scope3--": {
             "environment": "login.microsoftonline.com",
             "credential_type": "AccessToken",
             "secret": "an access token",
-            "realm": "microsoft",
+            "realm": "utid",
             "target": "scope1 scope2 scope3",
             "client_id": "mock_client_id",
             "cached_at": "1000",
@@ -41,11 +42,11 @@
             "expires_on": "4600",
             "userAssertionHash": "mock_hash_string"
         },
-        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope4 scope5--": {
+        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-utid-scope4 scope5--": {
             "environment": "login.microsoftonline.com",
             "credential_type": "AccessToken",
             "secret": "an access token",
-            "realm": "microsoft",
+            "realm": "utid",
             "target": "scope4 scope5",
             "client_id": "mock_client_id",
             "cached_at": "1000",
@@ -53,11 +54,11 @@
             "extended_expires_on": "4600",
             "expires_on": "4600"
         },
-        "uid.utid-login.microsoftonline.com-accesstoken_with_authscheme-mock_client_id-microsoft-scope4 scope5--pop": {
+        "uid.utid-login.microsoftonline.com-accesstoken_with_authscheme-mock_client_id-utid-scope4 scope5--pop": {
             "environment": "login.microsoftonline.com",
             "credential_type": "AccessToken_With_AuthScheme",
             "secret": "a POP-protected access token",
-            "realm": "microsoft",
+            "realm": "utid",
             "target": "scope4 scope5",
             "client_id": "mock_client_id",
             "cached_at": "1000",
@@ -69,8 +70,8 @@
         }
     },
     "IdToken": {
-        "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft---": {
-            "realm": "microsoft",
+        "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-utid---": {
+            "realm": "utid",
             "environment": "login.microsoftonline.com",
             "credential_type": "IdToken",
             "secret": "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",

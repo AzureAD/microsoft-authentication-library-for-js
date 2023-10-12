@@ -16,7 +16,7 @@ export const mockAccessTokenEntity_1 = {
     credentialType: "AccessToken",
     clientId: "mock_client_id",
     secret: "an access token",
-    realm: "microsoft",
+    realm: "utid",
     target: "scope1 scope2 scope3",
     cachedAt: "1000",
     expiresOn: "4600",
@@ -30,7 +30,7 @@ export const mockAccessTokenEntity_2 = {
     credentialType: "AccessToken",
     clientId: "mock_client_id",
     secret: "an access token",
-    realm: "microsoft",
+    realm: "utid",
     target: "scope4 scope5",
     cachedAt: "1000",
     expiresOn: "4600",
@@ -43,7 +43,7 @@ export const mockIdTokenEntity = {
     credentialType: "IdToken",
     clientId: "mock_client_id",
     secret: "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",
-    realm: "microsoft",
+    realm: "utid",
 };
 
 export const mockRefreshTokenEntity = {
@@ -66,11 +66,12 @@ export const mockRefreshTokenEntityWithFamilyId = {
 export const mockAccountEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
-    realm: "microsoft",
+    realm: "utid",
     localAccountId: "object1234",
     username: "John Doe",
     authorityType: "MSSTS",
     clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+    tenants: ["utid"],
 };
 
 export const mockAppMetaDataEntity = {

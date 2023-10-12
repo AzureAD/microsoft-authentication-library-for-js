@@ -13,14 +13,15 @@ describe("Deserializer test cases", () => {
 
     test("deserializeJSONBlob", () => {
         const mockAccount = {
-            "uid.utid-login.microsoftonline.com-microsoft": {
+            "uid.utid-login.microsoftonline.com-utid": {
                 username: "John Doe",
                 local_account_id: "object1234",
-                realm: "microsoft",
+                realm: "utid",
                 environment: "login.microsoftonline.com",
                 home_account_id: "uid.utid",
                 authority_type: "MSSTS",
                 client_info: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+                tenants: ["utid"],
             },
         };
         const acc = Deserializer.deserializeJSONBlob(cache);
