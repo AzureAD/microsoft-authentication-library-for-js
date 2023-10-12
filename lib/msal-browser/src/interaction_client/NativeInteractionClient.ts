@@ -33,6 +33,7 @@ import {
     invokeAsync,
     createAuthError,
     AuthErrorCodes,
+    updateTenantProfile,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -582,14 +583,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims.tid ||
             Constants.EMPTY_STRING;
 
-        const fullAccountEntity: AccountEntity = idTokenClaims
-            ? Object.assign(new AccountEntity(), {
-                  ...accountEntity,
-                  idTokenClaims: idTokenClaims,
-              })
-            : accountEntity;
-
-        const accountInfo = fullAccountEntity.getAccountInfo();
+        const accountInfo: AccountInfo | null = updateTenantProfile(
+            accountEntity.getAccountInfo(),
+            idTokenClaims
+        );
 
         // generate PoP token as needed
         const responseAccessToken = await this.generatePopAccessToken(

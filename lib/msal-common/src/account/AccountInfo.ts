@@ -44,3 +44,35 @@ export type ActiveAccountFilters = {
     localAccountId: string;
     tenantId: string;
 };
+
+/**
+ * Replaces account info that varies by tenant profile sourced from the ID token claims passed in with the tenant-specific account info
+ * @param accountInfo
+ * @param idTokenClaims
+ * @returns
+ */
+export function updateTenantProfile(
+    accountInfo: AccountInfo,
+    idTokenClaims?: TokenClaims
+): AccountInfo {
+    if (idTokenClaims) {
+        const updatedAccountInfo = accountInfo;
+        const { oid, tid, name } = idTokenClaims;
+
+        if (oid && oid !== accountInfo.localAccountId) {
+            updatedAccountInfo.localAccountId = oid;
+        }
+        if (tid && tid !== accountInfo.tenantId) {
+            updatedAccountInfo.tenantId = tid;
+        }
+        if (name && name !== accountInfo.name) {
+            updatedAccountInfo.name = name;
+        }
+
+        updatedAccountInfo.idTokenClaims = idTokenClaims;
+
+        return updatedAccountInfo;
+    }
+
+    return accountInfo;
+}

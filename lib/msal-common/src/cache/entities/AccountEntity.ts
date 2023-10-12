@@ -35,7 +35,6 @@ import { ProtocolMode } from "../../authority/ProtocolMode";
  *      name: Full name for the account, including given name and family name,
  *      lastModificationTime: last time this entity was modified in the cache
  *      lastModificationApp:
- *      idTokenClaims: Object containing claims parsed from ID token
  *      nativeAccountId: Account identifier on the native device
  * }
  * @internal
@@ -53,7 +52,6 @@ export class AccountEntity {
     lastModificationApp?: string;
     cloudGraphHostName?: string;
     msGraphHost?: string;
-    idTokenClaims?: TokenClaims;
     nativeAccountId?: string;
     tenants?: string[];
 
@@ -89,20 +87,10 @@ export class AccountEntity {
             username: this.username,
             localAccountId: this.localAccountId,
             name: this.name,
-            idTokenClaims: this.idTokenClaims,
             nativeAccountId: this.nativeAccountId,
             authorityType: this.authorityType,
             tenants: this.tenants,
         };
-    }
-
-    /**
-     * Update attributes that are sourced from ID token claims and vary by tenant profile
-     */
-    updateTenantProfile(idTokenClaims: TokenClaims): void {
-        this.idTokenClaims = idTokenClaims;
-        this.realm = idTokenClaims.tid || Constants.EMPTY_STRING;
-        this.name = idTokenClaims.name || Constants.EMPTY_STRING;
     }
 
     /**

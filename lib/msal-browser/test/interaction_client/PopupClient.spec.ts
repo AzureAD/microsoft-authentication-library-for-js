@@ -1141,7 +1141,6 @@ describe("PopupClient", () => {
             testAccount.authorityType = "MSSTS";
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-            testAccount.idTokenClaims = testIdTokenClaims;
 
             // @ts-ignore
             pca.browserStorage.setAccount(testAccount);
@@ -1228,7 +1227,6 @@ describe("PopupClient", () => {
             testAccount.authorityType = "MSSTS";
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-            testAccount.idTokenClaims = testIdTokenClaims;
 
             // @ts-ignore
             pca.browserStorage.setAccount(testAccount);

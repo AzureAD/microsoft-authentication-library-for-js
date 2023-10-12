@@ -117,7 +117,7 @@ describe("Event API tests", () => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.ACCOUNT_ADDED);
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(account);
+                expect(message.payload).toEqual(accountEntity.getAccountInfo());
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
@@ -126,28 +126,20 @@ describe("Event API tests", () => {
             const eventHandler = new EventHandler(logger, browserCrypto);
             eventHandler.addEventCallback(subscriber);
 
-            const accountEntity = {
+            const account: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: "test-home-accountId-1",
                 localAccountId: "test-local-accountId-1",
                 username: "user-1@example.com",
                 environment: "test-environment-1",
-                realm: "test-tenantId-1",
+                tenantId: "test-tenantId-1",
                 name: "name-1",
                 idTokenClaims: {},
-                authorityType: "MSSTS",
+                nativeAccountId: undefined,
+                tenants: ["test-tenantId-1"],
             };
 
-            const account: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: accountEntity.homeAccountId,
-                localAccountId: accountEntity.localAccountId,
-                username: accountEntity.username,
-                environment: accountEntity.environment,
-                tenantId: accountEntity.realm,
-                name: accountEntity.name,
-                idTokenClaims: accountEntity.idTokenClaims,
-                nativeAccountId: undefined,
-            };
+            const accountEntity = AccountEntity.createFromAccountInfo(account);
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
 
@@ -163,7 +155,7 @@ describe("Event API tests", () => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.ACCOUNT_REMOVED);
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(account);
+                expect(message.payload).toEqual(accountEntity.getAccountInfo());
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
@@ -172,28 +164,20 @@ describe("Event API tests", () => {
             const eventHandler = new EventHandler(logger, browserCrypto);
             eventHandler.addEventCallback(subscriber);
 
-            const accountEntity = {
+            const account: AccountInfo = {
                 homeAccountId: "test-home-accountId-1",
                 localAccountId: "test-local-accountId-1",
                 username: "user-1@example.com",
                 environment: "test-environment-1",
-                realm: "test-tenantId-1",
+                tenantId: "test-tenantId-1",
                 name: "name-1",
                 idTokenClaims: {},
                 authorityType: "MSSTS",
+                nativeAccountId: undefined,
+                tenants: ["test-tenantId-1"],
             };
 
-            const account: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: accountEntity.homeAccountId,
-                localAccountId: accountEntity.localAccountId,
-                username: accountEntity.username,
-                environment: accountEntity.environment,
-                tenantId: accountEntity.realm,
-                name: accountEntity.name,
-                idTokenClaims: accountEntity.idTokenClaims,
-                nativeAccountId: undefined,
-            };
+            const accountEntity = AccountEntity.createFromAccountInfo(account);
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
 

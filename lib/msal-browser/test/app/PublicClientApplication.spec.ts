@@ -5348,7 +5348,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount2.authorityType = "MSSTS";
         testAccount2.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount2.idTokenClaims = ID_TOKEN_CLAIMS;
 
         const idTokenData2 = {
             realm: testAccountInfo2.tenantId,

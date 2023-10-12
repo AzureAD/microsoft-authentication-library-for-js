@@ -44,7 +44,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient"
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
-import { AccountInfo } from "../account/AccountInfo";
+import { AccountInfo, updateTenantProfile } from "../account/AccountInfo";
 
 /**
  * Class that handles response parsing.
@@ -626,10 +626,6 @@ export class ResponseHandler {
             }
         }
 
-        if (cacheRecord.account && idTokenClaims) {
-            cacheRecord.account.updateTenantProfile(idTokenClaims);
-        }
-
         if (cacheRecord.appMetadata) {
             familyId =
                 cacheRecord.appMetadata.familyId === THE_FAMILY_ID
@@ -646,10 +642,10 @@ export class ResponseHandler {
         }
 
         const accountInfo: AccountInfo | null = cacheRecord.account
-            ? {
-                  ...cacheRecord.account.getAccountInfo(),
-                  idTokenClaims,
-              }
+            ? updateTenantProfile(
+                  cacheRecord.account.getAccountInfo(),
+                  idTokenClaims
+              )
             : null;
 
         return {

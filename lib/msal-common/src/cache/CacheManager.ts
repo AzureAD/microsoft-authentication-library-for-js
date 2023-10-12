@@ -944,19 +944,6 @@ export abstract class CacheManager implements ICacheManager {
         );
         const cachedAppMetadata = this.readAppMetadataFromCache(environment);
 
-        if (cachedAccount && cachedIdToken) {
-            const idTokenClaims = extractTokenClaims(
-                cachedIdToken.secret,
-                this.cryptoImpl.base64Decode
-            );
-
-            cachedAccount.idTokenClaims = idTokenClaims;
-            cachedAccount.localAccountId =
-                idTokenClaims.oid || cachedAccount.localAccountId;
-            cachedAccount.name = idTokenClaims.name || cachedAccount.name;
-            cachedAccount.realm = idTokenClaims.tid || cachedAccount.realm;
-        }
-
         return {
             account: cachedAccount,
             idToken: cachedIdToken,
