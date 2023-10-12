@@ -6,6 +6,7 @@
 import { ProtocolMode } from "./ProtocolMode";
 import { OIDCOptions } from "./OIDCOptions";
 import { AzureRegionConfiguration } from "./AzureRegionConfiguration";
+import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 
 export type AuthorityOptions = {
     protocolMode: ProtocolMode;
@@ -15,6 +16,14 @@ export type AuthorityOptions = {
     authorityMetadata: string;
     skipAuthorityMetadataCache?: boolean;
     azureRegionConfiguration?: AzureRegionConfiguration;
+    authority?: string;
+};
+
+export type StaticAuthorityOptions = Partial<
+    Pick<AuthorityOptions, "knownAuthorities">
+> & {
+    canonicalAuthority?: string;
+    cloudDiscoveryMetadata?: CloudDiscoveryMetadata[];
 };
 
 export const AzureCloudInstance = {

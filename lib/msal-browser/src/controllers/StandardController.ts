@@ -29,6 +29,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountFilter,
+    buildStaticAuthorityOptions,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -45,7 +46,7 @@ import {
     DEFAULT_REQUEST,
     BrowserConstants,
 } from "../utils/BrowserConstants";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import * as BrowserUtils from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
@@ -207,7 +208,8 @@ export class StandardController implements IController {
                   this.config.auth.clientId,
                   this.config.cache,
                   this.browserCrypto,
-                  this.logger
+                  this.logger,
+                  buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
@@ -1559,10 +1561,10 @@ export class StandardController implements IController {
     ): string {
         const account =
             request.account ||
-            this.browserStorage.getAccountInfoByHints(
-                request.loginHint,
-                request.sid
-            ) ||
+            this.browserStorage.getAccountInfoFilteredBy({
+                loginHint: request.loginHint,
+                sid: request.sid,
+            }) ||
             this.getActiveAccount();
 
         return (account && account.nativeAccountId) || "";

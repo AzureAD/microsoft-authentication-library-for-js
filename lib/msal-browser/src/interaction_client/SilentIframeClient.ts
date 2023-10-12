@@ -34,6 +34,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import * as BrowserUtils from "../utils/BrowserUtils";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -114,6 +115,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             },
             InteractionType.Silent
         );
+        BrowserUtils.preconnect(silentRequest.authority);
         this.browserStorage.updateCacheEntries(
             silentRequest.state,
             silentRequest.nonce,

@@ -148,6 +148,7 @@ export const TEST_CONFIG = {
     MSAL_CLIENT_SECRET: "ThisIsASecret",
     MSAL_TENANT_ID: "3338040d-6c67-4c5b-b112-36a304b66dad",
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
+    validAuthorityHost: "login.microsoftonline.com",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
     ADFS_VALID_AUTHORITY: "https://on.prem/adfs",
     DSTS_VALID_AUTHORITY: "https://domain.dsts.subdomain/dstsv2/tenant",
@@ -183,6 +184,8 @@ export const TEST_CONFIG = {
     DEFAULT_TOKEN_RENEWAL_OFFSET: 300,
     TEST_CONFIG_ASSERTION: "DefaultAssertion",
     TEST_REQUEST_ASSERTION: "RequestAssertion",
+    CLOUD_DISCOVERY_METADATA:
+        '{"tenant_discovery_endpoint":"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration","api-version":"1.1","metadata":[{"preferred_network":"login.microsoftonline.com","preferred_cache":"login.windows.net","aliases":["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]},{"preferred_network":"login.partner.microsoftonline.cn","preferred_cache":"login.partner.microsoftonline.cn","aliases":["login.partner.microsoftonline.cn","login.chinacloudapi.cn"]},{"preferred_network":"login.microsoftonline.de","preferred_cache":"login.microsoftonline.de","aliases":["login.microsoftonline.de"]},{"preferred_network":"login.microsoftonline.us","preferred_cache":"login.microsoftonline.us","aliases":["login.microsoftonline.us","login.usgovcloudapi.net"]},{"preferred_network":"login-us.microsoftonline.com","preferred_cache":"login-us.microsoftonline.com","aliases":["login-us.microsoftonline.com"]}]}',
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
