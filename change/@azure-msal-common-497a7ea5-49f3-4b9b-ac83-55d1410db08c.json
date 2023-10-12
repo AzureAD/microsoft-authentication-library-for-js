@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Added some new error codes/messages for NestedAppAuth.",
+  "comment": "Added some new error codes/messages for NestedAppAuth. #6359",
   "packageName": "@azure/msal-common",
   "email": "email not defined",
   "dependentChangeType": "patch"
