@@ -34,6 +34,7 @@ describe("Storage tests for msal-node: ", () => {
     };
 
     let logger: Logger;
+    const ACCOUNT_KEY = "uid.utid-login.microsoftonline.com-utid";
 
     beforeEach(() => {
         const cache = JSON.stringify(cacheJson);
@@ -92,16 +93,15 @@ describe("Storage tests for msal-node: ", () => {
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const cache = nodeStorage.getCache();
-        const accountKey = "uid.utid-login.microsoftonline.com-microsoft";
-        const account: AccountEntity = cache[accountKey] as AccountEntity;
+        const account: AccountEntity = cache[ACCOUNT_KEY] as AccountEntity;
         expect(account).toBeInstanceOf(AccountEntity);
         expect(account.clientInfo).toBe(
             "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
         );
 
         const newInMemoryCache = nodeStorage.getInMemoryCache();
-        expect(newInMemoryCache.accounts[accountKey]).toEqual(
-            cache[accountKey]
+        expect(newInMemoryCache.accounts[ACCOUNT_KEY]).toEqual(
+            cache[ACCOUNT_KEY]
         );
     });
 
@@ -142,14 +142,13 @@ describe("Storage tests for msal-node: ", () => {
             DEFAULT_CRYPTO_IMPLEMENTATION
         );
         nodeStorage.setInMemoryCache(inMemoryCache);
-        const accountKey = "uid.utid-login.microsoftonline.com-microsoft";
-        const fetchedAccount = nodeStorage.getAccount(accountKey);
+        const fetchedAccount = nodeStorage.getAccount(ACCOUNT_KEY);
 
         const invalidAccountKey = "uid.utid-login.microsoftonline.com-invalid";
         const invalidAccount = nodeStorage.getAccount(invalidAccountKey);
 
         expect(fetchedAccount).toBeInstanceOf(AccountEntity);
-        expect(fetchedAccount).toEqual(inMemoryCache.accounts[accountKey]);
+        expect(fetchedAccount).toEqual(inMemoryCache.accounts[ACCOUNT_KEY]);
         expect(invalidAccount).toBeNull();
 
         const mockAccountData = {
@@ -330,8 +329,7 @@ describe("Storage tests for msal-node: ", () => {
         );
         nodeStorage.setInMemoryCache(inMemoryCache);
 
-        const accountKey = "uid.utid-login.microsoftonline.com-microsoft";
-        expect(nodeStorage.containsKey(accountKey)).toBeTruthy;
+        expect(nodeStorage.containsKey(ACCOUNT_KEY)).toBeTruthy();
     });
 
     it("getKeys() tests - tests for an accountKey", () => {
@@ -342,8 +340,8 @@ describe("Storage tests for msal-node: ", () => {
         );
         nodeStorage.setInMemoryCache(inMemoryCache);
 
-        const accountKey = "uid.utid-login.microsoftonline.com-microsoft";
-        expect(nodeStorage.getKeys().includes(accountKey)).toBeTruthy;
+        console.log(nodeStorage.getKeys().includes(ACCOUNT_KEY));
+        expect(nodeStorage.getKeys().includes(ACCOUNT_KEY)).toBeTruthy();
     });
 
     it("removeItem() tests - removes an account", () => {
@@ -354,14 +352,13 @@ describe("Storage tests for msal-node: ", () => {
         );
         nodeStorage.setInMemoryCache(inMemoryCache);
 
-        const accountKey = "uid.utid-login.microsoftonline.com-microsoft";
         const newInMemoryCache = nodeStorage.getInMemoryCache();
-        expect(newInMemoryCache.accounts[accountKey]).toBeInstanceOf(
+        expect(newInMemoryCache.accounts[ACCOUNT_KEY]).toBeInstanceOf(
             AccountEntity
         );
 
-        nodeStorage.removeItem(accountKey);
-        expect(newInMemoryCache.accounts[accountKey]).toBeUndefined;
+        nodeStorage.removeItem(ACCOUNT_KEY);
+        expect(newInMemoryCache.accounts[ACCOUNT_KEY]).toBeUndefined;
     });
 
     it("should remove all keys from the cache when clear() is called", () => {
@@ -372,11 +369,9 @@ describe("Storage tests for msal-node: ", () => {
         );
         nodeStorage.setInMemoryCache(inMemoryCache);
 
-        const accountKey = "uid.utid-login.microsoftonline.com-microsoft";
-
         nodeStorage.clear();
 
-        expect(nodeStorage.getAccount(accountKey)).toBeNull();
+        expect(nodeStorage.getAccount(ACCOUNT_KEY)).toBeNull();
 
         const newInMemoryCache = nodeStorage.getInMemoryCache();
         Object.values(newInMemoryCache).forEach((cacheSection) => {
