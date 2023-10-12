@@ -230,6 +230,8 @@ export const PerformanceEvents = {
     AuthorityFactoryCreateDiscoveredInstance:
         "authorityFactoryCreateDiscoveredInstance",
     AuthorityResolveEndpointsAsync: "authorityResolveEndpointsAsync",
+    AuthorityResolveEndpointsFromLocalSources:
+        "authorityResolveEndpointsFromLocalSources",
     AuthorityGetCloudDiscoveryMetadataFromNetwork:
         "authorityGetCloudDiscoveryMetadataFromNetwork",
     AuthorityUpdateCloudDiscoveryMetadata:

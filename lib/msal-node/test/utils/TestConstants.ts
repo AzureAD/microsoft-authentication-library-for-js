@@ -230,6 +230,7 @@ export const mockAccountInfo: AccountInfo = {
     tenantId: ID_TOKEN_CLAIMS.tid,
     username: ID_TOKEN_CLAIMS.preferred_username,
     idTokenClaims: ID_TOKEN_CLAIMS,
+    idToken: TEST_CONSTANTS.ID_TOKEN,
     name: ID_TOKEN_CLAIMS.name,
     nativeAccountId: undefined,
 };
