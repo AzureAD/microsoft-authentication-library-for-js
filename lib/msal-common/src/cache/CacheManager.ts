@@ -43,7 +43,7 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
 import { StoreInCache } from "../request/StoreInCache";
-import { Authority } from "../authority/Authority";
+import { getTenantFromAuthorityString } from "../authority/Authority";
 import {
     getAliasesFromConfigMetadata,
     getHardcodedAliasesForCanonicalAuthority,
@@ -923,9 +923,7 @@ export abstract class CacheManager implements ICacheManager {
         request: BaseAuthRequest,
         environment: string
     ): CacheRecord {
-        const requestTenantId = Authority.getTenantFromAuthorityString(
-            request.authority
-        );
+        const requestTenantId = getTenantFromAuthorityString(request.authority);
         const tokenKeys = this.getTokenKeys();
         const cachedAccount = this.readAccountFromCache(account);
         const cachedIdToken = this.getIdToken(

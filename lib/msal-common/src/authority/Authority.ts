@@ -1252,22 +1252,22 @@ export class Authority {
 
         return ciamAuthority;
     }
+}
 
+/**
+ * Extract tenantId from authority
+ */
+export function getTenantFromAuthorityString(
+    authority: string
+): string | undefined {
+    const authorityUrl = new UrlString(authority);
+    const authorityUrlComponents = authorityUrl.getUrlComponents();
     /**
-     * Extract tenantId from authority
+     * Tenant ID is the path after the domain:
+     *  AAD Authority - domain/tenantId
+     *  B2C Authority - domain/tenantId?/tfp?/policy
      */
-    static getTenantFromAuthorityString(authority: string): string | undefined {
-        const authorityUrl = new UrlString(authority);
-        const authorityUrlComponents = authorityUrl.getUrlComponents();
-        /**
-         * Tenant ID is the path after the domain:
-         *  AAD Authority - domain/tenantId
-         *  B2C Authority - domain/tenantId?/tfp?/policy
-         */
-        return authorityUrlComponents.PathSegments.join(
-            Constants.FORWARD_SLASH
-        );
-    }
+    return authorityUrlComponents.PathSegments.join(Constants.FORWARD_SLASH);
 }
 
 export function formatAuthorityUri(authorityUri: string): string {
