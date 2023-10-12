@@ -18,6 +18,7 @@ import {
     ICrypto,
     AuthorityMetadataEntity,
     ValidCredentialType,
+    StaticAuthorityOptions,
 } from "@azure/msal-common";
 
 import { Deserializer } from "./serializer/Deserializer.js";
@@ -38,8 +39,13 @@ export class NodeStorage extends CacheManager {
     private cache: CacheKVStore = {};
     private changeEmitters: Array<Function> = [];
 
-    constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
-        super(clientId, cryptoImpl, logger);
+    constructor(
+        logger: Logger,
+        clientId: string,
+        cryptoImpl: ICrypto,
+        staticAuthorityOptions?: StaticAuthorityOptions
+    ) {
+        super(clientId, cryptoImpl, logger, staticAuthorityOptions);
         this.logger = logger;
     }
 

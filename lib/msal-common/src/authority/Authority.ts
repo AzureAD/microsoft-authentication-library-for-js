@@ -23,7 +23,8 @@ import {
 } from "../utils/Constants";
 import {
     EndpointMetadata,
-    InstanceDiscoveryMetadata,
+    getCloudDiscoveryMetadataFromHardcodedValues,
+    getCloudDiscoveryMetadataFromNetworkResponse,
     InstanceDiscoveryMetadataAliases,
 } from "./AuthorityMetadata";
 import {
@@ -33,7 +34,11 @@ import {
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
-import { AuthorityOptions, AzureCloudInstance } from "./AuthorityOptions";
+import {
+    AuthorityOptions,
+    AzureCloudInstance,
+    StaticAuthorityOptions,
+} from "./AuthorityOptions";
 import {
     CloudInstanceDiscoveryResponse,
     isCloudInstanceDiscoveryResponse,
@@ -381,35 +386,6 @@ export class Authority {
      */
     discoveryComplete(): boolean {
         return !!this.metadata;
-    }
-
-    /**
-     * Performs locally-sourced, synchronous endpoint discovery to discover aliases, preferred_cache, preferred_network
-     * and the /authorize, /token and logout endpoints.
-     */
-    public resolveEndpointsFromLocalSources(): void {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityResolveEndpointsFromLocalSources,
-            this.correlationId
-        );
-
-        const metadataEntity = this.getCurrentMetadataEntity();
-
-        const cloudDiscoverySource =
-            this.updateCloudDiscoveryMetadataFromLocalSources(metadataEntity);
-
-        this.canonicalAuthority = this.canonicalAuthority.replace(
-            this.hostnameAndPort,
-            metadataEntity.preferred_network
-        );
-        const endpointMetadataResult =
-            this.updateEndpointMetadataFromLocalSources(metadataEntity);
-
-        this.updateCachedMetadata(
-            metadataEntity,
-            cloudDiscoverySource,
-            endpointMetadataResult
-        );
     }
 
     /**
@@ -878,7 +854,9 @@ export class Authority {
             );
         } else {
             const hardcodedMetadata =
-                this.getCloudDiscoveryMetadataFromHardcodedValues();
+                getCloudDiscoveryMetadataFromHardcodedValues(
+                    this.canonicalAuthority
+                );
             if (hardcodedMetadata) {
                 this.logger.verbose(
                     "Found cloud discovery metadata from hardcoded values."
@@ -937,11 +915,10 @@ export class Authority {
                 const parsedResponse = JSON.parse(
                     this.authorityOptions.cloudDiscoveryMetadata
                 ) as CloudInstanceDiscoveryResponse;
-                const metadata =
-                    Authority.getCloudDiscoveryMetadataFromNetworkResponse(
-                        parsedResponse.metadata,
-                        this.hostnameAndPort
-                    );
+                const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
+                    parsedResponse.metadata,
+                    this.hostnameAndPort
+                );
                 this.logger.verbose("Parsed the cloud discovery metadata.");
                 if (metadata) {
                     this.logger.verbose(
@@ -1047,7 +1024,7 @@ export class Authority {
             this.logger.verbose(
                 "Attempting to find a match between the developer's authority and the CloudInstanceDiscoveryMetadata returned from the network request."
             );
-            match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
+            match = getCloudDiscoveryMetadataFromNetworkResponse(
                 metadata,
                 this.hostnameAndPort
             );
@@ -1080,24 +1057,6 @@ export class Authority {
             );
         }
         return match;
-    }
-
-    /**
-     * Get cloud discovery metadata for common authorities
-     */
-    private getCloudDiscoveryMetadataFromHardcodedValues(): CloudDiscoveryMetadata | null {
-        if (this.canonicalAuthority in InstanceDiscoveryMetadata) {
-            const hardcodedMetadataResponse =
-                InstanceDiscoveryMetadata[this.canonicalAuthority];
-            const metadata =
-                Authority.getCloudDiscoveryMetadataFromNetworkResponse(
-                    hardcodedMetadataResponse.metadata,
-                    this.hostnameAndPort
-                );
-            return metadata;
-        }
-
-        return null;
     }
 
     /**
@@ -1154,25 +1113,6 @@ export class Authority {
             preferred_cache: host,
             aliases: [host],
         };
-    }
-
-    /**
-     * Searches instance discovery network response for the entry that contains the host in the aliases list
-     * @param response
-     * @param authority
-     */
-    static getCloudDiscoveryMetadataFromNetworkResponse(
-        response: CloudDiscoveryMetadata[],
-        authority: string
-    ): CloudDiscoveryMetadata | null {
-        for (let i = 0; i < response.length; i++) {
-            const metadata = response[i];
-            if (metadata.aliases.indexOf(authority) > -1) {
-                return metadata;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -1294,9 +1234,7 @@ export class Authority {
      * @param authority
      */
     static transformCIAMAuthority(authority: string): string {
-        let ciamAuthority = authority.endsWith(Constants.FORWARD_SLASH)
-            ? authority
-            : `${authority}${Constants.FORWARD_SLASH}`;
+        let ciamAuthority = authority;
         const authorityUrl = new UrlString(authority);
         const authorityUrlComponents = authorityUrl.getUrlComponents();
 
@@ -1330,4 +1268,36 @@ export class Authority {
             Constants.FORWARD_SLASH
         );
     }
+}
+
+export function formatAuthorityUri(authorityUri: string): string {
+    return authorityUri.endsWith(Constants.FORWARD_SLASH)
+        ? authorityUri
+        : `${authorityUri}${Constants.FORWARD_SLASH}`;
+}
+
+export function buildStaticAuthorityOptions(
+    authOptions: Partial<AuthorityOptions>
+): StaticAuthorityOptions {
+    const rawCloudDiscoveryMetadata = authOptions.cloudDiscoveryMetadata;
+    let cloudDiscoveryMetadata: CloudDiscoveryMetadata[] | undefined =
+        undefined;
+    if (rawCloudDiscoveryMetadata) {
+        try {
+            cloudDiscoveryMetadata = JSON.parse(
+                rawCloudDiscoveryMetadata
+            ).metadata;
+        } catch (e) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
+            );
+        }
+    }
+    return {
+        canonicalAuthority: authOptions.authority
+            ? formatAuthorityUri(authOptions.authority)
+            : undefined,
+        knownAuthorities: authOptions.knownAuthorities,
+        cloudDiscoveryMetadata: cloudDiscoveryMetadata,
+    };
 }

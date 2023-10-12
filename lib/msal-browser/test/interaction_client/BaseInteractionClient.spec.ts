@@ -176,7 +176,7 @@ describe("BaseInteractionClient", () => {
 
         afterEach(() => {
             window.sessionStorage.clear();
-            jest.clearAllMocks();
+            jest.restoreAllMocks();
         });
 
         it("Removes all accounts from cache if no account provided", async () => {

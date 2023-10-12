@@ -181,8 +181,6 @@ export class AccountEntity {
             accountDetails.idTokenClaims.tid ||
             Constants.EMPTY_STRING;
 
-        account.idTokenClaims = accountDetails.idTokenClaims;
-
         // How do you account for MSA CID here?
         account.localAccountId =
             clientInfo?.uid ||
@@ -236,7 +234,6 @@ export class AccountEntity {
 
         account.username = accountInfo.username;
         account.name = accountInfo.name;
-        account.idTokenClaims = accountInfo.idTokenClaims;
 
         account.cloudGraphHostName = cloudGraphHostName;
         account.msGraphHost = msGraphHost;

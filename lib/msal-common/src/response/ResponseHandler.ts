@@ -44,6 +44,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient"
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
+import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * Class that handles response parsing.
@@ -642,14 +643,19 @@ export class ResponseHandler {
                 serverTokenResponse?.spa_accountid;
         }
 
+        const accountInfo: AccountInfo | null = cacheRecord.account
+            ? {
+                  ...cacheRecord.account.getAccountInfo(),
+                  idTokenClaims,
+              }
+            : null;
+
         return {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes,
-            account: cacheRecord.account
-                ? cacheRecord.account.getAccountInfo()
-                : null,
+            account: accountInfo,
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,

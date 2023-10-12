@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Fix PCA test mocks",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

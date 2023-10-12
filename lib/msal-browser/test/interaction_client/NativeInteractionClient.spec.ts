@@ -61,7 +61,10 @@ testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
 testAccountEntity.nativeAccountId = "nativeAccountId";
 
-const testAccountInfo: AccountInfo = testAccountEntity.getAccountInfo();
+const testAccountInfo: AccountInfo = {
+    ...testAccountEntity.getAccountInfo(),
+    idTokenClaims: ID_TOKEN_CLAIMS,
+};
 
 const testIdToken: IdTokenEntity = new IdTokenEntity();
 testIdToken.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
@@ -178,8 +181,8 @@ describe("NativeInteractionClient Tests", () => {
         };
 
         sinon
-            .stub(CacheManager.prototype, "getAccountInfoFilteredBy")
-            .returns({ ...testAccountInfo, idTokenClaims: ID_TOKEN_CLAIMS });
+            .stub(CacheManager.prototype, "getBaseAccountInfo")
+            .returns(testAccountInfo);
 
         sinon
             .stub(CacheManager.prototype, "readCacheRecord")
@@ -197,9 +200,7 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
             expect(response.scopes).toEqual(TEST_CONFIG.DEFAULT_SCOPES);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
-            expect(response.account).toEqual(
-                testAccountEntity.getAccountInfo()
-            );
+            expect(response.account).toEqual(testAccountInfo);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
     });

@@ -35,6 +35,7 @@ import {
     ClientAuthErrorCodes,
     PerformanceEvents,
     IPerformanceClient,
+    StaticAuthorityOptions,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import {
@@ -85,9 +86,10 @@ export class BrowserCacheManager extends CacheManager {
         clientId: string,
         cacheConfig: Required<CacheOptions>,
         cryptoImpl: ICrypto,
-        logger: Logger
+        logger: Logger,
+        staticAuthorityOptions?: StaticAuthorityOptions
     ) {
-        super(clientId, cryptoImpl, logger);
+        super(clientId, cryptoImpl, logger, staticAuthorityOptions);
         this.cacheConfig = cacheConfig;
         this.logger = logger;
         this.internalStorage = new MemoryStorage();
@@ -1098,6 +1100,7 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     *<<<<<<< HEAD
      * Checks the cache for accounts matching loginHint or SID
      * @param loginHint
      * @param sid
@@ -1133,6 +1136,8 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     *=======
+     *>>>>>>> cached-account-change
      * fetch throttling entity from the platform cache
      * @param throttlingCacheKey
      */

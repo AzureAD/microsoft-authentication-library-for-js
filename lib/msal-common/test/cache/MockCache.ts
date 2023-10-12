@@ -13,18 +13,29 @@ import {
     IdTokenEntity,
     RefreshTokenEntity,
     Logger,
+    StaticAuthorityOptions,
 } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
-import { TEST_TOKENS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
+import {
+    TEST_TOKENS,
+    TEST_CRYPTO_VALUES,
+    ID_TOKEN_CLAIMS,
+    ID_TOKEN_ALT_CLAIMS,
+} from "../test_kit/StringConstants";
 
 export class MockCache {
     cacheManager: MockStorageClass;
 
-    constructor(clientId: string, cryptoImpl: ICrypto) {
+    constructor(
+        clientId: string,
+        cryptoImpl: ICrypto,
+        staticAuthorityOptions?: StaticAuthorityOptions
+    ) {
         this.cacheManager = new MockStorageClass(
             clientId,
             cryptoImpl,
-            new Logger({})
+            new Logger({}),
+            staticAuthorityOptions
         );
     }
 
@@ -48,7 +59,7 @@ export class MockCache {
         const accountData = {
             username: "John Doe",
             localAccountId: "object1234",
-            realm: "utid",
+            realm: ID_TOKEN_CLAIMS.tid,
             environment: "login.microsoftonline.com",
             homeAccountId: "uid.utid",
             authorityType: "MSSTS",
@@ -60,7 +71,7 @@ export class MockCache {
         const accountDataWithNativeAccountId = {
             username: "Jane Doe",
             localAccountId: "object1234",
-            realm: "utid2",
+            realm: ID_TOKEN_ALT_CLAIMS.tid,
             environment: "login.windows.net",
             homeAccountId: "uid.utid2",
             authorityType: "MSSTS",
@@ -77,7 +88,7 @@ export class MockCache {
     // create id token entries in the cache
     createIdTokenEntries(): void {
         const idTokenData = {
-            realm: "utid",
+            realm: ID_TOKEN_CLAIMS.tid,
             environment: "login.microsoftonline.com",
             credentialType: "IdToken",
             secret: TEST_TOKENS.IDTOKEN_V2,
@@ -88,7 +99,7 @@ export class MockCache {
         this.cacheManager.setIdTokenCredential(idToken);
 
         const idTokenData2 = {
-            realm: "utid2",
+            realm: ID_TOKEN_ALT_CLAIMS.tid,
             environment: "login.windows.net",
             credentialType: "IdToken",
             secret: TEST_TOKENS.IDTOKEN_V2_ALT,

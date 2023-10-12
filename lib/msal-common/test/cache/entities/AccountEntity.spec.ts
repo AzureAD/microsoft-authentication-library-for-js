@@ -25,6 +25,7 @@ import { ProtocolMode } from "../../../src/authority/ProtocolMode";
 import { LogLevel, Logger } from "../../../src/logger/Logger";
 import { Authority } from "../../../src/authority/Authority";
 import { AuthorityType } from "../../../src/authority/AuthorityType";
+import { TokenClaims } from "../../../src";
 
 const cryptoInterface: ICrypto = {
     createNewGuid(): string {
@@ -170,7 +171,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("create an Account with sub instead of oid as localAccountId", () => {
@@ -210,7 +210,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.sub);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("create an Account with emails claim instead of preferred_username claim", () => {
@@ -249,7 +248,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("create an Account no preferred_username or emails claim", () => {
@@ -297,7 +295,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("creates a generic account", () => {
@@ -350,7 +347,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
         expect(acc.authorityType).toBe(CacheAccountType.GENERIC_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("verify if an object is an account entity", () => {
@@ -363,9 +359,10 @@ describe("AccountEntity.ts Unit Tests", () => {
 
     describe("accountInfoIsEqual()", () => {
         let acc: AccountEntity;
+        let idTokenClaims: TokenClaims;
         beforeEach(() => {
             // Set up stubs
-            const idTokenClaims = {
+            idTokenClaims = {
                 ver: "2.0",
                 iat: 1536361411,
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -407,7 +404,10 @@ describe("AccountEntity.ts Unit Tests", () => {
         });
 
         it("returns false if two account info objects represent the same user but have different iat claims", () => {
-            const acc1: AccountInfo = acc.getAccountInfo();
+            const acc1: AccountInfo = {
+                ...acc.getAccountInfo(),
+                idTokenClaims: idTokenClaims,
+            };
             const acc2: AccountInfo = {
                 username: acc1.username,
                 homeAccountId: acc1.homeAccountId,
@@ -449,7 +449,10 @@ describe("AccountEntity.ts Unit Tests", () => {
         });
 
         it("returns false if two account info objects represent the same user but have different nonce claims", () => {
-            const acc1: AccountInfo = acc.getAccountInfo();
+            const acc1: AccountInfo = {
+                ...acc.getAccountInfo(),
+                idTokenClaims: idTokenClaims,
+            };
             const acc2: AccountInfo = {
                 username: acc1.username,
                 homeAccountId: acc1.homeAccountId,
@@ -491,7 +494,10 @@ describe("AccountEntity.ts Unit Tests", () => {
         });
 
         it("returns false if required AccountInfo parameters are not equal", () => {
-            const acc1: AccountInfo = acc.getAccountInfo();
+            const acc1: AccountInfo = {
+                ...acc.getAccountInfo(),
+                idTokenClaims: idTokenClaims,
+            };
             const acc2: AccountInfo = { ...acc1 };
             const acc3: AccountInfo = { ...acc1 };
             const acc4: AccountInfo = { ...acc1 };
@@ -628,7 +634,6 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
         expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("creates a generic ADFS account without OID", () => {
@@ -681,6 +686,5 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(acc.localAccountId).toBe(idTokenClaims.sub);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 });
