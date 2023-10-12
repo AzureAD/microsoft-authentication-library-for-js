@@ -33,7 +33,10 @@ import { ApiId, WrapperSKU, InteractionType } from "../utils/BrowserConstants";
 import { IController } from "./IController";
 import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext";
 import { CryptoOps } from "../crypto/CryptoOps";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import {
+    blockAPICallsBeforeInitialize,
+    blockNonBrowserEnvironment,
+} from "../utils/BrowserUtils";
 import { EventHandler } from "../event/EventHandler";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
@@ -232,30 +235,30 @@ export class UnknownOperatingContextController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<AuthenticationResult>;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenRedirect(request: RedirectRequest): Promise<void> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return Promise.resolve();
     }
     acquireTokenSilent(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<AuthenticationResult>;
     }
     acquireTokenByCode(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<AuthenticationResult>;
     }
     acquireTokenNative(
@@ -278,8 +281,8 @@ export class UnknownOperatingContextController implements IController {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         accountId?: string | undefined
     ): Promise<AuthenticationResult> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<AuthenticationResult>;
     }
     acquireTokenByRefreshToken(
@@ -288,8 +291,8 @@ export class UnknownOperatingContextController implements IController {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<AuthenticationResult>;
     }
     addEventCallback(callback: EventCallbackFunction): string | null {
@@ -300,66 +303,66 @@ export class UnknownOperatingContextController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return "";
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     removePerformanceCallback(callbackId: string): boolean {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return true;
     }
     enableAccountStorageEvents(): void {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
     }
     disableAccountStorageEvents(): void {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
     }
 
     handleRedirectPromise(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         hash?: string | undefined
     ): Promise<AuthenticationResult | null> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
+        blockAPICallsBeforeInitialize(this.initialized);
         return Promise.resolve(null);
     }
     loginPopup(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         request?: PopupRequest | undefined
     ): Promise<AuthenticationResult> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<AuthenticationResult>;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<void>;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     logout(logoutRequest?: EndSessionRequest | undefined): Promise<void> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<void>;
     }
     logoutRedirect(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         logoutRequest?: EndSessionRequest | undefined
     ): Promise<void> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<void>;
     }
     logoutPopup(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         logoutRequest?: EndSessionPopupRequest | undefined
     ): Promise<void> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<void>;
     }
     ssoSilent(
@@ -375,13 +378,13 @@ export class UnknownOperatingContextController implements IController {
             >
         >
     ): Promise<AuthenticationResult> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Promise<AuthenticationResult>;
     }
     getTokenCache(): ITokenCache {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as ITokenCache;
     }
     getLogger(): Logger {
@@ -389,17 +392,17 @@ export class UnknownOperatingContextController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setLogger(logger: Logger): void {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setActiveAccount(account: AccountInfo | null): void {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
     }
     getActiveAccount(): AccountInfo | null {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return null;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -408,30 +411,30 @@ export class UnknownOperatingContextController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setNavigationClient(navigationClient: INavigationClient): void {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
     }
     getConfiguration(): BrowserConfiguration {
         return this.config;
     }
     isBrowserEnv(): boolean {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return true;
     }
     getBrowserCrypto(): ICrypto {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as ICrypto;
     }
     getPerformanceClient(): IPerformanceClient {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as IPerformanceClient;
     }
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return {} as Map<string, Promise<AuthenticationResult | null>>;
     }
     preflightBrowserEnvironmentCheck(
@@ -440,14 +443,14 @@ export class UnknownOperatingContextController implements IController {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         isAppEmbedded?: boolean | undefined
     ): void {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -461,7 +464,7 @@ export class UnknownOperatingContextController implements IController {
             | RedirectRequest
             | PopupRequest
     ): Promise<void> {
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment(this.isBrowserEnvironment);
     }
 }
