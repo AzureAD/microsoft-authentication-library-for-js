@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697063251372,
+  "lastUpdate": 1697071828626,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1482,6 +1482,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.36%",
             "unit": "ops/sec",
             "extra": "227 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0f5e6c2142889ea9f43d808f270aec9264afd363",
+          "message": "Build account objects from cached ID Token (#6529)\n\nThis PR:\r\n\r\n- Removes ID token claims from cached account entities\r\n- Refactors `getAllAccounts` to only use `getAccountsFilteredBy` in\r\norder to remove duplicated logic\r\n- Adds `staticAuthorityOptions` to CacheManager so environment matching\r\ncan work in cases where `resolveEndpointsAsync` hasn't resolved and\r\nthere is no authority metadata in memory\r\n- Refactors `Authority.getCloudDiscoveryMetadataFromHardCodedSources`\r\ninto an exported function and moves it into `AuthorityMetadata` so it\r\ncan be reused in environment matching\r\n- Fixes #6228\r\n\r\n---------\r\n\r\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2023-10-11T17:45:09-07:00",
+          "tree_id": "e808873cddca83a02ce5fd3da05b8201ba1b94da",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/0f5e6c2142889ea9f43d808f270aec9264afd363"
+        },
+        "date": 1697071826892,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 135795,
+            "range": "±1.59%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 129631,
+            "range": "±1.51%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
           }
         ]
       }
