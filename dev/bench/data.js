@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697071828626,
+  "lastUpdate": 1697142521459,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1520,6 +1520,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.51%",
             "unit": "ops/sec",
             "extra": "226 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "487be359ff08d4c8fc82a7232d04048172023409",
+          "message": "Replace custom encoder with TextEncoder in code challenge generator (#6560)\n\nReplaces custom encoding implementation with browser provided API which\r\nis much faster.\r\n\r\nOur custom decoding implementation is not used anywhere so that has been\r\nremoved as well.",
+          "timestamp": "2023-10-12T13:23:20-07:00",
+          "tree_id": "f3399a19e5d556490765952c9afc195ce800a291",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/487be359ff08d4c8fc82a7232d04048172023409"
+        },
+        "date": 1697142519939,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 146903,
+            "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 146646,
+            "range": "±1.54%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
