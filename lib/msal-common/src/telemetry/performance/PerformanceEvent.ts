@@ -101,8 +101,10 @@ export const PerformanceEvents = {
     /**
      * Time spent sending/waiting for the response of a request to the token endpoint
      */
-    BaseClientExecutePostToTokenEndpoint:
-        "baseClientExecutePostToTokenEndpoint",
+    RefreshTokenClientExecutePostToTokenEndpoint:
+        "refreshTokenClientExecutePostToTokenEndpoint",
+    AuthorizationCodeClientExecutePostToTokenEndpoint:
+        "authorizationCodeClientExecutePostToTokenEndpoint",
     /**
      * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
      */
@@ -150,6 +152,9 @@ export const PerformanceEvents = {
      * Internal API for acquiring token from cache
      */
     AcquireTokenFromCache: "acquireTokenFromCache",
+    SilentFlowClientAcquireCachedToken: "silentFlowClientAcquireCachedToken",
+    SilentFlowClientGenerateResultFromCacheRecord:
+        "silentFlowClientGenerateResultFromCacheRecord",
 
     /**
      * acquireTokenBySilentIframe (msal-browser).
@@ -270,6 +275,7 @@ export const PerformanceEvents = {
      * Cache operations
      */
     ClearTokensAndKeysWithClaims: "clearTokensAndKeysWithClaims",
+    CacheManagerGetRefreshToken: "cacheManagerGetRefreshToken",
 
     /**
      * Crypto Operations
@@ -444,6 +450,12 @@ export type PerformanceEvent = {
      * @type {?number}
      */
     cacheLookupPolicy?: number | undefined;
+
+    /**
+     * Cache Outcome
+     * @type {?number}
+     */
+    cacheOutcome?: number;
 
     /**
      * Amount of time spent in the JS queue in milliseconds.
