@@ -42,7 +42,7 @@ export type AccountInfo = {
 export type ActiveAccountFilters = {
     homeAccountId: string;
     localAccountId: string;
-    tenantId: string;
+    tenantId?: string;
 };
 
 /**
