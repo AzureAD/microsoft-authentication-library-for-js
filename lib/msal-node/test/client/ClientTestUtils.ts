@@ -35,6 +35,7 @@ import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_CRYPTO_VALUES,
+    TEST_DATA_CLIENT_INFO,
     TEST_POP_VALUES,
     TEST_TOKENS,
 } from "../test_kit/StringConstants";
@@ -216,6 +217,8 @@ export const mockCrypto = {
                 return TEST_POP_VALUES.DECODED_REQ_CNF;
             case TEST_TOKENS.POP_TOKEN_PAYLOAD:
                 return TEST_TOKENS.DECODED_POP_TOKEN_PAYLOAD;
+            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             default:
                 return input;
         }
