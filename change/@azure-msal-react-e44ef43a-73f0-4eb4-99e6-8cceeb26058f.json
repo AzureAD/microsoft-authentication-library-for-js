@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add calls to initialize the PCA prior to using it in some tests.",
+  "packageName": "@azure/msal-react",
+  "email": "email not defined",
+  "dependentChangeType": "patch"
+}
