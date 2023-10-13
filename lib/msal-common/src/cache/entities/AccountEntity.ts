@@ -94,6 +94,13 @@ export class AccountEntity {
     }
 
     /**
+     * Returns true if the account entity is in single tenant format (outdated), false otherwise
+     */
+    isSingleTenant(): boolean {
+        return !this.tenants;
+    }
+
+    /**
      * Generates account key from interface
      * @param accountInterface
      */

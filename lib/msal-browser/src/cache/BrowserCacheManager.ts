@@ -421,10 +421,36 @@ export class BrowserCacheManager extends CacheManager {
             return null;
         }
 
-        return CacheManager.toObject<AccountEntity>(
+        const accountEntity = CacheManager.toObject<AccountEntity>(
             new AccountEntity(),
             parsedAccount
         );
+
+        return accountEntity.isSingleTenant()
+            ? this.updateOutdatedCachedAccount(accountKey, accountEntity)
+            : accountEntity;
+    }
+
+    /**
+     * Replaces the single-tenant account with a new account object that contains the array of tenants.
+     * Returns the updated account entity.
+     * @param accountKey
+     * @param accountEntity
+     * @returns
+     */
+    private updateOutdatedCachedAccount(
+        accountKey: string,
+        accountEntity: AccountEntity
+    ): AccountEntity {
+        const updatedAccount = Object.assign(new AccountEntity(), {
+            ...accountEntity,
+            tenants: [accountEntity.realm],
+        });
+        this.removeItem(accountKey);
+        this.removeAccountKeyFromMap(accountKey);
+        this.setAccount(updatedAccount);
+        this.logger.verbose("Updated an outdated account entity in the cache");
+        return updatedAccount;
     }
 
     /**
