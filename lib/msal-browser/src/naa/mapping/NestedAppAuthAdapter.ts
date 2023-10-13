@@ -217,20 +217,14 @@ export class NestedAppAuthAdapter {
         if (isBridgeError(error)) {
             switch (error.status) {
                 case BridgeStatusCode.USER_CANCEL:
-                    return new ClientAuthError(
-                        ClientAuthErrorCodes.userCanceled
-                    );
+                    return new ClientAuthError("user_cancelled");
                 case BridgeStatusCode.NO_NETWORK:
-                    return new ClientAuthError(
-                        ClientAuthErrorCodes.noNetworkConnectivity
-                    );
+                    return new ClientAuthError("no_network_connectivity");
                 case BridgeStatusCode.ACCOUNT_UNAVAILABLE:
-                    return new ClientAuthError(
-                        ClientAuthErrorCodes.noAccountFound
-                    );
+                    return new ClientAuthError("no_account_found");
                 case BridgeStatusCode.DISABLED:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.nestedAppAuthBridgeDisabled
+                        "nested_app_auth_bridge_disabled"
                     );
                 case BridgeStatusCode.NESTED_APP_AUTH_UNAVAILABLE:
                     return new ClientAuthError(error.code, error.description);
