@@ -20,7 +20,6 @@ import {
     Logger,
     AuthToken,
     TokenClaims,
-    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { isBridgeError } from "../BridgeError";
 import { BridgeStatusCode } from "../BridgeStatusCode";
