@@ -25,14 +25,21 @@ import {
     AccountInfo,
 } from "@azure/msal-common";
 
-const testAccountEntity: AccountEntity = new AccountEntity();
-testAccountEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
-testAccountEntity.environment = "login.microsoftonline.com";
-testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
-testAccountEntity.name = ID_TOKEN_CLAIMS.name;
-testAccountEntity.authorityType = "MSSTS";
+const testAccount: AccountInfo = {
+    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
+    environment: "login.microsoftonline.com",
+    tenantId: ID_TOKEN_CLAIMS.tid,
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    localAccountId: ID_TOKEN_CLAIMS.oid,
+    idTokenClaims: ID_TOKEN_CLAIMS,
+    name: ID_TOKEN_CLAIMS.name,
+    authorityType: "MSSTS",
+    nativeAccountId: undefined,
+    tenants: [ID_TOKEN_CLAIMS.tid],
+};
+
+const testAccountEntity: AccountEntity =
+    AccountEntity.createFromAccountInfo(testAccount);
 
 const testIdToken: IdTokenEntity = new IdTokenEntity();
 testIdToken.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
@@ -61,18 +68,6 @@ testRefreshTokenEntity.environment = testAccountEntity.environment;
 testRefreshTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
 testRefreshTokenEntity.secret = TEST_TOKENS.REFRESH_TOKEN;
 testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
-
-const testAccount: AccountInfo = {
-    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
-    environment: testAccountEntity.environment,
-    tenantId: ID_TOKEN_CLAIMS.tid,
-    username: ID_TOKEN_CLAIMS.preferred_username,
-    localAccountId: ID_TOKEN_CLAIMS.oid,
-    idTokenClaims: ID_TOKEN_CLAIMS,
-    name: ID_TOKEN_CLAIMS.name,
-    authorityType: "MSSTS",
-    nativeAccountId: undefined,
-};
 
 describe("SilentCacheClient", () => {
     let silentCacheClient: SilentCacheClient;

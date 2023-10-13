@@ -159,6 +159,7 @@ describe("Storage tests for msal-node: ", () => {
             homeAccountId: "uid1.utid1",
             authorityType: "MSSTS",
             clientInfo: "eyJ1aWQiOiJ1aWQxIiwgInV0aWQiOiJ1dGlkMSJ9",
+            tenants: ["samplerealm"],
         };
 
         let mockAccountEntity = CacheManager.toObject(
@@ -170,6 +171,48 @@ describe("Storage tests for msal-node: ", () => {
         expect(
             nodeStorage.getAccount(mockAccountEntity.generateAccountKey())
         ).toEqual(mockAccountEntity);
+    });
+
+    it("getAccount() updates an outdated (single-tenant) account cache entry", () => {
+        const nodeStorage = new NodeStorage(
+            logger,
+            clientId,
+            DEFAULT_CRYPTO_IMPLEMENTATION
+        );
+        nodeStorage.setInMemoryCache(inMemoryCache);
+        const outdatedAccountKey = "uid.utid3-login.microsoftonline.com-utid3";
+
+        const outdatedAccountData = {
+            username: "Jane Doe",
+            localAccountId: "object5678",
+            realm: "utid3",
+            environment: "login.microsoftonline.com",
+            homeAccountId: "uid.utid3",
+            authorityType: "MSSTS",
+            clientInfo: "eyJ1aWQiOiJ1aWQxIiwgInV0aWQiOiJ1dGlkMSJ9",
+        };
+
+        let outdatedMockAccountEntity = CacheManager.toObject(
+            new AccountEntity(),
+            outdatedAccountData
+        );
+
+        let updatedMockAccountEntity = CacheManager.toObject(
+            new AccountEntity(),
+            { ...outdatedAccountData, tenants: ["utid3"] }
+        );
+        const updatedAccountKey = updatedMockAccountEntity.generateAccountKey();
+        expect(outdatedMockAccountEntity).toBeInstanceOf(AccountEntity);
+        // Set an outdated account
+        nodeStorage.setAccount(outdatedMockAccountEntity);
+        expect(nodeStorage.getItem(outdatedAccountKey)).toEqual(
+            outdatedAccountData
+        );
+
+        // Get account should update and return updated account
+        expect(nodeStorage.getAccount(updatedAccountKey)).toEqual(
+            updatedMockAccountEntity
+        );
     });
 
     it("setCache() and getCache() tests - tests for an accessToken", () => {
@@ -339,8 +382,6 @@ describe("Storage tests for msal-node: ", () => {
             DEFAULT_CRYPTO_IMPLEMENTATION
         );
         nodeStorage.setInMemoryCache(inMemoryCache);
-
-        console.log(nodeStorage.getKeys().includes(ACCOUNT_KEY));
         expect(nodeStorage.getKeys().includes(ACCOUNT_KEY)).toBeTruthy();
     });
 

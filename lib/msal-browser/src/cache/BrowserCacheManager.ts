@@ -426,31 +426,7 @@ export class BrowserCacheManager extends CacheManager {
             parsedAccount
         );
 
-        return accountEntity.isSingleTenant()
-            ? this.updateOutdatedCachedAccount(accountKey, accountEntity)
-            : accountEntity;
-    }
-
-    /**
-     * Replaces the single-tenant account with a new account object that contains the array of tenants.
-     * Returns the updated account entity.
-     * @param accountKey
-     * @param accountEntity
-     * @returns
-     */
-    private updateOutdatedCachedAccount(
-        accountKey: string,
-        accountEntity: AccountEntity
-    ): AccountEntity {
-        const updatedAccount = Object.assign(new AccountEntity(), {
-            ...accountEntity,
-            tenants: [accountEntity.realm],
-        });
-        this.removeItem(accountKey);
-        this.removeAccountKeyFromMap(accountKey);
-        this.setAccount(updatedAccount);
-        this.logger.verbose("Updated an outdated account entity in the cache");
-        return updatedAccount;
+        return this.updateOutdatedCachedAccount(accountKey, accountEntity);
     }
 
     /**
@@ -542,6 +518,15 @@ export class BrowserCacheManager extends CacheManager {
     async removeAccount(key: string): Promise<void> {
         void super.removeAccount(key);
         this.removeAccountKeyFromMap(key);
+    }
+
+    /**
+     * Remove account entity from the platform cache if it's outdated
+     * @param accountKey
+     */
+    removeOutdatedAccount(accountKey: string): void {
+        this.removeItem(accountKey);
+        this.removeAccountKeyFromMap(accountKey);
     }
 
     /**

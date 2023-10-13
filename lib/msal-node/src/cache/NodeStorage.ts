@@ -219,9 +219,12 @@ export class NodeStorage extends CacheManager {
      * @param accountKey - lookup key to fetch cache type AccountEntity
      */
     getAccount(accountKey: string): AccountEntity | null {
-        const account = this.getItem(accountKey) as AccountEntity;
-        if (AccountEntity.isAccountEntity(account)) {
-            return account;
+        const account = this.getItem(accountKey);
+
+        const accountEntity = Object.assign(new AccountEntity(), account);
+
+        if (AccountEntity.isAccountEntity(accountEntity)) {
+            return this.updateOutdatedCachedAccount(accountKey, accountEntity);
         }
         return null;
     }
@@ -454,6 +457,14 @@ export class NodeStorage extends CacheManager {
             this.emitChange();
         }
         return result;
+    }
+
+    /**
+     * Remove account entity from the platform cache if it's outdated
+     * @param accountKey
+     */
+    removeOutdatedAccount(accountKey: string): void {
+        this.removeItem(accountKey);
     }
 
     /**

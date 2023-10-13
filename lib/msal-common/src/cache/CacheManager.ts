@@ -87,6 +87,11 @@ export abstract class CacheManager implements ICacheManager {
     abstract setAccount(account: AccountEntity): void;
 
     /**
+     * remove account entity from the platform cache if it's outdated
+     */
+    abstract removeOutdatedAccount(accountKey: string): void;
+
+    /**
      * fetch the idToken entity from the platform cache
      * @param idTokenKey
      */
@@ -859,6 +864,32 @@ export abstract class CacheManager implements ICacheManager {
         });
 
         await Promise.all(removedCredentials);
+    }
+
+    /**
+     * Replaces the single-tenant account with a new account object that contains the array of tenants.
+     * Returns the updated account entity.
+     * @param accountKey
+     * @param accountEntity
+     * @returns
+     */
+    protected updateOutdatedCachedAccount(
+        accountKey: string,
+        accountEntity: AccountEntity
+    ): AccountEntity {
+        if (accountEntity.isSingleTenant()) {
+            const updatedAccount = Object.assign(new AccountEntity(), {
+                ...accountEntity,
+                tenants: [accountEntity.realm],
+            });
+            this.removeOutdatedAccount(accountKey);
+            this.setAccount(updatedAccount);
+            this.commonLogger.verbose(
+                "Updated an outdated account entity in the cache"
+            );
+            return updatedAccount;
+        }
+        return accountEntity;
     }
 
     /**
@@ -1754,6 +1785,9 @@ export class DefaultStorageClass extends CacheManager {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     updateCredentialCacheKey(): string {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    }
+    removeOutdatedAccount(): void {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
 }

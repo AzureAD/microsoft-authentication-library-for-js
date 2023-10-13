@@ -70,6 +70,10 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
+    removeOutdatedAccount(accountKey: string): void {
+        delete this.store[accountKey];
+    }
+
     getAccountKeys(): string[] {
         return this.store[ACCOUNT_KEYS] || [];
     }
