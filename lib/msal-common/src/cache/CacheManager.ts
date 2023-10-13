@@ -32,7 +32,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError";
-import { AccountInfo } from "../account/AccountInfo";
+import { AccountInfo, updateTenantProfile } from "../account/AccountInfo";
 import { AppMetadataEntity } from "./entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "./entities/ThrottlingEntity";
@@ -325,10 +325,15 @@ export abstract class CacheManager implements ICacheManager {
         targetTenantId?: string,
         tenantProfileFilter?: TenantProfileFilter
     ): AccountInfo | null {
+        // At this point, accoutnInfo only contains base/home account data, so it's not a "real" account
         const accountInfo = accountEntity.getAccountInfo();
 
+        /**
+         * An ID token matching the account entity and tenant ID must exist in the cache
+         * for the account to be a valid authenticated tenant profile. No matching ID token
+         * means the account being requested doesn't technically exist in the cache.
+         */
         const idToken = this.getIdToken(accountInfo, undefined, targetTenantId);
-
         if (idToken) {
             const idTokenClaims = extractTokenClaims(
                 idToken.secret,
@@ -341,17 +346,11 @@ export abstract class CacheManager implements ICacheManager {
                     tenantProfileFilter
                 )
             ) {
-                return {
-                    ...accountInfo,
-                    idToken: idToken.secret,
-                    idTokenClaims: idTokenClaims,
-                    localAccountId:
-                        idTokenClaims.oid || accountInfo.localAccountId,
-                    name: idTokenClaims.name || accountInfo.name,
-                    tenantId: idTokenClaims.tid || accountInfo.tenantId,
-                };
+                return updateTenantProfile(accountInfo, idTokenClaims);
             }
         }
+
+        // Account matching all filters doesn't techincally exist in the cache, return null
         return null;
     }
 
@@ -482,7 +481,7 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * Retrieve accounts matching all provided filters; if no filter is set, get all accounts
+     * Retrieve account entities matching all provided tenant-agnostic filters; if no filter is set, get all account entities in the cache
      * Not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
      * @param accountFilter - An object containing Account properties to filter by
      */
@@ -882,7 +881,11 @@ export abstract class CacheManager implements ICacheManager {
                 ...accountEntity,
                 tenants: [accountEntity.realm],
             });
-            this.removeOutdatedAccount(accountKey);
+
+            // If the cache keys don't match, the key is also outdated and should be removed, if they match it's fine to just override the value
+            if (updatedAccount.generateAccountKey() !== accountKey) {
+                this.removeOutdatedAccount(accountKey);
+            }
             this.setAccount(updatedAccount);
             this.commonLogger.verbose(
                 "Updated an outdated account entity in the cache"

@@ -70,7 +70,6 @@ export function updateTenantProfile(
         }
 
         updatedAccountInfo.idTokenClaims = idTokenClaims;
-
         return updatedAccountInfo;
     }
 
