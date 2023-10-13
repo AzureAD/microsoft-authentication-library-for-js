@@ -89,6 +89,8 @@ export const ClientAuthErrorMessages = {
         "A tenant id - not common, organizations, or consumers - must be specified when using the client_credentials flow.",
     [ClientAuthErrorCodes.methodNotImplemented]:
         "This method has not been implemented",
+    [ClientAuthErrorCodes.nestedAppAuthBridgeDisabled]:
+        "The nested app auth bridge is disabled",
 };
 
 /**
@@ -304,6 +306,12 @@ export const ClientAuthErrorMessage = {
         code: ClientAuthErrorCodes.missingTenantIdError,
         desc: ClientAuthErrorMessages[
             ClientAuthErrorCodes.missingTenantIdError
+        ],
+    },
+    nestedAppAuthBridgeDisabled: {
+        code: ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
+        desc: ClientAuthErrorMessages[
+            ClientAuthErrorCodes.nestedAppAuthBridgeDisabled
         ],
     },
 };

@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -64,7 +63,8 @@ export async function sha256Digest(
         PerformanceEvents.Sha256Digest,
         correlationId
     );
-    const data = BrowserStringUtils.stringToUtf8Arr(dataString);
+    const encoder = new TextEncoder();
+    const data = encoder.encode(dataString);
     return window.crypto.subtle.digest(
         S256_HASH_ALG,
         data
