@@ -144,9 +144,15 @@ export abstract class BaseClient {
         headers: Record<string, string>,
         thumbprint: RequestThumbprint,
         correlationId: string,
-        queuedEvent: string
+        queuedEvent?: string
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        this.performanceClient?.addQueueMeasurement(queuedEvent, correlationId);
+        if (queuedEvent) {
+            this.performanceClient?.addQueueMeasurement(
+                queuedEvent,
+                correlationId
+            );
+        }
+
         const response =
             await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
                 thumbprint,

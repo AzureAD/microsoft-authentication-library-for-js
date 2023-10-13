@@ -14,10 +14,6 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError";
-import {
-    createClientConfigurationError,
-    ClientConfigurationErrorCodes,
-} from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheOutcome } from "../utils/Constants";
@@ -99,13 +95,6 @@ export class SilentFlowClient extends BaseClient {
             request.correlationId
         );
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
-
-        // Cannot renew token if no request object is given.
-        if (!request) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.tokenRequestEmpty
-            );
-        }
 
         if (
             request.forceRefresh ||
