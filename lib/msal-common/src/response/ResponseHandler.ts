@@ -523,7 +523,7 @@ export class ResponseHandler {
         authCodePayload?: AuthorizationCodePayload
     ): AccountEntity | undefined {
         this.logger.verbose("setCachedAccount called");
-        const responseTenantId = idTokenClaims.tid || Constants.EMPTY_STRING;
+        const responseTenantId = idTokenClaims.tid || "";
 
         // Check if base account is already cached
         const accountKeys = this.cacheStorage.getAccountKeys();

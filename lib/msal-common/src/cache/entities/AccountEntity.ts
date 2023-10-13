@@ -108,8 +108,8 @@ export class AccountEntity {
         const homeTenantId = accountInterface.homeAccountId.split(".")[1];
         const accountKey = [
             accountInterface.homeAccountId,
-            accountInterface.environment || Constants.EMPTY_STRING,
-            homeTenantId || accountInterface.tenantId || Constants.EMPTY_STRING,
+            accountInterface.environment || "",
+            homeTenantId || accountInterface.tenantId || "",
         ];
 
         return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -145,15 +145,8 @@ export class AccountEntity {
 
         let clientInfo: ClientInfo | undefined;
 
-        try {
-            if (accountDetails.clientInfo && cryptoObj) {
-                clientInfo = buildClientInfo(
-                    accountDetails.clientInfo,
-                    cryptoObj
-                );
-            }
-        } catch (e) {
-            throw e;
+        if (accountDetails.clientInfo && cryptoObj) {
+            clientInfo = buildClientInfo(accountDetails.clientInfo, cryptoObj);
         }
 
         account.clientInfo = accountDetails.clientInfo;
@@ -173,9 +166,7 @@ export class AccountEntity {
         account.environment = env;
         // non AAD scenarios can have empty realm
         account.realm =
-            clientInfo?.utid ||
-            accountDetails.idTokenClaims.tid ||
-            Constants.EMPTY_STRING;
+            clientInfo?.utid || accountDetails.idTokenClaims.tid || "";
 
         account.tenants = accountDetails.tenants || [];
 
@@ -184,7 +175,7 @@ export class AccountEntity {
             clientInfo?.uid ||
             accountDetails.idTokenClaims.oid ||
             accountDetails.idTokenClaims.sub ||
-            Constants.EMPTY_STRING;
+            "";
 
         /*
          * In B2C scenarios the emails claim is used instead of preferred_username and it is an array.
@@ -198,7 +189,7 @@ export class AccountEntity {
             ? accountDetails.idTokenClaims.emails[0]
             : null;
 
-        account.username = preferredUsername || email || Constants.EMPTY_STRING;
+        account.username = preferredUsername || email || "";
         account.name = accountDetails.idTokenClaims.name;
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
@@ -275,7 +266,7 @@ export class AccountEntity {
         }
 
         // default to "sub" claim
-        return idTokenClaims?.sub ? idTokenClaims.sub : Constants.EMPTY_STRING;
+        return idTokenClaims?.sub || "";
     }
 
     /**
