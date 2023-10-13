@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CacheAccountType, Constants } from "../../utils/Constants";
+import { Separators, CacheAccountType } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo";

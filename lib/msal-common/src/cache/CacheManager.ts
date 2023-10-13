@@ -1014,7 +1014,7 @@ export abstract class CacheManager implements ICacheManager {
             environment: account.environment,
             credentialType: CredentialType.ID_TOKEN,
             clientId: this.clientId,
-            realm: targetRealm || account.tenantId,
+            realm: targetRealm,
         };
 
         const idTokens: IdTokenEntity[] = this.getIdTokensByFilter(
@@ -1022,11 +1022,28 @@ export abstract class CacheManager implements ICacheManager {
             tokenKeys
         );
         const numIdTokens = idTokens.length;
-
         if (numIdTokens < 1) {
             this.commonLogger.info("CacheManager:getIdToken - No token found");
             return null;
         } else if (numIdTokens > 1) {
+            // Multiple tenant profiles and no tenant specified, pick home account
+            if (!targetRealm) {
+                const homeIdToken = idTokens.filter((idToken) => {
+                    return idToken.realm === account.tenantId;
+                })[0];
+                if (homeIdToken) {
+                    this.commonLogger.info(
+                        "CacheManager:getIdToken - Multiple id tokens found, defaulting to home tenant profile"
+                    );
+                    return homeIdToken;
+                } else {
+                    this.commonLogger.info(
+                        "CacheManager:getIdToken - Multiple id tokens found for account but none match account entity tenant id, returning first result"
+                    );
+                    return idTokens[0];
+                }
+            }
+            // Multiple tokens for a single tenant profile, remove all and return null
             this.commonLogger.info(
                 "CacheManager:getIdToken - Multiple id tokens found, clearing them"
             );
