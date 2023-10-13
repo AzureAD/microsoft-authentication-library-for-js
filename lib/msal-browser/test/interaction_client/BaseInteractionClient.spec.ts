@@ -44,9 +44,11 @@ describe("BaseInteractionClient", () => {
             },
         });
 
+        await pca.initialize();
+
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
-        await pca.initialize();
+
         // @ts-ignore
         testClient = new testInteractionClient(
             // @ts-ignore

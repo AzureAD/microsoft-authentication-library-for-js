@@ -39,7 +39,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         configuration: Configuration
     ): Promise<IPublicClientApplication> {
         const factory = new ControllerFactory(configuration);
-        const controller = await factory.createController();
+        const controller = await factory.createV3Controller();
         const pca = new PublicClientApplication(configuration, controller);
 
         return pca;
