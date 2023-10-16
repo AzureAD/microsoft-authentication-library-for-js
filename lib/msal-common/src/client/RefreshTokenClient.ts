@@ -46,7 +46,7 @@ import {
 } from "../error/InteractionRequiredAuthError";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { invokeAsync } from "../utils/FunctionWrappers";
+import { invoke, invokeAsync } from "../utils/FunctionWrappers";
 /**
  * OAuth2.0 refresh token client
  * @internal
@@ -196,10 +196,13 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         // fetches family RT or application RT based on FOCI value
-        const refreshToken = this.cacheManager.getRefreshToken(
-            request.account,
-            foci
-        );
+        const refreshToken = invoke(
+            this.cacheManager.getRefreshToken.bind(this.cacheManager),
+            PerformanceEvents.CacheManagerGetRefreshToken,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(request.account, foci);
 
         if (!refreshToken) {
             throw createInteractionRequiredAuthError(
@@ -274,11 +277,18 @@ export class RefreshTokenClient extends BaseClient {
 
         return invokeAsync(
             this.executePostToTokenEndpoint.bind(this),
-            PerformanceEvents.BaseClientExecutePostToTokenEndpoint,
+            PerformanceEvents.RefreshTokenClientExecutePostToTokenEndpoint,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
+        )(
+            endpoint,
+            requestBody,
+            headers,
+            thumbprint,
+            request.correlationId,
+            PerformanceEvents.RefreshTokenClientExecutePostToTokenEndpoint
+        );
     }
 
     /**

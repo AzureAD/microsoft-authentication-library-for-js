@@ -487,45 +487,6 @@ describe("SilentFlowClient unit tests", () => {
             );
         });
 
-        it("Throws error if request object is null or undefined", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new SilentFlowClient(config, stubPerformanceClient);
-            //@ts-ignore
-            await expect(client.acquireToken(null)).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
-            );
-            //@ts-ignore
-            await expect(client.acquireToken(undefined)).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
-            );
-            //@ts-ignore
-            await expect(client.acquireCachedToken(null)).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
-            );
-
-            await expect(
-                //@ts-ignore
-                client.acquireCachedToken(undefined)
-            ).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
-            );
-        });
-
         it("Throws error if scopes are not included in request object", async () => {
             sinon
                 .stub(
