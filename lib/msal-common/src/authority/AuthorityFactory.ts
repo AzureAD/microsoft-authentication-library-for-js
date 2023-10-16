@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Authority } from "./Authority";
+import { Authority, formatAuthorityUri } from "./Authority";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -45,9 +45,9 @@ export class AuthorityFactory {
             PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
             correlationId
         );
-
-        const authorityUriFinal =
-            Authority.transformCIAMAuthority(authorityUri);
+        const authorityUriFinal = Authority.transformCIAMAuthority(
+            formatAuthorityUri(authorityUri)
+        );
 
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority =

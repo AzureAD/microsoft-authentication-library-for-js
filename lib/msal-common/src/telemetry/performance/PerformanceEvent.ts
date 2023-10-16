@@ -101,8 +101,10 @@ export const PerformanceEvents = {
     /**
      * Time spent sending/waiting for the response of a request to the token endpoint
      */
-    BaseClientExecutePostToTokenEndpoint:
-        "baseClientExecutePostToTokenEndpoint",
+    RefreshTokenClientExecutePostToTokenEndpoint:
+        "refreshTokenClientExecutePostToTokenEndpoint",
+    AuthorizationCodeClientExecutePostToTokenEndpoint:
+        "authorizationCodeClientExecutePostToTokenEndpoint",
     /**
      * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
      */
@@ -150,6 +152,9 @@ export const PerformanceEvents = {
      * Internal API for acquiring token from cache
      */
     AcquireTokenFromCache: "acquireTokenFromCache",
+    SilentFlowClientAcquireCachedToken: "silentFlowClientAcquireCachedToken",
+    SilentFlowClientGenerateResultFromCacheRecord:
+        "silentFlowClientGenerateResultFromCacheRecord",
 
     /**
      * acquireTokenBySilentIframe (msal-browser).
@@ -231,6 +236,8 @@ export const PerformanceEvents = {
     AuthorityFactoryCreateDiscoveredInstance:
         "authorityFactoryCreateDiscoveredInstance",
     AuthorityResolveEndpointsAsync: "authorityResolveEndpointsAsync",
+    AuthorityResolveEndpointsFromLocalSources:
+        "authorityResolveEndpointsFromLocalSources",
     AuthorityGetCloudDiscoveryMetadataFromNetwork:
         "authorityGetCloudDiscoveryMetadataFromNetwork",
     AuthorityUpdateCloudDiscoveryMetadata:
@@ -271,6 +278,7 @@ export const PerformanceEvents = {
      * Cache operations
      */
     ClearTokensAndKeysWithClaims: "clearTokensAndKeysWithClaims",
+    CacheManagerGetRefreshToken: "cacheManagerGetRefreshToken",
 
     /**
      * Crypto Operations
@@ -447,6 +455,12 @@ export type PerformanceEvent = {
     cacheLookupPolicy?: number | undefined;
 
     /**
+     * Cache Outcome
+     * @type {?number}
+     */
+    cacheOutcome?: number;
+
+    /**
      * Amount of time spent in the JS queue in milliseconds.
      *
      * @type {?number}
@@ -539,6 +553,11 @@ export type PerformanceEvent = {
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
+
+    /**
+     * Nested App Auth Fields
+     */
+    nestedAppAuthRequest?: boolean;
 };
 
 export const IntFields: ReadonlySet<string> = new Set([

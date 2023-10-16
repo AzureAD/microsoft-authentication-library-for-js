@@ -22,6 +22,7 @@ import {
     InteractionRequiredAuthError,
     AccountEntity,
     AuthToken,
+    IdTokenEntity,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -71,7 +72,7 @@ describe("PublicClientApplication", () => {
     let appConfig: Configuration = {
         auth: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
-            authority: TEST_CONSTANTS.AUTHORITY,
+            authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
         },
     };
 
@@ -745,6 +746,17 @@ describe("PublicClientApplication", () => {
             // @ts-ignore
             authApp.storage.setAccount(accountEntity);
 
+            const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+                mockAccountInfo.homeAccountId,
+                mockAccountInfo.environment,
+                mockAuthenticationResult.idToken,
+                TEST_CONSTANTS.CLIENT_ID,
+                ID_TOKEN_CLAIMS.tid
+            );
+
+            // @ts-ignore
+            authApp.storage.setIdTokenCredential(idTokenEntity);
+
             const accountsBefore = await authApp.getAllAccounts();
             expect(accountsBefore.length).toBe(1);
 
@@ -819,6 +831,20 @@ describe("PublicClientApplication", () => {
 
             // @ts-ignore
             authApp.storage.setAccount(accountEntity);
+
+            // @ts-ignore
+            authApp.storage.setAccount(accountEntity);
+
+            const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+                mockAccountInfo.homeAccountId,
+                mockAccountInfo.environment,
+                mockAuthenticationResult.idToken,
+                TEST_CONSTANTS.CLIENT_ID,
+                ID_TOKEN_CLAIMS.tid
+            );
+
+            // @ts-ignore
+            authApp.storage.setIdTokenCredential(idTokenEntity);
 
             const accounts = await authApp.getAllAccounts();
             expect(accounts).toStrictEqual([mockAccountInfo]);

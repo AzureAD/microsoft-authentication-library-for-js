@@ -78,13 +78,14 @@ describe("SilentCacheClient", () => {
     let silentCacheClient: SilentCacheClient;
     let pca: PublicClientApplication;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
 
+        await pca.initialize();
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
         // @ts-ignore
@@ -158,8 +159,14 @@ describe("SilentCacheClient", () => {
         it("logout clears browser cache", async () => {
             // @ts-ignore
             pca.browserStorage.setAccount(testAccountEntity);
+            // @ts-ignore
+            pca.browserStorage.setIdTokenCredential(testIdToken);
+
             pca.setActiveAccount(testAccount);
-            expect(pca.getActiveAccount()).toEqual(testAccount);
+            expect(pca.getActiveAccount()).toEqual({
+                ...testAccount,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+            });
             silentCacheClient.logout({ account: testAccount });
             //@ts-ignore
             expect(pca.getActiveAccount()).toEqual(null);

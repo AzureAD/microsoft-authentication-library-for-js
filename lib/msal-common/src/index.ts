@@ -39,10 +39,15 @@ export {
     buildClientInfoFromHomeAccountId,
 } from "./account/ClientInfo";
 // Authority
-export { Authority } from "./authority/Authority";
+export {
+    Authority,
+    formatAuthorityUri,
+    buildStaticAuthorityOptions,
+} from "./authority/Authority";
 export {
     AuthorityOptions,
     AzureCloudInstance,
+    StaticAuthorityOptions,
 } from "./authority/AuthorityOptions";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";

@@ -29,6 +29,7 @@ import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
 import { Logger, LogLevel, UrlString } from "../../src";
 import { RegionDiscovery } from "../../src/authority/RegionDiscovery";
 import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata";
+import * as authorityMetadata from "../../src/authority/AuthorityMetadata";
 
 let mockStorage: MockStorageClass;
 
@@ -1772,7 +1773,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     );
 
                     getCloudDiscoveryMetadataFromHarcodedValuesSpy = jest.spyOn(
-                        Authority.prototype as any,
+                        authorityMetadata,
                         "getCloudDiscoveryMetadataFromHardcodedValues"
                     );
 
