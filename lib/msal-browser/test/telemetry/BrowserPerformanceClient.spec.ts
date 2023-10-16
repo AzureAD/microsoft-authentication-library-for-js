@@ -1,4 +1,14 @@
-import { PerformanceEvents } from "@azure/msal-common";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import {
+    ApplicationTelemetry,
+    Logger,
+    PerformanceEvents,
+} from "@azure/msal-common";
+import { name, version } from "../../src/packageMetadata";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 import { TEST_CONFIG } from "../utils/StringConstants";
 
