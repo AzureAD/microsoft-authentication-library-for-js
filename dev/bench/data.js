@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697491338097,
+  "lastUpdate": 1697492927734,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1634,6 +1634,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.51%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "31fb0a77a6bf9db77a41330fa09a76db4ff030c0",
+          "message": "More ATS instrumentation (#6562)\n\n- Adds measurement to track reason for a cache miss\r\n- Splits the execute post request measurement into separate measurements\r\nfor RT redemption versus Auth Code redemption\r\n- Adds additional measurements to break down caching",
+          "timestamp": "2023-10-16T21:43:19Z",
+          "tree_id": "c7d116768dfbc44ae085dcb0650ca4e6e4f53bff",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/31fb0a77a6bf9db77a41330fa09a76db4ff030c0"
+        },
+        "date": 1697492926383,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 120296,
+            "range": "±1.83%",
+            "unit": "ops/sec",
+            "extra": "209 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 119649,
+            "range": "±1.66%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
