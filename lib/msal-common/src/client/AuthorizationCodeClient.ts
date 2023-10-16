@@ -297,11 +297,18 @@ export class AuthorizationCodeClient extends BaseClient {
 
         return invokeAsync(
             this.executePostToTokenEndpoint.bind(this),
-            PerformanceEvents.BaseClientExecutePostToTokenEndpoint,
+            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
+        )(
+            endpoint,
+            requestBody,
+            headers,
+            thumbprint,
+            request.correlationId,
+            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint
+        );
     }
 
     /**
