@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697151819361,
+  "lastUpdate": 1697491338097,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1596,6 +1596,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.00%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shoatman@microsoft.com",
+            "name": "Shane Oatman",
+            "username": "shoatman"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d5ae4e0ea383a70cd74d75002b16d7583b2809e2",
+          "message": "addressing rollup issue based when using 2 outputs for one input (#6567)\n\nI saw random discussion about a problem with trying to output both cjs\r\nand umd at the same time. I split and the issues with the UMD output\r\nwent away. (no longer prefixing inlined dyanamic imports with \"index.\"\r\n\r\nI confirmed the UMD output no longer is prefixed.... let's see how the\r\nvarious builds do now.",
+          "timestamp": "2023-10-16T14:16:11-07:00",
+          "tree_id": "65fe5cb321904f433ad9852ba2a6c08294dff302",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d5ae4e0ea383a70cd74d75002b16d7583b2809e2"
+        },
+        "date": 1697491336514,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 124044,
+            "range": "±1.77%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 126021,
+            "range": "±1.51%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
