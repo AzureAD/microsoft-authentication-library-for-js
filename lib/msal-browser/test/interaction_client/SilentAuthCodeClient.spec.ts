@@ -26,7 +26,6 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
-import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -35,6 +34,7 @@ import {
     AuthorizationCodeRequest,
     AuthenticationResult,
 } from "../../src";
+import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
@@ -140,7 +140,10 @@ describe("SilentAuthCodeClient", () => {
                 .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
                 .resolves(testNavUrl);
             const handleCodeSpy = sinon
-                .stub(SilentHandler.prototype, "handleCodeResponseFromServer")
+                .stub(
+                    InteractionHandler.prototype,
+                    "handleCodeResponseFromServer"
+                )
                 .resolves(testTokenResponse);
 
             sinon
