@@ -30,6 +30,10 @@ export class SilentCacheClient extends StandardInteractionClient {
     async acquireToken(
         silentRequest: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.SilentCacheClientAcquireToken,
+            silentRequest.correlationId
+        );
         // Telemetry manager only used to increment cacheHits here
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow
@@ -43,9 +47,13 @@ export class SilentCacheClient extends StandardInteractionClient {
         this.logger.verbose("Silent auth client created");
 
         try {
-            const response = await silentAuthClient.acquireCachedToken(
-                silentRequest
-            );
+            const response = await invokeAsync(
+                silentAuthClient.acquireCachedToken.bind(silentAuthClient),
+                PerformanceEvents.SilentFlowClientAcquireCachedToken,
+                this.logger,
+                this.performanceClient,
+                silentRequest.correlationId
+            )(silentRequest);
             const authResponse = response[0] as AuthenticationResult;
 
             this.performanceClient.addFields(
