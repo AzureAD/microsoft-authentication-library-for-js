@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697492927734,
+  "lastUpdate": 1697568570185,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1672,6 +1672,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.66%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cfac159c239152524542e7fe6d76ca5e0b415b7f",
+          "message": "Instrument create and remove hidden iframe & refactor silent handler into exported functions (#6533)\n\n- Adds instrumentation for loadFrame, loadFrameSync and\r\nremoveHiddenIframe\r\n- Refactors SilentHandler into static functions\r\n- Refactors monitorIframeForHash to do less work inside setInterval",
+          "timestamp": "2023-10-17T11:43:16-07:00",
+          "tree_id": "ae8d9551c1730b32c4a0fd9f89a7f4d15f502c96",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/cfac159c239152524542e7fe6d76ca5e0b415b7f"
+        },
+        "date": 1697568567996,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 112893,
+            "range": "±2.02%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 113818,
+            "range": "±1.80%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
