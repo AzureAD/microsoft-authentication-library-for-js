@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Additional ATS instrumentation #6562",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

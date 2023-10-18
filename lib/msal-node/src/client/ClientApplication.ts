@@ -32,6 +32,7 @@ import {
     StringUtils,
     createClientAuthError,
     ClientAuthErrorCodes,
+    buildStaticAuthorityOptions,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -95,7 +96,8 @@ export abstract class ClientApplication {
         this.storage = new NodeStorage(
             this.logger,
             this.config.auth.clientId,
-            this.cryptoProvider
+            this.cryptoProvider,
+            buildStaticAuthorityOptions(this.config.auth)
         );
         this.tokenCache = new TokenCache(
             this.storage,

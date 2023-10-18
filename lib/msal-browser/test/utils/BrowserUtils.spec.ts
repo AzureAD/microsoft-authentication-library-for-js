@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
-import { TEST_URIS } from "./StringConstants";
+import { TEST_CONFIG, TEST_URIS } from "./StringConstants";
 import {
     BrowserUtils,
     BrowserAuthError,
@@ -13,14 +12,10 @@ import {
 } from "../../src";
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
-    const oldWindow: Window & typeof globalThis = window;
+    const oldWindow = { ...window };
     afterEach(() => {
         window = oldWindow;
-        //@ts-ignore
-        window.Headers = undefined;
-        //@ts-ignore
-        window.fetch = undefined;
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     it("clearHash() clears the window hash", () => {
@@ -58,38 +53,39 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     });
 
     it("isInIframe() returns false if window parent is the same as the current window", () => {
-        sinon.stub(window, "parent").value(window);
+        jest.spyOn(window, "parent", "get").mockReturnValue(window);
         expect(BrowserUtils.isInIframe()).toBe(false);
     });
 
     it("isInIframe() returns true if window parent is not the same as the current window", () => {
         expect(BrowserUtils.isInIframe()).toBe(false);
-        sinon.stub(window, "parent").value(null);
+        // @ts-ignore
+        jest.spyOn(window, "parent", "get").mockReturnValue(null);
         expect(BrowserUtils.isInIframe()).toBe(true);
     });
 
     it("isInPopup() returns false if window is undefined", () => {
         // @ts-ignore
-        window = undefined;
+        jest.spyOn(global, "window", "get").mockReturnValue(undefined);
         expect(BrowserUtils.isInPopup()).toBe(false);
     });
 
     it("isInPopup() returns false if window opener is not the same as the current window but window name does not starts with 'msal.'", () => {
         window.opener = { ...window };
-        sinon.stub(window, "name").value("non-msal-popup");
+        window.name = "non-msal-popup";
         expect(BrowserUtils.isInPopup()).toBe(false);
     });
 
     it("isInPopup() returns false if window opener is the same as the current window", () => {
         window.opener = window;
-        sinon.stub(window, "name").value("msal.");
+        window.name = "msal.";
         expect(BrowserUtils.isInPopup()).toBe(false);
     });
 
     it("isInPopup() returns true if window opener is not the same as the current window and the window name starts with 'msal.'", () => {
         expect(BrowserUtils.isInPopup()).toBe(false);
         window.opener = { ...window };
-        sinon.stub(window, "name").value("msal.popupwindow");
+        window.name = "msal.popupwindow";
         expect(BrowserUtils.isInPopup()).toBe(true);
     });
 
@@ -99,7 +95,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
 
     describe("blockRedirectInIframe", () => {
         it("throws when inside an iframe", (done) => {
-            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            jest.spyOn(window, "parent", "get").mockReturnValue({ ...window });
             try {
                 BrowserUtils.blockRedirectInIframe(
                     InteractionType.Redirect,
@@ -115,13 +111,27 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         });
 
         it("doesnt throw when inside an iframe and redirects are allowed", () => {
-            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            jest.spyOn(window, "parent", "get").mockReturnValue({ ...window });
             BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, true);
         });
 
         it("doesnt throw when not inside an iframe", () => {
-            sinon.stub(BrowserUtils, "isInIframe").returns(false);
             BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
         });
+    });
+
+    it("adds preconnect to header then removes after some time", () => {
+        jest.useFakeTimers();
+        BrowserUtils.preconnect(TEST_CONFIG.validAuthority);
+
+        const preconnectLink = document.querySelector("link");
+        expect(preconnectLink).toBeTruthy();
+        expect(preconnectLink?.getAttribute("rel")).toBe("preconnect");
+        expect(preconnectLink?.getAttribute("href")).toBe(
+            new URL(TEST_CONFIG.validAuthority).origin
+        );
+
+        jest.runAllTimers();
+        expect(document.querySelector("link")).toBeFalsy();
     });
 });

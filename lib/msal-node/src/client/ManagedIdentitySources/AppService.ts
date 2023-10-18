@@ -3,12 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    CacheManager,
-    INetworkModule,
-    Logger,
-    UrlString,
-} from "@azure/msal-common";
+import { INetworkModule, Logger, UrlString } from "@azure/msal-common";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
 import {
     HttpMethod,
@@ -25,50 +20,53 @@ import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError";
+import { NodeStorage } from "../../cache/NodeStorage";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
-export const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
+const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/AppServiceManagedIdentitySource.cs
  */
 export class AppService extends BaseManagedIdentitySource {
-    private _endpoint: string;
-    private _secret: string;
+    private endpoint: string;
+    private secret: string;
 
     constructor(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         endpoint: string,
         secret: string
     ) {
-        super(logger, cacheManager, networkClient, cryptoProvider);
+        super(logger, nodeStorage, networkClient, cryptoProvider);
 
-        this._endpoint = endpoint;
-        this._secret = secret;
+        this.endpoint = endpoint;
+        this.secret = secret;
     }
 
     public static tryCreate(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): AppService | null {
-        const secret: string | undefined = process.env["IdentityHeader"];
+        const secret: string | undefined = process.env["IDENTITY_HEADER"];
 
-        const [areEnvironmentVariablesValidated, endpoint] =
-            validateEnvironmentVariables(
-                process.env["IdentityEndpoint"] || undefined,
-                secret,
-                logger
-            );
+        const [areEnvironmentVariablesValidated, endpoint]: [
+            boolean,
+            string | undefined
+        ] = validateEnvironmentVariables(
+            process.env["IDENTITY_ENDPOINT"] || undefined,
+            secret,
+            logger
+        );
 
         return areEnvironmentVariablesValidated
             ? new AppService(
                   logger,
-                  cacheManager,
+                  nodeStorage,
                   networkClient,
                   cryptoProvider,
                   endpoint as string,
@@ -82,23 +80,20 @@ export class AppService extends BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =
-            new ManagedIdentityRequestParameters(
-                HttpMethod.GET,
-                this._endpoint
-            );
+            new ManagedIdentityRequestParameters(HttpMethod.GET, this.endpoint);
 
-        request.headers[SECRET_HEADER_NAME] = this._secret;
+        request.headers[SECRET_HEADER_NAME] = this.secret;
         request.queryParameters["api-version"] = APP_SERVICE_MSI_API_VERSION;
         request.queryParameters["resource"] = resource;
-        // bodyParamters calculated in BaseManagedIdentity.authenticateWithMSI
+        // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
-        switch (managedIdentityId.getIdType) {
+        switch (managedIdentityId.idType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
                 this.logger.info(
                     "[Managed Identity] Adding user assigned client id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_CLIENT_ID] =
-                    managedIdentityId.getId;
+                    managedIdentityId.id;
                 break;
 
             case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
@@ -106,7 +101,7 @@ export class AppService extends BaseManagedIdentitySource {
                     "[Managed Identity] Adding user assigned resource id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_RESOURCE_ID] =
-                    managedIdentityId.getId;
+                    managedIdentityId.id;
                 break;
 
             case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
@@ -114,7 +109,7 @@ export class AppService extends BaseManagedIdentitySource {
                     "[Managed Identity] Adding user assigned object id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_OBJECT_ID] =
-                    managedIdentityId.getId;
+                    managedIdentityId.id;
                 break;
         }
 
@@ -129,10 +124,10 @@ const validateEnvironmentVariables = (
 ): [boolean, string | undefined] => {
     let endpointUrlString: string | undefined;
 
-    // if both endpoint or secret environment variables are undefined, this MSI provider is unavailable.
+    // if either of the endpoint or secret environment variables are undefined, this MSI provider is unavailable.
     if (!endpoint || !secret) {
         logger.info(
-            "[Managed Identity] App service managed identity is unavailable because one or both of the 'IdentityHeader' and 'IdentityEndpoint' environment variables are missing."
+            "[Managed Identity] App Service managed identity is unavailable because one or both of the 'IDENTITY_HEADER' and 'IDENTITY_ENDPOINT' environment variables are missing."
         );
         return [false, endpointUrlString];
     }
@@ -141,7 +136,7 @@ const validateEnvironmentVariables = (
         endpointUrlString = new UrlString(endpoint).urlString;
     } catch (error) {
         logger.info(
-            "[Managed Identity] App service managed identity is unavailable because the 'IdentityEndpoint' environment variable is malformed."
+            "[Managed Identity] App Service managed identity is unavailable because the 'IDENTITY_ENDPOINT' environment variable is malformed."
         );
 
         throw createManagedIdentityError(
@@ -150,7 +145,7 @@ const validateEnvironmentVariables = (
     }
 
     logger.info(
-        `[Managed Identity] Environment variables validation passed for app service managed identity. Endpoint URI: ${endpointUrlString}. Creating App Service managed identity.`
+        `[Managed Identity] Environment variables validation passed for App Service managed identity. Endpoint URI: ${endpointUrlString}. Creating App Service managed identity.`
     );
     return [true, endpointUrlString];
 };

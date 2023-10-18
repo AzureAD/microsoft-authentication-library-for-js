@@ -1,7 +1,8 @@
 import {
     NativeAuthError,
-    NativeAuthErrorMessage,
-    NativeStatusCode,
+    NativeAuthErrorCodes,
+    createNativeAuthError,
+    isFatalNativeAuthError,
 } from "../../src/error/NativeAuthError";
 import {
     InteractionRequiredAuthError,
@@ -11,6 +12,7 @@ import {
     BrowserAuthError,
     BrowserAuthErrorMessage,
 } from "../../src/error/BrowserAuthError";
+import * as NativeStatusCode from "../../src/broker/nativeBroker/NativeStatusCodes";
 
 describe("NativeAuthError Unit Tests", () => {
     describe("NativeAuthError", () => {
@@ -26,7 +28,7 @@ describe("NativeAuthError Unit Tests", () => {
                         status: NativeStatusCode.PERSISTENT_ERROR,
                     }
                 );
-                expect(error.isFatal()).toBe(true);
+                expect(isFatalNativeAuthError(error)).toBe(true);
             });
 
             it("should return true for isFatal when WAM status is DISABLED", () => {
@@ -40,7 +42,7 @@ describe("NativeAuthError Unit Tests", () => {
                         status: NativeStatusCode.DISABLED,
                     }
                 );
-                expect(error.isFatal()).toBe(true);
+                expect(isFatalNativeAuthError(error)).toBe(true);
             });
 
             it("should return true for isFatal when WAM status is INVALID_METHOD_ERROR", () => {
@@ -49,15 +51,15 @@ describe("NativeAuthError Unit Tests", () => {
                     "Error processing request.",
                     { error: -2147186943 }
                 );
-                expect(error.isFatal()).toBe(true);
+                expect(isFatalNativeAuthError(error)).toBe(true);
             });
 
             it("should return true for isFatal when extension throws an error", () => {
                 const error = new NativeAuthError(
-                    NativeAuthErrorMessage.extensionError.code,
+                    NativeAuthErrorCodes.contentError,
                     "extension threw error"
                 );
-                expect(error.isFatal()).toBe(true);
+                expect(isFatalNativeAuthError(error)).toBe(true);
             });
 
             it("should return false for isFatal", () => {
@@ -71,13 +73,13 @@ describe("NativeAuthError Unit Tests", () => {
                         status: NativeStatusCode.TRANSIENT_ERROR,
                     }
                 );
-                expect(error.isFatal()).toBe(false);
+                expect(isFatalNativeAuthError(error)).toBe(false);
             });
         });
 
         describe("createError tests", () => {
             it("Returns a NativeAuthError", () => {
-                const error = NativeAuthError.createError(
+                const error = createNativeAuthError(
                     "testError",
                     "testWamError"
                 );
@@ -85,7 +87,7 @@ describe("NativeAuthError Unit Tests", () => {
             });
 
             it("translates USER_INTERACTION_REQUIRED status into corresponding InteractionRequiredError", () => {
-                const error = NativeAuthError.createError(
+                const error = createNativeAuthError(
                     "interaction_required",
                     "interaction is required",
                     {
@@ -100,7 +102,7 @@ describe("NativeAuthError Unit Tests", () => {
             });
 
             it("translates ACCOUNT_UNAVAILABLE status into corresponding InteractionRequiredError", () => {
-                const error = NativeAuthError.createError(
+                const error = createNativeAuthError(
                     "interaction_required",
                     "interaction is required",
                     {
@@ -118,7 +120,7 @@ describe("NativeAuthError Unit Tests", () => {
             });
 
             it("translates USER_CANCEL status into corresponding BrowserAuthError", () => {
-                const error = NativeAuthError.createError(
+                const error = createNativeAuthError(
                     "user_cancel",
                     "user cancelled",
                     {
@@ -135,7 +137,7 @@ describe("NativeAuthError Unit Tests", () => {
             });
 
             it("translates NO_NETWORK status into corresponding BrowserAuthError", () => {
-                const error = NativeAuthError.createError(
+                const error = createNativeAuthError(
                     "no_network",
                     "no network",
                     {

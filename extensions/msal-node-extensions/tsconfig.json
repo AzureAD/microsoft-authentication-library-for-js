@@ -15,6 +15,7 @@
       "esnext"
     ],
     "importHelpers": true,
+    "composite": false,
     "declaration": true,
     "sourceMap": true,
     "rootDir": "./",
@@ -28,10 +29,5 @@
       "node",
       "jest"
     ]
-  },
-  "references": [
-    {
-      "path": "../../lib/msal-common"
-    }
-  ]
+  }
 }

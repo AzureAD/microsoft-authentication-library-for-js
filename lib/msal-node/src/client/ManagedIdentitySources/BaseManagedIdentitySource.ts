@@ -5,40 +5,42 @@
 
 import {
     AuthError,
-    AuthenticationResult,
     Authority,
-    CacheManager,
     ClientAuthErrorCodes,
     Constants,
     HeaderNames,
     INetworkModule,
     Logger,
     NetworkRequestOptions,
+    NetworkResponse,
     ResponseHandler,
+    ServerAuthorizationTokenResponse,
     TimeUtils,
     createClientAuthError,
+    AuthenticationResult,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest";
-import { ServerManagedIdentityTokenResponse } from "../../response/ServerManagedIdentityTokenResponse";
 import { HttpMethod } from "../../utils/Constants";
+import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
+import { NodeStorage } from "../../cache/NodeStorage";
 
 export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
-    private cacheManager: CacheManager;
+    private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
 
     constructor(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ) {
         this.logger = logger;
-        this.cacheManager = cacheManager;
+        this.nodeStorage = nodeStorage;
         this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
     }
@@ -48,7 +50,7 @@ export abstract class BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters;
 
-    public async authenticateWithMSI(
+    public async acquireTokenWithManagedIdentity(
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
@@ -60,7 +62,7 @@ export abstract class BaseManagedIdentitySource {
                 managedIdentityId
             );
 
-        const headers: Record<string, string> = {};
+        const headers: Record<string, string> = networkRequest.headers;
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
         const networkRequestOptions: NetworkRequestOptions = { headers };
         if (managedIdentityRequest.forceRefresh) {
@@ -69,36 +71,22 @@ export abstract class BaseManagedIdentitySource {
         }
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        let serverTokenResponse: ServerManagedIdentityTokenResponse;
-        let response;
+        let response: NetworkResponse<ManagedIdentityTokenResponse>;
         try {
-            // Sources that send GET requests: Cloud Shell
-            if (networkRequest.httpMethod === HttpMethod.GET) {
+            // Sources that send POST requests: Cloud Shell
+            if (networkRequest.httpMethod === HttpMethod.POST) {
                 response =
-                    await this.networkClient.sendGetRequestAsync<ServerManagedIdentityTokenResponse>(
+                    await this.networkClient.sendPostRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
-                // Sources that send POST requests: App Service, Azure Arc, IMDS, Service Fabric
+                // Sources that send GET requests: App Service, Azure Arc, IMDS, Service Fabric
             } else {
                 response =
-                    await this.networkClient.sendPostRequestAsync<ServerManagedIdentityTokenResponse>(
+                    await this.networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
-            }
-
-            serverTokenResponse = response.body;
-            serverTokenResponse.status = response.status;
-            if (serverTokenResponse.expires_on) {
-                serverTokenResponse.expires_in = serverTokenResponse.expires_on;
-            }
-            if (serverTokenResponse.message) {
-                serverTokenResponse.error = serverTokenResponse.message;
-            }
-            if (serverTokenResponse.correlationId) {
-                serverTokenResponse.correlation_id =
-                    serverTokenResponse.correlationId;
             }
         } catch (error) {
             if (error instanceof AuthError) {
@@ -108,9 +96,31 @@ export abstract class BaseManagedIdentitySource {
             }
         }
 
+        const serverTokenResponse: ServerAuthorizationTokenResponse = {
+            status: response.status,
+
+            // success
+            access_token: response.body.access_token,
+            expires_in: response.body.expires_on,
+            scope: response.body.resource,
+            token_type: response.body.token_type,
+
+            // error
+            error: response.body.message,
+            correlation_id: response.body.correlationId,
+        };
+
+        // compute refresh_in as 1/2 of expires_in, but only if expires_in > 2h
+        if (
+            serverTokenResponse.expires_in &&
+            serverTokenResponse.expires_in > 2 * 3600
+        ) {
+            serverTokenResponse.refresh_in = serverTokenResponse.expires_in / 2;
+        }
+
         const responseHandler = new ResponseHandler(
-            managedIdentityId.getId,
-            this.cacheManager,
+            managedIdentityId.id,
+            this.nodeStorage,
             this.cryptoProvider,
             this.logger,
             null,
@@ -122,13 +132,12 @@ export abstract class BaseManagedIdentitySource {
             refreshAccessToken
         );
 
-        const tokenResponse = await responseHandler.handleServerTokenResponse(
+        // caches the token
+        return await responseHandler.handleServerTokenResponse(
             serverTokenResponse,
             fakeAuthority,
             reqTimestamp,
             managedIdentityRequest
         );
-
-        return tokenResponse;
     }
 }

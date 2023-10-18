@@ -6,6 +6,7 @@ import {
     TEST_CONSTANTS,
     TEST_DATA_CLIENT_INFO,
     mockAccountInfo,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
 } from "../utils/TestConstants";
 import {
     ClientConfiguration,
@@ -21,6 +22,7 @@ import {
     InteractionRequiredAuthError,
     AccountEntity,
     AuthToken,
+    IdTokenEntity,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -70,7 +72,7 @@ describe("PublicClientApplication", () => {
     let appConfig: Configuration = {
         auth: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
-            authority: TEST_CONSTANTS.AUTHORITY,
+            authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
         },
     };
 
@@ -94,10 +96,12 @@ describe("PublicClientApplication", () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         mockTelemetryManager;
         setupAuthorityFactory_createDiscoveredInstance_mock();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     test("exports a class", () => {
@@ -367,6 +371,77 @@ describe("PublicClientApplication", () => {
             expect(response.account).toEqual(mockAuthenticationResult.account);
         });
 
+        test("acquireTokenInteractive - getting redirectUri waits for server to start", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+
+            let redirectUri: string;
+
+            // mock listener to wait 2 seconds before starting server
+            let originalListen = LoopbackClient.prototype.listenForAuthCode;
+            const listenerSpy = jest.spyOn(
+                LoopbackClient.prototype,
+                "listenForAuthCode"
+            );
+            listenerSpy.mockImplementation(() => {
+                return new Promise<void>((resolve) => {
+                    setTimeout(() => {
+                        resolve();
+                    }, 2000);
+                }).then(
+                    () => originalListen.call(listenerSpy.mock.instances[0]) // call original function and pass in the 'this' context
+                );
+            });
+
+            const openBrowser = (url: string) => {
+                expect(
+                    url.startsWith("https://login.microsoftonline.com")
+                ).toBe(true);
+                http.get(
+                    `${redirectUri}?code=${TEST_CONSTANTS.AUTHORIZATION_CODE}`
+                );
+                return Promise.resolve();
+            };
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                openBrowser: openBrowser,
+            };
+
+            const MockAuthorizationCodeClient =
+                getMsalCommonAutoMock().AuthorizationCodeClient;
+            jest.spyOn(
+                msalCommon,
+                "AuthorizationCodeClient"
+            ).mockImplementation(
+                (config) => new MockAuthorizationCodeClient(config)
+            );
+
+            jest.spyOn(
+                MockAuthorizationCodeClient.prototype,
+                "getAuthCodeUrl"
+            ).mockImplementation((req) => {
+                redirectUri = req.redirectUri;
+                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+            });
+
+            jest.spyOn(
+                MockAuthorizationCodeClient.prototype,
+                "acquireToken"
+            ).mockImplementation((tokenRequest) => {
+                expect(tokenRequest.scopes).toEqual([
+                    ...TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONSTANTS.DEFAULT_OIDC_SCOPES,
+                ]);
+                return Promise.resolve(mockAuthenticationResult);
+            });
+
+            const response = await authApp.acquireTokenInteractive(request);
+            expect(response.idToken).toEqual(mockAuthenticationResult.idToken);
+            expect(response.accessToken).toEqual(
+                mockAuthenticationResult.accessToken
+            );
+            expect(response.account).toEqual(mockAuthenticationResult.account);
+        });
+
         test("acquireTokenInteractive - with custom loopback client succeeds", async () => {
             const authApp = new PublicClientApplication(appConfig);
 
@@ -520,7 +595,7 @@ describe("PublicClientApplication", () => {
             });
         });
 
-        test("acquireTokenInteractive - loopback server is closed on error", async () => {
+        test("acquireTokenInteractive - loopback server is closed on error", (done) => {
             const authApp = new PublicClientApplication(appConfig);
 
             const openBrowser = (url: string) => {
@@ -580,6 +655,72 @@ describe("PublicClientApplication", () => {
             authApp.acquireTokenInteractive(request).catch((e) => {
                 expect(e).toBe("Browser open error");
                 expect(mockCloseServer).toHaveBeenCalledTimes(1);
+                done();
+            });
+        });
+
+        test("acquireTokenInteractive - authCode listener rejections are handled", (done) => {
+            const authApp = new PublicClientApplication(appConfig);
+
+            const openBrowser = (url: string) => {
+                expect(
+                    url.startsWith("https://login.microsoftonline.com")
+                ).toBe(true);
+                return Promise.resolve();
+            };
+
+            // mock listener to wait 2 seconds then throw
+            let originalListen = LoopbackClient.prototype.listenForAuthCode;
+            const listenerSpy = jest.spyOn(
+                LoopbackClient.prototype,
+                "listenForAuthCode"
+            );
+            listenerSpy.mockImplementation(async () => {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        reject("listener error");
+                    }, 2000);
+                    originalListen
+                        .call(listenerSpy.mock.instances[0]) // call original function and pass in the 'this' context
+                        .then((result) => resolve(result)); // This should never be called because the server will never be hit
+                });
+            });
+
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "getRedirectUri"
+            ).mockImplementation(() => TEST_CONSTANTS.REDIRECT_URI);
+            const mockCloseServer = jest.spyOn(
+                LoopbackClient.prototype,
+                "closeServer"
+            );
+
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                openBrowser: openBrowser,
+            };
+
+            const MockAuthorizationCodeClient =
+                getMsalCommonAutoMock().AuthorizationCodeClient;
+            jest.spyOn(
+                msalCommon,
+                "AuthorizationCodeClient"
+            ).mockImplementation(
+                (config) => new MockAuthorizationCodeClient(config)
+            );
+
+            jest.spyOn(
+                MockAuthorizationCodeClient.prototype,
+                "getAuthCodeUrl"
+            ).mockImplementation((req) => {
+                expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
+                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+            });
+
+            authApp.acquireTokenInteractive(request).catch((e) => {
+                expect(e).toBe("listener error");
+                expect(mockCloseServer).toHaveBeenCalled();
+                done();
             });
         });
     });
@@ -604,6 +745,17 @@ describe("PublicClientApplication", () => {
 
             // @ts-ignore
             authApp.storage.setAccount(accountEntity);
+
+            const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+                mockAccountInfo.homeAccountId,
+                mockAccountInfo.environment,
+                mockAuthenticationResult.idToken,
+                TEST_CONSTANTS.CLIENT_ID,
+                ID_TOKEN_CLAIMS.tid
+            );
+
+            // @ts-ignore
+            authApp.storage.setIdTokenCredential(idTokenEntity);
 
             const accountsBefore = await authApp.getAllAccounts();
             expect(accountsBefore.length).toBe(1);
@@ -679,6 +831,20 @@ describe("PublicClientApplication", () => {
 
             // @ts-ignore
             authApp.storage.setAccount(accountEntity);
+
+            // @ts-ignore
+            authApp.storage.setAccount(accountEntity);
+
+            const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+                mockAccountInfo.homeAccountId,
+                mockAccountInfo.environment,
+                mockAuthenticationResult.idToken,
+                TEST_CONSTANTS.CLIENT_ID,
+                ID_TOKEN_CLAIMS.tid
+            );
+
+            // @ts-ignore
+            authApp.storage.setIdTokenCredential(idTokenEntity);
 
             const accounts = await authApp.getAllAccounts();
             expect(accounts).toStrictEqual([mockAccountInfo]);
@@ -809,11 +975,15 @@ describe("PublicClientApplication", () => {
         };
 
         const authApp = new PublicClientApplication(appConfig);
-        await authApp.getAuthCodeUrl(request);
-        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
-        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
+        const url = await authApp.getAuthCodeUrl(request);
+        expect(
+            url.startsWith(
+                DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint
+            )
+        ).toBe(true);
+        expect(url).toContain(appConfig.auth.clientId);
+        expect(url).toContain(encodeURIComponent(request.redirectUri));
+        expect(url).toContain(encodeURIComponent(request.scopes.join(" ")));
     });
 
     test("acquireTokenByUsernamePassword", async () => {
@@ -849,6 +1019,12 @@ describe("PublicClientApplication", () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
+        const mockRefreshTokenClient =
+            getMsalCommonAutoMock().RefreshTokenClient;
+        jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+            (config) => new mockRefreshTokenClient(config)
+        );
+
         const authorityMock =
             setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
@@ -881,6 +1057,12 @@ describe("PublicClientApplication", () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
             authority: TEST_CONSTANTS.ALTERNATE_AUTHORITY,
         };
+
+        const mockRefreshTokenClient =
+            getMsalCommonAutoMock().RefreshTokenClient;
+        jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+            (config) => new mockRefreshTokenClient(config)
+        );
 
         const authorityMock =
             setupAuthorityFactory_createDiscoveredInstance_mock();
@@ -925,6 +1107,12 @@ describe("PublicClientApplication", () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
+        const mockRefreshTokenClient =
+            getMsalCommonAutoMock().RefreshTokenClient;
+        jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+            (config) => new mockRefreshTokenClient(config)
+        );
+
         const authorityMock =
             setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
@@ -968,6 +1156,12 @@ describe("PublicClientApplication", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
+
+        const mockRefreshTokenClient =
+            getMsalCommonAutoMock().RefreshTokenClient;
+        jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+            (config) => new mockRefreshTokenClient(config)
+        );
 
         const authorityMock =
             setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);

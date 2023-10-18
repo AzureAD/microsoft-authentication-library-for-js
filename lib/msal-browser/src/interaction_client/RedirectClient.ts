@@ -26,7 +26,7 @@ import {
     TemporaryCacheKeys,
 } from "../utils/BrowserConstants";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import * as BrowserUtils from "../utils/BrowserUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { EventType } from "../event/EventType";
 import { NavigationOptions } from "../navigation/NavigationOptions";

@@ -11,6 +11,7 @@ import {
     Constants,
     IPerformanceClient,
     PerformanceEvents,
+    invokeAsync,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -23,11 +24,11 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
-import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { InteractionHandler } from "../interaction_handler/InteractionHandler";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -65,8 +66,6 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
     async acquireToken(
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
-        this.logger.trace("SilentAuthCodeClient.acquireToken called");
-
         // Auth code payload is required
         if (!request.code) {
             throw createBrowserAuthError(
@@ -75,15 +74,13 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        this.performanceClient.setPreQueueTime(
+        const silentRequest: AuthorizationUrlRequest = await invokeAsync(
+            this.initializeAuthorizationRequest.bind(this),
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        const silentRequest: AuthorizationUrlRequest =
-            await this.initializeAuthorizationRequest(
-                request,
-                InteractionType.Silent
-            );
+        )(request, InteractionType.Silent);
         this.browserStorage.updateCacheEntries(
             silentRequest.state,
             silentRequest.nonce,
@@ -104,30 +101,36 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             };
 
             // Initialize the client
-            this.performanceClient.setPreQueueTime(
+            const clientConfig = await invokeAsync(
+                this.getClientConfiguration.bind(this),
                 PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+                this.logger,
+                this.performanceClient,
                 request.correlationId
-            );
-            const clientConfig = await this.getClientConfiguration(
-                serverTelemetryManager,
-                silentRequest.authority
-            );
+            )(serverTelemetryManager, silentRequest.authority);
             const authClient: HybridSpaAuthorizationCodeClient =
                 new HybridSpaAuthorizationCodeClient(clientConfig);
             this.logger.verbose("Auth code client created");
 
             // Create silent handler
-            const silentHandler = new SilentHandler(
+            const interactionHandler = new InteractionHandler(
                 authClient,
                 this.browserStorage,
                 authCodeRequest,
                 this.logger,
-                this.config.system,
                 this.performanceClient
             );
 
             // Handle auth code parameters from request
-            return silentHandler.handleCodeResponseFromServer(
+            return invokeAsync(
+                interactionHandler.handleCodeResponseFromServer.bind(
+                    interactionHandler
+                ),
+                PerformanceEvents.HandleCodeResponseFromServer,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(
                 {
                     code: request.code,
                     msgraph_host: request.msGraphHost,

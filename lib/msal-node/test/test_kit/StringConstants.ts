@@ -3,11 +3,16 @@
  * Licensed under the MIT License.
  */
 
+import { AuthenticationResult } from "@azure/msal-common";
 import {
     AuthenticationScheme,
     Constants,
     ONE_DAY_IN_MS,
 } from "@azure/msal-common";
+import {
+    DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
+    DEFAULT_MANAGED_IDENTITY_ID,
+} from "../../src/utils/Constants";
 
 // This file contains the string constants used by the test classes.
 
@@ -347,6 +352,63 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
         client_info: `${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
     },
 };
+
+export const MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR =
+    "There was an error retrieving the access token from the managed identity.";
+
+export const MANAGED_IDENTITY_RESOURCE_BASE = "https://graph.microsoft.com";
+// scopes
+export const MANAGED_IDENTITY_RESOURCE = `${MANAGED_IDENTITY_RESOURCE_BASE}/.default`;
+
+// client ids
+export const MANAGED_IDENTITY_RESOURCE_ID =
+    "unique_identifier_generated_by_azure_ad_for_the_azure_resource";
+export const MANAGED_IDENTITY_RESOURCE_ID_2 =
+    "unique_identifier_generated_by_azure_ad_for_the_azure_resource_2";
+export const MANAGED_IDENTITY_RESOURCE_ID_3 =
+    "/subscriptions/someguid/resourcegroups/uami_group/providers/microsoft.managedidentityclient/userassignedidentities/uami";
+
+// cache keys
+export const MANAGED_IDENTITY_SYSTEM_ASSIGNED_CACHE_KEY = `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-system_assigned_managed_identity-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+export const MANAGED_IDENTITY_USER_ASSIGNED_CLIENT_ID_CACHE_KEY = `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${MANAGED_IDENTITY_RESOURCE_ID}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+export const MANAGED_IDENTITY_USER_ASSIGNED_OBJECT_ID_CACHE_KEY = `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${MANAGED_IDENTITY_RESOURCE_ID_3}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+
+export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
+    AuthenticationResult,
+    "correlationId"
+> = {
+    accessToken: TEST_TOKENS.ACCESS_TOKEN,
+    account: null,
+    authority: DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
+    cloudGraphHostName: "",
+    code: undefined,
+    expiresOn: new Date(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+    extExpiresOn: new Date(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+    familyId: "",
+    fromCache: false,
+    fromNativeBroker: false,
+    idToken: "",
+    idTokenClaims: {},
+    msGraphHost: "",
+    refreshOn: undefined,
+    requestId: "",
+    scopes: [MANAGED_IDENTITY_RESOURCE],
+    state: "",
+    tenantId: "",
+    tokenType: AuthenticationScheme.BEARER,
+    uniqueId: "",
+};
+
+export const DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT: AuthenticationResult =
+    {
+        ...DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+        correlationId: DEFAULT_MANAGED_IDENTITY_ID,
+    };
+export const DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT: AuthenticationResult =
+    {
+        ...DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+        correlationId: MANAGED_IDENTITY_RESOURCE,
+    };
 
 export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,

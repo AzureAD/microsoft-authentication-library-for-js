@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Added new PublicClientNext and additional Operating Contexts and associated Controllers; Initially to address NestedAppAuth. #6359",
+  "packageName": "@azure/msal-browser",
+  "email": "email not defined",
+  "dependentChangeType": "patch"
+}

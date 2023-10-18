@@ -198,7 +198,10 @@ export function buildAppConfiguration({
         ...DEFAULT_SYSTEM_OPTIONS,
         networkClient: new HttpClient(
             system?.proxyUrl,
-            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
+            system?.customAgentOptions as
+                | http.AgentOptions
+                | https.AgentOptions,
+            false // Managed Identity
         ),
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };
@@ -230,7 +233,10 @@ export function buildManagedIdentityConfiguration({
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
         networkClient: new HttpClient(
             system?.proxyUrl,
-            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
+            system?.customAgentOptions as
+                | http.AgentOptions
+                | https.AgentOptions,
+            true // Managed Identity
         ),
     };
 

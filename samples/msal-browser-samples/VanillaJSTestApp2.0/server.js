@@ -22,9 +22,9 @@ const DEFAULT_PORT = 30662;
 const APP_DIR = __dirname + `/app`;
 
 // Get all sample folders
-const sampleFolders = fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(function(file) {
+const sampleFolders = fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(function (file) {
     return file.isDirectory() && file.name !== "sample_template";
-}).map(function(file) {
+}).map(function (file) {
     return file.name;
 });
 
@@ -70,9 +70,22 @@ app.get('*', function (req, res) {
 // Start the server.
 if (argv.https) {
     const https = require('https');
-    const privateKey  = fs.readFileSync('./key.pem', 'utf8');
-    const certificate = fs.readFileSync('./cert.pem', 'utf8');
-    const credentials = {key: privateKey, cert: certificate};
+
+    /**
+     * Secrets should never be hardcoded. The dotenv npm package can be used to store secrets or certificates
+     * in a .env file (located in project's root directory) that should be included in .gitignore to prevent
+     * accidental uploads of the secrets.
+     * 
+     * Certificates can also be read-in from files via NodeJS's fs module. However, they should never be
+     * stored in the project's directory. Production apps should fetch certificates from
+     * Azure KeyVault (https://azure.microsoft.com/products/key-vault), or other secure key vaults.
+     * 
+     * Please see "Certificates and Secrets" (https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets)
+     * for more information.
+     */
+    const privateKey = fs.readFileSync('<path_to_key>/certs/key.pem', 'utf8');
+    const certificate = fs.readFileSync('<path_to_key>/certs/cert.pem', 'utf8');
+    const credentials = { key: privateKey, cert: certificate };
     const httpsServer = https.createServer(credentials, app);
     httpsServer.listen(port);
 } else {

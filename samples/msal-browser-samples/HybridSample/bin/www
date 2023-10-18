@@ -9,16 +9,16 @@ var debug = require('debug')('hybridsample:server');
 var http = require('http');
 
 const argv = require('yargs')
-    .usage('Usage: $0 -sample [sample-name] -p [PORT] -https')
-    .alias('hyb', 'Hybrid sample type: Regular')
-    .alias('wam', 'Hybrid sampe type: With WAM Flow')
-    .alias('p', 'port')
-    .alias('h', 'https')
-    .describe('sample', '(Optional) Name of sample to run')
-    .describe('port', '(Optional) Port Number - default is 30662')
-    .describe('https', '(Optional) Serve over https')
-    .strict()
-    .argv;
+  .usage('Usage: $0 -sample [sample-name] -p [PORT] -https')
+  .alias('hyb', 'Hybrid sample type: Regular')
+  .alias('wam', 'Hybrid sampe type: With WAM Flow')
+  .alias('p', 'port')
+  .alias('h', 'https')
+  .describe('sample', '(Optional) Name of sample to run')
+  .describe('port', '(Optional) Port Number - default is 30662')
+  .describe('https', '(Optional) Serve over https')
+  .strict()
+  .argv;
 
 
 /**
@@ -35,9 +35,22 @@ let server;
 if (argv.https) {
   const https = require('https');
   const fs = require('fs');
-  const privateKey  = fs.readFileSync('./key.pem', 'utf8');
-  const certificate = fs.readFileSync('./cert.pem', 'utf8');
-  const credentials = {key: privateKey, cert: certificate};
+
+  /**
+   * Secrets should never be hardcoded. The dotenv npm package can be used to store secrets or certificates
+   * in a .env file (located in project's root directory) that should be included in .gitignore to prevent
+   * accidental uploads of the secrets.
+   * 
+   * Certificates can also be read-in from files via NodeJS's fs module. However, they should never be
+   * stored in the project's directory. Production apps should fetch certificates from
+   * Azure KeyVault (https://azure.microsoft.com/products/key-vault), or other secure key vaults.
+   * 
+   * Please see "Certificates and Secrets" (https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets)
+   * for more information.
+  */
+  const privateKey = fs.readFileSync('<path_to_key>/certs/key.pem', 'utf8');
+  const certificate = fs.readFileSync('<path_to_key>/certs/cert.pem', 'utf8');
+  const credentials = { key: privateKey, cert: certificate };
   server = https.createServer(credentials, app);
 } else {
   server = http.createServer(app);
@@ -46,9 +59,9 @@ if (argv.https) {
 /**
  * Listen on provided port, on all network interfaces.
  */
- server.listen(port);
- server.on('error', onError);
- server.on('listening', onListening);
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
 
 /**
  * Normalize a port into a number, string, or false.

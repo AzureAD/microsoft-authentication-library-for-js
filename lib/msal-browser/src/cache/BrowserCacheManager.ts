@@ -33,6 +33,9 @@ import {
     AuthenticationScheme,
     createClientAuthError,
     ClientAuthErrorCodes,
+    PerformanceEvents,
+    IPerformanceClient,
+    StaticAuthorityOptions,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import {
@@ -83,9 +86,10 @@ export class BrowserCacheManager extends CacheManager {
         clientId: string,
         cacheConfig: Required<CacheOptions>,
         cryptoImpl: ICrypto,
-        logger: Logger
+        logger: Logger,
+        staticAuthorityOptions?: StaticAuthorityOptions
     ) {
-        super(clientId, cryptoImpl, logger);
+        super(clientId, cryptoImpl, logger, staticAuthorityOptions);
         this.cacheConfig = cacheConfig;
         this.logger = logger;
         this.internalStorage = new MemoryStorage();
@@ -1026,10 +1030,9 @@ export class BrowserCacheManager extends CacheManager {
                 );
                 return null;
             }
-            const activeAccount =
-                this.getAccountInfoByFilter({
-                    localAccountId: activeAccountValueLocal,
-                })[0] || null;
+            const activeAccount = this.getAccountInfoFilteredBy({
+                localAccountId: activeAccountValueLocal,
+            });
             if (activeAccount) {
                 this.logger.trace(
                     "BrowserCacheManager.getActiveAccount: Legacy active account cache schema found"
@@ -1049,12 +1052,10 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.getActiveAccount: Active account filters schema found"
             );
-            return (
-                this.getAccountInfoByFilter({
-                    homeAccountId: activeAccountValueObj.homeAccountId,
-                    localAccountId: activeAccountValueObj.localAccountId,
-                })[0] || null
-            );
+            return this.getAccountInfoFilteredBy({
+                homeAccountId: activeAccountValueObj.homeAccountId,
+                localAccountId: activeAccountValueObj.localAccountId,
+            });
         }
         this.logger.trace(
             "BrowserCacheManager.getActiveAccount: No active account found"
@@ -1094,94 +1095,6 @@ export class BrowserCacheManager extends CacheManager {
             this.browserStorage.removeItem(activeAccountKey);
             this.browserStorage.removeItem(activeAccountKeyLocal);
         }
-    }
-
-    /**
-     * Gets a list of accounts that match all of the filters provided
-     * @param account
-     */
-    getAccountInfoByFilter(
-        accountFilter: Partial<Omit<AccountInfo, "idTokenClaims" | "name">>
-    ): AccountInfo[] {
-        const allAccounts = this.getAllAccounts();
-        this.logger.trace(
-            `BrowserCacheManager.getAccountInfoByFilter: total ${allAccounts.length} accounts found`
-        );
-
-        return allAccounts.filter((accountObj) => {
-            if (
-                accountFilter.username &&
-                accountFilter.username.toLowerCase() !==
-                    accountObj.username.toLowerCase()
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.homeAccountId &&
-                accountFilter.homeAccountId !== accountObj.homeAccountId
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.localAccountId &&
-                accountFilter.localAccountId !== accountObj.localAccountId
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.tenantId &&
-                accountFilter.tenantId !== accountObj.tenantId
-            ) {
-                return false;
-            }
-
-            if (
-                accountFilter.environment &&
-                accountFilter.environment !== accountObj.environment
-            ) {
-                return false;
-            }
-
-            return true;
-        });
-    }
-
-    /**
-     * Checks the cache for accounts matching loginHint or SID
-     * @param loginHint
-     * @param sid
-     */
-    getAccountInfoByHints(
-        loginHint?: string,
-        sid?: string
-    ): AccountInfo | null {
-        const matchingAccounts = this.getAllAccounts().filter((accountInfo) => {
-            if (sid) {
-                const accountSid =
-                    accountInfo.idTokenClaims &&
-                    accountInfo.idTokenClaims["sid"];
-                return sid === accountSid;
-            }
-
-            if (loginHint) {
-                return loginHint === accountInfo.username;
-            }
-
-            return false;
-        });
-
-        if (matchingAccounts.length === 1) {
-            return matchingAccounts[0];
-        } else if (matchingAccounts.length > 1) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.multipleMatchingAccounts
-            );
-        }
-
-        return null;
     }
 
     /**
@@ -1360,10 +1273,16 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Clears all access tokes that have claims prior to saving the current one
-     * @param credential
+     * @param performanceClient {IPerformanceClient}
      * @returns
      */
-    async clearTokensAndKeysWithClaims(): Promise<void> {
+    async clearTokensAndKeysWithClaims(
+        performanceClient: IPerformanceClient
+    ): Promise<void> {
+        performanceClient.addQueueMeasurement(
+            PerformanceEvents.ClearTokensAndKeysWithClaims
+        );
+
         const tokenKeys = this.getTokenKeys();
 
         const removedAccessTokens: Array<Promise<void>> = [];

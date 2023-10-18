@@ -7,11 +7,13 @@ import {
     AccessTokenEntity,
     AccountEntity,
     AppMetadataEntity,
+    AuthorityMetadataEntity,
     CacheManager,
     ICrypto,
     IdTokenEntity,
     RefreshTokenEntity,
     Logger,
+    StaticAuthorityOptions,
 } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
 import { TEST_TOKENS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
@@ -19,11 +21,16 @@ import { TEST_TOKENS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 export class MockCache {
     cacheManager: MockStorageClass;
 
-    constructor(clientId: string, cryptoImpl: ICrypto) {
+    constructor(
+        clientId: string,
+        cryptoImpl: ICrypto,
+        staticAuthorityOptions?: StaticAuthorityOptions
+    ) {
         this.cacheManager = new MockStorageClass(
             clientId,
             cryptoImpl,
-            new Logger({})
+            new Logger({}),
+            staticAuthorityOptions
         );
     }
 
@@ -34,6 +41,7 @@ export class MockCache {
         this.createAccessTokenEntries();
         this.createRefreshTokenEntries();
         this.createAppMetadataEntries();
+        this.createAuthorityMetadataEntries();
     }
 
     // clear the cache
@@ -70,6 +78,44 @@ export class MockCache {
             accountDataWithNativeAccountId
         );
         this.cacheManager.setAccount(accountWithNativeAccountId);
+
+        // Accounts with ID Token Claims
+
+        const accountDataWithLoginHint = {
+            username: "Jane Doe",
+            localAccountId: "object4321",
+            realm: "microsoft",
+            environment: "login.microsoftonline.com",
+            homeAccountId: "homeAccountId2",
+            authorityType: "MSSTS",
+            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+            idTokenClaims: {
+                login_hint: "testLoginHint",
+            },
+        };
+        const accountWithLoginHint = CacheManager.toObject(
+            new AccountEntity(),
+            accountDataWithLoginHint
+        );
+        this.cacheManager.setAccount(accountWithLoginHint);
+
+        const accountDataWithUpn = {
+            username: "Another Doe",
+            localAccountId: "object4321",
+            realm: "microsoft",
+            environment: "login.microsoftonline.com",
+            homeAccountId: "homeAccountId3",
+            authorityType: "MSSTS",
+            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+            idTokenClaims: {
+                upn: "testUpn",
+            },
+        };
+        const accountWithUpn = CacheManager.toObject(
+            new AccountEntity(),
+            accountDataWithUpn
+        );
+        this.cacheManager.setAccount(accountWithUpn);
     }
 
     // create id token entries in the cache
@@ -266,5 +312,41 @@ export class MockCache {
             appMetaData_data
         );
         this.cacheManager.setAppMetadata(appMetaData);
+    }
+
+    // create authorityMetadata entries
+    createAuthorityMetadataEntries(): void {
+        const authorityMetadata_data = {
+            aliases: [
+                "login.microsoftonline.com",
+                "login.windows.net",
+                "login.microsoft.com",
+                "sts.windows.net",
+            ],
+            aliasesFromNetwork: false,
+            authorization_endpoint:
+                "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+            canonicalAuthority: "https://login.microsoftonline.com/common",
+            end_session_endpoint:
+                "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
+            endpointsFromNetwork: false,
+            expiresAt: 1607952000,
+            issuer: "https://login.microsoftonline.com/{tenantId}/v2.0",
+            jwks_uri:
+                "https://login.microsoftonline.com/common/discovery/v2.0/keys",
+            preferred_cache: "login.windows.net",
+            token_endpoint:
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        };
+
+        const authorityMetadata = CacheManager.toObject(
+            new AuthorityMetadataEntity(),
+            authorityMetadata_data
+        );
+        const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(
+            authorityMetadata.preferred_cache
+        );
+
+        this.cacheManager.setAuthorityMetadata(cacheKey, authorityMetadata);
     }
 }

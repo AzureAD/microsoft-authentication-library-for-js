@@ -25,7 +25,7 @@ import {
     RefreshTokenEntity,
     AccountEntity,
 } from "@azure/msal-common";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -68,9 +68,9 @@ describe("SilentRefreshClient", () => {
         //@ts-ignore
         browserCacheManager = pca.browserStorage;
 
-        sinon
-            .stub(CryptoOps.prototype, "createNewGuid")
-            .returns(RANDOM_TEST_GUID);
+        jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+            RANDOM_TEST_GUID
+        );
         // @ts-ignore
         silentRefreshClient = new SilentRefreshClient(
             //@ts-ignore

@@ -5,19 +5,20 @@
 
 import * as puppeteer from "puppeteer";
 import {
-    Screenshot, 
-    createFolder, 
-    setupCredentials, 
-    RETRY_TIMES, 
+    Screenshot,
+    createFolder,
+    setupCredentials,
+    RETRY_TIMES,
     enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
-    SAMPLE_HOME_URL
-} from "e2e-test-utils/src/TestUtils";
-import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
-import { LabClient } from "e2e-test-utils/src/LabClient";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "e2e-test-utils/src/Constants";
+    SAMPLE_HOME_URL,
+    NodeCacheTestUtils,
+    LabClient,
+    LabApiQueryParams,
+    AppTypes,
+    AzureEnvironments,
+} from "e2e-test-utils";
 
 import { PublicClientApplication } from "@azure/msal-node";
 
@@ -47,7 +48,7 @@ describe("Auth Code AAD Prod Tests", () => {
 
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/aad`;
 
-    beforeAll(async() => {
+    beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
@@ -63,8 +64,13 @@ describe("Auth Code AAD Prod Tests", () => {
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParms
+        );
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
     });
 
     afterAll(async () => {
@@ -76,7 +82,10 @@ describe("Auth Code AAD Prod Tests", () => {
         let server: any;
 
         beforeAll(async () => {
-            publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+            publicClientApplication = new PublicClientApplication({
+                auth: config.authOptions,
+                cache: { cachePlugin },
+            });
             server = getTokenAuthCode(config, publicClientApplication, port);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
@@ -91,7 +100,7 @@ describe("Auth Code AAD Prod Tests", () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
-            page.on("dialog", async dialog => {
+            page.on("dialog", async (dialog) => {
                 console.log(dialog.message());
                 await dialog.dismiss();
             });
@@ -107,32 +116,51 @@ describe("Auth Code AAD Prod Tests", () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
             await page.goto(homeRoute);
             await enterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
 
         it("Performs acquire token with prompt = 'login'", async () => {
-            const screenshot = new Screenshot(`${screenshotFolder}/PromptLogin`);
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/PromptLogin`
+            );
             await page.goto(`${homeRoute}/?prompt=login`);
             await enterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
 
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
 
         it("Performs acquire token with prompt = 'consent'", async () => {
-            const screenshot = new Screenshot(`${screenshotFolder}/PromptConsent`);
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/PromptConsent`
+            );
             await page.goto(`${homeRoute}/?prompt=consent`);
             await enterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
 
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -143,15 +171,22 @@ describe("Auth Code AAD Prod Tests", () => {
             // First log the user in first
             await page.goto(`${homeRoute}/?prompt=login`);
             await enterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
             await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
 
             // Reset the cache to prepare for the second login
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
 
             // Login without a prompt
-            await page.goto(`${homeRoute}/?prompt=none`, {waitUntil: "networkidle0"});
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            await page.goto(`${homeRoute}/?prompt=none`, {
+                waitUntil: "networkidle0",
+            });
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -162,10 +197,15 @@ describe("Auth Code AAD Prod Tests", () => {
             const STATE_VALUE = "value_on_state";
             await page.goto(`${homeRoute}/?prompt=login&state=${STATE_VALUE}`);
             await enterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
             const url = page.url();
             expect(url.includes(`state=${STATE_VALUE}`)).toBe(true);
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -173,10 +213,13 @@ describe("Auth Code AAD Prod Tests", () => {
 
         it("Performs acquire token with login hint", async () => {
             const USERNAME = "test@domain.abc";
-            await page.goto(`${homeRoute}/?prompt=login&loginHint=${USERNAME}`, {waitUntil: "networkidle0"});
+            await page.goto(
+                `${homeRoute}/?prompt=login&loginHint=${USERNAME}`,
+                { waitUntil: "networkidle0" }
+            );
             await page.waitForSelector("#i0116");
             const emailInput = await page.$("#i0116");
-            const email = await page.evaluate(element => {
+            const email = await page.evaluate((element) => {
                 const emailInput = element as HTMLInputElement;
                 return emailInput.value;
             }, emailInput);
@@ -188,7 +231,7 @@ describe("Auth Code AAD Prod Tests", () => {
             const DOMAIN = "microsoft.com";
             const MS_LOGIN_URL = "msft.sts.microsoft.com";
             await page.goto(`${homeRoute}/?domainHint=${DOMAIN}`);
-            await page.waitForNavigation({ waitUntil: 'networkidle2' });
+            await page.waitForNavigation({ waitUntil: "networkidle2" });
             const url = await page.url();
             expect(url.includes(MS_LOGIN_URL)).toBe(true);
         });

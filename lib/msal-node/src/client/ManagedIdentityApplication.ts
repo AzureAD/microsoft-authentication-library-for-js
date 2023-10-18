@@ -5,18 +5,18 @@
 
 import {
     AuthOptions,
-    AuthenticationResult,
     Authority,
     AuthorityOptions,
-    CacheManager,
     CacheOutcome,
     ClientConfiguration,
     Constants,
     DEFAULT_CRYPTO_IMPLEMENTATION,
-    DefaultStorageClass,
     INetworkModule,
     Logger,
     ProtocolMode,
+    StaticAuthorityOptions,
+    AuthenticationResult,
+    UrlString,
 } from "@azure/msal-common";
 import {
     ManagedIdentityConfiguration,
@@ -28,6 +28,13 @@ import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { ClientCredentialClient } from "./ClientCredentialClient";
 import { ManagedIdentityClient } from "./ManagedIdentityClient";
+import { ManagedIdentityRequestParams } from "../request/ManagedIdentityRequestParams";
+import { NodeStorage } from "../cache/NodeStorage";
+import { DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY } from "../utils/Constants";
+import {
+    ManagedIdentityErrorCodes,
+    createManagedIdentityError,
+} from "../error/ManagedIdentityError";
 
 /**
  * Class to initialize a managed identity and identify the service
@@ -36,7 +43,7 @@ export class ManagedIdentityApplication {
     private config: ManagedIdentityNodeConfiguration;
 
     private logger: Logger;
-    private cacheManager: CacheManager;
+    private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
 
@@ -45,6 +52,8 @@ export class ManagedIdentityApplication {
 
     // the ClientCredentialClient class needs to be faked to call it's getCachedAuthenticationResult method
     private fakeClientCredentialClient: ClientCredentialClient;
+
+    private managedIdentityClient: ManagedIdentityClient;
 
     constructor(configuration?: ManagedIdentityConfiguration) {
         // undefined config means the managed identity is system-assigned
@@ -56,10 +65,15 @@ export class ManagedIdentityApplication {
             version
         );
 
-        this.cacheManager = new DefaultStorageClass(
-            this.config.managedIdentityId.getId,
+        const fakeStatusAuthorityOptions: StaticAuthorityOptions = {
+            knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+        };
+
+        this.nodeStorage = new NodeStorage(
+            this.logger,
+            this.config.managedIdentityId.id,
             DEFAULT_CRYPTO_IMPLEMENTATION,
-            this.logger
+            fakeStatusAuthorityOptions
         );
 
         this.networkClient = this.config.system.networkClient;
@@ -68,24 +82,34 @@ export class ManagedIdentityApplication {
 
         const fakeAuthorityOptions: AuthorityOptions = {
             protocolMode: ProtocolMode.AAD,
-            knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+            knownAuthorities: [DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY],
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
         };
         this.fakeAuthority = new Authority(
-            Constants.DEFAULT_AUTHORITY,
+            DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
             this.networkClient,
-            this.cacheManager,
+            this.nodeStorage,
             fakeAuthorityOptions,
-            this.logger
+            this.logger,
+            undefined,
+            undefined,
+            true
         );
 
         this.fakeClientCredentialClient = new ClientCredentialClient({
             authOptions: {
-                clientId: this.config.managedIdentityId.getId,
+                clientId: this.config.managedIdentityId.id,
                 authority: this.fakeAuthority,
             } as AuthOptions,
         } as ClientConfiguration);
+
+        this.managedIdentityClient = new ManagedIdentityClient(
+            this.logger,
+            this.nodeStorage,
+            this.networkClient,
+            this.cryptoProvider
+        );
     }
 
     /**
@@ -94,31 +118,35 @@ export class ManagedIdentityApplication {
      * @returns the access token
      */
     public async acquireToken(
-        managedIdentityRequest: ManagedIdentityRequest
-    ): Promise<AuthenticationResult | null> {
-        const managedIdentityClient: ManagedIdentityClient =
-            new ManagedIdentityClient(
-                this.logger,
-                this.cacheManager,
-                this.networkClient,
-                this.cryptoProvider
+        managedIdentityRequestParams: ManagedIdentityRequestParams
+    ): Promise<AuthenticationResult> {
+        const resourceUrlString = new UrlString(
+            managedIdentityRequestParams.resource.replace("/.default", "")
+        );
+        try {
+            resourceUrlString.validateAsUri();
+        } catch (e) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.invalidResource
             );
+        }
 
-        /*
-         * the managedIdentityRequest's resource may be passed in as "{ResourceIdUri}" or {ResourceIdUri/.default}
-         * if "/.default" is present, delete it
-         */
-        managedIdentityRequest.scopes = [
-            managedIdentityRequest.resource.replace("/.default", ""),
-        ];
-        managedIdentityRequest.authority =
-            this.fakeAuthority.canonicalAuthority;
-        managedIdentityRequest.correlationId =
-            this.config.managedIdentityId.getId;
+        const managedIdentityRequest: ManagedIdentityRequest = {
+            forceRefresh: managedIdentityRequestParams.forceRefresh,
+            resource: managedIdentityRequestParams.resource.replace(
+                "/.default",
+                ""
+            ),
+            scopes: [
+                managedIdentityRequestParams.resource.replace("/.default", ""),
+            ],
+            authority: this.fakeAuthority.canonicalAuthority,
+            correlationId: this.config.managedIdentityId.id,
+        };
 
         if (managedIdentityRequest.forceRefresh) {
             // make a network call to the managed identity source
-            return await managedIdentityClient.sendMSITokenRequest(
+            return await this.managedIdentityClient.sendManagedIdentityTokenRequest(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
                 this.fakeAuthority
@@ -131,7 +159,7 @@ export class ManagedIdentityApplication {
                 this.config,
                 this.cryptoProvider,
                 this.fakeAuthority,
-                this.cacheManager
+                this.nodeStorage
             );
 
         if (cachedAuthenticationResult) {
@@ -143,7 +171,7 @@ export class ManagedIdentityApplication {
 
                 // make a network call to the managed identity source; refresh the access token in the background
                 const refreshAccessToken = true;
-                await managedIdentityClient.sendMSITokenRequest(
+                await this.managedIdentityClient.sendManagedIdentityTokenRequest(
                     managedIdentityRequest,
                     this.config.managedIdentityId,
                     this.fakeAuthority,
@@ -151,11 +179,10 @@ export class ManagedIdentityApplication {
                 );
             }
 
-            // return the cached token
             return cachedAuthenticationResult;
         } else {
             // make a network call to the managed identity source
-            return await managedIdentityClient.sendMSITokenRequest(
+            return await this.managedIdentityClient.sendManagedIdentityTokenRequest(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
                 this.fakeAuthority

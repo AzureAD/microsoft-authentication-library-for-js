@@ -16,9 +16,11 @@ export class ManagedIdentityRequestParameters {
     constructor(httpMethod: HttpMethod, endpoint: string) {
         this.httpMethod = httpMethod;
         this._baseEndpoint = endpoint;
+        this.headers = {} as Record<string, string>;
+        this.bodyParameters = {} as Record<string, string>;
+        this.queryParameters = {} as Record<string, string>;
     }
 
-    // copied from createExtraQueryParameters in DeviceCodeClient
     public computeUri(): string {
         const parameterBuilder = new RequestParameterBuilder();
 

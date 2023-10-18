@@ -31,6 +31,7 @@ export { ClientApplication } from "./client/ClientApplication.js";
 export { ClientCredentialClient } from "./client/ClientCredentialClient.js";
 export { DeviceCodeClient } from "./client/DeviceCodeClient.js";
 export { OnBehalfOfClient } from "./client/OnBehalfOfClient.js";
+export { ManagedIdentityApplication } from "./client/ManagedIdentityApplication.js";
 export { UsernamePasswordClient } from "./client/UsernamePasswordClient.js";
 
 export {
@@ -73,6 +74,7 @@ export type { RefreshTokenRequest } from "./request/RefreshTokenRequest.js";
 export type { SilentFlowRequest } from "./request/SilentFlowRequest.js";
 export type { InteractiveRequest } from "./request/InteractiveRequest.js";
 export type { SignOutRequest } from "./request/SignOutRequest.js";
+export type { ManagedIdentityRequestParams } from "./request/ManagedIdentityRequestParams.js";
 
 // Common Object Formats
 export {
@@ -90,6 +92,7 @@ export {
     // Error
     AuthError,
     AuthErrorMessage,
+    AuthErrorCodes,
     ClientAuthError,
     ClientAuthErrorCodes,
     ClientAuthErrorMessage,
@@ -119,6 +122,7 @@ export {
     IAppTokenProvider,
     AppTokenProviderParameters,
     AppTokenProviderResult,
+    INativeBrokerPlugin,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata.js";
