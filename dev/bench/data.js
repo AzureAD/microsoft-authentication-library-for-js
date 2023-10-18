@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697568570185,
+  "lastUpdate": 1697587648593,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1710,6 +1710,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.80%",
             "unit": "ops/sec",
             "extra": "215 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "333afb6a7e250c8b42b01b106120c41a9b78a94d",
+          "message": "Deleted msal-node's package-lock.json (#6571)\n\nThis file should have been deleted as part of the original npm\r\nworkspaces PR. It breaks npm workspaces when developing in msal-node.",
+          "timestamp": "2023-10-17T20:02:07-04:00",
+          "tree_id": "a26c32deb7ec9d5b59b67f3cdf481cc8a94a8bc6",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/333afb6a7e250c8b42b01b106120c41a9b78a94d"
+        },
+        "date": 1697587647417,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 142122,
+            "range": "±1.74%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 144691,
+            "range": "±1.26%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
