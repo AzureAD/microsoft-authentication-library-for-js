@@ -39,10 +39,15 @@ export {
     buildClientInfoFromHomeAccountId,
 } from "./account/ClientInfo";
 // Authority
-export { Authority } from "./authority/Authority";
+export {
+    Authority,
+    formatAuthorityUri,
+    buildStaticAuthorityOptions,
+} from "./authority/Authority";
 export {
     AuthorityOptions,
     AzureCloudInstance,
+    StaticAuthorityOptions,
 } from "./authority/AuthorityOptions";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
@@ -54,6 +59,7 @@ export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
 export {
     AccountCache,
+    AccountFilter,
     AccessTokenCache,
     IdTokenCache,
     RefreshTokenCache,
@@ -141,7 +147,12 @@ export {
     InteractionRequiredAuthErrorMessage,
     createInteractionRequiredAuthError,
 } from "./error/InteractionRequiredAuthError";
-export { AuthError, AuthErrorMessage } from "./error/AuthError";
+export {
+    AuthError,
+    AuthErrorMessage,
+    AuthErrorCodes,
+    createAuthError,
+} from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
 export {
     ClientAuthError,

@@ -1,5 +1,8 @@
 import { JoseHeader } from "../../src/crypto/JoseHeader";
-import { JoseHeaderErrorMessage } from "../../src/error/JoseHeaderError";
+import {
+    JoseHeaderErrorCodes,
+    JoseHeaderErrorMessages,
+} from "../../src/error/JoseHeaderError";
 import { JsonTypes } from "../../src/utils/Constants";
 import {
     TEST_CRYPTO_ALGORITHMS,
@@ -24,13 +27,17 @@ describe("JoseHeader.ts Unit Tests", () => {
                 JoseHeader.getShrHeaderString({
                     alg: TEST_CRYPTO_ALGORITHMS.rsa,
                 })
-            ).toThrowError(JoseHeaderErrorMessage.missingKidError.desc);
+            ).toThrowError(
+                JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingKidError]
+            );
         });
 
         it("should throw if kid header is missing", () => {
             expect(() =>
                 JoseHeader.getShrHeaderString({ kid: TEST_POP_VALUES.KID })
-            ).toThrowError(JoseHeaderErrorMessage.missingAlgError.desc);
+            ).toThrowError(
+                JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingAlgError]
+            );
         });
     });
 });

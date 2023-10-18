@@ -37,9 +37,15 @@ import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
 import { CommonSilentFlowRequest, ScopeSet } from "../../src";
+import * as authorityMetadata from "../../src/authority/AuthorityMetadata";
 
 describe("CacheManager.ts test cases", () => {
-    const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto);
+    const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto, {
+        canonicalAuthority: TEST_CONFIG.validAuthority,
+        cloudDiscoveryMetadata: JSON.parse(TEST_CONFIG.CLOUD_DISCOVERY_METADATA)
+            .metadata,
+        knownAuthorities: [TEST_CONFIG.validAuthorityHost],
+    });
     let authorityMetadataStub: sinon.SinonStub;
     beforeEach(() => {
         mockCache.initializeCache();
@@ -360,7 +366,7 @@ describe("CacheManager.ts test cases", () => {
             };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).toEqual(1);
+            expect(Object.keys(accounts).length).toEqual(3);
             sinon.restore();
 
             const wrongFilter: AccountFilter = { environment: "Wrong Env" };
@@ -374,7 +380,7 @@ describe("CacheManager.ts test cases", () => {
             const successFilter: AccountFilter = { realm: "microsoft" };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).toEqual(1);
+            expect(Object.keys(accounts).length).toEqual(3);
 
             const wrongFilter: AccountFilter = { realm: "Wrong Realm" };
             accounts =
@@ -528,52 +534,183 @@ describe("CacheManager.ts test cases", () => {
             ).toBe(false);
         });
 
-        it("environment filter", () => {
-            // filter by environment
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(testIdToken, {
-                    environment: testIdToken.environment,
-                })
-            ).toBe(true);
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(
-                    testAccessToken,
-                    {
-                        environment: testAccessToken.environment,
-                    }
-                )
-            ).toBe(true);
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(
-                    testRefreshToken,
-                    {
-                        environment: testRefreshToken.environment,
-                    }
-                )
-            ).toBe(true);
+        describe("environment filter", () => {
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
+            it("with configured static cloud discovery metadata", () => {
+                // filter by environment
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: testIdToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: testAccessToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: testRefreshToken.environment,
+                        }
+                    )
+                ).toBe(true);
 
-            // Test failure cases
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(testIdToken, {
-                    environment: "wrong.contoso.com",
-                })
-            ).toBe(false);
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(
-                    testAccessToken,
-                    {
-                        environment: "wrong.contoso.com",
-                    }
-                )
-            ).toBe(false);
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(
-                    testRefreshToken,
-                    {
-                        environment: "wrong.contoso.com",
-                    }
-                )
-            ).toBe(false);
+                // Test failure cases
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+            });
+
+            it("with hardcoded cloud discovery metadata", () => {
+                jest.spyOn(
+                    authorityMetadata,
+                    "getAliasesFromConfigMetadata"
+                ).mockReturnValue(null);
+                // filter by environment
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: testIdToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: testAccessToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: testRefreshToken.environment,
+                        }
+                    )
+                ).toBe(true);
+
+                // Test failure cases
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+            });
+
+            it("with knownAuthorities", () => {
+                jest.spyOn(
+                    authorityMetadata,
+                    "getAliasesFromConfigMetadata"
+                ).mockReturnValue(null);
+                jest.spyOn(
+                    authorityMetadata,
+                    "getHardcodedAliasesForCanonicalAuthority"
+                ).mockReturnValue(null);
+                // filter by environment
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: testIdToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: testAccessToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: testRefreshToken.environment,
+                        }
+                    )
+                ).toBe(true);
+
+                // Test failure cases
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+            });
         });
 
         it("realm filter", () => {

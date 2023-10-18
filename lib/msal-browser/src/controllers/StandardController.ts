@@ -28,6 +28,8 @@ import {
     invokeAsync,
     createClientAuthError,
     ClientAuthErrorCodes,
+    AccountFilter,
+    buildStaticAuthorityOptions,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -44,7 +46,7 @@ import {
     DEFAULT_REQUEST,
     BrowserConstants,
 } from "../utils/BrowserConstants";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import * as BrowserUtils from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
@@ -67,7 +69,10 @@ import { ITokenCache } from "../cache/ITokenCache";
 import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { SilentRequest } from "../request/SilentRequest";
-import { NativeAuthError } from "../error/NativeAuthError";
+import {
+    NativeAuthError,
+    isFatalNativeAuthError,
+} from "../error/NativeAuthError";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
 import {
@@ -81,6 +86,7 @@ import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { IController } from "./IController";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { createNewGuid } from "../crypto/BrowserCrypto";
 
 export class StandardController implements IController {
     // OperatingContext
@@ -202,7 +208,8 @@ export class StandardController implements IController {
                   this.config.auth.clientId,
                   this.config.cache,
                   this.browserCrypto,
-                  this.logger
+                  this.logger,
+                  buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
@@ -285,8 +292,7 @@ export class StandardController implements IController {
                     await NativeMessageHandler.createProvider(
                         this.logger,
                         this.config.system.nativeBrokerHandshakeTimeout,
-                        this.performanceClient,
-                        this.browserCrypto
+                        this.performanceClient
                     );
             } catch (e) {
                 this.logger.verbose(e as string);
@@ -305,7 +311,7 @@ export class StandardController implements IController {
                 PerformanceEvents.ClearTokensAndKeysWithClaims,
                 this.logger,
                 this.performanceClient
-            )();
+            )(this.performanceClient);
         }
 
         this.initialized = true;
@@ -532,7 +538,10 @@ export class StandardController implements IController {
             result = nativeClient
                 .acquireTokenRedirect(request)
                 .catch((e: AuthError) => {
-                    if (e instanceof NativeAuthError && e.isFatal()) {
+                    if (
+                        e instanceof NativeAuthError &&
+                        isFatalNativeAuthError(e)
+                    ) {
                         this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         const redirectClient = this.createRedirectClient(
                             request.correlationId
@@ -634,7 +643,10 @@ export class StandardController implements IController {
                     return response;
                 })
                 .catch((e: AuthError) => {
-                    if (e instanceof NativeAuthError && e.isFatal()) {
+                    if (
+                        e instanceof NativeAuthError &&
+                        isFatalNativeAuthError(e)
+                    ) {
                         this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         const popupClient = this.createPopupClient(
                             request.correlationId
@@ -785,7 +797,7 @@ export class StandardController implements IController {
                 ApiId.ssoSilent
             ).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
-                if (e instanceof NativeAuthError && e.isFatal()) {
+                if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                     const silentIframeClient = this.createSilentIframeClient(
                         validRequest.correlationId
@@ -935,7 +947,10 @@ export class StandardController implements IController {
                         request.nativeAccountId
                     ).catch((e: AuthError) => {
                         // If native token acquisition fails for availability reasons fallback to standard flow
-                        if (e instanceof NativeAuthError && e.isFatal()) {
+                        if (
+                            e instanceof NativeAuthError &&
+                            isFatalNativeAuthError(e)
+                        ) {
                             this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         }
                         throw e;
@@ -1042,7 +1057,13 @@ export class StandardController implements IController {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
-                return silentCacheClient.acquireToken(commonRequest);
+                return invokeAsync(
+                    silentCacheClient.acquireToken.bind(silentCacheClient),
+                    PerformanceEvents.SilentCacheClientAcquireToken,
+                    this.logger,
+                    this.performanceClient,
+                    commonRequest.correlationId
+                )(commonRequest);
             default:
                 throw createClientAuthError(
                     ClientAuthErrorCodes.tokenRefreshRequired
@@ -1073,11 +1094,13 @@ export class StandardController implements IController {
                     commonRequest.correlationId
                 );
 
-                this.performanceClient.setPreQueueTime(
+                return invokeAsync(
+                    silentRefreshClient.acquireToken.bind(silentRefreshClient),
                     PerformanceEvents.SilentRefreshClientAcquireToken,
+                    this.logger,
+                    this.performanceClient,
                     commonRequest.correlationId
-                );
-                return silentRefreshClient.acquireToken(commonRequest);
+                )(commonRequest);
             default:
                 throw createClientAuthError(
                     ClientAuthErrorCodes.tokenRefreshRequired
@@ -1176,16 +1199,43 @@ export class StandardController implements IController {
     // #region Account APIs
 
     /**
-     * Returns all accounts that MSAL currently has data for.
-     * (the account object is created at the time of successful login)
-     * or empty array when no accounts are found
-     * @returns Array of account objects in cache
+     * Returns all the accounts in the cache that match the optional filter. If no filter is provided, all accounts are returned.
+     * @param accountFilter - (Optional) filter to narrow down the accounts returned
+     * @returns Array of AccountInfo objects in cache
      */
-    getAllAccounts(): AccountInfo[] {
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
         this.logger.verbose("getAllAccounts called");
         return this.isBrowserEnvironment
-            ? this.browserStorage.getAllAccounts()
+            ? this.browserStorage.getAllAccounts(accountFilter)
             : [];
+    }
+
+    /**
+     * Returns the first account found in the cache that matches the account filter passed in.
+     * @param accountFilter
+     * @returns The first account found in the cache matching the provided filter or null if no account could be found.
+     */
+    getAccount(accountFilter: AccountFilter): AccountInfo | null {
+        this.logger.trace("getAccount called");
+        if (Object.keys(accountFilter).length === 0) {
+            this.logger.warning("getAccount: No accountFilter provided");
+            return null;
+        }
+
+        const account: AccountInfo | null =
+            this.browserStorage.getAccountInfoFilteredBy(accountFilter);
+
+        if (account) {
+            this.logger.verbose(
+                "getAccount: Account matching provided filter found, returning"
+            );
+            return account;
+        } else {
+            this.logger.verbose(
+                "getAccount: No matching account found, returning null"
+            );
+            return null;
+        }
     }
 
     /**
@@ -1511,10 +1561,10 @@ export class StandardController implements IController {
     ): string {
         const account =
             request.account ||
-            this.browserStorage.getAccountInfoByHints(
-                request.loginHint,
-                request.sid
-            ) ||
+            this.browserStorage.getAccountInfoFilteredBy({
+                loginHint: request.loginHint,
+                sid: request.sid,
+            }) ||
             this.getActiveAccount();
 
         return (account && account.nativeAccountId) || "";
@@ -1778,7 +1828,7 @@ export class StandardController implements IController {
         }
 
         if (this.isBrowserEnvironment) {
-            return this.browserCrypto.createNewGuid();
+            return createNewGuid();
         }
 
         /*
@@ -1872,11 +1922,13 @@ export class StandardController implements IController {
                 correlationId
             );
 
-            this.performanceClient.setPreQueueTime(
+            const response = invokeAsync(
+                this.acquireTokenSilentAsync.bind(this),
                 PerformanceEvents.AcquireTokenSilentAsync,
+                this.logger,
+                this.performanceClient,
                 correlationId
-            );
-            const response = this.acquireTokenSilentAsync(
+            )(
                 {
                     ...request,
                     correlationId,
@@ -1970,7 +2022,7 @@ export class StandardController implements IController {
                 ApiId.acquireTokenSilent_silentFlow
             ).catch(async (e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to web flow
-                if (e instanceof NativeAuthError && e.isFatal()) {
+                if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.logger.verbose(
                         "acquireTokenSilent - native platform unavailable, falling back to web flow"
                     );
@@ -1993,15 +2045,15 @@ export class StandardController implements IController {
                 request.correlationId
             );
 
-            this.performanceClient.setPreQueueTime(
+            const silentRequest = await invokeAsync(
+                silentCacheClient.initializeSilentRequest.bind(
+                    silentCacheClient
+                ),
                 PerformanceEvents.InitializeSilentRequest,
+                this.logger,
+                this.performanceClient,
                 request.correlationId
-            );
-            const silentRequest =
-                await silentCacheClient.initializeSilentRequest(
-                    request,
-                    account
-                );
+            )(request, account);
 
             const requestWithCLP = {
                 ...request,
@@ -2010,72 +2062,75 @@ export class StandardController implements IController {
                     request.cacheLookupPolicy || CacheLookupPolicy.Default,
             };
 
-            this.performanceClient.setPreQueueTime(
+            result = invokeAsync(
+                this.acquireTokenFromCache.bind(this),
                 PerformanceEvents.AcquireTokenFromCache,
+                this.logger,
+                this.performanceClient,
                 silentRequest.correlationId
-            );
-            result = this.acquireTokenFromCache(
-                silentCacheClient,
-                silentRequest,
-                requestWithCLP
-            ).catch((cacheError: AuthError) => {
-                if (
-                    requestWithCLP.cacheLookupPolicy ===
-                    CacheLookupPolicy.AccessToken
-                ) {
-                    throw cacheError;
-                }
-
-                // block the reload if it occurred inside a hidden iframe
-                BrowserUtils.blockReloadInHiddenIframes();
-                this.eventHandler.emitEvent(
-                    EventType.ACQUIRE_TOKEN_NETWORK_START,
-                    InteractionType.Silent,
-                    silentRequest
-                );
-
-                this.performanceClient.setPreQueueTime(
-                    PerformanceEvents.AcquireTokenByRefreshToken,
-                    silentRequest.correlationId
-                );
-                return this.acquireTokenByRefreshToken(
-                    silentRequest,
-                    requestWithCLP
-                ).catch((refreshTokenError: AuthError) => {
-                    const isServerError =
-                        refreshTokenError instanceof ServerError;
-                    const isInteractionRequiredError =
-                        refreshTokenError instanceof
-                        InteractionRequiredAuthError;
-                    const isInvalidGrantError =
-                        refreshTokenError.errorCode ===
-                        BrowserConstants.INVALID_GRANT_ERROR;
-
+            )(silentCacheClient, silentRequest, requestWithCLP).catch(
+                (cacheError: AuthError) => {
                     if (
-                        (!isServerError ||
-                            !isInvalidGrantError ||
-                            isInteractionRequiredError ||
-                            requestWithCLP.cacheLookupPolicy ===
-                                CacheLookupPolicy.AccessTokenAndRefreshToken ||
-                            requestWithCLP.cacheLookupPolicy ===
-                                CacheLookupPolicy.RefreshToken) &&
-                        requestWithCLP.cacheLookupPolicy !==
-                            CacheLookupPolicy.Skip
+                        requestWithCLP.cacheLookupPolicy ===
+                        CacheLookupPolicy.AccessToken
                     ) {
-                        throw refreshTokenError;
+                        throw cacheError;
                     }
 
-                    this.logger.verbose(
-                        "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
-                        request.correlationId
+                    // block the reload if it occurred inside a hidden iframe
+                    BrowserUtils.blockReloadInHiddenIframes();
+                    this.eventHandler.emitEvent(
+                        EventType.ACQUIRE_TOKEN_NETWORK_START,
+                        InteractionType.Silent,
+                        silentRequest
                     );
-                    this.performanceClient.setPreQueueTime(
-                        PerformanceEvents.AcquireTokenBySilentIframe,
+
+                    return invokeAsync(
+                        this.acquireTokenByRefreshToken.bind(this),
+                        PerformanceEvents.AcquireTokenByRefreshToken,
+                        this.logger,
+                        this.performanceClient,
                         silentRequest.correlationId
+                    )(silentRequest, requestWithCLP).catch(
+                        (refreshTokenError: AuthError) => {
+                            const isServerError =
+                                refreshTokenError instanceof ServerError;
+                            const isInteractionRequiredError =
+                                refreshTokenError instanceof
+                                InteractionRequiredAuthError;
+                            const isInvalidGrantError =
+                                refreshTokenError.errorCode ===
+                                BrowserConstants.INVALID_GRANT_ERROR;
+
+                            if (
+                                (!isServerError ||
+                                    !isInvalidGrantError ||
+                                    isInteractionRequiredError ||
+                                    requestWithCLP.cacheLookupPolicy ===
+                                        CacheLookupPolicy.AccessTokenAndRefreshToken ||
+                                    requestWithCLP.cacheLookupPolicy ===
+                                        CacheLookupPolicy.RefreshToken) &&
+                                requestWithCLP.cacheLookupPolicy !==
+                                    CacheLookupPolicy.Skip
+                            ) {
+                                throw refreshTokenError;
+                            }
+
+                            this.logger.verbose(
+                                "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
+                                request.correlationId
+                            );
+                            return invokeAsync(
+                                this.acquireTokenBySilentIframe.bind(this),
+                                PerformanceEvents.AcquireTokenBySilentIframe,
+                                this.logger,
+                                this.performanceClient,
+                                silentRequest.correlationId
+                            )(silentRequest);
+                        }
                     );
-                    return this.acquireTokenBySilentIframe(silentRequest);
-                });
-            });
+                }
+            );
         }
 
         return result

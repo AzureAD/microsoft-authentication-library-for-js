@@ -30,6 +30,9 @@ import {
     TokenClaims,
     createClientAuthError,
     ClientAuthErrorCodes,
+    invokeAsync,
+    createAuthError,
+    AuthErrorCodes,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -50,7 +53,12 @@ import {
     NativeTokenRequest,
 } from "../broker/nativeBroker/NativeRequest";
 import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse";
-import { NativeAuthError } from "../error/NativeAuthError";
+import {
+    NativeAuthError,
+    NativeAuthErrorCodes,
+    createNativeAuthError,
+    isFatalNativeAuthError,
+} from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
@@ -123,6 +131,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
     async acquireToken(
         request: PopupRequest | SilentRequest | SsoSilentRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.NativeInteractionClientAcquireToken,
+            request.correlationId
+        );
         this.logger.trace("NativeInteractionClient - acquireToken called.");
 
         // start the perf measurement
@@ -226,9 +238,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
         // fetch the account from browser cache
-        const account = this.browserStorage.getAccountInfoFilteredBy({
+        const account = this.browserStorage.getBaseAccountInfo({
             nativeAccountId,
         });
+
         if (!account) {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
@@ -242,9 +255,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const result = await this.silentCacheClient.acquireToken(
                 silentRequest
             );
+
+            const fullAccount = {
+                ...account,
+                idTokenClaims: result?.idTokenClaims as TokenClaims,
+            };
+
             return {
                 ...result,
-                account,
+                account: fullAccount,
             };
         } catch (e) {
             throw e;
@@ -272,7 +291,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.validateNativeResponse(response);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
-            if (e instanceof NativeAuthError && e.isFatal()) {
+            if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                 throw e;
             }
         }
@@ -385,7 +404,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         if (response.account.id !== request.accountId) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
-            throw NativeAuthError.createUserSwitchError();
+            throw createNativeAuthError(NativeAuthErrorCodes.userSwitch);
         }
 
         // Get the preferred_cache domain for the given authority
@@ -560,6 +579,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims.tid ||
             Constants.EMPTY_STRING;
 
+        const fullAccountEntity: AccountEntity = idTokenClaims
+            ? Object.assign(new AccountEntity(), {
+                  ...accountEntity,
+                  idTokenClaims: idTokenClaims,
+              })
+            : accountEntity;
+
+        const accountInfo = fullAccountEntity.getAccountInfo();
+
         // generate PoP token as needed
         const responseAccessToken = await this.generatePopAccessToken(
             response,
@@ -575,7 +603,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes.asArray(),
-            account: accountEntity.getAccountInfo(),
+            account: accountInfo,
             idToken: response.id_token,
             idTokenClaims: idTokenClaims,
             accessToken: responseAccessToken,
@@ -720,7 +748,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
         ) {
             return response as NativeResponse;
         } else {
-            throw NativeAuthError.createUnexpectedError(
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
                 "Response missing expected properties."
             );
         }
@@ -860,9 +889,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             };
 
             const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-            const reqCnfData = await popTokenGenerator.generateCnf(
-                shrParameters
-            );
+            const reqCnfData = await invokeAsync(
+                popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                PerformanceEvents.PopTokenGenerateCnf,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(shrParameters, this.logger);
 
             // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
             validatedRequest.reqCnf = reqCnfData.reqCnfHash;

@@ -22,6 +22,7 @@
     "outDir": "./dist",
     "strict": true,
     "noImplicitAny": true,
+    "composite": false,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictPropertyInitialization": false,
@@ -43,10 +44,5 @@
     ]
   },
   "compileOnSave": false,
-  "buildOnSave": false,
-  "references": [
-    {
-      "path": "../msal-common"
-    }
-  ]
+  "buildOnSave": false
 }

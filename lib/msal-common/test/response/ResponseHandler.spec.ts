@@ -20,7 +20,7 @@ import {
     INetworkModule,
     NetworkRequestOptions,
 } from "../../src/network/INetworkModule";
-import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
+import { ICrypto } from "../../src/crypto/ICrypto";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
 import { MockStorageClass } from "../client/ClientTestUtils";
 import { TokenClaims } from "../../src/account/TokenClaims";
@@ -78,12 +78,6 @@ const cryptoInterface: ICrypto = {
             default:
                 return input;
         }
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
-        return {
-            challenge: TEST_CONFIG.TEST_CHALLENGE,
-            verifier: TEST_CONFIG.TEST_VERIFIER,
-        };
     },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;

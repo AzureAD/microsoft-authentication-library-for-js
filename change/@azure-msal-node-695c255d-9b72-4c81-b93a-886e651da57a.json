@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Build account objects from cached ID Token #6529",
+  "packageName": "@azure/msal-node",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -25,31 +25,42 @@ export class ControllerFactory {
         this.logger = new Logger(loggerOptions, name, version);
     }
 
-    async createController(): Promise<IController> {
+    async createV3Controller(): Promise<IController> {
         const standard = new StandardOperatingContext(this.config);
-        const metaOS = new TeamsAppOperatingContext(this.config);
 
-        const operatingContexts = [standard.initialize(), metaOS.initialize()];
+        await standard.initialize();
 
-        return Promise.all(operatingContexts).then(async () => {
-            if (metaOS.isAvailable()) {
-                /*
-                 * pull down metaos module
-                 * create associated controller
-                 */
-                // return await StandardController.createController(standard);
-                const controller = await import("./StandardController");
-                return await controller.StandardController.createController(
-                    standard
-                );
-            } else if (standard.isAvailable()) {
-                const controller = await import("./StandardController");
-                return await controller.StandardController.createController(
-                    standard
-                );
-            }
+        const controller = await import("./StandardController");
+        return await controller.StandardController.createController(standard);
+    }
 
-            throw new Error("No controller found.");
-        });
+    async createController(): Promise<IController | null> {
+        const standard = new StandardOperatingContext(this.config);
+        const teamsApp = new TeamsAppOperatingContext(this.config);
+
+        const operatingContexts = [
+            standard.initialize(),
+            teamsApp.initialize(),
+        ];
+
+        await Promise.all(operatingContexts);
+
+        if (
+            teamsApp.isAvailable() &&
+            teamsApp.getConfig().auth.supportsNestedAppAuth
+        ) {
+            const controller = await import("./NestedAppAuthController");
+            return await controller.NestedAppAuthController.createController(
+                teamsApp
+            );
+        } else if (standard.isAvailable()) {
+            const controller = await import("./StandardController");
+            return await controller.StandardController.createController(
+                standard
+            );
+        } else {
+            // Since neither of the actual operating contexts are available keep the UnknownOperatingContextController
+            return null;
+        }
     }
 }

@@ -2,7 +2,6 @@ import {
     CommonClientConfiguration,
     buildClientConfiguration,
 } from "../../src/config/ClientConfiguration";
-import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Logger, LogLevel } from "../../src/logger/Logger";
@@ -15,6 +14,7 @@ import {
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
 import { Constants } from "../../src/utils/Constants";
+import { ClientAuthErrorCodes, createClientAuthError } from "../../src";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
     it("buildConfiguration assigns default functions", async () => {
@@ -32,7 +32,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() =>
             emptyConfig.cryptoInterface.base64Decode("test input")
         ).toThrowError(
-            "Unexpected error in authentication.: Crypto interface - base64Decode() has not been implemented"
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.cryptoInterface.base64Decode("test input")
@@ -41,34 +41,24 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() =>
             emptyConfig.cryptoInterface.base64Encode("test input")
         ).toThrowError(
-            "Unexpected error in authentication.: Crypto interface - base64Encode() has not been implemented"
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.cryptoInterface.base64Encode("test input")
         ).toThrowError(AuthError);
-        expect(emptyConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
-        await expect(
-            emptyConfig.cryptoInterface.generatePkceCodes()
-        ).rejects.toMatchObject(
-            AuthError.createUnexpectedError(
-                "Crypto interface - generatePkceCodes() has not been implemented"
-            )
-        );
         // Storage interface checks
         expect(emptyConfig.storageInterface).not.toBeNull();
         expect(emptyConfig.storageInterface.clear).not.toBeNull();
         await expect(
             emptyConfig.storageInterface.clear()
         ).rejects.toMatchObject(
-            AuthError.createUnexpectedError(
-                "Storage interface - clear() has not been implemented for the cacheStorage interface."
-            )
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(emptyConfig.storageInterface.containsKey).not.toBeNull();
         expect(() =>
             emptyConfig.storageInterface.containsKey("testKey")
         ).toThrowError(
-            "Unexpected error in authentication.: Storage interface - containsKey() has not been implemented"
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.storageInterface.containsKey("testKey")
@@ -77,14 +67,14 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() =>
             emptyConfig.storageInterface.getAccount("testKey")
         ).toThrowError(
-            "Unexpected error in authentication.: Storage interface - getAccount() has not been implemented"
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.storageInterface.getAccount("testKey")
         ).toThrowError(AuthError);
         expect(emptyConfig.storageInterface.getKeys).not.toBeNull();
         expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
-            "Unexpected error in authentication.: Storage interface - getKeys() has not been implemented"
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
             AuthError
@@ -93,7 +83,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() =>
             emptyConfig.storageInterface.removeItem("testKey")
         ).toThrowError(
-            "Unexpected error in authentication.: Storage interface - removeItem() has not been implemented"
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.storageInterface.removeItem("testKey")
@@ -102,7 +92,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() =>
             emptyConfig.storageInterface.setAccount(MockCache.acc)
         ).toThrowError(
-            "Unexpected error in authentication.: Storage interface - setAccount() has not been implemented"
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.storageInterface.setAccount(MockCache.acc)
@@ -115,9 +105,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             //@ts-ignore
             emptyConfig.networkInterface.sendGetRequestAsync("", null)
         ).rejects.toMatchObject(
-            AuthError.createUnexpectedError(
-                "Network interface - sendGetRequestAsync() has not been implemented"
-            )
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(
             emptyConfig.networkInterface.sendPostRequestAsync
@@ -127,9 +115,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             //@ts-ignore
             emptyConfig.networkInterface.sendPostRequestAsync("", null)
         ).rejects.toMatchObject(
-            AuthError.createUnexpectedError(
-                "Network interface - sendPostRequestAsync() has not been implemented"
-            )
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         // Logger options checks
         expect(emptyConfig.loggerOptions).not.toBeNull();
@@ -155,11 +141,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         new Logger({})
     );
 
-    const testPkceCodes = {
-        challenge: "TestChallenge",
-        verifier: "TestVerifier",
-    } as PkceCodes;
-
     const testNetworkResult = {
         testParam: "testValue",
     };
@@ -179,9 +160,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
                 base64Encode: (input: string): string => {
                     return "testEncodedString";
-                },
-                generatePkceCodes: async (): Promise<PkceCodes> => {
-                    return testPkceCodes;
                 },
                 async getPublicKeyThumbprint(): Promise<string> {
                     return TEST_POP_VALUES.KID;
@@ -248,10 +226,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.cryptoInterface.base64Encode).not.toBeNull();
         expect(newConfig.cryptoInterface.base64Encode("testString")).toBe(
             "testEncodedString"
-        );
-        expect(newConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
-        expect(newConfig.cryptoInterface.generatePkceCodes()).resolves.toBe(
-            testPkceCodes
         );
         expect(newConfig.cryptoInterface.removeTokenBindingKey).not.toBeNull();
         expect(

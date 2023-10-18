@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Do not add v2.0 to authority endpoint if already exists #6457",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
