@@ -83,7 +83,7 @@ export class AppService extends BaseManagedIdentitySource {
     ): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =
             new ManagedIdentityRequestParameters(
-                HttpMethod.GET,
+                HttpMethod.POST,
                 this._endpoint
             );
 
@@ -129,7 +129,7 @@ const validateEnvironmentVariables = (
 ): [boolean, string | undefined] => {
     let endpointUrlString: string | undefined;
 
-    // if both endpoint or secret environment variables are undefined, this MSI provider is unavailable.
+    // if either of the endpoint or secret environment variables are undefined, this MSI provider is unavailable.
     if (!endpoint || !secret) {
         logger.info(
             "[Managed Identity] App service managed identity is unavailable because one or both of the 'IdentityHeader' and 'IdentityEndpoint' environment variables are missing."

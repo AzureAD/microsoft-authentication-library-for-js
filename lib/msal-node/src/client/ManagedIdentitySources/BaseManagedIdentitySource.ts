@@ -5,7 +5,6 @@
 
 import {
     AuthError,
-    AuthenticationResult,
     Authority,
     CacheManager,
     ClientAuthErrorCodes,
@@ -15,6 +14,7 @@ import {
     Logger,
     NetworkRequestOptions,
     ResponseHandler,
+    ServerAuthorizationTokenResponse,
     TimeUtils,
     createClientAuthError,
 } from "@azure/msal-common";
@@ -22,8 +22,9 @@ import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest";
-import { ServerManagedIdentityTokenResponse } from "../../response/ServerManagedIdentityTokenResponse";
 import { HttpMethod } from "../../utils/Constants";
+import { ManagedIdentityResult } from "../../response/ManagedIdentityResult";
+import { ManagedIdentityUtils } from "../../utils/ManagedIdentityUtils";
 
 export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
@@ -53,7 +54,7 @@ export abstract class BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
         refreshAccessToken?: boolean
-    ): Promise<AuthenticationResult> {
+    ): Promise<ManagedIdentityResult> {
         const networkRequest: ManagedIdentityRequestParameters =
             this.createRequest(
                 managedIdentityRequest.resource,
@@ -69,20 +70,20 @@ export abstract class BaseManagedIdentitySource {
         }
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        let serverTokenResponse: ServerManagedIdentityTokenResponse;
+        let serverTokenResponse: ServerAuthorizationTokenResponse;
         let response;
         try {
             // Sources that send GET requests: Cloud Shell
             if (networkRequest.httpMethod === HttpMethod.GET) {
                 response =
-                    await this.networkClient.sendGetRequestAsync<ServerManagedIdentityTokenResponse>(
+                    await this.networkClient.sendGetRequestAsync<ServerAuthorizationTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
                 // Sources that send POST requests: App Service, Azure Arc, IMDS, Service Fabric
             } else {
                 response =
-                    await this.networkClient.sendPostRequestAsync<ServerManagedIdentityTokenResponse>(
+                    await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
@@ -90,12 +91,15 @@ export abstract class BaseManagedIdentitySource {
 
             serverTokenResponse = response.body;
             serverTokenResponse.status = response.status;
+            // if success
             if (serverTokenResponse.expires_on) {
                 serverTokenResponse.expires_in = serverTokenResponse.expires_on;
             }
+            // if error
             if (serverTokenResponse.message) {
                 serverTokenResponse.error = serverTokenResponse.message;
             }
+            // if error
             if (serverTokenResponse.correlationId) {
                 serverTokenResponse.correlation_id =
                     serverTokenResponse.correlationId;
@@ -122,13 +126,16 @@ export abstract class BaseManagedIdentitySource {
             refreshAccessToken
         );
 
-        const tokenResponse = await responseHandler.handleServerTokenResponse(
+        // caches the token
+        const authResult = await responseHandler.handleServerTokenResponse(
             serverTokenResponse,
             fakeAuthority,
             reqTimestamp,
             managedIdentityRequest
         );
 
-        return tokenResponse;
+        return ManagedIdentityUtils.convertAuthResultToManagedIdentityResult(
+            authResult
+        );
     }
 }

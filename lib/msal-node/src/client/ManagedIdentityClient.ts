@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationResult,
     Authority,
     CacheManager,
     INetworkModule,
@@ -22,6 +21,7 @@ import {
 } from "../error/ManagedIdentityError";
 import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { ManagedIdentityId } from "../config/ManagedIdentityId";
+import { ManagedIdentityResult } from "../response/ManagedIdentityResult";
 
 /*
  * Class to initialize a managed identity and identify the service.
@@ -57,7 +57,7 @@ export class ManagedIdentityClient {
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
         refreshAccessToken?: boolean
-    ): Promise<AuthenticationResult> {
+    ): Promise<ManagedIdentityResult> {
         return await ManagedIdentityClient.identitySource.authenticateWithMSI(
             managedIdentityRequest,
             managedIdentityId,

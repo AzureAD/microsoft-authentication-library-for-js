@@ -1432,11 +1432,16 @@ export abstract class CacheManager implements ICacheManager {
                     this.staticAuthorityOptions.canonicalAuthority
                 ) ||
                 this.staticAuthorityOptions.knownAuthorities;
-            if (
-                staticAliases &&
-                staticAliases.includes(environment) &&
-                staticAliases.includes(entity.environment)
-            ) {
+
+            const validEnvironment = staticAliases?.some((staticAlias) => {
+                return (
+                    staticAlias &&
+                    staticAlias.indexOf(environment) > -1 &&
+                    staticAlias.indexOf(entity.environment) > -1
+                );
+            });
+
+            if (validEnvironment) {
                 return true;
             }
         }

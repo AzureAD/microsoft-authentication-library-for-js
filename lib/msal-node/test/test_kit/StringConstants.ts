@@ -8,6 +8,8 @@ import {
     Constants,
     ONE_DAY_IN_MS,
 } from "@azure/msal-common";
+import { ManagedIdentityResult } from "../../src/response/ManagedIdentityResult";
+// import { ManagedIdentityResult } from "../../src/response/ManagedIdentityResult";
 
 // This file contains the string constants used by the test classes.
 
@@ -347,6 +349,22 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
         client_info: `${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
     },
 };
+
+export const MANAGED_IDENTITY_RESOURCE =
+    "URI_of_the_managed_identity_assigned_to_the_azure_resource";
+
+export const MANAGED_IDENTITY_CLIENT_ID =
+    "unique_identifier_generated_by_Azure_AD_for_the_azure_resource";
+
+export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: ManagedIdentityResult =
+    {
+        accessToken: TEST_TOKENS.ACCESS_TOKEN,
+        expiresOn: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        resource: MANAGED_IDENTITY_RESOURCE,
+        tokenType: AuthenticationScheme.BEARER,
+        clientId: MANAGED_IDENTITY_CLIENT_ID,
+        fromCache: false,
+    };
 
 export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
