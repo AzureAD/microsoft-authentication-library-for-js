@@ -4,13 +4,14 @@ import {
     RefreshTokenEntity,
     AccountEntity,
     AppMetadataEntity,
+    CacheHelpers,
 } from "@azure/msal-common";
 
 export const MOCK_PARTITION_KEY = "mock_partition_key";
 export const MOCK_CACHE_STRING = "mock_cache_string";
 
 // mock tokens
-export const mockAccessTokenEntity_1 = {
+export const mockAccessTokenEntity_1: AccessTokenEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
     credentialType: "AccessToken",
@@ -24,7 +25,7 @@ export const mockAccessTokenEntity_1 = {
     userAssertionHash: "mock_hash_string",
 };
 
-export const mockAccessTokenEntity_2 = {
+export const mockAccessTokenEntity_2: AccessTokenEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
     credentialType: "AccessToken",
@@ -37,7 +38,7 @@ export const mockAccessTokenEntity_2 = {
     extendedExpiresOn: "4600",
 };
 
-export const mockIdTokenEntity = {
+export const mockIdTokenEntity: IdTokenEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
     credentialType: "IdToken",
@@ -46,7 +47,7 @@ export const mockIdTokenEntity = {
     realm: "microsoft",
 };
 
-export const mockRefreshTokenEntity = {
+export const mockRefreshTokenEntity: RefreshTokenEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
     credentialType: "RefreshToken",
@@ -54,7 +55,7 @@ export const mockRefreshTokenEntity = {
     secret: "a refresh token",
 };
 
-export const mockRefreshTokenEntityWithFamilyId = {
+export const mockRefreshTokenEntityWithFamilyId: RefreshTokenEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
     credentialType: "RefreshToken",
@@ -82,38 +83,23 @@ export const mockAppMetaDataEntity = {
 // generate mockCache
 export class mockCache {
     static createMockATOne(): AccessTokenEntity {
-        const at = new AccessTokenEntity();
-        Object.assign(at, mockAccessTokenEntity_1);
-
-        return at;
+        return mockAccessTokenEntity_1;
     }
 
     static createMockATTwo(): AccessTokenEntity {
-        const at = new AccessTokenEntity();
-        Object.assign(at, mockAccessTokenEntity_2);
-
-        return at;
+        return mockAccessTokenEntity_2;
     }
 
     static createMockIdT(): IdTokenEntity {
-        const idt = new IdTokenEntity();
-        Object.assign(idt, mockIdTokenEntity);
-
-        return idt;
+        return mockIdTokenEntity;
     }
 
     static createMockRT(): RefreshTokenEntity {
-        const rt = new RefreshTokenEntity();
-        Object.assign(rt, mockRefreshTokenEntity);
-
-        return rt;
+        return mockRefreshTokenEntity;
     }
 
     static createMockRTWithFamilyId(): RefreshTokenEntity {
-        const rt = new RefreshTokenEntity();
-        Object.assign(rt, mockRefreshTokenEntityWithFamilyId);
-
-        return rt;
+        return mockRefreshTokenEntityWithFamilyId;
     }
 
     static createMockAcc(): AccountEntity {
@@ -133,15 +119,17 @@ export class mockCache {
 
 export const MockCache = {
     atOne: mockCache.createMockATOne(),
-    atOneKey: mockCache.createMockATOne().generateCredentialKey(),
+    atOneKey: CacheHelpers.generateCredentialKey(mockCache.createMockATOne()),
     atTwo: mockCache.createMockATTwo(),
-    atTwoKey: mockCache.createMockATTwo().generateCredentialKey(),
+    atTwoKey: CacheHelpers.generateCredentialKey(mockCache.createMockATTwo()),
     idT: mockCache.createMockIdT(),
-    idTKey: mockCache.createMockIdT().generateCredentialKey(),
+    idTKey: CacheHelpers.generateCredentialKey(mockCache.createMockIdT()),
     rt: mockCache.createMockRT(),
-    rtKey: mockCache.createMockRT().generateCredentialKey(),
+    rtKey: CacheHelpers.generateCredentialKey(mockCache.createMockRT()),
     rtF: mockCache.createMockRTWithFamilyId(),
-    rtFKey: mockCache.createMockRTWithFamilyId().generateCredentialKey(),
+    rtFKey: CacheHelpers.generateCredentialKey(
+        mockCache.createMockRTWithFamilyId()
+    ),
     acc: mockCache.createMockAcc(),
     accKey: mockCache.createMockAcc().generateAccountKey(),
     amdt: mockCache.createMockAmdt(),
