@@ -44,4 +44,6 @@ export type AuthenticationResult = {
     msGraphHost?: string;
     code?: string;
     fromNativeBroker?: boolean;
+    managedIdentityClientId?: string;
+    managedIdentityResource?: string;
 };

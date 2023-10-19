@@ -51,4 +51,15 @@ export type ServerAuthorizationTokenResponse = {
     trace_id?: string;
     correlation_id?: string;
     claims?: string;
+
+    /**
+     * Unique to Managed Identity
+     */
+    // success
+    client_id?: string;
+    expires_on?: number; // will be converted to expires_in
+    resource?: string;
+    // error
+    message?: string; // will be converted to error
+    correlationId?: string; // will be converted to correlation_id
 };

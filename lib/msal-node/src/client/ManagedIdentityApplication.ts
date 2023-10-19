@@ -41,6 +41,10 @@ import {
  */
 export class ManagedIdentityApplication {
     private config: ManagedIdentityNodeConfiguration;
+    // needed for unit test
+    public get getConfig(): ManagedIdentityNodeConfiguration {
+        return this.config;
+    }
 
     private logger: Logger;
     private nodeStorage: NodeStorage;

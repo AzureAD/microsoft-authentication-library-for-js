@@ -49,6 +49,8 @@ export class AccessTokenEntity extends CredentialEntity {
     tokenType?: AuthenticationScheme;
     requestedClaims?: string;
     requestedClaimsHash?: string;
+    managedIdentityClientId?: string;
+    managedIdentityResource?: string;
 
     /**
      * Create AccessTokenEntity
@@ -76,7 +78,9 @@ export class AccessTokenEntity extends CredentialEntity {
         userAssertionHash?: string,
         keyId?: string,
         requestedClaims?: string,
-        requestedClaimsHash?: string
+        requestedClaimsHash?: string,
+        managedIdentityClientId?: string,
+        managedIdentityResource?: string
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
@@ -108,6 +112,14 @@ export class AccessTokenEntity extends CredentialEntity {
         if (requestedClaims) {
             atEntity.requestedClaims = requestedClaims;
             atEntity.requestedClaimsHash = requestedClaimsHash;
+        }
+
+        if (managedIdentityClientId) {
+            atEntity.managedIdentityClientId = managedIdentityClientId;
+        }
+
+        if (managedIdentityResource) {
+            atEntity.managedIdentityResource = managedIdentityResource;
         }
 
         /*
