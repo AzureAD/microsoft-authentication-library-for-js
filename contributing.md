@@ -94,7 +94,7 @@ npm run test:coverage
 
 #### Issues with Jest?
 ```bash
-//if you find that there are errors with the jest apis, you can install "jest" extension 
+//if you find that there are errors with the jest apis, and you are on VS Code, you can install "jest" extension 
 //from the market and run the folowing command
 npm i --save-dev @types/jest
 ``````
