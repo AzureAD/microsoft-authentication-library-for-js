@@ -731,7 +731,13 @@ export abstract class CacheManager implements ICacheManager {
             this.commonLogger.info("CacheManager:getIdToken - No token found");
             return null;
         } else if (numIdTokens > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+            this.commonLogger.info(
+                "CacheManager:getIdToken - Multiple id tokens found, clearing them"
+            );
+            idTokens.forEach((idToken) => {
+                this.removeIdToken(idToken.generateCredentialKey());
+            });
+            return null;
         }
 
         this.commonLogger.info("CacheManager:getIdToken - Returning id token");
@@ -845,7 +851,13 @@ export abstract class CacheManager implements ICacheManager {
             this.commonLogger.info("CacheManager:getAccessToken - No token found");
             return null;
         } else if (numAccessTokens > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+            this.commonLogger.info(
+                "CacheManager:getAccessToken - Multiple access tokens found, clearing them"
+            );
+            accessTokens.forEach((accessToken) => {
+                this.removeAccessToken(accessToken.generateCredentialKey());
+            });
+            return null;
         }
 
         this.commonLogger.info("CacheManager:getAccessToken - Returning access token");
@@ -952,7 +964,7 @@ export abstract class CacheManager implements ICacheManager {
             this.commonLogger.info("CacheManager:getRefreshToken - No refresh token found.");
             return null;
         }
-        // address the else case after remove functions address environment aliases
+        // TODO: address the else case after remove functions address environment aliases
 
         this.commonLogger.info("CacheManager:getRefreshToken - returning refresh token");
         return refreshTokens[0] as RefreshTokenEntity;
