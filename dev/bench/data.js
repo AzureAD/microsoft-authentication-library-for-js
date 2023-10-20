@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697841024030,
+  "lastUpdate": 1697845378244,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1824,6 +1824,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.92%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3e4c956c57e1476632cab77832493d4d0c51470b",
+          "message": "Don't use temporary cache for silent & popup flows (#6586)\n\nSilent and Popup flows don't need to use temporary cache because they\r\ndon't lose context the way the Redirect flow does. Applying this across\r\nthe board causes unnecessary stringification, storage, lookup and\r\nparsing in those flows, especially since the code isn't shared across\r\nthose flows anyway.\r\n\r\nThis PR refactors the popup and silent flows to pass the request object\r\nthrough the stack instead of storing and looking up in sessionStorage.\r\nThe redirect flow will continue to utilize sessionStorage for temp\r\ncache.",
+          "timestamp": "2023-10-20T16:38:04-07:00",
+          "tree_id": "b257c183510c9b6276ccd8e86b4f275fb98985f2",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3e4c956c57e1476632cab77832493d4d0c51470b"
+        },
+        "date": 1697845376271,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 154657,
+            "range": "±1.27%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 153810,
+            "range": "±1.13%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
           }
         ]
       }
