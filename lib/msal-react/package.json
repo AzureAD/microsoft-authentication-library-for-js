@@ -48,7 +48,7 @@
   },
   "peerDependencies": {
     "@azure/msal-browser": "^3.2.0",
-    "react": "^16.8.0 || ^17 || ^18"
+    "react": "^16.8.0 || ^17 || ^18 || ^20"
   },
   "devDependencies": {
     "@azure/msal-browser": "^3.2.0",
