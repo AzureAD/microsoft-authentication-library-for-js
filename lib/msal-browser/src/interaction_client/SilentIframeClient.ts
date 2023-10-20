@@ -10,7 +10,6 @@ import {
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     AuthError,
-    Constants,
     UrlString,
     ServerAuthorizationCodeResponse,
     ProtocolUtils,
