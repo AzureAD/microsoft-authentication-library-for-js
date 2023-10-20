@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 05 Oct 2023 18:06:41 GMT and should not be manually modified.
+This log was last generated on Wed, 18 Oct 2023 17:24:19 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.2.0
+
+Wed, 18 Oct 2023 17:24:19 GMT
+
+### Minor changes
+
+- Build account objects from cached ID Token #6529 (hemoral@microsoft.com)
+
+### Patches
+
+- Added some new error codes/messages for NestedAppAuth. #6359 (email not defined)
+- Add new PerformanceEvents for create/remove hidden iframe #6533 (thomas.norling@microsoft.com)
+- Additional ATS instrumentation #6562 (thomas.norling@microsoft.com)
 
 ## 14.1.0
 

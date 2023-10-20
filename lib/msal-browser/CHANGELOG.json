@@ -2,6 +2,65 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 18 Oct 2023 17:24:19 GMT",
+      "version": "3.3.0",
+      "tag": "@azure/msal-browser_v3.3.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cfac159c239152524542e7fe6d76ca5e0b415b7f",
+            "comment": "Instrument create/remove hidden iframe & refactor monitorIframeForHash #6533"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "31fb0a77a6bf9db77a41330fa09a76db4ff030c0",
+            "comment": "Additional ATS instrumentation #6562"
+          },
+          {
+            "author": "email not defined",
+            "package": "@azure/msal-browser",
+            "commit": "d5ae4e0ea383a70cd74d75002b16d7583b2809e2",
+            "comment": "addressing rollup issue based on combined configuration"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0f5e6c2142889ea9f43d808f270aec9264afd363",
+            "comment": "Build account objects from cached ID Token #6529"
+          },
+          {
+            "author": "email not defined",
+            "package": "@azure/msal-browser",
+            "commit": "618c4caa4bf0fb0bd64128dadb7a0c8a681c6b87",
+            "comment": "Added new PublicClientNext and additional Operating Contexts and associated Controllers; Initially to address NestedAppAuth. #6359"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "487be359ff08d4c8fc82a7232d04048172023409",
+            "comment": "Replace custom encoder with TextEncoder in code challenge generator #6560"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3f02f79c53c5904494e7d8bc15ffab36971a7f26",
+            "comment": "Preconnect to authority to speed up /token calls #6550"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.2.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 05 Oct 2023 18:06:42 GMT",
       "version": "3.2.0",
       "tag": "@azure/msal-browser_v3.2.0",
