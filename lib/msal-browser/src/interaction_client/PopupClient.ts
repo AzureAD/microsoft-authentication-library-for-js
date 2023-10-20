@@ -42,9 +42,7 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { EventHandler } from "../event/EventHandler";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration } from "../config/Configuration";
-import {
-    InteractionHandler
-} from "../interaction_handler/InteractionHandler";
+import { InteractionHandler } from "../interaction_handler/InteractionHandler";
 import { PopupWindowAttributes } from "../request/PopupWindowAttributes";
 import { EventError } from "../event/EventMessage";
 import { AuthenticationResult } from "../response/AuthenticationResult";

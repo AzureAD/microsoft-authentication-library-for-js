@@ -126,10 +126,7 @@ export class InteractionHandler {
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )(
-                authCodeResponse.cloud_instance_host_name,
-                request.correlationId
-            );
+            )(authCodeResponse.cloud_instance_host_name, request.correlationId);
         }
 
         // Nonce validation not needed when redirect not involved (e.g. hybrid spa, renewing token via rt)
