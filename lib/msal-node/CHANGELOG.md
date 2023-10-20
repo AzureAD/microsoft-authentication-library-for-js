@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 05 Oct 2023 18:06:40 GMT and should not be manually modified.
+This log was last generated on Wed, 18 Oct 2023 17:24:19 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.3.0
+
+Wed, 18 Oct 2023 17:24:19 GMT
+
+### Minor changes
+
+- Build account objects from cached ID Token #6529 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.2.0
 
 ## 2.2.0
 

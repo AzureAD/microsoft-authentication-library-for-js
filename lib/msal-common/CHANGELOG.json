@@ -2,6 +2,41 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 18 Oct 2023 17:24:19 GMT",
+      "version": "14.2.0",
+      "tag": "@azure/msal-common_v14.2.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "@azure/msal-common",
+            "commit": "618c4caa4bf0fb0bd64128dadb7a0c8a681c6b87",
+            "comment": "Added some new error codes/messages for NestedAppAuth. #6359"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "cfac159c239152524542e7fe6d76ca5e0b415b7f",
+            "comment": "Add new PerformanceEvents for create/remove hidden iframe #6533"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "31fb0a77a6bf9db77a41330fa09a76db4ff030c0",
+            "comment": "Additional ATS instrumentation #6562"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0f5e6c2142889ea9f43d808f270aec9264afd363",
+            "comment": "Build account objects from cached ID Token #6529"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 05 Oct 2023 18:06:41 GMT",
       "version": "14.1.0",
       "tag": "@azure/msal-common_v14.1.0",

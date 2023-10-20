@@ -2,6 +2,27 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 18 Oct 2023 17:24:19 GMT",
+      "version": "2.3.0",
+      "tag": "@azure/msal-node_v2.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0f5e6c2142889ea9f43d808f270aec9264afd363",
+            "comment": "Build account objects from cached ID Token #6529"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.2.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 05 Oct 2023 18:06:40 GMT",
       "version": "2.2.0",
       "tag": "@azure/msal-node_v2.2.0",
