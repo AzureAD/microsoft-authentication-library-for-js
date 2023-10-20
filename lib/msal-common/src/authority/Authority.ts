@@ -1205,12 +1205,11 @@ export class Authority {
                 regionalMetadata.authorization_endpoint,
                 azureRegion
             );
-        // TODO: Enquire on whether we should leave the query string or remove it before releasing the feature
+
         regionalMetadata.token_endpoint =
             Authority.buildRegionalAuthorityString(
                 regionalMetadata.token_endpoint,
-                azureRegion,
-                Constants.REGIONAL_AUTH_NON_MSI_QUERY_STRING
+                azureRegion
             );
 
         if (regionalMetadata.end_session_endpoint) {
