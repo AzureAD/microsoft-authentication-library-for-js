@@ -139,7 +139,6 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage,
                 authCodeRequest,
                 this.logger,
-                this.browserCrypto,
                 this.performanceClient
             );
 
@@ -463,15 +462,9 @@ export class RedirectClient extends StandardInteractionClient {
             this.browserStorage,
             cachedRequest,
             this.logger,
-            this.browserCrypto,
             this.performanceClient
         );
-        return await interactionHandler.handleCodeResponseFromHash(
-            hash,
-            state,
-            authClient.authority,
-            this.networkClient
-        );
+        return await interactionHandler.handleCodeResponseFromHash(hash, state);
     }
 
     /**

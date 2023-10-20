@@ -354,12 +354,23 @@ describe("InteractionHandler.ts Unit Tests", () => {
             const tokenResponse =
                 await interactionHandler.handleCodeResponseFromServer(
                     testCodeResponse,
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    authorityInstance,
-                    authConfig.networkInterface!
+                    {
+                        authority: "https://www.contoso.com/common/",
+                        scopes: ["User.Read"],
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        redirectUri: "/",
+                        responseMode: "fragment",
+                        nonce: TEST_CONFIG.CORRELATION_ID,
+                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    }
                 );
 
-            expect(updateAuthoritySpy.calledWith(authority)).toBe(true);
+            expect(
+                updateAuthoritySpy.calledWith(
+                    "contoso.com",
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 acquireTokenSpy.calledWith(
@@ -378,12 +389,15 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 browserStorage
             );
             expect(
-                interactionHandler.handleCodeResponseFromHash(
-                    "",
-                    "",
-                    authorityInstance,
-                    authConfig.networkInterface!
-                )
+                interactionHandler.handleCodeResponseFromHash("", {
+                    authority: "https://www.contoso.com/common/",
+                    scopes: ["User.Read"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: "/",
+                    responseMode: "fragment",
+                    nonce: TEST_CONFIG.CORRELATION_ID,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                })
             ).rejects.toMatchObject(
                 createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
@@ -392,9 +406,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 interactionHandler.handleCodeResponseFromHash(
                     //@ts-ignore
                     null,
-                    "",
-                    authorityInstance,
-                    authConfig.networkInterface
+                    ""
                 )
             ).rejects.toMatchObject(
                 createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
@@ -495,11 +507,22 @@ describe("InteractionHandler.ts Unit Tests", () => {
             const tokenResponse =
                 await interactionHandler.handleCodeResponseFromHash(
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    authorityInstance,
-                    authConfig.networkInterface!
+                    {
+                        authority: "https://www.contoso.com/common/",
+                        scopes: ["User.Read"],
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        redirectUri: "/",
+                        responseMode: "fragment",
+                        nonce: TEST_CONFIG.CORRELATION_ID,
+                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    }
                 );
-            expect(updateAuthoritySpy.calledWith(authority)).toBe(true);
+            expect(
+                updateAuthoritySpy.calledWith(
+                    "contoso.com",
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 acquireTokenSpy.calledWith(
@@ -612,11 +635,22 @@ describe("InteractionHandler.ts Unit Tests", () => {
             const tokenResponse =
                 await interactionHandler.handleCodeResponseFromHash(
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    authorityInstance,
-                    authConfig.networkInterface!
+                    {
+                        authority: "https://www.contoso.com/common/",
+                        scopes: ["User.Read"],
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        redirectUri: "/",
+                        responseMode: "fragment",
+                        nonce: TEST_CONFIG.CORRELATION_ID,
+                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    }
                 );
-            expect(updateAuthoritySpy.calledWith(authority)).toBe(true);
+            expect(
+                updateAuthoritySpy.calledWith(
+                    "contoso.com",
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(true);
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 acquireTokenSpy.calledWith(
