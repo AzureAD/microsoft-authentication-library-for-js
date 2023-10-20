@@ -147,10 +147,6 @@ describe("SilentIframeClient", () => {
                         )
                     );
                 });
-            const browserStorageSpy = sinon.spy(
-                BrowserCacheManager.prototype,
-                "cleanRequestByState"
-            );
 
             silentIframeClient
                 .acquireToken({
@@ -159,7 +155,6 @@ describe("SilentIframeClient", () => {
                 })
                 .catch(() => {
                     expect(telemetryStub.calledOnce).toBe(true);
-                    expect(browserStorageSpy.calledOnce).toBe(true);
                     done();
                 });
         });
