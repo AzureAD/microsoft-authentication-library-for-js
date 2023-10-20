@@ -56,6 +56,8 @@ cd lib/<package-name>
 npm run build:all
 // To run build only for a single package (not its dependencies)
 npm run build
+//If you run into an issue with shx, run the following
+npm install shx
 ```
 
 ### Test and Test Coverage
@@ -89,6 +91,13 @@ cd lib/<package-name>
 // Run test command
 npm run test:coverage
 ```
+
+#### Issues with Jest?
+```bash
+//if you find that there are errors with the jest apis, you can install "jest" extension 
+//from the market and run the folowing command
+npm i --save-dev @types/jest
+``````
 
 ## Before committing
 
