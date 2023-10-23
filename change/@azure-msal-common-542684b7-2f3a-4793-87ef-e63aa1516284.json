@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add new PerformanceEvents for create/remove hidden iframe #6533",
+  "comment": "Don't use temporary cache for silent & popup flows #6586",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
