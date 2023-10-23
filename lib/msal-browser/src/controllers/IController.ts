@@ -48,11 +48,6 @@ export interface IController {
         accountId?: string
     ): Promise<AuthenticationResult>;
 
-    acquireTokenByRefreshToken(
-        commonRequest: CommonSilentFlowRequest,
-        silentRequest: SilentRequest
-    ): Promise<AuthenticationResult>;
-
     addEventCallback(callback: EventCallbackFunction): string | null;
 
     removeEventCallback(callbackId: string): void;
