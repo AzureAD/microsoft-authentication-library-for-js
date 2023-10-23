@@ -208,7 +208,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                browserCrypto,
                 performanceClient
             );
             expect(redirectHandler).toBeInstanceOf(RedirectHandler);
@@ -223,7 +222,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                browserCrypto,
                 performanceClient
             );
 
@@ -267,7 +265,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                browserCrypto,
                 performanceClient
             );
             redirectHandler.initiateAuthRequest(
@@ -308,7 +305,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                browserCrypto,
                 performanceClient
             );
             redirectHandler.initiateAuthRequest(
@@ -348,7 +344,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                browserCrypto,
                 performanceClient
             );
             redirectHandler.initiateAuthRequest(
@@ -370,16 +365,10 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                browserCrypto,
                 performanceClient
             );
             expect(
-                redirectHandler.handleCodeResponseFromHash(
-                    "",
-                    "",
-                    authorityInstance,
-                    authConfig.networkInterface!
-                )
+                redirectHandler.handleCodeResponseFromHash("", "")
             ).rejects.toMatchObject(
                 createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
@@ -388,9 +377,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 redirectHandler.handleCodeResponseFromHash(
                     //@ts-ignore
                     null,
-                    "",
-                    authorityInstance,
-                    authConfig.networkInterface!
+                    ""
                 )
             ).rejects.toMatchObject(
                 createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
@@ -487,15 +474,12 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 testAuthCodeRequest,
                 browserRequestLogger,
-                browserCrypto,
                 performanceClient
             );
             const tokenResponse =
                 await redirectHandler.handleCodeResponseFromHash(
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    authorityInstance,
-                    authConfig.networkInterface!
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
                 );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
@@ -611,15 +595,12 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 testAuthCodeRequest,
                 browserRequestLogger,
-                browserCrypto,
                 performanceClient
             );
             const tokenResponse =
                 await redirectHandler.handleCodeResponseFromHash(
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    authorityInstance,
-                    authConfig.networkInterface!
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
                 );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
