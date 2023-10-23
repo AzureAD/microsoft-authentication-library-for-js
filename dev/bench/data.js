@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697845378244,
+  "lastUpdate": 1698078752041,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1862,6 +1862,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.13%",
             "unit": "ops/sec",
             "extra": "237 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "bogavril@microsoft.com",
+            "name": "Bogdan Gavril",
+            "username": "bgavrilMS"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "289b937631ac226fb0081860a67de26bf9c4be90",
+          "message": "Add express session maxAge (#6554)\n\nThis is to force AAD to re-evaluate the user access, since the cache\r\nstorage is done on a per user basis, i.e. shared by several sessions\r\nthat the user could open.",
+          "timestamp": "2023-10-23T16:27:35Z",
+          "tree_id": "efb93dacc0d72e35879235a5edf948a3ee39bfb0",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/289b937631ac226fb0081860a67de26bf9c4be90"
+        },
+        "date": 1698078750054,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 150462,
+            "range": "±1.39%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 150036,
+            "range": "±1.30%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
