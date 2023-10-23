@@ -30,7 +30,7 @@ import {
 } from "../utils/BrowserConstants";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import * as BrowserUtils from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
@@ -42,15 +42,12 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { EventHandler } from "../event/EventHandler";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration } from "../config/Configuration";
-import {
-    InteractionHandler,
-    InteractionParams,
-} from "../interaction_handler/InteractionHandler";
+import { InteractionHandler } from "../interaction_handler/InteractionHandler";
 import { PopupWindowAttributes } from "../request/PopupWindowAttributes";
 import { EventError } from "../event/EventMessage";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 
-export type PopupParams = InteractionParams & {
+export type PopupParams = {
     popup?: Window | null;
     popupName: string;
     popupWindowAttributes: PopupWindowAttributes;
@@ -211,13 +208,7 @@ export class PopupClient extends StandardInteractionClient {
             request,
             InteractionType.Popup
         );
-        this.browserStorage.updateCacheEntries(
-            validRequest.state,
-            validRequest.nonce,
-            validRequest.authority,
-            validRequest.loginHint || Constants.EMPTY_STRING,
-            validRequest.account || null
-        );
+        BrowserUtils.preconnect(validRequest.authority);
 
         try {
             // Create auth code request and generate PKCE params
@@ -294,11 +285,6 @@ export class PopupClient extends StandardInteractionClient {
             // Deserialize hash fragment response parameters.
             const serverParams: ServerAuthorizationCodeResponse =
                 UrlString.getDeserializedHash(hash);
-            const state = this.validateAndExtractStateFromHash(
-                serverParams,
-                InteractionType.Popup,
-                validRequest.correlationId
-            );
             // Remove throttle if it exists
             ThrottlingUtils.removeThrottle(
                 this.browserStorage,
@@ -339,25 +325,19 @@ export class PopupClient extends StandardInteractionClient {
                 );
                 const { userRequestState } = ProtocolUtils.parseRequestState(
                     this.browserCrypto,
-                    state
+                    validRequest.state
                 );
-                return nativeInteractionClient
-                    .acquireToken({
-                        ...validRequest,
-                        state: userRequestState,
-                        prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
-                    })
-                    .finally(() => {
-                        this.browserStorage.cleanRequestByState(state);
-                    });
+                return nativeInteractionClient.acquireToken({
+                    ...validRequest,
+                    state: userRequestState,
+                    prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
+                });
             }
 
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponseFromHash(
                 hash,
-                state,
-                authClient.authority,
-                this.networkClient
+                validRequest
             );
 
             return result;
@@ -371,7 +351,6 @@ export class PopupClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-            this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
     }

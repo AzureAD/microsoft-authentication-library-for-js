@@ -146,6 +146,11 @@ describe("CryptoOps.ts Unit Tests", () => {
             expect(
                 cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))
             ).toBe(TEST_STRING);
+
+            const TEST_STRING2 = "制御ポリシー博俊 中 とよた小百合俊晴㊞ソ";
+            expect(
+                cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING2))
+            ).toBe(TEST_STRING2);
         });
 
         it("Korean", () => {

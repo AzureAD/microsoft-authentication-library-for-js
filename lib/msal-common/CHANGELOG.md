@@ -1,8 +1,43 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 05 Sep 2023 22:13:47 GMT and should not be manually modified.
+This log was last generated on Wed, 18 Oct 2023 17:24:19 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.2.0
+
+Wed, 18 Oct 2023 17:24:19 GMT
+
+### Minor changes
+
+- Build account objects from cached ID Token #6529 (hemoral@microsoft.com)
+
+### Patches
+
+- Added some new error codes/messages for NestedAppAuth. #6359 (email not defined)
+- Add new PerformanceEvents for create/remove hidden iframe #6533 (thomas.norling@microsoft.com)
+- Additional ATS instrumentation #6562 (thomas.norling@microsoft.com)
+
+## 14.1.0
+
+Thu, 05 Oct 2023 18:06:41 GMT
+
+### Minor changes
+
+-   Add getAccount and enhance account filtering #6499 (hemoral@microsoft.com)
+-   Modified proactive refresh in silent-flow to also return the cached token when the token needs to be refreshed #6397 (rginsburg@microsoft.com)
+
+### Patches
+
+-   Refactor ClientAuthError for reduced size #6433 (thomas.norling@microsoft.com)
+-   Refactor JoseHeaderError and AuthError for reduced size #6497 (thomas.norling@microsoft.com)
+-   Do not add v2.0 to authority endpoint if already exists #6457 (kshabelko@microsoft.com)
+-   Instrument Crypto APIs #6512 (thomas.norling@microsoft.com)
+-   Refactor ClientConfigurationError #6471 (thomas.norling@microsoft.com)
+-   Add tokenBodyParameters support in RefreshTokenClient #6504 (sameera.gajjarapu@microsoft.com)
+-   Refactor InteractionRequiredAuthError #6472 (thomas.norling@microsoft.com)
+-   use invoke for telem measurements #6486 (thomas.norling@microsoft.com)
+-   Add missing queue measurement instrumentation #6480 (kshabelko@microsoft.com)
 
 ## 14.0.3
 
@@ -10,17 +45,17 @@ Tue, 05 Sep 2023 22:13:47 GMT
 
 ### Patches
 
-- Clear claims from cache when config is not set #6430 (sameera.gajjarapu@microsoft.com)
-- Make AuthToken methods instead of class #6423 (thomas.norling@microsoft.com)
-- Add a linter rule to avoid floating promises #6421 (sameera.gajjarapu@microsoft.com)
-- Fix for source-map related errors #6398 (lalimasharda@microsoft.com)
-- Make `eventName` of type string for `BrowserPerformanceClient` and `PerformanceClient` #6386 (kshabelko@microsoft.com)
-- Add invoke and invokeAsync to wrap functions with logging/telemetry #6383 (thomas.norling@microsoft.com)
+-   Clear claims from cache when config is not set #6430 (sameera.gajjarapu@microsoft.com)
+-   Make AuthToken methods instead of class #6423 (thomas.norling@microsoft.com)
+-   Add a linter rule to avoid floating promises #6421 (sameera.gajjarapu@microsoft.com)
+-   Fix for source-map related errors #6398 (lalimasharda@microsoft.com)
+-   Make `eventName` of type string for `BrowserPerformanceClient` and `PerformanceClient` #6386 (kshabelko@microsoft.com)
+-   Add invoke and invokeAsync to wrap functions with logging/telemetry #6383 (thomas.norling@microsoft.com)
 
 ### Changes
 
-- Extend proactive token refresh to client_credentials #6102 (rgins16@gmail.com)
-- Remove isEmpty helper API (thomas.norling@microsoft.com)
+-   Extend proactive token refresh to client_credentials #6102 (rgins16@gmail.com)
+-   Remove isEmpty helper API (thomas.norling@microsoft.com)
 
 ## 14.0.2
 
@@ -28,7 +63,7 @@ Fri, 18 Aug 2023 18:40:02 GMT
 
 ### Patches
 
-- Fix authority endpoint version for B2C authorities #6342 (hemoral@microsoft.com)
+-   Fix authority endpoint version for B2C authorities #6342 (hemoral@microsoft.com)
 
 ## 14.0.1
 
@@ -36,12 +71,12 @@ Fri, 11 Aug 2023 19:00:44 GMT
 
 ### Patches
 
-- Update dist settings for packages #6322 (hemoral@microsoft.com)
-- Replaces `multiple matched tokens error` with a log message, removing matching tokens from cache #6311 (kshabelko@microsoft.com)
+-   Update dist settings for packages #6322 (hemoral@microsoft.com)
+-   Replaces `multiple matched tokens error` with a log message, removing matching tokens from cache #6311 (kshabelko@microsoft.com)
 
 ### Changes
 
-- Pick up broker extra query params #6286 (kshabelko@microsoft.com)
+-   Pick up broker extra query params #6286 (kshabelko@microsoft.com)
 
 ## 14.0.0
 

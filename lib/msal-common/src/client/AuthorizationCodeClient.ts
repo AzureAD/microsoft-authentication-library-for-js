@@ -194,8 +194,7 @@ export class AuthorizationCodeClient extends BaseClient {
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
             serverParams,
-            cachedState,
-            this.cryptoUtils
+            cachedState
         );
 
         // throw when there is no auth code in the response
@@ -297,11 +296,18 @@ export class AuthorizationCodeClient extends BaseClient {
 
         return invokeAsync(
             this.executePostToTokenEndpoint.bind(this),
-            PerformanceEvents.BaseClientExecutePostToTokenEndpoint,
+            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
+        )(
+            endpoint,
+            requestBody,
+            headers,
+            thumbprint,
+            request.correlationId,
+            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint
+        );
     }
 
     /**

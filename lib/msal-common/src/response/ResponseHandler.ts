@@ -4,7 +4,6 @@
  */
 
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
-import { buildClientInfo } from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
 import {
     ClientAuthErrorCodes,
@@ -44,6 +43,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient"
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
+import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * Class that handles response parsing.
@@ -80,16 +80,15 @@ export class ResponseHandler {
     /**
      * Function which validates server authorization code response.
      * @param serverResponseHash
-     * @param cachedState
+     * @param requestState
      * @param cryptoObj
      */
     validateServerAuthorizationCodeResponse(
-        serverResponseHash: ServerAuthorizationCodeResponse,
-        cachedState: string,
-        cryptoObj: ICrypto
+        serverResponse: ServerAuthorizationCodeResponse,
+        requestState: string
     ): void {
-        if (!serverResponseHash.state || !cachedState) {
-            throw serverResponseHash.state
+        if (!serverResponse.state || !requestState) {
+            throw serverResponse.state
                 ? createClientAuthError(
                       ClientAuthErrorCodes.stateNotFound,
                       "Cached State"
@@ -100,66 +99,62 @@ export class ResponseHandler {
                   );
         }
 
-        let decodedServerResponseHash: string;
-        let decodedCachedState: string;
+        let decodedServerResponseState: string;
+        let decodedRequestState: string;
 
         try {
-            decodedServerResponseHash = decodeURIComponent(
-                serverResponseHash.state
+            decodedServerResponseState = decodeURIComponent(
+                serverResponse.state
             );
         } catch (e) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.invalidState,
-                serverResponseHash.state
+                serverResponse.state
             );
         }
 
         try {
-            decodedCachedState = decodeURIComponent(cachedState);
+            decodedRequestState = decodeURIComponent(requestState);
         } catch (e) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.invalidState,
-                serverResponseHash.state
+                serverResponse.state
             );
         }
 
-        if (decodedServerResponseHash !== decodedCachedState) {
+        if (decodedServerResponseState !== decodedRequestState) {
             throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
         }
 
         // Check for error
         if (
-            serverResponseHash.error ||
-            serverResponseHash.error_description ||
-            serverResponseHash.suberror
+            serverResponse.error ||
+            serverResponse.error_description ||
+            serverResponse.suberror
         ) {
             if (
                 isInteractionRequiredError(
-                    serverResponseHash.error,
-                    serverResponseHash.error_description,
-                    serverResponseHash.suberror
+                    serverResponse.error,
+                    serverResponse.error_description,
+                    serverResponse.suberror
                 )
             ) {
                 throw new InteractionRequiredAuthError(
-                    serverResponseHash.error || Constants.EMPTY_STRING,
-                    serverResponseHash.error_description,
-                    serverResponseHash.suberror,
-                    serverResponseHash.timestamp || Constants.EMPTY_STRING,
-                    serverResponseHash.trace_id || Constants.EMPTY_STRING,
-                    serverResponseHash.correlation_id || Constants.EMPTY_STRING,
-                    serverResponseHash.claims || Constants.EMPTY_STRING
+                    serverResponse.error || "",
+                    serverResponse.error_description,
+                    serverResponse.suberror,
+                    serverResponse.timestamp || "",
+                    serverResponse.trace_id || "",
+                    serverResponse.correlation_id || "",
+                    serverResponse.claims || ""
                 );
             }
 
             throw new ServerError(
-                serverResponseHash.error || Constants.EMPTY_STRING,
-                serverResponseHash.error_description,
-                serverResponseHash.suberror
+                serverResponse.error || "",
+                serverResponse.error_description,
+                serverResponse.suberror
             );
-        }
-
-        if (serverResponseHash.client_info) {
-            buildClientInfo(serverResponseHash.client_info, cryptoObj);
         }
     }
 
@@ -602,14 +597,19 @@ export class ResponseHandler {
                 serverTokenResponse?.spa_accountid;
         }
 
+        const accountInfo: AccountInfo | null = cacheRecord.account
+            ? {
+                  ...cacheRecord.account.getAccountInfo(),
+                  idTokenClaims,
+              }
+            : null;
+
         return {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes,
-            account: cacheRecord.account
-                ? cacheRecord.account.getAccountInfo()
-                : null,
+            account: accountInfo,
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,

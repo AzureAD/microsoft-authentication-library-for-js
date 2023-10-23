@@ -59,6 +59,7 @@ export type AccountFilter = Omit<
 > & {
     realm?: string;
     loginHint?: string;
+    sid?: string;
 };
 
 /**

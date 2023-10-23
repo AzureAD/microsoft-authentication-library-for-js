@@ -48,8 +48,10 @@ import {
     NetworkManager,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
+    IdTokenEntity,
+    CredentialType,
 } from "@azure/msal-common";
-import { BrowserUtils } from "../../src/utils/BrowserUtils";
+import * as BrowserUtils from "../../src/utils/BrowserUtils";
 import {
     TemporaryCacheKeys,
     ApiId,
@@ -120,9 +122,10 @@ describe("RedirectClient", () => {
             },
         });
 
+        await pca.initialize();
+
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
-        await pca.initialize();
 
         jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
             RANDOM_TEST_GUID
@@ -413,6 +416,8 @@ describe("RedirectClient", () => {
                     allowNativeBroker: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -880,6 +885,8 @@ describe("RedirectClient", () => {
                 },
             });
 
+            await pca.initialize();
+
             //PCA implementation moved to controller
             pca = (pca as any).controller;
 
@@ -1039,6 +1046,8 @@ describe("RedirectClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -1217,6 +1226,8 @@ describe("RedirectClient", () => {
                 },
             });
 
+            await pca.initialize();
+
             //PCA implementation moved to controller
             pca = (pca as any).controller;
 
@@ -1333,6 +1344,8 @@ describe("RedirectClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -3109,7 +3122,7 @@ describe("RedirectClient", () => {
             });
         });
 
-        it("includes postLogoutRedirectUri if one is configured", (done) => {
+        it("includes postLogoutRedirectUri if one is configured", async () => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
@@ -3123,7 +3136,6 @@ describe("RedirectClient", () => {
                                 postLogoutRedirectUri
                             )}`
                         );
-                        done();
                         return Promise.resolve(true);
                     }
                 );
@@ -3134,6 +3146,8 @@ describe("RedirectClient", () => {
                     postLogoutRedirectUri,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -3161,7 +3175,7 @@ describe("RedirectClient", () => {
             redirectClient.logout();
         });
 
-        it("doesn't include postLogoutRedirectUri if null is configured", (done) => {
+        it("doesn't include postLogoutRedirectUri if null is configured", async () => {
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
                 .callsFake(
@@ -3172,7 +3186,6 @@ describe("RedirectClient", () => {
                         expect(urlNavigate).not.toContain(
                             `post_logout_redirect_uri`
                         );
-                        done();
                         return Promise.resolve(true);
                     }
                 );
@@ -3183,6 +3196,8 @@ describe("RedirectClient", () => {
                     postLogoutRedirectUri: null,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -3634,26 +3649,16 @@ describe("RedirectClient", () => {
         });
 
         it("clears active account entry from the cache", async () => {
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-
             const testAccountInfo: AccountInfo = {
                 authorityType: "MSSTS",
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-                idTokenClaims: testIdTokenClaims,
-                name: testIdTokenClaims.name || "",
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                name: ID_TOKEN_CLAIMS.name,
                 nativeAccountId: undefined,
             };
 
@@ -3667,7 +3672,14 @@ describe("RedirectClient", () => {
             testAccount.authorityType = "MSSTS";
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-            testAccount.idTokenClaims = testIdTokenClaims;
+
+            const testIdToken: IdTokenEntity = new IdTokenEntity();
+            testIdToken.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
+            testIdToken.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
+            testIdToken.environment = testAccount.environment;
+            testIdToken.realm = ID_TOKEN_CLAIMS.tid;
+            testIdToken.secret = TEST_TOKENS.IDTOKEN_V2;
+            testIdToken.credentialType = CredentialType.ID_TOKEN;
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,
@@ -3687,6 +3699,8 @@ describe("RedirectClient", () => {
                 );
 
             browserStorage.setAccount(testAccount);
+            browserStorage.setIdTokenCredential(testIdToken);
+
             pca.setActiveAccount(testAccountInfo);
             expect(pca.getActiveAccount()).toStrictEqual(testAccountInfo);
 

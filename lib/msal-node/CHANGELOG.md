@@ -1,8 +1,35 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 05 Sep 2023 22:13:47 GMT and should not be manually modified.
+This log was last generated on Wed, 18 Oct 2023 17:24:19 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.3.0
+
+Wed, 18 Oct 2023 17:24:19 GMT
+
+### Minor changes
+
+- Build account objects from cached ID Token #6529 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.2.0
+
+## 2.2.0
+
+Thu, 05 Oct 2023 18:06:40 GMT
+
+### Minor changes
+
+-   Fix unhandled rejections & problems getting redirectUri in LoopbackClient #6481 (thomas.norling@microsoft.com)
+-   Modified proactive refresh in silent-flow to also return the cached token when the token needs to be refreshed #6397 (rginsburg@microsoft.com)
+-   Bump @azure/msal-common to v14.1.0
+
+### Patches
+
+-   expose the api from msal-node imported from common (email not defined)
+-   Refactor InteractionRequiredAuthError #6472 (thomas.norling@microsoft.com)
+-   Refactor AuthError for reduced size #6497 (thomas.norling@microsoft.com)
+-   Refactor ClientAuthError for reduced size #6433 (thomas.norling@microsoft.com)
+-   Refactor ClientConfigurationError #6471 (thomas.norling@microsoft.com)
 
 ## 2.1.0
 
@@ -10,21 +37,21 @@ Tue, 05 Sep 2023 22:13:47 GMT
 
 ### Minor changes
 
-- feat(msal-node): change all relative imports to .js #6399 (22598347+datner@users.noreply.github.com)
-- Bump @azure/msal-common to v14.0.3
+-   feat(msal-node): change all relative imports to .js #6399 (22598347+datner@users.noreply.github.com)
+-   Bump @azure/msal-common to v14.0.3
 
 ### Patches
 
-- Make AuthToken methods instead of class #6423 (thomas.norling@microsoft.com)
-- Add a linter rule to avoid floating promises #6421 (sameera.gajjarapu@microsoft.com)
-- Include correlationId on POST API call #6383 (thomas.norling@microsoft.com)
-- Fix for source-map related errors #6398 (lalimasharda@microsoft.com)
-- close loopback server on error #6387 (thomas.norling@microsoft.com)
+-   Make AuthToken methods instead of class #6423 (thomas.norling@microsoft.com)
+-   Add a linter rule to avoid floating promises #6421 (sameera.gajjarapu@microsoft.com)
+-   Include correlationId on POST API call #6383 (thomas.norling@microsoft.com)
+-   Fix for source-map related errors #6398 (lalimasharda@microsoft.com)
+-   close loopback server on error #6387 (thomas.norling@microsoft.com)
 
 ### Changes
 
-- Extend proactive token refresh to client_credentials #6102 (rginsburg@microsoft.com)
-- Remove isEmpty helper API (thomas.norling@microsoft.com)
+-   Extend proactive token refresh to client_credentials #6102 (rginsburg@microsoft.com)
+-   Remove isEmpty helper API (thomas.norling@microsoft.com)
 
 ## 2.0.2
 
@@ -32,9 +59,9 @@ Fri, 18 Aug 2023 18:40:02 GMT
 
 ### Patches
 
-- Fixed http(s) imports #6349 (rginsburg@microsoft.com)
-- Fixed jwt import error #6347 (rginsburg@microsoft.com)
-- Bump @azure/msal-common to v14.0.2
+-   Fixed http(s) imports #6349 (rginsburg@microsoft.com)
+-   Fixed jwt import error #6347 (rginsburg@microsoft.com)
+-   Bump @azure/msal-common to v14.0.2
 
 ## 2.0.1
 
@@ -42,9 +69,9 @@ Fri, 11 Aug 2023 19:00:44 GMT
 
 ### Patches
 
-- Fix msal-node file extensions #6318 (hemoral@microsoft.com)
-- Update dist settings for packages #6322 (hemoral@microsoft.com)
-- Bump @azure/msal-common to v14.0.1
+-   Fix msal-node file extensions #6318 (hemoral@microsoft.com)
+-   Update dist settings for packages #6322 (hemoral@microsoft.com)
+-   Bump @azure/msal-common to v14.0.1
 
 ## 2.0.0
 

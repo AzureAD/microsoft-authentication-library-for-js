@@ -238,9 +238,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
         // fetch the account from browser cache
-        const account = this.browserStorage.getAccountInfoFilteredBy({
+        const account = this.browserStorage.getBaseAccountInfo({
             nativeAccountId,
         });
+
         if (!account) {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
@@ -254,9 +255,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const result = await this.silentCacheClient.acquireToken(
                 silentRequest
             );
+
+            const fullAccount = {
+                ...account,
+                idTokenClaims: result?.idTokenClaims as TokenClaims,
+            };
+
             return {
                 ...result,
-                account,
+                account: fullAccount,
             };
         } catch (e) {
             throw e;
@@ -572,6 +579,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims.tid ||
             Constants.EMPTY_STRING;
 
+        const fullAccountEntity: AccountEntity = idTokenClaims
+            ? Object.assign(new AccountEntity(), {
+                  ...accountEntity,
+                  idTokenClaims: idTokenClaims,
+              })
+            : accountEntity;
+
+        const accountInfo = fullAccountEntity.getAccountInfo();
+
         // generate PoP token as needed
         const responseAccessToken = await this.generatePopAccessToken(
             response,
@@ -587,7 +603,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes.asArray(),
-            account: accountEntity.getAccountInfo(),
+            account: accountInfo,
             idToken: response.id_token,
             idTokenClaims: idTokenClaims,
             accessToken: responseAccessToken,

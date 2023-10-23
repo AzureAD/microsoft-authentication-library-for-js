@@ -50,11 +50,12 @@ describe("MsalAuthenticationTemplate tests", () => {
     let accounts: AccountInfo[] = [];
     let activeAccount: AccountInfo | null = null;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         eventCallbacks = [];
         let eventId = 0;
         // @ts-ignore
-        pca = new PublicClientApplication(msalConfig).controller;
+        pca = new PublicClientApplication(msalConfig);
+        await pca.initialize();
         jest.spyOn(pca, "addEventCallback").mockImplementation(
             (callbackFn: Function) => {
                 eventCallbacks.push(callbackFn as EventCallbackFunction);
@@ -635,7 +636,8 @@ describe("MsalAuthenticationTemplate tests", () => {
                 });
 
             const acquireTokenPopupSpy = jest
-                .spyOn(pca, "acquireTokenPopup")
+                // @ts-ignore
+                .spyOn(pca.controller, "acquireTokenPopup")
                 .mockImplementation((request) => {
                     expect(request).toBeDefined();
                     expect(request.account).toBe(testAccount);
@@ -687,7 +689,8 @@ describe("MsalAuthenticationTemplate tests", () => {
                 });
 
             const acquireTokenRedirectSpy = jest
-                .spyOn(pca, "acquireTokenRedirect")
+                // @ts-ignore
+                .spyOn(pca.controller, "acquireTokenRedirect")
                 .mockImplementation((request) => {
                     expect(request).toBeDefined();
                     expect(request.account).toBe(testAccount);

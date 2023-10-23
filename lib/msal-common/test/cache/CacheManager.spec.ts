@@ -37,9 +37,15 @@ import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
 import { CommonSilentFlowRequest, ScopeSet } from "../../src";
+import * as authorityMetadata from "../../src/authority/AuthorityMetadata";
 
 describe("CacheManager.ts test cases", () => {
-    const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto);
+    const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto, {
+        canonicalAuthority: TEST_CONFIG.validAuthority,
+        cloudDiscoveryMetadata: JSON.parse(TEST_CONFIG.CLOUD_DISCOVERY_METADATA)
+            .metadata,
+        knownAuthorities: [TEST_CONFIG.validAuthorityHost],
+    });
     let authorityMetadataStub: sinon.SinonStub;
     beforeEach(() => {
         mockCache.initializeCache();
@@ -396,51 +402,6 @@ describe("CacheManager.ts test cases", () => {
                 mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
             expect(Object.keys(accounts).length).toEqual(0);
         });
-
-        it("loginHint filter matching login_hint ID token claim", () => {
-            // filter by loginHint
-            const successFilter: AccountFilter = {
-                loginHint: "testLoginHint",
-            };
-            let accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(accounts.length).toEqual(1);
-
-            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
-            accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
-            expect(accounts.length).toBe(0);
-        });
-
-        it("loginHint filter matching username", () => {
-            // filter by loginHint
-            const successFilter: AccountFilter = {
-                loginHint: "Jane Doe",
-            };
-            let accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(accounts.length).toEqual(1);
-
-            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
-            accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
-            expect(accounts.length).toBe(0);
-        });
-
-        it("loginHint filter matching upn ID token claim", () => {
-            // filter by loginHint
-            const successFilter: AccountFilter = {
-                loginHint: "testUpn",
-            };
-            let accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(accounts.length).toEqual(1);
-
-            const wrongFilter: AccountFilter = { loginHint: "WrongHint" };
-            accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
-            expect(accounts.length).toBe(0);
-        });
     });
 
     describe("isCredentialKey", () => {
@@ -573,52 +534,183 @@ describe("CacheManager.ts test cases", () => {
             ).toBe(false);
         });
 
-        it("environment filter", () => {
-            // filter by environment
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(testIdToken, {
-                    environment: testIdToken.environment,
-                })
-            ).toBe(true);
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(
-                    testAccessToken,
-                    {
-                        environment: testAccessToken.environment,
-                    }
-                )
-            ).toBe(true);
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(
-                    testRefreshToken,
-                    {
-                        environment: testRefreshToken.environment,
-                    }
-                )
-            ).toBe(true);
+        describe("environment filter", () => {
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
+            it("with configured static cloud discovery metadata", () => {
+                // filter by environment
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: testIdToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: testAccessToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: testRefreshToken.environment,
+                        }
+                    )
+                ).toBe(true);
 
-            // Test failure cases
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(testIdToken, {
-                    environment: "wrong.contoso.com",
-                })
-            ).toBe(false);
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(
-                    testAccessToken,
-                    {
-                        environment: "wrong.contoso.com",
-                    }
-                )
-            ).toBe(false);
-            expect(
-                mockCache.cacheManager.credentialMatchesFilter(
-                    testRefreshToken,
-                    {
-                        environment: "wrong.contoso.com",
-                    }
-                )
-            ).toBe(false);
+                // Test failure cases
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+            });
+
+            it("with hardcoded cloud discovery metadata", () => {
+                jest.spyOn(
+                    authorityMetadata,
+                    "getAliasesFromConfigMetadata"
+                ).mockReturnValue(null);
+                // filter by environment
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: testIdToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: testAccessToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: testRefreshToken.environment,
+                        }
+                    )
+                ).toBe(true);
+
+                // Test failure cases
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+            });
+
+            it("with knownAuthorities", () => {
+                jest.spyOn(
+                    authorityMetadata,
+                    "getAliasesFromConfigMetadata"
+                ).mockReturnValue(null);
+                jest.spyOn(
+                    authorityMetadata,
+                    "getHardcodedAliasesForCanonicalAuthority"
+                ).mockReturnValue(null);
+                // filter by environment
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: testIdToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: testAccessToken.environment,
+                        }
+                    )
+                ).toBe(true);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: testRefreshToken.environment,
+                        }
+                    )
+                ).toBe(true);
+
+                // Test failure cases
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testIdToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testAccessToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+                expect(
+                    mockCache.cacheManager.credentialMatchesFilter(
+                        testRefreshToken,
+                        {
+                            environment: "wrong.contoso.com",
+                        }
+                    )
+                ).toBe(false);
+            });
         });
 
         it("realm filter", () => {
