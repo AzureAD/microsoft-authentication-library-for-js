@@ -8,7 +8,6 @@ import {
     Logger,
     PerformanceCallbackFunction,
     IPerformanceClient,
-    CommonSilentFlowRequest,
     AccountFilter,
 } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
