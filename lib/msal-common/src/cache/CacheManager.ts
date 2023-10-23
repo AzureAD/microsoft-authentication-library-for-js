@@ -964,7 +964,7 @@ export abstract class CacheManager implements ICacheManager {
             this.commonLogger.info("CacheManager:getRefreshToken - No refresh token found.");
             return null;
         }
-        // TODO: address the else case after remove functions address environment aliases
+        // address the else case after remove functions address environment aliases
 
         this.commonLogger.info("CacheManager:getRefreshToken - returning refresh token");
         return refreshTokens[0] as RefreshTokenEntity;
