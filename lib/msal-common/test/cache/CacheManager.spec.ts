@@ -239,7 +239,11 @@ describe("CacheManager.ts test cases", () => {
                 mockCache.cacheManager.getTokenKeys().idToken.length
             ).toEqual(2);
             expect(
-                mockCache.cacheManager.getIdToken(TEST_ACCOUNT_INFO)
+                mockCache.cacheManager.getIdToken(
+                    TEST_ACCOUNT_INFO,
+                    undefined,
+                    TEST_ACCOUNT_INFO.tenantId
+                )
             ).toBeNull();
             expect(
                 mockCache.cacheManager.getTokenKeys().idToken.length
@@ -275,7 +279,6 @@ describe("CacheManager.ts test cases", () => {
             const accounts = mockCache.cacheManager.getAllAccounts();
 
             expect(accounts).not.toBeNull();
-            expect(accounts[0].idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(accounts[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
         });
 

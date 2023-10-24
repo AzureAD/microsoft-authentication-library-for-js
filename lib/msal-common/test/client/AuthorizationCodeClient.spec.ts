@@ -731,6 +731,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     | "amr"
                     | "idp"
                     | "auth_time"
+                    | "tfp"
+                    | "acr"
                 >
             > = {
                 ver: "2.0",
@@ -811,6 +813,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     | "amr"
                     | "idp"
                     | "auth_time"
+                    | "tfp"
+                    | "acr"
                 >
             > = {
                 ver: "2.0",

@@ -488,12 +488,6 @@ describe("SilentFlowClient unit tests", () => {
         });
 
         it("Throws error if scopes are not included in request object", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
