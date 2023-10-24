@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698078752041,
+  "lastUpdate": 1698107213894,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1898,6 +1898,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 150036,
             "range": "±1.30%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a9442419c825fdf209114820aae300b79a32452a",
+          "message": "Fix iframe fallback when RT is not found in cache (#6599)\n\nIt seems this fallback behavior was missed in the transition from v2 to\r\nv3. When the RT cannot be found in the cache we should try to fallback\r\nto the iframe flow. Also includes minor refactor to make the code more\r\nreadable and remove some unnecessary work.",
+          "timestamp": "2023-10-23T17:22:01-07:00",
+          "tree_id": "2237eb9b71d5026306ca896df50cada47f5a8e23",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a9442419c825fdf209114820aae300b79a32452a"
+        },
+        "date": 1698107212693,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 156521,
+            "range": "±1.11%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 152593,
+            "range": "±1.40%",
             "unit": "ops/sec",
             "extra": "232 samples"
           }
