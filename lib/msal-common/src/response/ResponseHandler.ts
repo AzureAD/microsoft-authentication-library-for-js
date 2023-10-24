@@ -44,6 +44,7 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
 import { AccountInfo } from "../account/AccountInfo";
+import * as CacheHelpers from "../cache/utils/CacheHelpers";
 
 /**
  * Class that handles response parsing.
@@ -409,7 +410,7 @@ export class ResponseHandler {
         let cachedIdToken: IdTokenEntity | undefined;
         let cachedAccount: AccountEntity | undefined;
         if (serverTokenResponse.id_token && !!idTokenClaims) {
-            cachedIdToken = IdTokenEntity.createIdTokenEntity(
+            cachedIdToken = CacheHelpers.createIdTokenEntity(
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.id_token,
@@ -462,16 +463,16 @@ export class ResponseHandler {
                     : undefined;
 
             // non AAD scenarios can have empty realm
-            cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
+            cachedAccessToken = CacheHelpers.createAccessTokenEntity(
                 this.homeAccountIdentifier,
                 env,
-                serverTokenResponse.access_token || Constants.EMPTY_STRING,
+                serverTokenResponse.access_token,
                 this.clientId,
                 idTokenClaims?.tid || authority.tenant,
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
-                this.cryptoObj,
+                this.cryptoObj.base64Decode,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
@@ -484,10 +485,10 @@ export class ResponseHandler {
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (serverTokenResponse.refresh_token) {
-            cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
+            cachedRefreshToken = CacheHelpers.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
                 env,
-                serverTokenResponse.refresh_token || Constants.EMPTY_STRING,
+                serverTokenResponse.refresh_token,
                 this.clientId,
                 serverTokenResponse.foci,
                 userAssertionHash

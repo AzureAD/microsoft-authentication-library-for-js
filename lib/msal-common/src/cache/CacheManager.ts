@@ -21,6 +21,7 @@ import {
     Separators,
 } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
+import { generateCredentialKey } from "./utils/CacheHelpers";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
 import { AccessTokenEntity } from "./entities/AccessTokenEntity";
@@ -957,7 +958,7 @@ export abstract class CacheManager implements ICacheManager {
                 "CacheManager:getIdToken - Multiple id tokens found, clearing them"
             );
             idTokens.forEach((idToken) => {
-                this.removeIdToken(idToken.generateCredentialKey());
+                this.removeIdToken(generateCredentialKey(idToken));
             });
             return null;
         }
@@ -1113,9 +1114,7 @@ export abstract class CacheManager implements ICacheManager {
                 "CacheManager:getAccessToken - Multiple access tokens found, clearing them"
             );
             accessTokens.forEach((accessToken) => {
-                void this.removeAccessToken(
-                    accessToken.generateCredentialKey()
-                );
+                void this.removeAccessToken(generateCredentialKey(accessToken));
             });
             return null;
         }

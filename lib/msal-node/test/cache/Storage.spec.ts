@@ -3,8 +3,8 @@ import {
     Logger,
     AccountEntity,
     CacheManager,
-    AccessTokenEntity,
     AuthorityMetadataEntity,
+    AccessTokenEntity,
     IdTokenEntity,
     RefreshTokenEntity,
 } from "@azure/msal-common";
@@ -182,24 +182,18 @@ describe("Storage tests for msal-node: ", () => {
 
         const accessTokenKey =
             "uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite--";
-        const newMockAT = {
-            "uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite--":
-                {
-                    homeAccountId: "uid1.utid1",
-                    environment: "login.windows.net",
-                    credentialType: "AccessToken",
-                    clientId: "mock_client_id",
-                    secret: "an access token",
-                    realm: "samplerealm",
-                    target: "scoperead scopewrite",
-                    cachedAt: "1000",
-                    expiresOn: "4600",
-                    extendedExpiresOn: "4600",
-                },
+        const accessToken: AccessTokenEntity = {
+            homeAccountId: "uid1.utid1",
+            environment: "login.windows.net",
+            credentialType: "AccessToken",
+            clientId: "mock_client_id",
+            secret: "an access token",
+            realm: "samplerealm",
+            target: "scoperead scopewrite",
+            cachedAt: "1000",
+            expiresOn: "4600",
+            extendedExpiresOn: "4600",
         };
-
-        let accessToken = new AccessTokenEntity();
-        accessToken = CacheManager.toObject(accessToken, newMockAT);
 
         const cache = {
             "uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite--":
@@ -221,7 +215,7 @@ describe("Storage tests for msal-node: ", () => {
             "uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite--";
         const invalidAccessTokenKey =
             "uid1.utid1-login.windows.net-accesstoken_invalid-mock_client_id-samplerealm-scoperead scopewrite";
-        const newMockATData = {
+        const accessToken: AccessTokenEntity = {
             homeAccountId: "uid1.utid1",
             environment: "login.windows.net",
             credentialType: "AccessToken",
@@ -233,9 +227,6 @@ describe("Storage tests for msal-node: ", () => {
             expiresOn: "4600",
             extendedExpiresOn: "4600",
         };
-
-        let accessToken = new AccessTokenEntity();
-        accessToken = CacheManager.toObject(accessToken, newMockATData);
 
         nodeStorage.setAccessTokenCredential(accessToken);
         const fetchedAccessToken =
@@ -259,7 +250,7 @@ describe("Storage tests for msal-node: ", () => {
             "uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm---";
         const invalidIdTokenKey =
             "uid1.utid1-login.windows.net-idtoken_invalid-mock_client_id-samplerealm-";
-        const newMockEntityData = {
+        const idToken: IdTokenEntity = {
             homeAccountId: "uid1.utid1",
             environment: "login.windows.net",
             credentialType: "IdToken",
@@ -267,12 +258,6 @@ describe("Storage tests for msal-node: ", () => {
             secret: "an access token",
             realm: "samplerealm",
         };
-
-        // <home_account_id*>-\<environment>-<credential_type>-<client_id>-<realm\*>-<target\*>-<scheme\*>
-        const idToken = CacheManager.toObject(
-            new IdTokenEntity(),
-            newMockEntityData
-        );
 
         nodeStorage.setIdTokenCredential(idToken);
 
@@ -295,7 +280,7 @@ describe("Storage tests for msal-node: ", () => {
             "uid1.utid1-login.windows.net-refreshtoken-mock_client_id-samplerealm---";
         const invalidRefreshTokenKey =
             "uid1.utid1-login.windows.net-refreshtoken_invalid-mock_client_id-samplerealm-";
-        const newMockEntityData = {
+        const refreshToken: RefreshTokenEntity = {
             homeAccountId: "uid1.utid1",
             environment: "login.windows.net",
             credentialType: "RefreshToken",
@@ -303,12 +288,6 @@ describe("Storage tests for msal-node: ", () => {
             secret: "a refresh token",
             realm: "samplerealm",
         };
-
-        // <home_account_id*>-\<environment>-<credential_type>-<client_id>-<realm\*>-<target\*>-<scheme\*>
-        const refreshToken = CacheManager.toObject(
-            new RefreshTokenEntity(),
-            newMockEntityData
-        );
 
         nodeStorage.setRefreshTokenCredential(refreshToken);
 
