@@ -174,7 +174,7 @@ export class BrowserCacheUtils {
             "-" +
             tokenVal.environment +
             "-" +
-            tokenVal.realm;
+            tokenVal.homeAccountId.split(".")[1];
 
         if (Object.keys(storage).includes(accountKey)) {
             return JSON.parse(storage[accountKey]);
