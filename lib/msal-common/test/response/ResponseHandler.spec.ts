@@ -594,8 +594,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    "differentState",
-                    cryptoInterface
+                    "differentState"
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
@@ -622,8 +621,7 @@ describe("ResponseHandler.ts", () => {
             );
             responseHandler.validateServerAuthorizationCodeResponse(
                 testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                cryptoInterface
+                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
             );
         });
 
@@ -646,8 +644,7 @@ describe("ResponseHandler.ts", () => {
             );
             responseHandler.validateServerAuthorizationCodeResponse(
                 testServerCodeResponse,
-                testAltState,
-                cryptoInterface
+                testAltState
             );
         });
 
@@ -670,8 +667,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                    cryptoInterface
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(InteractionRequiredAuthError);
@@ -698,8 +694,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                    cryptoInterface
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -726,8 +721,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                    cryptoInterface
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -754,46 +748,12 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                    cryptoInterface
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 done();
             }
-        });
-
-        it("calls buildClientInfo if clientInfo in response", () => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
-            // Can't spy on buildClientInfo, spy on one of its function calls instead
-            const buildClientInfoSpy = sinon.spy(
-                cryptoInterface,
-                "base64Decode"
-            );
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            responseHandler.validateServerAuthorizationCodeResponse(
-                testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                cryptoInterface
-            );
-            expect(buildClientInfoSpy.calledOnce).toBe(true);
-            expect(
-                buildClientInfoSpy.calledWith(
-                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
-                )
-            ).toBe(true);
         });
 
         it("does not call buildClientInfo if clientInfo not in response", () => {
@@ -817,8 +777,7 @@ describe("ResponseHandler.ts", () => {
             );
             responseHandler.validateServerAuthorizationCodeResponse(
                 testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                cryptoInterface
+                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
             );
             expect(buildClientInfoSpy.notCalled).toBe(true);
         });
@@ -842,8 +801,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    "dummy-state-%20%%%30%%%%%40",
-                    cryptoInterface
+                    "dummy-state-%20%%%30%%%%%40"
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);

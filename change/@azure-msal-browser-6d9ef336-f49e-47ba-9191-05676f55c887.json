@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "Preconnect to authority to speed up /token calls #6550",
+  "type": "patch",
+  "comment": "Fix iframe fallback when RT is not found in cache",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

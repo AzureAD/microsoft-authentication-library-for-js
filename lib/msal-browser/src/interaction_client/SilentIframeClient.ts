@@ -10,7 +10,6 @@ import {
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     AuthError,
-    Constants,
     UrlString,
     ServerAuthorizationCodeResponse,
     ProtocolUtils,
@@ -120,13 +119,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             InteractionType.Silent
         );
         BrowserUtils.preconnect(silentRequest.authority);
-        this.browserStorage.updateCacheEntries(
-            silentRequest.state,
-            silentRequest.nonce,
-            silentRequest.authority,
-            silentRequest.loginHint || Constants.EMPTY_STRING,
-            silentRequest.account || null
-        );
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             this.apiId
@@ -158,7 +150,6 @@ export class SilentIframeClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-            this.browserStorage.cleanRequestByState(silentRequest.state);
             throw e;
         }
     }
@@ -273,11 +264,6 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Deserialize hash fragment response parameters.
         const serverParams: ServerAuthorizationCodeResponse =
             UrlString.getDeserializedHash(hash);
-        const state = this.validateAndExtractStateFromHash(
-            serverParams,
-            InteractionType.Silent,
-            correlationId
-        );
 
         if (serverParams.accountId) {
             this.logger.verbose(
@@ -304,7 +290,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             );
             const { userRequestState } = ProtocolUtils.parseRequestState(
                 this.browserCrypto,
-                state
+                silentRequest.state
             );
             return invokeAsync(
                 nativeInteractionClient.acquireToken.bind(
@@ -318,8 +304,6 @@ export class SilentIframeClient extends StandardInteractionClient {
                 ...silentRequest,
                 state: userRequestState,
                 prompt: silentRequest.prompt || PromptValue.NONE,
-            }).finally(() => {
-                this.browserStorage.cleanRequestByState(state);
             });
         }
 
@@ -332,6 +316,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )(hash, state, authClient.authority, this.networkClient);
+        )(hash, silentRequest);
     }
 }
