@@ -194,8 +194,7 @@ export class AuthorizationCodeClient extends BaseClient {
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
             serverParams,
-            cachedState,
-            this.cryptoUtils
+            cachedState
         );
 
         // throw when there is no auth code in the response

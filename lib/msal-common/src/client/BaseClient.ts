@@ -19,15 +19,13 @@ import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { version, name } from "../packageMetadata";
-import {
-    createClientAuthError,
-    ClientAuthErrorCodes,
-} from "../error/ClientAuthError";
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { AuthorityFactory } from "../authority/AuthorityFactory";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -184,13 +182,26 @@ export abstract class BaseClient {
      * Updates the authority object of the client. Endpoint discovery must be completed.
      * @param updatedAuthority
      */
-    updateAuthority(updatedAuthority: Authority): void {
-        if (!updatedAuthority.discoveryComplete()) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+    async updateAuthority(
+        cloudInstanceHostname: string,
+        correlationId: string
+    ): Promise<void> {
+        this.performanceClient?.addQueueMeasurement(
+            PerformanceEvents.UpdateTokenEndpointAuthority,
+            correlationId
+        );
+        const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${this.authority.tenant}/`;
+        const cloudInstanceAuthority =
+            await AuthorityFactory.createDiscoveredInstance(
+                cloudInstanceAuthorityUri,
+                this.networkClient,
+                this.cacheManager,
+                this.authority.options,
+                this.logger,
+                this.performanceClient,
+                correlationId
             );
-        }
-        this.authority = updatedAuthority;
+        this.authority = cloudInstanceAuthority;
     }
 
     /**
