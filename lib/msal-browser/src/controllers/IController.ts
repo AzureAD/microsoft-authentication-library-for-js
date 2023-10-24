@@ -8,7 +8,6 @@ import {
     Logger,
     PerformanceCallbackFunction,
     IPerformanceClient,
-    CommonSilentFlowRequest,
     AccountFilter,
 } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
@@ -46,11 +45,6 @@ export interface IController {
         request: PopupRequest | SilentRequest | SsoSilentRequest,
         apiId: ApiId,
         accountId?: string
-    ): Promise<AuthenticationResult>;
-
-    acquireTokenByRefreshToken(
-        commonRequest: CommonSilentFlowRequest,
-        silentRequest: SilentRequest
     ): Promise<AuthenticationResult>;
 
     addEventCallback(callback: EventCallbackFunction): string | null;
