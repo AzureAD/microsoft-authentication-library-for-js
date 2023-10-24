@@ -75,13 +75,14 @@ describe("NestedAppAuthAdapter tests", () => {
             const result: AuthenticationResult =
                 nestedAppAuthAdapter.fromNaaTokenResponse(
                     SILENT_TOKEN_REQUEST,
-                    SILENT_TOKEN_RESPONSE
+                    SILENT_TOKEN_RESPONSE,
+                    0
                 );
             expect(result.authority).toBe(
                 SILENT_TOKEN_RESPONSE.account.environment
             );
             expect(result.uniqueId).toBe(
-                SILENT_TOKEN_RESPONSE.account.homeAccountId
+                SILENT_TOKEN_RESPONSE.account.localAccountId
             );
             expect(result.tenantId).toBe(
                 SILENT_TOKEN_RESPONSE.account.tenantId
