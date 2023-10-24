@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698107213894,
+  "lastUpdate": 1698174643024,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1938,6 +1938,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.40%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f0092e21d988682bc1dca95e887d0b11b19b4e29",
+          "message": "Add pipeline to run 1p PWB e2e tests (#6598)\n\n- Add pipeline to run 1p PWB e2e tests.",
+          "timestamp": "2023-10-24T15:05:18-04:00",
+          "tree_id": "eb48d3fe8ca6f45b7ebad7b004b50f9f3b9f7c24",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f0092e21d988682bc1dca95e887d0b11b19b4e29"
+        },
+        "date": 1698174641677,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 156936,
+            "range": "±1.01%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 152010,
+            "range": "±1.18%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
