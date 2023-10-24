@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698174643024,
+  "lastUpdate": 1698177330172,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -1976,6 +1976,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.18%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5f49a5e39a6d0d5ae319c7a21ed18d06d8a6fd51",
+          "message": "Refactor token cache entities into types (#6580)\n\nRefactors `CredentialEntity`, `IdTokenEntity`, `AccessTokenEntity`, and\r\n`RefreshTokenEntity` to be Types rather than a Class and moves static\r\nclass methods into functions exported to the `CacheHelpers` namespace.\r\n\r\nMaking these types and separating the class methods from the type\r\ndefinition allows us to read from the cache and directly use the value\r\nwithout needing to first copy each key/value pair into an instance of\r\nthe class (the `toObject` helper function). Doing it this way also\r\nresults in a small bundle size improvement.\r\n\r\nReviews can be focused on the `msal-common/src/cache` folder. The rest\r\nof the changes are repetitively changing references to the affected\r\nfunctions",
+          "timestamp": "2023-10-24T19:50:04Z",
+          "tree_id": "791bac6a50aa14a4280f54fc5a7a416885aaf627",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5f49a5e39a6d0d5ae319c7a21ed18d06d8a6fd51"
+        },
+        "date": 1698177328978,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 149864,
+            "range": "±1.32%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 146626,
+            "range": "±1.35%",
+            "unit": "ops/sec",
+            "extra": "229 samples"
           }
         ]
       }
