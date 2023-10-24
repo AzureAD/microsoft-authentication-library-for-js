@@ -8,7 +8,6 @@ import {
     Logger,
     CommonAuthorizationCodeRequest,
     AuthError,
-    Constants,
     IPerformanceClient,
     PerformanceEvents,
     invokeAsync,
@@ -24,11 +23,11 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
-import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { InteractionHandler } from "../interaction_handler/InteractionHandler";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -81,13 +80,6 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             this.performanceClient,
             request.correlationId
         )(request, InteractionType.Silent);
-        this.browserStorage.updateCacheEntries(
-            silentRequest.state,
-            silentRequest.nonce,
-            silentRequest.authority,
-            silentRequest.loginHint || Constants.EMPTY_STRING,
-            silentRequest.account || null
-        );
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             this.apiId
@@ -113,18 +105,19 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             this.logger.verbose("Auth code client created");
 
             // Create silent handler
-            const silentHandler = new SilentHandler(
+            const interactionHandler = new InteractionHandler(
                 authClient,
                 this.browserStorage,
                 authCodeRequest,
                 this.logger,
-                this.config.system,
                 this.performanceClient
             );
 
             // Handle auth code parameters from request
             return invokeAsync(
-                silentHandler.handleCodeResponseFromServer.bind(silentHandler),
+                interactionHandler.handleCodeResponseFromServer.bind(
+                    interactionHandler
+                ),
                 PerformanceEvents.HandleCodeResponseFromServer,
                 this.logger,
                 this.performanceClient,
@@ -136,9 +129,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                     cloud_graph_host_name: request.cloudGraphHostName,
                     cloud_instance_host_name: request.cloudInstanceHostName,
                 },
-                silentRequest.state,
-                authClient.authority,
-                this.networkClient,
+                silentRequest,
                 false
             );
         } catch (e) {
@@ -146,7 +137,6 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-            this.browserStorage.cleanRequestByState(silentRequest.state);
             throw e;
         }
     }

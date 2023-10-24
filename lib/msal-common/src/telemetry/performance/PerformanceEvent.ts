@@ -185,6 +185,7 @@ export const PerformanceEvents = {
     SilentHandlerInitiateAuthRequest: "silentHandlerInitiateAuthRequest",
     SilentHandlerMonitorIframeForHash: "silentHandlerMonitorIframeForHash",
     SilentHandlerLoadFrame: "silentHandlerLoadFrame",
+    SilentHandlerLoadFrameSync: "silentHandlerLoadFrameSync",
 
     /**
      * Helper functions in StandardInteractionClient class (msal-browser)
@@ -270,6 +271,8 @@ export const PerformanceEvents = {
     NativeMessageHandlerHandshake: "nativeMessageHandlerHandshake",
 
     NativeGenerateAuthResult: "nativeGenerateAuthResult",
+
+    RemoveHiddenIframe: "removeHiddenIframe",
 
     /**
      * Cache operations
