@@ -29,7 +29,7 @@ export type CredentialEntity = {
     userAssertionHash?: string;
     /** Matches the authentication scheme for which the token was issued (i.e. Bearer or pop) */
     tokenType?: AuthenticationScheme;
-    /** KeyId for PoP tokens stored in the kid claim */
+    /** KeyId for PoP and SSH tokens stored in the kid claim */
     keyId?: string;
     /** Matches the SHA 256 hash of the claims object included in the token request */
     requestedClaimsHash?: string;
