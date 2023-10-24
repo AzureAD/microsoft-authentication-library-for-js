@@ -3654,7 +3654,6 @@ describe("RedirectClient", () => {
                 environment: "login.windows.net",
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 name: ID_TOKEN_CLAIMS.name,
                 nativeAccountId: undefined,

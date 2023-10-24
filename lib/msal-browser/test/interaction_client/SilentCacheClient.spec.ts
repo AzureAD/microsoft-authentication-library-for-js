@@ -160,7 +160,7 @@ describe("SilentCacheClient", () => {
             pca.setActiveAccount(testAccount);
             expect(pca.getActiveAccount()).toEqual({
                 ...testAccount,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
+                idTokenClaims: ID_TOKEN_CLAIMS,
             });
             silentCacheClient.logout({ account: testAccount });
             //@ts-ignore

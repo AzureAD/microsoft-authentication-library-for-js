@@ -5046,7 +5046,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.getActiveAccount()).toEqual(null);
             pca.setActiveAccount(testAccountInfo1);
             const activeAccount = pca.getActiveAccount();
-            expect(activeAccount?.idToken).not.toBeUndefined();
+            expect(activeAccount?.idTokenClaims).not.toBeUndefined();
             expect(activeAccount).toEqual(testAccountInfo1);
             pca.clearCache();
             expect(pca.getActiveAccount()).toEqual(null);
@@ -5056,7 +5056,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.getActiveAccount()).toEqual(null);
             pca.setActiveAccount(testAccountInfo1);
             const activeAccount = pca.getActiveAccount();
-            expect(activeAccount?.idToken).not.toBeUndefined();
+            expect(activeAccount?.idTokenClaims).not.toBeUndefined();
             expect(activeAccount).toEqual(testAccountInfo1);
             pca.clearCache({
                 account: testAccountInfo1,
@@ -5076,7 +5076,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             username: ID_TOKEN_CLAIMS.preferred_username,
             name: "Abe Lincoln",
             localAccountId: ID_TOKEN_CLAIMS.oid,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
             nativeAccountId: undefined,
             tenants: [ID_TOKEN_CLAIMS.tid],
@@ -5105,7 +5104,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             username: "anotherExample@microsoft.com",
             name: "Abe Lincoln",
             localAccountId: ID_TOKEN_ALT_CLAIMS.oid,
-            idToken: TEST_TOKENS.IDTOKEN_V2_ALT,
             idTokenClaims: ID_TOKEN_ALT_CLAIMS,
             nativeAccountId: undefined,
             tenants: [ID_TOKEN_ALT_CLAIMS.tid],
@@ -5247,10 +5245,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("getAllAccounts with no account filter returns all signed in accounts", () => {
             const accounts = pca.getAllAccounts();
             expect(accounts).toHaveLength(4);
-            expect(accounts[0].idToken).not.toBeUndefined();
-            expect(accounts[1].idToken).not.toBeUndefined();
-            expect(accounts[2].idToken).not.toBeUndefined();
-            expect(accounts[3].idToken).not.toBeUndefined();
+            expect(accounts[0].idTokenClaims).not.toBeUndefined();
+            expect(accounts[1].idTokenClaims).not.toBeUndefined();
+            expect(accounts[2].idTokenClaims).not.toBeUndefined();
+            expect(accounts[3].idTokenClaims).not.toBeUndefined();
         });
 
         it("getAllAccounts returns all accounts matching the filter passed in", () => {
@@ -5268,19 +5266,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByUsername returns account specified", () => {
             const account = pca.getAccountByUsername("AbeLi@microsoft.com");
-            expect(account?.idToken).not.toBeUndefined();
+            expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
 
         it("getAccountByUsername returns account specified with case mismatch", () => {
             const account = pca.getAccountByUsername("abeli@Microsoft.com");
-            expect(account?.idToken).not.toBeUndefined();
+            expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
 
             const account2 = pca.getAccountByUsername(
                 "anotherexample@microsoft.com"
             );
-            expect(account2?.idToken).not.toBeUndefined();
+            expect(account2?.idTokenClaims).not.toBeUndefined();
             expect(account2).toEqual(testAccountInfo2);
         });
 
@@ -5301,7 +5299,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const account = pca.getAccountByHomeId(
                 TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
             );
-            expect(account?.idToken).not.toBeUndefined();
+            expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
 
@@ -5318,7 +5316,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByLocalId returns account specified", () => {
             const account = pca.getAccountByLocalId(ID_TOKEN_CLAIMS.oid);
-            expect(account?.idToken).not.toBeUndefined();
+            expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
 
@@ -5344,7 +5342,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     const account = pca.getAccount({
                         loginHint: "testLoginHint",
                     });
-                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
                         testAccountInfo3.homeAccountId
                     );
@@ -5353,7 +5351,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     const account = pca.getAccount({
                         loginHint: ID_TOKEN_ALT_CLAIMS.preferred_username,
                     });
-                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
                         testAccountInfo2.homeAccountId
                     );
@@ -5362,7 +5360,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     const account = pca.getAccount({
                         loginHint: "testUpn",
                     });
-                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
                         testAccountInfo4.homeAccountId
                     );
@@ -5371,7 +5369,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     const account = pca.getAccount({
                         sid: "testSid",
                     });
-                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
                         testAccountInfo3.homeAccountId
                     );
@@ -5382,7 +5380,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const account = pca.getAccount({
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 });
-                expect(account?.idToken).not.toBeUndefined();
+                expect(account?.idTokenClaims).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
 
@@ -5390,7 +5388,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const account = pca.getAccount({
                     localAccountId: ID_TOKEN_CLAIMS.oid,
                 });
-                expect(account?.idToken).not.toBeUndefined();
+                expect(account?.idTokenClaims).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
 
@@ -5398,7 +5396,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const account = pca.getAccount({
                     username: ID_TOKEN_CLAIMS.preferred_username,
                 });
-                expect(account?.idToken).not.toBeUndefined();
+                expect(account?.idTokenClaims).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
 
@@ -5407,7 +5405,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     homeAccountId: testAccountInfo1.homeAccountId,
                     localAccountId: testAccountInfo1.localAccountId,
                 });
-                expect(account?.idToken).not.toBeUndefined();
+                expect(account?.idTokenClaims).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
         });
@@ -5536,7 +5534,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(pca.getActiveAccount()).toBe(null);
                 pca.setActiveAccount(testAccountInfo1);
                 const activeAccount = pca.getActiveAccount();
-                expect(activeAccount?.idToken).not.toBeUndefined();
+                expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                 expect(activeAccount).toEqual(testAccountInfo1);
             });
 
@@ -5611,7 +5609,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     pca.setActiveAccount(testAccountInfo1);
                     const activeAccount = pca.getActiveAccount();
                     expect(activeAccount).not.toBeNull();
-                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                     expect(activeAccount?.homeAccountId).toEqual(
                         testAccountInfo1.homeAccountId
                     );
@@ -5625,13 +5623,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                     pca.setActiveAccount(testAccountInfo1);
                     let activeAccount = pca.getActiveAccount();
-                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                     expect(activeAccount).toEqual(testAccountInfo1);
                     expect(activeAccount).not.toEqual(testAccountInfo2);
 
                     pca.setActiveAccount(testAccountInfo2);
                     activeAccount = pca.getActiveAccount();
-                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                     expect(pca.getActiveAccount()).not.toEqual(
                         testAccountInfo1
                     );
@@ -5643,7 +5641,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                     pca.setActiveAccount(testAccountInfo2);
                     const activeAccount = pca.getActiveAccount();
-                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                     expect(activeAccount).not.toEqual(testAccountInfo1);
                     expect(activeAccount).toEqual(testAccountInfo2);
 
