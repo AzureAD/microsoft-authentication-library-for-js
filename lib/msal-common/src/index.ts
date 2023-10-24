@@ -34,7 +34,10 @@ export {
     updateTenantProfile,
 } from "./account/AccountInfo";
 export * as AuthToken from "./account/AuthToken";
-export { TokenClaims } from "./account/TokenClaims";
+export {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
 export {

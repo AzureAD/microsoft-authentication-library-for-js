@@ -43,7 +43,10 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
-import { TokenClaims } from "../account/TokenClaims";
+import {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "../account/TokenClaims";
 import { AccountInfo, updateTenantProfile } from "../account/AccountInfo";
 
 /**
@@ -412,6 +415,8 @@ export class ResponseHandler {
             );
         }
 
+        const claimsTenantId = getTenantIdFromIdTokenClaims(idTokenClaims);
+
         // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity | undefined;
         let cachedAccount: AccountEntity | undefined;
@@ -421,13 +426,14 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.id_token,
                 this.clientId,
-                idTokenClaims.tid || ""
+                claimsTenantId || ""
             );
 
             cachedAccount = this.setCachedAccount(
                 authority,
                 serverTokenResponse,
                 idTokenClaims,
+                claimsTenantId,
                 authCodePayload
             );
         }
@@ -470,7 +476,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.access_token || Constants.EMPTY_STRING,
                 this.clientId,
-                idTokenClaims?.tid || authority.tenant,
+                claimsTenantId || authority.tenant,
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
@@ -520,10 +526,10 @@ export class ResponseHandler {
         authority: Authority,
         serverTokenResponse: ServerAuthorizationTokenResponse,
         idTokenClaims: TokenClaims,
+        claimsTenantId: string | null,
         authCodePayload?: AuthorizationCodePayload
     ): AccountEntity | undefined {
         this.logger.verbose("setCachedAccount called");
-        const responseTenantId = idTokenClaims.tid || "";
 
         // Check if base account is already cached
         const accountKeys = this.cacheStorage.getAccountKeys();
@@ -545,15 +551,15 @@ export class ResponseHandler {
                     clientInfo: serverTokenResponse.client_info,
                     cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
                     msGraphHost: authCodePayload?.msgraph_host,
-                    tenants: [responseTenantId],
+                    tenants: claimsTenantId ? [claimsTenantId] : [],
                 },
                 authority,
                 this.cryptoObj
             );
 
         const tenants = baseAccount.tenants || [];
-        if (!tenants.includes(responseTenantId)) {
-            tenants.push(responseTenantId);
+        if (claimsTenantId && !tenants.includes(claimsTenantId)) {
+            tenants.push(claimsTenantId);
         }
         baseAccount.tenants = tenants;
 

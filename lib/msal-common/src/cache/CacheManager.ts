@@ -957,7 +957,10 @@ export abstract class CacheManager implements ICacheManager {
         request: BaseAuthRequest,
         environment: string
     ): CacheRecord {
-        const requestTenantId = getTenantFromAuthorityString(request.authority);
+        // Use authority tenantId for cache lookup filter if it's defined, otherwise use tenantId from account passed in
+        const requestTenantId =
+            getTenantFromAuthorityString(request.authority) || account.tenantId;
+
         const tokenKeys = this.getTokenKeys();
         const cachedAccount = this.readAccountFromCache(account);
         const cachedIdToken = this.getIdToken(

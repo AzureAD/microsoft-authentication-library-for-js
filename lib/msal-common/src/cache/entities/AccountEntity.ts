@@ -14,7 +14,10 @@ import {
 } from "../../error/ClientAuthError";
 import { AuthorityType } from "../../authority/AuthorityType";
 import { Logger } from "../../logger/Logger";
-import { TokenClaims } from "../../account/TokenClaims";
+import {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "../../account/TokenClaims";
 import { ProtocolMode } from "../../authority/ProtocolMode";
 
 /**
@@ -166,9 +169,15 @@ export class AccountEntity {
         account.environment = env;
         // non AAD scenarios can have empty realm
         account.realm =
-            clientInfo?.utid || accountDetails.idTokenClaims.tid || "";
+            clientInfo?.utid ||
+            getTenantIdFromIdTokenClaims(accountDetails.idTokenClaims) ||
+            "";
 
-        account.tenants = accountDetails.tenants || [];
+        if (accountDetails.tenants) {
+            account.tenants = accountDetails.tenants;
+        } else {
+            account.tenants = account.realm ? [account.realm] : [];
+        }
 
         // How do you account for MSA CID here?
         account.localAccountId =

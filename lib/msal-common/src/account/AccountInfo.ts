@@ -57,16 +57,30 @@ export function updateTenantProfile(
 ): AccountInfo {
     if (idTokenClaims) {
         const updatedAccountInfo = accountInfo;
-        const { oid, tid, name } = idTokenClaims;
+        const { oid, tid, name, tfp, acr } = idTokenClaims;
 
         if (oid && oid !== accountInfo.localAccountId) {
             updatedAccountInfo.localAccountId = oid;
         }
-        if (tid && tid !== accountInfo.tenantId) {
-            updatedAccountInfo.tenantId = tid;
-        }
         if (name && name !== accountInfo.name) {
             updatedAccountInfo.name = name;
+        }
+
+        const baseTenantId = accountInfo.tenantId;
+
+        let claimsTenantId = null;
+        // Determine tenantId from token claims tid > tfp > acr
+        if (tid && tid !== baseTenantId) {
+            claimsTenantId = tid;
+        } else if (tfp && tfp !== baseTenantId) {
+            claimsTenantId = tfp;
+        } else if (acr && acr !== baseTenantId) {
+            claimsTenantId = acr;
+        }
+
+        if (claimsTenantId) {
+            // Downcase to match the realm case-insensitive comparison requirements
+            updatedAccountInfo.tenantId = claimsTenantId.toLowerCase();
         }
 
         updatedAccountInfo.idTokenClaims = idTokenClaims;

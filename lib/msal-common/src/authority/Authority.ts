@@ -1263,11 +1263,22 @@ export function getTenantFromAuthorityString(
     const authorityUrl = new UrlString(authority);
     const authorityUrlComponents = authorityUrl.getUrlComponents();
     /**
-     * Tenant ID is the path after the domain:
-     *  AAD Authority - domain/tenantId
-     *  B2C Authority - domain/tenantId?/tfp?/policy
+     * For credential matching purposes, tenantId is the last path segment of the authority URL:
+     *  AAD Authority - domain/tenantId -> Credentials are cached with realm = tenantId
+     *  B2C Authority - domain/{tenantId}?/.../policy -> Credentials are cached with realm = policy
+     *  tenantId is downcased because B2C policies can have mixed case but tfp claim is downcased
      */
-    return authorityUrlComponents.PathSegments.join(Constants.FORWARD_SLASH);
+    const tenantId =
+        authorityUrlComponents.PathSegments.slice(-1)[0].toLowerCase();
+
+    switch (tenantId) {
+        case AADAuthorityConstants.COMMON:
+        case AADAuthorityConstants.ORGANIZATIONS:
+        case AADAuthorityConstants.CONSUMERS:
+            return undefined;
+        default:
+            return tenantId;
+    }
 }
 
 export function formatAuthorityUri(authorityUri: string): string {
