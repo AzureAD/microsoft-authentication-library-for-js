@@ -1020,44 +1020,57 @@ export abstract class CacheManager implements ICacheManager {
             realm: targetRealm,
         };
 
-        const idTokens: IdTokenEntity[] = this.getIdTokensByFilter(
+        const idTokenMap: Map<string, IdTokenEntity> = this.getIdTokensByFilter(
             idTokenFilter,
             tokenKeys
         );
-        const numIdTokens = idTokens.length;
+
+        const numIdTokens = idTokenMap.size;
+
         if (numIdTokens < 1) {
             this.commonLogger.info("CacheManager:getIdToken - No token found");
             return null;
         } else if (numIdTokens > 1) {
+            let tokensToBeRemoved: Map<string, IdTokenEntity> = idTokenMap;
             // Multiple tenant profiles and no tenant specified, pick home account
             if (!targetRealm) {
-                const homeIdToken = idTokens.filter((idToken) => {
-                    return idToken.realm === account.tenantId;
-                })[0];
-                if (homeIdToken) {
+                const homeIdTokenMap: Map<string, IdTokenEntity> = new Map<
+                    string,
+                    IdTokenEntity
+                >();
+                idTokenMap.forEach((idToken, key) => {
+                    if (idToken.realm === account.tenantId) {
+                        homeIdTokenMap.set(key, idToken);
+                    }
+                });
+                const numHomeIdTokens = homeIdTokenMap.size;
+                if (numHomeIdTokens < 1) {
                     this.commonLogger.info(
-                        "CacheManager:getIdToken - Multiple id tokens found, defaulting to home tenant profile"
+                        "CacheManager:getIdToken - Multiple ID tokens found for account but none match account entity tenant id, returning first result"
                     );
-                    return homeIdToken;
+                    return idTokenMap.values().next().value;
+                } else if (numHomeIdTokens === 1) {
+                    this.commonLogger.info(
+                        "CacheManager:getIdToken - Multiple ID tokens found for account, defaulting to home tenant profile"
+                    );
+                    return homeIdTokenMap.values().next().value;
                 } else {
-                    this.commonLogger.info(
-                        "CacheManager:getIdToken - Multiple id tokens found for account but none match account entity tenant id, returning first result"
-                    );
-                    return idTokens[0];
+                    // Multiple ID tokens for home tenant profile, remove all and return null
+                    tokensToBeRemoved = homeIdTokenMap;
                 }
             }
             // Multiple tokens for a single tenant profile, remove all and return null
             this.commonLogger.info(
-                "CacheManager:getIdToken - Multiple id tokens found, clearing them"
+                "CacheManager:getIdToken - Multiple matching ID tokens found, clearing them"
             );
-            idTokens.forEach((idToken) => {
-                this.removeIdToken(idToken.generateCredentialKey());
+            tokensToBeRemoved.forEach((idToken, key) => {
+                this.removeIdToken(key);
             });
             return null;
         }
 
-        this.commonLogger.info("CacheManager:getIdToken - Returning id token");
-        return idTokens[0];
+        this.commonLogger.info("CacheManager:getIdToken - Returning ID token");
+        return idTokenMap.values().next().value;
     }
 
     /**
@@ -1068,11 +1081,14 @@ export abstract class CacheManager implements ICacheManager {
     getIdTokensByFilter(
         filter: CredentialFilter,
         tokenKeys?: TokenKeys
-    ): IdTokenEntity[] {
+    ): Map<string, IdTokenEntity> {
         const idTokenKeys =
             (tokenKeys && tokenKeys.idToken) || this.getTokenKeys().idToken;
 
-        const idTokens: IdTokenEntity[] = [];
+        const idTokens: Map<string, IdTokenEntity> = new Map<
+            string,
+            IdTokenEntity
+        >();
         idTokenKeys.forEach((key) => {
             if (
                 !this.idTokenKeyMatchesFilter(key, {
@@ -1084,7 +1100,7 @@ export abstract class CacheManager implements ICacheManager {
             }
             const idToken = this.getIdTokenCredential(key);
             if (idToken && this.credentialMatchesFilter(idToken, filter)) {
-                idTokens.push(idToken);
+                idTokens.set(key, idToken);
             }
         });
 
