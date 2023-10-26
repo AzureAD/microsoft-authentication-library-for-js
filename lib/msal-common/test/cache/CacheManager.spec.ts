@@ -16,7 +16,8 @@ import {
     CACHE_MOCKS,
     TEST_POP_VALUES,
     TEST_SSH_VALUES,
-    TEST_CRYPTO_VALUES
+    TEST_CRYPTO_VALUES,
+    TEST_ACCOUNT_INFO
 } from "../test_kit/StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
@@ -197,6 +198,40 @@ describe("CacheManager.ts test cases", () => {
         expect(cachedAccessToken.homeAccountId).toEqual("someUid.someUtid");
         expect(cachedAccessToken.credentialType).toEqual(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
 
+    });
+
+    it("getIdToken matches multiple tokens, removes them and returns null", async () => {
+        await mockCache.cacheManager.clear();
+
+        const idToken1 = IdTokenEntity.createIdTokenEntity(
+            TEST_ACCOUNT_INFO.homeAccountId,
+            TEST_ACCOUNT_INFO.environment,
+            TEST_TOKENS.IDTOKEN_V2,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_ACCOUNT_INFO.tenantId
+        );
+
+        const idToken2 = IdTokenEntity.createIdTokenEntity(
+            TEST_ACCOUNT_INFO.homeAccountId,
+            TEST_ACCOUNT_INFO.environment,
+            TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            TEST_ACCOUNT_INFO.tenantId
+        );
+        idToken2.target = "test-target";
+
+        mockCache.cacheManager.setIdTokenCredential(idToken1);
+        mockCache.cacheManager.setIdTokenCredential(idToken2);
+
+        expect(
+            mockCache.cacheManager.getTokenKeys().idToken.length
+        ).toEqual(2);
+        expect(
+            mockCache.cacheManager.getIdToken(TEST_ACCOUNT_INFO)
+        ).toBeNull();
+        expect(
+            mockCache.cacheManager.getTokenKeys().idToken.length
+        ).toEqual(0);
     });
 
     describe("getAccountsFilteredBy", () => {
@@ -599,7 +634,8 @@ describe("CacheManager.ts test cases", () => {
         return await expect(mockCache.cacheManager.removeAccessToken(atWithAuthScheme.generateCredentialKey())).rejects.toThrow(ClientAuthError.createBindingKeyNotRemovedError());
     });
 
-    it("getAccessToken matches multiple tokens, throws error", () => {
+    it("getAccessToken matches multiple tokens, removes them and returns null", async () => {
+        await mockCache.cacheManager.clear();
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
@@ -621,6 +657,10 @@ describe("CacheManager.ts test cases", () => {
         mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity2);
         mockCache.cacheManager.setAccount(mockedAccount);
 
+        expect(
+            mockCache.cacheManager.getTokenKeys().accessToken.length
+        ).toEqual(2);
+
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
             localAccountId: "uid",
@@ -640,7 +680,16 @@ describe("CacheManager.ts test cases", () => {
             forceRefresh: false
         };
 
-        expect(() => mockCache.cacheManager.getAccessToken(mockedAccountInfo, silentFlowRequest)).toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+        expect(
+            mockCache.cacheManager.getAccessToken(
+                mockedAccountInfo,
+                silentFlowRequest
+            )
+        ).toBeNull();
+        
+        expect(
+            mockCache.cacheManager.getTokenKeys().accessToken.length
+        ).toEqual(0);
     });
 
     it("getAccessToken only matches a Bearer Token when Authentication Scheme is set to Bearer", () => {
