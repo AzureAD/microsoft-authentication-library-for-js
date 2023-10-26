@@ -70,8 +70,8 @@ describe("ManagedIdentityApplication unit tests", () => {
     describe("Acquires a token successfully via an App Service Managed Identity", () => {
         beforeAll(() => {
             process.env = { ...OLD_ENVS }; // Make a copy
-            process.env["IdentityHeader"] = "fake_IdentityHeader";
-            process.env["IdentityEndpoint"] = "fake_IdentityEndpoint";
+            process.env["IDENTITY_ENDPOINT"] = "fake_IDENTITY_ENDPOINT";
+            process.env["IDENTITY_HEADER"] = "fake_IDENTITY_HEADER";
         });
 
         afterAll(() => {

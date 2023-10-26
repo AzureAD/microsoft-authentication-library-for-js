@@ -18,7 +18,7 @@ export const ManagedIdentityErrorMessages = {
     [ManagedIdentityErrorCodes.unableToCreateSource]:
         "Unable to create a Managed Identity source based on environment variables.",
     [ManagedIdentityErrorCodes.urlParseError]:
-        "The Managed Identity's 'IdentityEndpoint' environment variable is malformed.",
+        "The Managed Identity's 'IDENTITY_ENDPOINT' environment variable is malformed."
 };
 
 export class ManagedIdentityError extends AuthError {

@@ -31,6 +31,7 @@ import { ManagedIdentityRequestParams } from "../request/ManagedIdentityRequestP
 import { NodeStorage } from "../cache/NodeStorage";
 import { ManagedIdentityResult } from "../response/ManagedIdentityResult";
 import { ManagedIdentityUtils } from "../utils/ManagedIdentityUtils";
+import { DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY } from "../utils/Constants";
 
 /**
  * Class to initialize a managed identity and identify the service
@@ -79,12 +80,12 @@ export class ManagedIdentityApplication {
 
         const fakeAuthorityOptions: AuthorityOptions = {
             protocolMode: ProtocolMode.AAD,
-            knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+            knownAuthorities: [DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY],
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
         };
         this.fakeAuthority = new Authority(
-            Constants.DEFAULT_AUTHORITY,
+            DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
             this.networkClient,
             this.cacheManager,
             fakeAuthorityOptions,
