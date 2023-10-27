@@ -77,12 +77,19 @@ export class ManagedIdentityClient {
         cryptoProvider: CryptoProvider
     ): ServiceFabric | AppService | CloudShell | AzureArc | Imds {
         try {
-            const source = AppService.tryCreate(
-                logger,
-                cacheManager,
-                networkClient,
-                cryptoProvider
-            );
+            const source =
+                AppService.tryCreate(
+                    logger,
+                    cacheManager,
+                    networkClient,
+                    cryptoProvider
+                ) ||
+                Imds.tryCreate(
+                    logger,
+                    cacheManager,
+                    networkClient,
+                    cryptoProvider
+                );
 
             /*
              *  ServiceFabric.tryCreate(
@@ -104,12 +111,7 @@ export class ManagedIdentityClient {
              *      networkClient,
              *      cryptoProvider
              *  ) ||
-             *  Imds.tryCreate(
-             *      logger,
-             *      cacheManager,
-             *      networkClient,
-             *      cryptoProvider
-             *  )
+             *  // *** Imds goes here ***
              */
 
             if (!source) {

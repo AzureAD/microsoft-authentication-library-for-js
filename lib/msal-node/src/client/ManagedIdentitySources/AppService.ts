@@ -27,14 +27,14 @@ import {
 } from "../../error/ManagedIdentityError";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
-export const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
+const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/AppServiceManagedIdentitySource.cs
  */
 export class AppService extends BaseManagedIdentitySource {
-    private _endpoint: string;
-    private _secret: string;
+    private endpoint: string;
+    private secret: string;
 
     constructor(
         logger: Logger,
@@ -46,8 +46,8 @@ export class AppService extends BaseManagedIdentitySource {
     ) {
         super(logger, cacheManager, networkClient, cryptoProvider);
 
-        this._endpoint = endpoint;
-        this._secret = secret;
+        this.endpoint = endpoint;
+        this.secret = secret;
     }
 
     public static tryCreate(
@@ -84,10 +84,10 @@ export class AppService extends BaseManagedIdentitySource {
         const request: ManagedIdentityRequestParameters =
             new ManagedIdentityRequestParameters(
                 HttpMethod.POST,
-                this._endpoint
+                this.endpoint
             );
 
-        request.headers[SECRET_HEADER_NAME] = this._secret;
+        request.headers[SECRET_HEADER_NAME] = this.secret;
         request.queryParameters["api-version"] = APP_SERVICE_MSI_API_VERSION;
         request.queryParameters["resource"] = resource;
         // bodyParamters calculated in BaseManagedIdentity.authenticateWithMSI
