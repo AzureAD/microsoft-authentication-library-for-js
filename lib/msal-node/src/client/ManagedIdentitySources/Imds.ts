@@ -81,7 +81,7 @@ export class Imds extends BaseManagedIdentitySource {
         request.headers[METADATA_HEADER_NAME] = "true";
         request.queryParameters["api-version"] = IMDS_API_VERSION;
         request.queryParameters["resource"] = resource;
-        // bodyParamters calculated in BaseManagedIdentity.authenticateWithMSI
+        // bodyParameters calculated in BaseManagedIdentity.authenticateWithMSI
 
         switch (managedIdentityId.getIdType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:

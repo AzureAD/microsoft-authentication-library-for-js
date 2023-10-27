@@ -90,7 +90,7 @@ export class AppService extends BaseManagedIdentitySource {
         request.headers[SECRET_HEADER_NAME] = this.secret;
         request.queryParameters["api-version"] = APP_SERVICE_MSI_API_VERSION;
         request.queryParameters["resource"] = resource;
-        // bodyParamters calculated in BaseManagedIdentity.authenticateWithMSI
+        // bodyParameters calculated in BaseManagedIdentity.authenticateWithMSI
 
         switch (managedIdentityId.getIdType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
