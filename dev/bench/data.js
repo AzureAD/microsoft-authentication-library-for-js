@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698264313311,
+  "lastUpdate": 1698425489900,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2052,6 +2052,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.05%",
             "unit": "ops/sec",
             "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "levon@amelyan.com",
+            "name": "Leo Amelyan",
+            "username": "lamelyan"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "13e8fc5998624934d4506b7d56bcc91a77ebded7",
+          "message": "Update configuration.md (#6568)\n\nUpdate link to MSAL configuration options. The previous link just goes\r\nto the general docs page.\r\n\r\n---------\r\n\r\nCo-authored-by: Hector Morales <hemoral@microsoft.com>\r\nCo-authored-by: Hector Morales <hectormg@hey.com>\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2023-10-27T09:46:39-07:00",
+          "tree_id": "bec670b21d1a0007c8fb4c284611e305f034726a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/13e8fc5998624934d4506b7d56bcc91a77ebded7"
+        },
+        "date": 1698425488571,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 153491,
+            "range": "±1.06%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 150660,
+            "range": "±1.19%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
