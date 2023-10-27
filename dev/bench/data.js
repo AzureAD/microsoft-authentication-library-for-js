@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698425496404,
+  "lastUpdate": 1698439236678,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2128,6 +2128,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.52%",
             "unit": "ops/sec",
             "extra": "225 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bf61f42aff220c33ae4b0e248cc4aa9009306f3a",
+          "message": "Update popup & redirect flows to use invokeAsync (#6612)\n\nUpdates remaining references to `setPreQueueTime` to use the\r\n`invokeAsync` helper instead",
+          "timestamp": "2023-10-27T13:34:20-07:00",
+          "tree_id": "a9d6d3845a4614b2395977bf0c238710c4523581",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/bf61f42aff220c33ae4b0e248cc4aa9009306f3a"
+        },
+        "date": 1698439234738,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 114792,
+            "range": "±1.57%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 113393,
+            "range": "±1.82%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
