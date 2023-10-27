@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698425489900,
+  "lastUpdate": 1698425496404,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2090,6 +2090,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.19%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "janusz@forserial.org",
+            "name": "Janusz Dziurzyński",
+            "username": "rzyns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ffe542b30693153a63afeb3a98ff2804b846d13e",
+          "message": "Fix downstream ESM imports, fixes #6573 (#6600)\n\nUses default import for importing keytar (a CJS module), which is really\r\nthe only foolproof way of importing CJS from an ESM context.\r\n\r\nI confirmed by creating a simple package:\r\n```json5\r\n// msal-node-extensions/foo/package.json\r\n{ \"type\": \"module\" }\r\n```\r\n\r\n```js\r\n// msal-node-extensions/foo/index.js\r\nimport * as msal from \"../dist/index.mjs\";\r\nmsal;\r\n```\r\n\r\n\r\nRunning `node foo/index.mjs` on `dev` gives the following error:\r\n\r\n```\r\nfile:///.../microsoft-authentication-library-for-js/extensions/msal-node-extensions/dist/persistence/KeychainPersistence.mjs:3\r\nimport { setPassword, getPassword, deletePassword } from 'keytar';\r\n                                   ^^^^^^^^^^^^^^\r\nSyntaxError: Named export 'deletePassword' not found. The requested module 'keytar' is a CommonJS module, which may not support all module.exports as named exports.\r\nCommonJS modules can always be imported via the default export, for example using:\r\n\r\nimport pkg from 'keytar';\r\nconst { setPassword, getPassword, deletePassword } = pkg;\r\n\r\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:124:21)\r\n    at async ModuleJob.run (node:internal/modules/esm/module_job:190:5)\r\n\r\nNode.js v18.17.1\r\n```\r\n\r\nRunning the same command on this branch succeeds (no output, exit code\r\n0).\r\n\r\nNot sure of a good/reliable way to encode that in an automated test, but\r\nI'd be happy to add one if anyone has any suggestions",
+          "timestamp": "2023-10-27T09:45:51-07:00",
+          "tree_id": "4c28762ed8fcee085588c9c38dae8aa88a08f7ed",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ffe542b30693153a63afeb3a98ff2804b846d13e"
+        },
+        "date": 1698425494493,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 128162,
+            "range": "±1.71%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 126342,
+            "range": "±1.52%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
