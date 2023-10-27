@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 26 Oct 2023 20:13:24 GMT",
+      "tag": "@azure/msal-common_v13.3.1",
+      "version": "13.3.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "089312b6f78f61117772727666e056f14970c12c",
+            "comment": "Backported fix for multiple matching tokens error"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 24 Aug 2023 18:23:25 GMT",
       "tag": "@azure/msal-common_v13.3.0",
       "version": "13.3.0",
