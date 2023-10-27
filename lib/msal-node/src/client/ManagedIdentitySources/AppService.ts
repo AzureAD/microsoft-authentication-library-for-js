@@ -82,10 +82,7 @@ export class AppService extends BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =
-            new ManagedIdentityRequestParameters(
-                HttpMethod.POST,
-                this.endpoint
-            );
+            new ManagedIdentityRequestParameters(HttpMethod.GET, this.endpoint);
 
         request.headers[SECRET_HEADER_NAME] = this.secret;
         request.queryParameters["api-version"] = APP_SERVICE_MSI_API_VERSION;

@@ -73,17 +73,17 @@ export abstract class BaseManagedIdentitySource {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let response;
         try {
-            // Sources that send GET requests: Cloud Shell
-            if (networkRequest.httpMethod === HttpMethod.GET) {
+            // Sources that send POST requests: Cloud Shell
+            if (networkRequest.httpMethod === HttpMethod.POST) {
                 response =
-                    await this.networkClient.sendGetRequestAsync<ServerAuthorizationTokenResponse>(
+                    await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
-                // Sources that send POST requests: App Service, Azure Arc, IMDS, Service Fabric
+                // Sources that send GET requests: App Service, Azure Arc, IMDS, Service Fabric
             } else {
                 response =
-                    await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
+                    await this.networkClient.sendGetRequestAsync<ServerAuthorizationTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );

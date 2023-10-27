@@ -73,10 +73,7 @@ export class Imds extends BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =
-            new ManagedIdentityRequestParameters(
-                HttpMethod.POST,
-                this.endpoint
-            );
+            new ManagedIdentityRequestParameters(HttpMethod.GET, this.endpoint);
 
         request.headers[METADATA_HEADER_NAME] = "true";
         request.queryParameters["api-version"] = IMDS_API_VERSION;
