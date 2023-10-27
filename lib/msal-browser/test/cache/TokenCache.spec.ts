@@ -16,6 +16,7 @@ import {
     AuthorityType,
     RefreshTokenEntity,
     TokenClaims,
+    CacheHelpers,
 } from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -124,20 +125,20 @@ describe("TokenCache tests", () => {
                 testIdTokenClaims
             );
 
-            idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            idTokenEntity = CacheHelpers.createIdTokenEntity(
                 testHomeAccountId,
                 testEnvironment,
                 TEST_TOKENS.IDTOKEN_V2,
                 configuration.auth.clientId,
                 TEST_CONFIG.TENANT
             );
-            idTokenKey = idTokenEntity.generateCredentialKey();
+            idTokenKey = CacheHelpers.generateCredentialKey(idTokenEntity);
 
             scopeString = new ScopeSet(
                 TEST_CONFIG.DEFAULT_SCOPES
             ).printScopes();
             (testAccessToken = TEST_TOKENS.ACCESS_TOKEN),
-                (accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+                (accessTokenEntity = CacheHelpers.createAccessTokenEntity(
                     testHomeAccountId,
                     testEnvironment,
                     testAccessToken,
@@ -146,18 +147,20 @@ describe("TokenCache tests", () => {
                     scopeString,
                     TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                     TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
-                    cryptoObj
+                    cryptoObj.base64Decode
                 ));
-            accessTokenKey = accessTokenEntity.generateCredentialKey();
+            accessTokenKey =
+                CacheHelpers.generateCredentialKey(accessTokenEntity);
 
             testRefreshToken = TEST_TOKENS.REFRESH_TOKEN;
-            refreshTokenEntity = RefreshTokenEntity.createRefreshTokenEntity(
+            refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
                 testHomeAccountId,
                 testEnvironment,
                 testRefreshToken,
                 configuration.auth.clientId
             );
-            refreshTokenKey = refreshTokenEntity.generateCredentialKey();
+            refreshTokenKey =
+                CacheHelpers.generateCredentialKey(refreshTokenEntity);
         });
 
         afterEach(() => {
@@ -187,14 +190,15 @@ describe("TokenCache tests", () => {
                 options
             );
 
-            const testIdTokenEntity = IdTokenEntity.createIdTokenEntity(
+            const testIdTokenEntity = CacheHelpers.createIdTokenEntity(
                 requestHomeAccountId,
                 testEnvironment,
                 TEST_TOKENS.IDTOKEN_V2,
                 configuration.auth.clientId,
                 TEST_CONFIG.TENANT
             );
-            const testIdTokenKey = testIdTokenEntity.generateCredentialKey();
+            const testIdTokenKey =
+                CacheHelpers.generateCredentialKey(testIdTokenEntity);
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getIdTokenCredential(testIdTokenKey)).toEqual(

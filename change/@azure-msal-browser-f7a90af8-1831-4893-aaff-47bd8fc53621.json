@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Preconnect to authority to speed up /token calls #6550",
+  "comment": "Refactor token cache entities to be defined as Types rather than Classes #6580",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

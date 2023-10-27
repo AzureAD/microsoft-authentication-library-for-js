@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Additional ATS instrumentation #6562",
+  "comment": "Fix iframe fallback when RT is not found in cache",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

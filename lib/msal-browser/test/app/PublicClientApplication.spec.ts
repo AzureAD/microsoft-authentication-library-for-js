@@ -52,6 +52,7 @@ import {
     ClientAuthErrorCodes,
     createInteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
+    CacheHelpers,
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -3461,6 +3462,52 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentIframeSpy.calledOnce).toBe(true);
         });
 
+        it("Calls SilentIframeClient.acquireToken and returns its response if no RT is cached", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            const silentCacheSpy = sinon
+                .stub(SilentCacheClient.prototype, "acquireToken")
+                .rejects("Expired");
+            const silentRefreshSpy = sinon
+                .stub(SilentRefreshClient.prototype, "acquireToken")
+                .rejects(
+                    createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.noTokensFound
+                    )
+                );
+            const silentIframeSpy = sinon
+                .stub(SilentIframeClient.prototype, "acquireToken")
+                .resolves(testTokenResponse);
+
+            const response = await pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+            });
+            expect(response).toEqual(testTokenResponse);
+            expect(silentCacheSpy.calledOnce).toBe(true);
+            expect(silentRefreshSpy.calledOnce).toBe(true);
+            expect(silentIframeSpy.calledOnce).toBe(true);
+        });
+
         it("makes one network request with multiple parallel silent requests with same request", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -4997,7 +5044,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData1 = {
+        const idToken1: IdTokenEntity = {
             realm: testAccountInfo1.tenantId,
             environment: testAccountInfo1.environment,
             credentialType: "IdToken",
@@ -5027,10 +5074,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount1);
-            const idToken1 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData1
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken1);
         });
@@ -5091,7 +5134,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData1 = {
+        const idToken1: IdTokenEntity = {
             realm: testAccountInfo1.tenantId,
             environment: testAccountInfo1.environment,
             credentialType: "IdToken",
@@ -5125,7 +5168,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount2.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData2 = {
+        const idToken2: IdTokenEntity = {
             realm: testAccountInfo2.tenantId,
             environment: testAccountInfo2.environment,
             credentialType: "IdToken",
@@ -5161,14 +5204,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
         testAccount3.idTokenClaims = testAccountInfo3.idTokenClaims;
 
-        const idTokenData3 = {
+        const idToken3: IdTokenEntity = {
             realm: testAccountInfo3.tenantId,
             environment: testAccountInfo3.environment,
             credentialType: "IdToken",
             secret: TEST_TOKENS.ID_TOKEN_V2_WITH_LOGIN_HINT,
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo3.homeAccountId,
-            login_hint: "testLoginHint",
         };
 
         // Account 4
@@ -5198,14 +5240,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
         testAccount4.idTokenClaims = testAccountInfo4.idTokenClaims;
 
-        const idTokenData4 = {
+        const idToken4: IdTokenEntity = {
             realm: testAccountInfo4.tenantId,
             environment: testAccountInfo4.environment,
             credentialType: "IdToken",
             secret: TEST_TOKENS.ID_TOKEN_V2_WITH_UPN,
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo4.homeAccountId,
-            upn: "testUpn",
         };
 
         beforeEach(async () => {
@@ -5235,31 +5276,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount4);
 
-            const idToken1 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData1
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken1);
 
-            const idToken2 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData2
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken2);
-
-            const idToken3 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData3
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken3);
 
-            const idToken4 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData4
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken4);
         });
@@ -5464,7 +5488,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData1 = {
+        const idToken1: IdTokenEntity = {
             realm: testAccountInfo1.tenantId,
             environment: testAccountInfo1.environment,
             credentialType: "IdToken",
@@ -5472,11 +5496,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo1.homeAccountId,
         };
-
-        const idToken1 = CacheManager.toObject(
-            new IdTokenEntity(),
-            idTokenData1
-        );
 
         // Account 2
         const testAccountInfo2: AccountInfo = {
@@ -5505,7 +5524,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
         testAccount2.idTokenClaims = ID_TOKEN_CLAIMS;
 
-        const idTokenData2 = {
+        const idToken2: IdTokenEntity = {
             realm: testAccountInfo2.tenantId,
             environment: testAccountInfo2.environment,
             credentialType: "IdToken",
@@ -5513,10 +5532,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo2.homeAccountId,
         };
-        const idToken2 = CacheManager.toObject(
-            new IdTokenEntity(),
-            idTokenData2
-        );
 
         beforeEach(async () => {
             pca = (pca as any).controller;
@@ -5675,7 +5690,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                     const cacheKey2 =
                         AccountEntity.generateAccountCacheKey(testAccountInfo2);
-                    const idTokenKey2 = idToken2.generateCredentialKey();
+                    const idTokenKey2 =
+                        CacheHelpers.generateCredentialKey(idToken2);
                     window.sessionStorage.removeItem(cacheKey2);
                     window.sessionStorage.removeItem(idTokenKey2);
                     expect(pca.getActiveAccount()).toBe(null);

@@ -94,7 +94,7 @@ describe("BaseInteractionClient", () => {
                 username: testIdTokenClaims.preferred_username || "",
             };
 
-            const idTokenData1 = {
+            const idToken1: IdTokenEntity = {
                 realm: testAccountInfo1.tenantId,
                 environment: testAccountInfo1.environment,
                 credentialType: "IdToken",
@@ -102,11 +102,6 @@ describe("BaseInteractionClient", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 homeAccountId: testAccountInfo1.homeAccountId,
             };
-
-            const idToken1 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData1
-            );
 
             const testAccount1: AccountEntity = new AccountEntity();
             testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
@@ -127,7 +122,7 @@ describe("BaseInteractionClient", () => {
                 username: testIdTokenClaims.preferred_username || "",
             };
 
-            const idTokenData2 = {
+            const idToken2: IdTokenEntity = {
                 realm: testAccountInfo2.tenantId,
                 environment: testAccountInfo2.environment,
                 credentialType: "IdToken",
@@ -135,11 +130,6 @@ describe("BaseInteractionClient", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 homeAccountId: testAccountInfo2.homeAccountId,
             };
-
-            const idToken2 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData2
-            );
 
             const testAccount2: AccountEntity = new AccountEntity();
             testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
