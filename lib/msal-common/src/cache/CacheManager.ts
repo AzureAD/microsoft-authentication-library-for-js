@@ -304,7 +304,7 @@ export abstract class CacheManager implements ICacheManager {
                 return accountInfo;
             }
         }
-        return null;
+        return accountInfo;
     }
 
     private idTokenClaimsMatchAccountFilter(
@@ -1425,10 +1425,12 @@ export abstract class CacheManager implements ICacheManager {
             const staticAliases =
                 getAliasesFromConfigMetadata(
                     this.staticAuthorityOptions.canonicalAuthority,
-                    this.staticAuthorityOptions.cloudDiscoveryMetadata
+                    this.staticAuthorityOptions.cloudDiscoveryMetadata,
+                    this.commonLogger
                 ) ||
                 getHardcodedAliasesForCanonicalAuthority(
-                    this.staticAuthorityOptions.canonicalAuthority
+                    this.staticAuthorityOptions.canonicalAuthority,
+                    this.commonLogger
                 ) ||
                 this.staticAuthorityOptions.knownAuthorities;
             if (

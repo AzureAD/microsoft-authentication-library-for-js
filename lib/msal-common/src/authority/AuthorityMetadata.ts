@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "../logger/Logger";
+import { IUri } from "../url/IUri";
 import { UrlString } from "../url/UrlString";
+import { AADAuthorityConstants } from "../utils/Constants";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 
 export const rawMetdataJSON = {
@@ -552,6 +555,135 @@ export const rawMetdataJSON = {
         },
     },
     instanceDiscoveryMetadata: {
+        "https://login.microsoftonline.com/": {
+            tenant_discovery_endpoint:
+                "https://login.microsoftonline.com/{tenantid}/v2.0/.well-known/openid-configuration",
+            "api-version": "1.1",
+            metadata: [
+                {
+                    preferred_network: "login.microsoftonline.com",
+                    preferred_cache: "login.windows.net",
+                    aliases: [
+                        "login.microsoftonline.com",
+                        "login.windows.net",
+                        "login.microsoft.com",
+                        "sts.windows.net",
+                    ],
+                },
+                {
+                    preferred_network: "login.partner.microsoftonline.cn",
+                    preferred_cache: "login.partner.microsoftonline.cn",
+                    aliases: [
+                        "login.partner.microsoftonline.cn",
+                        "login.chinacloudapi.cn",
+                    ],
+                },
+                {
+                    preferred_network: "login.microsoftonline.de",
+                    preferred_cache: "login.microsoftonline.de",
+                    aliases: ["login.microsoftonline.de"],
+                },
+                {
+                    preferred_network: "login.microsoftonline.us",
+                    preferred_cache: "login.microsoftonline.us",
+                    aliases: [
+                        "login.microsoftonline.us",
+                        "login.usgovcloudapi.net",
+                    ],
+                },
+                {
+                    preferred_network: "login-us.microsoftonline.com",
+                    preferred_cache: "login-us.microsoftonline.com",
+                    aliases: ["login-us.microsoftonline.com"],
+                },
+            ],
+        },
+        "https://login.chinacloudapi.cn/": {
+            tenant_discovery_endpoint:
+                "https://login.chinacloudapi.cn/{tenantid}/v2.0/.well-known/openid-configuration",
+            "api-version": "1.1",
+            metadata: [
+                {
+                    preferred_network: "login.microsoftonline.com",
+                    preferred_cache: "login.windows.net",
+                    aliases: [
+                        "login.microsoftonline.com",
+                        "login.windows.net",
+                        "login.microsoft.com",
+                        "sts.windows.net",
+                    ],
+                },
+                {
+                    preferred_network: "login.partner.microsoftonline.cn",
+                    preferred_cache: "login.partner.microsoftonline.cn",
+                    aliases: [
+                        "login.partner.microsoftonline.cn",
+                        "login.chinacloudapi.cn",
+                    ],
+                },
+                {
+                    preferred_network: "login.microsoftonline.de",
+                    preferred_cache: "login.microsoftonline.de",
+                    aliases: ["login.microsoftonline.de"],
+                },
+                {
+                    preferred_network: "login.microsoftonline.us",
+                    preferred_cache: "login.microsoftonline.us",
+                    aliases: [
+                        "login.microsoftonline.us",
+                        "login.usgovcloudapi.net",
+                    ],
+                },
+                {
+                    preferred_network: "login-us.microsoftonline.com",
+                    preferred_cache: "login-us.microsoftonline.com",
+                    aliases: ["login-us.microsoftonline.com"],
+                },
+            ],
+        },
+        "https://login.microsoftonline.us/": {
+            tenant_discovery_endpoint:
+                "https://login.microsoftonline.us/{tenantid}/v2.0/.well-known/openid-configuration",
+            "api-version": "1.1",
+            metadata: [
+                {
+                    preferred_network: "login.microsoftonline.com",
+                    preferred_cache: "login.windows.net",
+                    aliases: [
+                        "login.microsoftonline.com",
+                        "login.windows.net",
+                        "login.microsoft.com",
+                        "sts.windows.net",
+                    ],
+                },
+                {
+                    preferred_network: "login.partner.microsoftonline.cn",
+                    preferred_cache: "login.partner.microsoftonline.cn",
+                    aliases: [
+                        "login.partner.microsoftonline.cn",
+                        "login.chinacloudapi.cn",
+                    ],
+                },
+                {
+                    preferred_network: "login.microsoftonline.de",
+                    preferred_cache: "login.microsoftonline.de",
+                    aliases: ["login.microsoftonline.de"],
+                },
+                {
+                    preferred_network: "login.microsoftonline.us",
+                    preferred_cache: "login.microsoftonline.us",
+                    aliases: [
+                        "login.microsoftonline.us",
+                        "login.usgovcloudapi.net",
+                    ],
+                },
+                {
+                    preferred_network: "login-us.microsoftonline.com",
+                    preferred_cache: "login-us.microsoftonline.com",
+                    aliases: ["login-us.microsoftonline.com"],
+                },
+            ],
+        },
         "https://login.microsoftonline.com/common/": {
             tenant_discovery_endpoint:
                 "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
@@ -961,13 +1093,22 @@ for (const key in InstanceDiscoveryMetadata) {
  * @returns
  */
 export function getHardcodedAliasesForCanonicalAuthority(
-    canonicalAuthority?: string
+    canonicalAuthority?: string,
+    logger?: Logger
 ): string[] | null {
+    logger?.trace("getHardcodedAliasesForCanonicalAuthority called");
     if (canonicalAuthority) {
         const instanceDiscoveryMetadata =
             getCloudDiscoveryMetadataFromHardcodedValues(canonicalAuthority);
         if (instanceDiscoveryMetadata) {
+            logger?.trace(
+                "getHardcodedAliasesForCanonicalAuthority: found aliases in hardcoded values"
+            );
             return instanceDiscoveryMetadata.aliases;
+        } else {
+            logger?.trace(
+                "getHardcodedAliasesForCanonicalAuthority: no hardcoded instance discovery metadata found"
+            );
         }
     }
     return null;
@@ -980,8 +1121,10 @@ export function getHardcodedAliasesForCanonicalAuthority(
  */
 export function getAliasesFromConfigMetadata(
     canonicalAuthority?: string,
-    cloudDiscoveryMetadata?: CloudDiscoveryMetadata[]
+    cloudDiscoveryMetadata?: CloudDiscoveryMetadata[],
+    logger?: Logger
 ): string[] | null {
+    logger?.trace("getAliasesFromConfigMetadata called");
     if (canonicalAuthority && cloudDiscoveryMetadata) {
         const canonicalAuthorityUrlComponents = new UrlString(
             canonicalAuthority
@@ -992,7 +1135,14 @@ export function getAliasesFromConfigMetadata(
         );
 
         if (metadata) {
+            logger?.trace(
+                "getAliasesFromConfigMetadata: found aliases in hardcoded values"
+            );
             return metadata.aliases;
+        } else {
+            logger?.trace(
+                "getAliasesFromConfigMetadata: no configured instance discovery metadata found"
+            );
         }
     }
 
@@ -1027,14 +1177,51 @@ export function getCloudDiscoveryMetadataFromHardcodedValues(
     const canonicalAuthorityUrlComponents = new UrlString(
         canonicalAuthority
     ).getUrlComponents();
-
-    if (canonicalAuthority in InstanceDiscoveryMetadata) {
+    const searchAuthority = getHardcodedSearchAuthority(
+        canonicalAuthority,
+        canonicalAuthorityUrlComponents
+    );
+    if (searchAuthority in InstanceDiscoveryMetadata) {
         const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
-            InstanceDiscoveryMetadata[canonicalAuthority].metadata,
+            InstanceDiscoveryMetadata[searchAuthority].metadata,
             canonicalAuthorityUrlComponents.HostNameAndPort
         );
         return metadata;
     }
 
     return null;
+}
+
+/**
+ * Returns the authority string to be used when searching for hardcoded cloud discovery metadata.
+ * For late tenant binding endpoints (common, consumers, organizations), the authority string is the same as the canonical authority.
+ * For tenanted authorities, the authority string is the canonical authority without a path (strip tenantId)
+ * @param canonicalAuthority
+ * @param canonicalAuthorityUrlComponents
+ * @returns
+ */
+function getHardcodedSearchAuthority(
+    canonicalAuthority: string,
+    canonicalAuthorityUrlComponents: IUri
+): string {
+    const tenantId = canonicalAuthorityUrlComponents.PathSegments[0];
+    return isNamedEndpoint(tenantId)
+        ? canonicalAuthority
+        : `${canonicalAuthorityUrlComponents.Protocol}//${canonicalAuthorityUrlComponents.HostNameAndPort}/`;
+}
+
+/**
+ * Returns true if the given tenant is a named endpoint (one of the hardcoded AAD late tenant binding endpoints)
+ * @param tenantFieldValue
+ * @returns
+ */
+function isNamedEndpoint(tenantFieldValue: string): boolean {
+    switch (tenantFieldValue) {
+        case AADAuthorityConstants.COMMON:
+        case AADAuthorityConstants.ORGANIZATIONS:
+        case AADAuthorityConstants.CONSUMERS:
+            return true;
+        default:
+            return false;
+    }
 }
