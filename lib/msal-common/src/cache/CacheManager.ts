@@ -260,7 +260,13 @@ export abstract class CacheManager implements ICacheManager {
      */
     getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
         const allAccounts = this.getAllAccounts(accountFilter);
-        if (allAccounts.length > 0) {
+        if (allAccounts.length > 1) {
+            // If one or more accounts are found, further filter to the first account that has an ID token
+            return allAccounts.filter((account) => {
+                return !!account.idTokenClaims;
+            })[0];
+        } else if (allAccounts.length === 1) {
+            // If only one account is found, return it regardless of whether a matching ID token was found
             return allAccounts[0];
         } else {
             return null;
