@@ -121,8 +121,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Remarks
 
-As of writing this sample, App Router in Next.js is stable, but React Server Components are new and not documented by React themselves. Server Actions are considered experimental in Next.js, which is why some alternatives with Route Handlers is included.
-
 The sample uses `createCookieSessionStorage` from `@remix-run/node`, which might sound weird. But the implementation works directly with the cookie header, and therefore works as intended.
 
 Session lifetime has not been handled at all, and the RedisCachePlugin does not evict anything, this should be reviewed when implementing in your own applications.
