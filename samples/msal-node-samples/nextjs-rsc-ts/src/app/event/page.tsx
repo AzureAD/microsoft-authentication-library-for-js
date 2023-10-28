@@ -1,7 +1,6 @@
 import { InteractionRequiredAuthError } from "@azure/msal-node";
 import { CalendarEvent, GraphCalendarEvent } from "~/components/CalendarEvent";
-import ConsentRouteHandlerButton from "~/components/ConsentRouteHandlerButton";
-import ConsentServerActionButton from "~/components/ConsentServerActionButton";
+import ConsentButton from "~/components/ConsentButton";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { graphConfig } from "~/serverConfig";
@@ -44,8 +43,7 @@ export default async function EventPage() {
       return (
         <Paper>
           <Typography>Please consent to see your calendar events.</Typography>
-          <ConsentRouteHandlerButton />
-          <ConsentServerActionButton />
+          <ConsentButton />
         </Paper>
       );
     }

@@ -36,7 +36,7 @@ The `AuthProvider` implementation stores the `CodeRequest` in the state that is 
 
 ### Server actions and Route Handlers
 
-The `AuthProvider` works with Server Actions and Route Handlers, but the cache won't work the same way as with react. Therefore, a single call to `AuthProvider.authenticate` is recommended.
+The `AuthProvider` works with Server Actions and Route Handlers. Route Handlers doesn't run in a React context, and doesn't have access to the React cache. Therefore, a single call to `AuthProvider.authenticate` is recommended in Route Handlers.
 
 ## Notable files
 
@@ -55,12 +55,6 @@ https://github.com/vercel/next.js/issues/43704#issuecomment-1411186664
 - `./src/app/auth/callback/route.ts`
 
 The route Azure will redirect back to with a code
-
-- `./src/app/auth/login/route.ts`
-- `./src/app/auth/logout/route.ts`
-- `./src/app/auth/eventConsent/route.ts`
-
-These Route Handlers contain alternatives to the Server Actions. Usage of them can be seen in the `./src/app/page.tsx`, `./src/app/event/page.tsx` and `./src/components/LogoutButton.tsx`.
 
 - `./src/app/profile/picture/route.tsx`
 
