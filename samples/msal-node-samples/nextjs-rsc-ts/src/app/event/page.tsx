@@ -1,8 +1,5 @@
 import { InteractionRequiredAuthError } from "@azure/msal-node";
 import { CalendarEvent, GraphCalendarEvent } from "~/components/CalendarEvent";
-import ConsentButton from "~/components/ConsentButton";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
 import { graphConfig } from "~/serverConfig";
 import { authProvider } from "~/services/auth";
 
@@ -13,39 +10,37 @@ async function getEvent() {
     throw new Error("No Account logged in");
   }
 
-  const token = await instance.acquireTokenSilent({
-    account,
-    scopes: ["Calendars.Read"],
-  });
+  try {
+    const token = await instance.acquireTokenSilent({
+      account,
+      scopes: ["Calendars.Read"],
+    });
 
-  if (!token) {
-    throw new Error("Token null");
+    if (!token) {
+      throw new Error("Token null");
+    }
+
+    const response = await fetch(graphConfig.eventEndpoint, {
+      headers: {
+        Authorization: `Bearer ${token.accessToken}`,
+      },
+    });
+
+    const data: { value: GraphCalendarEvent[] } = await response.json();
+
+    return data.value[0];
+  } catch (error: unknown) {
+    // rethrow with a message that can be serialized and read by a client component
+    // https://nextjs.org/docs/app/building-your-application/routing/error-handling#handling-server-errors
+    if (error instanceof InteractionRequiredAuthError) {
+      throw new Error("InteractionRequiredAuthError");
+    }
+    throw error;
   }
-
-  const response = await fetch(graphConfig.eventEndpoint, {
-    headers: {
-      Authorization: `Bearer ${token.accessToken}`,
-    },
-  });
-
-  const data: { value: GraphCalendarEvent[] } = await response.json();
-
-  return data.value[0];
 }
 
 export default async function EventPage() {
-  try {
-    const event = await getEvent();
+  const event = await getEvent();
 
-    return <CalendarEvent event={event} />;
-  } catch (error: unknown) {
-    if (error instanceof InteractionRequiredAuthError) {
-      return (
-        <Paper>
-          <Typography>Please consent to see your calendar events.</Typography>
-          <ConsentButton />
-        </Paper>
-      );
-    }
-  }
+  return <CalendarEvent event={event} />;
 }
