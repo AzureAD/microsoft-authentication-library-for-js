@@ -18,6 +18,7 @@ import {
     IPerformanceClient,
     PerformanceEvents,
     ProtocolMode,
+    invokeAsync,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
@@ -78,19 +79,19 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
-        this.performanceClient.setPreQueueTime(
+        const validRequest = await invokeAsync(
+            this.initializeAuthorizationRequest.bind(this),
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-            request.correlationId
-        );
-        const validRequest = await this.initializeAuthorizationRequest(
-            request,
-            InteractionType.Redirect
-        );
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(request, InteractionType.Redirect);
+
         this.browserStorage.updateCacheEntries(
             validRequest.state,
             validRequest.nonce,
             validRequest.authority,
-            validRequest.loginHint || Constants.EMPTY_STRING,
+            validRequest.loginHint || "",
             validRequest.account || null
         );
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -113,25 +114,27 @@ export class RedirectClient extends StandardInteractionClient {
 
         try {
             // Create auth code request and generate PKCE params
-            this.performanceClient.setPreQueueTime(
-                PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                request.correlationId
-            );
             const authCodeRequest: CommonAuthorizationCodeRequest =
-                await this.initializeAuthorizationCodeRequest(validRequest);
+                await invokeAsync(
+                    this.initializeAuthorizationCodeRequest.bind(this),
+                    PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
+                    this.logger,
+                    this.performanceClient,
+                    this.correlationId
+                )(validRequest);
 
             // Initialize the client
-            this.performanceClient.setPreQueueTime(
+            const authClient: AuthorizationCodeClient = await invokeAsync(
+                this.createAuthCodeClient.bind(this),
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-                request.correlationId
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
+                serverTelemetryManager,
+                validRequest.authority,
+                validRequest.azureCloudOptions
             );
-            const authClient: AuthorizationCodeClient =
-                await this.createAuthCodeClient(
-                    serverTelemetryManager,
-                    validRequest.authority,
-                    validRequest.azureCloudOptions
-                );
-            this.logger.verbose("Auth code client created");
 
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(
@@ -443,15 +446,15 @@ export class RedirectClient extends StandardInteractionClient {
                 BrowserAuthErrorCodes.noCachedAuthorityError
             );
         }
-        this.performanceClient.setPreQueueTime(
+
+        const authClient = await invokeAsync(
+            this.createAuthCodeClient.bind(this),
             PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-            cachedRequest.correlationId
-        );
-        const authClient = await this.createAuthCodeClient(
-            serverTelemetryManager,
-            currentAuthority
-        );
-        this.logger.verbose("Auth code client created");
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(serverTelemetryManager, currentAuthority);
+
         ThrottlingUtils.removeThrottle(
             this.browserStorage,
             this.config.auth.clientId,
@@ -494,15 +497,14 @@ export class RedirectClient extends StandardInteractionClient {
                 timeout: this.config.system.redirectNavigationTimeout,
                 noHistory: false,
             };
-            this.performanceClient.setPreQueueTime(
+
+            const authClient = await invokeAsync(
+                this.createAuthCodeClient.bind(this),
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-                validLogoutRequest.correlationId
-            );
-            const authClient = await this.createAuthCodeClient(
-                serverTelemetryManager,
-                logoutRequest && logoutRequest.authority
-            );
-            this.logger.verbose("Auth code client created");
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(serverTelemetryManager, logoutRequest && logoutRequest.authority);
 
             if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
                 try {

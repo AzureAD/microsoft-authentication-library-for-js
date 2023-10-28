@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use invokeAsync in popup/redirect flows",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
