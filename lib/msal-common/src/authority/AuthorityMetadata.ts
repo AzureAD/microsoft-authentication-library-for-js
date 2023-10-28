@@ -1136,7 +1136,7 @@ export function getAliasesFromConfigMetadata(
 
         if (metadata) {
             logger?.trace(
-                "getAliasesFromConfigMetadata: found aliases in hardcoded values"
+                "getAliasesFromConfigMetadata: found aliases in configured metadata values"
             );
             return metadata.aliases;
         } else {
