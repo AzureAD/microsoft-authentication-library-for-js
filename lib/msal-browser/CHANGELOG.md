@@ -18,7 +18,7 @@ Mon, 30 Oct 2023 21:38:24 GMT
 
 - Fix iframe fallback when RT is not found in cache (thomas.norling@microsoft.com)
 - Use invokeAsync in popup/redirect flows (thomas.norling@microsoft.com)
-- Add "inlineDynamicImports" to rollup config to fix CJS build. Make factory methods basic functions #6615 (kshabelko@microsoft.com)
+- Add inlineDynamicImports to rollup config to fix CJS build. Make factory methods basic functions #6615 (kshabelko@microsoft.com)
 
 ## 3.3.0
 
