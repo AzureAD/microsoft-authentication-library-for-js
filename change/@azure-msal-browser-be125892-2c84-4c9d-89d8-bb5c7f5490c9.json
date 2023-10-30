@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add \"inlineDynamicImports\" to rollup config to fix CJS build. Make factory methods basic functions #6615",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
