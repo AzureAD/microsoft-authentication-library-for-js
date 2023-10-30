@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698702209643,
+  "lastUpdate": 1698708775369,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2356,6 +2356,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.69%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b561834d3e0647e421633a94088be25bab4f0b6a",
+          "message": "October 2023 Patch Release (#6634)\n\nCo-authored-by: hectormmg <hectormmg@users.noreply.github.com>",
+          "timestamp": "2023-10-30T16:27:26-07:00",
+          "tree_id": "d584a28ba8cc3fb3c3f2526421927e319d0a6238",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b561834d3e0647e421633a94088be25bab4f0b6a"
+        },
+        "date": 1698708773673,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 132257,
+            "range": "±1.51%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 125271,
+            "range": "±1.68%",
+            "unit": "ops/sec",
+            "extra": "211 samples"
           }
         ]
       }
