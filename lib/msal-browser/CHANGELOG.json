@@ -23,7 +23,7 @@
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-browser",
             "commit": "9296e4b86b6834c6160583771a598bf9de59372d",
-            "comment": "Add \"inlineDynamicImports\" to rollup config to fix CJS build. Make factory methods basic functions #6615"
+            "comment": "Add inlineDynamicImports to rollup config to fix CJS build. Make factory methods basic functions #6615"
           }
         ],
         "minor": [
