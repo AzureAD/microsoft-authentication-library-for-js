@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698670700380,
+  "lastUpdate": 1698673028558,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2204,6 +2204,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.84%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9296e4b86b6834c6160583771a598bf9de59372d",
+          "message": "Add \"inlineDynamicImports\" to rollup config to fix CJS build. Make factory methods basic functions (#6615)\n\n- Add \"inlineDynamicImports\" to rollup config to fix CJS build.\r\n- Make factory methods basic functions.",
+          "timestamp": "2023-10-30T09:31:41-04:00",
+          "tree_id": "1e59422f8cc66b3293730012dc5e0fc870d42e77",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9296e4b86b6834c6160583771a598bf9de59372d"
+        },
+        "date": 1698673027391,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 156027,
+            "range": "±1.16%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 144229,
+            "range": "±1.13%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
           }
         ]
       }
