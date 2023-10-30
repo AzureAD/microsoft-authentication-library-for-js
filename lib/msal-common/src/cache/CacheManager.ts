@@ -43,10 +43,7 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
 import { StoreInCache } from "../request/StoreInCache";
-import {
-    getAliasesFromConfigMetadata,
-    getHardcodedAliasesForCanonicalAuthority,
-} from "../authority/AuthorityMetadata";
+import { getAliasesFromStaticSources } from "../authority/AuthorityMetadata";
 import { StaticAuthorityOptions } from "../authority/AuthorityOptions";
 import { TokenClaims } from "../account/TokenClaims";
 
@@ -260,7 +257,13 @@ export abstract class CacheManager implements ICacheManager {
      */
     getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
         const allAccounts = this.getAllAccounts(accountFilter);
-        if (allAccounts.length > 0) {
+        if (allAccounts.length > 1) {
+            // If one or more accounts are found, further filter to the first account that has an ID token
+            return allAccounts.filter((account) => {
+                return !!account.idTokenClaims;
+            })[0];
+        } else if (allAccounts.length === 1) {
+            // If only one account is found, return it regardless of whether a matching ID token was found
             return allAccounts[0];
         } else {
             return null;
@@ -304,7 +307,7 @@ export abstract class CacheManager implements ICacheManager {
                 return accountInfo;
             }
         }
-        return null;
+        return accountInfo;
     }
 
     private idTokenClaimsMatchAccountFilter(
@@ -1422,17 +1425,11 @@ export abstract class CacheManager implements ICacheManager {
     ): boolean {
         // Check static authority options first for cases where authority metadata has not been resolved and cached yet
         if (this.staticAuthorityOptions) {
-            const staticAliases =
-                getAliasesFromConfigMetadata(
-                    this.staticAuthorityOptions.canonicalAuthority,
-                    this.staticAuthorityOptions.cloudDiscoveryMetadata
-                ) ||
-                getHardcodedAliasesForCanonicalAuthority(
-                    this.staticAuthorityOptions.canonicalAuthority
-                ) ||
-                this.staticAuthorityOptions.knownAuthorities;
+            const staticAliases = getAliasesFromStaticSources(
+                this.staticAuthorityOptions,
+                this.commonLogger
+            );
             if (
-                staticAliases &&
                 staticAliases.includes(environment) &&
                 staticAliases.includes(entity.environment)
             ) {

@@ -1876,7 +1876,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     );
 
                     const hardcodedCloudDiscoveryMetadata =
-                        InstanceDiscoveryMetadata[Constants.DEFAULT_AUTHORITY];
+                        InstanceDiscoveryMetadata;
 
                     const expectedCloudDiscoveryMetadata =
                         hardcodedCloudDiscoveryMetadata.metadata[0];
