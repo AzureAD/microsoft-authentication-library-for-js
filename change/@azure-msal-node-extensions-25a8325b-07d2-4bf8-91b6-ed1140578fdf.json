@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix downstream ESM imports, fixes #6573",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "janusz@corechain.tech",
+  "dependentChangeType": "patch"
+}

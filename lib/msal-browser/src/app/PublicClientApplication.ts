@@ -20,7 +20,7 @@ import {
 } from "@azure/msal-common";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { ControllerFactory } from "../controllers/ControllerFactory";
+import * as ControllerFactory from "../controllers/ControllerFactory";
 import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
@@ -38,8 +38,9 @@ export class PublicClientApplication implements IPublicClientApplication {
     public static async createPublicClientApplication(
         configuration: Configuration
     ): Promise<IPublicClientApplication> {
-        const factory = new ControllerFactory(configuration);
-        const controller = await factory.createV3Controller();
+        const controller = await ControllerFactory.createV3Controller(
+            configuration
+        );
         const pca = new PublicClientApplication(configuration, controller);
 
         return pca;
