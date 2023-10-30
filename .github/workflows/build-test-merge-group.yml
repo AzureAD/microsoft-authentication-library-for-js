@@ -35,7 +35,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Use Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
 
     - name: Restore node_modules
       uses: actions/cache@v3
@@ -74,7 +74,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Use Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
 
     - name: Clean Install
       run: npm ci
