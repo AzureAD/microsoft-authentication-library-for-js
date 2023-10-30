@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698673028558,
+  "lastUpdate": 1698684718173,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2242,6 +2242,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.13%",
             "unit": "ops/sec",
             "extra": "227 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "20e2ce3ef9b22b4848587c51cc95b61319dca737",
+          "message": "Bump \"next\" package for nextjs sample (#6630)\n\n- Fixes an issue with missing \"next\" package.",
+          "timestamp": "2023-10-30T12:47:02-04:00",
+          "tree_id": "6c62f564315dae9ea10aae72166ccf2cf47275df",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/20e2ce3ef9b22b4848587c51cc95b61319dca737"
+        },
+        "date": 1698684716644,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 151426,
+            "range": "±1.35%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 151981,
+            "range": "±1.10%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
