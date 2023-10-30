@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698689918268,
+  "lastUpdate": 1698702209643,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2318,6 +2318,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.86%",
             "unit": "ops/sec",
             "extra": "216 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c93777ed04311851fe2a7028bb5d86e073c98f52",
+          "message": "Fix hardcoded metadata fetching for tenanted authorities (#6622)\n\nThis PR:\r\n- Updates hardcoded Cloud Discovery Metadata to the correct value from\r\nthe network response\r\n- Returns a cached account without ID token claims if the matching ID\r\ntoken cannot be found\r\n- Adds end-to-end tests for AAD tenanted authorities\r\n- Fixes #6608  and #6602",
+          "timestamp": "2023-10-30T14:37:20-07:00",
+          "tree_id": "c1a8d39bc920930135bef13813304c6de197b30f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c93777ed04311851fe2a7028bb5d86e073c98f52"
+        },
+        "date": 1698702207748,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 117958,
+            "range": "±1.71%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 114548,
+            "range": "±1.69%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
