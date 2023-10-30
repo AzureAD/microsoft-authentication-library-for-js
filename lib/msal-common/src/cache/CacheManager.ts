@@ -43,10 +43,7 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
 import { StoreInCache } from "../request/StoreInCache";
-import {
-    getAliasesFromConfigMetadata,
-    getHardcodedAliasesForCanonicalAuthority,
-} from "../authority/AuthorityMetadata";
+import { getAliasesFromStaticSources } from "../authority/AuthorityMetadata";
 import { StaticAuthorityOptions } from "../authority/AuthorityOptions";
 import { TokenClaims } from "../account/TokenClaims";
 
@@ -1428,19 +1425,11 @@ export abstract class CacheManager implements ICacheManager {
     ): boolean {
         // Check static authority options first for cases where authority metadata has not been resolved and cached yet
         if (this.staticAuthorityOptions) {
-            const staticAliases =
-                getAliasesFromConfigMetadata(
-                    this.staticAuthorityOptions.canonicalAuthority,
-                    this.staticAuthorityOptions.cloudDiscoveryMetadata,
-                    this.commonLogger
-                ) ||
-                getHardcodedAliasesForCanonicalAuthority(
-                    this.staticAuthorityOptions.canonicalAuthority,
-                    this.commonLogger
-                ) ||
-                this.staticAuthorityOptions.knownAuthorities;
+            const staticAliases = getAliasesFromStaticSources(
+                this.staticAuthorityOptions,
+                this.commonLogger
+            );
             if (
-                staticAliases &&
                 staticAliases.includes(environment) &&
                 staticAliases.includes(entity.environment)
             ) {
