@@ -5202,7 +5202,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         testAccount3.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount3.idTokenClaims = testAccountInfo3.idTokenClaims;
 
         const idToken3: IdTokenEntity = {
             realm: testAccountInfo3.tenantId,
@@ -5238,7 +5237,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         testAccount4.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount4.idTokenClaims = testAccountInfo4.idTokenClaims;
 
         const idToken4: IdTokenEntity = {
             realm: testAccountInfo4.tenantId,

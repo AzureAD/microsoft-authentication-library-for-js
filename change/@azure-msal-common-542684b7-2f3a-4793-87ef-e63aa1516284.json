@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Don't use temporary cache for silent & popup flows #6586",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
