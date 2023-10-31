@@ -129,54 +129,6 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(newUrlObj.urlString).not.toContain(sampleTenantId2);
     });
 
-    it("getHash returns the anchor part of the URL correctly, or nothing if there is no anchor", () => {
-        const urlWithHash =
-            TEST_URIS.TEST_AUTH_ENDPT + TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH;
-        const urlWithHashAndSlash =
-            TEST_URIS.TEST_AUTH_ENDPT +
-            "#/" +
-            TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH.substring(1);
-        const urlWithoutHash = TEST_URIS.TEST_AUTH_ENDPT;
-
-        const urlObjWithHash = new UrlString(urlWithHash);
-        const urlObjWithHashAndSlash = new UrlString(urlWithHashAndSlash);
-        const urlObjWithoutHash = new UrlString(urlWithoutHash);
-
-        expect(urlObjWithHash.getHash()).toBe(
-            TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH.substring(1)
-        );
-        expect(urlObjWithHashAndSlash.getHash()).toBe(
-            TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH.substring(1)
-        );
-        expect(urlObjWithoutHash.getHash()).toHaveLength(0);
-    });
-
-    it("getDeserializedHash returns the hash as a deserialized object", () => {
-        const serializedHash = "#param1=value1&param2=value2&param3=value3";
-        const deserializedHash = {
-            param1: "value1",
-            param2: "value2",
-            param3: "value3",
-        };
-
-        expect(UrlString.getDeserializedHash(serializedHash)).toEqual(
-            deserializedHash
-        );
-    });
-
-    it("getDeserializedHash returns empty object if key/value is undefined", () => {
-        let serializedHash = "#=value1";
-        const deserializedHash = {};
-        expect(UrlString.getDeserializedHash(serializedHash)).toEqual(
-            deserializedHash
-        );
-
-        serializedHash = "#key1=";
-        expect(UrlString.getDeserializedHash(serializedHash)).toEqual(
-            deserializedHash
-        );
-    });
-
     it("getUrlComponents returns all path components", () => {
         const urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS2);
         expect(urlObj.getUrlComponents()).toEqual({

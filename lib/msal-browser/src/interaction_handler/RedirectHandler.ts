@@ -14,6 +14,7 @@ import {
     CcsCredential,
     invokeAsync,
     PerformanceEvents,
+    ServerAuthorizationCodeResponse,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -142,15 +143,10 @@ export class RedirectHandler {
      * @param hash
      */
     async handleCodeResponseFromHash(
-        locationHash: string,
+        response: ServerAuthorizationCodeResponse,
         state: string
     ): Promise<AuthenticationResult> {
         this.logger.verbose("RedirectHandler.handleCodeResponse called");
-
-        // Check that location hash isn't empty.
-        if (!locationHash) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
-        }
 
         // Interaction is completed - remove interaction status.
         this.browserStorage.setInteractionInProgress(false);
@@ -168,7 +164,7 @@ export class RedirectHandler {
         let authCodeResponse;
         try {
             authCodeResponse = this.authModule.handleFragmentResponse(
-                locationHash,
+                response,
                 requestState
             );
         } catch (e) {

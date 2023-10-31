@@ -8,8 +8,6 @@ import {
     ICrypto,
     RequestStateObject,
     ProtocolUtils,
-    ServerAuthorizationCodeResponse,
-    UrlString,
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "@azure/msal-common";
@@ -39,20 +37,5 @@ export class BrowserProtocolUtils {
         } catch (e) {
             throw createClientAuthError(ClientAuthErrorCodes.invalidState);
         }
-    }
-
-    /**
-     * Parses properties of server response from url hash
-     * @param locationHash Hash from url
-     */
-    static parseServerResponseFromHash(
-        locationHash: string
-    ): ServerAuthorizationCodeResponse {
-        if (!locationHash) {
-            return {};
-        }
-
-        const hashUrlString = new UrlString(locationHash);
-        return UrlString.getDeserializedHash(hashUrlString.getHash());
     }
 }

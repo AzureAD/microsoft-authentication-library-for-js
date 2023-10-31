@@ -229,6 +229,7 @@ export const PerformanceEvents = {
      * handleServerTokenResponse API in ResponseHandler (msal-common)
      */
     HandleServerTokenResponse: "handleServerTokenResponse",
+    DeserializeResponse: "deserializeResponse",
 
     /**
      * Authority functions

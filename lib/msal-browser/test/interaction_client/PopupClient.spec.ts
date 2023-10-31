@@ -1626,25 +1626,6 @@ describe("PopupClient", () => {
             }, 50);
         });
 
-        it("throws when popup has a hash but does not contain known properties", (done) => {
-            const popup: Window = {
-                //@ts-ignore
-                location: {
-                    href: "http://localhost",
-                    hash: "testHash",
-                },
-                close: () => {},
-                closed: false,
-            };
-            popupClient.monitorPopupForHash(popup).catch((e) => {
-                expect(e.errorCode).toEqual(
-                    BrowserAuthErrorMessage
-                        .hashDoesNotContainKnownPropertiesError.code
-                );
-                done();
-            });
-        });
-
         it("throws timeout if popup is same origin but no hash is present", async () => {
             const popup = {
                 location: {
@@ -1759,6 +1740,7 @@ describe("PopupClient", () => {
             const popup = {
                 location: {
                     href: TEST_URIS.TEST_QUERY_CODE_RESPONSE,
+                    search: "?code=authCode",
                 },
                 history: {
                     replaceState: () => {
@@ -1770,7 +1752,7 @@ describe("PopupClient", () => {
 
             // @ts-ignore
             const result = await popupClient.monitorPopupForHash(popup);
-            expect(result).toEqual("code=hello");
+            expect(result).toEqual("?code=authCode");
         });
 
         it("closed", (done) => {

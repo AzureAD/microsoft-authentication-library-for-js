@@ -901,21 +901,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Looks for server code response in query param if OIDCOptions.serverResponseType is set to query", async () => {
-            /**
-             * The testing environment does not accept query params, so instead we see that it ignores a hash fragment.
-             * That means handleRedirectPromise is looking for a hash in a query param instead of a hash fragment.
-             */
-            sinon
-                .stub(RedirectClient.prototype, "handleRedirectPromise")
-                .callsFake(
-                    async (hash): Promise<AuthenticationResult | null> => {
-                        expect(hash).toBe("");
-                        return null;
-                    }
-                );
+            const responseSpy = jest.spyOn(
+                RedirectClient.prototype,
+                <any>"getRedirectResponse"
+            );
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(window, "location", "get").mockReturnValueOnce({
+                ...window.location,
+                search: "?code=authCode",
+            });
+            await pca.handleRedirectPromise().catch(() => {
+                // This will likely throw, but we're not testing the e2e here
+            });
 
-            window.location.hash = "#code=hello";
-            await pca.handleRedirectPromise();
+            expect(responseSpy).toHaveBeenCalledTimes(1);
+            expect(responseSpy).lastReturnedWith([
+                { code: "authCode" },
+                "?code=authCode",
+            ]);
         });
     });
 
