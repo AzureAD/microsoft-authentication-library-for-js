@@ -190,9 +190,17 @@ export class SilentFlowClient extends BaseClient {
             },
             correlationId
         );
-        this.logger.info(
-            `Token refresh is required due to cache outcome: ${cacheOutcome}`
-        );
+        switch (cacheOutcome) {
+            case CacheOutcome.NOT_APPLICABLE:
+                this.logger.info(
+                    `Token refresh not required due to cache outcome: ${cacheOutcome}`
+                );
+                break;
+            default:
+                this.logger.info(
+                    `Token refresh is required due to cache outcome: ${cacheOutcome}`
+                );
+        }
     }
 
     /**
