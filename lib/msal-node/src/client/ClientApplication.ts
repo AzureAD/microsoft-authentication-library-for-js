@@ -412,10 +412,23 @@ export abstract class ClientApplication {
             : this.config.auth.azureCloudOptions;
 
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
-        this.logger.verbose(
-            `building oauth client configuration with the authority: ${authority}`,
-            requestCorrelationId
-        );
+        this.logger.verbose("here-----------------------------------------------------------------------------------------------------------------");
+
+        if(azureRegionConfiguration?.azureRegion)
+        {
+            this.logger.verbose(
+                `Building oauth client configuration with the user provided authority: ${authority}, using provided region: ${azureRegionConfiguration?.azureRegion}.`,
+                requestCorrelationId
+            );
+        } 
+        else
+        {
+            this.logger.verbose(
+                `Building oauth client configuration with the user provided authority: ${authority}.`,
+                requestCorrelationId
+            );
+        }
+        
         const discoveredAuthority = await this.createAuthority(
             authority,
             azureRegionConfiguration,

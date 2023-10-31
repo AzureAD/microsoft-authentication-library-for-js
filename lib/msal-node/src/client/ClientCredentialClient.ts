@@ -229,6 +229,9 @@ export class ClientCredentialClient extends BaseClient {
                 authority.tokenEndpoint,
                 queryParametersString
             );
+
+            this.logger.info("Sending token request to host: " + authority.tokenEndpointHost);
+
             const requestBody = this.createTokenRequestBody(request);
             const headers: Record<string, string> =
                 this.createTokenRequestHeaders();
