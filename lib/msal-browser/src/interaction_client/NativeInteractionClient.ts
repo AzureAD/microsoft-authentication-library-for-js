@@ -34,6 +34,7 @@ import {
     createAuthError,
     AuthErrorCodes,
     updateTenantProfile,
+    CacheHelpers,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -656,7 +657,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         reqTimestamp: number
     ): void {
         const cachedIdToken: IdTokenEntity | null =
-            IdTokenEntity.createIdTokenEntity(
+            CacheHelpers.createIdTokenEntity(
                 homeAccountIdentifier,
                 request.authority,
                 response.id_token || "",
@@ -675,7 +676,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const responseScopes = this.generateScopes(response, request);
 
         const cachedAccessToken: AccessTokenEntity | null =
-            AccessTokenEntity.createAccessTokenEntity(
+            CacheHelpers.createAccessTokenEntity(
                 homeAccountIdentifier,
                 request.authority,
                 responseAccessToken,
@@ -684,7 +685,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 0,
-                this.browserCrypto
+                base64Decode
             );
 
         const nativeCacheRecord = new CacheRecord(

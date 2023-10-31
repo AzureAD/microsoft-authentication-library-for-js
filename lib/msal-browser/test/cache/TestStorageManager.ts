@@ -12,11 +12,10 @@ import {
     AppMetadataEntity,
     ServerTelemetryEntity,
     ThrottlingEntity,
-    CredentialEntity,
-    CredentialType,
     AuthorityMetadataEntity,
     ValidCredentialType,
     TokenKeys,
+    CacheHelpers,
 } from "@azure/msal-common";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
@@ -79,7 +78,7 @@ export class TestStorageManager extends CacheManager {
     }
 
     setIdTokenCredential(idToken: IdTokenEntity): void {
-        const idTokenKey = idToken.generateCredentialKey();
+        const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
         this.store[idTokenKey] = idToken;
 
         const tokenKeys = this.getTokenKeys();
@@ -93,7 +92,7 @@ export class TestStorageManager extends CacheManager {
     }
 
     setAccessTokenCredential(accessToken: AccessTokenEntity): void {
-        const accessTokenKey = accessToken.generateCredentialKey();
+        const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
         this.store[accessTokenKey] = accessToken;
 
         const tokenKeys = this.getTokenKeys();
@@ -106,7 +105,8 @@ export class TestStorageManager extends CacheManager {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
-        const refreshTokenKey = refreshToken.generateCredentialKey();
+        const refreshTokenKey =
+            CacheHelpers.generateCredentialKey(refreshToken);
         this.store[refreshTokenKey] = refreshToken;
 
         const tokenKeys = this.getTokenKeys();
@@ -177,7 +177,7 @@ export class TestStorageManager extends CacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string {
-        const updatedCacheKey = credential.generateCredentialKey();
+        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 
         if (currentCacheKey !== updatedCacheKey) {
             const cacheItem = this.store[currentCacheKey];

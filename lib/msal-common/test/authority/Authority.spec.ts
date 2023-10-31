@@ -606,7 +606,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     .replace(
                         "login.microsoftonline.com",
                         "westus2.login.microsoft.com"
-                    )}/?allowestsrnonmsi=true`
+                    )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
                 `${deepCopyOpenIdResponse.body.end_session_endpoint
@@ -661,7 +661,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     .replace(
                         "login.microsoftonline.com",
                         "westus2.login.microsoft.com"
-                    )}/?allowestsrnonmsi=true`
+                    )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
                 `${deepCopyOpenIdResponse.body.end_session_endpoint
@@ -723,7 +723,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     .replace(
                         "login.microsoftonline.com",
                         "westus2.login.microsoft.com"
-                    )}/?allowestsrnonmsi=true`
+                    )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
                 `${deepCopyOpenIdResponse.body.end_session_endpoint
@@ -778,7 +778,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     .replace(
                         "login.microsoftonline.com",
                         "centralus.login.microsoft.com"
-                    )}/?allowestsrnonmsi=true`
+                    )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
                 `${deepCopyOpenIdResponse.body.end_session_endpoint
@@ -1153,7 +1153,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     jwks_uri:
                         "https://login.microsoftonline.com/common/discovery/v2.0/keys",
                     token_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/token/?allowestsrnonmsi=true",
+                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/token/",
                 };
 
                 networkInterface.sendGetRequestAsync = (
@@ -1876,7 +1876,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     );
 
                     const hardcodedCloudDiscoveryMetadata =
-                        InstanceDiscoveryMetadata[Constants.DEFAULT_AUTHORITY];
+                        InstanceDiscoveryMetadata;
 
                     const expectedCloudDiscoveryMetadata =
                         hardcodedCloudDiscoveryMetadata.metadata[0];

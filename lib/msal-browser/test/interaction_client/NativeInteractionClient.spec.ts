@@ -68,27 +68,27 @@ const testAccountInfo: AccountInfo = {
     idTokenClaims: ID_TOKEN_CLAIMS,
 };
 
-const testIdToken: IdTokenEntity = new IdTokenEntity();
-testIdToken.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-testIdToken.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testIdToken.environment = testAccountEntity.environment;
-testIdToken.realm = ID_TOKEN_CLAIMS.tid;
-testIdToken.secret = TEST_TOKENS.IDTOKEN_V2;
-testIdToken.credentialType = CredentialType.ID_TOKEN;
+const testIdToken: IdTokenEntity = {
+    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: TEST_TOKENS.IDTOKEN_V2,
+    credentialType: CredentialType.ID_TOKEN,
+};
 
-const testAccessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-testAccessTokenEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-testAccessTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testAccessTokenEntity.environment = testAccountEntity.environment;
-testAccessTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccessTokenEntity.secret = TEST_TOKENS.ACCESS_TOKEN;
-testAccessTokenEntity.target = TEST_CONFIG.DEFAULT_SCOPES.join(" ");
-testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
-testAccessTokenEntity.expiresOn = `${
-    TimeUtils.nowSeconds() + TEST_CONFIG.TOKEN_EXPIRY
-}`;
-testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
-testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
+const testAccessTokenEntity: AccessTokenEntity = {
+    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: TEST_TOKENS.ACCESS_TOKEN,
+    target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+    credentialType: CredentialType.ACCESS_TOKEN,
+    tokenType: AuthenticationScheme.BEARER,
+    expiresOn: `${TimeUtils.nowSeconds() + TEST_CONFIG.TOKEN_EXPIRY}`,
+    cachedAt: `${TimeUtils.nowSeconds()}`,
+};
 
 const testCacheRecord: CacheRecord = {
     account: testAccountEntity,

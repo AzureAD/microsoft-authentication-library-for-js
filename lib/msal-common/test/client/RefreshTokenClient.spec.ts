@@ -70,23 +70,24 @@ const testAppMetadata: AppMetadataEntity = new AppMetadataEntity();
 testAppMetadata.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
 testAppMetadata.familyId = TEST_CONFIG.THE_FAMILY_ID;
 
-const testRefreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
-testRefreshTokenEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testRefreshTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testRefreshTokenEntity.environment = testAccountEntity.environment;
-testRefreshTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testRefreshTokenEntity.secret = AUTHENTICATION_RESULT.body.refresh_token;
-testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
+const testRefreshTokenEntity: RefreshTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.refresh_token,
+    credentialType: CredentialType.REFRESH_TOKEN,
+};
 
-const testFamilyRefreshTokenEntity: RefreshTokenEntity =
-    new RefreshTokenEntity();
-testFamilyRefreshTokenEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testFamilyRefreshTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testFamilyRefreshTokenEntity.environment = testAccountEntity.environment;
-testFamilyRefreshTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testFamilyRefreshTokenEntity.secret = AUTHENTICATION_RESULT.body.refresh_token;
-testFamilyRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
-testFamilyRefreshTokenEntity.familyId = TEST_CONFIG.THE_FAMILY_ID;
+const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.refresh_token,
+    credentialType: CredentialType.REFRESH_TOKEN,
+    familyId: TEST_CONFIG.THE_FAMILY_ID,
+};
 
 describe("RefreshTokenClient unit tests", () => {
     afterEach(() => {

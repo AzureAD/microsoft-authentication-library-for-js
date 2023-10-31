@@ -11,7 +11,6 @@ import {
     TEST_DATA_CLIENT_INFO,
     ID_TOKEN_CLAIMS,
     TEST_URIS,
-    TEST_TOKENS,
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import {
@@ -66,51 +65,41 @@ testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
 testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
 
-const testIdToken: IdTokenEntity = new IdTokenEntity();
-testIdToken.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testIdToken.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testIdToken.environment = testAccountEntity.environment;
-testIdToken.realm = ID_TOKEN_CLAIMS.tid;
-testIdToken.secret = AUTHENTICATION_RESULT.body.id_token;
-testIdToken.credentialType = CredentialType.ID_TOKEN;
+const testIdToken: IdTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.id_token,
+    credentialType: CredentialType.ID_TOKEN,
+};
 
-const testAccessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-testAccessTokenEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testAccessTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testAccessTokenEntity.environment = testAccountEntity.environment;
-testAccessTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccessTokenEntity.secret = AUTHENTICATION_RESULT.body.access_token;
-testAccessTokenEntity.target =
-    TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
-    " " +
-    TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" ");
-testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
-testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
-testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
+const testAccessTokenEntity: AccessTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.access_token,
+    target:
+        TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
+        " " +
+        TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+    credentialType: CredentialType.ACCESS_TOKEN,
+    cachedAt: `${TimeUtils.nowSeconds()}`,
+    expiresOn: (
+        TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
+    ).toString(),
+    tokenType: AuthenticationScheme.BEARER,
+};
 
-const testAccessTokenWithAuthSchemeEntity: AccessTokenEntity =
-    new AccessTokenEntity();
-testAccessTokenWithAuthSchemeEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testAccessTokenWithAuthSchemeEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testAccessTokenWithAuthSchemeEntity.environment = testAccountEntity.environment;
-testAccessTokenWithAuthSchemeEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccessTokenWithAuthSchemeEntity.secret = TEST_TOKENS.POP_TOKEN;
-testAccessTokenWithAuthSchemeEntity.target =
-    TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
-    " " +
-    TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" ");
-testAccessTokenWithAuthSchemeEntity.credentialType =
-    CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
-testAccessTokenWithAuthSchemeEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
-testAccessTokenWithAuthSchemeEntity.tokenType = AuthenticationScheme.POP;
-
-const testRefreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
-testRefreshTokenEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testRefreshTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testRefreshTokenEntity.environment = testAccountEntity.environment;
-testRefreshTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testRefreshTokenEntity.secret = AUTHENTICATION_RESULT.body.refresh_token;
-testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
+const testRefreshTokenEntity: RefreshTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.refresh_token,
+    credentialType: CredentialType.REFRESH_TOKEN,
+};
 
 describe("SilentFlowClient unit tests", () => {
     const testAccount: AccountInfo = {

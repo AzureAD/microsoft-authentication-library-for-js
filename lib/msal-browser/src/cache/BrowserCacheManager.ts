@@ -36,6 +36,7 @@ import {
     PerformanceEvents,
     IPerformanceClient,
     StaticAuthorityOptions,
+    CacheHelpers,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import {
@@ -234,17 +235,15 @@ export class BrowserCacheManager extends CacheManager {
                     if (credObj && credObj.hasOwnProperty("credentialType")) {
                         switch (credObj["credentialType"]) {
                             case CredentialType.ID_TOKEN:
-                                if (IdTokenEntity.isIdTokenEntity(credObj)) {
+                                if (CacheHelpers.isIdTokenEntity(credObj)) {
                                     this.logger.trace(
                                         "BrowserCacheManager:createKeyMaps - idToken found, saving key to token key map"
                                     );
                                     this.logger.tracePii(
                                         `BrowserCacheManager:createKeyMaps - idToken with key: ${key} found, saving key to token key map`
                                     );
-                                    const idTokenEntity = CacheManager.toObject(
-                                        new IdTokenEntity(),
-                                        credObj
-                                    );
+                                    const idTokenEntity =
+                                        credObj as IdTokenEntity;
                                     const newKey =
                                         this.updateCredentialCacheKey(
                                             key,
@@ -266,11 +265,7 @@ export class BrowserCacheManager extends CacheManager {
                                 break;
                             case CredentialType.ACCESS_TOKEN:
                             case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
-                                if (
-                                    AccessTokenEntity.isAccessTokenEntity(
-                                        credObj
-                                    )
-                                ) {
+                                if (CacheHelpers.isAccessTokenEntity(credObj)) {
                                     this.logger.trace(
                                         "BrowserCacheManager:createKeyMaps - accessToken found, saving key to token key map"
                                     );
@@ -278,10 +273,7 @@ export class BrowserCacheManager extends CacheManager {
                                         `BrowserCacheManager:createKeyMaps - accessToken with key: ${key} found, saving key to token key map`
                                     );
                                     const accessTokenEntity =
-                                        CacheManager.toObject(
-                                            new AccessTokenEntity(),
-                                            credObj
-                                        );
+                                        credObj as AccessTokenEntity;
                                     const newKey =
                                         this.updateCredentialCacheKey(
                                             key,
@@ -303,9 +295,7 @@ export class BrowserCacheManager extends CacheManager {
                                 break;
                             case CredentialType.REFRESH_TOKEN:
                                 if (
-                                    RefreshTokenEntity.isRefreshTokenEntity(
-                                        credObj
-                                    )
+                                    CacheHelpers.isRefreshTokenEntity(credObj)
                                 ) {
                                     this.logger.trace(
                                         "BrowserCacheManager:createKeyMaps - refreshToken found, saving key to token key map"
@@ -314,10 +304,7 @@ export class BrowserCacheManager extends CacheManager {
                                         `BrowserCacheManager:createKeyMaps - refreshToken with key: ${key} found, saving key to token key map`
                                     );
                                     const refreshTokenEntity =
-                                        CacheManager.toObject(
-                                            new RefreshTokenEntity(),
-                                            credObj
-                                        );
+                                        credObj as RefreshTokenEntity;
                                     const newKey =
                                         this.updateCredentialCacheKey(
                                             key,
@@ -729,7 +716,7 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const parsedIdToken = this.validateAndParseJson(value);
-        if (!parsedIdToken || !IdTokenEntity.isIdTokenEntity(parsedIdToken)) {
+        if (!parsedIdToken || !CacheHelpers.isIdTokenEntity(parsedIdToken)) {
             this.logger.trace(
                 "BrowserCacheManager.getIdTokenCredential: called, no cache hit"
             );
@@ -740,7 +727,7 @@ export class BrowserCacheManager extends CacheManager {
         this.logger.trace(
             "BrowserCacheManager.getIdTokenCredential: cache hit"
         );
-        return CacheManager.toObject(new IdTokenEntity(), parsedIdToken);
+        return parsedIdToken as IdTokenEntity;
     }
 
     /**
@@ -749,7 +736,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     setIdTokenCredential(idToken: IdTokenEntity): void {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
-        const idTokenKey = idToken.generateCredentialKey();
+        const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
 
         this.setItem(idTokenKey, JSON.stringify(idToken));
 
@@ -772,7 +759,7 @@ export class BrowserCacheManager extends CacheManager {
         const parsedAccessToken = this.validateAndParseJson(value);
         if (
             !parsedAccessToken ||
-            !AccessTokenEntity.isAccessTokenEntity(parsedAccessToken)
+            !CacheHelpers.isAccessTokenEntity(parsedAccessToken)
         ) {
             this.logger.trace(
                 "BrowserCacheManager.getAccessTokenCredential: called, no cache hit"
@@ -784,10 +771,7 @@ export class BrowserCacheManager extends CacheManager {
         this.logger.trace(
             "BrowserCacheManager.getAccessTokenCredential: cache hit"
         );
-        return CacheManager.toObject(
-            new AccessTokenEntity(),
-            parsedAccessToken
-        );
+        return parsedAccessToken as AccessTokenEntity;
     }
 
     /**
@@ -798,7 +782,7 @@ export class BrowserCacheManager extends CacheManager {
         this.logger.trace(
             "BrowserCacheManager.setAccessTokenCredential called"
         );
-        const accessTokenKey = accessToken.generateCredentialKey();
+        const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
         this.setItem(accessTokenKey, JSON.stringify(accessToken));
 
         this.addTokenKey(accessTokenKey, CredentialType.ACCESS_TOKEN);
@@ -822,7 +806,7 @@ export class BrowserCacheManager extends CacheManager {
         const parsedRefreshToken = this.validateAndParseJson(value);
         if (
             !parsedRefreshToken ||
-            !RefreshTokenEntity.isRefreshTokenEntity(parsedRefreshToken)
+            !CacheHelpers.isRefreshTokenEntity(parsedRefreshToken)
         ) {
             this.logger.trace(
                 "BrowserCacheManager.getRefreshTokenCredential: called, no cache hit"
@@ -834,10 +818,7 @@ export class BrowserCacheManager extends CacheManager {
         this.logger.trace(
             "BrowserCacheManager.getRefreshTokenCredential: cache hit"
         );
-        return CacheManager.toObject(
-            new RefreshTokenEntity(),
-            parsedRefreshToken
-        );
+        return parsedRefreshToken as RefreshTokenEntity;
     }
 
     /**
@@ -848,7 +829,8 @@ export class BrowserCacheManager extends CacheManager {
         this.logger.trace(
             "BrowserCacheManager.setRefreshTokenCredential called"
         );
-        const refreshTokenKey = refreshToken.generateCredentialKey();
+        const refreshTokenKey =
+            CacheHelpers.generateCredentialKey(refreshToken);
         this.setItem(refreshTokenKey, JSON.stringify(refreshToken));
 
         this.addTokenKey(refreshTokenKey, CredentialType.REFRESH_TOKEN);
@@ -1817,7 +1799,7 @@ export class BrowserCacheManager extends CacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string {
-        const updatedCacheKey = credential.generateCredentialKey();
+        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 
         if (currentCacheKey !== updatedCacheKey) {
             const cacheItem = this.getItem(currentCacheKey);
@@ -1873,7 +1855,7 @@ export class BrowserCacheManager extends CacheManager {
             | RedirectRequest
             | PopupRequest
     ): Promise<void> {
-        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+        const idTokenEntity = CacheHelpers.createIdTokenEntity(
             result.account?.homeAccountId,
             result.account?.environment,
             result.idToken,
@@ -1885,7 +1867,7 @@ export class BrowserCacheManager extends CacheManager {
         if (request.claims) {
             claimsHash = await this.cryptoImpl.hashString(request.claims);
         }
-        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+        const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
             result.account?.homeAccountId,
             result.account.environment,
             result.accessToken,
@@ -1894,7 +1876,7 @@ export class BrowserCacheManager extends CacheManager {
             result.scopes.join(" "),
             result.expiresOn?.getTime() || 0,
             result.extExpiresOn?.getTime() || 0,
-            this.cryptoImpl,
+            base64Decode,
             undefined, // refreshOn
             result.tokenType as AuthenticationScheme,
             undefined, // userAssertionHash

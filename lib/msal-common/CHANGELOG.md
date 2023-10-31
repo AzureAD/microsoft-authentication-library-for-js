@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 18 Oct 2023 17:24:19 GMT and should not be manually modified.
+This log was last generated on Mon, 30 Oct 2023 21:38:25 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.3.0
+
+Mon, 30 Oct 2023 21:38:25 GMT
+
+### Minor changes
+
+- Refactor token cache entities to be defined as Types rather than Classes #6580 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Don't use temporary cache for silent & popup flows #6586 (thomas.norling@microsoft.com)
+- Fix hardcoded metadata fetching for tenanted authorities #6622 (hemoral@microsoft.com)
 
 ## 14.2.0
 

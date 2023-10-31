@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 18 Oct 2023 17:24:19 GMT and should not be manually modified.
+This log was last generated on Mon, 30 Oct 2023 21:38:25 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.4.0
+
+Mon, 30 Oct 2023 21:38:25 GMT
+
+### Minor changes
+
+- Refactor token cache entities to be defined as Types rather than Classes #6580 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.3.0
 
 ## 2.3.0
 

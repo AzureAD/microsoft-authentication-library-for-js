@@ -22,7 +22,7 @@ import {
     InteractionRequiredAuthError,
     AccountEntity,
     AuthToken,
-    IdTokenEntity,
+    CacheHelpers,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -746,7 +746,7 @@ describe("PublicClientApplication", () => {
             // @ts-ignore
             authApp.storage.setAccount(accountEntity);
 
-            const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            const idTokenEntity = CacheHelpers.createIdTokenEntity(
                 mockAccountInfo.homeAccountId,
                 mockAccountInfo.environment,
                 mockAuthenticationResult.idToken,
@@ -826,7 +826,7 @@ describe("PublicClientApplication", () => {
             // @ts-ignore
             authApp.storage.setAccount(accountEntity);
 
-            const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            const idTokenEntity = CacheHelpers.createIdTokenEntity(
                 mockAccountInfo.homeAccountId,
                 mockAccountInfo.environment,
                 mockAuthenticationResult.idToken,

@@ -53,6 +53,7 @@ import {
     ClientAuthErrorCodes,
     createInteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
+    CacheHelpers,
 } from "@azure/msal-common";
 import {
     ApiId,
@@ -5044,7 +5045,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData1 = {
+        const idToken1: IdTokenEntity = {
             realm: testAccountInfo1.tenantId,
             environment: testAccountInfo1.environment,
             credentialType: "IdToken",
@@ -5074,10 +5075,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount1);
-            const idToken1 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData1
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken1);
         });
@@ -5132,7 +5129,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData1 = {
+        const idToken1: IdTokenEntity = {
             realm: testAccountInfo1.tenantId,
             environment: testAccountInfo1.environment,
             credentialType: "IdToken",
@@ -5160,7 +5157,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount2.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData2 = {
+        const idToken2: IdTokenEntity = {
             realm: testAccountInfo2.tenantId,
             environment: testAccountInfo2.environment,
             credentialType: "IdToken",
@@ -5188,14 +5185,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount3.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData3 = {
+        const idToken3: IdTokenEntity = {
             realm: testAccountInfo3.tenantId,
             environment: testAccountInfo3.environment,
             credentialType: "IdToken",
             secret: TEST_TOKENS.ID_TOKEN_V2_WITH_LOGIN_HINT,
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo3.homeAccountId,
-            login_hint: "testLoginHint",
         };
 
         // Account 4
@@ -5217,14 +5213,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount4.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData4 = {
+        const idToken4: IdTokenEntity = {
             realm: testAccountInfo4.tenantId,
             environment: testAccountInfo4.environment,
             credentialType: "IdToken",
             secret: TEST_TOKENS.ID_TOKEN_V2_WITH_UPN,
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo4.homeAccountId,
-            upn: "testUpn",
         };
 
         beforeEach(async () => {
@@ -5254,31 +5249,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount4);
 
-            const idToken1 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData1
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken1);
 
-            const idToken2 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData2
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken2);
-
-            const idToken3 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData3
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken3);
 
-            const idToken4 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData4
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken4);
         });
@@ -5483,7 +5461,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData1 = {
+        const idToken1: IdTokenEntity = {
             realm: testAccountInfo1.tenantId,
             environment: testAccountInfo1.environment,
             credentialType: "IdToken",
@@ -5491,11 +5469,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo1.homeAccountId,
         };
-
-        const idToken1 = CacheManager.toObject(
-            new IdTokenEntity(),
-            idTokenData1
-        );
 
         // Account 2
         const testAccountInfo2: AccountInfo = {
@@ -5523,7 +5496,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount2.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData2 = {
+        const idToken2: IdTokenEntity = {
             realm: testAccountInfo2.tenantId,
             environment: testAccountInfo2.environment,
             credentialType: "IdToken",
@@ -5531,10 +5504,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             homeAccountId: testAccountInfo2.homeAccountId,
         };
-        const idToken2 = CacheManager.toObject(
-            new IdTokenEntity(),
-            idTokenData2
-        );
 
         beforeEach(async () => {
             pca = (pca as any).controller;
@@ -5693,7 +5662,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                     const cacheKey2 =
                         AccountEntity.generateAccountCacheKey(testAccountInfo2);
-                    const idTokenKey2 = idToken2.generateCredentialKey();
+                    const idTokenKey2 =
+                        CacheHelpers.generateCredentialKey(idToken2);
                     window.sessionStorage.removeItem(cacheKey2);
                     window.sessionStorage.removeItem(idTokenKey2);
                     expect(pca.getActiveAccount()).toBe(null);

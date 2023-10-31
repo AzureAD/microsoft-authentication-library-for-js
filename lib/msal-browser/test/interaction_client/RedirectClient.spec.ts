@@ -131,6 +131,11 @@ describe("RedirectClient", () => {
             RANDOM_TEST_GUID
         );
 
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateExternal"
+        ).mockResolvedValue(true);
+
         // @ts-ignore
         browserStorage = pca.browserStorage;
 
@@ -3665,13 +3670,14 @@ describe("RedirectClient", () => {
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-            const testIdToken: IdTokenEntity = new IdTokenEntity();
-            testIdToken.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-            testIdToken.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-            testIdToken.environment = testAccount.environment;
-            testIdToken.realm = ID_TOKEN_CLAIMS.tid;
-            testIdToken.secret = TEST_TOKENS.IDTOKEN_V2;
-            testIdToken.credentialType = CredentialType.ID_TOKEN;
+            const testIdToken: IdTokenEntity = {
+                homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                environment: testAccount.environment,
+                realm: ID_TOKEN_CLAIMS.tid,
+                secret: TEST_TOKENS.IDTOKEN_V2,
+                credentialType: CredentialType.ID_TOKEN,
+            };
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,

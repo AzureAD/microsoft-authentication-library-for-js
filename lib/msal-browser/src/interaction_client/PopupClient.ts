@@ -20,6 +20,7 @@ import {
     ICrypto,
     ProtocolMode,
     ServerResponseType,
+    invokeAsync,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { EventType } from "../event/EventType";
@@ -200,37 +201,39 @@ export class PopupClient extends StandardInteractionClient {
             ApiId.acquireTokenPopup
         );
 
-        this.performanceClient.setPreQueueTime(
+        const validRequest = await invokeAsync(
+            this.initializeAuthorizationRequest.bind(this),
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-            request.correlationId
-        );
-        const validRequest = await this.initializeAuthorizationRequest(
-            request,
-            InteractionType.Popup
-        );
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(request, InteractionType.Popup);
+
         BrowserUtils.preconnect(validRequest.authority);
 
         try {
             // Create auth code request and generate PKCE params
-            this.performanceClient.setPreQueueTime(
-                PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                request.correlationId
-            );
             const authCodeRequest: CommonAuthorizationCodeRequest =
-                await this.initializeAuthorizationCodeRequest(validRequest);
+                await invokeAsync(
+                    this.initializeAuthorizationCodeRequest.bind(this),
+                    PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
+                    this.logger,
+                    this.performanceClient,
+                    this.correlationId
+                )(validRequest);
 
             // Initialize the client
-            this.performanceClient.setPreQueueTime(
+            const authClient: AuthorizationCodeClient = await invokeAsync(
+                this.createAuthCodeClient.bind(this),
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-                request.correlationId
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
+                serverTelemetryManager,
+                validRequest.authority,
+                validRequest.azureCloudOptions
             );
-            const authClient: AuthorizationCodeClient =
-                await this.createAuthCodeClient(
-                    serverTelemetryManager,
-                    validRequest.authority,
-                    validRequest.azureCloudOptions
-                );
-            this.logger.verbose("Auth code client created");
 
             const isNativeBroker = NativeMessageHandler.isNativeAvailable(
                 this.config,
@@ -388,15 +391,13 @@ export class PopupClient extends StandardInteractionClient {
             await this.clearCacheOnLogout(validRequest.account);
 
             // Initialize the client
-            this.performanceClient.setPreQueueTime(
+            const authClient = await invokeAsync(
+                this.createAuthCodeClient.bind(this),
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-                validRequest.correlationId
-            );
-            const authClient = await this.createAuthCodeClient(
-                serverTelemetryManager,
-                requestAuthority
-            );
-            this.logger.verbose("Auth code client created");
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(serverTelemetryManager, requestAuthority);
 
             try {
                 authClient.authority.endSessionEndpoint;

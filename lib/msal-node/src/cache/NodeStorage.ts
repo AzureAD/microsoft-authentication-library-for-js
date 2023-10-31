@@ -19,6 +19,7 @@ import {
     AuthorityMetadataEntity,
     ValidCredentialType,
     StaticAuthorityOptions,
+    CacheHelpers,
 } from "@azure/msal-common";
 
 import { Deserializer } from "./serializer/Deserializer.js";
@@ -78,22 +79,20 @@ export class NodeStorage extends CacheManager {
         };
 
         for (const key in cache) {
-            if (cache[key as string] instanceof AccountEntity) {
-                inMemoryCache.accounts[key] = cache[key] as AccountEntity;
-            } else if (cache[key] instanceof IdTokenEntity) {
-                inMemoryCache.idTokens[key] = cache[key] as IdTokenEntity;
-            } else if (cache[key] instanceof AccessTokenEntity) {
-                inMemoryCache.accessTokens[key] = cache[
-                    key
-                ] as AccessTokenEntity;
-            } else if (cache[key] instanceof RefreshTokenEntity) {
-                inMemoryCache.refreshTokens[key] = cache[
-                    key
-                ] as RefreshTokenEntity;
-            } else if (cache[key] instanceof AppMetadataEntity) {
-                inMemoryCache.appMetadata[key] = cache[
-                    key
-                ] as AppMetadataEntity;
+            const value = cache[key];
+            if (typeof value !== "object") {
+                continue;
+            }
+            if (value instanceof AccountEntity) {
+                inMemoryCache.accounts[key] = value as AccountEntity;
+            } else if (CacheHelpers.isIdTokenEntity(value)) {
+                inMemoryCache.idTokens[key] = value as IdTokenEntity;
+            } else if (CacheHelpers.isAccessTokenEntity(value)) {
+                inMemoryCache.accessTokens[key] = value as AccessTokenEntity;
+            } else if (CacheHelpers.isRefreshTokenEntity(value)) {
+                inMemoryCache.refreshTokens[key] = value as RefreshTokenEntity;
+            } else if (value instanceof AppMetadataEntity) {
+                inMemoryCache.appMetadata[key] = value as AppMetadataEntity;
             } else {
                 continue;
             }
@@ -244,7 +243,7 @@ export class NodeStorage extends CacheManager {
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
         const idToken = this.getItem(idTokenKey) as IdTokenEntity;
-        if (IdTokenEntity.isIdTokenEntity(idToken)) {
+        if (CacheHelpers.isIdTokenEntity(idToken)) {
             return idToken;
         }
         return null;
@@ -255,7 +254,7 @@ export class NodeStorage extends CacheManager {
      * @param idToken - cache value to be set of type IdTokenEntity
      */
     setIdTokenCredential(idToken: IdTokenEntity): void {
-        const idTokenKey = idToken.generateCredentialKey();
+        const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
         this.setItem(idTokenKey, idToken);
     }
 
@@ -265,7 +264,7 @@ export class NodeStorage extends CacheManager {
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
         const accessToken = this.getItem(accessTokenKey) as AccessTokenEntity;
-        if (AccessTokenEntity.isAccessTokenEntity(accessToken)) {
+        if (CacheHelpers.isAccessTokenEntity(accessToken)) {
             return accessToken;
         }
         return null;
@@ -276,7 +275,7 @@ export class NodeStorage extends CacheManager {
      * @param accessToken -  cache value to be set of type AccessTokenEntity
      */
     setAccessTokenCredential(accessToken: AccessTokenEntity): void {
-        const accessTokenKey = accessToken.generateCredentialKey();
+        const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
         this.setItem(accessTokenKey, accessToken);
     }
 
@@ -290,7 +289,7 @@ export class NodeStorage extends CacheManager {
         const refreshToken = this.getItem(
             refreshTokenKey
         ) as RefreshTokenEntity;
-        if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
+        if (CacheHelpers.isRefreshTokenEntity(refreshToken)) {
             return refreshToken as RefreshTokenEntity;
         }
         return null;
@@ -301,7 +300,8 @@ export class NodeStorage extends CacheManager {
      * @param refreshToken - cache value to be set of type RefreshTokenEntity
      */
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
-        const refreshTokenKey = refreshToken.generateCredentialKey();
+        const refreshTokenKey =
+            CacheHelpers.generateCredentialKey(refreshToken);
         this.setItem(refreshTokenKey, refreshToken);
     }
 
@@ -527,7 +527,7 @@ export class NodeStorage extends CacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string {
-        const updatedCacheKey = credential.generateCredentialKey();
+        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 
         if (currentCacheKey !== updatedCacheKey) {
             const cacheItem = this.getItem(currentCacheKey);
