@@ -1,0 +1,18 @@
+{
+    "msalConfig": {
+        "auth": {
+            "clientId": "b5c2e510-4a17-4feb-b219-e55aa5b74144",
+            "authority": "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca"
+        },
+        "cache": {
+            "cacheLocation": "sessionStorage",
+            "storeAuthStateInCookie": false
+        },
+        "system": {
+            "allowNativeBroker": false
+        }
+    },
+    "request": {
+        "scopes": ["User.Read"]
+    }
+}

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Don't use temporary cache for silent & popup flows #6586",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

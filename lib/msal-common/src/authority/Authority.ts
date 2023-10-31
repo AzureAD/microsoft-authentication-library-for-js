@@ -855,7 +855,7 @@ export class Authority {
         } else {
             const hardcodedMetadata =
                 getCloudDiscoveryMetadataFromHardcodedValues(
-                    this.canonicalAuthority
+                    this.hostnameAndPort
                 );
             if (hardcodedMetadata) {
                 this.logger.verbose(
@@ -1205,12 +1205,11 @@ export class Authority {
                 regionalMetadata.authorization_endpoint,
                 azureRegion
             );
-        // TODO: Enquire on whether we should leave the query string or remove it before releasing the feature
+
         regionalMetadata.token_endpoint =
             Authority.buildRegionalAuthorityString(
                 regionalMetadata.token_endpoint,
-                azureRegion,
-                Constants.REGIONAL_AUTH_NON_MSI_QUERY_STRING
+                azureRegion
             );
 
         if (regionalMetadata.end_session_endpoint) {
@@ -1264,13 +1263,11 @@ export function buildStaticAuthorityOptions(
     authOptions: Partial<AuthorityOptions>
 ): StaticAuthorityOptions {
     const rawCloudDiscoveryMetadata = authOptions.cloudDiscoveryMetadata;
-    let cloudDiscoveryMetadata: CloudDiscoveryMetadata[] | undefined =
+    let cloudDiscoveryMetadata: CloudInstanceDiscoveryResponse | undefined =
         undefined;
     if (rawCloudDiscoveryMetadata) {
         try {
-            cloudDiscoveryMetadata = JSON.parse(
-                rawCloudDiscoveryMetadata
-            ).metadata;
+            cloudDiscoveryMetadata = JSON.parse(rawCloudDiscoveryMetadata);
         } catch (e) {
             throw createClientConfigurationError(
                 ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata

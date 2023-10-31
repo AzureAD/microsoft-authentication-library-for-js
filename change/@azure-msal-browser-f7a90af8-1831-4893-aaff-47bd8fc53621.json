@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Refactor token cache entities to be defined as Types rather than Classes #6580",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
