@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698708775369,
+  "lastUpdate": 1698767549371,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2394,6 +2394,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.68%",
             "unit": "ops/sec",
             "extra": "211 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "travis.walker@microsoft.com",
+            "name": "Travis Walker",
+            "username": "trwalke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9ed331c47f6a8d6c10a640a884a3db966f6a58a4",
+          "message": "Removing allowestsrnonmsi query parameter (#6582)\n\nFix for\r\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/issues/6557\r\nRemoving allowestsrnonmsi query parameter\r\n\r\n---------\r\n\r\nCo-authored-by: trwalke <trwalke@microsoft.com>",
+          "timestamp": "2023-10-31T15:46:00Z",
+          "tree_id": "8d1a495e9d6a76e300fbc3e183ae5d179a601dfc",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9ed331c47f6a8d6c10a640a884a3db966f6a58a4"
+        },
+        "date": 1698767548007,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 102837,
+            "range": "±1.77%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 100099,
+            "range": "±1.80%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
