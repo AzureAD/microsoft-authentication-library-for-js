@@ -11,9 +11,7 @@ import {
     UrlString,
     AuthError,
     OIDC_DEFAULT_SCOPES,
-    Constants,
     ProtocolUtils,
-    ServerAuthorizationCodeResponse,
     PerformanceEvents,
     IPerformanceClient,
     Logger,
@@ -21,7 +19,6 @@ import {
     ProtocolMode,
     ServerResponseType,
     invokeAsync,
-    UrlUtils,
     invoke,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";

@@ -46,8 +46,6 @@ import { EventHandler } from "../event/EventHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EventError } from "../event/EventMessage";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import * as ResponseHandler from "../response/ResponseHandler";
-import { Server } from "http";
 
 export class RedirectClient extends StandardInteractionClient {
     protected nativeStorage: BrowserCacheManager;
