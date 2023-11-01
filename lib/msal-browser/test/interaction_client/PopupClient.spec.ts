@@ -16,8 +16,6 @@ import {
     testNavUrl,
     TEST_STATE_VALUES,
     TEST_SSH_VALUES,
-    DEFAULT_OPENID_CONFIG_RESPONSE,
-    DEFAULT_TENANT_DISCOVERY_RESPONSE,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
 } from "../utils/StringConstants";
@@ -34,10 +32,8 @@ import {
     CommonEndSessionRequest,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-    Authority,
     CommonAuthorizationCodeRequest,
     AuthError,
-    Logger,
     NetworkManager,
     ProtocolUtils,
     ProtocolMode,
@@ -59,7 +55,6 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorMessage,
 } from "../../src/error/BrowserAuthError";
-import { FetchClient } from "../../src/network/FetchClient";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
@@ -129,35 +124,14 @@ describe("PopupClient", () => {
             const popupWindow = {
                 ...window,
                 close: () => {},
+                focus: () => {},
+                location: {
+                    ...window.location,
+                    assign: () => {},
+                },
             };
             // @ts-ignore
-            sinon.stub(window, "open").returns(popupWindow);
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .returns(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(FetchClient.prototype, "sendGetRequestAsync")
-                .callsFake((url) => {
-                    console.log("HERE");
-                    if (
-                        url.startsWith(
-                            "https://login.microsoftonline.com/common/discovery/instance?"
-                        )
-                    ) {
-                        return Promise.resolve(
-                            DEFAULT_TENANT_DISCOVERY_RESPONSE
-                        );
-                    } else {
-                        return Promise.reject({
-                            headers: {},
-                            status: 404,
-                            body: {},
-                        });
-                    }
-                });
+            jest.spyOn(window, "open").mockReturnValue(popupWindow);
         });
 
         afterEach(() => {
@@ -615,6 +589,50 @@ describe("PopupClient", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
             });
             expect(tokenResp).toEqual(testTokenResponse);
+        });
+
+        it("throws hash_empty_error if popup returns to redirectUri without a hash", (done) => {
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockResolvedValue("");
+
+            popupClient
+                .acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                })
+                .catch((e) => {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.hashEmptyError
+                        )
+                    );
+                    done();
+                });
+        });
+
+        it("throws hash_does_not_contain_known_properties error if popup returns to redirectUri with unrecognized params in the hash", (done) => {
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockResolvedValue(
+                "#fakeKey=fakeValue&anotherFakeKey=anotherFakeValue"
+            );
+
+            popupClient
+                .acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                })
+                .catch((e) => {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                        )
+                    );
+                    done();
+                });
         });
 
         describe("storeInCache tests", () => {
