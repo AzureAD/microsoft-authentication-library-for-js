@@ -577,4 +577,7 @@ export const IntFields: ReadonlySet<string> = new Set([
     "queuedTimeMs",
     "startTimeMs",
     "status",
+    "multiMatchedAT",
+    "multiMatchedID",
+    "multiMatchedRT",
 ]);
