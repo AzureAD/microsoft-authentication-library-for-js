@@ -558,6 +558,13 @@ export type PerformanceEvent = {
      * Nested App Auth Fields
      */
     nestedAppAuthRequest?: boolean;
+
+    /**
+     * Multiple matched access/id/refresh tokens in the cache
+     */
+    multiMatchedAT?: number;
+    multiMatchedID?: number;
+    multiMatchedRT?: number;
 };
 
 export const IntFields: ReadonlySet<string> = new Set([
