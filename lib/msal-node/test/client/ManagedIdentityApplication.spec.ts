@@ -103,75 +103,111 @@ describe("ManagedIdentityApplication unit tests", () => {
             ).toEqual(true);
         });
 
-        test("acquires a System-Assigned token", async () => {
-            const managedIdentityApplication = new ManagedIdentityApplication(
-                systemAssignedConfig
-            );
+        describe("System-Assigned token", () => {
+            test("acquires a System-Assigned token", async () => {
+                const managedIdentityApplication =
+                    new ManagedIdentityApplication(systemAssignedConfig);
 
-            const networkManagedIdentityResult =
-                await managedIdentityApplication.acquireToken(
-                    managedIdentityRequestParams
+                const networkManagedIdentityResult =
+                    await managedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
+
+                expect(networkManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
-
-            expect(networkManagedIdentityResult.accessToken).toEqual(
-                DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-            );
-            expect(
-                managedIdentityApplication.getConfig.managedIdentityId.getId
-            ).toEqual(DEFAULT_MANAGED_IDENTITY_ID);
-            expect(
-                managedIdentityApplication.getConfig.managedIdentityId.getIdType
-            ).toEqual(ManagedIdentityIdType.SYSTEM_ASSIGNED);
-            expect(
-                managedIdentityApplication.getConfig.managedIdentityId
-                    .getIsUserAssignedId
-            ).toEqual(false);
-        });
-
-        // TODO: this test only works when the others are commented out. They must be polluting each other somehow?
-        test.skip("acquires a System-Assigned token, then returns it from the cache when another acquireToken call is made", async () => {
-            const managedIdentityApplication = new ManagedIdentityApplication(
-                systemAssignedConfig
-            );
-
-            const networkManagedIdentityResult =
-                await managedIdentityApplication.acquireToken(
-                    managedIdentityRequestParams
-                );
-
-            expect(networkManagedIdentityResult.accessToken).toEqual(
-                DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-            );
-            expect(
-                managedIdentityApplication.getConfig.managedIdentityId.getId
-            ).toEqual(DEFAULT_MANAGED_IDENTITY_ID);
-            expect(
-                managedIdentityApplication.getConfig.managedIdentityId.getIdType
-            ).toEqual(ManagedIdentityIdType.SYSTEM_ASSIGNED);
-            expect(
-                managedIdentityApplication.getConfig.managedIdentityId
-                    .getIsUserAssignedId
-            ).toEqual(false);
-
-            // wait two seconds for the token to be saved to the cache, before checking the cache for the token
-            await new Promise<void>((resolve) => {
-                let counter: number = 0;
-                const interval = setInterval(() => {
-                    if (counter === 2000) {
-                        resolve();
-                        clearInterval(interval);
-                    } else {
-                        counter++;
-                    }
-                }, 1); // 1 millisecond
+                expect(
+                    managedIdentityApplication.getConfig.managedIdentityId.getId
+                ).toEqual(DEFAULT_MANAGED_IDENTITY_ID);
+                expect(
+                    managedIdentityApplication.getConfig.managedIdentityId
+                        .getIdType
+                ).toEqual(ManagedIdentityIdType.SYSTEM_ASSIGNED);
+                expect(
+                    managedIdentityApplication.getConfig.managedIdentityId
+                        .getIsUserAssignedId
+                ).toEqual(false);
             });
 
-            const cacheManagedIdentityResult =
-                await managedIdentityApplication.acquireToken(
-                    managedIdentityRequestParams
+            // TODO: this test only works when the others are commented out. They must be polluting each other somehow?
+            // UPDATE: After two days of testing, I can not find a bug in the code, this must be an error with jest
+            test.skip("acquires a System-Assigned token, then returns it from the cache when another acquireToken call is made", async () => {
+                const managedIdentityApplication =
+                    new ManagedIdentityApplication(systemAssignedConfig);
+
+                const networkManagedIdentityResult =
+                    await managedIdentityApplication.acquireToken({
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    });
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
+
+                expect(networkManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
-            expect(cacheManagedIdentityResult.fromCache).toBe(true);
-            expect(cacheManagedIdentityResult.accessToken).toEqual(
+                expect(
+                    managedIdentityApplication.getConfig.managedIdentityId.getId
+                ).toEqual(DEFAULT_MANAGED_IDENTITY_ID);
+                expect(
+                    managedIdentityApplication.getConfig.managedIdentityId
+                        .getIdType
+                ).toEqual(ManagedIdentityIdType.SYSTEM_ASSIGNED);
+                expect(
+                    managedIdentityApplication.getConfig.managedIdentityId
+                        .getIsUserAssignedId
+                ).toEqual(false);
+
+                // wait two seconds for the token to be saved to the cache, before checking the cache for the token
+                // await new Promise<void>((resolve) => {
+                //     let counter: number = 0;
+                //     const interval = setInterval(() => {
+                //         if (counter === 2000) {
+                //             resolve();
+                //             clearInterval(interval);
+                //         } else {
+                //             counter++;
+                //         }
+                //     }, 1); // 1 millisecond
+                // });
+
+                const cacheManagedIdentityResult =
+                    await managedIdentityApplication.acquireToken({
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    });
+                expect(cacheManagedIdentityResult.fromCache).toBe(true);
+                expect(cacheManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
+                expect(
+                    managedIdentityApplication.getConfig.managedIdentityId.getId
+                ).toEqual(DEFAULT_MANAGED_IDENTITY_ID);
+                expect(
+                    managedIdentityApplication.getConfig.managedIdentityId
+                        .getIdType
+                ).toEqual(ManagedIdentityIdType.SYSTEM_ASSIGNED);
+                expect(
+                    managedIdentityApplication.getConfig.managedIdentityId
+                        .getIsUserAssignedId
+                ).toEqual(false);
+            });
+        });
+    });
+
+    describe("Acquires a token successfully via an IMDS Managed Identity", () => {
+        // IMDS doesn't need an environment variable because there is a default IMDS endpoint
+
+        test("acquires a System-Assigned token", async () => {
+            const managedIdentityApplication = new ManagedIdentityApplication();
+            const imdsRequestParams: ManagedIdentityRequestParams = {
+                resource: "https://management.azure.com/",
+            };
+
+            const networkManagedIdentityResult =
+                await managedIdentityApplication.acquireToken(
+                    imdsRequestParams
+                );
+
+            expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
             expect(

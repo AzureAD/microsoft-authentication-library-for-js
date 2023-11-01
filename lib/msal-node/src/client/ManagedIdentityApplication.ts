@@ -7,7 +7,6 @@ import {
     AuthOptions,
     Authority,
     AuthorityOptions,
-    CacheManager,
     CacheOutcome,
     ClientConfiguration,
     Constants,
@@ -44,7 +43,7 @@ export class ManagedIdentityApplication {
     }
 
     private logger: Logger;
-    private cacheManager: CacheManager;
+    private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
 
@@ -67,7 +66,8 @@ export class ManagedIdentityApplication {
         const fakeStatusAuthorityOptions: StaticAuthorityOptions = {
             knownAuthorities: [Constants.DEFAULT_AUTHORITY],
         };
-        this.cacheManager = new NodeStorage(
+
+        this.nodeStorage = new NodeStorage(
             this.logger,
             this.config.managedIdentityId.getId,
             DEFAULT_CRYPTO_IMPLEMENTATION,
@@ -87,7 +87,7 @@ export class ManagedIdentityApplication {
         this.fakeAuthority = new Authority(
             DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
             this.networkClient,
-            this.cacheManager,
+            this.nodeStorage,
             fakeAuthorityOptions,
             this.logger
         );
@@ -111,7 +111,7 @@ export class ManagedIdentityApplication {
         const managedIdentityClient: ManagedIdentityClient =
             new ManagedIdentityClient(
                 this.logger,
-                this.cacheManager,
+                this.nodeStorage,
                 this.networkClient,
                 this.cryptoProvider
             );
@@ -144,7 +144,7 @@ export class ManagedIdentityApplication {
                 this.config,
                 this.cryptoProvider,
                 this.fakeAuthority,
-                this.cacheManager
+                this.nodeStorage
             );
 
         if (cachedAuthenticationResult) {

@@ -22,6 +22,7 @@ import {
 import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { ManagedIdentityId } from "../config/ManagedIdentityId";
 import { ManagedIdentityResult } from "../response/ManagedIdentityResult";
+import { NodeStorage } from "../cache/NodeStorage";
 
 /*
  * Class to initialize a managed identity and identify the service.
@@ -37,7 +38,7 @@ export class ManagedIdentityClient {
 
     constructor(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ) {
@@ -45,7 +46,7 @@ export class ManagedIdentityClient {
             ManagedIdentityClient.identitySource =
                 this.selectManagedIdentitySource(
                     logger,
-                    cacheManager,
+                    nodeStorage,
                     networkClient,
                     cryptoProvider
                 );
