@@ -126,4 +126,9 @@ export class ManagedIdentityClient {
             throw error;
         }
     }
+
+    // used in unit tests
+    public isAppService(): boolean {
+        return ManagedIdentityClient.identitySource.isAppService();
+    }
 }
