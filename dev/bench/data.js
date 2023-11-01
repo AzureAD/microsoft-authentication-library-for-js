@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698767549371,
+  "lastUpdate": 1698865582960,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2432,6 +2432,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.80%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "33ae9c8143a924c2d7f2114c1ff4a869c259a97c",
+          "message": "Instrument functions that drop multiple matched tokens (#6647)\n\n- Instrument functions that drop multiple matched tokens.",
+          "timestamp": "2023-11-01T14:59:47-04:00",
+          "tree_id": "20c92cbab71eaf6d0e1ec38893495300a7fdf2c4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/33ae9c8143a924c2d7f2114c1ff4a869c259a97c"
+        },
+        "date": 1698865580928,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 113012,
+            "range": "±1.95%",
+            "unit": "ops/sec",
+            "extra": "211 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 110800,
+            "range": "±1.89%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
