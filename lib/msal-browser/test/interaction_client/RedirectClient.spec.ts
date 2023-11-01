@@ -1565,10 +1565,12 @@ describe("RedirectClient", () => {
             jest.spyOn(
                 RedirectClient.prototype,
                 <any>"handleResponse"
-            ).mockImplementation((responseHash) => {
-                expect(responseHash).toEqual(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                );
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                });
             });
             redirectClient.handleRedirectPromise().then(() => {
                 expect(window.location.href).toEqual(loginRequestUrl);
@@ -1585,10 +1587,12 @@ describe("RedirectClient", () => {
             jest.spyOn(
                 RedirectClient.prototype,
                 <any>"handleResponse"
-            ).mockImplementation((responseHash) => {
-                expect(responseHash).toEqual(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                );
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                });
             });
             redirectClient
                 .handleRedirectPromise(
@@ -1616,10 +1620,12 @@ describe("RedirectClient", () => {
             jest.spyOn(
                 RedirectClient.prototype,
                 <any>"handleResponse"
-            ).mockImplementation((responseHash) => {
-                expect(responseHash).toEqual(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                );
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                });
             });
 
             redirectClient.handleRedirectPromise().then(() => {

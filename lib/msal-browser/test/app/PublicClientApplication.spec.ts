@@ -194,6 +194,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         BrowserPerformanceMeasurement.flushMeasurements = jest
             .fn()
             .mockReturnValue(null);
+
+        // Navigation not allowed in tests
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateExternal"
+        ).mockImplementation();
     });
 
     afterEach(() => {
