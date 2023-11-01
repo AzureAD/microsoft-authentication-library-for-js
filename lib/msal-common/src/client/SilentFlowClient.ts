@@ -124,7 +124,9 @@ export class SilentFlowClient extends BaseClient {
         const cacheRecord = this.cacheManager.readCacheRecord(
             request.account,
             request,
-            environment
+            environment,
+            this.performanceClient,
+            request.correlationId
         );
 
         if (!cacheRecord.accessToken) {
