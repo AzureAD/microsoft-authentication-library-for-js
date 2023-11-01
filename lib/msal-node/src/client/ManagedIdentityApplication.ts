@@ -193,4 +193,12 @@ export class ManagedIdentityApplication {
             );
         }
     }
+
+    // used in unit tests
+    public isAppService(): boolean {
+        return this.managedIdentityClient.isAppService();
+    }
+    public isIMDS(): boolean {
+        return !this.isAppService();
+    }
 }

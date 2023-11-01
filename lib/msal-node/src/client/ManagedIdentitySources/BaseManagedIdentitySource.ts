@@ -140,4 +140,13 @@ export abstract class BaseManagedIdentitySource {
             managedIdentityRequest
         );
     }
+
+    // used in unit tests
+    public isAppService(): boolean {
+        return (
+            // !! converts to boolean
+            !!process.env["IDENTITY_ENDPOINT"] &&
+            !!process.env["IDENTITY_HEADER"]
+        );
+    }
 }
