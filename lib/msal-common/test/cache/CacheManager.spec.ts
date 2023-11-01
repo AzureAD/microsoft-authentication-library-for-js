@@ -598,72 +598,87 @@ describe("CacheManager.ts test cases", () => {
                 ).toBe(false);
             });
 
-            it("with hardcoded cloud discovery metadata", () => {
-                jest.spyOn(
-                    authorityMetadata,
-                    "getAliasesFromConfigMetadata"
-                ).mockReturnValue(null);
-                // filter by environment
-                expect(
-                    mockCache.cacheManager.credentialMatchesFilter(
-                        testIdToken,
-                        {
-                            environment: testIdToken.environment,
-                        }
-                    )
-                ).toBe(true);
-                expect(
-                    mockCache.cacheManager.credentialMatchesFilter(
-                        testAccessToken,
-                        {
-                            environment: testAccessToken.environment,
-                        }
-                    )
-                ).toBe(true);
-                expect(
-                    mockCache.cacheManager.credentialMatchesFilter(
-                        testRefreshToken,
-                        {
-                            environment: testRefreshToken.environment,
-                        }
-                    )
-                ).toBe(true);
+            describe("with hardcoded cloud discovery metadata", () => {
+                beforeEach(() => {
+                    jest.spyOn(
+                        authorityMetadata,
+                        "getAliasesFromMetadata"
+                    ).mockReturnValueOnce(null);
+                });
+
+                it("ID token matches when filter contains it's own environment", () => {
+                    // filter by environment
+                    expect(
+                        mockCache.cacheManager.credentialMatchesFilter(
+                            testIdToken,
+                            {
+                                environment: testIdToken.environment,
+                            }
+                        )
+                    ).toBe(true);
+                });
+
+                it("Access token matches when filter contains it's own enviroment", () => {
+                    expect(
+                        mockCache.cacheManager.credentialMatchesFilter(
+                            testAccessToken,
+                            {
+                                environment: testAccessToken.environment,
+                            }
+                        )
+                    ).toBe(true);
+                });
+
+                it("Refresh token matches when filter contains it's own environment", () => {
+                    expect(
+                        mockCache.cacheManager.credentialMatchesFilter(
+                            testRefreshToken,
+                            {
+                                environment: testRefreshToken.environment,
+                            }
+                        )
+                    ).toBe(true);
+                });
 
                 // Test failure cases
-                expect(
-                    mockCache.cacheManager.credentialMatchesFilter(
-                        testIdToken,
-                        {
-                            environment: "wrong.contoso.com",
-                        }
-                    )
-                ).toBe(false);
-                expect(
-                    mockCache.cacheManager.credentialMatchesFilter(
-                        testAccessToken,
-                        {
-                            environment: "wrong.contoso.com",
-                        }
-                    )
-                ).toBe(false);
-                expect(
-                    mockCache.cacheManager.credentialMatchesFilter(
-                        testRefreshToken,
-                        {
-                            environment: "wrong.contoso.com",
-                        }
-                    )
-                ).toBe(false);
+                it("ID token does not match when filter contains a different environment", () => {
+                    expect(
+                        mockCache.cacheManager.credentialMatchesFilter(
+                            testRefreshToken,
+                            {
+                                environment: testRefreshToken.environment,
+                            }
+                        )
+                    ).toBe(true);
+                });
+
+                it("Access token does not match when filter contains a different environment", () => {
+                    expect(
+                        mockCache.cacheManager.credentialMatchesFilter(
+                            testAccessToken,
+                            {
+                                environment: "wrong.contoso.com",
+                            }
+                        )
+                    ).toBe(false);
+                });
+
+                it("Refresh token does not match when filter contains a different environment", () => {
+                    expect(
+                        mockCache.cacheManager.credentialMatchesFilter(
+                            testRefreshToken,
+                            {
+                                environment: "wrong.contoso.com",
+                            }
+                        )
+                    ).toBe(false);
+                });
             });
 
             it("with knownAuthorities", () => {
                 jest.spyOn(
                     authorityMetadata,
-                    "getAliasesFromConfigMetadata"
-                ).mockReturnValue(null);
-                jest.spyOn(
-                    authorityMetadata,
-                    "getHardcodedAliasesForCanonicalAuthority"
+                    "getAliasesFromMetadata"
                 ).mockReturnValue(null);
                 // filter by environment
                 expect(

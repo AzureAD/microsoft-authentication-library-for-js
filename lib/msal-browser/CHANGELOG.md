@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 18 Oct 2023 17:24:19 GMT and should not be manually modified.
+This log was last generated on Mon, 30 Oct 2023 21:38:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.4.0
+
+Mon, 30 Oct 2023 21:38:24 GMT
+
+### Minor changes
+
+- Don't use temporary cache for silent & popup flows #6586 (thomas.norling@microsoft.com)
+- Refactor token cache entities to be defined as Types rather than Classes #6580 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.3.0
+
+### Patches
+
+- Fix iframe fallback when RT is not found in cache (thomas.norling@microsoft.com)
+- Use invokeAsync in popup/redirect flows (thomas.norling@microsoft.com)
+- Add inlineDynamicImports to rollup config to fix CJS build. Make factory methods basic functions #6615 (kshabelko@microsoft.com)
 
 ## 3.3.0
 

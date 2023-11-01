@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "../logger/Logger";
 import { UrlString } from "../url/UrlString";
+import { AuthorityMetadataSource } from "../utils/Constants";
+import { StaticAuthorityOptions } from "./AuthorityOptions";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 
 export const rawMetdataJSON = {
@@ -552,393 +555,47 @@ export const rawMetdataJSON = {
         },
     },
     instanceDiscoveryMetadata: {
-        "https://login.microsoftonline.com/common/": {
-            tenant_discovery_endpoint:
-                "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
-            "api-version": "1.1",
-            metadata: [
-                {
-                    preferred_network: "login.microsoftonline.com",
-                    preferred_cache: "login.windows.net",
-                    aliases: [
-                        "login.microsoftonline.com",
-                        "login.windows.net",
-                        "login.microsoft.com",
-                        "sts.windows.net",
-                    ],
-                },
-                {
-                    preferred_network: "login.partner.microsoftonline.cn",
-                    preferred_cache: "login.partner.microsoftonline.cn",
-                    aliases: [
-                        "login.partner.microsoftonline.cn",
-                        "login.chinacloudapi.cn",
-                    ],
-                },
-                {
-                    preferred_network: "login.microsoftonline.de",
-                    preferred_cache: "login.microsoftonline.de",
-                    aliases: ["login.microsoftonline.de"],
-                },
-                {
-                    preferred_network: "login.microsoftonline.us",
-                    preferred_cache: "login.microsoftonline.us",
-                    aliases: [
-                        "login.microsoftonline.us",
-                        "login.usgovcloudapi.net",
-                    ],
-                },
-                {
-                    preferred_network: "login-us.microsoftonline.com",
-                    preferred_cache: "login-us.microsoftonline.com",
-                    aliases: ["login-us.microsoftonline.com"],
-                },
-            ],
-        },
-        "https://login.chinacloudapi.cn/common/": {
-            tenant_discovery_endpoint:
-                "https://login.chinacloudapi.cn/common/v2.0/.well-known/openid-configuration",
-            "api-version": "1.1",
-            metadata: [
-                {
-                    preferred_network: "login.microsoftonline.com",
-                    preferred_cache: "login.windows.net",
-                    aliases: [
-                        "login.microsoftonline.com",
-                        "login.windows.net",
-                        "login.microsoft.com",
-                        "sts.windows.net",
-                    ],
-                },
-                {
-                    preferred_network: "login.partner.microsoftonline.cn",
-                    preferred_cache: "login.partner.microsoftonline.cn",
-                    aliases: [
-                        "login.partner.microsoftonline.cn",
-                        "login.chinacloudapi.cn",
-                    ],
-                },
-                {
-                    preferred_network: "login.microsoftonline.de",
-                    preferred_cache: "login.microsoftonline.de",
-                    aliases: ["login.microsoftonline.de"],
-                },
-                {
-                    preferred_network: "login.microsoftonline.us",
-                    preferred_cache: "login.microsoftonline.us",
-                    aliases: [
-                        "login.microsoftonline.us",
-                        "login.usgovcloudapi.net",
-                    ],
-                },
-                {
-                    preferred_network: "login-us.microsoftonline.com",
-                    preferred_cache: "login-us.microsoftonline.com",
-                    aliases: ["login-us.microsoftonline.com"],
-                },
-            ],
-        },
-        "https://login.microsoftonline.us/common/": {
-            tenant_discovery_endpoint:
-                "https://login.microsoftonline.us/common/v2.0/.well-known/openid-configuration",
-            "api-version": "1.1",
-            metadata: [
-                {
-                    preferred_network: "login.microsoftonline.com",
-                    preferred_cache: "login.windows.net",
-                    aliases: [
-                        "login.microsoftonline.com",
-                        "login.windows.net",
-                        "login.microsoft.com",
-                        "sts.windows.net",
-                    ],
-                },
-                {
-                    preferred_network: "login.partner.microsoftonline.cn",
-                    preferred_cache: "login.partner.microsoftonline.cn",
-                    aliases: [
-                        "login.partner.microsoftonline.cn",
-                        "login.chinacloudapi.cn",
-                    ],
-                },
-                {
-                    preferred_network: "login.microsoftonline.de",
-                    preferred_cache: "login.microsoftonline.de",
-                    aliases: ["login.microsoftonline.de"],
-                },
-                {
-                    preferred_network: "login.microsoftonline.us",
-                    preferred_cache: "login.microsoftonline.us",
-                    aliases: [
-                        "login.microsoftonline.us",
-                        "login.usgovcloudapi.net",
-                    ],
-                },
-                {
-                    preferred_network: "login-us.microsoftonline.com",
-                    preferred_cache: "login-us.microsoftonline.com",
-                    aliases: ["login-us.microsoftonline.com"],
-                },
-            ],
-        },
-        "https://login.microsoftonline.com/consumers/": {
-            tenant_discovery_endpoint:
-                "https://login.microsoftonline.com/consumers/v2.0/.well-known/openid-configuration",
-            "api-version": "1.1",
-            metadata: [
-                {
-                    preferred_network: "login.microsoftonline.com",
-                    preferred_cache: "login.windows.net",
-                    aliases: [
-                        "login.microsoftonline.com",
-                        "login.windows.net",
-                        "login.microsoft.com",
-                        "sts.windows.net",
-                    ],
-                },
-                {
-                    preferred_network: "login.partner.microsoftonline.cn",
-                    preferred_cache: "login.partner.microsoftonline.cn",
-                    aliases: [
-                        "login.partner.microsoftonline.cn",
-                        "login.chinacloudapi.cn",
-                    ],
-                },
-                {
-                    preferred_network: "login.microsoftonline.de",
-                    preferred_cache: "login.microsoftonline.de",
-                    aliases: ["login.microsoftonline.de"],
-                },
-                {
-                    preferred_network: "login.microsoftonline.us",
-                    preferred_cache: "login.microsoftonline.us",
-                    aliases: [
-                        "login.microsoftonline.us",
-                        "login.usgovcloudapi.net",
-                    ],
-                },
-                {
-                    preferred_network: "login-us.microsoftonline.com",
-                    preferred_cache: "login-us.microsoftonline.com",
-                    aliases: ["login-us.microsoftonline.com"],
-                },
-            ],
-        },
-        "https://login.chinacloudapi.cn/consumers/": {
-            tenant_discovery_endpoint:
-                "https://login.chinacloudapi.cn/consumers/v2.0/.well-known/openid-configuration",
-            "api-version": "1.1",
-            metadata: [
-                {
-                    preferred_network: "login.microsoftonline.com",
-                    preferred_cache: "login.windows.net",
-                    aliases: [
-                        "login.microsoftonline.com",
-                        "login.windows.net",
-                        "login.microsoft.com",
-                        "sts.windows.net",
-                    ],
-                },
-                {
-                    preferred_network: "login.partner.microsoftonline.cn",
-                    preferred_cache: "login.partner.microsoftonline.cn",
-                    aliases: [
-                        "login.partner.microsoftonline.cn",
-                        "login.chinacloudapi.cn",
-                    ],
-                },
-                {
-                    preferred_network: "login.microsoftonline.de",
-                    preferred_cache: "login.microsoftonline.de",
-                    aliases: ["login.microsoftonline.de"],
-                },
-                {
-                    preferred_network: "login.microsoftonline.us",
-                    preferred_cache: "login.microsoftonline.us",
-                    aliases: [
-                        "login.microsoftonline.us",
-                        "login.usgovcloudapi.net",
-                    ],
-                },
-                {
-                    preferred_network: "login-us.microsoftonline.com",
-                    preferred_cache: "login-us.microsoftonline.com",
-                    aliases: ["login-us.microsoftonline.com"],
-                },
-            ],
-        },
-        "https://login.microsoftonline.us/consumers/": {
-            tenant_discovery_endpoint:
-                "https://login.microsoftonline.us/consumers/v2.0/.well-known/openid-configuration",
-            "api-version": "1.1",
-            metadata: [
-                {
-                    preferred_network: "login.microsoftonline.com",
-                    preferred_cache: "login.windows.net",
-                    aliases: [
-                        "login.microsoftonline.com",
-                        "login.windows.net",
-                        "login.microsoft.com",
-                        "sts.windows.net",
-                    ],
-                },
-                {
-                    preferred_network: "login.partner.microsoftonline.cn",
-                    preferred_cache: "login.partner.microsoftonline.cn",
-                    aliases: [
-                        "login.partner.microsoftonline.cn",
-                        "login.chinacloudapi.cn",
-                    ],
-                },
-                {
-                    preferred_network: "login.microsoftonline.de",
-                    preferred_cache: "login.microsoftonline.de",
-                    aliases: ["login.microsoftonline.de"],
-                },
-                {
-                    preferred_network: "login.microsoftonline.us",
-                    preferred_cache: "login.microsoftonline.us",
-                    aliases: [
-                        "login.microsoftonline.us",
-                        "login.usgovcloudapi.net",
-                    ],
-                },
-                {
-                    preferred_network: "login-us.microsoftonline.com",
-                    preferred_cache: "login-us.microsoftonline.com",
-                    aliases: ["login-us.microsoftonline.com"],
-                },
-            ],
-        },
-        "https://login.microsoftonline.com/organizations/": {
-            tenant_discovery_endpoint:
-                "https://login.microsoftonline.com/organizations/v2.0/.well-known/openid-configuration",
-            "api-version": "1.1",
-            metadata: [
-                {
-                    preferred_network: "login.microsoftonline.com",
-                    preferred_cache: "login.windows.net",
-                    aliases: [
-                        "login.microsoftonline.com",
-                        "login.windows.net",
-                        "login.microsoft.com",
-                        "sts.windows.net",
-                    ],
-                },
-                {
-                    preferred_network: "login.partner.microsoftonline.cn",
-                    preferred_cache: "login.partner.microsoftonline.cn",
-                    aliases: [
-                        "login.partner.microsoftonline.cn",
-                        "login.chinacloudapi.cn",
-                    ],
-                },
-                {
-                    preferred_network: "login.microsoftonline.de",
-                    preferred_cache: "login.microsoftonline.de",
-                    aliases: ["login.microsoftonline.de"],
-                },
-                {
-                    preferred_network: "login.microsoftonline.us",
-                    preferred_cache: "login.microsoftonline.us",
-                    aliases: [
-                        "login.microsoftonline.us",
-                        "login.usgovcloudapi.net",
-                    ],
-                },
-                {
-                    preferred_network: "login-us.microsoftonline.com",
-                    preferred_cache: "login-us.microsoftonline.com",
-                    aliases: ["login-us.microsoftonline.com"],
-                },
-            ],
-        },
-        "https://login.chinacloudapi.cn/organizations/": {
-            tenant_discovery_endpoint:
-                "https://login.chinacloudapi.cn/organizations/v2.0/.well-known/openid-configuration",
-            "api-version": "1.1",
-            metadata: [
-                {
-                    preferred_network: "login.microsoftonline.com",
-                    preferred_cache: "login.windows.net",
-                    aliases: [
-                        "login.microsoftonline.com",
-                        "login.windows.net",
-                        "login.microsoft.com",
-                        "sts.windows.net",
-                    ],
-                },
-                {
-                    preferred_network: "login.partner.microsoftonline.cn",
-                    preferred_cache: "login.partner.microsoftonline.cn",
-                    aliases: [
-                        "login.partner.microsoftonline.cn",
-                        "login.chinacloudapi.cn",
-                    ],
-                },
-                {
-                    preferred_network: "login.microsoftonline.de",
-                    preferred_cache: "login.microsoftonline.de",
-                    aliases: ["login.microsoftonline.de"],
-                },
-                {
-                    preferred_network: "login.microsoftonline.us",
-                    preferred_cache: "login.microsoftonline.us",
-                    aliases: [
-                        "login.microsoftonline.us",
-                        "login.usgovcloudapi.net",
-                    ],
-                },
-                {
-                    preferred_network: "login-us.microsoftonline.com",
-                    preferred_cache: "login-us.microsoftonline.com",
-                    aliases: ["login-us.microsoftonline.com"],
-                },
-            ],
-        },
-        "https://login.microsoftonline.us/organizations/": {
-            tenant_discovery_endpoint:
-                "https://login.microsoftonline.us/organizations/v2.0/.well-known/openid-configuration",
-            "api-version": "1.1",
-            metadata: [
-                {
-                    preferred_network: "login.microsoftonline.com",
-                    preferred_cache: "login.windows.net",
-                    aliases: [
-                        "login.microsoftonline.com",
-                        "login.windows.net",
-                        "login.microsoft.com",
-                        "sts.windows.net",
-                    ],
-                },
-                {
-                    preferred_network: "login.partner.microsoftonline.cn",
-                    preferred_cache: "login.partner.microsoftonline.cn",
-                    aliases: [
-                        "login.partner.microsoftonline.cn",
-                        "login.chinacloudapi.cn",
-                    ],
-                },
-                {
-                    preferred_network: "login.microsoftonline.de",
-                    preferred_cache: "login.microsoftonline.de",
-                    aliases: ["login.microsoftonline.de"],
-                },
-                {
-                    preferred_network: "login.microsoftonline.us",
-                    preferred_cache: "login.microsoftonline.us",
-                    aliases: [
-                        "login.microsoftonline.us",
-                        "login.usgovcloudapi.net",
-                    ],
-                },
-                {
-                    preferred_network: "login-us.microsoftonline.com",
-                    preferred_cache: "login-us.microsoftonline.com",
-                    aliases: ["login-us.microsoftonline.com"],
-                },
-            ],
-        },
+        tenant_discovery_endpoint:
+            "https://{canonicalAuthority}/v2.0/.well-known/openid-configuration",
+        "api-version": "1.1",
+        metadata: [
+            {
+                preferred_network: "login.microsoftonline.com",
+                preferred_cache: "login.windows.net",
+                aliases: [
+                    "login.microsoftonline.com",
+                    "login.windows.net",
+                    "login.microsoft.com",
+                    "sts.windows.net",
+                ],
+            },
+            {
+                preferred_network: "login.partner.microsoftonline.cn",
+                preferred_cache: "login.partner.microsoftonline.cn",
+                aliases: [
+                    "login.partner.microsoftonline.cn",
+                    "login.chinacloudapi.cn",
+                ],
+            },
+            {
+                preferred_network: "login.microsoftonline.de",
+                preferred_cache: "login.microsoftonline.de",
+                aliases: ["login.microsoftonline.de"],
+            },
+            {
+                preferred_network: "login.microsoftonline.us",
+                preferred_cache: "login.microsoftonline.us",
+                aliases: [
+                    "login.microsoftonline.us",
+                    "login.usgovcloudapi.net",
+                ],
+            },
+            {
+                preferred_network: "login-us.microsoftonline.com",
+                preferred_cache: "login-us.microsoftonline.com",
+                aliases: ["login-us.microsoftonline.com"],
+            },
+        ],
     },
 };
 
@@ -947,71 +604,77 @@ export const InstanceDiscoveryMetadata =
     rawMetdataJSON.instanceDiscoveryMetadata;
 
 export const InstanceDiscoveryMetadataAliases: Set<String> = new Set();
-for (const key in InstanceDiscoveryMetadata) {
-    for (const metadata of InstanceDiscoveryMetadata[key].metadata) {
-        for (const alias of metadata.aliases) {
+InstanceDiscoveryMetadata.metadata.forEach(
+    (metadataEntry: CloudDiscoveryMetadata) => {
+        metadataEntry.aliases.forEach((alias: string) => {
             InstanceDiscoveryMetadataAliases.add(alias);
-        }
+        });
     }
-}
+);
 
 /**
- * Returns aliases for the given canonical authority if found in hardcoded Instance Discovery Metadata or null if not found
- * @param canonicalAuthority
+ * Attempts to get an aliases array from the static authority metadata sources based on the canonical authority host
+ * @param staticAuthorityOptions
+ * @param logger
  * @returns
  */
-export function getHardcodedAliasesForCanonicalAuthority(
-    canonicalAuthority?: string
-): string[] | null {
+export function getAliasesFromStaticSources(
+    staticAuthorityOptions: StaticAuthorityOptions,
+    logger?: Logger
+): string[] {
+    let staticAliases: string[] | undefined;
+    const canonicalAuthority = staticAuthorityOptions.canonicalAuthority;
     if (canonicalAuthority) {
-        const instanceDiscoveryMetadata =
-            getCloudDiscoveryMetadataFromHardcodedValues(canonicalAuthority);
-        if (instanceDiscoveryMetadata) {
-            return instanceDiscoveryMetadata.aliases;
-        }
+        const authorityHost = new UrlString(
+            canonicalAuthority
+        ).getUrlComponents().HostNameAndPort;
+        staticAliases =
+            getAliasesFromMetadata(
+                authorityHost,
+                staticAuthorityOptions.cloudDiscoveryMetadata?.metadata,
+                AuthorityMetadataSource.CONFIG,
+                logger
+            ) ||
+            getAliasesFromMetadata(
+                authorityHost,
+                InstanceDiscoveryMetadata.metadata,
+                AuthorityMetadataSource.HARDCODED_VALUES,
+                logger
+            ) ||
+            staticAuthorityOptions.knownAuthorities;
     }
-    return null;
+
+    return staticAliases || [];
 }
 
 /**
- * Returns aliases for from the raw cloud discovery metadata given in configuration or null if no configuration was provided
+ * Returns aliases for from the raw cloud discovery metadata passed in
+ * @param authorityHost
  * @param rawCloudDiscoveryMetadata
  * @returns
  */
-export function getAliasesFromConfigMetadata(
-    canonicalAuthority?: string,
-    cloudDiscoveryMetadata?: CloudDiscoveryMetadata[]
+export function getAliasesFromMetadata(
+    authorityHost?: string,
+    cloudDiscoveryMetadata?: CloudDiscoveryMetadata[],
+    source?: AuthorityMetadataSource,
+    logger?: Logger
 ): string[] | null {
-    if (canonicalAuthority && cloudDiscoveryMetadata) {
-        const canonicalAuthorityUrlComponents = new UrlString(
-            canonicalAuthority
-        ).getUrlComponents();
+    logger?.trace(`getAliasesFromMetadata called with source: ${source}`);
+    if (authorityHost && cloudDiscoveryMetadata) {
         const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
             cloudDiscoveryMetadata,
-            canonicalAuthorityUrlComponents.HostNameAndPort
+            authorityHost
         );
 
         if (metadata) {
+            logger?.trace(
+                `getAliasesFromMetadata: found cloud discovery metadata in ${source}, returning aliases`
+            );
             return metadata.aliases;
-        }
-    }
-
-    return null;
-}
-
-/**
- * Searches instance discovery network response for the entry that contains the host in the aliases list
- * @param response
- * @param authority
- */
-export function getCloudDiscoveryMetadataFromNetworkResponse(
-    response: CloudDiscoveryMetadata[],
-    authority: string
-): CloudDiscoveryMetadata | null {
-    for (let i = 0; i < response.length; i++) {
-        const metadata = response[i];
-        if (metadata.aliases.includes(authority)) {
-            return metadata;
+        } else {
+            logger?.trace(
+                `getAliasesFromMetadata: did not find cloud discovery metadata in ${source}`
+            );
         }
     }
 
@@ -1022,18 +685,29 @@ export function getCloudDiscoveryMetadataFromNetworkResponse(
  * Get cloud discovery metadata for common authorities
  */
 export function getCloudDiscoveryMetadataFromHardcodedValues(
-    canonicalAuthority: string
+    authorityHost: string
 ): CloudDiscoveryMetadata | null {
-    const canonicalAuthorityUrlComponents = new UrlString(
-        canonicalAuthority
-    ).getUrlComponents();
+    const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
+        InstanceDiscoveryMetadata.metadata,
+        authorityHost
+    );
+    return metadata;
+}
 
-    if (canonicalAuthority in InstanceDiscoveryMetadata) {
-        const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
-            InstanceDiscoveryMetadata[canonicalAuthority].metadata,
-            canonicalAuthorityUrlComponents.HostNameAndPort
-        );
-        return metadata;
+/**
+ * Searches instance discovery network response for the entry that contains the host in the aliases list
+ * @param response
+ * @param authority
+ */
+export function getCloudDiscoveryMetadataFromNetworkResponse(
+    response: CloudDiscoveryMetadata[],
+    authorityHost: string
+): CloudDiscoveryMetadata | null {
+    for (let i = 0; i < response.length; i++) {
+        const metadata = response[i];
+        if (metadata.aliases.includes(authorityHost)) {
+            return metadata;
+        }
     }
 
     return null;
