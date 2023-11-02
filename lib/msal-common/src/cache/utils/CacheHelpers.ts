@@ -12,6 +12,7 @@ import {
 import {
     AuthenticationScheme,
     CredentialType,
+    SERVER_TELEM_CONSTANTS,
     Separators,
 } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
@@ -303,4 +304,24 @@ function generateScheme(credentialEntity: CredentialEntity): string {
             AuthenticationScheme.BEARER.toLowerCase()
         ? credentialEntity.tokenType.toLowerCase()
         : "";
+}
+
+/**
+ * validates if a given cache entry is "Telemetry", parses <key,value>
+ * @param key
+ * @param entity
+ */
+export function isServerTelemetryEntity(key: string, entity?: object): boolean {
+    const validateKey: boolean =
+        key.indexOf(SERVER_TELEM_CONSTANTS.CACHE_KEY) === 0;
+    let validateEntity: boolean = true;
+
+    if (entity) {
+        validateEntity =
+            entity.hasOwnProperty("failedRequests") &&
+            entity.hasOwnProperty("errors") &&
+            entity.hasOwnProperty("cacheHits");
+    }
+
+    return validateKey && validateEntity;
 }

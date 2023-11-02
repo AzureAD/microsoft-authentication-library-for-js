@@ -1384,7 +1384,11 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getServerTelemetry returns ServerTelemetryEntity", () => {
                     const testKey = "server-telemetry-clientId";
-                    const testVal = new ServerTelemetryEntity();
+                    const testVal = {
+                        failedRequests: ["61|test-correlationId"],
+                        errors: ["test_error"],
+                        cacheHits: 2,
+                    };
 
                     browserLocalStorage.setServerTelemetry(testKey, testVal);
                     browserSessionStorage.setServerTelemetry(testKey, testVal);
@@ -1393,14 +1397,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getServerTelemetry(testKey)
                     ).toEqual(testVal);
                     expect(
-                        browserSessionStorage.getServerTelemetry(testKey)
-                    ).toBeInstanceOf(ServerTelemetryEntity);
-                    expect(
                         browserLocalStorage.getServerTelemetry(testKey)
                     ).toEqual(testVal);
-                    expect(
-                        browserLocalStorage.getServerTelemetry(testKey)
-                    ).toBeInstanceOf(ServerTelemetryEntity);
                 });
             });
 
@@ -2294,7 +2292,11 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getServerTelemetry returns ServerTelemetryEntity", () => {
                     const testKey = "server-telemetry-clientId";
-                    const testVal = new ServerTelemetryEntity();
+                    const testVal = {
+                        failedRequests: ["61|test-correlationId"],
+                        errors: ["test_error"],
+                        cacheHits: 2,
+                    };
 
                     browserLocalStorage.setServerTelemetry(testKey, testVal);
                     browserSessionStorage.setServerTelemetry(testKey, testVal);
@@ -2303,14 +2305,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getServerTelemetry(testKey)
                     ).toEqual(testVal);
                     expect(
-                        browserSessionStorage.getServerTelemetry(testKey)
-                    ).toBeInstanceOf(ServerTelemetryEntity);
-                    expect(
                         browserLocalStorage.getServerTelemetry(testKey)
                     ).toEqual(testVal);
-                    expect(
-                        browserLocalStorage.getServerTelemetry(testKey)
-                    ).toBeInstanceOf(ServerTelemetryEntity);
                 });
             });
 
