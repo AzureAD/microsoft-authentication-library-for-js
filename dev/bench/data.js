@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698943729920,
+  "lastUpdate": 1698959280109,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2508,6 +2508,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.75%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "42a5e13c333d34be82734bcc3cd91ff7e8dd7d25",
+          "message": "Change ServerTelemetryEntity from Class to Type (#6651)\n\nContinuation of the work to convert cache entities from classes to types\r\nand moving the related static methods to CacheHelpers namespace",
+          "timestamp": "2023-11-02T14:02:36-07:00",
+          "tree_id": "50924151e59fc6bb9b71f5728fca4fb787173569",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/42a5e13c333d34be82734bcc3cd91ff7e8dd7d25"
+        },
+        "date": 1698959279130,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 207441,
+            "range": "±1.15%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 196697,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
