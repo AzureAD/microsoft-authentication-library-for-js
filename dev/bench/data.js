@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698865582960,
+  "lastUpdate": 1698943729920,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2470,6 +2470,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.89%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "janusz@corechain.tech",
+            "name": "Janusz Dziurzyński",
+            "username": "rzyns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "25472ea4b5fb2ecef8eada945fa7c9f7eb0f2557",
+          "message": "Fix Environment.getUserRootDirectory() on Non-Windows Platforms (#6581)\n\nfix: `Environment.getUserRootDirectory()` only ever executes Windows\r\ncode path\r\n\r\nFrom the Azure msal-node\r\n[docs](https://github.com/MicrosoftDocs/azure-docs/blob/e622cd3bded2530b8db7843cd9539fd16f0cd67c/articles/active-directory/develop/msal-node-extensions.md?plain=1#L50-L52):\r\n```typescript\r\n// You can use the helper functions provided through the Environment class to construct your cache path\r\n// The helper functions provide consistent implementations across Windows, Mac and Linux.\r\nconst cachePath = path.join(Environment.getUserRootDirectory(), \"./cache.json\");\r\n```\r\nThe existing (broken) code:\r\n\r\n\r\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/blob/9934e3b07118403898e65091035d26295e55f128/extensions/msal-node-extensions/src/utils/Environment.ts#L59-L63\r\n\r\nmsal-node-extensions: `Environment.getUserHomeDirOnUnix()` was never\r\ncalled, because `!this.isWindowsPlatform` would always be false, since\r\n`isWindowsPlatform()` is a static method and not a property getter (or\r\nproperty)\r\n\r\n---------\r\n\r\nSigned-off-by: Janusz Dziurzynski <janusz@corechain.tech>",
+          "timestamp": "2023-11-02T09:42:44-07:00",
+          "tree_id": "209f0152603f13043049a9dc3c364d6b451febad",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/25472ea4b5fb2ecef8eada945fa7c9f7eb0f2557"
+        },
+        "date": 1698943727556,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 120150,
+            "range": "±1.74%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 114730,
+            "range": "±1.75%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
