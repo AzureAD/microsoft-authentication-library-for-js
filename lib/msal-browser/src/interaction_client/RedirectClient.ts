@@ -46,6 +46,7 @@ import { EventHandler } from "../event/EventHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EventError } from "../event/EventMessage";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import * as ResponseHandler from "../response/ResponseHandler";
 
 export class RedirectClient extends StandardInteractionClient {
     protected nativeStorage: BrowserCacheManager;
@@ -217,23 +218,6 @@ export class RedirectClient extends StandardInteractionClient {
                 return null;
             }
 
-            let state: string;
-            try {
-                state = this.validateAndExtractStateFromHash(
-                    serverParams,
-                    InteractionType.Redirect
-                );
-                this.logger.verbose("State extracted from hash");
-            } catch (e) {
-                this.logger.info(
-                    `handleRedirectPromise was unable to extract state due to: ${e}`
-                );
-                this.browserStorage.cleanRequestByInteractionType(
-                    InteractionType.Redirect
-                );
-                return null;
-            }
-
             // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
             const loginRequestUrl =
                 this.browserStorage.getTemporaryCache(
@@ -262,7 +246,6 @@ export class RedirectClient extends StandardInteractionClient {
 
                 const handleHashResult = await this.handleResponse(
                     serverParams,
-                    state,
                     serverTelemetryManager
                 );
 
@@ -273,7 +256,6 @@ export class RedirectClient extends StandardInteractionClient {
                 );
                 return this.handleResponse(
                     serverParams,
-                    state,
                     serverTelemetryManager
                 );
             } else if (
@@ -333,7 +315,6 @@ export class RedirectClient extends StandardInteractionClient {
                 if (!processHashOnRedirect) {
                     return this.handleResponse(
                         serverParams,
-                        state,
                         serverTelemetryManager
                     );
                 }
@@ -376,6 +357,21 @@ export class RedirectClient extends StandardInteractionClient {
         let response = UrlUtils.getDeserializedResponse(responseString);
 
         if (response) {
+            try {
+                ResponseHandler.validateInteractionType(
+                    response,
+                    this.browserCrypto,
+                    InteractionType.Redirect
+                );
+            } catch (e) {
+                if (e instanceof AuthError) {
+                    this.logger.error(
+                        `Interaction type validation failed due to ${e.errorCode}: ${e.errorMessage}`
+                    );
+                }
+                return [null, ""];
+            }
+
             BrowserUtils.clearHash(window);
             this.logger.verbose(
                 "Hash contains known properties, returning response hash"
@@ -411,9 +407,13 @@ export class RedirectClient extends StandardInteractionClient {
      */
     protected async handleResponse(
         serverParams: ServerAuthorizationCodeResponse,
-        state: string,
         serverTelemetryManager: ServerTelemetryManager
     ): Promise<AuthenticationResult> {
+        const state = serverParams.state;
+        if (!state) {
+            throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
+        }
+
         const cachedRequest = this.browserStorage.getCachedRequest(state);
         this.logger.verbose("handleResponse called, retrieved cached request");
 

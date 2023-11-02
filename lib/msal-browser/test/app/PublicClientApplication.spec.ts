@@ -200,6 +200,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             NavigationClient.prototype,
             "navigateExternal"
         ).mockImplementation();
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateInternal"
+        ).mockImplementation();
     });
 
     afterEach(() => {
@@ -915,9 +919,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 BrowserCacheManager.prototype,
                 "isInteractionInProgress"
             ).mockReturnValue(true);
+            const responseString = `?code=authCode&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`;
+
             jest.spyOn(window, "location", "get").mockReturnValueOnce({
                 ...window.location,
-                search: "?code=authCode",
+                search: responseString,
             });
             await pca.handleRedirectPromise().catch(() => {
                 // This will likely throw, but we're not testing the e2e here
@@ -925,8 +931,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(responseSpy).toHaveBeenCalledTimes(1);
             expect(responseSpy).lastReturnedWith([
-                { code: "authCode" },
-                "?code=authCode",
+                {
+                    code: "authCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                },
+                responseString,
             ]);
         });
     });
@@ -937,24 +946,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
 
-        it("throws an error if initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
-            await pca.initialize();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
-            try {
-                pca.loginRedirect();
-            } catch (e) {
+            pca.loginRedirect().catch((e) => {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.uninitializedPublicClientApplication
                     )
                 );
-            }
+                done();
+            });
         });
 
         it("doesnt mutate request correlation id", async () => {
@@ -1010,24 +1017,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
 
-        it("throws an error if initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
-            await pca.initialize();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
-            try {
-                pca.acquireTokenRedirect({ scopes: [] });
-            } catch (e) {
+            pca.acquireTokenRedirect({ scopes: [] }).catch((e) => {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.uninitializedPublicClientApplication
                     )
                 );
-            }
+                done();
+            });
         });
         it("goes directly to the native broker if nativeAccountId is present", async () => {
             const config = {
@@ -4869,22 +4874,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
 
-        it("throws an error if initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
-            await pca.initialize();
-            try {
-                pca.logout();
-            } catch (error: any) {
+            pca.logout().catch((error: any) => {
                 expect(error).toMatchObject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.uninitializedPublicClientApplication
                     )
                 );
-            }
+                done();
+            });
         });
 
         it("calls logoutRedirect", (done) => {

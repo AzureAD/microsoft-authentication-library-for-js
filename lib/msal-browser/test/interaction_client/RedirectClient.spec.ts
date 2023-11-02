@@ -200,19 +200,17 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            jest.spyOn(
-                RedirectClient.prototype,
-                <any>"getRedirectResponse"
-            ).mockReturnValue([{ code: "authCode" }, "#code=authCode"]);
-            redirectClient.handleRedirectPromise().then((response) => {
-                expect(response).toBe(null);
-                expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(0);
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise("#code=ThisIsAnAuthCode")
+                .then((response) => {
+                    expect(response).toBe(null);
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
         });
 
-        it("cleans temporary cache and return null if state is wrong interaction type", (done) => {
+        it("If response hash is not a Redirect response cleans temporary cache, return null and don't remove hash", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
@@ -224,20 +222,14 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            jest.spyOn(
-                RedirectClient.prototype,
-                <any>"getRedirectResponse"
-            ).mockReturnValue([
-                {
-                    code: "authCode",
-                    state: TEST_STATE_VALUES.TEST_STATE_POPUP,
-                },
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
-            ]);
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
             redirectClient.handleRedirectPromise().then((response) => {
                 expect(response).toBe(null);
                 expect(window.localStorage.length).toEqual(0);
                 expect(window.sessionStorage.length).toEqual(0);
+                expect(window.location.hash).toEqual(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+                );
                 done();
             });
         });
@@ -284,22 +276,16 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            jest.spyOn(
-                RedirectClient.prototype,
-                <any>"getRedirectResponse"
-            ).mockReturnValue([
-                {
-                    code: "authCode",
-                    state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
-                },
-                TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META,
-            ]);
-            redirectClient.handleRedirectPromise().then((response) => {
-                expect(response).toBe(null);
-                expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(0);
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META
+                )
+                .then((response) => {
+                    expect(response).toBe(null);
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
         });
 
         it("gets hash from cache and processes response", async () => {

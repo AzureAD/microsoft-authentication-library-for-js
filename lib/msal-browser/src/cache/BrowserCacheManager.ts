@@ -53,7 +53,9 @@ import {
 import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
-import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
+import {
+    extractBrowserRequestState,
+} from "../utils/BrowserProtocolUtils";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { SilentRequest } from "../request/SilentRequest";
@@ -1587,7 +1589,7 @@ export class BrowserCacheManager extends CacheManager {
                 return;
             }
             // Extract state and ensure it matches given InteractionType, then clean request cache
-            const parsedState = BrowserProtocolUtils.extractBrowserRequestState(
+            const parsedState = extractBrowserRequestState(
                 this.cryptoImpl,
                 stateValue
             );
