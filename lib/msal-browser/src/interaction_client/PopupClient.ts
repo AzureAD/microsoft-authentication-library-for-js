@@ -610,7 +610,7 @@ export class PopupClient extends StandardInteractionClient {
                 resolve(responseString);
             }, this.config.system.pollIntervalMilliseconds);
         }).finally(() => {
-            this.cleanPopup();
+            this.cleanPopup(popupWindow);
         });
     }
 
