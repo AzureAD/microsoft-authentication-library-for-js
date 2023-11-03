@@ -230,8 +230,6 @@ export class ClientCredentialClient extends BaseClient {
                 queryParametersString
             );
 
-            this.logger.info("Sending token request to host: " + authority.tokenEndpointHost);
-
             const requestBody = this.createTokenRequestBody(request);
             const headers: Record<string, string> =
                 this.createTokenRequestHeaders();
@@ -246,6 +244,10 @@ export class ClientCredentialClient extends BaseClient {
                 shrClaims: request.shrClaims,
                 sshKid: request.sshKid,
             };
+
+            this.logger.info(
+                "Sending token request to endpoint: " + authority.tokenEndpoint
+            );
 
             reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.executePostToTokenEndpoint(

@@ -412,28 +412,16 @@ export abstract class ClientApplication {
             : this.config.auth.azureCloudOptions;
 
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
-        this.logger.verbose("here-----------------------------------------------------------------------------------------------------------------");
-
-        if(azureRegionConfiguration?.azureRegion)
-        {
-            this.logger.verbose(
-                `Building oauth client configuration with the user provided authority: ${authority}, using provided region: ${azureRegionConfiguration?.azureRegion}.`,
-                requestCorrelationId
-            );
-        } 
-        else
-        {
-            this.logger.verbose(
-                `Building oauth client configuration with the user provided authority: ${authority}.`,
-                requestCorrelationId
-            );
-        }
-        
-        const discoveredAuthority = await this.createAuthority(
+        const discoveredAuthority: Authority = await this.createAuthority(
             authority,
             azureRegionConfiguration,
             requestCorrelationId,
             userAzureCloudOptions
+        );
+
+        this.logger.info(
+            `Building oauth client configuration with the following authority: ${discoveredAuthority.tokenEndpoint}.`,
+            requestCorrelationId
         );
 
         serverTelemetryManager?.updateRegionDiscoveryMetadata(

@@ -237,19 +237,6 @@ export class Authority {
         }
     }
 
-    /**
-     * OAuth /token endpoint host for requests
-     */
-        public get tokenEndpointHost(): string {
-            if (this.discoveryComplete()) {
-                return new UrlString(this.metadata.token_endpoint).getUrlComponents().HostNameAndPort;
-            } else {
-                throw createClientAuthError(
-                    ClientAuthErrorCodes.endpointResolutionError
-                );
-            }
-        }
-
     public get deviceCodeEndpoint(): string {
         if (this.discoveryComplete()) {
             return this.replacePath(
