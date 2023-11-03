@@ -958,11 +958,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Uses default request if no request provided", (done) => {
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(StandardController.prototype, "acquireTokenRedirect")
                 .callsFake(async (request): Promise<void> => {
                     expect(request.scopes).toContain("openid");
                     expect(request.scopes).toContain("profile");
+                    expect(request.correlationId).toEqual(RANDOM_TEST_GUID);
                     done();
                     return;
                 });
@@ -1042,6 +1046,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 username: "AbeLi@microsoft.com",
                 nativeAccountId: "test-nativeAccountId",
             };
+
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
 
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireTokenRedirect")
@@ -1617,11 +1625,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(StandardController.prototype, "acquireTokenPopup")
                 .callsFake(async (request) => {
                     expect(request.scopes).toContain("openid");
                     expect(request.scopes).toContain("profile");
+                    expect(request.correlationId).toEqual(RANDOM_TEST_GUID);
                     done();
 
                     return testTokenResponse;
