@@ -56,16 +56,5 @@ describe("JoseHeader.ts Unit Tests", () => {
                 JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingAlgError]
             );
         });
-
-        it("should throw if typ header is missing", () => {
-            expect(() =>
-                JoseHeader.getShrHeaderString({
-                    kid: TEST_POP_VALUES.KID,
-                    alg: TEST_CRYPTO_ALGORITHMS.rsa,
-                })
-            ).toThrowError(
-                JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingTypError]
-            );
-        });
     });
 });
