@@ -412,7 +412,7 @@ export abstract class ClientApplication {
             : this.config.auth.azureCloudOptions;
 
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
-        const discoveredAuthority: Authority = await this.createAuthority(
+        const discoveredAuthority = await this.createAuthority(
             authority,
             azureRegionConfiguration,
             requestCorrelationId,
