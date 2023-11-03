@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { ShrOptions } from "../crypto/SignedHttpRequest";
 import { AuthenticationScheme } from "../utils/Constants";
 
 /**
@@ -19,4 +20,5 @@ export type RequestThumbprint = {
     resourceRequestUri?: string;
     shrClaims?: string;
     sshKid?: string;
+    shrOptions?: ShrOptions;
 };

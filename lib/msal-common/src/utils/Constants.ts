@@ -433,11 +433,12 @@ export const CacheOutcome = {
 } as const;
 export type CacheOutcome = (typeof CacheOutcome)[keyof typeof CacheOutcome];
 
-export const JsonTypes = {
+export const JsonWebTokenTypes = {
     Jwt: "JWT",
     Jwk: "JWK",
     Pop: "pop",
 } as const;
-export type JsonTypes = (typeof JsonTypes)[keyof typeof JsonTypes];
+export type JsonWebTokenTypes =
+    (typeof JsonWebTokenTypes)[keyof typeof JsonWebTokenTypes];
 
 export const ONE_DAY_IN_MS = 86400000;
