@@ -1,9 +1,9 @@
-import { ServerTelemetryEntity } from "../../../src/cache/entities/ServerTelemetryEntity";
 import {
     SERVER_TELEM_CONSTANTS,
     Separators,
 } from "../../../src/utils/Constants";
 import { TEST_CONFIG } from "../../test_kit/StringConstants";
+import * as CacheHelpers from "../../../src/cache/utils/CacheHelpers";
 
 describe("ServerTelemetryEntity.ts Unit Tests", () => {
     const ServerTelemetryKey =
@@ -19,7 +19,7 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
         };
 
         expect(
-            ServerTelemetryEntity.isServerTelemetryEntity(
+            CacheHelpers.isServerTelemetryEntity(
                 ServerTelemetryKey,
                 serverTelemetryObject
             )
@@ -34,7 +34,7 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
         };
 
         expect(
-            ServerTelemetryEntity.isServerTelemetryEntity(
+            CacheHelpers.isServerTelemetryEntity(
                 ServerTelemetryKey,
                 missingCacheHits
             )
@@ -46,7 +46,7 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
             cacheHits: 0,
         };
         expect(
-            ServerTelemetryEntity.isServerTelemetryEntity(
+            CacheHelpers.isServerTelemetryEntity(
                 ServerTelemetryKey,
                 missingErrors
             )
@@ -58,7 +58,7 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
             cacheHits: 0,
         };
         expect(
-            ServerTelemetryEntity.isServerTelemetryEntity(
+            CacheHelpers.isServerTelemetryEntity(
                 ServerTelemetryKey,
                 missingFailedRequests
             )
@@ -68,7 +68,7 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
             testParam: "test",
         };
         expect(
-            ServerTelemetryEntity.isServerTelemetryEntity(
+            CacheHelpers.isServerTelemetryEntity(
                 ServerTelemetryKey,
                 noCommonValues
             )
@@ -76,9 +76,9 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
     });
 
     it("Verify an object is a ServerTelemetry Entity only when cache key is passed", () => {
-        expect(
-            ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey)
-        ).toBe(true);
+        expect(CacheHelpers.isServerTelemetryEntity(ServerTelemetryKey)).toBe(
+            true
+        );
     });
 
     it("Verify an object is not a ServerTelemetry Entity only when cache key is passed", () => {
@@ -86,8 +86,8 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
             Separators.CACHE_KEY_SEPARATOR +
             SERVER_TELEM_CONSTANTS.CACHE_KEY +
             TEST_CONFIG.MSAL_CLIENT_ID;
-        expect(
-            ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey)
-        ).toBe(false);
+        expect(CacheHelpers.isServerTelemetryEntity(ServerTelemetryKey)).toBe(
+            false
+        );
     });
 });
