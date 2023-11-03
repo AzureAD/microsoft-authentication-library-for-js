@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698959280109,
+  "lastUpdate": 1699048542793,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2546,6 +2546,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.00%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "db14ee4cb268de9e048fb3ab31a953917f2abdeb",
+          "message": "Fix no refresh required log message (#6644)\n\nThis PR:\r\n- Updates ATS instrumentation to change logger message when cache\r\noutcome is 0 and doesn't require a refresh\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2023-11-03T14:49:20-07:00",
+          "tree_id": "45cda6be07fe5ee0ff72f1dcd9382f026372638f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/db14ee4cb268de9e048fb3ab31a953917f2abdeb"
+        },
+        "date": 1699048540982,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 110749,
+            "range": "±2.04%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 113908,
+            "range": "±1.64%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
