@@ -124,7 +124,9 @@ export class SilentFlowClient extends BaseClient {
         const cacheRecord = this.cacheManager.readCacheRecord(
             request.account,
             request,
-            environment
+            environment,
+            this.performanceClient,
+            request.correlationId
         );
 
         if (!cacheRecord.accessToken) {
@@ -190,9 +192,11 @@ export class SilentFlowClient extends BaseClient {
             },
             correlationId
         );
-        this.logger.info(
-            `Token refresh is required due to cache outcome: ${cacheOutcome}`
-        );
+        if (cacheOutcome !== CacheOutcome.NOT_APPLICABLE) {
+            this.logger.info(
+                `Token refresh is required due to cache outcome: ${cacheOutcome}`
+            );
+        }
     }
 
     /**

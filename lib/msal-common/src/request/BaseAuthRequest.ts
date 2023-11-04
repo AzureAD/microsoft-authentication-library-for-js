@@ -7,6 +7,7 @@ import { AuthenticationScheme } from "../utils/Constants";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
 import { StringDict } from "../utils/MsalTypes";
 import { StoreInCache } from "./StoreInCache";
+import { ShrOptions } from "../crypto/SignedHttpRequest";
 
 /**
  * BaseAuthRequest
@@ -17,6 +18,7 @@ import { StoreInCache } from "./StoreInCache";
  * - claims                  - A stringified claims request which will be added to all /authorize and /token calls
  * - shrClaims               - A stringified claims object which will be added to a Signed HTTP Request
  * - shrNonce                - A server-generated timestamp that has been encrypted and base64URL encoded, which will be added to a Signed HTTP Request.
+ * - shrOptions              - An object containing options for the Signed HTTP Request
  * - resourceRequestMethod   - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri      - URI that token will be used for. Used for proof-of-possession flows.
  * - sshJwk                  - A stringified JSON Web Key representing a public key that can be signed by an SSH certificate.
@@ -34,6 +36,7 @@ export type BaseAuthRequest = {
     claims?: string;
     shrClaims?: string;
     shrNonce?: string;
+    shrOptions?: ShrOptions;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     sshJwk?: string;
