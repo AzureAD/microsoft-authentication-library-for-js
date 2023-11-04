@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1699048542793,
+  "lastUpdate": 1699134489350,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2584,6 +2584,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.64%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e9dd9337c02fcfe008514f5fd057087d3409cc91",
+          "message": "Make SHR header configurable (#6654)\n\nThis PR:\r\n- Adds an `shrOptions` attribute to `BaseAuthRequest` to allow\r\napplications to override header claims such as `typ` in the SHR returned\r\n- Renames and exposes `JsonWebTokenTypes` for convenience",
+          "timestamp": "2023-11-04T14:43:22-07:00",
+          "tree_id": "4066531edc4746d140eaf666ad95eccd0cbec077",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e9dd9337c02fcfe008514f5fd057087d3409cc91"
+        },
+        "date": 1699134488138,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 156559,
+            "range": "±1.23%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 156072,
+            "range": "±1.07%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
           }
         ]
       }
