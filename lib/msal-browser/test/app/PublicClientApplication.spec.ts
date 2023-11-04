@@ -971,6 +971,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return;
                 });
 
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
+                expect(events[0].success).toBe(true);
+                expect(events[0].accessTokenSize).toBe(16);
+                expect(events[0].idTokenSize).toBe(12);
+                expect(events[0].requestId).toBe(undefined);
+                expect(events[0].visibilityChangeCount).toBe(0);
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
             pca.loginRedirect();
         });
 
@@ -1638,6 +1649,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                     return testTokenResponse;
                 });
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
+                expect(events[0].success).toBe(true);
+                expect(events[0].accessTokenSize).toBe(16);
+                expect(events[0].idTokenSize).toBe(12);
+                expect(events[0].requestId).toBe(undefined);
+                expect(events[0].visibilityChangeCount).toBe(0);
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
 
             pca.loginPopup();
         });
