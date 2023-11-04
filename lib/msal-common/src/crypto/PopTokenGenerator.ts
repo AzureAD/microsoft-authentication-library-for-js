@@ -133,6 +133,7 @@ export class PopTokenGenerator {
             resourceRequestUri,
             shrClaims,
             shrNonce,
+            shrOptions,
         } = request;
 
         const resourceUrlString = resourceRequestUri
@@ -154,6 +155,7 @@ export class PopTokenGenerator {
                 ...claims,
             },
             keyId,
+            shrOptions,
             request.correlationId
         );
     }
