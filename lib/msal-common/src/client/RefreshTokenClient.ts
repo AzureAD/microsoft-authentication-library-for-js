@@ -202,7 +202,13 @@ export class RefreshTokenClient extends BaseClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request.account, foci);
+        )(
+            request.account,
+            foci,
+            undefined,
+            this.performanceClient,
+            request.correlationId
+        );
 
         if (!refreshToken) {
             throw createInteractionRequiredAuthError(

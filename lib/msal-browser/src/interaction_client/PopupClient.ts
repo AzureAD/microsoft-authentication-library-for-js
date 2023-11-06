@@ -11,15 +11,15 @@ import {
     UrlString,
     AuthError,
     OIDC_DEFAULT_SCOPES,
-    Constants,
     ProtocolUtils,
-    ServerAuthorizationCodeResponse,
     PerformanceEvents,
     IPerformanceClient,
     Logger,
     ICrypto,
     ProtocolMode,
     ServerResponseType,
+    invokeAsync,
+    invoke,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { EventType } from "../event/EventType";
@@ -46,6 +46,7 @@ import { InteractionHandler } from "../interaction_handler/InteractionHandler";
 import { PopupWindowAttributes } from "../request/PopupWindowAttributes";
 import { EventError } from "../event/EventMessage";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import * as ResponseHandler from "../response/ResponseHandler";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -200,37 +201,39 @@ export class PopupClient extends StandardInteractionClient {
             ApiId.acquireTokenPopup
         );
 
-        this.performanceClient.setPreQueueTime(
+        const validRequest = await invokeAsync(
+            this.initializeAuthorizationRequest.bind(this),
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-            request.correlationId
-        );
-        const validRequest = await this.initializeAuthorizationRequest(
-            request,
-            InteractionType.Popup
-        );
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(request, InteractionType.Popup);
+
         BrowserUtils.preconnect(validRequest.authority);
 
         try {
             // Create auth code request and generate PKCE params
-            this.performanceClient.setPreQueueTime(
-                PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                request.correlationId
-            );
             const authCodeRequest: CommonAuthorizationCodeRequest =
-                await this.initializeAuthorizationCodeRequest(validRequest);
+                await invokeAsync(
+                    this.initializeAuthorizationCodeRequest.bind(this),
+                    PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
+                    this.logger,
+                    this.performanceClient,
+                    this.correlationId
+                )(validRequest);
 
             // Initialize the client
-            this.performanceClient.setPreQueueTime(
+            const authClient: AuthorizationCodeClient = await invokeAsync(
+                this.createAuthCodeClient.bind(this),
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-                request.correlationId
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
+                serverTelemetryManager,
+                validRequest.authority,
+                validRequest.azureCloudOptions
             );
-            const authClient: AuthorizationCodeClient =
-                await this.createAuthCodeClient(
-                    serverTelemetryManager,
-                    validRequest.authority,
-                    validRequest.azureCloudOptions
-                );
-            this.logger.verbose("Auth code client created");
 
             const isNativeBroker = NativeMessageHandler.isNativeAvailable(
                 this.config,
@@ -281,10 +284,19 @@ export class PopupClient extends StandardInteractionClient {
             );
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const hash = await this.monitorPopupForHash(popupWindow);
-            // Deserialize hash fragment response parameters.
-            const serverParams: ServerAuthorizationCodeResponse =
-                UrlString.getDeserializedHash(hash);
+            const responseString = await this.monitorPopupForHash(popupWindow);
+
+            const serverParams = invoke(
+                ResponseHandler.deserializeResponse,
+                PerformanceEvents.DeserializeResponse,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
+                responseString,
+                this.config.auth.OIDCOptions.serverResponseType,
+                this.logger
+            );
             // Remove throttle if it exists
             ThrottlingUtils.removeThrottle(
                 this.browserStorage,
@@ -335,8 +347,8 @@ export class PopupClient extends StandardInteractionClient {
             }
 
             // Handle response from hash string.
-            const result = await interactionHandler.handleCodeResponseFromHash(
-                hash,
+            const result = await interactionHandler.handleCodeResponse(
+                serverParams,
                 validRequest
             );
 
@@ -388,15 +400,13 @@ export class PopupClient extends StandardInteractionClient {
             await this.clearCacheOnLogout(validRequest.account);
 
             // Initialize the client
-            this.performanceClient.setPreQueueTime(
+            const authClient = await invokeAsync(
+                this.createAuthCodeClient.bind(this),
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-                validRequest.correlationId
-            );
-            const authClient = await this.createAuthCodeClient(
-                serverTelemetryManager,
-                requestAuthority
-            );
-            this.logger.verbose("Auth code client created");
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(serverTelemetryManager, requestAuthority);
 
             try {
                 authClient.authority.endSessionEndpoint;
@@ -463,7 +473,9 @@ export class PopupClient extends StandardInteractionClient {
                 null
             );
 
-            await this.waitForLogoutPopup(popupWindow);
+            await this.monitorPopupForHash(popupWindow).catch(() => {
+                // Swallow any errors related to monitoring the window. Server logout is best effort
+            });
 
             if (mainWindowRedirectUri) {
                 const navigationOptions: NavigationOptions = {
@@ -544,16 +556,7 @@ export class PopupClient extends StandardInteractionClient {
      * @param timeout - timeout for processing hash once popup is redirected back to application
      */
     monitorPopupForHash(popupWindow: Window): Promise<string> {
-        return new Promise((resolve, reject) => {
-            /*
-             * Polling for popups needs to be tick-based,
-             * since a non-trivial amount of time can be spent on interaction (which should not count against the timeout).
-             */
-            const maxTicks =
-                this.config.system.windowHashTimeout /
-                this.config.system.pollIntervalMilliseconds;
-            let ticks = 0;
-
+        return new Promise<string>((resolve, reject) => {
             this.logger.verbose(
                 "PopupHandler.monitorPopupForHash - polling started"
             );
@@ -564,7 +567,6 @@ export class PopupClient extends StandardInteractionClient {
                     this.logger.error(
                         "PopupHandler.monitorPopupForHash - window closed"
                     );
-                    this.cleanPopup();
                     clearInterval(intervalId);
                     reject(
                         createBrowserAuthError(
@@ -574,8 +576,7 @@ export class PopupClient extends StandardInteractionClient {
                     return;
                 }
 
-                let href = Constants.EMPTY_STRING;
-                let serverResponseString = Constants.EMPTY_STRING;
+                let href = "";
                 try {
                     /*
                      * Will throw if cross origin,
@@ -583,117 +584,33 @@ export class PopupClient extends StandardInteractionClient {
                      * since we need the interval to keep running while on STS UI.
                      */
                     href = popupWindow.location.href;
-                    serverResponseString =
-                        this.extractServerResponseStringFromPopup(
-                            popupWindow,
-                            href
-                        );
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain
                 if (!href || href === "about:blank") {
                     return;
+                }
+                clearInterval(intervalId);
+
+                let responseString = "";
+                const responseType =
+                    this.config.auth.OIDCOptions.serverResponseType;
+                if (popupWindow) {
+                    if (responseType === ServerResponseType.QUERY) {
+                        responseString = popupWindow.location.search;
+                    } else {
+                        responseString = popupWindow.location.hash;
+                    }
                 }
 
                 this.logger.verbose(
                     "PopupHandler.monitorPopupForHash - popup window is on same origin as caller"
                 );
 
-                /*
-                 * Only run clock when we are on same domain for popups
-                 * as popup operations can take a long time.
-                 */
-                ticks++;
-
-                if (serverResponseString) {
-                    this.logger.verbose(
-                        "PopupHandler.monitorPopupForHash - found hash in url"
-                    );
-                    clearInterval(intervalId);
-                    this.cleanPopup(popupWindow);
-
-                    if (
-                        UrlString.hashContainsKnownProperties(
-                            serverResponseString
-                        )
-                    ) {
-                        this.logger.verbose(
-                            "PopupHandler.monitorPopupForHash - hash contains known properties, returning."
-                        );
-                        resolve(serverResponseString);
-                    } else {
-                        this.logger.error(
-                            "PopupHandler.monitorPopupForHash - found hash in url but it does not contain known properties. Check that your router is not changing the hash prematurely."
-                        );
-                        this.logger.errorPii(
-                            `PopupHandler.monitorPopupForHash - hash found: ${serverResponseString}`
-                        );
-                        reject(
-                            createBrowserAuthError(
-                                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-                            )
-                        );
-                    }
-                } else if (ticks > maxTicks) {
-                    this.logger.error(
-                        "PopupHandler.monitorPopupForHash - unable to find hash in url, timing out"
-                    );
-                    clearInterval(intervalId);
-                    reject(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.monitorPopupTimeout
-                        )
-                    );
-                }
+                resolve(responseString);
             }, this.config.system.pollIntervalMilliseconds);
-        });
-    }
-
-    /**
-     * Waits for user interaction in logout popup window
-     * @param popupWindow
-     * @returns
-     */
-    waitForLogoutPopup(popupWindow: Window): Promise<void> {
-        return new Promise((resolve) => {
-            this.logger.verbose(
-                "PopupHandler.waitForLogoutPopup - polling started"
-            );
-
-            const intervalId = setInterval(() => {
-                // Window is closed
-                if (popupWindow.closed) {
-                    this.logger.error(
-                        "PopupHandler.waitForLogoutPopup - window closed"
-                    );
-                    this.cleanPopup();
-                    clearInterval(intervalId);
-                    resolve();
-                }
-
-                let href: string = Constants.EMPTY_STRING;
-                try {
-                    /*
-                     * Will throw if cross origin,
-                     * which should be caught and ignored
-                     * since we need the interval to keep running while on STS UI.
-                     */
-                    href = popupWindow.location.href;
-                } catch (e) {}
-
-                // Don't process blank pages or cross domain
-                if (!href || href === "about:blank") {
-                    return;
-                }
-
-                this.logger.verbose(
-                    "PopupHandler.waitForLogoutPopup - popup window is on same origin as caller, closing."
-                );
-
-                clearInterval(intervalId);
-                this.cleanPopup(popupWindow);
-                resolve();
-            }, this.config.system.pollIntervalMilliseconds);
+        }).finally(() => {
+            this.cleanPopup(popupWindow);
         });
     }
 
@@ -882,24 +799,5 @@ export class PopupClient extends StandardInteractionClient {
     generateLogoutPopupName(request: CommonEndSessionRequest): string {
         const homeAccountId = request.account && request.account.homeAccountId;
         return `${BrowserConstants.POPUP_NAME_PREFIX}.${this.config.auth.clientId}.${homeAccountId}.${this.correlationId}`;
-    }
-
-    /**
-     * Extracts the server response from the popup window
-     */
-    extractServerResponseStringFromPopup(
-        popupWindow: Window,
-        href: string
-    ): string {
-        let serverResponseString;
-        if (
-            this.config.auth.OIDCOptions?.serverResponseType ===
-            ServerResponseType.QUERY
-        ) {
-            serverResponseString = UrlString.parseQueryServerResponse(href);
-        } else {
-            serverResponseString = popupWindow.location.hash;
-        }
-        return serverResponseString;
     }
 }

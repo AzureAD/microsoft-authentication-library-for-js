@@ -171,7 +171,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param hashFragment
      */
     handleFragmentResponse(
-        hashFragment: string,
+        serverParams: ServerAuthorizationCodeResponse,
         cachedState: string
     ): AuthorizationCodePayload {
         // Handle responses.
@@ -183,13 +183,6 @@ export class AuthorizationCodeClient extends BaseClient {
             null,
             null
         );
-
-        const serverParams: ServerAuthorizationCodeResponse =
-            UrlString.getDeserializedCodeResponse(
-                this.config.authOptions.authority.options.OIDCOptions
-                    ?.serverResponseType,
-                hashFragment
-            );
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
@@ -203,11 +196,8 @@ export class AuthorizationCodeClient extends BaseClient {
                 ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
             );
         }
-        return {
-            ...serverParams,
-            // Code param is optional in ServerAuthorizationCodeResponse but required in AuthorizationCodePaylod
-            code: serverParams.code,
-        };
+
+        return serverParams as AuthorizationCodePayload;
     }
 
     /**

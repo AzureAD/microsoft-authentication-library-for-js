@@ -2,6 +2,35 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 30 Oct 2023 21:38:25 GMT",
+      "version": "14.3.0",
+      "tag": "@azure/msal-common_v14.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5f49a5e39a6d0d5ae319c7a21ed18d06d8a6fd51",
+            "comment": "Refactor token cache entities to be defined as Types rather than Classes #6580"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3e4c956c57e1476632cab77832493d4d0c51470b",
+            "comment": "Don't use temporary cache for silent & popup flows #6586"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c93777ed04311851fe2a7028bb5d86e073c98f52",
+            "comment": "Fix hardcoded metadata fetching for tenanted authorities #6622"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Oct 2023 17:24:19 GMT",
       "version": "14.2.0",
       "tag": "@azure/msal-common_v14.2.0",

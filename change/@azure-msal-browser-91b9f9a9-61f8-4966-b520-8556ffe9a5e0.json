@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Generate one correlation id across a flow #6650",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -18,6 +18,7 @@ import {
     Constants,
     CacheRecord,
     TokenClaims,
+    CacheHelpers,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
@@ -294,7 +295,7 @@ export class TokenCache implements ITokenCache {
         environment: string,
         tenantId: string
     ): IdTokenEntity {
-        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+        const idTokenEntity = CacheHelpers.createIdTokenEntity(
             homeAccountId,
             environment,
             idToken,
@@ -355,7 +356,7 @@ export class TokenCache implements ITokenCache {
             response.expires_in + new Date().getTime() / 1000;
         const extendedExpiresOn = options.extendedExpiresOn;
 
-        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+        const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
             homeAccountId,
             environment,
             response.access_token,
@@ -364,7 +365,7 @@ export class TokenCache implements ITokenCache {
             scopes,
             expiresOn,
             extendedExpiresOn,
-            this.cryptoObj
+            base64Decode
         );
 
         if (this.isBrowserEnvironment) {
@@ -399,7 +400,7 @@ export class TokenCache implements ITokenCache {
             return null;
         }
 
-        const refreshTokenEntity = RefreshTokenEntity.createRefreshTokenEntity(
+        const refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
             homeAccountId,
             environment,
             response.refresh_token,

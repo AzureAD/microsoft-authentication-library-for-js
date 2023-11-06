@@ -12,7 +12,6 @@ import {
     AuthorityOptions,
     Authority,
     AuthorityFactory,
-    ServerAuthorizationCodeResponse,
     UrlString,
     CommonEndSessionRequest,
     ProtocolUtils,
@@ -28,14 +27,7 @@ import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
-import {
-    createBrowserAuthError,
-    BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import {
-    BrowserProtocolUtils,
-    BrowserStateObject,
-} from "../utils/BrowserProtocolUtils";
+import { BrowserStateObject } from "../utils/BrowserProtocolUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import * as BrowserUtils from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
@@ -57,7 +49,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     ): Promise<CommonAuthorizationCodeRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            request.correlationId
+            this.correlationId
         );
         const generatedPkceParams = await invokeAsync(
             generatePkceCodes,
@@ -292,44 +284,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             },
             telemetry: this.config.telemetry,
         };
-    }
-
-    /**
-     * @param hash
-     * @param interactionType
-     */
-    protected validateAndExtractStateFromHash(
-        serverParams: ServerAuthorizationCodeResponse,
-        interactionType: InteractionType,
-        requestCorrelationId?: string
-    ): string {
-        this.logger.verbose(
-            "validateAndExtractStateFromHash called",
-            requestCorrelationId
-        );
-        if (!serverParams.state) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
-        }
-
-        const platformStateObj =
-            BrowserProtocolUtils.extractBrowserRequestState(
-                this.browserCrypto,
-                serverParams.state
-            );
-        if (!platformStateObj) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToParseState
-            );
-        }
-
-        if (platformStateObj.interactionType !== interactionType) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.stateInteractionTypeMismatch
-            );
-        }
-
-        this.logger.verbose("Returning state from hash", requestCorrelationId);
-        return serverParams.state;
     }
 
     /**

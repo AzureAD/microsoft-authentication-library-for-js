@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Don't use temporary cache for silent & popup flows #6586",
+  "type": "minor",
+  "comment": "Update hash/query parsing to use runtime provided APIs #6646",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

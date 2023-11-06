@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, LoggerOptions, IPerformanceClient } from "@azure/msal-common";
+import {
+    Logger,
+    LoggerOptions,
+    IPerformanceClient,
+    ServerResponseType,
+} from "@azure/msal-common";
 import * as SilentHandler from "../../src/interaction_handler/SilentHandler";
 import { testNavUrl, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import {
@@ -111,7 +116,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 DEFAULT_POLL_INTERVAL_MS,
                 performanceClient,
                 browserRequestLogger,
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
+                ServerResponseType.FRAGMENT
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
@@ -142,7 +148,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 DEFAULT_POLL_INTERVAL_MS,
                 performanceClient,
                 browserRequestLogger,
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
+                ServerResponseType.FRAGMENT
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
@@ -194,7 +201,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 DEFAULT_POLL_INTERVAL_MS,
                 performanceClient,
                 browserRequestLogger,
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
+                ServerResponseType.FRAGMENT
             ).then((hash: string) => {
                 expect(hash).toEqual("#code=hello");
                 done();

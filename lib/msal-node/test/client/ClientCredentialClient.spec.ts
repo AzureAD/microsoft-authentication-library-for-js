@@ -15,6 +15,7 @@ import {
     TimeUtils,
     createClientAuthError,
     ClientAuthErrorCodes,
+    CacheHelpers,
 } from "@azure/msal-common";
 import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
 import {
@@ -645,7 +646,7 @@ describe("ClientCredentialClient unit tests", () => {
         const client = new ClientCredentialClient(config);
 
         const expectedAtEntity: AccessTokenEntity =
-            AccessTokenEntity.createAccessTokenEntity(
+            CacheHelpers.createAccessTokenEntity(
                 "",
                 "login.microsoftonline.com",
                 "an_access_token",
@@ -654,7 +655,7 @@ describe("ClientCredentialClient unit tests", () => {
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
                 4600,
                 4600,
-                mockCrypto,
+                mockCrypto.base64Decode,
                 undefined,
                 AuthenticationScheme.BEARER
             );
@@ -708,7 +709,7 @@ describe("ClientCredentialClient unit tests", () => {
         };
 
         const expectedAtEntity: AccessTokenEntity =
-            AccessTokenEntity.createAccessTokenEntity(
+            CacheHelpers.createAccessTokenEntity(
                 "",
                 "login.microsoftonline.com",
                 "an_access_token",
@@ -717,7 +718,7 @@ describe("ClientCredentialClient unit tests", () => {
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
                 TimeUtils.nowSeconds() + 4600,
                 TimeUtils.nowSeconds() + 4600,
-                mockCrypto,
+                mockCrypto.base64Decode,
                 TimeUtils.nowSeconds() - 4600, // expired refreshOn value
                 AuthenticationScheme.BEARER
             );
@@ -872,7 +873,7 @@ describe("ClientCredentialClient unit tests", () => {
 
         // mock access token
         const mockedAtEntity: AccessTokenEntity =
-            AccessTokenEntity.createAccessTokenEntity(
+            CacheHelpers.createAccessTokenEntity(
                 "",
                 "login.microsoftonline.com",
                 "an_access_token",
@@ -881,14 +882,14 @@ describe("ClientCredentialClient unit tests", () => {
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
                 4600,
                 4600,
-                mockCrypto,
+                mockCrypto.base64Decode,
                 undefined,
                 AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
             );
 
         const mockedAtEntity2: AccessTokenEntity =
-            AccessTokenEntity.createAccessTokenEntity(
+            CacheHelpers.createAccessTokenEntity(
                 "",
                 "login.microsoftonline.com",
                 "an_access_token",
@@ -897,7 +898,7 @@ describe("ClientCredentialClient unit tests", () => {
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
                 4600,
                 4600,
-                mockCrypto,
+                mockCrypto.base64Decode,
                 undefined,
                 AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN

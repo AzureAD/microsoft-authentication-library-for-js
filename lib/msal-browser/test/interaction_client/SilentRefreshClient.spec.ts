@@ -24,6 +24,7 @@ import {
     NetworkManager,
     RefreshTokenEntity,
     AccountEntity,
+    CredentialType,
 } from "@azure/msal-common";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import {
@@ -155,8 +156,14 @@ describe("SilentRefreshClient", () => {
 
         describe("storeInCache tests", () => {
             beforeEach(() => {
-                const rtEntity = new RefreshTokenEntity();
-                rtEntity.secret = TEST_TOKEN_RESPONSE.body.refresh_token!;
+                const rtEntity = {
+                    secret: TEST_TOKENS.REFRESH_TOKEN,
+                    credentialType: CredentialType.REFRESH_TOKEN,
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: "login.windows.net",
+                    realm: testIdTokenClaims.tid || "",
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                };
                 const accountEntity = new AccountEntity();
                 jest.spyOn(
                     BrowserCacheManager.prototype,

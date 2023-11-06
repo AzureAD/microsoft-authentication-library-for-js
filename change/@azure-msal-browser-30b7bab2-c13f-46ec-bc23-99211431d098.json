@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Don't use temporary cache for silent & popup flows #6586",
+  "comment": "Optimize response parsing & address bugs related to query response type #6646",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
