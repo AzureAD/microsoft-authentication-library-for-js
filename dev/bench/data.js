@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1699134489350,
+  "lastUpdate": 1699301090518,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2622,6 +2622,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.07%",
             "unit": "ops/sec",
             "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "619e10fe4ffb23060137150cd93c954cc2ca05ae",
+          "message": "Optimize response parsing (#6646)\n\nThis PR optimizes response fragment/query parsing by:\r\n- ensuring it only happens once (today /authorize responses are parsed\r\nat least twice and up to 3 times in a single request)\r\n- using APIs provided by the browser/node runtime rather than our own,\r\nslower, implementation\r\n- ensuring we correctly extract the fragment or query depending on what\r\nwas configured by OIDCOptions (there are bugs related to this today)\r\n- renames references to \"hash\" to \"response\" to reflect the fact that it\r\ncan come from either the hash or query\r\n- removes popup timeout logic which only started counting once the popup\r\nreturned to the redirectUri. We should consider implementing a timeout\r\nfor the entire operation but this may be a breaking change so left that\r\nout of scope for this PR.",
+          "timestamp": "2023-11-06T11:59:39-08:00",
+          "tree_id": "96bea9f86f016b615d8ff1f09ff5a7034816ab2b",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/619e10fe4ffb23060137150cd93c954cc2ca05ae"
+        },
+        "date": 1699301088687,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 187555,
+            "range": "±2.29%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 197712,
+            "range": "±1.91%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
