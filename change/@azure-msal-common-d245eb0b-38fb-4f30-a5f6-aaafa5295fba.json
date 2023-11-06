@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update hash/query parsing to use runtime provided APIs #6646",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

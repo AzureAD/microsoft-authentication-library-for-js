@@ -358,32 +358,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
     });
 
-    describe("handleCodeResponseFromHash()", () => {
-        it("throws error if given hash is empty", () => {
-            const redirectHandler = new RedirectHandler(
-                authCodeModule,
-                browserStorage,
-                defaultTokenRequest,
-                browserRequestLogger,
-                performanceClient
-            );
-            expect(
-                redirectHandler.handleCodeResponseFromHash("", "")
-            ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
-            );
-            //@ts-ignore
-            expect(
-                redirectHandler.handleCodeResponseFromHash(
-                    //@ts-ignore
-                    null,
-                    ""
-                )
-            ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
-            );
-        });
-
+    describe("handleCodeResponse()", () => {
         it("successfully handles response", async () => {
             const idTokenClaims = {
                 ver: "2.0",
@@ -476,11 +451,13 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserRequestLogger,
                 performanceClient
             );
-            const tokenResponse =
-                await redirectHandler.handleCodeResponseFromHash(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                );
+            const tokenResponse = await redirectHandler.handleCodeResponse(
+                {
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                },
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 browserStorage.getTemporaryCache(
@@ -597,11 +574,13 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserRequestLogger,
                 performanceClient
             );
-            const tokenResponse =
-                await redirectHandler.handleCodeResponseFromHash(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                );
+            const tokenResponse = await redirectHandler.handleCodeResponse(
+                {
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                },
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 browserStorage.getTemporaryCache(

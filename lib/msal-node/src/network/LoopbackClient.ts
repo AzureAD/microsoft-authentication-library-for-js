@@ -6,8 +6,8 @@
 import {
     Constants as CommonConstants,
     ServerAuthorizationCodeResponse,
-    UrlString,
     HttpStatus,
+    UrlUtils,
 } from "@azure/msal-common";
 import http from "http";
 import { NodeAuthError } from "../error/NodeAuthError.js";
@@ -53,10 +53,13 @@ export class LoopbackClient implements ILoopbackClient {
                             return;
                         }
 
+                        const redirectUri = this.getRedirectUri();
+                        const parsedUrl = new URL(url, redirectUri);
                         const authCodeResponse =
-                            UrlString.getDeserializedQueryString(url);
+                            UrlUtils.getDeserializedResponse(
+                                parsedUrl.search
+                            ) || {};
                         if (authCodeResponse.code) {
-                            const redirectUri = this.getRedirectUri();
                             res.writeHead(HttpStatus.REDIRECT, {
                                 location: redirectUri,
                             }); // Prevent auth code from being saved in the browser history

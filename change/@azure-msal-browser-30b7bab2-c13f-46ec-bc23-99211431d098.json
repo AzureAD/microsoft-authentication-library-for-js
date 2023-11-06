@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Optimize response parsing & address bugs related to query response type #6646",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

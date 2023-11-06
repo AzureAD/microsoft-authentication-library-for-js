@@ -44,6 +44,7 @@ import {
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
 import {
+    AuthError,
     CcsCredentialType,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
@@ -1112,55 +1113,18 @@ describe("AuthorizationCodeClient unit tests", () => {
 
     describe("handleFragmentResponse()", () => {
         it("returns valid server code response", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            if (!config.cryptoInterface) {
-                throw TestError.createTestSetupError(
-                    "configuration crypto interface not initialized correctly."
-                );
-            }
-            const testSuccessHash = `#code=thisIsATestCode&client_info=${
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
-            }&state=${encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE)}`;
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        default:
-                            return input;
-                    }
-                });
-
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        default:
-                            return input;
-                    }
-                });
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(
                 config
             );
             const authCodePayload = client.handleFragmentResponse(
-                testSuccessHash,
+                {
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                },
                 TEST_STATE_VALUES.ENCODED_LIB_STATE
             );
             expect(authCodePayload.code).toBe("thisIsATestCode");
@@ -1170,9 +1134,6 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("throws server error when error is in hash", async () => {
-            const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${encodeURIComponent(
-                TEST_STATE_VALUES.ENCODED_LIB_STATE
-            )}`;
             sinon
                 .stub(
                     Authority.prototype,
@@ -1186,21 +1147,23 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const cacheStorageMock =
                 config.storageInterface as MockStorageClass;
-            expect(() =>
-                client.handleFragmentResponse(
-                    testErrorHash,
-                    TEST_STATE_VALUES.ENCODED_LIB_STATE
-                )
-            ).toThrowError("msal error description");
-            expect(cacheStorageMock.getKeys().length).toBe(1);
-            expect(cacheStorageMock.getAuthorityMetadataKeys().length).toBe(1);
 
-            expect(() =>
+            let error: AuthError | null = null;
+            try {
                 client.handleFragmentResponse(
-                    testErrorHash,
+                    {
+                        error: "error_code",
+                        error_description: "msal error description",
+                        state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                    },
                     TEST_STATE_VALUES.ENCODED_LIB_STATE
-                )
-            ).toThrowError(ServerError);
+                );
+            } catch (e) {
+                error = e as AuthError;
+            }
+            expect(error).toBeInstanceOf(ServerError);
+            expect(error?.errorCode).toEqual("error_code");
+            expect(error?.errorMessage).toEqual("msal error description");
             expect(cacheStorageMock.getKeys().length).toBe(1);
             expect(cacheStorageMock.getAuthorityMetadataKeys().length).toBe(1);
         });
