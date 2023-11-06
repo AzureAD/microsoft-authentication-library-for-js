@@ -572,10 +572,7 @@ describe("PopupClient", () => {
                 .stub(PopupClient.prototype, "monitorPopupForHash")
                 .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
             sinon
-                .stub(
-                    InteractionHandler.prototype,
-                    "handleCodeResponseFromHash"
-                )
+                .stub(InteractionHandler.prototype, "handleCodeResponse")
                 .resolves(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,

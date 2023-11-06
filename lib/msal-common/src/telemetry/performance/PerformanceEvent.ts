@@ -208,7 +208,7 @@ export const PerformanceEvents = {
      * Functions from InteractionHandler (msal-browser)
      */
     HandleCodeResponseFromServer: "handleCodeResponseFromServer",
-    HandleCodeResponseFromHash: "handleCodeResponseFromHash",
+    HandleCodeResponse: "handleCodeResponse",
     UpdateTokenEndpointAuthority: "updateTokenEndpointAuthority",
 
     /**

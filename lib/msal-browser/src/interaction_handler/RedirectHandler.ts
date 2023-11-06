@@ -142,7 +142,7 @@ export class RedirectHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponseFromHash(
+    async handleCodeResponse(
         response: ServerAuthorizationCodeResponse,
         state: string
     ): Promise<AuthenticationResult> {

@@ -9,6 +9,7 @@ import {
     JoseHeader,
     Logger,
     PerformanceEvents,
+    ShrOptions,
     SignedHttpRequest,
     SignedHttpRequestParameters,
 } from "@azure/msal-common";
@@ -161,6 +162,7 @@ export class CryptoOps implements ICrypto {
     async signJwt(
         payload: SignedHttpRequest,
         kid: string,
+        shrOptions?: ShrOptions,
         correlationId?: string
     ): Promise<string> {
         const signJwtMeasurement = this.performanceClient?.startMeasurement(
@@ -180,15 +182,15 @@ export class CryptoOps implements ICrypto {
             cachedKeyPair.publicKey
         );
         const publicKeyJwkString = getSortedObjectString(publicKeyJwk);
-
         // Base64URL encode public key thumbprint with keyId only: BASE64URL({ kid: "FULL_PUBLIC_KEY_HASH" })
         const encodedKeyIdThumbprint = urlEncode(JSON.stringify({ kid: kid }));
-
         // Generate header
         const shrHeader = JoseHeader.getShrHeaderString({
-            kid: encodedKeyIdThumbprint,
+            ...shrOptions?.header,
             alg: publicKeyJwk.alg,
+            kid: encodedKeyIdThumbprint,
         });
+
         const encodedShrHeader = urlEncode(shrHeader);
 
         // Generate payload

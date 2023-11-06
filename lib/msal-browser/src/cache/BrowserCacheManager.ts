@@ -882,12 +882,12 @@ export class BrowserCacheManager extends CacheManager {
             );
             return null;
         }
-        const parsedMetadata = this.validateAndParseJson(value);
+        const parsedEntity = this.validateAndParseJson(value);
         if (
-            !parsedMetadata ||
-            !ServerTelemetryEntity.isServerTelemetryEntity(
+            !parsedEntity ||
+            !CacheHelpers.isServerTelemetryEntity(
                 serverTelemetryKey,
-                parsedMetadata
+                parsedEntity
             )
         ) {
             this.logger.trace(
@@ -897,10 +897,7 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         this.logger.trace("BrowserCacheManager.getServerTelemetry: cache hit");
-        return CacheManager.toObject(
-            new ServerTelemetryEntity(),
-            parsedMetadata
-        );
+        return parsedEntity as ServerTelemetryEntity;
     }
 
     /**

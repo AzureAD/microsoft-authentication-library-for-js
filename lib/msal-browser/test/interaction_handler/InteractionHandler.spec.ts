@@ -382,7 +382,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
         });
     });
 
-    describe("handleCodeResponseFromHash()", () => {
+    describe("handleCodeResponse()", () => {
         // TODO: Need to improve these tests
         it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
             const idTokenClaims = {
@@ -474,22 +474,21 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 browserStorage
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
-            const tokenResponse =
-                await interactionHandler.handleCodeResponseFromHash(
-                    {
-                        code: "authCode",
-                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    },
-                    {
-                        authority: "https://www.contoso.com/common/",
-                        scopes: ["User.Read"],
-                        correlationId: TEST_CONFIG.CORRELATION_ID,
-                        redirectUri: "/",
-                        responseMode: "fragment",
-                        nonce: TEST_CONFIG.CORRELATION_ID,
-                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    }
-                );
+            const tokenResponse = await interactionHandler.handleCodeResponse(
+                {
+                    code: "authCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                },
+                {
+                    authority: "https://www.contoso.com/common/",
+                    scopes: ["User.Read"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: "/",
+                    responseMode: "fragment",
+                    nonce: TEST_CONFIG.CORRELATION_ID,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                }
+            );
             expect(
                 updateAuthoritySpy.calledWith(
                     "contoso.com",
@@ -605,22 +604,21 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 browserStorage
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
-            const tokenResponse =
-                await interactionHandler.handleCodeResponseFromHash(
-                    {
-                        code: "authCode",
-                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    },
-                    {
-                        authority: "https://www.contoso.com/common/",
-                        scopes: ["User.Read"],
-                        correlationId: TEST_CONFIG.CORRELATION_ID,
-                        redirectUri: "/",
-                        responseMode: "fragment",
-                        nonce: TEST_CONFIG.CORRELATION_ID,
-                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    }
-                );
+            const tokenResponse = await interactionHandler.handleCodeResponse(
+                {
+                    code: "authCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                },
+                {
+                    authority: "https://www.contoso.com/common/",
+                    scopes: ["User.Read"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: "/",
+                    responseMode: "fragment",
+                    nonce: TEST_CONFIG.CORRELATION_ID,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                }
+            );
             expect(
                 updateAuthoritySpy.calledWith(
                     "contoso.com",
