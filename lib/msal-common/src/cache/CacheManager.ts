@@ -48,6 +48,7 @@ import { getTenantFromAuthorityString } from "../authority/Authority";
 import { getAliasesFromStaticSources } from "../authority/AuthorityMetadata";
 import { StaticAuthorityOptions } from "../authority/AuthorityOptions";
 import { TokenClaims } from "../account/TokenClaims";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -948,16 +949,18 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve the cached credentials into a cacherecord
-     * @param account
-     * @param clientId
-     * @param scopes
-     * @param environment
-     * @param authScheme
+     * @param account {AccountInfo}
+     * @param request {BaseAuthRequest}
+     * @param environment {string}
+     * @param performanceClient {?IPerformanceClient}
+     * @param correlationId {?string}
      */
     readCacheRecord(
         account: AccountInfo,
         request: BaseAuthRequest,
-        environment: string
+        environment: string,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): CacheRecord {
         // Use authority tenantId for cache lookup filter if it's defined, otherwise use tenantId from account passed in
         const requestTenantId =
@@ -968,18 +971,24 @@ export abstract class CacheManager implements ICacheManager {
         const cachedIdToken = this.getIdToken(
             account,
             tokenKeys,
-            requestTenantId
+            requestTenantId,
+            performanceClient,
+            correlationId
         );
         const cachedAccessToken = this.getAccessToken(
             account,
             request,
             tokenKeys,
-            requestTenantId
+            requestTenantId,
+            performanceClient,
+            correlationId
         );
         const cachedRefreshToken = this.getRefreshToken(
             account,
             false,
-            tokenKeys
+            tokenKeys,
+            performanceClient,
+            correlationId
         );
         const cachedAppMetadata = this.readAppMetadataFromCache(environment);
 
@@ -1004,14 +1013,18 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve IdTokenEntity from cache
-     * @param clientId
-     * @param account
-     * @param inputRealm
+     * @param account {AccountInfo}
+     * @param tokenKeys {?TokenKeys}
+     * @param targetRealm {?string}
+     * @param performanceClient {?IPerformanceClient}
+     * @param correlationId {?string}
      */
     getIdToken(
         account: AccountInfo,
         tokenKeys?: TokenKeys,
-        targetRealm?: string
+        targetRealm?: string,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): IdTokenEntity | null {
         this.commonLogger.trace("CacheManager - getIdToken called");
         const idTokenFilter: CredentialFilter = {
@@ -1068,6 +1081,12 @@ export abstract class CacheManager implements ICacheManager {
             tokensToBeRemoved.forEach((idToken, key) => {
                 this.removeIdToken(key);
             });
+            if (performanceClient && correlationId) {
+                performanceClient.addFields(
+                    { multiMatchedID: idTokenMap.size },
+                    correlationId
+                );
+            }
             return null;
         }
 
@@ -1155,16 +1174,19 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve AccessTokenEntity from cache
-     * @param clientId
-     * @param account
-     * @param scopes
-     * @param authScheme
+     * @param account {AccountInfo}
+     * @param request {BaseAuthRequest}
+     * @param tokenKeys {?TokenKeys}
+     * @param performanceClient {?IPerformanceClient}
+     * @param correlationId {?string}
      */
     getAccessToken(
         account: AccountInfo,
         request: BaseAuthRequest,
         tokenKeys?: TokenKeys,
-        targetRealm?: string
+        targetRealm?: string,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): AccessTokenEntity | null {
         this.commonLogger.trace("CacheManager - getAccessToken called");
         const scopes = ScopeSet.createSearchScopes(request.scopes);
@@ -1228,6 +1250,12 @@ export abstract class CacheManager implements ICacheManager {
             accessTokens.forEach((accessToken) => {
                 void this.removeAccessToken(generateCredentialKey(accessToken));
             });
+            if (performanceClient && correlationId) {
+                performanceClient.addFields(
+                    { multiMatchedAT: accessTokens.length },
+                    correlationId
+                );
+            }
             return null;
         }
 
@@ -1325,14 +1353,18 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Helper to retrieve the appropriate refresh token from cache
-     * @param clientId
-     * @param account
-     * @param familyRT
+     * @param account {AccountInfo}
+     * @param familyRT {boolean}
+     * @param tokenKeys {?TokenKeys}
+     * @param performanceClient {?IPerformanceClient}
+     * @param correlationId {?string}
      */
     getRefreshToken(
         account: AccountInfo,
         familyRT: boolean,
-        tokenKeys?: TokenKeys
+        tokenKeys?: TokenKeys,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): RefreshTokenEntity | null {
         this.commonLogger.trace("CacheManager - getRefreshToken called");
         const id = familyRT ? THE_FAMILY_ID : undefined;
@@ -1374,6 +1406,13 @@ export abstract class CacheManager implements ICacheManager {
             return null;
         }
         // address the else case after remove functions address environment aliases
+
+        if (numRefreshTokens > 1 && performanceClient && correlationId) {
+            performanceClient.addFields(
+                { multiMatchedRT: numRefreshTokens },
+                correlationId
+            );
+        }
 
         this.commonLogger.info(
             "CacheManager:getRefreshToken - returning refresh token"

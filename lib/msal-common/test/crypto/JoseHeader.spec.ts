@@ -3,7 +3,7 @@ import {
     JoseHeaderErrorCodes,
     JoseHeaderErrorMessages,
 } from "../../src/error/JoseHeaderError";
-import { JsonTypes } from "../../src/utils/Constants";
+import { JsonWebTokenTypes } from "../../src/utils/Constants";
 import {
     TEST_CRYPTO_ALGORITHMS,
     TEST_POP_VALUES,
@@ -15,10 +15,23 @@ describe("JoseHeader.ts Unit Tests", () => {
             const shrHeaderString = JoseHeader.getShrHeaderString({
                 alg: TEST_CRYPTO_ALGORITHMS.rsa,
                 kid: TEST_POP_VALUES.KID,
+                typ: JsonWebTokenTypes.Pop,
             });
 
             expect(shrHeaderString).toBe(
-                `{"typ":"${JsonTypes.Pop}","alg":"${TEST_CRYPTO_ALGORITHMS.rsa}","kid":"${TEST_POP_VALUES.KID}"}`
+                `{"typ":"${JsonWebTokenTypes.Pop}","alg":"${TEST_CRYPTO_ALGORITHMS.rsa}","kid":"${TEST_POP_VALUES.KID}"}`
+            );
+        });
+
+        it("should override the typ header if provided", () => {
+            const shrHeaderString = JoseHeader.getShrHeaderString({
+                alg: TEST_CRYPTO_ALGORITHMS.rsa,
+                kid: TEST_POP_VALUES.KID,
+                typ: JsonWebTokenTypes.Jwt,
+            });
+
+            expect(shrHeaderString).toBe(
+                `{"typ":"${JsonWebTokenTypes.Jwt}","alg":"${TEST_CRYPTO_ALGORITHMS.rsa}","kid":"${TEST_POP_VALUES.KID}"}`
             );
         });
 
@@ -26,15 +39,19 @@ describe("JoseHeader.ts Unit Tests", () => {
             expect(() =>
                 JoseHeader.getShrHeaderString({
                     alg: TEST_CRYPTO_ALGORITHMS.rsa,
+                    typ: JsonWebTokenTypes.Pop,
                 })
             ).toThrowError(
                 JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingKidError]
             );
         });
 
-        it("should throw if kid header is missing", () => {
+        it("should throw if alg header is missing", () => {
             expect(() =>
-                JoseHeader.getShrHeaderString({ kid: TEST_POP_VALUES.KID })
+                JoseHeader.getShrHeaderString({
+                    kid: TEST_POP_VALUES.KID,
+                    typ: JsonWebTokenTypes.Pop,
+                })
             ).toThrowError(
                 JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingAlgError]
             );

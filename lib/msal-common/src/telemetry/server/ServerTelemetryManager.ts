@@ -160,7 +160,11 @@ export class ServerTelemetryManager {
      * Get the server telemetry entity from cache or initialize a new one
      */
     getLastRequests(): ServerTelemetryEntity {
-        const initialValue: ServerTelemetryEntity = new ServerTelemetryEntity();
+        const initialValue: ServerTelemetryEntity = {
+            failedRequests: [],
+            errors: [],
+            cacheHits: 0,
+        };
         const lastRequests = this.cacheManager.getServerTelemetry(
             this.telemetryCacheKey
         ) as ServerTelemetryEntity;
@@ -181,11 +185,13 @@ export class ServerTelemetryManager {
             this.cacheManager.removeItem(this.telemetryCacheKey);
         } else {
             // Partial data was flushed to server, construct a new telemetry cache item with errors that were not flushed
-            const serverTelemEntity = new ServerTelemetryEntity();
-            serverTelemEntity.failedRequests =
-                lastRequests.failedRequests.slice(numErrorsFlushed * 2); // failedRequests contains 2 items for each error
-            serverTelemEntity.errors =
-                lastRequests.errors.slice(numErrorsFlushed);
+            const serverTelemEntity: ServerTelemetryEntity = {
+                failedRequests: lastRequests.failedRequests.slice(
+                    numErrorsFlushed * 2
+                ), // failedRequests contains 2 items for each error
+                errors: lastRequests.errors.slice(numErrorsFlushed),
+                cacheHits: 0,
+            };
 
             this.cacheManager.setServerTelemetry(
                 this.telemetryCacheKey,

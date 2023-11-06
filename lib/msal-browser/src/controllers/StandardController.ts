@@ -22,8 +22,6 @@ import {
     InProgressPerformanceEvent,
     RequestThumbprint,
     AccountEntity,
-    ServerResponseType,
-    UrlString,
     invokeAsync,
     createClientAuthError,
     ClientAuthErrorCodes,
@@ -336,16 +334,6 @@ export class StandardController implements IController {
         // Block token acquisition before initialize has been called
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
 
-        let foundServerResponse = hash;
-
-        if (
-            this.config.auth.OIDCOptions?.serverResponseType ===
-            ServerResponseType.QUERY
-        ) {
-            const url = window.location.href;
-            foundServerResponse = UrlString.parseQueryServerResponse(url);
-        }
-
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
             /**
@@ -353,8 +341,7 @@ export class StandardController implements IController {
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
-            const redirectResponseKey =
-                foundServerResponse || Constants.EMPTY_STRING;
+            const redirectResponseKey = hash || "";
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
                 this.eventHandler.emitEvent(
@@ -376,7 +363,7 @@ export class StandardController implements IController {
                         this.nativeExtensionProvider
                     ) &&
                     this.nativeExtensionProvider &&
-                    !foundServerResponse
+                    !hash
                 ) {
                     this.logger.trace(
                         "handleRedirectPromise - acquiring token from native platform"
@@ -408,9 +395,7 @@ export class StandardController implements IController {
                     const redirectClient =
                         this.createRedirectClient(correlationId);
                     redirectResponse =
-                        redirectClient.handleRedirectPromise(
-                            foundServerResponse
-                        );
+                        redirectClient.handleRedirectPromise(hash);
                 }
 
                 response = redirectResponse
@@ -1911,6 +1896,7 @@ export class StandardController implements IController {
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
             sshKid: request.sshKid,
+            shrOptions: request.shrOptions,
         };
         const silentRequestKey = JSON.stringify(thumbprint);
 

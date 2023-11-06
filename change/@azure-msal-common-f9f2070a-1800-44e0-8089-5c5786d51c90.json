@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update cache outcome log message #6644",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
