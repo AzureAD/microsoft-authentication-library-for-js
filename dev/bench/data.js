@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1699301090518,
+  "lastUpdate": 1699310842703,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2660,6 +2660,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.91%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "460e17d0fd02938cfe2d2404c977ac9cf002c6b0",
+          "message": "Fix redirect clearing popup hash (#6652)\n\nThe handleRedirectPromise logic contains a bug which can result in popup\r\nwindows not closing. This PR fixes that bug.\r\n\r\nToday handleRedirectPromise does the following things:\r\n1. Parses the hash and looks for known properties\r\n2. Clears the hash from the window\r\n3. Parses state to determine if the response belongs to a Redirect\r\n4. Returns null if not\r\n\r\nBecause we clear the hash before we've determined if the response is\r\neven a redirect response this can result in race conditions preventing\r\npopup windows from closing if the popup uses a redirectUri which invokes\r\nhandleRedirectPromise (most apps using React or Angular do this out of\r\nthe box)\r\n\r\nThis PR addresses this bug by parsing state for the interactionType\r\n_before_ clearing the hash.",
+          "timestamp": "2023-11-06T14:42:16-08:00",
+          "tree_id": "7e8cc6eb732242933b3d5a1f08328867cebe0a5a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/460e17d0fd02938cfe2d2404c977ac9cf002c6b0"
+        },
+        "date": 1699310841720,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 186268,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 199691,
+            "range": "±1.86%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
