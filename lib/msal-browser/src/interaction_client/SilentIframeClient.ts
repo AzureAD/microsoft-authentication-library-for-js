@@ -10,12 +10,11 @@ import {
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     AuthError,
-    UrlString,
-    ServerAuthorizationCodeResponse,
     ProtocolUtils,
     IPerformanceClient,
     PerformanceEvents,
     invokeAsync,
+    invoke,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -38,6 +37,7 @@ import { NativeInteractionClient } from "./NativeInteractionClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { InteractionHandler } from "../interaction_handler/InteractionHandler";
 import * as BrowserUtils from "../utils/BrowserUtils";
+import * as ResponseHandler from "../response/ResponseHandler";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -231,8 +231,9 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId,
             this.config.system.navigateFrameWait
         );
+        const responseType = this.config.auth.OIDCOptions.serverResponseType;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const hash = await invokeAsync(
+        const responseString = await invokeAsync(
             monitorIframeForHash,
             PerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
@@ -244,26 +245,16 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.config.system.pollIntervalMilliseconds,
             this.performanceClient,
             this.logger,
-            correlationId
+            correlationId,
+            responseType
         );
-        if (!hash) {
-            // No hash is present
-            this.logger.error(
-                "The request has returned to the redirectUri but a hash is not present in the iframe. It's likely that the hash has been removed or the page has been redirected by code running on the redirectUri page."
-            );
-            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
-        } else if (!UrlString.hashContainsKnownProperties(hash)) {
-            this.logger.error(
-                "A hash is present in the iframe but it does not contain known properties. It's likely that the hash has been replaced by code running on the redirectUri page."
-            );
-            this.logger.errorPii(`The hash detected in the iframe is: ${hash}`);
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-            );
-        }
-        // Deserialize hash fragment response parameters.
-        const serverParams: ServerAuthorizationCodeResponse =
-            UrlString.getDeserializedHash(hash);
+        const serverParams = invoke(
+            ResponseHandler.deserializeResponse,
+            PerformanceEvents.DeserializeResponse,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(responseString, responseType, this.logger);
 
         if (serverParams.accountId) {
             this.logger.verbose(
@@ -309,13 +300,11 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         // Handle response from hash string
         return invokeAsync(
-            interactionHandler.handleCodeResponseFromHash.bind(
-                interactionHandler
-            ),
-            PerformanceEvents.HandleCodeResponseFromHash,
+            interactionHandler.handleCodeResponse.bind(interactionHandler),
+            PerformanceEvents.HandleCodeResponse,
             this.logger,
             this.performanceClient,
             correlationId
-        )(hash, silentRequest);
+        )(serverParams, silentRequest);
     }
 }

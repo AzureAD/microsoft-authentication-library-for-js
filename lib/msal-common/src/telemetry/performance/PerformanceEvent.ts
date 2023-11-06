@@ -208,7 +208,7 @@ export const PerformanceEvents = {
      * Functions from InteractionHandler (msal-browser)
      */
     HandleCodeResponseFromServer: "handleCodeResponseFromServer",
-    HandleCodeResponseFromHash: "handleCodeResponseFromHash",
+    HandleCodeResponse: "handleCodeResponse",
     UpdateTokenEndpointAuthority: "updateTokenEndpointAuthority",
 
     /**
@@ -229,6 +229,7 @@ export const PerformanceEvents = {
      * handleServerTokenResponse API in ResponseHandler (msal-common)
      */
     HandleServerTokenResponse: "handleServerTokenResponse",
+    DeserializeResponse: "deserializeResponse",
 
     /**
      * Authority functions
