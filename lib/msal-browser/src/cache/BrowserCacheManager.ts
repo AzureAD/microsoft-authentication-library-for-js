@@ -53,9 +53,7 @@ import {
 import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
-import {
-    extractBrowserRequestState,
-} from "../utils/BrowserProtocolUtils";
+import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { SilentRequest } from "../request/SilentRequest";
