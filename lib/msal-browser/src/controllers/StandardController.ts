@@ -1914,6 +1914,7 @@ export class StandardController implements IController {
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
             sshKid: request.sshKid,
+            shrOptions: request.shrOptions,
         };
         const silentRequestKey = JSON.stringify(thumbprint);
 
