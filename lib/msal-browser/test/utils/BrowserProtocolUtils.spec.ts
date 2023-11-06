@@ -1,6 +1,6 @@
 import sinon from "sinon";
 import {
-    BrowserProtocolUtils,
+    extractBrowserRequestState,
     BrowserStateObject,
 } from "../../src/utils/BrowserProtocolUtils";
 import { InteractionType } from "../../src/utils/BrowserConstants";
@@ -34,17 +34,14 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
     it("extractBrowserRequestState() returns an null if given interaction type is null or empty", () => {
         //@ts-ignore
-        const requestState1 = BrowserProtocolUtils.extractBrowserRequestState(
+        const requestState1 = extractBrowserRequestState(
             cryptoInterface,
             //@ts-ignore
             null
         );
         expect(requestState1).toBeNull();
 
-        const requestState2 = BrowserProtocolUtils.extractBrowserRequestState(
-            cryptoInterface,
-            ""
-        );
+        const requestState2 = extractBrowserRequestState(cryptoInterface, "");
         expect(requestState2).toBeNull();
     });
 
@@ -59,19 +56,17 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             undefined,
             browserPopupRequestState
         );
-        const redirectPlatformState =
-            BrowserProtocolUtils.extractBrowserRequestState(
-                cryptoInterface,
-                redirectState
-            );
+        const redirectPlatformState = extractBrowserRequestState(
+            cryptoInterface,
+            redirectState
+        );
         expect(redirectPlatformState!.interactionType).toBe(
             InteractionType.Redirect
         );
-        const popupPlatformState =
-            BrowserProtocolUtils.extractBrowserRequestState(
-                cryptoInterface,
-                popupState
-            );
+        const popupPlatformState = extractBrowserRequestState(
+            cryptoInterface,
+            popupState
+        );
         expect(popupPlatformState!.interactionType).toBe(InteractionType.Popup);
     });
 });

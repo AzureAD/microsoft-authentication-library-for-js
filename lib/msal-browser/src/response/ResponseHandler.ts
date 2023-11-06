@@ -4,6 +4,7 @@
  */
 
 import {
+    ICrypto,
     Logger,
     ServerAuthorizationCodeResponse,
     UrlUtils,
@@ -12,6 +13,8 @@ import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,
 } from "../error/BrowserAuthError";
+import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils";
+import { InteractionType } from "../utils/BrowserConstants";
 
 export function deserializeResponse(
     responseString: string,
@@ -40,4 +43,31 @@ export function deserializeResponse(
         }
     }
     return serverParams;
+}
+
+/**
+ * Returns the interaction type that the response object belongs to
+ */
+export function validateInteractionType(
+    response: ServerAuthorizationCodeResponse,
+    browserCrypto: ICrypto,
+    interactionType: InteractionType
+): void {
+    if (!response.state) {
+        throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
+    }
+
+    const platformStateObj = extractBrowserRequestState(
+        browserCrypto,
+        response.state
+    );
+    if (!platformStateObj) {
+        throw createBrowserAuthError(BrowserAuthErrorCodes.unableToParseState);
+    }
+
+    if (platformStateObj.interactionType !== interactionType) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.stateInteractionTypeMismatch
+        );
+    }
 }

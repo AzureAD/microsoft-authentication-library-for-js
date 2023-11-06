@@ -16,26 +16,24 @@ export type BrowserStateObject = {
     interactionType: InteractionType;
 };
 
-export class BrowserProtocolUtils {
-    /**
-     * Extracts the BrowserStateObject from the state string.
-     * @param browserCrypto
-     * @param state
-     */
-    static extractBrowserRequestState(
-        browserCrypto: ICrypto,
-        state: string
-    ): BrowserStateObject | null {
-        if (!state) {
-            return null;
-        }
+/**
+ * Extracts the BrowserStateObject from the state string.
+ * @param browserCrypto
+ * @param state
+ */
+export function extractBrowserRequestState(
+    browserCrypto: ICrypto,
+    state: string
+): BrowserStateObject | null {
+    if (!state) {
+        return null;
+    }
 
-        try {
-            const requestStateObj: RequestStateObject =
-                ProtocolUtils.parseRequestState(browserCrypto, state);
-            return requestStateObj.libraryState.meta as BrowserStateObject;
-        } catch (e) {
-            throw createClientAuthError(ClientAuthErrorCodes.invalidState);
-        }
+    try {
+        const requestStateObj: RequestStateObject =
+            ProtocolUtils.parseRequestState(browserCrypto, state);
+        return requestStateObj.libraryState.meta as BrowserStateObject;
+    } catch (e) {
+        throw createClientAuthError(ClientAuthErrorCodes.invalidState);
     }
 }
