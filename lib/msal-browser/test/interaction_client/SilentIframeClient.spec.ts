@@ -240,10 +240,7 @@ describe("SilentIframeClient", () => {
                 .stub(SilentHandler, "monitorIframeForHash")
                 .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
             sinon
-                .stub(
-                    InteractionHandler.prototype,
-                    "handleCodeResponseFromHash"
-                )
+                .stub(InteractionHandler.prototype, "handleCodeResponse")
                 .resolves(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -310,10 +307,7 @@ describe("SilentIframeClient", () => {
                 .stub(SilentHandler, "monitorIframeForHash")
                 .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
             sinon
-                .stub(
-                    InteractionHandler.prototype,
-                    "handleCodeResponseFromHash"
-                )
+                .stub(InteractionHandler.prototype, "handleCodeResponse")
                 .resolves(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,

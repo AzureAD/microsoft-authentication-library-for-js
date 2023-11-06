@@ -53,12 +53,12 @@ export class InteractionHandler {
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponseFromHash(
+    async handleCodeResponse(
         response: ServerAuthorizationCodeResponse,
         request: AuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.HandleCodeResponseFromHash,
+            PerformanceEvents.HandleCodeResponse,
             request.correlationId
         );
 

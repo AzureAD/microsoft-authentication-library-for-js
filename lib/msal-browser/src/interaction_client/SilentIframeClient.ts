@@ -300,10 +300,8 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         // Handle response from hash string
         return invokeAsync(
-            interactionHandler.handleCodeResponseFromHash.bind(
-                interactionHandler
-            ),
-            PerformanceEvents.HandleCodeResponseFromHash,
+            interactionHandler.handleCodeResponse.bind(interactionHandler),
+            PerformanceEvents.HandleCodeResponse,
             this.logger,
             this.performanceClient,
             correlationId

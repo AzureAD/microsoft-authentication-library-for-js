@@ -347,7 +347,7 @@ export class PopupClient extends StandardInteractionClient {
             }
 
             // Handle response from hash string.
-            const result = await interactionHandler.handleCodeResponseFromHash(
+            const result = await interactionHandler.handleCodeResponse(
                 serverParams,
                 validRequest
             );

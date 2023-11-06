@@ -358,7 +358,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
     });
 
-    describe("handleCodeResponseFromHash()", () => {
+    describe("handleCodeResponse()", () => {
         it("successfully handles response", async () => {
             const idTokenClaims = {
                 ver: "2.0",
@@ -451,14 +451,13 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserRequestLogger,
                 performanceClient
             );
-            const tokenResponse =
-                await redirectHandler.handleCodeResponseFromHash(
-                    {
-                        code: "thisIsATestCode",
-                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    },
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                );
+            const tokenResponse = await redirectHandler.handleCodeResponse(
+                {
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                },
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 browserStorage.getTemporaryCache(
@@ -575,14 +574,13 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserRequestLogger,
                 performanceClient
             );
-            const tokenResponse =
-                await redirectHandler.handleCodeResponseFromHash(
-                    {
-                        code: "thisIsATestCode",
-                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    },
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                );
+            const tokenResponse = await redirectHandler.handleCodeResponse(
+                {
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                },
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 browserStorage.getTemporaryCache(
