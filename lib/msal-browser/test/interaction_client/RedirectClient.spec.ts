@@ -200,9 +200,10 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .returns(TEST_HASHES.TEST_SUCCESS_HASH_NO_STATE);
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"getRedirectResponse"
+            ).mockReturnValue([{ code: "authCode" }, "#code=authCode"]);
             redirectClient.handleRedirectPromise().then((response) => {
                 expect(response).toBe(null);
                 expect(window.localStorage.length).toEqual(0);
@@ -223,9 +224,16 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .returns(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"getRedirectResponse"
+            ).mockReturnValue([
+                {
+                    code: "authCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_POPUP,
+                },
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
+            ]);
             redirectClient.handleRedirectPromise().then((response) => {
                 expect(response).toBe(null);
                 expect(window.localStorage.length).toEqual(0);
@@ -250,9 +258,12 @@ describe("RedirectClient", () => {
                 "Unexpected error!",
                 "Unexpected error"
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .throws(testError);
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"getRedirectResponse"
+            ).mockImplementation(() => {
+                throw testError;
+            });
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(testError);
                 expect(window.localStorage.length).toEqual(0);
@@ -273,10 +284,16 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            //sinon.stub(BrowserProtocolUtils, "extractBrowserRequestState").returns(null);
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .returns(TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META);
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"getRedirectResponse"
+            ).mockReturnValue([
+                {
+                    code: "authCode",
+                    state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                },
+                TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META,
+            ]);
             redirectClient.handleRedirectPromise().then((response) => {
                 expect(response).toBe(null);
                 expect(window.localStorage.length).toEqual(0);
@@ -1545,13 +1562,16 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 });
+            });
             redirectClient.handleRedirectPromise().then(() => {
                 expect(window.location.href).toEqual(loginRequestUrl);
             });
@@ -1564,13 +1584,16 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 });
+            });
             redirectClient
                 .handleRedirectPromise(
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
@@ -1594,13 +1617,16 @@ describe("RedirectClient", () => {
             window.location.hash = "testHash";
             const clearHashSpy = sinon.spy(BrowserUtils, "clearHash");
 
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 });
+            });
 
             redirectClient.handleRedirectPromise().then(() => {
                 expect(clearHashSpy.notCalled).toBe(true);
@@ -1618,14 +1644,17 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
-                    done();
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 });
+                done();
+            });
             redirectClient.handleRedirectPromise();
         });
 
@@ -1683,15 +1712,18 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(window.location.href).not.toContain("#testHash");
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
-                    done();
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(window.location.href).not.toContain("#testHash");
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 });
+                done();
+            });
             redirectClient.handleRedirectPromise();
         });
     });

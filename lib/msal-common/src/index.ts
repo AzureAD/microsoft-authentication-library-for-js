@@ -203,6 +203,7 @@ export {
     LibraryStateObject,
 } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
+export * as UrlUtils from "./utils/UrlUtils";
 export * from "./utils/FunctionWrappers";
 // Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";

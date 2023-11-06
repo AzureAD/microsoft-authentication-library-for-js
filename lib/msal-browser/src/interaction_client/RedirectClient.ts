@@ -19,6 +19,8 @@ import {
     PerformanceEvents,
     ProtocolMode,
     invokeAsync,
+    ServerResponseType,
+    UrlUtils,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
@@ -201,13 +203,13 @@ export class RedirectClient extends StandardInteractionClient {
                 );
                 return null;
             }
-            const responseHash = this.getRedirectResponseHash(
-                hash || window.location.hash
+            const [serverParams, responseString] = this.getRedirectResponse(
+                hash || ""
             );
-            if (!responseHash) {
+            if (!serverParams) {
                 // Not a recognized server response hash or hash not associated with a redirect request
                 this.logger.info(
-                    "handleRedirectPromise did not detect a response hash as a result of a redirect. Cleaning temporary cache."
+                    "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache."
                 );
                 this.browserStorage.cleanRequestByInteractionType(
                     InteractionType.Redirect
@@ -217,9 +219,6 @@ export class RedirectClient extends StandardInteractionClient {
 
             let state: string;
             try {
-                // Deserialize hash fragment response parameters.
-                const serverParams: ServerAuthorizationCodeResponse =
-                    UrlString.getDeserializedHash(responseHash);
                 state = this.validateAndExtractStateFromHash(
                     serverParams,
                     InteractionType.Redirect
@@ -253,12 +252,7 @@ export class RedirectClient extends StandardInteractionClient {
             ) {
                 // We are on the page we need to navigate to - handle hash
                 this.logger.verbose(
-                    "Current page is loginRequestUrl, handling hash"
-                );
-                const handleHashResult = await this.handleHash(
-                    responseHash,
-                    state,
-                    serverTelemetryManager
+                    "Current page is loginRequestUrl, handling response"
                 );
 
                 if (loginRequestUrl.indexOf("#") > -1) {
@@ -266,13 +260,19 @@ export class RedirectClient extends StandardInteractionClient {
                     BrowserUtils.replaceHash(loginRequestUrl);
                 }
 
+                const handleHashResult = await this.handleResponse(
+                    serverParams,
+                    state,
+                    serverTelemetryManager
+                );
+
                 return handleHashResult;
             } else if (!this.config.auth.navigateToLoginRequestUrl) {
                 this.logger.verbose(
-                    "NavigateToLoginRequestUrl set to false, handling hash"
+                    "NavigateToLoginRequestUrl set to false, handling response"
                 );
-                return this.handleHash(
-                    responseHash,
+                return this.handleResponse(
+                    serverParams,
                     state,
                     serverTelemetryManager
                 );
@@ -286,7 +286,7 @@ export class RedirectClient extends StandardInteractionClient {
                  */
                 this.browserStorage.setTemporaryCache(
                     TemporaryCacheKeys.URL_HASH,
-                    responseHash,
+                    responseString,
                     true
                 );
                 const navigationOptions: NavigationOptions = {
@@ -331,8 +331,8 @@ export class RedirectClient extends StandardInteractionClient {
 
                 // If navigateInternal implementation returns false, handle the hash now
                 if (!processHashOnRedirect) {
-                    return this.handleHash(
-                        responseHash,
+                    return this.handleResponse(
+                        serverParams,
                         state,
                         serverTelemetryManager
                     );
@@ -357,18 +357,30 @@ export class RedirectClient extends StandardInteractionClient {
      * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
      * @param hash
      */
-    protected getRedirectResponseHash(hash: string): string | null {
+    protected getRedirectResponse(
+        userProvidedResponse: string
+    ): [ServerAuthorizationCodeResponse | null, string] {
         this.logger.verbose("getRedirectResponseHash called");
         // Get current location hash from window or cache.
-        const isResponseHash: boolean =
-            UrlString.hashContainsKnownProperties(hash);
+        let responseString = userProvidedResponse;
+        if (!responseString) {
+            if (
+                this.config.auth.OIDCOptions.serverResponseType ===
+                ServerResponseType.QUERY
+            ) {
+                responseString = window.location.search;
+            } else {
+                responseString = window.location.hash;
+            }
+        }
+        let response = UrlUtils.getDeserializedResponse(responseString);
 
-        if (isResponseHash) {
+        if (response) {
             BrowserUtils.clearHash(window);
             this.logger.verbose(
                 "Hash contains known properties, returning response hash"
             );
-            return hash;
+            return [response, responseString];
         }
 
         const cachedHash = this.browserStorage.getTemporaryCache(
@@ -379,10 +391,17 @@ export class RedirectClient extends StandardInteractionClient {
             this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH)
         );
 
-        this.logger.verbose(
-            "Hash does not contain known properties, returning cached hash"
-        );
-        return cachedHash;
+        if (cachedHash) {
+            response = UrlUtils.getDeserializedResponse(cachedHash);
+            if (response) {
+                this.logger.verbose(
+                    "Hash does not contain known properties, returning cached hash"
+                );
+                return [response, cachedHash];
+            }
+        }
+
+        return [null, ""];
     }
 
     /**
@@ -390,16 +409,13 @@ export class RedirectClient extends StandardInteractionClient {
      * @param hash
      * @param state
      */
-    protected async handleHash(
-        hash: string,
+    protected async handleResponse(
+        serverParams: ServerAuthorizationCodeResponse,
         state: string,
         serverTelemetryManager: ServerTelemetryManager
     ): Promise<AuthenticationResult> {
         const cachedRequest = this.browserStorage.getCachedRequest(state);
-        this.logger.verbose("handleHash called, retrieved cached request");
-
-        const serverParams: ServerAuthorizationCodeResponse =
-            UrlString.getDeserializedHash(hash);
+        this.logger.verbose("handleResponse called, retrieved cached request");
 
         if (serverParams.accountId) {
             this.logger.verbose(
@@ -467,7 +483,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        return await interactionHandler.handleCodeResponseFromHash(hash, state);
+        return await interactionHandler.handleCodeResponse(serverParams, state);
     }
 
     /**
