@@ -339,7 +339,7 @@ export class NodeStorage extends CacheManager {
         ) as ServerTelemetryEntity;
         if (
             serverTelemetryEntity &&
-            ServerTelemetryEntity.isServerTelemetryEntity(
+            CacheHelpers.isServerTelemetryEntity(
                 serverTelemetrykey,
                 serverTelemetryEntity
             )
