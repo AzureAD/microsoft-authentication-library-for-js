@@ -348,6 +348,19 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     },
 };
 
+export const CORS_RESPONSE_HEADERS = {
+    xMsRequestId: "xMsRequestId",
+    xMsHttpVer: "xMsHttpVer",
+};
+
+export const AUTHENTICATION_RESULT_WITH_HEADERS = {
+    ...AUTHENTICATION_RESULT,
+    headers: {
+        "x-ms-request-id": CORS_RESPONSE_HEADERS.xMsRequestId,
+        "x-ms-httpver": CORS_RESPONSE_HEADERS.xMsHttpVer,
+    },
+};
+
 export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
     body: {

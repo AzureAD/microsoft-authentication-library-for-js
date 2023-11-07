@@ -31,6 +31,7 @@ import {
     TokenClaims,
     UrlString,
 } from "@azure/msal-common";
+import { HeaderNames } from "../utils/Constants";
 import { EncodingUtils } from "../utils/EncodingUtils";
 
 /**
@@ -281,6 +282,9 @@ export class OnBehalfOfClient extends BaseClient {
             request.correlationId
         );
 
+        // Retrieve requestId from response headers
+        const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
+
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -297,7 +301,10 @@ export class OnBehalfOfClient extends BaseClient {
             reqTimestamp,
             request,
             undefined,
-            userAssertionHash
+            userAssertionHash,
+            undefined,
+            undefined,
+            requestId
         );
 
         return tokenResponse;

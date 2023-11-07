@@ -25,6 +25,8 @@ import {
 import { AuthenticationResult, OnBehalfOfClient } from "../../src";
 import {
     AUTHENTICATION_RESULT,
+    AUTHENTICATION_RESULT_WITH_HEADERS,
+    CORS_RESPONSE_HEADERS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
@@ -187,6 +189,64 @@ describe("OnBehalfOf unit tests", () => {
                     )}`
                 )
             ).toBe(true);
+        });
+
+        it("includes the requestId in the result when received in server response", async () => {
+            sinon
+                .stub(
+                    OnBehalfOfClient.prototype,
+                    <any>"executePostToTokenEndpoint"
+                )
+                .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
+
+            let config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new OnBehalfOfClient(config);
+            const oboRequest: CommonOnBehalfOfRequest = {
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                oboAssertion: "user_assertion_hash",
+                skipCache: true,
+                claims: TEST_CONFIG.CLAIMS,
+            };
+
+            const authResult = (await client.acquireToken(
+                oboRequest
+            )) as AuthenticationResult;
+
+            expect(authResult.requestId).toBeTruthy;
+            expect(authResult.requestId).toEqual(
+                CORS_RESPONSE_HEADERS.xMsRequestId
+            );
+        });
+
+        it("does not include the requestId in the result when none in server response", async () => {
+            sinon
+            .stub(
+                OnBehalfOfClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            )
+            .resolves(AUTHENTICATION_RESULT);
+
+            let config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new OnBehalfOfClient(config);
+            const oboRequest: CommonOnBehalfOfRequest = {
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                oboAssertion: "user_assertion_hash",
+                skipCache: true,
+                claims: TEST_CONFIG.CLAIMS,
+            };
+
+            const authResult = (await client.acquireToken(
+                oboRequest
+            )) as AuthenticationResult;
+
+            expect(authResult.requestId).toBeFalsy;
+            expect(authResult.requestId).toEqual("");
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
