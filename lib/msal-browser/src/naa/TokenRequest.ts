@@ -9,7 +9,6 @@ export type TokenRequest = {
     authority?: string;
     scope: string;
     correlationId: string;
-    prompt?: string; // Prompt used to identify interactive request
     nonce?: string;
     claims?: string;
     state?: string;
@@ -18,7 +17,6 @@ export type TokenRequest = {
     authenticationScheme?: string;
     shrClaims?: string;
     shrNonce?: string;
-    clientCapabilities?: string[]; // CP1 for CAE support
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;

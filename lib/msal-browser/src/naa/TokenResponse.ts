@@ -16,6 +16,7 @@ export type TokenResponse = {
     state: string;
     shr?: string; // token binding enabled at native layer it is the access token, not the signing keys
     extendedLifetimeToken?: boolean;
+    authority?: string;
 };
 
 export type TokenResponseProperties = {
