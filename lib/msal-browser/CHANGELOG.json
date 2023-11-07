@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 07 Nov 2023 00:01:50 GMT",
+      "version": "3.5.0",
+      "tag": "@azure/msal-browser_v3.5.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "619e10fe4ffb23060137150cd93c954cc2ca05ae",
+            "comment": "Optimize response parsing & address bugs related to query response type #6646"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "42a5e13c333d34be82734bcc3cd91ff7e8dd7d25",
+            "comment": "Convert ServerTelemetryEntity to Type instead of Class #6651"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e9dd9337c02fcfe008514f5fd057087d3409cc91",
+            "comment": "Make SHR header configurable #6654"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.4.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "53ca42e1b4b04b70c13b6d4c697cb3e2477b1005",
+            "comment": "Generate one correlation id across a flow #6650"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "460e17d0fd02938cfe2d2404c977ac9cf002c6b0",
+            "comment": "Fix race condition which may cause popups not to close #6652"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 30 Oct 2023 21:38:24 GMT",
       "version": "3.4.0",
       "tag": "@azure/msal-browser_v3.4.0",

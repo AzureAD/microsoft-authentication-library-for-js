@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Make SHR header configurable #6654",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
