@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Extend Node support for 16",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
