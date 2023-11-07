@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1699391035236,
+  "lastUpdate": 1699391750092,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2850,6 +2850,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.77%",
             "unit": "ops/sec",
             "extra": "227 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d37574232dae46a7aebdbd969bfbcc4c705dad08",
+          "message": "Msal-Node Patch Release (#6667)\n\nPatch release for msal-node including success template fix\r\n\r\n---------\r\n\r\nCo-authored-by: tnorling <tnorling@users.noreply.github.com>",
+          "timestamp": "2023-11-07T13:10:09-08:00",
+          "tree_id": "38fcef17c161a606f4d3769a11c71a09f6d795ff",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d37574232dae46a7aebdbd969bfbcc4c705dad08"
+        },
+        "date": 1699391748006,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 133225,
+            "range": "±1.23%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 133881,
+            "range": "±1.64%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
