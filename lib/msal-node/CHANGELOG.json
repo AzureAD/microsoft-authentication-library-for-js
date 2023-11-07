@@ -2,6 +2,21 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 07 Nov 2023 20:59:07 GMT",
+      "version": "2.5.1",
+      "tag": "@azure/msal-node_v2.5.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "f085dcbb122aab1ede38af5c940974d820028fe4",
+            "comment": "Fix success template not rendering"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Nov 2023 00:01:50 GMT",
       "version": "2.5.0",
       "tag": "@azure/msal-node_v2.5.0",
