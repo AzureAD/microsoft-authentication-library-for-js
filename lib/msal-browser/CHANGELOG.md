@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 30 Oct 2023 21:38:24 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Nov 2023 00:01:50 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.5.0
+
+Tue, 07 Nov 2023 00:01:50 GMT
+
+### Minor changes
+
+- Optimize response parsing & address bugs related to query response type #6646 (thomas.norling@microsoft.com)
+- Convert ServerTelemetryEntity to Type instead of Class #6651 (thomas.norling@microsoft.com)
+- Make SHR header configurable #6654 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.4.0
+
+### Patches
+
+- Generate one correlation id across a flow #6650 (sameera.gajjarapu@microsoft.com)
+- Fix race condition which may cause popups not to close #6652 (thomas.norling@microsoft.com)
 
 ## 3.4.0
 

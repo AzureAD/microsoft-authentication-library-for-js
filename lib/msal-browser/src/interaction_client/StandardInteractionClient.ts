@@ -49,7 +49,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     ): Promise<CommonAuthorizationCodeRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            request.correlationId
+            this.correlationId
         );
         const generatedPkceParams = await invokeAsync(
             generatePkceCodes,

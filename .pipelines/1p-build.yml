@@ -1,53 +1,53 @@
 trigger: none # Disable push triggers
 
 pr:
-- dev
+    - dev
 
 jobs:
-  - job: Build_1P
-    displayName: 'Build with 1P library'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-      - task: NodeTool@0
-        displayName: 'Install Node.js'
-        inputs:
-          versionSpec: '16.x'
-          
-      - checkout: git://IDDP/msal-javascript-1p
-      - script: |
-          npm run submodule:init
-        displayName: Initialize submodule
-      
-      - script: |
-          cd ./microsoft-authentication-library-for-js
-          git checkout $(System.PullRequest.SourceBranch)
-          git pull
-        displayName: 'Pull latest changes from 3P feature branch'
+    - job: Build_1P
+      displayName: "Build with 1P library"
+      pool:
+          vmImage: "ubuntu-latest"
+      steps:
+          - task: NodeTool@0
+            displayName: "Install Node.js"
+            inputs:
+                versionSpec: "16.x"
 
-      - task: npmAuthenticate@0
-        displayName: 'Authenticate to npm package registry'
-        inputs:
-          workingFile: ./.npmrc
+          - checkout: git://IDDP/msal-javascript-1p
+          - script: |
+                npm run submodule:init
+            displayName: Initialize submodule
 
-      - task: npmAuthenticate@0
-        displayName: 'Authenticate to npm package registry'
-        inputs:
-          workingFile: ./1ds.npmrc
+          - script: |
+                cd ./microsoft-authentication-library-for-js
+                git checkout $(System.PullRequest.SourceBranch)
+                git pull
+            displayName: "Pull latest changes from 3P feature branch"
 
-      - task: Npm@1
-        inputs:
-          command: 'ci'
-        displayName: 'Install Dependencies'
+          - task: npmAuthenticate@0
+            displayName: "Authenticate to npm package registry"
+            inputs:
+                workingFile: ./.npmrc
 
-      - task: Npm@1
-        inputs:
-          command: 'custom'
-          customCommand: 'run build'
-        displayName: 'Build Msal-Browser-1p'
+          - task: npmAuthenticate@0
+            displayName: "Authenticate to npm package registry"
+            inputs:
+                workingFile: ./1ds.npmrc
 
-      - task: Npm@1
-        inputs:
-          command: 'custom'
-          customCommand: 'run test --workspace=msal-browser-1p'
-        displayName: 'Test Msal-Browser-1P'
+          - task: Npm@1
+            inputs:
+                command: "install"
+            displayName: "Install Dependencies"
+
+          - task: Npm@1
+            inputs:
+                command: "custom"
+                customCommand: "run build"
+            displayName: "Build Msal-Browser-1p"
+
+          - task: Npm@1
+            inputs:
+                command: "custom"
+                customCommand: "run test --workspace=msal-browser-1p"
+            displayName: "Test Msal-Browser-1P"

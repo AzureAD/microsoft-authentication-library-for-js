@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fix: Environment.getUserRootDirectory() only ever executes Windows code path",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "janusz@corechain.tech",
-  "dependentChangeType": "patch"
-}
