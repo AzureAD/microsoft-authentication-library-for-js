@@ -152,26 +152,31 @@ export class NestedAppAuthAdapter {
      */
     public fromNaaAccountInfo(
         fromAccount: NaaAccountInfo,
-        tokenClaims?: TokenClaims
+        idTokenClaims?: TokenClaims
     ): MsalAccountInfo {
+        const effectiveIdTokenClaims =
+            idTokenClaims || (fromAccount.idTokenClaims as TokenClaims);
+
         const localAccountId =
             fromAccount.localAccountId ||
-            tokenClaims?.oid ||
-            tokenClaims?.sub ||
+            effectiveIdTokenClaims?.oid ||
+            effectiveIdTokenClaims?.sub ||
             Constants.EMPTY_STRING;
 
         const tenantId =
-            fromAccount.tenantId || tokenClaims?.tid || Constants.EMPTY_STRING;
+            fromAccount.tenantId ||
+            effectiveIdTokenClaims?.tid ||
+            Constants.EMPTY_STRING;
 
         const homeAccountId =
             fromAccount.homeAccountId || `${localAccountId}.${tenantId}`;
 
         const username =
             fromAccount.username ||
-            tokenClaims?.preferred_username ||
+            effectiveIdTokenClaims?.preferred_username ||
             Constants.EMPTY_STRING;
 
-        const name = fromAccount.name || tokenClaims?.name;
+        const name = fromAccount.name || effectiveIdTokenClaims?.name;
 
         const account: MsalAccountInfo = {
             homeAccountId,
@@ -181,7 +186,7 @@ export class NestedAppAuthAdapter {
             localAccountId,
             name,
             idToken: fromAccount.idToken,
-            idTokenClaims: tokenClaims,
+            idTokenClaims: effectiveIdTokenClaims,
         };
 
         return account;

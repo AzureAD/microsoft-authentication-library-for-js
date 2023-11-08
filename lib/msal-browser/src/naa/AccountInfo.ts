@@ -12,4 +12,5 @@ export type AccountInfo = {
     name?: string;
     idToken?: string; // idTokenClaims can be parsed from idToken in MSAL.js
     platformBrokerId?: string; // Used by WAM previous called nativeAccountId
+    idTokenClaims?: object;
 };
