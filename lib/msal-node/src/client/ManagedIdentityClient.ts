@@ -53,13 +53,13 @@ export class ManagedIdentityClient {
         }
     }
 
-    public async sendMSITokenRequest(
+    public async sendManagedIdentityTokenRequest(
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
         refreshAccessToken?: boolean
     ): Promise<ManagedIdentityResult> {
-        return await ManagedIdentityClient.identitySource.authenticateWithMSI(
+        return await ManagedIdentityClient.identitySource.acquireTokenWithManagedIdentity(
             managedIdentityRequest,
             managedIdentityId,
             fakeAuthority,
@@ -77,58 +77,43 @@ export class ManagedIdentityClient {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): ServiceFabric | AppService | CloudShell | AzureArc | Imds {
-        try {
-            const source =
-                AppService.tryCreate(
-                    logger,
-                    cacheManager,
-                    networkClient,
-                    cryptoProvider
-                ) ||
-                Imds.tryCreate(
-                    logger,
-                    cacheManager,
-                    networkClient,
-                    cryptoProvider
-                );
+        const source =
+            AppService.tryCreate(
+                logger,
+                cacheManager,
+                networkClient,
+                cryptoProvider
+            ) ||
+            Imds.tryCreate(logger, cacheManager, networkClient, cryptoProvider);
 
-            /*
-             *  ServiceFabric.tryCreate(
-             *      logger,
-             *      cacheManager,
-             *      networkClient,
-             *      cryptoProvider
-             *  ) ||
-             *  // *** AppService goes here ***
-             *  CloudShell.tryCreate(
-             *      logger,
-             *      cacheManager,
-             *      networkClient,
-             *      cryptoProvider
-             *  ) ||
-             *  AzureArc.tryCreate(
-             *      logger,
-             *      cacheManager,
-             *      networkClient,
-             *      cryptoProvider
-             *  ) ||
-             *  // *** Imds goes here ***
-             */
+        /*
+         *  ServiceFabric.tryCreate(
+         *      logger,
+         *      cacheManager,
+         *      networkClient,
+         *      cryptoProvider
+         *  ) ||
+         *  // *** AppService goes here ***
+         *  CloudShell.tryCreate(
+         *      logger,
+         *      cacheManager,
+         *      networkClient,
+         *      cryptoProvider
+         *  ) ||
+         *  AzureArc.tryCreate(
+         *      logger,
+         *      cacheManager,
+         *      networkClient,
+         *      cryptoProvider
+         *  ) ||
+         *  // *** Imds goes here ***
+         */
 
-            if (!source) {
-                throw createManagedIdentityError(
-                    ManagedIdentityErrorCodes.unableToCreateSource
-                );
-            }
-            return source;
-        } catch (error) {
-            // throw error that was bubbled up
-            throw error;
+        if (!source) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.unableToCreateSource
+            );
         }
-    }
-
-    // used in unit tests
-    public isAppService(): boolean {
-        return ManagedIdentityClient.identitySource.isAppService();
+        return source;
     }
 }

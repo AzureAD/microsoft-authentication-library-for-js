@@ -78,15 +78,15 @@ export class Imds extends BaseManagedIdentitySource {
         request.headers[METADATA_HEADER_NAME] = "true";
         request.queryParameters["api-version"] = IMDS_API_VERSION;
         request.queryParameters["resource"] = resource;
-        // bodyParameters calculated in BaseManagedIdentity.authenticateWithMSI
+        // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
-        switch (managedIdentityId.getIdType) {
+        switch (managedIdentityId.idType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
                 this.logger.info(
                     "[Managed Identity] Adding user assigned client id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_CLIENT_ID] =
-                    managedIdentityId.getId;
+                    managedIdentityId.id;
                 break;
 
             case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
@@ -94,7 +94,7 @@ export class Imds extends BaseManagedIdentitySource {
                     "[Managed Identity] Adding user assigned resource id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_RESOURCE_ID] =
-                    managedIdentityId.getId;
+                    managedIdentityId.id;
                 break;
 
             case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
@@ -102,7 +102,7 @@ export class Imds extends BaseManagedIdentitySource {
                     "[Managed Identity] Adding user assigned object id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_OBJECT_ID] =
-                    managedIdentityId.getId;
+                    managedIdentityId.id;
                 break;
         }
 

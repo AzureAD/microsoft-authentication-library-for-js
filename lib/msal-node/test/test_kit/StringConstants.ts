@@ -360,9 +360,7 @@ export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: ManagedIdentityResu
     {
         accessToken: TEST_TOKENS.ACCESS_TOKEN,
         expiresOn: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-        resource: MANAGED_IDENTITY_RESOURCE,
         tokenType: AuthenticationScheme.BEARER,
-        clientId: MANAGED_IDENTITY_CLIENT_ID,
         fromCache: false,
     };
 

@@ -30,20 +30,6 @@ export type ManagedIdentityIdType =
     (typeof ManagedIdentityIdType)[keyof typeof ManagedIdentityIdType];
 
 /**
- * Managed Identity Authentication Sources
- */
-export const ManagedIdentitySource = {
-    NONE: "None", // default
-    IMDS: "Imds",
-    APP_SERVICE: "AppService",
-    AZURE_ARC: "AzureArc",
-    CLOUD_SHELL: "CloudShell",
-    SERVICE_FABRIC: "ServiceFabric",
-} as const;
-export type ManagedIdentitySource =
-    (typeof ManagedIdentitySource)[keyof typeof ManagedIdentitySource];
-
-/**
  * http methods
  */
 export const HttpMethod = {

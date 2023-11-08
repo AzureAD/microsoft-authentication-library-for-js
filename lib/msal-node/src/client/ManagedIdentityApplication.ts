@@ -71,7 +71,7 @@ export class ManagedIdentityApplication {
 
         this.nodeStorage = new NodeStorage(
             this.logger,
-            this.config.managedIdentityId.getId,
+            this.config.managedIdentityId.id,
             DEFAULT_CRYPTO_IMPLEMENTATION,
             fakeStatusAuthorityOptions
         );
@@ -91,12 +91,15 @@ export class ManagedIdentityApplication {
             this.networkClient,
             this.nodeStorage,
             fakeAuthorityOptions,
-            this.logger
+            this.logger,
+            undefined,
+            undefined,
+            true
         );
 
         this.fakeClientCredentialClient = new ClientCredentialClient({
             authOptions: {
-                clientId: this.config.managedIdentityId.getId,
+                clientId: this.config.managedIdentityId.id,
                 authority: this.fakeAuthority,
             } as AuthOptions,
         } as ClientConfiguration);
@@ -127,12 +130,12 @@ export class ManagedIdentityApplication {
                 managedIdentityRequestParams.resource.replace("/.default", ""),
             ],
             authority: this.fakeAuthority.canonicalAuthority,
-            correlationId: this.config.managedIdentityId.getId,
+            correlationId: this.config.managedIdentityId.id,
         };
 
         if (managedIdentityRequest.forceRefresh) {
             // make a network call to the managed identity source
-            return await this.managedIdentityClient.sendMSITokenRequest(
+            return await this.managedIdentityClient.sendManagedIdentityTokenRequest(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
                 this.fakeAuthority
@@ -157,7 +160,7 @@ export class ManagedIdentityApplication {
 
                 // make a network call to the managed identity source; refresh the access token in the background
                 const refreshAccessToken = true;
-                await this.managedIdentityClient.sendMSITokenRequest(
+                await this.managedIdentityClient.sendManagedIdentityTokenRequest(
                     managedIdentityRequest,
                     this.config.managedIdentityId,
                     this.fakeAuthority,
@@ -171,19 +174,11 @@ export class ManagedIdentityApplication {
             );
         } else {
             // make a network call to the managed identity source
-            return await this.managedIdentityClient.sendMSITokenRequest(
+            return await this.managedIdentityClient.sendManagedIdentityTokenRequest(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
                 this.fakeAuthority
             );
         }
-    }
-
-    // used in unit tests
-    public isAppService(): boolean {
-        return this.managedIdentityClient.isAppService();
-    }
-    public isIMDS(): boolean {
-        return !this.isAppService();
     }
 }

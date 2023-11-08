@@ -4,7 +4,7 @@
  */
 
 /**
- * Result returned from the managed identity's endpoint.
+ * Managed Identity result data returned to the developer
  * - accessToken    - The requested access token. When called via a secured REST API, the token is embedded in the Authorization request header field as a "bearer" token, allowing the API to authenticate the caller
  * - expiresOn      - The timespan when the access token expires. The date is represented as the number of seconds from "1970-01-01T0:0:0Z UTC" (corresponds to the token's exp claim)
  * - resource       - The resource the access token was requested for. It matches the resource query string parameter of the request
@@ -15,8 +15,6 @@
 export type ManagedIdentityResult = {
     accessToken: string;
     expiresOn: number;
-    resource: string;
     tokenType: string;
-    clientId: string;
     fromCache: boolean;
 };

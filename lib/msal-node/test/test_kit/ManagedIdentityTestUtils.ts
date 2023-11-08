@@ -4,6 +4,7 @@
  */
 
 import {
+    AuthenticationScheme,
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
@@ -15,6 +16,18 @@ import {
 } from "./StringConstants";
 
 export class ManagedIdentityTestUtils {
+    static isAppService(): boolean {
+        return (
+            // !! converts to boolean
+            !!process.env["IDENTITY_ENDPOINT"] &&
+            !!process.env["IDENTITY_HEADER"]
+        );
+    }
+
+    static isIMDS(): boolean {
+        return !ManagedIdentityTestUtils.isAppService();
+    }
+
     static getManagedIdentityNetworkClient(clientId: string) {
         return new (class CustomHttpClient implements INetworkModule {
             sendGetRequestAsync<T>(
@@ -26,10 +39,11 @@ export class ManagedIdentityTestUtils {
                     resolve({
                         status: 200,
                         body: {
+                            access_token: TEST_TOKENS.ACCESS_TOKEN,
                             client_id: clientId,
                             expires_on: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
                             resource: MANAGED_IDENTITY_RESOURCE,
-                            access_token: TEST_TOKENS.ACCESS_TOKEN,
+                            token_type: AuthenticationScheme.BEARER,
                         },
                     } as NetworkResponse<T>);
                 });
@@ -43,10 +57,11 @@ export class ManagedIdentityTestUtils {
                     resolve({
                         status: 200,
                         body: {
+                            access_token: TEST_TOKENS.ACCESS_TOKEN,
                             client_id: clientId,
                             expires_on: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
                             resource: MANAGED_IDENTITY_RESOURCE,
-                            access_token: TEST_TOKENS.ACCESS_TOKEN,
+                            token_type: AuthenticationScheme.BEARER,
                         },
                     } as NetworkResponse<T>);
                 });

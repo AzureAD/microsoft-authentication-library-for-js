@@ -130,7 +130,7 @@ export class ClientCredentialClient extends BaseClient {
 
         const cachedAccessToken = this.readAccessTokenFromCache(
             authority,
-            managedIdentityConfiguration.managedIdentityId?.getId ||
+            managedIdentityConfiguration.managedIdentityId?.id ||
                 clientConfiguration.authOptions.clientId,
             new ScopeSet(request.scopes || []),
             cacheManager

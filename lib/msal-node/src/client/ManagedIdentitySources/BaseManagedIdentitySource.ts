@@ -13,6 +13,7 @@ import {
     INetworkModule,
     Logger,
     NetworkRequestOptions,
+    NetworkResponse,
     ResponseHandler,
     ServerAuthorizationTokenResponse,
     TimeUtils,
@@ -25,6 +26,7 @@ import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest";
 import { HttpMethod } from "../../utils/Constants";
 import { ManagedIdentityResult } from "../../response/ManagedIdentityResult";
 import { ManagedIdentityUtils } from "../../utils/ManagedIdentityUtils";
+import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
 
 export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
@@ -49,7 +51,7 @@ export abstract class BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters;
 
-    public async authenticateWithMSI(
+    public async acquireTokenWithManagedIdentity(
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
@@ -70,39 +72,22 @@ export abstract class BaseManagedIdentitySource {
         }
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        let serverTokenResponse: ServerAuthorizationTokenResponse;
-        let response;
+        let response: NetworkResponse<ManagedIdentityTokenResponse>;
         try {
             // Sources that send POST requests: Cloud Shell
             if (networkRequest.httpMethod === HttpMethod.POST) {
                 response =
-                    await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
+                    await this.networkClient.sendPostRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
                 // Sources that send GET requests: App Service, Azure Arc, IMDS, Service Fabric
             } else {
                 response =
-                    await this.networkClient.sendGetRequestAsync<ServerAuthorizationTokenResponse>(
+                    await this.networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
-            }
-
-            serverTokenResponse = response.body;
-            serverTokenResponse.status = response.status;
-            // if success
-            if (serverTokenResponse.expires_on) {
-                serverTokenResponse.expires_in = serverTokenResponse.expires_on;
-            }
-            // if error
-            if (serverTokenResponse.message) {
-                serverTokenResponse.error = serverTokenResponse.message;
-            }
-            // if error
-            if (serverTokenResponse.correlationId) {
-                serverTokenResponse.correlation_id =
-                    serverTokenResponse.correlationId;
             }
         } catch (error) {
             if (error instanceof AuthError) {
@@ -112,8 +97,22 @@ export abstract class BaseManagedIdentitySource {
             }
         }
 
+        const serverTokenResponse: ServerAuthorizationTokenResponse = {
+            status: response.status,
+
+            // success
+            access_token: response.body.access_token,
+            expires_in: response.body.expires_on,
+            scope: response.body.resource,
+            token_type: response.body.token_type,
+
+            // error
+            error: response.body.message,
+            correlation_id: response.body.correlationId,
+        };
+
         const responseHandler = new ResponseHandler(
-            managedIdentityId.getId,
+            managedIdentityId.id,
             this.cacheManager,
             this.cryptoProvider,
             this.logger,
@@ -136,15 +135,6 @@ export abstract class BaseManagedIdentitySource {
 
         return ManagedIdentityUtils.convertAuthResultToManagedIdentityResult(
             authResult
-        );
-    }
-
-    // used in unit tests
-    public isAppService(): boolean {
-        return (
-            // !! converts to boolean
-            !!process.env["IDENTITY_ENDPOINT"] &&
-            !!process.env["IDENTITY_HEADER"]
         );
     }
 }

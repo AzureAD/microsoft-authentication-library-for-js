@@ -87,15 +87,15 @@ export class AppService extends BaseManagedIdentitySource {
         request.headers[SECRET_HEADER_NAME] = this.secret;
         request.queryParameters["api-version"] = APP_SERVICE_MSI_API_VERSION;
         request.queryParameters["resource"] = resource;
-        // bodyParameters calculated in BaseManagedIdentity.authenticateWithMSI
+        // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
-        switch (managedIdentityId.getIdType) {
+        switch (managedIdentityId.idType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
                 this.logger.info(
                     "[Managed Identity] Adding user assigned client id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_CLIENT_ID] =
-                    managedIdentityId.getId;
+                    managedIdentityId.id;
                 break;
 
             case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
@@ -103,7 +103,7 @@ export class AppService extends BaseManagedIdentitySource {
                     "[Managed Identity] Adding user assigned resource id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_RESOURCE_ID] =
-                    managedIdentityId.getId;
+                    managedIdentityId.id;
                 break;
 
             case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
@@ -111,7 +111,7 @@ export class AppService extends BaseManagedIdentitySource {
                     "[Managed Identity] Adding user assigned object id to the request."
                 );
                 request.queryParameters[MANAGED_IDENTITY_OBJECT_ID] =
-                    managedIdentityId.getId;
+                    managedIdentityId.id;
                 break;
         }
 
