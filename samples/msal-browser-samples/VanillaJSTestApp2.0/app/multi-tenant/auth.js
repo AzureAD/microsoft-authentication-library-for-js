@@ -36,7 +36,7 @@ async function pickActiveAccountAndTenantProfile(homeAccount) {
         }
         accountId = activeAccount.homeAccountId;
         showWelcomeMessage(activeAccount);
-        showTenantProfilePicker(homeAccount.tenants || [], activeAccount);
+        showTenantProfilePicker(homeAccount.tenantProfiles || new Map(), activeAccount);
 }
 
 async function setActiveAccount(tenantId) {

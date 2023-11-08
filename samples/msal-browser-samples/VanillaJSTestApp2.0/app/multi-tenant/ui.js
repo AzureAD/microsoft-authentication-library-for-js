@@ -27,13 +27,13 @@ function showWelcomeMessage(activeAccount) {
     redirectButton.innerHTML = "Sign Out with Redirect";
 }
 
-function createTenantProfileButton(tenantProfile, activeTenantId) {
+function createTenantProfileButton(tenantId, tenantProfile, activeTenantId) {
     const tenantIdButton = document.createElement('button');
-    const styleClass = (tenantProfile === activeTenantId) ? "btn btn-success" : "btn btn-primary";
+    const styleClass = (tenantId === activeTenantId) ? "btn btn-success" : "btn btn-primary";
     tenantIdButton.setAttribute('class', styleClass);
-    tenantIdButton.setAttribute('id', tenantProfile);
+    tenantIdButton.setAttribute('id', tenantId);
     tenantIdButton.setAttribute('onClick', "setActiveAccount(this.id)");
-    const label = `${tenantProfile}${ tenantProfile.isHomeTenant ? " (Home Tenant)" : "" }`;
+    const label = `${tenantId}${ tenantProfile.isHomeTenant ? " (Home Tenant)" : "" }`;
     tenantIdButton.innerHTML = label;
     return tenantIdButton;
 }
@@ -43,8 +43,8 @@ function showTenantProfilePicker(tenantProfiles, activeAccount) {
     cardDivTenantProfiles.style.display = 'initial';
     pickProfileMessage.innerHTML = "Select a tenant profile to set as the active account";
     tenantProfileDiv.innerHTML = "";
-    tenantProfiles.forEach(function (profile) {
-        tenantProfileDiv.appendChild(createTenantProfileButton(profile, activeAccount.tenantId));
+    tenantProfiles.forEach(function (tenantProfile, tenantId) {
+        tenantProfileDiv.appendChild(createTenantProfileButton(tenantId, tenantProfile, activeAccount.tenantId));
         tenantProfileDiv.appendChild(document.createElement('br'));
         tenantProfileDiv.appendChild(document.createElement('br'));
     });

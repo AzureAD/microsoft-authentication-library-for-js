@@ -7,7 +7,11 @@ import { Separators, CacheAccountType } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo";
-import { AccountInfo } from "../../account/AccountInfo";
+import {
+    AccountInfo,
+    TenantProfile,
+    buildTenantProfileFromIdTokenClaims,
+} from "../../account/AccountInfo";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
@@ -39,6 +43,7 @@ import { ProtocolMode } from "../../authority/ProtocolMode";
  *      lastModificationTime: last time this entity was modified in the cache
  *      lastModificationApp:
  *      nativeAccountId: Account identifier on the native device
+ *      tenantProfiles: Array of tenant profile objects for each tenant that the account has authenticated with in the browser
  * }
  * @internal
  */
@@ -56,7 +61,7 @@ export class AccountEntity {
     cloudGraphHostName?: string;
     msGraphHost?: string;
     nativeAccountId?: string;
-    tenants?: string[];
+    tenantProfiles?: Array<TenantProfile>;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -92,7 +97,12 @@ export class AccountEntity {
             name: this.name,
             nativeAccountId: this.nativeAccountId,
             authorityType: this.authorityType,
-            tenants: this.tenants,
+            // Deserialize tenant profiles array into a Map
+            tenantProfiles: new Map(
+                (this.tenantProfiles || []).map((tenantProfile) => {
+                    return [tenantProfile.tenantId, tenantProfile];
+                })
+            ),
         };
     }
 
@@ -100,7 +110,7 @@ export class AccountEntity {
      * Returns true if the account entity is in single tenant format (outdated), false otherwise
      */
     isSingleTenant(): boolean {
-        return !this.tenants;
+        return !this.tenantProfiles;
     }
 
     /**
@@ -131,7 +141,7 @@ export class AccountEntity {
             msGraphHost?: string;
             environment?: string;
             nativeAccountId?: string;
-            tenants?: string[];
+            tenantProfiles?: Array<TenantProfile>;
         },
         authority: Authority,
         cryptoObj?: ICrypto
@@ -173,12 +183,6 @@ export class AccountEntity {
             getTenantIdFromIdTokenClaims(accountDetails.idTokenClaims) ||
             "";
 
-        if (accountDetails.tenants) {
-            account.tenants = accountDetails.tenants;
-        } else {
-            account.tenants = account.realm ? [account.realm] : [];
-        }
-
         // How do you account for MSA CID here?
         account.localAccountId =
             clientInfo?.uid ||
@@ -203,6 +207,20 @@ export class AccountEntity {
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
         account.msGraphHost = accountDetails.msGraphHost;
+
+        if (accountDetails.tenantProfiles) {
+            account.tenantProfiles = accountDetails.tenantProfiles;
+        } else {
+            const tenantProfiles = [];
+            if (accountDetails.idTokenClaims) {
+                const tenantProfile = buildTenantProfileFromIdTokenClaims(
+                    accountDetails.homeAccountId,
+                    accountDetails.idTokenClaims
+                );
+                tenantProfiles.push(tenantProfile);
+            }
+            account.tenantProfiles = tenantProfiles;
+        }
 
         return account;
     }
@@ -235,7 +253,10 @@ export class AccountEntity {
 
         account.cloudGraphHostName = cloudGraphHostName;
         account.msGraphHost = msGraphHost;
-        account.tenants = accountInfo.tenants;
+        // Serialize tenant profiles map into an array
+        account.tenantProfiles = Array.from(
+            accountInfo.tenantProfiles?.values() || []
+        );
 
         return account;
     }

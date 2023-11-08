@@ -259,14 +259,12 @@ export class TokenCache implements ITokenCache {
             );
         }
 
-        const tenantId = idTokenClaims.tid;
         const accountEntity = AccountEntity.createAccount(
             {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
                 clientInfo,
                 environment: authority.hostnameAndPort,
-                tenants: tenantId ? [tenantId] : [],
             },
             authority
         );

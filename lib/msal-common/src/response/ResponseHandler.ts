@@ -46,7 +46,11 @@ import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
 } from "../account/TokenClaims";
-import { AccountInfo, updateTenantProfile } from "../account/AccountInfo";
+import {
+    AccountInfo,
+    buildTenantProfileFromIdTokenClaims,
+    updateAccountTenantProfileData,
+} from "../account/AccountInfo";
 import * as CacheHelpers from "../cache/utils/CacheHelpers";
 
 /**
@@ -546,17 +550,26 @@ export class ResponseHandler {
                     clientInfo: serverTokenResponse.client_info,
                     cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
                     msGraphHost: authCodePayload?.msgraph_host,
-                    tenants: claimsTenantId ? [claimsTenantId] : [],
                 },
                 authority,
                 this.cryptoObj
             );
 
-        const tenants = baseAccount.tenants || [];
-        if (claimsTenantId && !tenants.includes(claimsTenantId)) {
-            tenants.push(claimsTenantId);
+        const tenantProfiles = baseAccount.tenantProfiles || [];
+
+        if (
+            claimsTenantId &&
+            !tenantProfiles.find((tenantProfile) => {
+                return tenantProfile.tenantId === claimsTenantId;
+            })
+        ) {
+            const newTenantProfile = buildTenantProfileFromIdTokenClaims(
+                this.homeAccountIdentifier,
+                idTokenClaims
+            );
+            tenantProfiles.push(newTenantProfile);
         }
-        baseAccount.tenants = tenants;
+        baseAccount.tenantProfiles = tenantProfiles;
 
         return baseAccount;
     }
@@ -643,8 +656,9 @@ export class ResponseHandler {
         }
 
         const accountInfo: AccountInfo | null = cacheRecord.account
-            ? updateTenantProfile(
+            ? updateAccountTenantProfileData(
                   cacheRecord.account.getAccountInfo(),
+                  undefined,
                   idTokenClaims
               )
             : null;

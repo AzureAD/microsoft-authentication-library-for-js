@@ -15,7 +15,7 @@ import { TokenClaims } from "./TokenClaims";
  * - idToken                - raw ID token
  * - idTokenClaims          - Object contains claims from ID token
  * - nativeAccountId        - The user's native account ID
- * - tenants                - Array of strings that represent a unique identifier for the tenants that the account has been authenticated with.
+ * - tenantProfiles         - Map of tenant profile objects for each tenant that the account has authenticated with in the browser
  */
 export type AccountInfo = {
     homeAccountId: string;
@@ -36,7 +36,22 @@ export type AccountInfo = {
     };
     nativeAccountId?: string;
     authorityType?: string;
-    tenants?: string[];
+    tenantProfiles?: Map<string, TenantProfile>;
+};
+
+/**
+ * Account details that vary across tenants for the same user
+ *
+ * - tenantId               - Full tenant or organizational id that this account belongs to
+ * - localAccountId         - Local, tenant-specific account identifer for this account object, usually used in legacy cases
+ * - name                   - Full name for the account, including given name and family name
+ * - isHomeTenant           - True if this is the home tenant profile of the account, false if it's a guest tenant profile
+ */
+export type TenantProfile = Pick<
+    AccountInfo,
+    "tenantId" | "localAccountId" | "name"
+> & {
+    isHomeTenant?: boolean;
 };
 
 export type ActiveAccountFilters = {
@@ -51,41 +66,57 @@ export type ActiveAccountFilters = {
  * @param idTokenClaims
  * @returns
  */
-export function updateTenantProfile(
+export function updateAccountTenantProfileData(
     accountInfo: AccountInfo,
+    tenantProfile?: TenantProfile,
     idTokenClaims?: TokenClaims
 ): AccountInfo {
+    let updatedAccountInfo = accountInfo;
+    // Tenant Profile overrides passed in account info
+    if (tenantProfile) {
+        updatedAccountInfo = { ...accountInfo, ...tenantProfile };
+    }
+
+    // ID token claims override passed in account info and tenant profile
     if (idTokenClaims) {
-        const updatedAccountInfo = accountInfo;
-        const { oid, tid, name, tfp, acr } = idTokenClaims;
+        // @ts-ignore
+        const { isHomeTenant, ...tenantProfile } =
+            buildTenantProfileFromIdTokenClaims(
+                accountInfo.homeAccountId,
+                idTokenClaims
+            );
 
-        if (oid && oid !== accountInfo.localAccountId) {
-            updatedAccountInfo.localAccountId = oid;
-        }
-        if (name && name !== accountInfo.name) {
-            updatedAccountInfo.name = name;
-        }
-
-        const baseTenantId = accountInfo.tenantId;
-
-        let claimsTenantId = null;
-        // Determine tenantId from token claims tid > tfp > acr
-        if (tid && tid !== baseTenantId) {
-            claimsTenantId = tid;
-        } else if (tfp && tfp !== baseTenantId) {
-            claimsTenantId = tfp;
-        } else if (acr && acr !== baseTenantId) {
-            claimsTenantId = acr;
-        }
-
-        if (claimsTenantId) {
-            // Downcase to match the realm case-insensitive comparison requirements
-            updatedAccountInfo.tenantId = claimsTenantId.toLowerCase();
-        }
+        updatedAccountInfo = {
+            ...updatedAccountInfo,
+            ...tenantProfile,
+        };
 
         updatedAccountInfo.idTokenClaims = idTokenClaims;
         return updatedAccountInfo;
     }
 
     return accountInfo;
+}
+
+export function buildTenantProfileFromIdTokenClaims(
+    homeAccountId: string,
+    idTokenClaims: TokenClaims
+): TenantProfile {
+    const { oid, sub, tid, name, tfp, acr } = idTokenClaims;
+
+    const claimsTenantId = tid || tfp || acr;
+    let tenantId: string | undefined;
+
+    if (claimsTenantId) {
+        // Downcase to match the realm case-insensitive comparison requirements
+        tenantId = claimsTenantId.toLowerCase();
+    }
+    const homeTenantId = homeAccountId.split(".")[1];
+
+    return {
+        tenantId: tenantId || "",
+        localAccountId: oid || sub || "",
+        name: name,
+        isHomeTenant: tenantId === homeTenantId,
+    };
 }

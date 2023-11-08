@@ -33,7 +33,10 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError";
-import { AccountInfo, updateTenantProfile } from "../account/AccountInfo";
+import {
+    AccountInfo,
+    updateAccountTenantProfileData,
+} from "../account/AccountInfo";
 import { AppMetadataEntity } from "./entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "./entities/ThrottlingEntity";
@@ -351,9 +354,35 @@ export abstract class CacheManager implements ICacheManager {
                     tenantProfileFilter
                 )
             ) {
-                return updateTenantProfile(accountInfo, idTokenClaims);
+                return updateAccountTenantProfileData(
+                    accountInfo,
+                    undefined,
+                    idTokenClaims
+                );
+            }
+        } else {
+            if (targetTenantId) {
+                this.commonLogger.verbose(
+                    "getAccountInfoFromEntity(): No matching ID token found in cache for given tenant ID, falling back to cached tenant profiles"
+                );
+                const tenantProfile =
+                    accountInfo.tenantProfiles?.get(targetTenantId);
+                if (tenantProfile) {
+                    this.commonLogger.verbose(
+                        "getAccountInfoFromEntity(): Found cached tenant profile matching given tenant ID, updating account info with tenant profile data"
+                    );
+                    return updateAccountTenantProfileData(
+                        accountInfo,
+                        tenantProfile
+                    );
+                } else {
+                    this.commonLogger.verbose(
+                        "getAccountInfoFromEntity(): No matching ID token or tenant profile found in cache for given tenant ID. Returning base account."
+                    );
+                }
             }
         }
+
         return accountInfo;
     }
 

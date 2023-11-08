@@ -33,7 +33,7 @@ import {
     invokeAsync,
     createAuthError,
     AuthErrorCodes,
-    updateTenantProfile,
+    updateAccountTenantProfileData,
     CacheHelpers,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
@@ -584,8 +584,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims.tid ||
             Constants.EMPTY_STRING;
 
-        const accountInfo: AccountInfo | null = updateTenantProfile(
+        const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
             accountEntity.getAccountInfo(),
+            undefined,
             idTokenClaims
         );
 

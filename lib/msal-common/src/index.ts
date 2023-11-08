@@ -31,7 +31,8 @@ export { ClientConfiguration } from "./config/ClientConfiguration";
 export {
     AccountInfo,
     ActiveAccountFilters,
-    updateTenantProfile,
+    TenantProfile,
+    updateAccountTenantProfileData,
 } from "./account/AccountInfo";
 export * as AuthToken from "./account/AuthToken";
 export {
