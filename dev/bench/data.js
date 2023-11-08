@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1699391750092,
+  "lastUpdate": 1699424929287,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2888,6 +2888,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.64%",
             "unit": "ops/sec",
             "extra": "225 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "travis.walker@microsoft.com",
+            "name": "Travis Walker",
+            "username": "trwalke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a274857a16d9f765b35254ee390e5ca194aefed0",
+          "message": "Adding logging to make regional scenarios more clear (#6641)\n\nWas able to confirm the regional configuration api works. Logs make the\r\nused endpoint misleading.\r\nFix for\r\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/issues/6510\r\n\r\n---------\r\n\r\nCo-authored-by: trwalke <trwalke@microsoft.com>",
+          "timestamp": "2023-11-08T06:22:41Z",
+          "tree_id": "7a762bd82b1bf2e7a243fe2aaf50658e67c3557b",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a274857a16d9f765b35254ee390e5ca194aefed0"
+        },
+        "date": 1699424927848,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 130217,
+            "range": "±1.46%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 129048,
+            "range": "±1.68%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
