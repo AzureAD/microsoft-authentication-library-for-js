@@ -24,6 +24,7 @@ import {
     RequestParameterBuilder,
     StringUtils,
     Constants,
+    createClientAuthError,
 } from "@azure/msal-common";
 import { isBridgeError } from "../BridgeError";
 import { BridgeStatusCode } from "../BridgeStatusCode";
@@ -90,6 +91,10 @@ export class NestedAppAuthAdapter {
         response: TokenResponse,
         reqTimestamp: number
     ): AuthenticationResult {
+        if (!response.id_token || !response.access_token) {
+            throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
+        }
+
         const expiresOn = new Date(
             (reqTimestamp + (response.expires_in || 0)) * 1000
         );
@@ -97,13 +102,17 @@ export class NestedAppAuthAdapter {
             response.id_token,
             this.crypto.base64Decode
         );
+        const account = this.fromNaaAccountInfo(
+            response.account,
+            idTokenClaims
+        );
 
         const authenticationResult: AuthenticationResult = {
-            authority: response.authority || response.account.environment,
-            uniqueId: response.account.localAccountId,
-            tenantId: response.account.tenantId,
+            authority: response.authority || account.environment,
+            uniqueId: account.localAccountId,
+            tenantId: account.tenantId,
             scopes: response.scope.split(" "),
-            account: this.fromNaaAccountInfo(response.account, idTokenClaims),
+            account,
             idToken: response.id_token !== undefined ? response.id_token : "",
             idTokenClaims,
             accessToken: response.access_token,
@@ -113,7 +122,7 @@ export class NestedAppAuthAdapter {
                 request.authenticationScheme || AuthenticationScheme.BEARER,
             correlationId: request.correlationId,
             extExpiresOn: expiresOn,
-            state: response.state,
+            state: request.state,
         };
 
         return authenticationResult;
