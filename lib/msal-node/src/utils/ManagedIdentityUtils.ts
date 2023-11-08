@@ -13,9 +13,7 @@ export class ManagedIdentityUtils {
         return {
             accessToken: authResult.accessToken,
             expiresOn: (authResult.expiresOn as Date).getTime() / 1000,
-            resource: authResult.managedIdentityResource as string,
             tokenType: authResult.tokenType,
-            clientId: authResult.managedIdentityClientId as string,
             fromCache: authResult.fromCache,
         };
     };

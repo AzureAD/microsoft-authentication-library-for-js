@@ -404,10 +404,7 @@ export class ResponseHandler {
         userAssertionHash?: string,
         authCodePayload?: AuthorizationCodePayload
     ): CacheRecord {
-        // if Managed Identity response, set env to the default authority
-        const env = serverTokenResponse.resource
-            ? Constants.DEFAULT_AUTHORITY
-            : authority.getPreferredCache();
+        const env = authority.getPreferredCache();
         if (!env) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.invalidCacheEnvironment
@@ -486,9 +483,7 @@ export class ResponseHandler {
                 userAssertionHash,
                 serverTokenResponse.key_id,
                 request.claims,
-                request.requestedClaimsHash,
-                serverTokenResponse.client_id,
-                serverTokenResponse.resource
+                request.requestedClaimsHash
             );
         }
 
@@ -640,12 +635,6 @@ export class ResponseHandler {
                 cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
             code: serverTokenResponse?.spa_code,
             fromNativeBroker: false,
-            managedIdentityClientId:
-                cacheRecord.accessToken?.managedIdentityClientId ||
-                Constants.EMPTY_STRING,
-            managedIdentityResource:
-                cacheRecord.accessToken?.managedIdentityResource ||
-                Constants.EMPTY_STRING,
         };
     }
 }
