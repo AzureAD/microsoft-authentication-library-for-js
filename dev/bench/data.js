@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1699424929287,
+  "lastUpdate": 1699482741100,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2926,6 +2926,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.68%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9225d42c915af330895373e05213aed842d3eec5",
+          "message": "Add E2E test for AcquireTokenInteractive (#6669)\n\nE2E test for AcquireTokenInteractive, including verification of the\r\nsuccess template. Closes out the work for #6666",
+          "timestamp": "2023-11-08T22:27:03Z",
+          "tree_id": "b5007aa147b9d8c72c8158b4260cb88e67f823a1",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9225d42c915af330895373e05213aed842d3eec5"
+        },
+        "date": 1699482739426,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 224811,
+            "range": "±1.28%",
+            "unit": "ops/sec",
+            "extra": "239 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 182833,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
