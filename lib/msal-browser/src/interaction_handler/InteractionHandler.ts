@@ -14,6 +14,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     CcsCredentialType,
+    ServerAuthorizationCodeResponse,
 } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -52,23 +53,19 @@ export class InteractionHandler {
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponseFromHash(
-        locationHash: string,
+    async handleCodeResponse(
+        response: ServerAuthorizationCodeResponse,
         request: AuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.HandleCodeResponseFromHash,
+            PerformanceEvents.HandleCodeResponse,
             request.correlationId
         );
-        // Check that location hash isn't empty.
-        if (!locationHash) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
-        }
 
         let authCodeResponse;
         try {
             authCodeResponse = this.authModule.handleFragmentResponse(
-                locationHash,
+                response,
                 request.state
             );
         } catch (e) {

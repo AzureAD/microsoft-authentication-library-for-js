@@ -2,6 +2,82 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 07 Nov 2023 00:01:50 GMT",
+      "version": "14.4.0",
+      "tag": "@azure/msal-common_v14.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "42a5e13c333d34be82734bcc3cd91ff7e8dd7d25",
+            "comment": "Convert ServerTelemetryEntity to Type instead of Class #6651"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "e9dd9337c02fcfe008514f5fd057087d3409cc91",
+            "comment": "Make SHR header configurable #6654"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "33ae9c8143a924c2d7f2114c1ff4a869c259a97c",
+            "comment": "Instrument functions that drop multiple matched tokens #6647"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "619e10fe4ffb23060137150cd93c954cc2ca05ae",
+            "comment": "Update hash/query parsing to use runtime provided APIs #6646"
+          }
+        ],
+        "patch": [
+          {
+            "author": "trwalke@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "9ed331c47f6a8d6c10a640a884a3db966f6a58a4",
+            "comment": "Removing allowestsrnonmsi query parameter"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "db14ee4cb268de9e048fb3ab31a953917f2abdeb",
+            "comment": "Update cache outcome log message #6644"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 30 Oct 2023 21:38:25 GMT",
+      "version": "14.3.0",
+      "tag": "@azure/msal-common_v14.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5f49a5e39a6d0d5ae319c7a21ed18d06d8a6fd51",
+            "comment": "Refactor token cache entities to be defined as Types rather than Classes #6580"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3e4c956c57e1476632cab77832493d4d0c51470b",
+            "comment": "Don't use temporary cache for silent & popup flows #6586"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c93777ed04311851fe2a7028bb5d86e073c98f52",
+            "comment": "Fix hardcoded metadata fetching for tenanted authorities #6622"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Oct 2023 17:24:19 GMT",
       "version": "14.2.0",
       "tag": "@azure/msal-common_v14.2.0",

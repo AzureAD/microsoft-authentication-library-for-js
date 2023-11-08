@@ -52,7 +52,7 @@ class MockGuidGenerator implements IGuidGenerator {
     }
 }
 
-class MockPerformanceClient
+export class MockPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
 {

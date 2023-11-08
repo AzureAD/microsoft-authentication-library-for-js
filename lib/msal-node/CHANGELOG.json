@@ -2,6 +2,77 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 07 Nov 2023 20:59:07 GMT",
+      "version": "2.5.1",
+      "tag": "@azure/msal-node_v2.5.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "f085dcbb122aab1ede38af5c940974d820028fe4",
+            "comment": "Fix success template not rendering"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Nov 2023 00:01:50 GMT",
+      "version": "2.5.0",
+      "tag": "@azure/msal-node_v2.5.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "2bc32d539b86a2a7aa2dcbfcb00aa24b40cbe7c0",
+            "comment": "Extend Node support for 16"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "42a5e13c333d34be82734bcc3cd91ff7e8dd7d25",
+            "comment": "Convert ServerTelemetryEntity to Type instead of Class #6651"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.4.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "619e10fe4ffb23060137150cd93c954cc2ca05ae",
+            "comment": "Use new query string parser in LoopbackClient #6646"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 30 Oct 2023 21:38:25 GMT",
+      "version": "2.4.0",
+      "tag": "@azure/msal-node_v2.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5f49a5e39a6d0d5ae319c7a21ed18d06d8a6fd51",
+            "comment": "Refactor token cache entities to be defined as Types rather than Classes #6580"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.3.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Oct 2023 17:24:19 GMT",
       "version": "2.3.0",
       "tag": "@azure/msal-node_v2.3.0",

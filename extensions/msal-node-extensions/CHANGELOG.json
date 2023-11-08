@@ -2,6 +2,48 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Tue, 07 Nov 2023 00:01:50 GMT",
+      "version": "1.0.7",
+      "tag": "@azure/msal-node-extensions_v1.0.7",
+      "comments": {
+        "patch": [
+          {
+            "author": "janusz@corechain.tech",
+            "package": "@azure/msal-node-extensions",
+            "commit": "25472ea4b5fb2ecef8eada945fa7c9f7eb0f2557",
+            "comment": "fix: Environment.getUserRootDirectory() only ever executes Windows code path"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.4.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 30 Oct 2023 21:38:25 GMT",
+      "version": "1.0.6",
+      "tag": "@azure/msal-node-extensions_v1.0.6",
+      "comments": {
+        "patch": [
+          {
+            "author": "janusz@corechain.tech",
+            "package": "@azure/msal-node-extensions",
+            "commit": "ffe542b30693153a63afeb3a98ff2804b846d13e",
+            "comment": "Fix downstream ESM imports, fixes #6573"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.3.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Oct 2023 17:24:19 GMT",
       "version": "1.0.5",
       "tag": "@azure/msal-node-extensions_v1.0.5",

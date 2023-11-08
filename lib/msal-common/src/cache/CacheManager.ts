@@ -43,12 +43,10 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
 import { StoreInCache } from "../request/StoreInCache";
-import {
-    getAliasesFromConfigMetadata,
-    getHardcodedAliasesForCanonicalAuthority,
-} from "../authority/AuthorityMetadata";
+import { getAliasesFromStaticSources } from "../authority/AuthorityMetadata";
 import { StaticAuthorityOptions } from "../authority/AuthorityOptions";
 import { TokenClaims } from "../account/TokenClaims";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -260,7 +258,13 @@ export abstract class CacheManager implements ICacheManager {
      */
     getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
         const allAccounts = this.getAllAccounts(accountFilter);
-        if (allAccounts.length > 0) {
+        if (allAccounts.length > 1) {
+            // If one or more accounts are found, further filter to the first account that has an ID token
+            return allAccounts.filter((account) => {
+                return !!account.idTokenClaims;
+            })[0];
+        } else if (allAccounts.length === 1) {
+            // If only one account is found, return it regardless of whether a matching ID token was found
             return allAccounts[0];
         } else {
             return null;
@@ -304,7 +308,7 @@ export abstract class CacheManager implements ICacheManager {
                 return accountInfo;
             }
         }
-        return null;
+        return accountInfo;
     }
 
     private idTokenClaimsMatchAccountFilter(
@@ -873,29 +877,40 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve the cached credentials into a cacherecord
-     * @param account
-     * @param clientId
-     * @param scopes
-     * @param environment
-     * @param authScheme
+     * @param account {AccountInfo}
+     * @param request {BaseAuthRequest}
+     * @param environment {string}
+     * @param performanceClient {?IPerformanceClient}
+     * @param correlationId {?string}
      */
     readCacheRecord(
         account: AccountInfo,
         request: BaseAuthRequest,
-        environment: string
+        environment: string,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): CacheRecord {
         const tokenKeys = this.getTokenKeys();
         const cachedAccount = this.readAccountFromCache(account);
-        const cachedIdToken = this.getIdToken(account, tokenKeys);
+        const cachedIdToken = this.getIdToken(
+            account,
+            tokenKeys,
+            performanceClient,
+            correlationId
+        );
         const cachedAccessToken = this.getAccessToken(
             account,
             request,
-            tokenKeys
+            tokenKeys,
+            performanceClient,
+            correlationId
         );
         const cachedRefreshToken = this.getRefreshToken(
             account,
             false,
-            tokenKeys
+            tokenKeys,
+            performanceClient,
+            correlationId
         );
         const cachedAppMetadata = this.readAppMetadataFromCache(environment);
 
@@ -927,13 +942,16 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve IdTokenEntity from cache
-     * @param clientId
-     * @param account
-     * @param inputRealm
+     * @param account {AccountInfo}
+     * @param tokenKeys {?TokenKeys}
+     * @param performanceClient {?IPerformanceClient}
+     * @param correlationId {?string}
      */
     getIdToken(
         account: AccountInfo,
-        tokenKeys?: TokenKeys
+        tokenKeys?: TokenKeys,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): IdTokenEntity | null {
         this.commonLogger.trace("CacheManager - getIdToken called");
         const idTokenFilter: CredentialFilter = {
@@ -960,6 +978,12 @@ export abstract class CacheManager implements ICacheManager {
             idTokens.forEach((idToken) => {
                 this.removeIdToken(generateCredentialKey(idToken));
             });
+            if (performanceClient && correlationId) {
+                performanceClient.addFields(
+                    { multiMatchedID: idTokens.length },
+                    correlationId
+                );
+            }
             return null;
         }
 
@@ -1044,15 +1068,18 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve AccessTokenEntity from cache
-     * @param clientId
-     * @param account
-     * @param scopes
-     * @param authScheme
+     * @param account {AccountInfo}
+     * @param request {BaseAuthRequest}
+     * @param tokenKeys {?TokenKeys}
+     * @param performanceClient {?IPerformanceClient}
+     * @param correlationId {?string}
      */
     getAccessToken(
         account: AccountInfo,
         request: BaseAuthRequest,
-        tokenKeys?: TokenKeys
+        tokenKeys?: TokenKeys,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): AccessTokenEntity | null {
         this.commonLogger.trace("CacheManager - getAccessToken called");
         const scopes = ScopeSet.createSearchScopes(request.scopes);
@@ -1116,6 +1143,12 @@ export abstract class CacheManager implements ICacheManager {
             accessTokens.forEach((accessToken) => {
                 void this.removeAccessToken(generateCredentialKey(accessToken));
             });
+            if (performanceClient && correlationId) {
+                performanceClient.addFields(
+                    { multiMatchedAT: accessTokens.length },
+                    correlationId
+                );
+            }
             return null;
         }
 
@@ -1213,14 +1246,18 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Helper to retrieve the appropriate refresh token from cache
-     * @param clientId
-     * @param account
-     * @param familyRT
+     * @param account {AccountInfo}
+     * @param familyRT {boolean}
+     * @param tokenKeys {?TokenKeys}
+     * @param performanceClient {?IPerformanceClient}
+     * @param correlationId {?string}
      */
     getRefreshToken(
         account: AccountInfo,
         familyRT: boolean,
-        tokenKeys?: TokenKeys
+        tokenKeys?: TokenKeys,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): RefreshTokenEntity | null {
         this.commonLogger.trace("CacheManager - getRefreshToken called");
         const id = familyRT ? THE_FAMILY_ID : undefined;
@@ -1262,6 +1299,13 @@ export abstract class CacheManager implements ICacheManager {
             return null;
         }
         // address the else case after remove functions address environment aliases
+
+        if (numRefreshTokens > 1 && performanceClient && correlationId) {
+            performanceClient.addFields(
+                { multiMatchedRT: numRefreshTokens },
+                correlationId
+            );
+        }
 
         this.commonLogger.info(
             "CacheManager:getRefreshToken - returning refresh token"
@@ -1422,17 +1466,11 @@ export abstract class CacheManager implements ICacheManager {
     ): boolean {
         // Check static authority options first for cases where authority metadata has not been resolved and cached yet
         if (this.staticAuthorityOptions) {
-            const staticAliases =
-                getAliasesFromConfigMetadata(
-                    this.staticAuthorityOptions.canonicalAuthority,
-                    this.staticAuthorityOptions.cloudDiscoveryMetadata
-                ) ||
-                getHardcodedAliasesForCanonicalAuthority(
-                    this.staticAuthorityOptions.canonicalAuthority
-                ) ||
-                this.staticAuthorityOptions.knownAuthorities;
+            const staticAliases = getAliasesFromStaticSources(
+                this.staticAuthorityOptions,
+                this.commonLogger
+            );
             if (
-                staticAliases &&
                 staticAliases.includes(environment) &&
                 staticAliases.includes(entity.environment)
             ) {

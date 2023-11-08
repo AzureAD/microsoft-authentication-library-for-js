@@ -194,6 +194,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         BrowserPerformanceMeasurement.flushMeasurements = jest
             .fn()
             .mockReturnValue(null);
+
+        // Navigation not allowed in tests
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateExternal"
+        ).mockImplementation();
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateInternal"
+        ).mockImplementation();
     });
 
     afterEach(() => {
@@ -901,21 +911,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Looks for server code response in query param if OIDCOptions.serverResponseType is set to query", async () => {
-            /**
-             * The testing environment does not accept query params, so instead we see that it ignores a hash fragment.
-             * That means handleRedirectPromise is looking for a hash in a query param instead of a hash fragment.
-             */
-            sinon
-                .stub(RedirectClient.prototype, "handleRedirectPromise")
-                .callsFake(
-                    async (hash): Promise<AuthenticationResult | null> => {
-                        expect(hash).toBe("");
-                        return null;
-                    }
-                );
+            const responseSpy = jest.spyOn(
+                RedirectClient.prototype,
+                <any>"getRedirectResponse"
+            );
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            const responseString = `?code=authCode&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`;
 
-            window.location.hash = "#code=hello";
-            await pca.handleRedirectPromise();
+            jest.spyOn(window, "location", "get").mockReturnValueOnce({
+                ...window.location,
+                search: responseString,
+            });
+            await pca.handleRedirectPromise().catch(() => {
+                // This will likely throw, but we're not testing the e2e here
+            });
+
+            expect(responseSpy).toHaveBeenCalledTimes(1);
+            expect(responseSpy).lastReturnedWith([
+                {
+                    code: "authCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                },
+                responseString,
+            ]);
         });
     });
 
@@ -925,24 +946,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
 
-        it("throws an error if initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
-            await pca.initialize();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
-            try {
-                pca.loginRedirect();
-            } catch (e) {
+            pca.loginRedirect().catch((e) => {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.uninitializedPublicClientApplication
                     )
                 );
-            }
+                done();
+            });
         });
 
         it("doesnt mutate request correlation id", async () => {
@@ -958,14 +977,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Uses default request if no request provided", (done) => {
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(StandardController.prototype, "acquireTokenRedirect")
                 .callsFake(async (request): Promise<void> => {
                     expect(request.scopes).toContain("openid");
                     expect(request.scopes).toContain("profile");
+                    expect(request.correlationId).toEqual(RANDOM_TEST_GUID);
                     done();
                     return;
                 });
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
+                expect(events[0].success).toBe(true);
+                expect(events[0].accessTokenSize).toBe(16);
+                expect(events[0].idTokenSize).toBe(12);
+                expect(events[0].requestId).toBe(undefined);
+                expect(events[0].visibilityChangeCount).toBe(0);
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
 
             pca.loginRedirect();
         });
@@ -998,24 +1032,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
 
-        it("throws an error if initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
-            await pca.initialize();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
-            try {
-                pca.acquireTokenRedirect({ scopes: [] });
-            } catch (e) {
+            pca.acquireTokenRedirect({ scopes: [] }).catch((e) => {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.uninitializedPublicClientApplication
                     )
                 );
-            }
+                done();
+            });
         });
         it("goes directly to the native broker if nativeAccountId is present", async () => {
             const config = {
@@ -1042,6 +1074,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 username: "AbeLi@microsoft.com",
                 nativeAccountId: "test-nativeAccountId",
             };
+
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
 
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireTokenRedirect")
@@ -1617,15 +1653,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(StandardController.prototype, "acquireTokenPopup")
                 .callsFake(async (request) => {
                     expect(request.scopes).toContain("openid");
                     expect(request.scopes).toContain("profile");
+                    expect(request.correlationId).toEqual(RANDOM_TEST_GUID);
                     done();
 
                     return testTokenResponse;
                 });
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
+                expect(events[0].success).toBe(true);
+                expect(events[0].accessTokenSize).toBe(16);
+                expect(events[0].idTokenSize).toBe(12);
+                expect(events[0].requestId).toBe(undefined);
+                expect(events[0].visibilityChangeCount).toBe(0);
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
 
             pca.loginPopup();
         });
@@ -1704,9 +1754,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
 
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireToken")
-                .callsFake(async () => {
+                .callsFake(async (request) => {
+                    expect(request.correlationId).toBe(RANDOM_TEST_GUID);
                     return testTokenResponse;
                 });
             const popupSpy = sinon
@@ -4857,22 +4912,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
 
-        it("throws an error if initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
-            await pca.initialize();
-            try {
-                pca.logout();
-            } catch (error: any) {
+            pca.logout().catch((error: any) => {
                 expect(error).toMatchObject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.uninitializedPublicClientApplication
                     )
                 );
-            }
+                done();
+            });
         });
 
         it("calls logoutRedirect", (done) => {
@@ -5202,7 +5255,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         testAccount3.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount3.idTokenClaims = testAccountInfo3.idTokenClaims;
 
         const idToken3: IdTokenEntity = {
             realm: testAccountInfo3.tenantId,
@@ -5238,7 +5290,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         testAccount4.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount4.idTokenClaims = testAccountInfo4.idTokenClaims;
 
         const idToken4: IdTokenEntity = {
             realm: testAccountInfo4.tenantId,

@@ -22,8 +22,6 @@ import {
     InProgressPerformanceEvent,
     RequestThumbprint,
     AccountEntity,
-    ServerResponseType,
-    UrlString,
     invokeAsync,
     createClientAuthError,
     ClientAuthErrorCodes,
@@ -336,16 +334,6 @@ export class StandardController implements IController {
         // Block token acquisition before initialize has been called
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
 
-        let foundServerResponse = hash;
-
-        if (
-            this.config.auth.OIDCOptions?.serverResponseType ===
-            ServerResponseType.QUERY
-        ) {
-            const url = window.location.href;
-            foundServerResponse = UrlString.parseQueryServerResponse(url);
-        }
-
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
             /**
@@ -353,8 +341,7 @@ export class StandardController implements IController {
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
-            const redirectResponseKey =
-                foundServerResponse || Constants.EMPTY_STRING;
+            const redirectResponseKey = hash || "";
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
                 this.eventHandler.emitEvent(
@@ -376,7 +363,7 @@ export class StandardController implements IController {
                         this.nativeExtensionProvider
                     ) &&
                     this.nativeExtensionProvider &&
-                    !foundServerResponse
+                    !hash
                 ) {
                     this.logger.trace(
                         "handleRedirectPromise - acquiring token from native platform"
@@ -408,9 +395,7 @@ export class StandardController implements IController {
                     const redirectClient =
                         this.createRedirectClient(correlationId);
                     redirectResponse =
-                        redirectClient.handleRedirectPromise(
-                            foundServerResponse
-                        );
+                        redirectClient.handleRedirectPromise(hash);
                 }
 
                 response = redirectResponse
@@ -533,7 +518,7 @@ export class StandardController implements IController {
                 this.nativeExtensionProvider,
                 this.getNativeAccountId(request),
                 this.nativeInternalStorage,
-                request.correlationId
+                correlationId
             );
             result = nativeClient
                 .acquireTokenRedirect(request)
@@ -543,26 +528,22 @@ export class StandardController implements IController {
                         isFatalNativeAuthError(e)
                     ) {
                         this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
-                        const redirectClient = this.createRedirectClient(
-                            request.correlationId
-                        );
+                        const redirectClient =
+                            this.createRedirectClient(correlationId);
                         return redirectClient.acquireToken(request);
                     } else if (e instanceof InteractionRequiredAuthError) {
                         this.logger.verbose(
                             "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow"
                         );
-                        const redirectClient = this.createRedirectClient(
-                            request.correlationId
-                        );
+                        const redirectClient =
+                            this.createRedirectClient(correlationId);
                         return redirectClient.acquireToken(request);
                     }
                     this.getBrowserStorage().setInteractionInProgress(false);
                     throw e;
                 });
         } else {
-            const redirectClient = this.createRedirectClient(
-                request.correlationId
-            );
+            const redirectClient = this.createRedirectClient(correlationId);
             result = redirectClient.acquireToken(request);
         }
 
@@ -632,7 +613,13 @@ export class StandardController implements IController {
         let result: Promise<AuthenticationResult>;
 
         if (this.canUseNative(request)) {
-            result = this.acquireTokenNative(request, ApiId.acquireTokenPopup)
+            result = this.acquireTokenNative(
+                {
+                    ...request,
+                    correlationId,
+                },
+                ApiId.acquireTokenPopup
+            )
                 .then((response) => {
                     this.getBrowserStorage().setInteractionInProgress(false);
                     atPopupMeasurement.end({
@@ -648,24 +635,22 @@ export class StandardController implements IController {
                         isFatalNativeAuthError(e)
                     ) {
                         this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
-                        const popupClient = this.createPopupClient(
-                            request.correlationId
-                        );
+                        const popupClient =
+                            this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request);
                     } else if (e instanceof InteractionRequiredAuthError) {
                         this.logger.verbose(
                             "acquireTokenPopup - Resolving interaction required error thrown by native broker by falling back to web flow"
                         );
-                        const popupClient = this.createPopupClient(
-                            request.correlationId
-                        );
+                        const popupClient =
+                            this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request);
                     }
                     this.getBrowserStorage().setInteractionInProgress(false);
                     throw e;
                 });
         } else {
-            const popupClient = this.createPopupClient(request.correlationId);
+            const popupClient = this.createPopupClient(correlationId);
             result = popupClient.acquireToken(request);
         }
 
@@ -876,7 +861,7 @@ export class StandardController implements IController {
         );
         const atbcMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.AcquireTokenByCode,
-            request.correlationId
+            correlationId
         );
 
         try {
@@ -934,7 +919,7 @@ export class StandardController implements IController {
                 } else {
                     this.logger.verbose(
                         "Existing acquireTokenByCode request found",
-                        request.correlationId
+                        correlationId
                     );
                     atbcMeasurement.discard();
                 }
@@ -942,7 +927,10 @@ export class StandardController implements IController {
             } else if (request.nativeAccountId) {
                 if (this.canUseNative(request, request.nativeAccountId)) {
                     return this.acquireTokenNative(
-                        request,
+                        {
+                            ...request,
+                            correlationId,
+                        },
                         ApiId.acquireTokenByCode,
                         request.nativeAccountId
                     ).catch((e: AuthError) => {
@@ -1911,6 +1899,7 @@ export class StandardController implements IController {
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
             sshKid: request.sshKid,
+            shrOptions: request.shrOptions,
         };
         const silentRequestKey = JSON.stringify(thumbprint);
 

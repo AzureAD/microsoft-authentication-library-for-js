@@ -20,7 +20,7 @@ import {
 } from "@azure/msal-common";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { ControllerFactory } from "../controllers/ControllerFactory";
+import * as ControllerFactory from "../controllers/ControllerFactory";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
@@ -47,8 +47,9 @@ export class PublicClientNext implements IPublicClientApplication {
     public static async createPublicClientApplication(
         configuration: Configuration
     ): Promise<IPublicClientApplication> {
-        const factory = new ControllerFactory(configuration);
-        const controller = await factory.createController();
+        const controller = await ControllerFactory.createController(
+            configuration
+        );
         let pca;
         if (controller !== null) {
             pca = new PublicClientNext(configuration, controller);
@@ -100,8 +101,9 @@ export class PublicClientNext implements IPublicClientApplication {
      */
     async initialize(): Promise<void> {
         if (this.controller instanceof UnknownOperatingContextController) {
-            const factory = new ControllerFactory(this.configuration);
-            const result = await factory.createController();
+            const result = await ControllerFactory.createController(
+                this.configuration
+            );
             if (result !== null) {
                 this.controller = result;
             }

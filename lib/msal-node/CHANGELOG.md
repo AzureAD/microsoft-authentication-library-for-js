@@ -1,8 +1,39 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 18 Oct 2023 17:24:19 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Nov 2023 20:59:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.5.1
+
+Tue, 07 Nov 2023 20:59:07 GMT
+
+### Patches
+
+- Fix success template not rendering (thomas.norling@microsoft.com)
+
+## 2.5.0
+
+Tue, 07 Nov 2023 00:01:50 GMT
+
+### Minor changes
+
+- Extend Node support for 16 (thomas.norling@microsoft.com)
+- Convert ServerTelemetryEntity to Type instead of Class #6651 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.4.0
+
+### Patches
+
+- Use new query string parser in LoopbackClient #6646 (thomas.norling@microsoft.com)
+
+## 2.4.0
+
+Mon, 30 Oct 2023 21:38:25 GMT
+
+### Minor changes
+
+- Refactor token cache entities to be defined as Types rather than Classes #6580 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.3.0
 
 ## 2.3.0
 

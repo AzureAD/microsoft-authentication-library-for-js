@@ -105,7 +105,7 @@ export {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto";
-export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
+export { SignedHttpRequest, ShrOptions } from "./crypto/SignedHttpRequest";
 export { IGuidGenerator } from "./crypto/IGuidGenerator";
 export { JoseHeader } from "./crypto/JoseHeader";
 // Request
@@ -193,6 +193,7 @@ export {
     GrantType,
     AADAuthorityConstants,
     HttpStatus,
+    JsonWebTokenTypes,
 } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
@@ -202,6 +203,7 @@ export {
     LibraryStateObject,
 } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
+export * as UrlUtils from "./utils/UrlUtils";
 export * from "./utils/FunctionWrappers";
 // Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";

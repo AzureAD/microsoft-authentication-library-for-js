@@ -51,7 +51,6 @@ export const Constants = {
     IMDS_TIMEOUT: 2000,
     AZURE_REGION_AUTO_DISCOVER_FLAG: "TryAutoDetect",
     REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
-    REGIONAL_AUTH_NON_MSI_QUERY_STRING: "allowestsrnonmsi=true",
     KNOWN_PUBLIC_CLOUDS: [
         "login.microsoftonline.com",
         "login.windows.net",
@@ -434,11 +433,12 @@ export const CacheOutcome = {
 } as const;
 export type CacheOutcome = (typeof CacheOutcome)[keyof typeof CacheOutcome];
 
-export const JsonTypes = {
+export const JsonWebTokenTypes = {
     Jwt: "JWT",
     Jwk: "JWK",
     Pop: "pop",
 } as const;
-export type JsonTypes = (typeof JsonTypes)[keyof typeof JsonTypes];
+export type JsonWebTokenTypes =
+    (typeof JsonWebTokenTypes)[keyof typeof JsonWebTokenTypes];
 
 export const ONE_DAY_IN_MS = 86400000;

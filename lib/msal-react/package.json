@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "2.0.5",
+  "version": "2.0.7",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -47,11 +47,11 @@
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^3.3.0",
+    "@azure/msal-browser": "^3.5.0",
     "react": "^16.8.0 || ^17 || ^18"
   },
   "devDependencies": {
-    "@azure/msal-browser": "^3.3.0",
+    "@azure/msal-browser": "^3.5.0",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^13.4.0",
     "@types/jest": "^29.5.0",

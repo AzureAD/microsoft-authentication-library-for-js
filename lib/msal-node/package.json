@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@azure/msal-node",
-  "version": "2.3.0",
+  "version": "2.5.1",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -77,11 +77,11 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@azure/msal-common": "14.2.0",
+    "@azure/msal-common": "14.4.0",
     "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },
   "engines": {
-    "node": "18 || 20"
+    "node": "16|| 18 || 20"
   }
 }

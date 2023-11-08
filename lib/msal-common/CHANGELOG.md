@@ -1,8 +1,37 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 18 Oct 2023 17:24:19 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Nov 2023 00:01:50 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.4.0
+
+Tue, 07 Nov 2023 00:01:50 GMT
+
+### Minor changes
+
+- Convert ServerTelemetryEntity to Type instead of Class #6651 (thomas.norling@microsoft.com)
+- Make SHR header configurable #6654 (hemoral@microsoft.com)
+- Instrument functions that drop multiple matched tokens #6647 (kshabelko@microsoft.com)
+- Update hash/query parsing to use runtime provided APIs #6646 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Removing allowestsrnonmsi query parameter (trwalke@microsoft.com)
+- Update cache outcome log message #6644 (hemoral@microsoft.com)
+
+## 14.3.0
+
+Mon, 30 Oct 2023 21:38:25 GMT
+
+### Minor changes
+
+- Refactor token cache entities to be defined as Types rather than Classes #6580 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Don't use temporary cache for silent & popup flows #6586 (thomas.norling@microsoft.com)
+- Fix hardcoded metadata fetching for tenanted authorities #6622 (hemoral@microsoft.com)
 
 ## 14.2.0
 
