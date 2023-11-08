@@ -344,7 +344,7 @@ export class ResponseHandler {
                 cacheRecord.account
             ) {
                 const key = cacheRecord.account.generateAccountKey();
-                const account = this.cacheStorage.getAccount(key);
+                const account = this.cacheStorage.getAccount(key, this.logger);
                 if (!account) {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
@@ -538,7 +538,10 @@ export class ResponseHandler {
 
         let cachedAccount: AccountEntity | null = null;
         if (baseAccountKey) {
-            cachedAccount = this.cacheStorage.getAccount(baseAccountKey);
+            cachedAccount = this.cacheStorage.getAccount(
+                baseAccountKey,
+                this.logger
+            );
         }
 
         const baseAccount =

@@ -79,7 +79,7 @@ export function updateAccountTenantProfileData(
 
     // ID token claims override passed in account info and tenant profile
     if (idTokenClaims) {
-        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { isHomeTenant, ...tenantProfile } =
             buildTenantProfileFromIdTokenClaims(
                 accountInfo.homeAccountId,
@@ -111,12 +111,22 @@ export function buildTenantProfileFromIdTokenClaims(
         // Downcase to match the realm case-insensitive comparison requirements
         tenantId = claimsTenantId.toLowerCase();
     }
-    const homeTenantId = homeAccountId.split(".")[1];
 
     return {
         tenantId: tenantId || "",
         localAccountId: oid || sub || "",
         name: name,
-        isHomeTenant: tenantId === homeTenantId,
+        isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
     };
+}
+
+export function tenantIdMatchesHomeTenant(
+    tenantId?: string,
+    homeAccountId?: string
+): boolean {
+    return (
+        !!tenantId &&
+        !!homeAccountId &&
+        tenantId === homeAccountId.split(".")[1]
+    );
 }

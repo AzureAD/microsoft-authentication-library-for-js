@@ -35,6 +35,7 @@ import {
 } from "../error/ClientAuthError";
 import {
     AccountInfo,
+    tenantIdMatchesHomeTenant,
     updateAccountTenantProfileData,
 } from "../account/AccountInfo";
 import { AppMetadataEntity } from "./entities/AppMetadataEntity";
@@ -80,7 +81,15 @@ export abstract class CacheManager implements ICacheManager {
      * fetch the account entity from the platform cache
      *  @param accountKey
      */
-    abstract getAccount(accountKey: string): AccountEntity | null;
+    abstract getAccount(
+        accountKey: string,
+        logger?: Logger
+    ): AccountEntity | null;
+
+    /**
+     * Returns deserialized account if found in the cache, otherwiser returns null
+     */
+    abstract getCachedAccountEntity(accountKey: string): AccountEntity | null;
 
     /**
      * set account entity in the platform cache
@@ -526,7 +535,10 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            const entity: AccountEntity | null = this.getAccount(cacheKey);
+            const entity: AccountEntity | null = this.getAccount(
+                cacheKey,
+                this.commonLogger
+            );
 
             if (!entity) {
                 return;
@@ -859,7 +871,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param account
      */
     async removeAccount(accountKey: string): Promise<void> {
-        const account = this.getAccount(accountKey);
+        const account = this.getAccount(accountKey, this.commonLogger);
         if (!account) {
             return;
         }
@@ -898,32 +910,84 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * Replaces the single-tenant account with a new account object that contains the array of tenants.
-     * Returns the updated account entity.
+     * Migrates a single-tenant account and all it's associated alternate cross-tenant account objects in the
+     * cache into a condensed multi-tenant account object with tenant profiles.
      * @param accountKey
      * @param accountEntity
+     * @param logger
      * @returns
      */
     protected updateOutdatedCachedAccount(
         accountKey: string,
-        accountEntity: AccountEntity
-    ): AccountEntity {
-        if (accountEntity.isSingleTenant()) {
-            const updatedAccount = Object.assign(new AccountEntity(), {
-                ...accountEntity,
-                tenants: [accountEntity.realm],
+        accountEntity: AccountEntity | null,
+        logger?: Logger
+    ): AccountEntity | null {
+        // Only update if account entity is defined and has no tenantProfiles object (is outdated)
+        if (accountEntity && accountEntity.isSingleTenant()) {
+            this.commonLogger?.verbose(
+                "updateOutdatedCachedAccount: Found a single-tenant (outdated) account entity in the cache, migrating to multi-tenant account entity"
+            );
+
+            // Get keys of all accounts belonging to user
+            const matchingAccountKeys = this.getAccountKeys().filter(
+                (key: string) => {
+                    return key.startsWith(accountEntity.homeAccountId);
+                }
+            );
+
+            // Get all account entities belonging to user
+            const accountsToMerge: AccountEntity[] = [];
+            matchingAccountKeys.forEach((key: string) => {
+                const account = this.getCachedAccountEntity(key);
+                if (account) {
+                    accountsToMerge.push(account);
+                }
             });
 
-            // If the cache keys don't match, the key is also outdated and should be removed, if they match it's fine to just override the value
-            if (updatedAccount.generateAccountKey() !== accountKey) {
-                this.removeOutdatedAccount(accountKey);
-            }
-            this.setAccount(updatedAccount);
-            this.commonLogger.verbose(
-                "Updated an outdated account entity in the cache"
+            // Set base account to home account if available, any account if not
+            const baseAccount =
+                accountsToMerge.find((account) => {
+                    return tenantIdMatchesHomeTenant(
+                        account.realm,
+                        account.homeAccountId
+                    );
+                }) || accountsToMerge[0];
+
+            // Populate tenant profiles built from each account entity belonging to the user
+            baseAccount.tenantProfiles = accountsToMerge.map(
+                (account: AccountEntity) => {
+                    return {
+                        tenantId: account.realm,
+                        localAccountId: account.localAccountId,
+                        name: account.name,
+                        isHomeTenant: tenantIdMatchesHomeTenant(
+                            account.realm,
+                            account.homeAccountId
+                        ),
+                    };
+                }
             );
+
+            const updatedAccount = Object.assign(new AccountEntity(), {
+                ...baseAccount,
+            });
+
+            const newAccountKey = updatedAccount.generateAccountKey();
+
+            // Clear cache of legacy account objects that have been collpsed into tenant profiles
+            matchingAccountKeys.forEach((key: string) => {
+                if (key !== newAccountKey) {
+                    this.removeOutdatedAccount(accountKey);
+                }
+            });
+
+            // Cache updated account object
+            this.setAccount(updatedAccount);
+            logger?.verbose("Updated an outdated account entity in the cache");
             return updatedAccount;
         }
+
+        // No update is necessary
         return accountEntity;
     }
 
@@ -1037,7 +1101,7 @@ export abstract class CacheManager implements ICacheManager {
     readAccountFromCache(account: AccountInfo): AccountEntity | null {
         const accountKey: string =
             AccountEntity.generateAccountCacheKey(account);
-        return this.getAccount(accountKey);
+        return this.getAccount(accountKey, this.commonLogger);
     }
 
     /**
@@ -1820,6 +1884,9 @@ export class DefaultStorageClass extends CacheManager {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getAccount(): AccountEntity {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    }
+    getCachedAccountEntity(): AccountEntity | null {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     setIdTokenCredential(): void {

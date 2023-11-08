@@ -33,6 +33,7 @@ export {
     ActiveAccountFilters,
     TenantProfile,
     updateAccountTenantProfileData,
+    tenantIdMatchesHomeTenant,
 } from "./account/AccountInfo";
 export * as AuthToken from "./account/AuthToken";
 export {

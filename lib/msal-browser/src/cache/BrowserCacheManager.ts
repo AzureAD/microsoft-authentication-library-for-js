@@ -394,26 +394,40 @@ export class BrowserCacheManager extends CacheManager {
      * fetch the account entity from the platform cache
      * @param accountKey
      */
-    getAccount(accountKey: string): AccountEntity | null {
+    getAccount(accountKey: string, logger?: Logger): AccountEntity | null {
         this.logger.trace("BrowserCacheManager.getAccount called");
-        const account = this.getItem(accountKey);
-        if (!account) {
+        const accountEntity = this.getCachedAccountEntity(accountKey);
+
+        return this.updateOutdatedCachedAccount(
+            accountKey,
+            accountEntity,
+            logger
+        );
+    }
+
+    /**
+     * Reads account from cache, deserializes it into an account entity and returns it.
+     * If account is not found from the key, returns null and removes key from map.
+     * @param accountKey
+     * @returns
+     */
+    getCachedAccountEntity(accountKey: string): AccountEntity | null {
+        const serializedAccount = this.getItem(accountKey);
+        if (!serializedAccount) {
             this.removeAccountKeyFromMap(accountKey);
             return null;
         }
 
-        const parsedAccount = this.validateAndParseJson(account);
+        const parsedAccount = this.validateAndParseJson(serializedAccount);
         if (!parsedAccount || !AccountEntity.isAccountEntity(parsedAccount)) {
             this.removeAccountKeyFromMap(accountKey);
             return null;
         }
 
-        const accountEntity = CacheManager.toObject<AccountEntity>(
+        return CacheManager.toObject<AccountEntity>(
             new AccountEntity(),
             parsedAccount
         );
-
-        return this.updateOutdatedCachedAccount(accountKey, accountEntity);
     }
 
     /**

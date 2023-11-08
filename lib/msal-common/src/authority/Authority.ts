@@ -1066,12 +1066,12 @@ export class Authority {
         const matches = this.authorityOptions.knownAuthorities.filter(
             (authority) => {
                 return (
+                    authority &&
                     UrlString.getDomainFromUrl(authority).toLowerCase() ===
-                    this.hostnameAndPort
+                        this.hostnameAndPort
                 );
             }
         );
-
         return matches.length > 0;
     }
 
