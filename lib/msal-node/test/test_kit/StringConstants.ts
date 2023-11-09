@@ -3,13 +3,16 @@
  * Licensed under the MIT License.
  */
 
+import { AuthenticationResult } from "@azure/msal-common";
 import {
     AuthenticationScheme,
     Constants,
     ONE_DAY_IN_MS,
 } from "@azure/msal-common";
-import { ManagedIdentityResult } from "../../src/response/ManagedIdentityResult";
-// import { ManagedIdentityResult } from "../../src/response/ManagedIdentityResult";
+import {
+    DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
+    DEFAULT_MANAGED_IDENTITY_ID,
+} from "../../src/utils/Constants";
 
 // This file contains the string constants used by the test classes.
 
@@ -356,12 +359,41 @@ export const MANAGED_IDENTITY_RESOURCE =
 export const MANAGED_IDENTITY_CLIENT_ID =
     "unique_identifier_generated_by_Azure_AD_for_the_azure_resource";
 
-export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: ManagedIdentityResult =
+export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
+    AuthenticationResult,
+    "correlationId"
+> = {
+    accessToken: TEST_TOKENS.ACCESS_TOKEN,
+    account: null,
+    authority: DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
+    cloudGraphHostName: "",
+    code: undefined,
+    expiresOn: new Date(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+    extExpiresOn: new Date(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+    familyId: "",
+    fromCache: false,
+    fromNativeBroker: false,
+    idToken: "",
+    idTokenClaims: {},
+    msGraphHost: "",
+    refreshOn: undefined,
+    requestId: "",
+    scopes: [MANAGED_IDENTITY_RESOURCE],
+    state: "",
+    tenantId: "",
+    tokenType: AuthenticationScheme.BEARER,
+    uniqueId: "",
+};
+
+export const DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT: AuthenticationResult =
     {
-        accessToken: TEST_TOKENS.ACCESS_TOKEN,
-        expiresOn: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-        tokenType: AuthenticationScheme.BEARER,
-        fromCache: false,
+        ...DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+        correlationId: DEFAULT_MANAGED_IDENTITY_ID,
+    };
+export const DEFAULT_NON_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT: AuthenticationResult =
+    {
+        ...DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+        correlationId: MANAGED_IDENTITY_RESOURCE,
     };
 
 export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {

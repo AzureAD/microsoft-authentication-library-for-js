@@ -18,14 +18,13 @@ import {
     ServerAuthorizationTokenResponse,
     TimeUtils,
     createClientAuthError,
+    AuthenticationResult,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest";
 import { HttpMethod } from "../../utils/Constants";
-import { ManagedIdentityResult } from "../../response/ManagedIdentityResult";
-import { ManagedIdentityUtils } from "../../utils/ManagedIdentityUtils";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
 
 export abstract class BaseManagedIdentitySource {
@@ -56,7 +55,7 @@ export abstract class BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
         refreshAccessToken?: boolean
-    ): Promise<ManagedIdentityResult> {
+    ): Promise<AuthenticationResult> {
         const networkRequest: ManagedIdentityRequestParameters =
             this.createRequest(
                 managedIdentityRequest.resource,
@@ -126,15 +125,11 @@ export abstract class BaseManagedIdentitySource {
         );
 
         // caches the token
-        const authResult = await responseHandler.handleServerTokenResponse(
+        return await responseHandler.handleServerTokenResponse(
             serverTokenResponse,
             fakeAuthority,
             reqTimestamp,
             managedIdentityRequest
-        );
-
-        return ManagedIdentityUtils.convertAuthResultToManagedIdentityResult(
-            authResult
         );
     }
 }

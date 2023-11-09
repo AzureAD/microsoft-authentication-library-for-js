@@ -8,6 +8,7 @@ import {
     CacheManager,
     INetworkModule,
     Logger,
+    AuthenticationResult,
 } from "@azure/msal-common";
 import { AppService } from "./ManagedIdentitySources/AppService";
 import { AzureArc } from "./ManagedIdentitySources/AzureArc";
@@ -21,7 +22,6 @@ import {
 } from "../error/ManagedIdentityError";
 import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { ManagedIdentityId } from "../config/ManagedIdentityId";
-import { ManagedIdentityResult } from "../response/ManagedIdentityResult";
 import { NodeStorage } from "../cache/NodeStorage";
 
 /*
@@ -58,7 +58,7 @@ export class ManagedIdentityClient {
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
         refreshAccessToken?: boolean
-    ): Promise<ManagedIdentityResult> {
+    ): Promise<AuthenticationResult> {
         return await ManagedIdentityClient.identitySource.acquireTokenWithManagedIdentity(
             managedIdentityRequest,
             managedIdentityId,

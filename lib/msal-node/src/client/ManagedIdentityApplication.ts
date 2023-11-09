@@ -15,6 +15,7 @@ import {
     Logger,
     ProtocolMode,
     StaticAuthorityOptions,
+    AuthenticationResult,
 } from "@azure/msal-common";
 import {
     ManagedIdentityConfiguration,
@@ -28,8 +29,6 @@ import { ClientCredentialClient } from "./ClientCredentialClient";
 import { ManagedIdentityClient } from "./ManagedIdentityClient";
 import { ManagedIdentityRequestParams } from "../request/ManagedIdentityRequestParams";
 import { NodeStorage } from "../cache/NodeStorage";
-import { ManagedIdentityResult } from "../response/ManagedIdentityResult";
-import { ManagedIdentityUtils } from "../utils/ManagedIdentityUtils";
 import { DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY } from "../utils/Constants";
 
 /**
@@ -119,7 +118,7 @@ export class ManagedIdentityApplication {
      */
     public async acquireToken(
         managedIdentityRequestParams: ManagedIdentityRequestParams
-    ): Promise<ManagedIdentityResult> {
+    ): Promise<AuthenticationResult> {
         const managedIdentityRequest: ManagedIdentityRequest = {
             ...managedIdentityRequestParams,
             /*
@@ -168,10 +167,7 @@ export class ManagedIdentityApplication {
                 );
             }
 
-            // return the cached token as a ManagedIdentityResult
-            return ManagedIdentityUtils.convertAuthResultToManagedIdentityResult(
-                cachedAuthenticationResult
-            );
+            return cachedAuthenticationResult;
         } else {
             // make a network call to the managed identity source
             return await this.managedIdentityClient.sendManagedIdentityTokenRequest(

@@ -7,7 +7,8 @@ import { ManagedIdentityApplication } from "../../src/client/ManagedIdentityAppl
 import { ManagedIdentityConfiguration } from "../../src/config/Configuration";
 import { ManagedIdentityRequestParams } from "../../src/request/ManagedIdentityRequestParams";
 import {
-    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+    DEFAULT_NON_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_CLIENT_ID,
     MANAGED_IDENTITY_RESOURCE,
 } from "../test_kit/StringConstants";
@@ -17,7 +18,7 @@ import {
     DEFAULT_MANAGED_IDENTITY_ID,
     ManagedIdentityIdType,
 } from "../../src/utils/Constants";
-import { ManagedIdentityResult } from "../../src/response/ManagedIdentityResult";
+import { AuthenticationResult } from "@azure/msal-common";
 
 describe("ManagedIdentityApplication unit tests", () => {
     let OLD_ENVS: NodeJS.ProcessEnv;
@@ -88,13 +89,13 @@ describe("ManagedIdentityApplication unit tests", () => {
             );
             expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
 
-            const networkManagedIdentityResult: ManagedIdentityResult =
+            const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
                 );
 
             expect(networkManagedIdentityResult.accessToken).toEqual(
-                DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                DEFAULT_NON_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
             expect(
                 managedIdentityApplication.getConfig.managedIdentityId.id
@@ -110,14 +111,14 @@ describe("ManagedIdentityApplication unit tests", () => {
                     new ManagedIdentityApplication(systemAssignedConfig);
                 expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
 
-                const networkManagedIdentityResult: ManagedIdentityResult =
+                const networkManagedIdentityResult: AuthenticationResult =
                     await managedIdentityApplication.acquireToken(
                         managedIdentityRequestParams
                     );
                 expect(networkManagedIdentityResult.fromCache).toBe(false);
 
                 expect(networkManagedIdentityResult.accessToken).toEqual(
-                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
                 expect(
                     managedIdentityApplication.getConfig.managedIdentityId.id
@@ -135,14 +136,14 @@ describe("ManagedIdentityApplication unit tests", () => {
                     new ManagedIdentityApplication(systemAssignedConfig);
                 expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
 
-                const networkManagedIdentityResult: ManagedIdentityResult =
+                const networkManagedIdentityResult: AuthenticationResult =
                     await managedIdentityApplication.acquireToken({
                         resource: MANAGED_IDENTITY_RESOURCE,
                     });
                 expect(networkManagedIdentityResult.fromCache).toBe(false);
 
                 expect(networkManagedIdentityResult.accessToken).toEqual(
-                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
                 expect(
                     managedIdentityApplication.getConfig.managedIdentityId.id
@@ -158,7 +159,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                     });
                 expect(cacheManagedIdentityResult.fromCache).toBe(true);
                 expect(cacheManagedIdentityResult.accessToken).toEqual(
-                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
                 expect(
                     managedIdentityApplication.getConfig.managedIdentityId.id
@@ -180,13 +181,13 @@ describe("ManagedIdentityApplication unit tests", () => {
             );
             expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
-            const networkManagedIdentityResult: ManagedIdentityResult =
+            const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
                 );
 
             expect(networkManagedIdentityResult.accessToken).toEqual(
-                DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                DEFAULT_NON_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
             expect(
                 managedIdentityApplication.getConfig.managedIdentityId.id
@@ -202,14 +203,14 @@ describe("ManagedIdentityApplication unit tests", () => {
                     new ManagedIdentityApplication(systemAssignedConfig);
                 expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
-                const networkManagedIdentityResult: ManagedIdentityResult =
+                const networkManagedIdentityResult: AuthenticationResult =
                     await managedIdentityApplication.acquireToken(
                         managedIdentityRequestParams
                     );
                 expect(networkManagedIdentityResult.fromCache).toBe(false);
 
                 expect(networkManagedIdentityResult.accessToken).toEqual(
-                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
                 expect(
                     managedIdentityApplication.getConfig.managedIdentityId.id
@@ -227,14 +228,14 @@ describe("ManagedIdentityApplication unit tests", () => {
                     new ManagedIdentityApplication(systemAssignedConfig);
                 expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
-                const networkManagedIdentityResult: ManagedIdentityResult =
+                const networkManagedIdentityResult: AuthenticationResult =
                     await managedIdentityApplication.acquireToken({
                         resource: MANAGED_IDENTITY_RESOURCE,
                     });
                 expect(networkManagedIdentityResult.fromCache).toBe(false);
 
                 expect(networkManagedIdentityResult.accessToken).toEqual(
-                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
                 expect(
                     managedIdentityApplication.getConfig.managedIdentityId.id
@@ -250,7 +251,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                     });
                 expect(cacheManagedIdentityResult.fromCache).toBe(true);
                 expect(cacheManagedIdentityResult.accessToken).toEqual(
-                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
                 expect(
                     managedIdentityApplication.getConfig.managedIdentityId.id
