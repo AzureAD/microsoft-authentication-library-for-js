@@ -101,7 +101,7 @@ export class BridgeProxy implements IBridgeProxy {
                 }
             );
 
-            return promise;
+            return await promise;
         } catch (error) {
             window.console.log(error);
             throw error;

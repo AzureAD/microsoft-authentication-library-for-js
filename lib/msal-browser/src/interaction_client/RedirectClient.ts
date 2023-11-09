@@ -483,7 +483,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        return await interactionHandler.handleCodeResponse(serverParams, state);
+        return interactionHandler.handleCodeResponse(serverParams, state);
     }
 
     /**

@@ -185,7 +185,7 @@ export abstract class ClientApplication {
                 "Auth code client created",
                 validRequest.correlationId
             );
-            return authorizationCodeClient.acquireToken(
+            return await authorizationCodeClient.acquireToken(
                 validRequest,
                 authCodePayLoad
             );
@@ -238,7 +238,7 @@ export abstract class ClientApplication {
                 "Refresh token client created",
                 validRequest.correlationId
             );
-            return refreshTokenClient.acquireToken(validRequest);
+            return await refreshTokenClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -286,7 +286,7 @@ export abstract class ClientApplication {
                 "Silent flow client created",
                 validRequest.correlationId
             );
-            return silentFlowClient.acquireToken(validRequest);
+            return await silentFlowClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -337,7 +337,7 @@ export abstract class ClientApplication {
                 "Username password client created",
                 validRequest.correlationId
             );
-            return usernamePasswordClient.acquireToken(validRequest);
+            return await usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -581,7 +581,7 @@ export abstract class ClientApplication {
                 this.config.auth.skipAuthorityMetadataCache,
         };
 
-        return await AuthorityFactory.createDiscoveredInstance(
+        return AuthorityFactory.createDiscoveredInstance(
             authorityUrl,
             this.config.system.networkClient,
             this.storage,
