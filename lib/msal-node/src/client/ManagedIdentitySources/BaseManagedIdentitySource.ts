@@ -55,7 +55,7 @@ export abstract class BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
         refreshAccessToken?: boolean
-    ): Promise<ManagedIdentityResult> {
+    ): Promise<AuthenticationResult> {
         const networkRequest: ManagedIdentityRequestParameters =
             this.createRequest(
                 managedIdentityRequest.resource,
