@@ -23,7 +23,6 @@ import {
     AuthenticationScheme,
     RequestParameterBuilder,
     StringUtils,
-    Constants,
     createClientAuthError,
 } from "@azure/msal-common";
 import { isBridgeError } from "../BridgeError";
@@ -161,12 +160,10 @@ export class NestedAppAuthAdapter {
             fromAccount.localAccountId ||
             effectiveIdTokenClaims?.oid ||
             effectiveIdTokenClaims?.sub ||
-            Constants.EMPTY_STRING;
+            "";
 
         const tenantId =
-            fromAccount.tenantId ||
-            effectiveIdTokenClaims?.tid ||
-            Constants.EMPTY_STRING;
+            fromAccount.tenantId || effectiveIdTokenClaims?.tid || "";
 
         const homeAccountId =
             fromAccount.homeAccountId || `${localAccountId}.${tenantId}`;
@@ -174,7 +171,7 @@ export class NestedAppAuthAdapter {
         const username =
             fromAccount.username ||
             effectiveIdTokenClaims?.preferred_username ||
-            Constants.EMPTY_STRING;
+            "";
 
         const name = fromAccount.name || effectiveIdTokenClaims?.name;
 
