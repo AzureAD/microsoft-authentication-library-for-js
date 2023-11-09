@@ -34,9 +34,7 @@ export async function createController(
         teamsApp.getConfig().auth.supportsNestedAppAuth
     ) {
         const controller = await import("./NestedAppAuthController");
-        return controller.NestedAppAuthController.createController(
-            teamsApp
-        );
+        return controller.NestedAppAuthController.createController(teamsApp);
     } else if (standard.isAvailable()) {
         const controller = await import("./StandardController");
         return controller.StandardController.createController(standard);
