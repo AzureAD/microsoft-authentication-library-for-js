@@ -36,10 +36,6 @@ import { DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY } from "../utils/Constants";
  */
 export class ManagedIdentityApplication {
     private config: ManagedIdentityNodeConfiguration;
-    // needed for unit test
-    public get getConfig(): ManagedIdentityNodeConfiguration {
-        return this.config;
-    }
 
     private logger: Logger;
     private nodeStorage: NodeStorage;
@@ -53,6 +49,10 @@ export class ManagedIdentityApplication {
     private fakeClientCredentialClient: ClientCredentialClient;
 
     private managedIdentityClient: ManagedIdentityClient;
+
+    public async clearCache(): Promise<void> {
+        return await this.nodeStorage.clear();
+    }
 
     constructor(configuration?: ManagedIdentityConfiguration) {
         // undefined config means the managed identity is system-assigned
