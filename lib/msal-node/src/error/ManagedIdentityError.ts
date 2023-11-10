@@ -15,10 +15,16 @@ export const ManagedIdentityErrorMessages = {
         "More than one ManagedIdentityIdType was provided.",
     [ManagedIdentityErrorCodes.missingId]:
         "A ManagedIdentityId id was not provided.",
+    [ManagedIdentityErrorCodes.unableToCreateAzureArc]:
+        "Azure Arc Managed Identities can only be system assigned.",
     [ManagedIdentityErrorCodes.unableToCreateSource]:
         "Unable to create a Managed Identity source based on environment variables.",
     [ManagedIdentityErrorCodes.urlParseError]:
-        "The Managed Identity's 'IDENTITY_ENDPOINT' environment variable is malformed."
+        "The Managed Identity's 'IDENTITY_ENDPOINT' environment variable is malformed.",
+    [ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing]:
+        "The WWW-Authenticate header is not found.",
+    [ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat]:
+        "The WWW-Authenticate header is in an unsupported format.",
 };
 
 export class ManagedIdentityError extends AuthError {

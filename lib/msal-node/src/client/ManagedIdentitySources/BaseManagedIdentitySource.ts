@@ -19,13 +19,18 @@ import {
     TimeUtils,
     createClientAuthError,
     AuthenticationResult,
+    HttpStatus,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest";
-import { HttpMethod } from "../../utils/Constants";
+import { AUTHORIZATION_HEADER_NAME, HttpMethod } from "../../utils/Constants";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
+import {
+    ManagedIdentityErrorCodes,
+    createManagedIdentityError,
+} from "../../error/ManagedIdentityError";
 
 export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
@@ -96,6 +101,15 @@ export abstract class BaseManagedIdentitySource {
             }
         }
 
+        // Azure Arc
+        if (response.status === HttpStatus.UNAUTHORIZED) {
+            response = await this.retryWithWWWAuthenticate(
+                response.headers["WWW-Authenticate"],
+                networkRequest,
+                networkRequestOptions
+            );
+        }
+
         const serverTokenResponse: ServerAuthorizationTokenResponse = {
             status: response.status,
 
@@ -131,5 +145,44 @@ export abstract class BaseManagedIdentitySource {
             reqTimestamp,
             managedIdentityRequest
         );
+    }
+
+    private async retryWithWWWAuthenticate(
+        challenge: string | undefined,
+        networkRequest: ManagedIdentityRequestParameters,
+        networkRequestOptions: NetworkRequestOptions
+    ): Promise<NetworkResponse<ManagedIdentityTokenResponse>> {
+        if (!challenge) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
+            );
+        }
+
+        const splitChallenge = challenge.split("=");
+        if (splitChallenge.length !== 2) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
+            );
+        }
+
+        const authHeaderValue = `Basic ${splitChallenge[1]}`;
+
+        this.logger.info(
+            `[Managed Identity] Adding authorization header to the request.`
+        );
+        networkRequest.headers[AUTHORIZATION_HEADER_NAME] = authHeaderValue;
+
+        try {
+            return await this.networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
+                networkRequest.computeUri(),
+                networkRequestOptions
+            );
+        } catch (error) {
+            if (error instanceof AuthError) {
+                throw error;
+            } else {
+                throw createClientAuthError(ClientAuthErrorCodes.networkError);
+            }
+        }
     }
 }
