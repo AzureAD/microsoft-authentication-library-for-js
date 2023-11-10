@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1699482741100,
+  "lastUpdate": 1699598092094,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -2964,6 +2964,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.03%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "codexeon",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6ac9a88f28c119362be6d3f981b0503b2297f451",
+          "message": "Nested App Auth fixes (#6672)\n\nSome minor fixes from initial NAA fix including:\r\n\r\n- expiresOn AuthenticationResult contained the wrong value.\r\n- expires_in should be used with timestamp before request was made to\r\nserver, to account for time deltas between servers.\r\n- authenticationScheme was returning empty\r\n- AccountInfo was not returning idTokenClaims, and should use id token\r\nfor properties as a fallback.\r\n- Added authority parameter for server to host to return authority used\r\nin the request.\r\n- Avoid making call to getActiveAccount if host does not support it.\r\n- Merge client capabilities and claims before sending request to host.\r\n- uniqueId should be localAccountId to match implementation of existing\r\nmsal-browser.\r\n- Removes toNaaSilentTokenRequest which had the same behavior as\r\nexisting toNaaTokenRequest.\r\n- Handle state parameter locally in MSAL.js",
+          "timestamp": "2023-11-10T06:28:42Z",
+          "tree_id": "230765ab1a5982f3e2ce67cfa8788f8df05c2106",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/6ac9a88f28c119362be6d3f981b0503b2297f451"
+        },
+        "date": 1699598090178,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 107213,
+            "range": "±2.16%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 111495,
+            "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
