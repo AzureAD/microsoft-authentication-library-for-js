@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CacheManager, INetworkModule, Logger } from "@azure/msal-common";
+import { INetworkModule, Logger } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
@@ -16,6 +16,7 @@ import {
     METADATA_HEADER_NAME,
     ManagedIdentityIdType,
 } from "../../utils/Constants";
+import { NodeStorage } from "../../cache/NodeStorage";
 
 // IMDS constants. Docs for IMDS are available here https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
 const DEFAULT_IMDS_ENDPOINT: string =
@@ -29,19 +30,19 @@ export class Imds extends BaseManagedIdentitySource {
 
     constructor(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         endpoint: string
     ) {
-        super(logger, cacheManager, networkClient, cryptoProvider);
+        super(logger, nodeStorage, networkClient, cryptoProvider);
 
         this.endpoint = endpoint;
     }
 
     public static tryCreate(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): Imds {
@@ -61,7 +62,7 @@ export class Imds extends BaseManagedIdentitySource {
 
         return new Imds(
             logger,
-            cacheManager,
+            nodeStorage,
             networkClient,
             cryptoProvider,
             endpoint

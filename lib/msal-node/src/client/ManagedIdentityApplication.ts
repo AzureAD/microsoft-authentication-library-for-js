@@ -50,10 +50,6 @@ export class ManagedIdentityApplication {
 
     private managedIdentityClient: ManagedIdentityClient;
 
-    public async clearCache(): Promise<void> {
-        return await this.nodeStorage.clear();
-    }
-
     constructor(configuration?: ManagedIdentityConfiguration) {
         // undefined config means the managed identity is system-assigned
         this.config = buildManagedIdentityConfiguration(configuration || {});

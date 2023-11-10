@@ -3,12 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    CacheManager,
-    INetworkModule,
-    Logger,
-    UrlString,
-} from "@azure/msal-common";
+import { INetworkModule, Logger, UrlString } from "@azure/msal-common";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
 import {
     HttpMethod,
@@ -25,6 +20,7 @@ import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError";
+import { NodeStorage } from "../../cache/NodeStorage";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
@@ -38,13 +34,13 @@ export class AppService extends BaseManagedIdentitySource {
 
     constructor(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         endpoint: string,
         secret: string
     ) {
-        super(logger, cacheManager, networkClient, cryptoProvider);
+        super(logger, nodeStorage, networkClient, cryptoProvider);
 
         this.endpoint = endpoint;
         this.secret = secret;
@@ -52,7 +48,7 @@ export class AppService extends BaseManagedIdentitySource {
 
     public static tryCreate(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): AppService | null {
@@ -70,7 +66,7 @@ export class AppService extends BaseManagedIdentitySource {
         return areEnvironmentVariablesValidated
             ? new AppService(
                   logger,
-                  cacheManager,
+                  nodeStorage,
                   networkClient,
                   cryptoProvider,
                   endpoint as string,

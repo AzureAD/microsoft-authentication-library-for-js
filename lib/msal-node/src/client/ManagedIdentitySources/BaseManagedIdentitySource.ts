@@ -6,7 +6,6 @@
 import {
     AuthError,
     Authority,
-    CacheManager,
     ClientAuthErrorCodes,
     Constants,
     HeaderNames,
@@ -26,21 +25,22 @@ import { CryptoProvider } from "../../crypto/CryptoProvider";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest";
 import { HttpMethod } from "../../utils/Constants";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
+import { NodeStorage } from "../../cache/NodeStorage";
 
 export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
-    private cacheManager: CacheManager;
+    private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
 
     constructor(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ) {
         this.logger = logger;
-        this.cacheManager = cacheManager;
+        this.nodeStorage = nodeStorage;
         this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
     }
@@ -112,7 +112,7 @@ export abstract class BaseManagedIdentitySource {
 
         const responseHandler = new ResponseHandler(
             managedIdentityId.id,
-            this.cacheManager,
+            this.nodeStorage,
             this.cryptoProvider,
             this.logger,
             null,

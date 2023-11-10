@@ -50,7 +50,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                 ManagedIdentityTestUtils.getManagedIdentityNetworkClient(
                     DEFAULT_MANAGED_IDENTITY_ID
                 ),
-            // managedIdentityIdParams will be omitted for system-assigned
+            // managedIdentityIdParams will be omitted for system assigned
         },
     };
 
@@ -96,7 +96,7 @@ describe("ManagedIdentityApplication unit tests", () => {
             );
         });
 
-        describe("System-Assigned token", () => {
+        describe("System Assigned", () => {
             let managedIdentityApplication: ManagedIdentityApplication;
             beforeEach(() => {
                 managedIdentityApplication = new ManagedIdentityApplication(
@@ -104,7 +104,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                 );
             });
 
-            test("1: acquires a System-Assigned token", async () => {
+            test("acquires a token", async () => {
                 expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
 
                 const networkManagedIdentityResult: AuthenticationResult =
@@ -118,7 +118,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                 );
             });
 
-            test.skip("2: acquires a System-Assigned token, then returns it from the cache when another acquireToken call is made", async () => {
+            test("returns an already acquired token from the cache", async () => {
                 expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
 
                 const networkManagedIdentityResult: AuthenticationResult =
@@ -162,7 +162,7 @@ describe("ManagedIdentityApplication unit tests", () => {
             );
         });
 
-        describe("System-Assigned token", () => {
+        describe("System Assigned", () => {
             let managedIdentityApplication: ManagedIdentityApplication;
             beforeEach(() => {
                 managedIdentityApplication = new ManagedIdentityApplication(
@@ -170,7 +170,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                 );
             });
 
-            test("1: acquires a System-Assigned token", async () => {
+            test("acquires a token", async () => {
                 expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
                 const networkManagedIdentityResult: AuthenticationResult =
@@ -184,7 +184,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                 );
             });
 
-            test.skip("2: acquires a System-Assigned token, then returns it from the cache when another acquireToken call is made", async () => {
+            test("returns an already acquired token from the cache", async () => {
                 expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
                 const networkManagedIdentityResult: AuthenticationResult =
