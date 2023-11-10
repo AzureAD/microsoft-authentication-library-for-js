@@ -58,12 +58,14 @@ export class AppService extends BaseManagedIdentitySource {
     ): AppService | null {
         const secret: string | undefined = process.env["IDENTITY_HEADER"];
 
-        const [areEnvironmentVariablesValidated, endpoint] =
-            validateEnvironmentVariables(
-                process.env["IDENTITY_ENDPOINT"] || undefined,
-                secret,
-                logger
-            );
+        const [areEnvironmentVariablesValidated, endpoint]: [
+            boolean,
+            string | undefined
+        ] = validateEnvironmentVariables(
+            process.env["IDENTITY_ENDPOINT"] || undefined,
+            secret,
+            logger
+        );
 
         return areEnvironmentVariablesValidated
             ? new AppService(
@@ -129,7 +131,7 @@ const validateEnvironmentVariables = (
     // if either of the endpoint or secret environment variables are undefined, this MSI provider is unavailable.
     if (!endpoint || !secret) {
         logger.info(
-            "[Managed Identity] App service managed identity is unavailable because one or both of the 'IDENTITY_HEADER' and 'IDENTITY_ENDPOINT' environment variables are missing."
+            "[Managed Identity] App Service managed identity is unavailable because one or both of the 'IDENTITY_HEADER' and 'IDENTITY_ENDPOINT' environment variables are missing."
         );
         return [false, endpointUrlString];
     }
@@ -138,7 +140,7 @@ const validateEnvironmentVariables = (
         endpointUrlString = new UrlString(endpoint).urlString;
     } catch (error) {
         logger.info(
-            "[Managed Identity] App service managed identity is unavailable because the 'IDENTITY_ENDPOINT' environment variable is malformed."
+            "[Managed Identity] App Service managed identity is unavailable because the 'IDENTITY_ENDPOINT' environment variable is malformed."
         );
 
         throw createManagedIdentityError(
@@ -147,7 +149,7 @@ const validateEnvironmentVariables = (
     }
 
     logger.info(
-        `[Managed Identity] Environment variables validation passed for app service managed identity. Endpoint URI: ${endpointUrlString}. Creating App Service managed identity.`
+        `[Managed Identity] Environment variables validation passed for App Service managed identity. Endpoint URI: ${endpointUrlString}. Creating App Service managed identity.`
     );
     return [true, endpointUrlString];
 };
