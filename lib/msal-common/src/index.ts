@@ -147,6 +147,7 @@ export {
     InteractionRequiredAuthErrorCodes,
     InteractionRequiredAuthErrorMessage,
     createInteractionRequiredAuthError,
+    isInteractionRequiredError,
 } from "./error/InteractionRequiredAuthError";
 export {
     AuthError,
