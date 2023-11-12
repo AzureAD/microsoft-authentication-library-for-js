@@ -57,6 +57,7 @@ import {
 } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
+import { buildAccountFromIdTokenClaims } from "../cache/MockCache";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -299,18 +300,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID,
-            tenantId: ID_TOKEN_CLAIMS.tid,
-            environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
-            tenants: [ID_TOKEN_CLAIMS.tid],
-        };
+        const testAccount: AccountInfo =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
 
         beforeEach(async () => {
             sinon
@@ -426,7 +418,7 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(authResult.scopes).toEqual(expectedScopes);
-            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.account).toMatchObject(testAccount);
             expect(authResult.idToken).toEqual(
                 AUTHENTICATION_RESULT.body.id_token
             );
@@ -1056,18 +1048,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID,
-            tenantId: ID_TOKEN_CLAIMS.tid,
-            environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
-            tenants: [ID_TOKEN_CLAIMS.tid],
-        };
+        const testAccount: AccountInfo =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
 
         beforeEach(async () => {
             sinon

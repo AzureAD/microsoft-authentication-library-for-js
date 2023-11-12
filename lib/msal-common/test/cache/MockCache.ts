@@ -305,7 +305,7 @@ export function buildAccountFromIdTokenClaims(
         username: preferred_username || email || "",
         localAccountId: oid || "",
         tenantId: tenantId,
-        environment: "login.microsoftonline.com",
+        environment: "login.windows.net",
         authorityType: "MSSTS",
         name: name,
         tenantProfiles: new Map<string, TenantProfile>([
