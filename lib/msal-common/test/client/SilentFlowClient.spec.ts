@@ -55,15 +55,15 @@ import {
 } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { Logger } from "../../src/logger/Logger";
+import { buildAccountFromIdTokenClaims } from "../cache/MockCache";
 
-const testAccountEntity: AccountEntity = new AccountEntity();
-testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
-testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
-testAccountEntity.environment = "login.windows.net";
-testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
-testAccountEntity.name = ID_TOKEN_CLAIMS.name;
-testAccountEntity.authorityType = "MSSTS";
+const testAccountEntity: AccountEntity =
+    buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+
+const testAccount: AccountInfo = {
+    ...testAccountEntity.getAccountInfo(),
+    idTokenClaims: ID_TOKEN_CLAIMS,
+};
 
 const testIdToken: IdTokenEntity = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -102,18 +102,6 @@ const testRefreshTokenEntity: RefreshTokenEntity = {
 };
 
 describe("SilentFlowClient unit tests", () => {
-    const testAccount: AccountInfo = {
-        authorityType: "MSSTS",
-        homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
-        environment: "login.windows.net",
-        tenantId: ID_TOKEN_CLAIMS.tid,
-        username: ID_TOKEN_CLAIMS.preferred_username,
-        localAccountId: ID_TOKEN_CLAIMS.oid,
-        idTokenClaims: ID_TOKEN_CLAIMS,
-        name: ID_TOKEN_CLAIMS.name,
-        nativeAccountId: undefined,
-    };
-
     afterEach(() => {
         sinon.restore();
     });
@@ -719,17 +707,6 @@ describe("SilentFlowClient unit tests", () => {
     describe("acquireToken tests", () => {
         let config: ClientConfiguration;
         let client: SilentFlowClient;
-        const testAccount: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`,
-            tenantId: ID_TOKEN_CLAIMS.tid,
-            environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
-        };
 
         beforeEach(async () => {
             sinon
@@ -784,11 +761,7 @@ describe("SilentFlowClient unit tests", () => {
 
             const authResult = await client.acquireToken(silentFlowRequest);
             expect(refreshTokenSpy.called).toBe(false);
-            const expectedScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
-                TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
-            ];
+            const expectedScopes = testAccessTokenEntity.target.split(" ");
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(authResult.scopes).toEqual(expectedScopes);
@@ -863,11 +836,7 @@ describe("SilentFlowClient unit tests", () => {
 
             const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
-            const expectedScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
-                TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
-            ];
+            const expectedScopes = testAccessTokenEntity.target.split(" ");
             expect(telemetryCacheHitSpy.calledOnce).toBe(true);
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);

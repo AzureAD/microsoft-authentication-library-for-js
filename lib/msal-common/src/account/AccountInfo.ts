@@ -61,65 +61,11 @@ export type ActiveAccountFilters = {
 };
 
 /**
- * Replaces account info that varies by tenant profile sourced from the ID token claims passed in with the tenant-specific account info
- * @param accountInfo
- * @param idTokenClaims
+ * Returns true if tenantId matches the utid portion of homeAccountId
+ * @param tenantId
+ * @param homeAccountId
  * @returns
  */
-export function updateAccountTenantProfileData(
-    accountInfo: AccountInfo,
-    tenantProfile?: TenantProfile,
-    idTokenClaims?: TokenClaims
-): AccountInfo {
-    let updatedAccountInfo = accountInfo;
-    // Tenant Profile overrides passed in account info
-    if (tenantProfile) {
-        updatedAccountInfo = { ...accountInfo, ...tenantProfile };
-    }
-
-    // ID token claims override passed in account info and tenant profile
-    if (idTokenClaims) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { isHomeTenant, ...tenantProfile } =
-            buildTenantProfileFromIdTokenClaims(
-                accountInfo.homeAccountId,
-                idTokenClaims
-            );
-
-        updatedAccountInfo = {
-            ...updatedAccountInfo,
-            ...tenantProfile,
-        };
-
-        updatedAccountInfo.idTokenClaims = idTokenClaims;
-        return updatedAccountInfo;
-    }
-
-    return accountInfo;
-}
-
-export function buildTenantProfileFromIdTokenClaims(
-    homeAccountId: string,
-    idTokenClaims: TokenClaims
-): TenantProfile {
-    const { oid, sub, tid, name, tfp, acr } = idTokenClaims;
-
-    const claimsTenantId = tid || tfp || acr;
-    let tenantId: string | undefined;
-
-    if (claimsTenantId) {
-        // Downcase to match the realm case-insensitive comparison requirements
-        tenantId = claimsTenantId.toLowerCase();
-    }
-
-    return {
-        tenantId: tenantId || "",
-        localAccountId: oid || sub || "",
-        name: name,
-        isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
-    };
-}
-
 export function tenantIdMatchesHomeTenant(
     tenantId?: string,
     homeAccountId?: string
@@ -129,4 +75,61 @@ export function tenantIdMatchesHomeTenant(
         !!homeAccountId &&
         tenantId === homeAccountId.split(".")[1]
     );
+}
+
+export function buildTenantProfileFromIdTokenClaims(
+    homeAccountId: string,
+    idTokenClaims: TokenClaims
+): TenantProfile {
+    const { oid, sub, tid, name, tfp, acr } = idTokenClaims;
+
+    const tenantId = tid || tfp || acr || "";
+
+    return {
+        tenantId: tenantId.toLowerCase(),
+        localAccountId: oid || sub || "",
+        name: name,
+        isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
+    };
+}
+
+/**
+ * Replaces account info that varies by tenant profile sourced from the ID token claims passed in with the tenant-specific account info
+ * @param baseAccountInfo
+ * @param idTokenClaims
+ * @returns
+ */
+export function updateAccountTenantProfileData(
+    baseAccountInfo: AccountInfo,
+    tenantProfile?: TenantProfile,
+    idTokenClaims?: TokenClaims
+): AccountInfo {
+    let updatedAccountInfo = baseAccountInfo;
+    // Tenant Profile overrides passed in account info
+    if (tenantProfile) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { isHomeTenant, ...tenantProfileOverride } = tenantProfile;
+        updatedAccountInfo = { ...baseAccountInfo, ...tenantProfileOverride };
+    }
+
+    // ID token claims override passed in account info and tenant profile
+    if (idTokenClaims) {
+        // Ignore isHomeTenant, loginHint, and sid which are part of tenant profile but not base account info
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { isHomeTenant, ...claimsSourcedTenantProfile } =
+            buildTenantProfileFromIdTokenClaims(
+                baseAccountInfo.homeAccountId,
+                idTokenClaims
+            );
+
+        updatedAccountInfo = {
+            ...updatedAccountInfo,
+            ...claimsSourcedTenantProfile,
+            idTokenClaims: idTokenClaims,
+        };
+
+        return updatedAccountInfo;
+    }
+
+    return updatedAccountInfo;
 }

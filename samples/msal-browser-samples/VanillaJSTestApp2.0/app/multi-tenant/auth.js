@@ -14,29 +14,27 @@ myMSALObj.initialize().then(() => {
 
 function handleResponse() {
     // when a filter is passed into getAllAccounts, it returns all cached accounts that match the filter. Use isHomeTenant filter to get the home accounts.
-    const homeAccounts = myMSALObj.getAllAccounts();
-    console.log("Get all accounts: ", homeAccounts);
-    if (!homeAccounts || homeAccounts.length < 1) {
+    const allAccounts = myMSALObj.getAllAccounts({ tenantId: homeTenant, username: "hemoral@microsoft.com" });
+    console.log("Get all accounts: ", allAccounts);
+    if (!allAccounts || allAccounts.length < 1) {
         return;
-    } else if (homeAccounts.length === 1) {
+    } else if (allAccounts.length >= 1) {
         // Get all accounts returns the homeAccount with tenantProfiles when multiTenantAccountsEnabled is set to true
-        pickActiveAccountAndTenantProfile(homeAccounts[0]);
-    } else if (homeAccounts.length > 1) {
-            // Select account logic
+        pickActiveAccountAndTenantProfile(allAccounts[0]);
     }
 }
 
 // Determines whether there is one or multiple tenant profiles to pick from and sets the active account based on the user selection if necessary.
-async function pickActiveAccountAndTenantProfile(homeAccount) {
+async function pickActiveAccountAndTenantProfile(account) {
         // Set home tenant profile as default active account
         let activeAccount = myMSALObj.getActiveAccount();
         if (!activeAccount) {
-            activeAccount = homeAccount;
+            activeAccount = account;
             myMSALObj.setActiveAccount(activeAccount);
         }
         accountId = activeAccount.homeAccountId;
         showWelcomeMessage(activeAccount);
-        showTenantProfilePicker(homeAccount.tenantProfiles || new Map(), activeAccount);
+        showTenantProfilePicker(account.tenantProfiles || new Map(), activeAccount);
 }
 
 async function setActiveAccount(tenantId) {

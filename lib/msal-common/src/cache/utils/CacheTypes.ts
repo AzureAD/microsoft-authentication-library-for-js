@@ -60,11 +60,17 @@ export type AccountFilter = Omit<
     realm?: string;
     loginHint?: string;
     sid?: string;
+    isHomeTenant?: boolean;
 };
 
 export type TenantProfileFilter = Pick<
     AccountFilter,
-    "localAccountId" | "loginHint" | "name" | "sid"
+    | "localAccountId"
+    | "loginHint"
+    | "name"
+    | "sid"
+    | "isHomeTenant"
+    | "username"
 >;
 
 /**

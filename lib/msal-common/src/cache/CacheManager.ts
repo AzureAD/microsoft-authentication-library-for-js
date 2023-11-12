@@ -35,6 +35,7 @@ import {
 } from "../error/ClientAuthError";
 import {
     AccountInfo,
+    TenantProfile,
     tenantIdMatchesHomeTenant,
     updateAccountTenantProfileData,
 } from "../account/AccountInfo";
@@ -264,15 +265,16 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * Gets accountInfo object based on provided filters
+     * Gets first tenanted AccountInfo object found based on provided filters
      */
     getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
         const allAccounts = this.getAllAccounts(accountFilter);
         if (allAccounts.length > 1) {
-            // If one or more accounts are found, further filter to the first account that has an ID token
-            return allAccounts.filter((account) => {
-                return !!account.idTokenClaims;
-            })[0];
+            // If one or more accounts are found, prioritize accounts that have an ID token
+            const sortedAccounts = allAccounts.sort((account) => {
+                return account.idTokenClaims ? -1 : 1;
+            });
+            return sortedAccounts[0];
         } else if (allAccounts.length === 1) {
             // If only one account is found, return it regardless of whether a matching ID token was found
             return allAccounts[0];
@@ -306,93 +308,159 @@ export abstract class CacheManager implements ICacheManager {
         cachedAccounts: AccountEntity[],
         accountFilter?: AccountFilter
     ): AccountInfo[] {
-        const validAccounts: AccountInfo[] = [];
-        cachedAccounts.forEach((accountEntity) => {
-            const tenantProfile: AccountInfo | null =
-                this.getAccountInfoForTenantProfile(
-                    accountEntity,
-                    accountFilter
-                );
-            if (tenantProfile) {
-                validAccounts.push(tenantProfile);
-            }
+        return cachedAccounts.flatMap((accountEntity) => {
+            return this.getAccountInfoForTenantProfiles(
+                accountEntity,
+                accountFilter
+            );
         });
-        return validAccounts;
     }
 
-    private getAccountInfoForTenantProfile(
+    private getAccountInfoForTenantProfiles(
         accountEntity: AccountEntity,
         accountFilter?: AccountFilter
-    ): AccountInfo | null {
-        const tenantProfileFilter: TenantProfileFilter = {
-            localAccountId: accountFilter?.localAccountId,
-            loginHint: accountFilter?.loginHint,
-            name: accountFilter?.name,
-            sid: accountFilter?.sid,
-        };
-        return this.getAccountInfoFromEntity(
+    ): AccountInfo[] {
+        const tenantProfileFilter: TenantProfileFilter | undefined =
+            accountFilter
+                ? {
+                      localAccountId: accountFilter.localAccountId,
+                      loginHint: accountFilter.loginHint,
+                      name: accountFilter.name,
+                      username: accountFilter.username,
+                      sid: accountFilter.sid,
+                      isHomeTenant: accountFilter.isHomeTenant,
+                  }
+                : undefined;
+
+        return this.getTenantProfilesFromAccountEntity(
             accountEntity,
             accountFilter?.tenantId,
             tenantProfileFilter
         );
     }
 
-    private getAccountInfoFromEntity(
-        accountEntity: AccountEntity,
-        targetTenantId?: string,
+    private getTenantedAccountInfoByFilter(
+        accountInfo: AccountInfo,
+        tokenKeys: TokenKeys,
+        tenantProfile: TenantProfile,
         tenantProfileFilter?: TenantProfileFilter
     ): AccountInfo | null {
-        // At this point, accoutnInfo only contains base/home account data, so it's not a "real" account
-        const accountInfo = accountEntity.getAccountInfo();
+        let tenantedAccountInfo: AccountInfo | null = null;
+        let idTokenClaims: TokenClaims | undefined;
 
-        /**
-         * An ID token matching the account entity and tenant ID must exist in the cache
-         * for the account to be a valid authenticated tenant profile. No matching ID token
-         * means the account being requested doesn't technically exist in the cache.
-         */
-        const idToken = this.getIdToken(accountInfo, undefined, targetTenantId);
+        if (tenantProfileFilter) {
+            if (
+                !this.tenantProfileMatchesFilter(
+                    tenantProfile,
+                    tenantProfileFilter
+                )
+            ) {
+                return null;
+            }
+        }
+
+        const idToken = this.getIdToken(
+            accountInfo,
+            tokenKeys,
+            tenantProfile.tenantId
+        );
+
         if (idToken) {
-            const idTokenClaims = extractTokenClaims(
+            idTokenClaims = extractTokenClaims(
                 idToken.secret,
                 this.cryptoImpl.base64Decode
             );
 
             if (
-                this.idTokenClaimsMatchTenantProfileFilter(
+                !this.idTokenClaimsMatchTenantProfileFilter(
                     idTokenClaims,
                     tenantProfileFilter
                 )
             ) {
-                return updateAccountTenantProfileData(
-                    accountInfo,
-                    undefined,
-                    idTokenClaims
-                );
-            }
-        } else {
-            if (targetTenantId) {
-                this.commonLogger.verbose(
-                    "getAccountInfoFromEntity(): No matching ID token found in cache for given tenant ID, falling back to cached tenant profiles"
-                );
-                const tenantProfile =
-                    accountInfo.tenantProfiles?.get(targetTenantId);
-                if (tenantProfile) {
-                    this.commonLogger.verbose(
-                        "getAccountInfoFromEntity(): Found cached tenant profile matching given tenant ID, updating account info with tenant profile data"
-                    );
-                    return updateAccountTenantProfileData(
-                        accountInfo,
-                        tenantProfile
-                    );
-                } else {
-                    this.commonLogger.verbose(
-                        "getAccountInfoFromEntity(): No matching ID token or tenant profile found in cache for given tenant ID. Returning base account."
-                    );
-                }
+                // ID token sourced claims don't match so this tenant profile is not a match
+                return null;
             }
         }
 
-        return accountInfo;
+        // Expand tenant profile into account info based on matching tenant profile and if available matching ID token claims
+        tenantedAccountInfo = updateAccountTenantProfileData(
+            accountInfo,
+            tenantProfile,
+            idTokenClaims
+        );
+
+        return tenantedAccountInfo;
+    }
+
+    private getTenantProfilesFromAccountEntity(
+        accountEntity: AccountEntity,
+        targetTenantId?: string,
+        tenantProfileFilter?: TenantProfileFilter
+    ): AccountInfo[] {
+        const accountInfo = accountEntity.getAccountInfo();
+        let searchTenantProfiles: Map<string, TenantProfile> =
+            accountInfo.tenantProfiles || new Map<string, TenantProfile>();
+        const tokenKeys = this.getTokenKeys();
+
+        // If a tenant ID was provided, only return the tenant profile for that tenant ID if it exists
+        if (targetTenantId) {
+            const tenantProfile = searchTenantProfiles.get(targetTenantId);
+            if (tenantProfile) {
+                // Reduce search field to just this tenant profile
+                searchTenantProfiles = new Map<string, TenantProfile>([
+                    [targetTenantId, tenantProfile],
+                ]);
+            } else {
+                // No tenant profile for search tenant ID, return empty array
+                return [];
+            }
+        }
+
+        const matchingTenantProfiles: AccountInfo[] = [];
+        searchTenantProfiles.forEach((tenantProfile: TenantProfile) => {
+            const tenantedAccountInfo = this.getTenantedAccountInfoByFilter(
+                accountInfo,
+                tokenKeys,
+                tenantProfile,
+                tenantProfileFilter
+            );
+            if (tenantedAccountInfo) {
+                matchingTenantProfiles.push(tenantedAccountInfo);
+            }
+        });
+
+        return matchingTenantProfiles;
+    }
+
+    private tenantProfileMatchesFilter(
+        tenantProfile: TenantProfile,
+        tenantProfileFilter: TenantProfileFilter
+    ): boolean {
+        if (
+            !!tenantProfileFilter.localAccountId &&
+            !this.matchLocalAccountIdFromTenantProfile(
+                tenantProfile,
+                tenantProfileFilter.localAccountId
+            )
+        ) {
+            return false;
+        }
+
+        if (
+            !!tenantProfileFilter.name &&
+            !(tenantProfile.name === tenantProfileFilter.name)
+        ) {
+            return false;
+        }
+
+        if (
+            tenantProfileFilter.isHomeTenant !== undefined &&
+            !(tenantProfile.isHomeTenant === tenantProfileFilter.isHomeTenant)
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     private idTokenClaimsMatchTenantProfileFilter(
@@ -403,7 +471,7 @@ export abstract class CacheManager implements ICacheManager {
         if (tenantProfileFilter) {
             if (
                 !!tenantProfileFilter.localAccountId &&
-                !this.matchLocalAccountId(
+                !this.matchLocalAccountIdFromTokenClaims(
                     idTokenClaims,
                     tenantProfileFilter.localAccountId
                 )
@@ -413,9 +481,19 @@ export abstract class CacheManager implements ICacheManager {
 
             if (
                 !!tenantProfileFilter.loginHint &&
-                !this.matchLoginHint(
+                !this.matchLoginHintFromTokenClaims(
                     idTokenClaims,
                     tenantProfileFilter.loginHint
+                )
+            ) {
+                return false;
+            }
+
+            if (
+                !!tenantProfileFilter.username &&
+                !this.matchUsername(
+                    idTokenClaims.preferred_username,
+                    tenantProfileFilter.username
                 )
             ) {
                 return false;
@@ -540,6 +618,8 @@ export abstract class CacheManager implements ICacheManager {
                 this.commonLogger
             );
 
+            // Match base account fields
+
             if (!entity) {
                 return;
             }
@@ -553,7 +633,7 @@ export abstract class CacheManager implements ICacheManager {
 
             if (
                 !!accountFilter.username &&
-                !this.matchUsername(entity, accountFilter.username)
+                !this.matchUsername(entity.username, accountFilter.username)
             ) {
                 return;
             }
@@ -586,6 +666,26 @@ export abstract class CacheManager implements ICacheManager {
                 !!accountFilter.authorityType &&
                 !this.matchAuthorityType(entity, accountFilter.authorityType)
             ) {
+                return;
+            }
+
+            // If at least one tenant profile matches the tenant profile filter, add the account to the list of matching accounts
+            const tenantProfileFilter: TenantProfileFilter = {
+                localAccountId: accountFilter?.localAccountId,
+                name: accountFilter?.name,
+            };
+
+            const matchingTenantProfiles = entity.tenantProfiles?.filter(
+                (tenantProfile: TenantProfile) => {
+                    return this.tenantProfileMatchesFilter(
+                        tenantProfile,
+                        tenantProfileFilter
+                    );
+                }
+            );
+
+            if (matchingTenantProfiles && matchingTenantProfiles.length === 0) {
+                // No tenant profile for this account matches filter, don't add to list of matching accounts
                 return;
             }
 
@@ -1607,12 +1707,19 @@ export abstract class CacheManager implements ICacheManager {
      * @param localAccountId
      * @returns
      */
-    private matchLocalAccountId(
-        claims: TokenClaims,
+    private matchLocalAccountIdFromTokenClaims(
+        tokenClaims: TokenClaims,
         localAccountId: string
     ): boolean {
-        const idTokenLocalAccountId = claims.oid || claims.sub;
+        const idTokenLocalAccountId = tokenClaims.oid || tokenClaims.sub;
         return localAccountId === idTokenLocalAccountId;
+    }
+
+    private matchLocalAccountIdFromTenantProfile(
+        tenantProfile: TenantProfile,
+        localAccountId: string
+    ): boolean {
+        return tenantProfile.localAccountId === localAccountId;
     }
 
     /**
@@ -1631,10 +1738,14 @@ export abstract class CacheManager implements ICacheManager {
      * @param username
      * @returns
      */
-    private matchUsername(entity: AccountEntity, username: string): boolean {
+    private matchUsername(
+        cachedUsername?: string,
+        filterUsername?: string
+    ): boolean {
         return !!(
-            typeof entity.username === "string" &&
-            username.toLowerCase() === entity.username.toLowerCase()
+            cachedUsername &&
+            typeof cachedUsername === "string" &&
+            filterUsername?.toLowerCase() === cachedUsername.toLowerCase()
         );
     }
 
@@ -1762,19 +1873,19 @@ export abstract class CacheManager implements ICacheManager {
      * @param loginHint
      * @returns
      */
-    private matchLoginHint(
-        idTokenClaims: TokenClaims,
+    private matchLoginHintFromTokenClaims(
+        tokenClaims: TokenClaims,
         loginHint: string
     ): boolean {
-        if (idTokenClaims.login_hint === loginHint) {
+        if (tokenClaims.login_hint === loginHint) {
             return true;
         }
 
-        if (idTokenClaims.preferred_username === loginHint) {
+        if (tokenClaims.preferred_username === loginHint) {
             return true;
         }
 
-        if (idTokenClaims.upn === loginHint) {
+        if (tokenClaims.upn === loginHint) {
             return true;
         }
 
@@ -1783,7 +1894,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Helper to match sid
-     * @param idTokenClaims
+     * @param entity
      * @param sid
      * @returns true if the sid claim is present and matches the filter
      */

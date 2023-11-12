@@ -1,4 +1,4 @@
-const homeTenant = "common";
+const homeTenant = "72f988bf-86f1-41af-91ab-2d7cd011db47";
 const guestTenant = "5d97b14d-c396-4aee-b524-c86d33e9b660"
 const baseAuthority = "https://login.microsoftonline.com"
 

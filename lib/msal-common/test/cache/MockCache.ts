@@ -14,13 +14,21 @@ import {
     StaticAuthorityOptions,
     CredentialType,
     AuthenticationScheme,
+    TokenClaims,
+    IdTokenEntity,
 } from "../../src";
+import {
+    AccountInfo,
+    TenantProfile,
+    buildTenantProfileFromIdTokenClaims,
+} from "../../src/account/AccountInfo";
 import { MockStorageClass } from "../client/ClientTestUtils";
 import {
     TEST_TOKENS,
     TEST_CRYPTO_VALUES,
     ID_TOKEN_CLAIMS,
     ID_TOKEN_ALT_CLAIMS,
+    GUEST_ID_TOKEN_CLAIMS,
 } from "../test_kit/StringConstants";
 
 export class MockCache {
@@ -56,58 +64,38 @@ export class MockCache {
 
     // create account entries in the cache
     createAccountEntries(): void {
-        const accountData = {
-            username: "John Doe",
-            localAccountId: "object1234",
-            realm: ID_TOKEN_CLAIMS.tid,
-            environment: "login.microsoftonline.com",
-            homeAccountId: "uid.utid",
-            authorityType: "MSSTS",
-            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-        };
-        const account = CacheManager.toObject(new AccountEntity(), accountData);
+        const account = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
+            GUEST_ID_TOKEN_CLAIMS,
+        ]);
         this.cacheManager.setAccount(account);
 
-        const accountDataWithNativeAccountId = {
-            username: "Jane Doe",
-            localAccountId: "object1234",
-            realm: ID_TOKEN_ALT_CLAIMS.tid,
-            environment: "login.windows.net",
-            homeAccountId: "uid.utid2",
-            authorityType: "MSSTS",
-            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-            nativeAccountId: "mocked_native_account_id",
-        };
-        const accountWithNativeAccountId = CacheManager.toObject(
-            new AccountEntity(),
-            accountDataWithNativeAccountId
-        );
+        const accountWithNativeAccountId =
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
+        accountWithNativeAccountId.nativeAccountId = "mocked_native_account_id";
+
         this.cacheManager.setAccount(accountWithNativeAccountId);
     }
 
     // create id token entries in the cache
     createIdTokenEntries(): void {
-        const idToken = {
-            realm: ID_TOKEN_CLAIMS.tid,
-            environment: "login.microsoftonline.com",
-            credentialType: CredentialType.ID_TOKEN,
-            secret: TEST_TOKENS.IDTOKEN_V2,
-            clientId: "mock_client_id",
-            homeAccountId: "uid.utid",
-        };
+        const idToken = buildIdToken(ID_TOKEN_CLAIMS, TEST_TOKENS.IDTOKEN_V2);
 
         this.cacheManager.setIdTokenCredential(idToken);
 
-        const guestIdToken = {
-            realm: ID_TOKEN_ALT_CLAIMS.tid,
-            environment: "login.windows.net",
-            credentialType: CredentialType.ID_TOKEN,
-            secret: TEST_TOKENS.IDTOKEN_V2_ALT,
-            clientId: "mock_client_id",
-            homeAccountId: "uid.utid2",
-        };
+        const guestIdToken = buildIdToken(
+            GUEST_ID_TOKEN_CLAIMS,
+            TEST_TOKENS.ID_TOKEN_V2_GUEST,
+            { homeAccountId: idToken.homeAccountId }
+        );
 
         this.cacheManager.setIdTokenCredential(guestIdToken);
+
+        const altIdToken = buildIdToken(
+            ID_TOKEN_ALT_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2_ALT,
+            { environment: "login.windows.net" }
+        );
+        this.cacheManager.setIdTokenCredential(altIdToken);
     }
 
     // create access token entries in the cache
@@ -300,4 +288,64 @@ export class MockCache {
 
         this.cacheManager.setAuthorityMetadata(cacheKey, authorityMetadata);
     }
+}
+
+export function buildAccountFromIdTokenClaims(
+    idTokenClaims: TokenClaims,
+    guestIdTokenClaimsList?: TokenClaims[]
+): AccountEntity {
+    const { oid, tid, preferred_username, emails, name } = idTokenClaims;
+    const tenantId = tid || "";
+    const email = emails ? emails[0] : null;
+
+    const homeAccountId = `${oid}.${tid}`;
+
+    const accountInfo: AccountInfo = {
+        homeAccountId: homeAccountId || "",
+        username: preferred_username || email || "",
+        localAccountId: oid || "",
+        tenantId: tenantId,
+        environment: "login.microsoftonline.com",
+        authorityType: "MSSTS",
+        name: name,
+        tenantProfiles: new Map<string, TenantProfile>([
+            [
+                tenantId,
+                buildTenantProfileFromIdTokenClaims(
+                    homeAccountId,
+                    idTokenClaims
+                ),
+            ],
+        ]),
+    };
+    guestIdTokenClaimsList?.forEach((guestIdTokenClaims: TokenClaims) => {
+        const guestTenantId = guestIdTokenClaims.tid || "";
+        accountInfo.tenantProfiles?.set(
+            guestTenantId,
+            buildTenantProfileFromIdTokenClaims(
+                accountInfo.homeAccountId,
+                guestIdTokenClaims
+            )
+        );
+    });
+    return AccountEntity.createFromAccountInfo(accountInfo);
+}
+
+export function buildIdToken(
+    idTokenClaims: TokenClaims,
+    idTokenSecret: string,
+    options?: Partial<IdTokenEntity>
+): IdTokenEntity {
+    const { oid, tid } = idTokenClaims;
+    const homeAccountId = `${oid}.${tid}`;
+    const idToken = {
+        realm: tid || "",
+        environment: "login.microsoftonline.com",
+        credentialType: CredentialType.ID_TOKEN,
+        secret: idTokenSecret,
+        clientId: "mock_client_id",
+        homeAccountId: homeAccountId,
+    };
+
+    return { ...idToken, ...options };
 }
