@@ -9,6 +9,7 @@ import {
     AccountByLocalIdRequest,
     AccountByUsernameRequest,
 } from "./AccountRequests";
+import { BridgeCapabilities } from "./BridgeCapabilities";
 import { TokenRequest } from "./TokenRequest";
 import { TokenResponse } from "./TokenResponse";
 
@@ -22,4 +23,5 @@ export interface IBridgeProxy {
             | AccountByUsernameRequest
     ): Promise<AccountInfo>;
     getActiveAccount(): Promise<AccountInfo>;
+    getHostCapabilities(): BridgeCapabilities | null;
 }

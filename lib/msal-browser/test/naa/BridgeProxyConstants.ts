@@ -40,7 +40,7 @@ export const REDIRECT_REQUEST: RedirectRequest = {
 };
 
 export const SILENT_TOKEN_RESPONSE: TokenResponse = {
-    access_token: "",
+    access_token: TEST_TOKENS.ACCESS_TOKEN,
     account: {
         environment: "login.microsoftonline.com",
         homeAccountId:
@@ -67,12 +67,10 @@ export const SILENT_TOKEN_RESPONSE: TokenResponse = {
         tenantId: "51178b70-16cc-41b5-bef1-ae1808139065",
         username: "AdeleV@vc6w6.onmicrosoft.com",
     },
-    client_info: "",
     expires_in: 4290,
     id_token: TEST_TOKENS.IDTOKEN_V2,
     properties: null,
     scope: "User.Read",
-    state: "",
 };
 
 export const SILENT_TOKEN_REQUEST: TokenRequest = {

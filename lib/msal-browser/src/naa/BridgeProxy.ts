@@ -36,7 +36,7 @@ export class BridgeProxy implements IBridgeProxy {
     static crypto: Crypto;
     sdkName: string;
     sdkVersion: string;
-    capabilities: BridgeCapabilities;
+    capabilities?: BridgeCapabilities;
 
     /**
      * initializeNestedAppAuthBridge - Initializes the bridge to the host app
@@ -162,6 +162,10 @@ export class BridgeProxy implements IBridgeProxy {
         return this.sendRequest<AccountInfo>("GetActiveAccount", undefined);
     }
 
+    public getHostCapabilities(): BridgeCapabilities | null {
+        return this.capabilities ?? null;
+    }
+
     /**
      * A method used to send a request to the bridge
      * @param request A token request
@@ -206,7 +210,7 @@ export class BridgeProxy implements IBridgeProxy {
     private constructor(
         sdkName: string,
         sdkVersion: string,
-        capabilities: BridgeCapabilities
+        capabilities?: BridgeCapabilities
     ) {
         this.sdkName = sdkName;
         this.sdkVersion = sdkVersion;
