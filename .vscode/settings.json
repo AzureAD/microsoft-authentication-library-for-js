@@ -18,5 +18,29 @@
     "[typescriptreact]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "jest.autoRun": "off",
+    "jest.jestCommandLine": "npm test --",
+    "jest.virtualFolders": [
+        {
+            "name": "msal-common",
+            "rootPath": "lib/msal-common"
+        },
+        {
+            "name": "msal-browser",
+            "rootPath": "lib/msal-browser"
+        },
+        {
+            "name": "msal-node",
+            "rootPath": "lib/msal-node"
+        },
+        {
+            "name": "msal-react",
+            "rootPath": "lib/msal-react"
+        },
+        {
+            "name": "msal-node-extensions",
+            "rootPath": "extensions/msal-node-extensions"
+        }
+    ]
 }
