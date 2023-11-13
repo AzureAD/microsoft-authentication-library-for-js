@@ -1240,7 +1240,7 @@ export class Authority {
         // check if transformation is needed
         if (
             authorityUrlComponents.PathSegments.length === 0 &&
-            authorityUrlComponents.HostNameAndPort.endsWith(
+            authorityUrlComponents.HostNameAndPort?.endsWith(
                 Constants.CIAM_AUTH_URL
             )
         ) {
