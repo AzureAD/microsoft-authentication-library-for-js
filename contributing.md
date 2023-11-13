@@ -90,6 +90,45 @@ cd lib/<package-name>
 npm run test:coverage
 ```
 
+### VS Code Setup
+
+If you are looking to use VS code as an IDE and want to take advantage of a Test/Debugger Ui, you can install the following Jest package from the marketplace: [Jest](https://marketplace.visualstudio.com/items?itemName=Orta.vscode-jest). If you have not done so already, VSCode will recommend that you install this package from the UI.
+
+Once installed, you have the option to configure the jest environment for further customization. The following config has already been placed in the local settings file in the repository: 
+
+`.vscode\settings.json` 
+
+```json
+    "jest.autoRun": "off",
+    "jest.jestCommandLine": "npm test --",
+    "jest.virtualFolders": [
+        {
+            "name": "msal-common",
+            "rootPath": "lib/msal-common"
+        },
+        {
+            "name": "msal-browser",
+            "rootPath": "lib/msal-browser"
+        },
+        {
+            "name": "msal-node",
+            "rootPath": "lib/msal-node"
+        },
+        {
+            "name": "msal-react",
+            "rootPath": "lib/msal-react"
+        },
+        {
+            "name": "msal-node-extensions",
+            "rootPath": "extensions/msal-node-extensions"
+        }
+    ]
+```
+Once the extension is installed, you will be able to simply right click a test and run it from the UI.
+
+![image](https://github.com/AzureAD/microsoft-authentication-library-for-js/assets/30090357/f1bdc2df-91ed-415a-9295-5e9ce527c182)
+
+
 ## Before committing
 
 We will automatically run lint as our pre-commit command. Failing to pass linting will prevent you from pushing up code which will break the build.
