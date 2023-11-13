@@ -8,14 +8,13 @@ import { AccountInfo } from "./AccountInfo";
 export type TokenResponse = {
     access_token: string;
     account: AccountInfo;
-    client_info: string;
     expires_in: number;
     id_token: string;
     properties: TokenResponseProperties | null;
     scope: string;
-    state: string;
     shr?: string; // token binding enabled at native layer it is the access token, not the signing keys
     extendedLifetimeToken?: boolean;
+    authority?: string;
 };
 
 export type TokenResponseProperties = {

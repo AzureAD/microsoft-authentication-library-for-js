@@ -35,6 +35,7 @@ jobs:
                 node: [16, 18, 20]
                 sample:
                     - "auth-code"
+                    - "auth-code-cli-app"
                     - "client-credentials"
                     - "device-code"
                     - "silent-flow"
