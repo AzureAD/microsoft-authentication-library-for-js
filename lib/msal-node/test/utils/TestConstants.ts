@@ -9,6 +9,7 @@ import {
     AuthenticationResult,
     createClientAuthError,
     ClientAuthErrorCodes,
+    TenantProfile,
 } from "@azure/msal-common";
 
 export const TEST_CONSTANTS = {
@@ -232,7 +233,17 @@ export const mockAccountInfo: AccountInfo = {
     idTokenClaims: ID_TOKEN_CLAIMS,
     name: ID_TOKEN_CLAIMS.name,
     nativeAccountId: undefined,
-    tenants: [ID_TOKEN_CLAIMS.tid],
+    tenantProfiles: new Map<string, TenantProfile>([
+        [
+            ID_TOKEN_CLAIMS.tid,
+            {
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+                name: ID_TOKEN_CLAIMS.name,
+                isHomeTenant: true,
+            } as TenantProfile,
+        ],
+    ]),
 };
 
 export const mockNativeAccountInfo: AccountInfo = {

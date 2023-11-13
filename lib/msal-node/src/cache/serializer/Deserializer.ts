@@ -64,8 +64,8 @@ export class Deserializer {
                     lastModificationTime: serializedAcc.last_modification_time,
                     lastModificationApp: serializedAcc.last_modification_app,
                     tenantProfiles: serializedAcc.tenantProfiles?.map(
-                        (tenantProfile) => {
-                            return JSON.parse(tenantProfile);
+                        (serializedTenantProfile) => {
+                            return JSON.parse(serializedTenantProfile);
                         }
                     ),
                 };

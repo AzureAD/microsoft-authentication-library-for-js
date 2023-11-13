@@ -68,11 +68,18 @@ export const mockAccountEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
     realm: "utid",
-    localAccountId: "object1234",
-    username: "John Doe",
+    localAccountId: "uid",
+    username: "johndoe@microsoft.com",
     authorityType: "MSSTS",
     clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-    tenants: ["utid"],
+    tenantProfiles: [
+        {
+            tenantId: "utid",
+            localAccountId: "uid",
+            name: "John Doe",
+            isHomeTenant: true,
+        },
+    ],
 };
 
 export const mockAppMetaDataEntity = {

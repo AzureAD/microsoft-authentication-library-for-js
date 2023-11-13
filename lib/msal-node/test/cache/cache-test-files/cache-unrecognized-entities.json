@@ -16,7 +16,7 @@
             "home_account_id": "uid.utid",
             "authority_type": "MSSTS",
             "client_info": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-            "tenants": ["microsoft"]
+            "tenantProfiles": ["{\"tenantId\":\"utid\",\"localAccountId\":\"object1234\",\"isHomeTenant\":true}"]
         }
     },
     "RefreshToken": {

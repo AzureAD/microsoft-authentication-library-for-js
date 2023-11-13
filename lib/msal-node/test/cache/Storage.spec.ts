@@ -153,13 +153,20 @@ describe("Storage tests for msal-node: ", () => {
 
         const mockAccountData = {
             username: "Jane Doe",
-            localAccountId: "object5678",
+            localAccountId: "uid",
             realm: "samplerealm",
             environment: "login.windows.net",
             homeAccountId: "uid1.utid1",
             authorityType: "MSSTS",
             clientInfo: "eyJ1aWQiOiJ1aWQxIiwgInV0aWQiOiJ1dGlkMSJ9",
-            tenants: ["samplerealm"],
+            tenantProfiles: [
+                {
+                    tenantId: "utid1",
+                    localAccountId: "uid",
+                    name: "Jane Doe",
+                    isHomeTenant: true,
+                },
+            ],
         };
 
         let mockAccountEntity = CacheManager.toObject(
@@ -183,8 +190,9 @@ describe("Storage tests for msal-node: ", () => {
         const outdatedAccountKey = "uid.utid3-login.microsoftonline.com-utid3";
 
         const outdatedAccountData = {
-            username: "Jane Doe",
-            localAccountId: "object5678",
+            username: "janedoe@microsoft.com",
+            name: "Jane Doe",
+            localAccountId: "uid",
             realm: "utid3",
             environment: "login.microsoftonline.com",
             homeAccountId: "uid.utid3",
@@ -199,7 +207,17 @@ describe("Storage tests for msal-node: ", () => {
 
         let updatedMockAccountEntity = CacheManager.toObject(
             new AccountEntity(),
-            { ...outdatedAccountData, tenants: ["utid3"] }
+            {
+                ...outdatedAccountData,
+                tenantProfiles: [
+                    {
+                        tenantId: "utid3",
+                        localAccountId: "uid",
+                        name: "Jane Doe",
+                        isHomeTenant: true,
+                    },
+                ],
+            }
         );
         const updatedAccountKey = updatedMockAccountEntity.generateAccountKey();
         expect(outdatedMockAccountEntity).toBeInstanceOf(AccountEntity);

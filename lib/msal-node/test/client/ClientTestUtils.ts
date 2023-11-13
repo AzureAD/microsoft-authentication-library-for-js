@@ -56,6 +56,10 @@ export class MockStorageClass extends CacheManager {
         return null;
     }
 
+    getCachedAccountEntity(accountKey: string): AccountEntity | null {
+        return this.getAccount(accountKey);
+    }
+
     setAccount(value: AccountEntity): void {
         const key = value.generateAccountKey();
         this.store[key] = value;
