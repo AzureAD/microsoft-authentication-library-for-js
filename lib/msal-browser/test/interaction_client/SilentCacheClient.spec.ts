@@ -24,31 +24,29 @@ import {
     AuthenticationResult,
     AccountInfo,
 } from "@azure/msal-common";
+import {
+    buildAccountFromIdTokenClaims,
+    buildIdToken,
+} from "../cache/TestStorageManager";
 
+const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
+    ID_TOKEN_CLAIMS,
+    undefined,
+    { environment: "login.microsoftonline.com" }
+);
 const testAccount: AccountInfo = {
-    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
-    environment: "login.microsoftonline.com",
-    tenantId: ID_TOKEN_CLAIMS.tid,
-    username: ID_TOKEN_CLAIMS.preferred_username,
-    localAccountId: ID_TOKEN_CLAIMS.oid,
+    ...testAccountEntity.getAccountInfo(),
     idTokenClaims: ID_TOKEN_CLAIMS,
-    name: ID_TOKEN_CLAIMS.name,
-    authorityType: "MSSTS",
-    nativeAccountId: undefined,
-    tenants: [ID_TOKEN_CLAIMS.tid],
 };
 
-const testAccountEntity: AccountEntity =
-    AccountEntity.createFromAccountInfo(testAccount);
-
-const testIdToken: IdTokenEntity = {
-    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
-    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-    environment: testAccountEntity.environment,
-    realm: ID_TOKEN_CLAIMS.tid,
-    secret: TEST_TOKENS.IDTOKEN_V2,
-    credentialType: CredentialType.ID_TOKEN,
-};
+const testIdToken: IdTokenEntity = buildIdToken(
+    ID_TOKEN_CLAIMS,
+    TEST_TOKENS.IDTOKEN_V2,
+    {
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: testAccount.environment,
+    }
+);
 
 const testAccessTokenEntity: AccessTokenEntity = {
     homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
@@ -161,10 +159,7 @@ describe("SilentCacheClient", () => {
             pca.browserStorage.setIdTokenCredential(testIdToken);
 
             pca.setActiveAccount(testAccount);
-            expect(pca.getActiveAccount()).toEqual({
-                ...testAccount,
-                idTokenClaims: ID_TOKEN_CLAIMS,
-            });
+            expect(pca.getActiveAccount()).toEqual(testAccount);
             silentCacheClient.logout({ account: testAccount });
             //@ts-ignore
             expect(pca.getActiveAccount()).toEqual(null);

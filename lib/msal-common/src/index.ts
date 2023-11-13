@@ -34,6 +34,7 @@ export {
     TenantProfile,
     updateAccountTenantProfileData,
     tenantIdMatchesHomeTenant,
+    buildTenantProfileFromIdTokenClaims,
 } from "./account/AccountInfo";
 export * as AuthToken from "./account/AuthToken";
 export {
@@ -145,7 +146,10 @@ export {
     DeviceCodeResponse,
     ServerDeviceCodeResponse,
 } from "./response/DeviceCodeResponse";
-export { ResponseHandler } from "./response/ResponseHandler";
+export {
+    ResponseHandler,
+    buildAccountToCache,
+} from "./response/ResponseHandler";
 export { ScopeSet } from "./request/ScopeSet";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser";
 // Logger Callback

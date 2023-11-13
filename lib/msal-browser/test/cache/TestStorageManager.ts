@@ -16,6 +16,11 @@ import {
     ValidCredentialType,
     TokenKeys,
     CacheHelpers,
+    TokenClaims,
+    CredentialType,
+    buildTenantProfileFromIdTokenClaims,
+    TenantProfile,
+    AccountInfo,
 } from "@azure/msal-common";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
@@ -33,6 +38,25 @@ export class TestStorageManager extends CacheManager {
         return null;
     }
 
+    removeAccountKeyFromMap(key: string): void {
+        const currentAccounts = this.getAccountKeys();
+        const removalIndex = currentAccounts.indexOf(key);
+        if (removalIndex > -1) {
+            currentAccounts.splice(removalIndex, 1);
+            this.store[ACCOUNT_KEYS] = currentAccounts;
+        }
+    }
+
+    getCachedAccountEntity(key: string): AccountEntity | null {
+        const account = this.store[key] as AccountEntity;
+        if (!account) {
+            this.removeAccountKeyFromMap(key);
+            return null;
+        }
+
+        return account;
+    }
+
     setAccount(value: AccountEntity): void {
         const key = value.generateAccountKey();
         this.store[key] = value;
@@ -46,12 +70,7 @@ export class TestStorageManager extends CacheManager {
 
     async removeAccount(key: string): Promise<void> {
         await super.removeAccount(key);
-        const currentAccounts = this.getAccountKeys();
-        const removalIndex = currentAccounts.indexOf(key);
-        if (removalIndex > -1) {
-            currentAccounts.splice(removalIndex, 1);
-            this.store[ACCOUNT_KEYS] = currentAccounts;
-        }
+        this.removeAccountKeyFromMap(key);
     }
 
     removeOutdatedAccount(accountKey: string): void {
@@ -190,4 +209,65 @@ export class TestStorageManager extends CacheManager {
 
         return currentCacheKey;
     }
+}
+
+export function buildAccountFromIdTokenClaims(
+    idTokenClaims: TokenClaims,
+    guestIdTokenClaimsList?: TokenClaims[],
+    options?: Partial<AccountInfo>
+): AccountEntity {
+    const { oid, tid, preferred_username, emails, name } = idTokenClaims;
+    const tenantId = tid || "";
+    const email = emails ? emails[0] : null;
+
+    const homeAccountId = `${oid}.${tid}`;
+
+    const accountInfo: AccountInfo = {
+        homeAccountId: homeAccountId || "",
+        username: preferred_username || email || "",
+        localAccountId: oid || "",
+        tenantId: tenantId,
+        environment: "login.windows.net",
+        authorityType: "MSSTS",
+        name: name,
+        tenantProfiles: new Map<string, TenantProfile>([
+            [
+                tenantId,
+                buildTenantProfileFromIdTokenClaims(
+                    homeAccountId,
+                    idTokenClaims
+                ),
+            ],
+        ]),
+    };
+    guestIdTokenClaimsList?.forEach((guestIdTokenClaims: TokenClaims) => {
+        const guestTenantId = guestIdTokenClaims.tid || "";
+        accountInfo.tenantProfiles?.set(
+            guestTenantId,
+            buildTenantProfileFromIdTokenClaims(
+                accountInfo.homeAccountId,
+                guestIdTokenClaims
+            )
+        );
+    });
+    return AccountEntity.createFromAccountInfo({ ...accountInfo, ...options });
+}
+
+export function buildIdToken(
+    idTokenClaims: TokenClaims,
+    idTokenSecret: string,
+    options?: Partial<IdTokenEntity>
+): IdTokenEntity {
+    const { oid, tid } = idTokenClaims;
+    const homeAccountId = `${oid}.${tid}`;
+    const idToken = {
+        realm: tid || "",
+        environment: "login.microsoftonline.com",
+        credentialType: CredentialType.ID_TOKEN,
+        secret: idTokenSecret,
+        clientId: "mock_client_id",
+        homeAccountId: homeAccountId,
+    };
+
+    return { ...idToken, ...options };
 }

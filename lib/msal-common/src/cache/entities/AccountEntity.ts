@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CacheAccountType } from "../../utils/Constants";
+import { CacheAccountType } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo";
@@ -68,7 +68,7 @@ export class AccountEntity {
      */
     generateAccountId(): string {
         const accountId: Array<string> = [this.homeAccountId, this.environment];
-        return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+        return accountId.join("-").toLowerCase();
     }
 
     /**
@@ -125,7 +125,7 @@ export class AccountEntity {
             homeTenantId || accountInterface.tenantId || "",
         ];
 
-        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+        return accountKey.join("-").toLowerCase();
     }
 
     /**
@@ -288,7 +288,7 @@ export class AccountEntity {
                         cryptoObj
                     );
                     if (clientInfo.uid && clientInfo.utid) {
-                        return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
+                        return `${clientInfo.uid}.${clientInfo.utid}`;
                     }
                 } catch (e) {}
             }

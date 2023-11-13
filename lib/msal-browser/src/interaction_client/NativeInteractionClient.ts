@@ -35,6 +35,7 @@ import {
     AuthErrorCodes,
     updateAccountTenantProfileData,
     CacheHelpers,
+    buildAccountToCache,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -422,16 +423,17 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims
         );
 
-        const tenantId = idTokenClaims.tid;
-        const accountEntity = AccountEntity.createAccount(
-            {
-                homeAccountId: homeAccountIdentifier,
-                idTokenClaims: idTokenClaims,
-                clientInfo: response.client_info,
-                nativeAccountId: response.account.id,
-                tenants: tenantId ? [tenantId] : [],
-            },
-            authority
+        const baseAccount = buildAccountToCache(
+            this.browserStorage,
+            authority,
+            homeAccountIdentifier,
+            idTokenClaims,
+            this.browserCrypto,
+            response.client_info,
+            idTokenClaims.tid,
+            undefined,
+            response.account.id,
+            this.logger
         );
 
         // generate authenticationResult
@@ -439,13 +441,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             request,
             idTokenClaims,
-            accountEntity,
+            baseAccount,
             authority.canonicalAuthority,
             reqTimestamp
         );
 
         // cache accounts and tokens in the appropriate storage
-        this.cacheAccount(accountEntity);
+        this.cacheAccount(baseAccount);
         this.cacheNativeTokens(
             response,
             request,

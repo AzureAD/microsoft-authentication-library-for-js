@@ -428,12 +428,17 @@ export class ResponseHandler {
                 claimsTenantId || ""
             );
 
-            cachedAccount = this.setCachedAccount(
+            cachedAccount = buildAccountToCache(
+                this.cacheStorage,
                 authority,
-                serverTokenResponse,
+                this.homeAccountIdentifier,
                 idTokenClaims,
+                this.cryptoObj,
+                serverTokenResponse.client_info,
                 claimsTenantId,
-                authCodePayload
+                authCodePayload,
+                undefined,
+                this.logger
             );
         }
 
@@ -519,62 +524,6 @@ export class ResponseHandler {
             cachedRefreshToken,
             cachedAppMetadata
         );
-    }
-
-    private setCachedAccount(
-        authority: Authority,
-        serverTokenResponse: ServerAuthorizationTokenResponse,
-        idTokenClaims: TokenClaims,
-        claimsTenantId: string | null,
-        authCodePayload?: AuthorizationCodePayload
-    ): AccountEntity | undefined {
-        this.logger.verbose("setCachedAccount called");
-
-        // Check if base account is already cached
-        const accountKeys = this.cacheStorage.getAccountKeys();
-        const baseAccountKey = accountKeys.find((accountKey: string) => {
-            return accountKey.startsWith(this.homeAccountIdentifier);
-        });
-
-        let cachedAccount: AccountEntity | null = null;
-        if (baseAccountKey) {
-            cachedAccount = this.cacheStorage.getAccount(
-                baseAccountKey,
-                this.logger
-            );
-        }
-
-        const baseAccount =
-            cachedAccount ||
-            AccountEntity.createAccount(
-                {
-                    homeAccountId: this.homeAccountIdentifier,
-                    idTokenClaims: idTokenClaims,
-                    clientInfo: serverTokenResponse.client_info,
-                    cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
-                    msGraphHost: authCodePayload?.msgraph_host,
-                },
-                authority,
-                this.cryptoObj
-            );
-
-        const tenantProfiles = baseAccount.tenantProfiles || [];
-
-        if (
-            claimsTenantId &&
-            !tenantProfiles.find((tenantProfile) => {
-                return tenantProfile.tenantId === claimsTenantId;
-            })
-        ) {
-            const newTenantProfile = buildTenantProfileFromIdTokenClaims(
-                this.homeAccountIdentifier,
-                idTokenClaims
-            );
-            tenantProfiles.push(newTenantProfile);
-        }
-        baseAccount.tenantProfiles = tenantProfiles;
-
-        return baseAccount;
     }
 
     /**
@@ -696,4 +645,63 @@ export class ResponseHandler {
             fromNativeBroker: false,
         };
     }
+}
+
+export function buildAccountToCache(
+    cacheStorage: CacheManager,
+    authority: Authority,
+    homeAccountId: string,
+    idTokenClaims: TokenClaims,
+    cryptoObj: ICrypto,
+    clientInfo?: string,
+    claimsTenantId?: string | null,
+    authCodePayload?: AuthorizationCodePayload,
+    nativeAccountId?: string,
+    logger?: Logger
+): AccountEntity {
+    logger?.verbose("setCachedAccount called");
+
+    // Check if base account is already cached
+    const accountKeys = cacheStorage.getAccountKeys();
+    const baseAccountKey = accountKeys.find((accountKey: string) => {
+        return accountKey.startsWith(homeAccountId);
+    });
+
+    let cachedAccount: AccountEntity | null = null;
+    if (baseAccountKey) {
+        cachedAccount = cacheStorage.getAccount(baseAccountKey, logger);
+    }
+
+    const baseAccount =
+        cachedAccount ||
+        AccountEntity.createAccount(
+            {
+                homeAccountId: homeAccountId,
+                idTokenClaims: idTokenClaims,
+                clientInfo: clientInfo,
+                cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
+                msGraphHost: authCodePayload?.msgraph_host,
+                nativeAccountId: nativeAccountId,
+            },
+            authority,
+            cryptoObj
+        );
+
+    const tenantProfiles = baseAccount.tenantProfiles || [];
+
+    if (
+        claimsTenantId &&
+        !tenantProfiles.find((tenantProfile) => {
+            return tenantProfile.tenantId === claimsTenantId;
+        })
+    ) {
+        const newTenantProfile = buildTenantProfileFromIdTokenClaims(
+            homeAccountId,
+            idTokenClaims
+        );
+        tenantProfiles.push(newTenantProfile);
+    }
+    baseAccount.tenantProfiles = tenantProfiles;
+
+    return baseAccount;
 }

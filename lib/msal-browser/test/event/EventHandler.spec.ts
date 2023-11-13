@@ -5,6 +5,8 @@ import sinon from "sinon";
 import { EventHandler } from "../../src/event/EventHandler";
 import { Logger, LogLevel, AccountInfo, AccountEntity } from "../../src";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { buildAccountFromIdTokenClaims } from "../cache/TestStorageManager";
+import { ID_TOKEN_CLAIMS } from "../utils/StringConstants";
 
 describe("Event API tests", () => {
     const loggerOptions = {
@@ -126,20 +128,10 @@ describe("Event API tests", () => {
             const eventHandler = new EventHandler(logger, browserCrypto);
             eventHandler.addEventCallback(subscriber);
 
-            const account: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: "test-home-accountId-1",
-                localAccountId: "test-local-accountId-1",
-                username: "user-1@example.com",
-                environment: "test-environment-1",
-                tenantId: "test-tenantId-1",
-                name: "name-1",
-                idTokenClaims: {},
-                nativeAccountId: undefined,
-                tenants: ["test-tenantId-1"],
-            };
+            const accountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
-            const accountEntity = AccountEntity.createFromAccountInfo(account);
+            const account: AccountInfo = accountEntity.getAccountInfo();
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
 
@@ -155,7 +147,7 @@ describe("Event API tests", () => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.ACCOUNT_REMOVED);
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(accountEntity.getAccountInfo());
+                expect(message.payload).toEqual(account);
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
@@ -164,20 +156,10 @@ describe("Event API tests", () => {
             const eventHandler = new EventHandler(logger, browserCrypto);
             eventHandler.addEventCallback(subscriber);
 
-            const account: AccountInfo = {
-                homeAccountId: "test-home-accountId-1",
-                localAccountId: "test-local-accountId-1",
-                username: "user-1@example.com",
-                environment: "test-environment-1",
-                tenantId: "test-tenantId-1",
-                name: "name-1",
-                idTokenClaims: {},
-                authorityType: "MSSTS",
-                nativeAccountId: undefined,
-                tenants: ["test-tenantId-1"],
-            };
+            const accountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
-            const accountEntity = AccountEntity.createFromAccountInfo(account);
+            const account: AccountInfo = accountEntity.getAccountInfo();
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
 
