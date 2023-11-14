@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1699915385488,
+  "lastUpdate": 1699997645407,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3078,6 +3078,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.24%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d14178b5d9ac4aadfc15015429bde177c0bd83c7",
+          "message": "Fix logoutPopup request type (#6679)\n\nUpdates request type for `logoutPopup` to `EndSessionPopupRequest`\r\n\r\nFixes #6508",
+          "timestamp": "2023-11-14T21:29:00Z",
+          "tree_id": "f76ceabb0062a8b0eb20c6e646fadb8eda846ab4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d14178b5d9ac4aadfc15015429bde177c0bd83c7"
+        },
+        "date": 1699997643418,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 197093,
+            "range": "±2.07%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 179022,
+            "range": "±2.13%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
