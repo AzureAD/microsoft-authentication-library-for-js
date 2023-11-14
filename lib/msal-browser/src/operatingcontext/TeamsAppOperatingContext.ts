@@ -70,7 +70,10 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
                  * this.activeAccount = await bridgeProxy.getActiveAccount();
                  */
                 try {
-                    this.activeAccount = await bridgeProxy.getActiveAccount();
+                    if (bridgeProxy.getHostCapabilities()?.queryAccount) {
+                        this.activeAccount =
+                            await bridgeProxy.getActiveAccount();
+                    }
                 } catch (e) {
                     this.activeAccount = undefined;
                 }

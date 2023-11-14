@@ -1,56 +1,56 @@
 trigger: none # Disable push triggers
 
 pr:
-- dev
+    - dev
 
 pool:
-  vmImage: ubuntu-latest
+    vmImage: ubuntu-latest
 
 steps:
-- task: NodeTool@0
-  displayName: 'Install Node.js'
-  inputs:
-      versionSpec: '18.x'
+    - task: NodeTool@0
+      displayName: "Install Node.js"
+      inputs:
+          versionSpec: "18.x"
 
-- checkout: git://IDDP/msal-javascript-1p
-- script: |
-      npm run submodule:init
-  displayName: Initialize submodule
+    - checkout: git://IDDP/msal-javascript-1p
+    - script: |
+          npm run submodule:init
+      displayName: Initialize submodule
 
-- script: |
-      cd ./microsoft-authentication-library-for-js
-      git checkout $(System.PullRequest.SourceBranch)
-      git pull
-  displayName: 'Pull latest changes from 3P feature branch'
+    - script: |
+          cd ./microsoft-authentication-library-for-js
+          git checkout $(System.PullRequest.SourceBranch)
+          git pull
+      displayName: "Pull latest changes from 3P feature branch"
 
-- task: npmAuthenticate@0
-  displayName: 'Authenticate to npm package registry'
-  inputs:
-      workingFile: ./.npmrc
+    - task: npmAuthenticate@0
+      displayName: "Authenticate to npm package registry"
+      inputs:
+          workingFile: ./.npmrc
 
-- task: npmAuthenticate@0
-  displayName: 'Authenticate to npm package registry'
-  inputs:
-      workingFile: ./1ds.npmrc
+    - task: npmAuthenticate@0
+      displayName: "Authenticate to npm package registry"
+      inputs:
+          workingFile: ./1ds.npmrc
 
-- script: |
-    npm ci --workspace=samples/PerformanceTelemetrySample
-  displayName: 'Install dependencies'
+    - script: |
+          npm install --workspace=samples/PerformanceTelemetrySample
+      displayName: "Install dependencies"
 
-- task: Npm@1
-  inputs:
-    workingDir: 'samples/PerformanceTelemetrySample'
-    command: 'custom'
-    customCommand: 'run build:package'
-  displayName: 'Build sample'
+    - task: Npm@1
+      inputs:
+          workingDir: "samples/PerformanceTelemetrySample"
+          command: "custom"
+          customCommand: "run build:package"
+      displayName: "Build sample"
 
-- task: Npm@1
-  inputs:
-    workingDir: 'samples/PerformanceTelemetrySample'
-    command: 'custom'
-    customCommand: 'run test'
-  env:
-    AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-    AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-    AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
-  displayName: 'Run e2e tests'
+    - task: Npm@1
+      inputs:
+          workingDir: "samples/PerformanceTelemetrySample"
+          command: "custom"
+          customCommand: "run test"
+      env:
+          AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+          AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
+      displayName: "Run e2e tests"

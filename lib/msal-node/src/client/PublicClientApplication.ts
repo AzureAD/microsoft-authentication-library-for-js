@@ -221,7 +221,7 @@ export class PublicClientApplication
                 clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
                 ...validRequest,
             };
-            return this.acquireTokenByCode(tokenRequest);
+            return await this.acquireTokenByCode(tokenRequest); // Await this so the server doesn't close prematurely
         } finally {
             loopbackClient.closeServer();
         }

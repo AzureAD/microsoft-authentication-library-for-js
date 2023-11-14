@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Removing allowestsrnonmsi query parameter",
-  "packageName": "@azure/msal-common",
-  "email": "trwalke@microsoft.com",
-  "dependentChangeType": "patch"
-}

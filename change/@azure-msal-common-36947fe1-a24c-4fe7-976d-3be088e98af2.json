@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Convert ServerTelemetryEntity to Type instead of Class #6651",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
