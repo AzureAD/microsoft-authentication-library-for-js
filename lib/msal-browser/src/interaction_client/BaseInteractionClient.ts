@@ -283,7 +283,7 @@ export abstract class BaseInteractionClient {
             this.logger.verbose(
                 "Creating discovered authority with request authority"
             );
-            return await AuthorityFactory.createDiscoveredInstance(
+            return AuthorityFactory.createDiscoveredInstance(
                 requestAuthority,
                 this.config.system.networkClient,
                 this.browserStorage,
@@ -295,7 +295,7 @@ export abstract class BaseInteractionClient {
         this.logger.verbose(
             "Creating discovered authority with configured authority"
         );
-        return await AuthorityFactory.createDiscoveredInstance(
+        return AuthorityFactory.createDiscoveredInstance(
             this.config.auth.authority,
             this.config.system.networkClient,
             this.browserStorage,

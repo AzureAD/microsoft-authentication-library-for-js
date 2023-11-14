@@ -254,7 +254,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger.verbose(
                     "NavigateToLoginRequestUrl set to false, handling response"
                 );
-                return this.handleResponse(
+                return await this.handleResponse(
                     serverParams,
                     serverTelemetryManager
                 );
@@ -313,7 +313,7 @@ export class RedirectClient extends StandardInteractionClient {
 
                 // If navigateInternal implementation returns false, handle the hash now
                 if (!processHashOnRedirect) {
-                    return this.handleResponse(
+                    return await this.handleResponse(
                         serverParams,
                         serverTelemetryManager
                     );
@@ -483,7 +483,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        return await interactionHandler.handleCodeResponse(serverParams, state);
+        return interactionHandler.handleCodeResponse(serverParams, state);
     }
 
     /**
