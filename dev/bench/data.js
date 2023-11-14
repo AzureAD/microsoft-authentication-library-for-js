@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1699997645407,
+  "lastUpdate": 1699998257386,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3116,6 +3116,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.13%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "58f167e39de7d2d9fb1d922bf6c455064bc19f46",
+          "message": "Fix bug causing temporary cache not to be cleared & turn on return-await lint rule (#6678)\n\nIn some edge cases if an error is thrown during redirect response\r\nhandling temporary cache may not be cleared resulting in\r\ninteraction_in_progress errors when attempting to recover with a new\r\nredirect request. This was caused by an unawaited asynchronous call\r\ninside a synchronous try/catch which includes the cleanup logic.\r\n\r\nAlso turns on the return-await lint rule which requires any returned\r\npromises inside try/catch/finally to be awaited and disallows promises\r\nreturned outside try/catch/finally from being awaited\r\n\r\nFixes #6676",
+          "timestamp": "2023-11-14T13:39:08-08:00",
+          "tree_id": "4dbf72021e5195dcad8bff616d4b1d4562f3875c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/58f167e39de7d2d9fb1d922bf6c455064bc19f46"
+        },
+        "date": 1699998255512,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188990,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 185011,
+            "range": "±1.91%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
