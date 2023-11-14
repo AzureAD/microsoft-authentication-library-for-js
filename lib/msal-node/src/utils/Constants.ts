@@ -6,6 +6,7 @@
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 export const SECRET_HEADER_NAME: string = "X-IDENTITY-HEADER";
 export const METADATA_HEADER_NAME: string = "Metadata";
+export const MANAGED_IDENTITY_MSI_ENDPOINT: string = "MSI_ENDPOINT";
 
 export const MANAGED_IDENTITY_CLIENT_ID = "client_id";
 export const MANAGED_IDENTITY_OBJECT_ID = "object_id";
