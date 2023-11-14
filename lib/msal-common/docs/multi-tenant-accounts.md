@@ -14,13 +14,13 @@
 
 ## Multi-tenant Accounts
 
-MSAL supports the acquisition and caching of access and ID tokens across multiple tenants. In order to facilitate this, MSAL utilizes multi-tenant accounts. Multi-tenant accounts are `AccountInfo` objects that are returned with the tenant-specific data matching the context of the `acquireToken` or `getAccount` API call.
+MSAL supports the acquisition and caching of access and ID tokens across multiple tenants. In order to facilitate this, MSAL utilizes multi-tenant accounts. Multi-tenant accounts are [AccountInfo](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_common.AccountInfo.html) objects that are returned with the tenant-specific data matching the context of the `acquireToken` or `getAccount` API call.
 
 In addition to tenant-specific account data, multi-tenant accounts also contain a `Map` of the **tenant profiles** for the account corresponding to each tenant the user has authenticated with.
 
 ## Tenant Profiles
 
-Conceptually, a tenant profile is the record of an account in a specific tenant. In MSAL JS SDKs, `TenantProfile` objects contain the subset of the `AccountInfo` properties that vary by tenant. They are created by using the claims from the ID token issued by each tenant the user authenticates with.
+Conceptually, a tenant profile is the record of an account in a specific tenant. In MSAL JS SDKs, [TenantProfile](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_common.TenantProfile.html) objects contain the subset of the `AccountInfo` properties that vary by tenant. They are created by using the claims from the ID token issued by each tenant the user authenticates with.
 
 `AccountInfo` objects returned from `acquireToken` and `getAccount` APIs contain a `Map<string, TenantProfile>` object called `tenantProfiles` where the key is the tenant ID and the value is the `TenantProfile` for that account in that tenant.
 
@@ -136,13 +136,13 @@ const homeTenantAuthResponse = await myMSALObj.acquireTokenSilent({
 
 ### getAllAccounts with Multiple Tenants
 
-When any account in the MSAL cache contains multiple tenant profiles, `getAllAccounts()` is expected to return a full `AccountInfo` object for each tenant profile that satisfies the filter provided. If no filter is provided, every tenant profile for every account will be returned as a full `AccountInfo` object by default. This means that even if there is only one `AccountEntity` object in the cache, multiple `AccountInfo` objects may be returned from `getAllAccounts`.
+When any account in the MSAL cache contains multiple tenant profiles, `getAllAccounts()` is expected to return a full `AccountInfo` object for each tenant profile that satisfies the filter provided. If no filter is provided, every tenant profile for every account will be returned as a full `AccountInfo` object by default. This means that even if there is only one account object in the cache, multiple `AccountInfo` objects may be returned from `getAllAccounts`.
 
-The results of `getAllAccounts` can be "flattened" to only return the home accounts which would each still have a map of their `tenantProfiles`. This can be achieved with the `isHomeTenant` filter.
+The results of `getAllAccounts` can be "flattened" to only return the home accounts which would each still have a map of their `tenantProfiles`. This can be achieved by setting the `isHomeTenant` filter to `true`. The opposite, getting only accounts built from guest tenant profiles, can be achieved by setting the `isHomeTenant` filter to `false.`
 
 The sample code below shows how one can:
 
--   Filter the result of `getAllAccounts()` using the new optional `accountFilter` parameter to "flatten" the cached accounts into home accounts with a map of their tenant profiles (otherwise getAllAccounts will return the `AccountInfo` object for each tenant profile)
+-   Filter the result of `getAllAccounts()` using the optional `accountFilter` parameter to "flatten" the cached accounts into home accounts with a map of their tenant profiles (otherwise getAllAccounts will return the `AccountInfo` object for each tenant profile)
 -   Extract the desired `TenantProfile` object from the home `AccountInfo` object
 -   Use the `TenantProfile` object to get the `AccountInfo` object for that tenant profile
 -   Use the guest tenant account object to acquire cached tokens that belong to it
@@ -151,21 +151,32 @@ The sample code below shows how one can:
 // When a filter is passed into getAllAccounts, it returns all cached accounts that match the filter. Use the special isHomeTenant filter to get the home accounts only.
 const homeAccount = myMSALObj.getAllAccounts({ isHomeTenant: true })[0];
 const tenantId = "GUEST_TENANT_ID"; // This will be the tenant you want to retrieve a cached token for
+
 const guestTenantProfile = homeAccount.tenantProfiles.get(tenantId);
 
-// TenantProfile is a subset of AccountInfo, so it can be passed whole as an `AccountFilter`
-const guestTenantAccount = myMSALObj.getAccount({ ...tenantProfile });
+if (guestTenantProfile) {
+    // TenantProfile is a subset of AccountInfo, so it can be passed whole as an `AccountFilter`
+    const guestTenantAccount = myMSALObj.getAccount({ ...tenantProfile });
 
-const guestTenantAuthResponse = await myMSALObj
-    .acquireTokenSilent({ ...guestTenantRequest, account: guestTenantAccount })
-    .catch(async (error) => {
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            // fallback to interaction when silent call fails
-            myMSALObj.acquireTokenRedirect(request);
-        } else {
-            console.error(error);
-        }
-    });
+    const guestTenantAuthResponse = await myMSALObj
+        .acquireTokenSilent({
+            ...guestTenantRequest,
+            account: guestTenantAccount,
+        })
+        .catch(async (error) => {
+            if (error instanceof msal.InteractionRequiredAuthError) {
+                // fallback to interaction when silent call fails
+                myMSALObj.acquireTokenRedirect(request);
+            } else {
+                console.error(error);
+            }
+        });
+} else {
+    // Authenticate with guest tenant first
+    const guestTenantAuthResponse = await myMSALObj.loginPopup(
+        homeTenantRequest
+    );
+}
 ```
 
 ## Multi-tenant Logout
