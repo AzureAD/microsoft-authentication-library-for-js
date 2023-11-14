@@ -186,6 +186,10 @@ export const TEST_CONFIG = {
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
     validAuthorityHost: "login.microsoftonline.com",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
+    tenantedValidAuthority:
+        TEST_URIS.DEFAULT_INSTANCE + "3338040d-6c67-4c5b-b112-36a304b66dad",
+    organizationsAuthority: TEST_URIS.DEFAULT_INSTANCE + "organizations",
+    consumersAuthority: TEST_URIS.DEFAULT_INSTANCE + "consumers",
     ADFS_VALID_AUTHORITY: "https://on.prem/adfs",
     DSTS_VALID_AUTHORITY: "https://domain.dsts.subdomain/dstsv2/tenant",
     b2cValidAuthority:
