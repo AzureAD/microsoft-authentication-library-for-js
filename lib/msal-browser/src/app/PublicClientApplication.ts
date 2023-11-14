@@ -27,6 +27,7 @@ import { StandardOperatingContext } from "../operatingcontext/StandardOperatingC
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -306,7 +307,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Clears local cache for the current user then opens a popup window prompting the user to sign-out of the server
      * @param logoutRequest
      */
-    logoutPopup(logoutRequest?: EndSessionRequest): Promise<void> {
+    logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         return this.controller.logoutPopup(logoutRequest);
     }
 
