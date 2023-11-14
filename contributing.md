@@ -92,9 +92,11 @@ npm run test:coverage
 
 ### VS Code Setup
 
-If you are looking to use VS code as an IDE and want to take advantage of a Test/Debugger Ui, you can install the following Jest package from the marketplace: [Jest](https://marketplace.visualstudio.com/items?itemName=Orta.vscode-jest). If you have not done so already, VSCode will recommend that you install this package from the UI.
+If you are looking to use VS code as an IDE and want to take advantage of a Test/Debugger Ui, you can install the following Jest package from the marketplace: [Jest](https://marketplace.visualstudio.com/items?itemName=Orta.vscode-jest). If you have not done so already, VSCode will recommend that you install this package from the UI. 
 
-Once installed, you have the option to configure the jest environment for further customization. The following config has already been placed in the local settings file in the repository: 
+**Important**: Please navigate to the jest extension and use the pre release version.
+
+Once installed, you have the option to configure the jest environment for further customization. The following jest config has already been placed in the local settings file in the repository: 
 
 `.vscode\settings.json` 
 
