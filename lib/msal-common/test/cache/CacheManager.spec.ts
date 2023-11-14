@@ -305,6 +305,10 @@ describe("CacheManager.ts test cases", () => {
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
         const account2 =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS).getAccountInfo();
+        it("getAllAccounts returns an empty array if there are no accounts in the cache", () => {
+            mockCache.clearCache();
+            expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(0);
+        });
         it("getAllAccounts (gets all AccountInfo objects)", async () => {
             const accounts = mockCache.cacheManager.getAllAccounts();
 
@@ -592,14 +596,32 @@ describe("CacheManager.ts test cases", () => {
             );
             const mainIdTokenKey =
                 CacheHelpers.generateCredentialKey(mainIdTokenEntity);
+
+            const filter = {
+                homeAccountId: multiTenantAccount.homeAccountId,
+            };
             // Remove main ID token
             mockCache.cacheManager.removeIdToken(mainIdTokenKey);
             const resultAccount =
-                mockCache.cacheManager.getAccountInfoFilteredBy({
-                    homeAccountId: multiTenantAccount.homeAccountId,
-                });
+                mockCache.cacheManager.getAccountInfoFilteredBy(filter);
             expect(resultAccount).not.toBeNull();
             expect(resultAccount?.tenantId).toBe(GUEST_ID_TOKEN_CLAIMS.tid);
+
+            const allAccountsReversed = mockCache.cacheManager
+                .getAllAccounts()
+                .reverse();
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAllAccounts"
+            ).mockReturnValueOnce(allAccountsReversed);
+
+            const reversedResultAccount =
+                mockCache.cacheManager.getAccountInfoFilteredBy(filter);
+            expect(reversedResultAccount).not.toBeNull();
+            expect(reversedResultAccount?.tenantId).toBe(
+                GUEST_ID_TOKEN_CLAIMS.tid
+            );
         });
 
         it("returns account matching filter with isHomeTenant = true", () => {
@@ -611,6 +633,29 @@ describe("CacheManager.ts test cases", () => {
                 });
             expect(resultAccount).not.toBeNull();
             expect(resultAccount).toMatchObject(multiTenantAccount);
+        });
+    });
+
+    describe("getBaseAccountInfo", () => {
+        it("returns base account regardless of tenantId", () => {
+            const multiTenantAccount = buildAccountFromIdTokenClaims(
+                ID_TOKEN_CLAIMS,
+                [GUEST_ID_TOKEN_CLAIMS]
+            ).getAccountInfo();
+            const resultAccount = mockCache.cacheManager.getBaseAccountInfo({
+                homeAccountId: multiTenantAccount.homeAccountId,
+                tenantId: GUEST_ID_TOKEN_CLAIMS.tid,
+            });
+
+            expect(resultAccount).toEqual(multiTenantAccount);
+        });
+
+        it("returns null if no account matches filter", () => {
+            expect(
+                mockCache.cacheManager.getBaseAccountInfo({
+                    homeAccountId: "inexistent-homeaccountid",
+                })
+            ).toBeNull();
         });
     });
 
