@@ -1,14 +1,14 @@
 # Accounts in MSAL Node
 
-> This is the platform-specific Accounts documentation for `msal-node`. For the general documentation of the `AccountInfo` object structure, please visit the `msal-common` [Accounts document](../../msal-common/docs/Accounts.md).
+> This is the platform-specific Accounts documentation for `msal-node`. For the general documentation of the `AccountInfo` object structure, please visit the `msal-common` [Accounts document](../../msal-common/docs/Accounts.md).For documentation relating to multi-tenant accounts, please visit the [Multi-tenant Accounts document](../../msal-common/docs/multi-tenant-accounts.md).
 
 ## Usage
 
 The `msal-node` library provides the following different APIs to access cached accounts:
 
-* `getAllAccounts()`: returns all the accounts currently in the cache. An application must choose an account to acquire tokens silently.
-* `getAccountByHomeId()`: receives a `homeAccountId` string and returns the matching account from the cache.
-* `getAccountByLocalId()`: receives a `localAccountId` string and returns the matching account from the cache.
+-   `getAllAccounts()`: returns all the accounts currently in the cache. An application must choose an account to acquire tokens silently.
+-   `getAccountByHomeId()`: receives a `homeAccountId` string and returns the matching account from the cache.
+-   `getAccountByLocalId()`: receives a `localAccountId` string and returns the matching account from the cache.
 
 The following are usage examples for each API:
 
@@ -82,7 +82,9 @@ Once the account and tokens are cached and the application state holds the `home
 ```javascript
 async function getResource() {
     // Find account using homeAccountId or localAccountId built after receiving auth code token response
-    const account = await msalTokenCache.getAccountByHomeId(app.locals.homeAccountId); // alternativley: await msalTokenCache.getAccountByLocalId(localAccountId) if using localAccountId
+    const account = await msalTokenCache.getAccountByHomeId(
+        app.locals.homeAccountId
+    ); // alternativley: await msalTokenCache.getAccountByLocalId(localAccountId) if using localAccountId
 
     // Build silent request
     const silentRequest = {
@@ -102,5 +104,5 @@ async function getResource() {
 
 ## Notes
 
-* The current msal-node silent-flow [sample](../../../samples/msal-node-samples/silent-flow) has a working single account scenario that uses `getAccountByHomeId()`.
-* If you have a multiple accounts scenario, please modify the [sample](../../../samples/msal-node-samples/silent-flow/index.js) (in `/graphCall` route) to list all cached accounts and choose a specific account. You may also need to customize the related view templates and `handlebars` template params.
+-   The current msal-node silent-flow [sample](../../../samples/msal-node-samples/silent-flow) has a working single account scenario that uses `getAccountByHomeId()`.
+-   If you have a multiple accounts scenario, please modify the [sample](../../../samples/msal-node-samples/silent-flow/index.js) (in `/graphCall` route) to list all cached accounts and choose a specific account. You may also need to customize the related view templates and `handlebars` template params.
