@@ -55,7 +55,7 @@ export class ClientCredentialClient extends BaseClient {
         this.scopeSet = new ScopeSet(request.scopes || []);
 
         if (request.skipCache) {
-            return await this.executeTokenRequest(request, this.authority);
+            return this.executeTokenRequest(request, this.authority);
         }
 
         const [cachedAuthenticationResult, lastCacheOutcome] =
@@ -80,7 +80,7 @@ export class ClientCredentialClient extends BaseClient {
             // return the cached token
             return cachedAuthenticationResult;
         } else {
-            return await this.executeTokenRequest(request, this.authority);
+            return this.executeTokenRequest(request, this.authority);
         }
     }
 

@@ -319,7 +319,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             userAuthority,
             requestAzureCloudOptions || this.config.auth.azureCloudOptions
         );
-        return await invokeAsync(
+        return invokeAsync(
             AuthorityFactory.createDiscoveredInstance.bind(AuthorityFactory),
             PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
             this.logger,

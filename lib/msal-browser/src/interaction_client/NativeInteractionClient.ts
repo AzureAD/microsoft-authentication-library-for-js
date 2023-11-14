@@ -372,7 +372,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 reqTimestamp
             );
             this.browserStorage.setInteractionInProgress(false);
-            return result;
+            return await result;
         } catch (e) {
             this.browserStorage.setInteractionInProgress(false);
             throw e;
@@ -533,7 +533,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             if (!request.keyId) {
                 throw createClientAuthError(ClientAuthErrorCodes.keyIdMissing);
             }
-            return await popTokenGenerator.signPopToken(
+            return popTokenGenerator.signPopToken(
                 response.access_token,
                 request.keyId,
                 shrParameters

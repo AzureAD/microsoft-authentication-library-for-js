@@ -923,10 +923,10 @@ export class StandardController implements IController {
                     );
                     atbcMeasurement.discard();
                 }
-                return response;
+                return await response;
             } else if (request.nativeAccountId) {
                 if (this.canUseNative(request, request.nativeAccountId)) {
-                    return this.acquireTokenNative(
+                    return await this.acquireTokenNative(
                         {
                             ...request,
                             correlationId,
