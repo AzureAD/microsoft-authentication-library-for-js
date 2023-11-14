@@ -481,9 +481,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.access_token,
                 this.clientId,
-                idTokenClaims?.tid ||
-                    authority.tenant ||
-                    Constants.EMPTY_STRING,
+                idTokenClaims?.tid || authority.tenant || "",
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
