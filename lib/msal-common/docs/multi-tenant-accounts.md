@@ -26,7 +26,7 @@ Conceptually, a tenant profile is the record of an account in a specific tenant.
 
 MSAL uses these `TenantProfile` objects to match and build the tenant-specific `AccountInfo` objects required through all of MSAL's flows. They can also be used by client applications for different purposes such as facilitating account selection logic and displaying account data for the user across tenants.
 
-> Warning: While MSAL can return a tenant-specific `AccountInfo` object for each tenant profile, tenant profiles are not actually different accounts, they are only representations of the same account in the different tenants the account has authentiated with. **If a user uses different accounts to authenticate to each tenant, these will not be linked as tenant profiles of eachother and will be treated as completely different accounts that cannot be used to access eachother's tokens**.
+> Warning: While MSAL can return a tenant-specific `AccountInfo` object for each tenant profile, tenant profiles are not actually different accounts, they are only representations of the same account in the different tenants the account has authenticated with. **If a user uses different accounts to authenticate to each tenant, these will not be linked as tenant profiles of each other and will be treated as completely different accounts that cannot be used to access each other's tokens**.
 
 ## Usage
 
