@@ -80,27 +80,33 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                 ClientAuthError
             );
 
-            expect(() => buildClientInfo("", cryptoInterface)).toThrowError(
-                ClientAuthErrorMessage.clientInfoEmptyError.desc
-            );
-            expect(() => buildClientInfo("", cryptoInterface)).toThrowError(
-                ClientAuthError
-            );
+            expect(() =>
+                buildClientInfo("", cryptoInterface.base64Decode)
+            ).toThrowError(ClientAuthErrorMessage.clientInfoEmptyError.desc);
+            expect(() =>
+                buildClientInfo("", cryptoInterface.base64Decode)
+            ).toThrowError(ClientAuthError);
         });
 
         it("Throws error if function could not successfully decode ", () => {
             expect(() =>
-                buildClientInfo("ThisCan'tbeParsed", cryptoInterface)
+                buildClientInfo(
+                    "ThisCan'tbeParsed",
+                    cryptoInterface.base64Decode
+                )
             ).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(() =>
-                buildClientInfo("ThisCan'tbeParsed", cryptoInterface)
+                buildClientInfo(
+                    "ThisCan'tbeParsed",
+                    cryptoInterface.base64Decode
+                )
             ).toThrowError(ClientAuthError);
         });
 
         it("Succesfully returns decoded client info", () => {
             const clientInfo = buildClientInfo(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                cryptoInterface
+                cryptoInterface.base64Decode
             );
 
             expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);

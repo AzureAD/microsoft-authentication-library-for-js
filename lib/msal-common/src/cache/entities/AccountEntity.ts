@@ -159,7 +159,10 @@ export class AccountEntity {
         let clientInfo: ClientInfo | undefined;
 
         if (accountDetails.clientInfo && cryptoObj) {
-            clientInfo = buildClientInfo(accountDetails.clientInfo, cryptoObj);
+            clientInfo = buildClientInfo(
+                accountDetails.clientInfo,
+                cryptoObj.base64Decode
+            );
         }
 
         account.clientInfo = accountDetails.clientInfo;
@@ -285,7 +288,7 @@ export class AccountEntity {
                 try {
                     const clientInfo = buildClientInfo(
                         serverClientInfo,
-                        cryptoObj
+                        cryptoObj.base64Decode
                     );
                     if (clientInfo.uid && clientInfo.utid) {
                         return `${clientInfo.uid}.${clientInfo.utid}`;

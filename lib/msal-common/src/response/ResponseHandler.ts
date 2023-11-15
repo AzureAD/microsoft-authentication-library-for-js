@@ -610,7 +610,7 @@ export class ResponseHandler {
         const accountInfo: AccountInfo | null = cacheRecord.account
             ? updateAccountTenantProfileData(
                   cacheRecord.account.getAccountInfo(),
-                  undefined,
+                  undefined, // tenantProfile optional
                   idTokenClaims
               )
             : null;
