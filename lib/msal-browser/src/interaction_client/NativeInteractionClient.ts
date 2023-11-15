@@ -428,7 +428,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             authority,
             homeAccountIdentifier,
             idTokenClaims,
-            this.browserCrypto,
+            this.browserCrypto.base64Decode,
             response.client_info,
             idTokenClaims.tid,
             undefined,

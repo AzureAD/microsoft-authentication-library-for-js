@@ -144,7 +144,7 @@ export class AccountEntity {
             tenantProfiles?: Array<TenantProfile>;
         },
         authority: Authority,
-        cryptoObj?: ICrypto
+        base64Decode?: (input: string) => string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -158,10 +158,10 @@ export class AccountEntity {
 
         let clientInfo: ClientInfo | undefined;
 
-        if (accountDetails.clientInfo && cryptoObj) {
+        if (accountDetails.clientInfo && base64Decode) {
             clientInfo = buildClientInfo(
                 accountDetails.clientInfo,
-                cryptoObj.base64Decode
+                base64Decode
             );
         }
 

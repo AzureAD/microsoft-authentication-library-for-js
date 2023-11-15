@@ -433,7 +433,7 @@ export class ResponseHandler {
                 authority,
                 this.homeAccountIdentifier,
                 idTokenClaims,
-                this.cryptoObj,
+                this.cryptoObj.base64Decode,
                 serverTokenResponse.client_info,
                 claimsTenantId,
                 authCodePayload,
@@ -652,7 +652,7 @@ export function buildAccountToCache(
     authority: Authority,
     homeAccountId: string,
     idTokenClaims: TokenClaims,
-    cryptoObj: ICrypto,
+    base64Decode: (input: string) => string,
     clientInfo?: string,
     claimsTenantId?: string | null,
     authCodePayload?: AuthorizationCodePayload,
@@ -684,7 +684,7 @@ export function buildAccountToCache(
                 nativeAccountId: nativeAccountId,
             },
             authority,
-            cryptoObj
+            base64Decode
         );
 
     const tenantProfiles = baseAccount.tenantProfiles || [];
