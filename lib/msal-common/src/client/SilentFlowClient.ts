@@ -231,7 +231,7 @@ export class SilentFlowClient extends BaseClient {
             checkMaxAge(authTime, request.maxAge);
         }
 
-        return await ResponseHandler.generateAuthenticationResult(
+        return ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             this.authority,
             cacheRecord,

@@ -63,6 +63,7 @@ module.exports = {
         "@typescript-eslint/no-unused-vars": 2,
         "@typescript-eslint/prefer-interface": 0,
         "@typescript-eslint/no-floating-promises": 2,
+        "@typescript-eslint/return-await": 2,
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [

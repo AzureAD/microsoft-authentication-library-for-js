@@ -16,7 +16,7 @@ export async function createV3Controller(
     await standard.initialize();
 
     const controller = await import("./StandardController");
-    return await controller.StandardController.createController(standard);
+    return controller.StandardController.createController(standard);
 }
 
 export async function createController(
@@ -34,12 +34,10 @@ export async function createController(
         teamsApp.getConfig().auth.supportsNestedAppAuth
     ) {
         const controller = await import("./NestedAppAuthController");
-        return await controller.NestedAppAuthController.createController(
-            teamsApp
-        );
+        return controller.NestedAppAuthController.createController(teamsApp);
     } else if (standard.isAvailable()) {
         const controller = await import("./StandardController");
-        return await controller.StandardController.createController(standard);
+        return controller.StandardController.createController(standard);
     } else {
         // Since neither of the actual operating contexts are available keep the UnknownOperatingContextController
         return null;

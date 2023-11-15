@@ -158,7 +158,7 @@ export class ConfidentialClientApplication
                 "Client credential client created",
                 validRequest.correlationId
             );
-            return clientCredentialClient.acquireToken(validRequest);
+            return await clientCredentialClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -203,7 +203,7 @@ export class ConfidentialClientApplication
                 "On behalf of client created",
                 validRequest.correlationId
             );
-            return oboClient.acquireToken(validRequest);
+            return await oboClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);

@@ -151,7 +151,7 @@ export class CryptoOps implements ICrypto {
      * Removes all cryptographic keys from IndexedDB storage
      */
     async clearKeystore(): Promise<boolean> {
-        return await this.cache.clear();
+        return this.cache.clear();
     }
 
     /**

@@ -40,11 +40,7 @@ export class TestStorageManager extends CacheManager {
 
     removeAccountKeyFromMap(key: string): void {
         const currentAccounts = this.getAccountKeys();
-        const removalIndex = currentAccounts.indexOf(key);
-        if (removalIndex > -1) {
-            currentAccounts.splice(removalIndex, 1);
-            this.store[ACCOUNT_KEYS] = currentAccounts;
-        }
+            this.store[ACCOUNT_KEYS] = currentAccounts.filter(entry => entry !== key);
     }
 
     getCachedAccountEntity(key: string): AccountEntity | null {

@@ -40,7 +40,7 @@ export async function initiateAuthRequest(
         throw createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri);
     }
     if (navigateFrameWait) {
-        return await invokeAsync(
+        return invokeAsync(
             loadFrame,
             PerformanceEvents.SilentHandlerLoadFrame,
             logger,

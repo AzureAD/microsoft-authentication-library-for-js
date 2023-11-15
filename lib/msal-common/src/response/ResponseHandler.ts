@@ -349,7 +349,7 @@ export class ResponseHandler {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
                     );
-                    return ResponseHandler.generateAuthenticationResult(
+                    return await ResponseHandler.generateAuthenticationResult(
                         this.cryptoObj,
                         authority,
                         cacheRecord,

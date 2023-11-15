@@ -114,7 +114,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             );
 
             // Handle auth code parameters from request
-            return invokeAsync(
+            return await invokeAsync(
                 interactionHandler.handleCodeResponseFromServer.bind(
                     interactionHandler
                 ),
