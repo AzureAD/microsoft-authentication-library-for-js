@@ -7,6 +7,12 @@
 export const SECRET_HEADER_NAME: string = "X-IDENTITY-HEADER";
 export const METADATA_HEADER_NAME: string = "Metadata";
 export const MANAGED_IDENTITY_MSI_ENDPOINT: string = "MSI_ENDPOINT";
+export const MANAGED_IDENTITY_ENDPOINT: string = "IDENTITY_ENDPOINT";
+export const MANAGED_IDENTITY_HEADER: string = "IDENTITY_HEADER";
+export const MANAGED_IDENTITY_SERVER_THUMBPRINT: string =
+    "IDENTITY_SERVER_THUMBPRINT";
+export const MANAGED_IDENTITY_API_VERSION: string = "api-version";
+export const MANAGED_IDENTITY_RESOURCE: string = "resource";
 
 export const MANAGED_IDENTITY_CLIENT_ID = "client_id";
 export const MANAGED_IDENTITY_OBJECT_ID = "object_id";

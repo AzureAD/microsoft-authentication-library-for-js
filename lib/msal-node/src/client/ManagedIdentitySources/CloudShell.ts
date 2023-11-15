@@ -3,12 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    CacheManager,
-    INetworkModule,
-    Logger,
-    UrlString,
-} from "@azure/msal-common";
+import { INetworkModule, Logger, UrlString } from "@azure/msal-common";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
 import {
     MANAGED_IDENTITY_MSI_ENDPOINT,
@@ -20,25 +15,26 @@ import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError";
+import { NodeStorage } from "../../cache/NodeStorage";
 
 export class CloudShell extends BaseManagedIdentitySource {
     private endpoint: string;
 
     constructor(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         endpoint: string
     ) {
-        super(logger, cacheManager, networkClient, cryptoProvider);
+        super(logger, nodeStorage, networkClient, cryptoProvider);
 
         this.endpoint = endpoint;
     }
 
     public static tryCreate(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): CloudShell | null {
@@ -53,7 +49,7 @@ export class CloudShell extends BaseManagedIdentitySource {
         return areEnvironmentVariablesValidated
             ? new CloudShell(
                   logger,
-                  cacheManager,
+                  nodeStorage,
                   networkClient,
                   cryptoProvider,
                   endpoint as string
@@ -85,7 +81,7 @@ const validateEnvironmentVariables = (
     // if ONLY the env var MSI_ENDPOINT is set the Msi type is CloudShell
     if (!endpoint) {
         logger.info(
-            `[Managed Identity] Cloud Shell managed identity is unavailable because the '${MANAGED_IDENTITY_MSI_ENDPOINT}' environment variable is missing.`
+            `[Managed Identity] Cloud Shell managed identity is unavailable because the 'MANAGED_IDENTITY_MSI_ENDPOINT' environment variable is missing.`
         );
         return [false, undefined];
     }
@@ -94,7 +90,7 @@ const validateEnvironmentVariables = (
         endpointUrlString = new UrlString(endpoint).urlString;
     } catch (error) {
         logger.info(
-            `[Managed Identity] Cloud Shell managed identity is unavailable because the '${MANAGED_IDENTITY_MSI_ENDPOINT}' environment variable is malformed.`
+            `[Managed Identity] Cloud Shell managed identity is unavailable because the 'MANAGED_IDENTITY_MSI_ENDPOINT' environment variable is malformed.`
         );
 
         throw createManagedIdentityError(

@@ -10,6 +10,8 @@ import {
     MANAGED_IDENTITY_CLIENT_ID,
     MANAGED_IDENTITY_OBJECT_ID,
     MANAGED_IDENTITY_RESOURCE_ID,
+    MANAGED_IDENTITY_API_VERSION,
+    MANAGED_IDENTITY_RESOURCE,
     ManagedIdentityIdType,
     SECRET_HEADER_NAME,
 } from "../../utils/Constants";
@@ -83,8 +85,9 @@ export class AppService extends BaseManagedIdentitySource {
             new ManagedIdentityRequestParameters(HttpMethod.GET, this.endpoint);
 
         request.headers[SECRET_HEADER_NAME] = this.secret;
-        request.queryParameters["api-version"] = APP_SERVICE_MSI_API_VERSION;
-        request.queryParameters["resource"] = resource;
+        request.queryParameters[MANAGED_IDENTITY_API_VERSION] =
+            APP_SERVICE_MSI_API_VERSION;
+        request.queryParameters[MANAGED_IDENTITY_RESOURCE] = resource;
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
         switch (managedIdentityId.idType) {
