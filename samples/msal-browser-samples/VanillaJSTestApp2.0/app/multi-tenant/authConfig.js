@@ -1,11 +1,11 @@
-const homeTenant = "72f988bf-86f1-41af-91ab-2d7cd011db47";
-const guestTenant = "5d97b14d-c396-4aee-b524-c86d33e9b660"
+const homeTenant = "HOME_TENANT_ID";
+const guestTenant = "GUEST_TENANT_ID"
 const baseAuthority = "https://login.microsoftonline.com"
 
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "bc77b0a7-16aa-4af4-884b-41b968c9c71a",
+        clientId: "ENTER_CLIENT_ID",
         authority: `${baseAuthority}/${homeTenant}`
     },
     cache: {

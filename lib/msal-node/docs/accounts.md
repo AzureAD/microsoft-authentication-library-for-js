@@ -1,6 +1,6 @@
 # Accounts in MSAL Node
 
-> This is the platform-specific Accounts documentation for `msal-node`. For the general documentation of the `AccountInfo` object structure, please visit the `msal-common` [Accounts document](../../msal-common/docs/Accounts.md).For documentation relating to multi-tenant accounts, please visit the [Multi-tenant Accounts document](../../msal-common/docs/multi-tenant-accounts.md).
+> This is the platform-specific Accounts documentation for `msal-node`. For the general documentation of the `AccountInfo` object structure, please visit the `msal-common` [Accounts document](../../msal-common/docs/Accounts.md). For documentation relating to multi-tenant accounts, please visit the [Multi-tenant Accounts document](../../msal-common/docs/multi-tenant-accounts.md).
 
 ## Usage
 
@@ -18,7 +18,7 @@ For a multiple accounts scenario:
 
 ```javascript
 // Initiates Acquire Token Silent flow
-function callAcquireTokenSilent()
+function callAcquireTokenSilent() {
     // Find all accounts
     const msalTokenCache = myMSALObj.getTokenCache();
     const cachedAccounts = await msalTokenCache.getAllAccounts();
@@ -41,7 +41,7 @@ function callAcquireTokenSilent()
         .catch((error) => {
             // Error handling
         });
-});
+}
 ```
 
 ### getAccountByHomeId and getAccountByLocalId

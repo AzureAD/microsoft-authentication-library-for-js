@@ -14,7 +14,7 @@ myMSALObj.initialize().then(() => {
 
 function handleResponse() {
     // when a filter is passed into getAllAccounts, it returns all cached accounts that match the filter. Use isHomeTenant filter to get the home accounts.
-    const allAccounts = myMSALObj.getAllAccounts({ tenantId: homeTenant, username: "hemoral@microsoft.com" });
+    const allAccounts = myMSALObj.getAllAccounts();
     console.log("Get all accounts: ", allAccounts);
     if (!allAccounts || allAccounts.length < 1) {
         return;
@@ -77,9 +77,8 @@ function signOut(interactionType) {
 async function requestGuestToken() {
     const currentAcc = myMSALObj.getAccountByHomeId(accountId);
     if (currentAcc) {
-        const response = await getTokenRedirect({ ...guestTenantRequest, account: currentAcc }).catch(error => {
-            console.log(error);
-        });
+
+        const response = await sso(guestTenantRequest, currentAcc.idTokenClaims.login_hint);
         console.log(response);
         callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
         guestProfileButton.style.display = 'none';
@@ -87,7 +86,6 @@ async function requestGuestToken() {
 }
 
 async function getTokenRedirect(request) {
-    console.log("Request: ", request);
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
         if (error instanceof msal.InteractionRequiredAuthError) {
@@ -98,4 +96,17 @@ async function getTokenRedirect(request) {
             console.error(error);
         }
     });
+}
+
+async function sso(request, loginHint) {
+    return await myMSALObj.ssoSilent(request, loginHint).catch(async (error) => {
+        console.log("sso failed");
+        if (error instanceof msal.InteractionRequiredAuthError) {
+            // fallback to interaction when silent call fails
+            console.log("acquiring token using redirect");
+            myMSALObj.acquireTokenRedirect(request);
+        } else {
+            console.error(error);
+        }
+    })
 }

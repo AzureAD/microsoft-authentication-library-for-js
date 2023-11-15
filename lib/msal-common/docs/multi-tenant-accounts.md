@@ -1,6 +1,6 @@
 # Multi-tenant Support in MSAL JS SDKs
 
-> This is an advanced document regarding the handling of accounts to acquire tokens across tenants in the `msal-browser` and `msal-node` SDKs. For basic account information, please review the [Accounts](./accounts.md) document.
+> This document is about the handling of multi-tenant accounts to acquire tokens across tenants in the `msal-browser` and `msal-node` SDKs. For basic account information, please review the [Accounts](./accounts.md) document.
 
 ## Table of Contents
 
