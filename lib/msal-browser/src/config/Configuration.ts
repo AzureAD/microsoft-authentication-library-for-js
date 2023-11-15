@@ -33,7 +33,7 @@ import { FetchClient } from "../network/FetchClient";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
-export const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
+export const DEFAULT_IFRAME_TIMEOUT_MS = 10000;
 export const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
 export const DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS = 2000;
 
