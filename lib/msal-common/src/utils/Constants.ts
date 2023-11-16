@@ -442,3 +442,6 @@ export const JsonTypes = {
 export type JsonTypes = (typeof JsonTypes)[keyof typeof JsonTypes];
 
 export const ONE_DAY_IN_MS = 86400000;
+
+// Token renewal offset default in seconds
+export const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;

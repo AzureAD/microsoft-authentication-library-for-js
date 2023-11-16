@@ -192,6 +192,7 @@ export {
     GrantType,
     AADAuthorityConstants,
     HttpStatus,
+    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
 } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";

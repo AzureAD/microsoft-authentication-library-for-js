@@ -86,6 +86,8 @@ export class Authority {
     protected performanceClient: IPerformanceClient | undefined;
     // Correlation Id
     protected correlationId: string | undefined;
+    // Indicates if the authority is fake, for the purpose of a Managed Identity Application
+    private managedIdentity: boolean;
     // Reserved tenant domain names that will not be replaced with tenant id
     private static reservedTenantDomains: Set<string> = new Set([
         "{tenant}",
@@ -102,7 +104,8 @@ export class Authority {
         authorityOptions: AuthorityOptions,
         logger: Logger,
         performanceClient?: IPerformanceClient,
-        correlationId?: string
+        correlationId?: string,
+        managedIdentity?: boolean
     ) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
@@ -117,6 +120,7 @@ export class Authority {
         this.logger = logger;
         this.performanceClient = performanceClient;
         this.correlationId = correlationId;
+        this.managedIdentity = managedIdentity || false;
         this.regionDiscovery = new RegionDiscovery(
             networkInterface,
             this.logger,
@@ -382,7 +386,7 @@ export class Authority {
     }
 
     /**
-     * Boolean that returns whethr or not tenant discovery has been completed.
+     * Boolean that returns whether or not tenant discovery has been completed.
      */
     discoveryComplete(): boolean {
         return !!this.metadata;
@@ -1119,7 +1123,9 @@ export class Authority {
      * helper function to generate environment from authority object
      */
     getPreferredCache(): string {
-        if (this.discoveryComplete()) {
+        if (this.managedIdentity) {
+            return Constants.DEFAULT_AUTHORITY_HOST;
+        } else if (this.discoveryComplete()) {
             return this.metadata.preferred_cache;
         } else {
             throw createClientAuthError(
