@@ -22,13 +22,13 @@ import {
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import {
-    AADServerParamKeys,
     GrantType,
     Constants,
     CredentialType,
     AuthenticationScheme,
     ThrottlingConstants,
 } from "../../src/utils/Constants";
+import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";

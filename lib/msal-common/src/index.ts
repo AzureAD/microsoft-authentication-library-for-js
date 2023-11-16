@@ -181,12 +181,10 @@ export {
     CacheAccountType,
     AuthenticationScheme,
     CodeChallengeMethodValues,
-    SSOTypes,
     PasswordGrantConstants,
     ThrottlingConstants,
     ClaimsRequestKeys,
     HeaderNames,
-    AADServerParamKeys,
     Errors,
     THE_FAMILY_ID,
     ONE_DAY_IN_MS,
@@ -195,6 +193,7 @@ export {
     HttpStatus,
     JsonWebTokenTypes,
 } from "./utils/Constants";
+export * as AADServerParamKeys from "./constants/AADServerParamKeys";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export {
