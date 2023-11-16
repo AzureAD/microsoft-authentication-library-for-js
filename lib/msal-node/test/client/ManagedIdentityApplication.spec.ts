@@ -9,10 +9,14 @@ import { ManagedIdentityRequestParams } from "../../src/request/ManagedIdentityR
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+    MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_RESOURCE_ID_2,
-    MANAGED_IDENTITY_RESOURCE,
+    MANAGED_IDENTITY_RESOURCE_ID_3,
+    MANAGED_IDENTITY_SYSTEM_ASSIGNED_CACHE_KEY,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
+    MANAGED_IDENTITY_USER_ASSIGNED_CLIENT_ID_CACHE_KEY,
+    MANAGED_IDENTITY_USER_ASSIGNED_OBJECT_ID_CACHE_KEY,
 } from "../test_kit/StringConstants";
 
 import { ManagedIdentityTestUtils } from "../test_kit/ManagedIdentityTestUtils";
@@ -378,30 +382,6 @@ describe("ManagedIdentityApplication unit tests", () => {
                 );
             });
 
-            test("throws an error when an invalid resource is provided", async () => {
-                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
-                await expect(
-                    systemAssignedManagedIdentityApplication.acquireToken({
-                        resource: "invalid_resource",
-                    })
-                ).rejects.toMatchObject(
-                    createManagedIdentityError(
-                        ManagedIdentityErrorCodes.invalidResource
-                    )
-                );
-
-                await expect(
-                    systemAssignedManagedIdentityApplication.acquireToken({
-                        resource: "",
-                    })
-                ).rejects.toMatchObject(
-                    createClientConfigurationError(
-                        ClientConfigurationErrorCodes.urlEmptyError
-                    )
-                );
-            });
-
             test("proactively refreshes a token in the background when its refresh_in value is expired.", async () => {
                 expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
@@ -520,7 +500,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                         },
                     });
 
-                const userAssignedManagedIdentityApplicationR2: ManagedIdentityApplication =
+                const userAssignedClientIdManagedIdentityApplicationR2: ManagedIdentityApplication =
                     new ManagedIdentityApplication({
                         system: {
                             networkClient:
@@ -539,9 +519,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                 // resource R1 for system assigned - returned from a network request
                 let networkManagedIdentityResult: AuthenticationResult =
                     await systemAssignedManagedIdentityApplication.acquireToken(
-                        {
-                            resource: MANAGED_IDENTITY_RESOURCE,
-                        }
+                        managedIdentityRequestParams
                     );
                 expect(networkManagedIdentityResult.fromCache).toBe(false);
 
@@ -555,9 +533,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                 // resource R2 for system assigned - returned from a network request
                 networkManagedIdentityResult =
                     await systemAssignedManagedIdentityApplicationR2.acquireToken(
-                        {
-                            resource: MANAGED_IDENTITY_RESOURCE,
-                        }
+                        managedIdentityRequestParams
                     );
                 expect(networkManagedIdentityResult.fromCache).toBe(false);
 
@@ -570,10 +546,8 @@ describe("ManagedIdentityApplication unit tests", () => {
 
                 // resource R2 for user assigned - returned from a network request
                 networkManagedIdentityResult =
-                    await userAssignedManagedIdentityApplicationR2.acquireToken(
-                        {
-                            resource: MANAGED_IDENTITY_RESOURCE,
-                        }
+                    await userAssignedClientIdManagedIdentityApplicationR2.acquireToken(
+                        managedIdentityRequestParams
                     );
                 expect(networkManagedIdentityResult.fromCache).toBe(false);
                 // ********** end: return access tokens from a network request **********
@@ -599,7 +573,7 @@ describe("ManagedIdentityApplication unit tests", () => {
 
                 // resource R2 for user assigned - same request as before, returned from the cache this time
                 cachedManagedIdentityResult =
-                    await userAssignedManagedIdentityApplicationR2.acquireToken(
+                    await userAssignedClientIdManagedIdentityApplicationR2.acquireToken(
                         {
                             resource: MANAGED_IDENTITY_RESOURCE,
                         }
@@ -607,56 +581,165 @@ describe("ManagedIdentityApplication unit tests", () => {
                 expect(cachedManagedIdentityResult.fromCache).toBe(true);
                 // ********** end: return access tokens from the cache **********
             });
-        });
-    });
 
-    describe("Errors", () => {
-        test("throws an error when more than one managed identity type is provided", () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+            test("acquires tokens, then verifies that their cache keys are correct", async () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
-            const badUserAssignedClientIdConfig: ManagedIdentityConfiguration =
-                {
-                    system: {
-                        networkClient: userAssignedNetworkClient,
-                    },
-                    managedIdentityIdParams: {
-                        userAssignedClientId: MANAGED_IDENTITY_RESOURCE_ID,
-                        userAssignedResourceId: MANAGED_IDENTITY_RESOURCE_ID_2,
-                    },
-                };
+                // systemAssignedManagedIdentityApplication is the default System Assigned Managed Identity Application
 
-            expect(() => {
-                new ManagedIdentityApplication(badUserAssignedClientIdConfig);
-            }).toThrowError(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
-                )
-            );
-        });
+                const userAssignedClientIdManagedIdentityApplication: ManagedIdentityApplication =
+                    new ManagedIdentityApplication(userAssignedClientIdConfig);
 
-        test("managed identity token response contains an error message and correlation id when an error is returned from the managed identity", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+                const userAssignedObjectIdManagedIdentityApplication: ManagedIdentityApplication =
+                    new ManagedIdentityApplication({
+                        system: {
+                            networkClient: userAssignedNetworkClient,
+                        },
+                        managedIdentityIdParams: {
+                            userAssignedObjectId:
+                                MANAGED_IDENTITY_RESOURCE_ID_3,
+                        },
+                    });
 
-            const managedIdentityApplication: ManagedIdentityApplication =
-                new ManagedIdentityApplication(systemAssignedErrorConfig);
+                let networkManagedIdentityResult: AuthenticationResult =
+                    await systemAssignedManagedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
 
-            let serverError: ServerError = new ServerError();
-            try {
-                await managedIdentityApplication.acquireToken(
-                    managedIdentityRequestParams
+                let cacheKey: string = Object.keys(
+                    systemAssignedManagedIdentityApplication["nodeStorage"][
+                        "cache"
+                    ]
+                )[0];
+                expect(cacheKey).toEqual(
+                    MANAGED_IDENTITY_SYSTEM_ASSIGNED_CACHE_KEY
                 );
-            } catch (e) {
-                serverError = e as ServerError;
-            }
 
-            expect(serverError.errorCode).toEqual(
-                MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR
-            );
+                // ManagedIdentityClient.identitySource (IMDS in this case) is static/
+                // Therefore, this is needed to tell the ManagedIdentityClient to make a
+                // new instance of IMDS so that the relevant cache (nodeStorage) is used.
+                // Otherwise the same cache (nodeStorage) will be used for all three of
+                // these managed identity applications (and cause test failures).
+                ManagedIdentityClient.identitySource = undefined;
 
-            const correlationIdCheck = serverError.errorMessage.includes(
-                DEFAULT_MANAGED_IDENTITY_ID
-            );
-            expect(correlationIdCheck).toBe(true);
+                networkManagedIdentityResult =
+                    await userAssignedClientIdManagedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
+
+                cacheKey = Object.keys(
+                    userAssignedClientIdManagedIdentityApplication[
+                        "nodeStorage"
+                    ]["cache"]
+                )[0];
+                expect(cacheKey).toEqual(
+                    MANAGED_IDENTITY_USER_ASSIGNED_CLIENT_ID_CACHE_KEY
+                );
+
+                // ManagedIdentityClient.identitySource (IMDS in this case) is static/
+                // Therefore, this is needed to tell the ManagedIdentityClient to make a
+                // new instance of IMDS so that the relevant cache (nodeStorage) is used.
+                // Otherwise the same cache (nodeStorage) will be used for all three of
+                // these managed identity applications (and cause test failures).
+                ManagedIdentityClient.identitySource = undefined;
+
+                networkManagedIdentityResult =
+                    await userAssignedObjectIdManagedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
+
+                cacheKey = Object.keys(
+                    userAssignedObjectIdManagedIdentityApplication[
+                        "nodeStorage"
+                    ]["cache"]
+                )[0];
+                expect(cacheKey).toEqual(
+                    MANAGED_IDENTITY_USER_ASSIGNED_OBJECT_ID_CACHE_KEY
+                );
+            });
+        });
+
+        describe("Errors", () => {
+            test("throws an error when an invalid resource is provided", async () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+                const systemAssignedManagedIdentityApplication: ManagedIdentityApplication =
+                    new ManagedIdentityApplication(systemAssignedConfig);
+
+                await expect(
+                    systemAssignedManagedIdentityApplication.acquireToken({
+                        resource: "invalid_resource",
+                    })
+                ).rejects.toMatchObject(
+                    createManagedIdentityError(
+                        ManagedIdentityErrorCodes.invalidResource
+                    )
+                );
+
+                await expect(
+                    systemAssignedManagedIdentityApplication.acquireToken({
+                        resource: "",
+                    })
+                ).rejects.toMatchObject(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.urlEmptyError
+                    )
+                );
+            });
+
+            test("throws an error when more than one managed identity type is provided", () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+                const badUserAssignedClientIdConfig: ManagedIdentityConfiguration =
+                    {
+                        system: {
+                            networkClient: userAssignedNetworkClient,
+                        },
+                        managedIdentityIdParams: {
+                            userAssignedClientId: MANAGED_IDENTITY_RESOURCE_ID,
+                            userAssignedResourceId:
+                                MANAGED_IDENTITY_RESOURCE_ID_2,
+                        },
+                    };
+
+                expect(() => {
+                    new ManagedIdentityApplication(
+                        badUserAssignedClientIdConfig
+                    );
+                }).toThrowError(
+                    createManagedIdentityError(
+                        ManagedIdentityErrorCodes.invalidManagedIdentityIdType
+                    )
+                );
+            });
+
+            test("managed identity token response contains an error message and correlation id when an error is returned from the managed identity", async () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+                const managedIdentityApplication: ManagedIdentityApplication =
+                    new ManagedIdentityApplication(systemAssignedErrorConfig);
+
+                let serverError: ServerError = new ServerError();
+                try {
+                    await managedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                } catch (e) {
+                    serverError = e as ServerError;
+                }
+
+                expect(serverError.errorCode).toEqual(
+                    MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR
+                );
+
+                const correlationIdCheck = serverError.errorMessage.includes(
+                    DEFAULT_MANAGED_IDENTITY_ID
+                );
+                expect(correlationIdCheck).toBe(true);
+            });
         });
     });
 });
