@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1699998257386,
+  "lastUpdate": 1700097456306,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3152,6 +3152,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 185011,
             "range": "±1.91%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "aa5296d3fadef68a357556c604bab2394267f185",
+          "message": "Increase default iframe timout to 10s (#6700)\n\nThis PR increases the default iframe timeout to 10s",
+          "timestamp": "2023-11-15T17:12:25-08:00",
+          "tree_id": "4aeb84f3bfb678cec80b4fe955325acc870778e1",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/aa5296d3fadef68a357556c604bab2394267f185"
+        },
+        "date": 1700097454956,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193859,
+            "range": "±2.09%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 213814,
+            "range": "±1.05%",
             "unit": "ops/sec",
             "extra": "215 samples"
           }
