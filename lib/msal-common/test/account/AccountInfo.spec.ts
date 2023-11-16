@@ -63,7 +63,7 @@ describe("AccountInfo Unit Tests", () => {
                 expect(tenantProfile.tenantId).not.toEqual(idTokenClaims.acr);
                 expect(tenantProfile.tenantId).not.toEqual("");
             });
-            it("from the tfp claim (downcased) when present and tid not present", () => {
+            it("from the tfp claim when present and tid not present", () => {
                 const idTokenClaims = {
                     tfp: ID_TOKEN_EXTRA_CLAIMS.tfp,
                     acr: ID_TOKEN_EXTRA_CLAIMS.acr,
@@ -73,14 +73,12 @@ describe("AccountInfo Unit Tests", () => {
                         TEST_ACCOUNT_INFO.homeAccountId,
                         idTokenClaims
                     );
-                expect(tenantProfile.tenantId).toEqual(
-                    idTokenClaims.tfp.toLowerCase()
-                );
+                expect(tenantProfile.tenantId).toEqual(idTokenClaims.tfp);
                 expect(tenantProfile.tenantId).not.toEqual(idTokenClaims.acr);
                 expect(tenantProfile.tenantId).not.toEqual("");
             });
 
-            it("from the acr claim (downcased) when present but tid and tfp not present", () => {
+            it("from the acr claim when present but tid and tfp not present", () => {
                 const idTokenClaims = {
                     acr: ID_TOKEN_EXTRA_CLAIMS.acr,
                 };
@@ -89,9 +87,7 @@ describe("AccountInfo Unit Tests", () => {
                         TEST_ACCOUNT_INFO.homeAccountId,
                         idTokenClaims
                     );
-                expect(tenantProfile.tenantId).toEqual(
-                    idTokenClaims.acr.toLowerCase()
-                );
+                expect(tenantProfile.tenantId).toEqual(idTokenClaims.acr);
                 expect(tenantProfile.tenantId).not.toEqual("");
             });
 

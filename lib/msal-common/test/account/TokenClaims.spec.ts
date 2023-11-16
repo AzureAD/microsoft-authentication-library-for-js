@@ -20,8 +20,4 @@ describe("TokenClaims Utilities Unit Tests", () => {
     it("returns acr claim if present", () => {
         expect(getTenantIdFromIdTokenClaims({ acr: "acr" })).toBe("acr");
     });
-
-    it("correctly downcases the tenantId", () => {
-        expect(getTenantIdFromIdTokenClaims({ tid: "TID" })).toBe("tid");
-    });
 });

@@ -41,16 +41,14 @@ export type AccountInfo = {
 
 /**
  * Account details that vary across tenants for the same user
- *
- * - tenantId               - Full tenant or organizational id that this account belongs to
- * - localAccountId         - Local, tenant-specific account identifer for this account object, usually used in legacy cases
- * - name                   - Full name for the account, including given name and family name
- * - isHomeTenant           - True if this is the home tenant profile of the account, false if it's a guest tenant profile
  */
 export type TenantProfile = Pick<
     AccountInfo,
     "tenantId" | "localAccountId" | "name"
 > & {
+    /**
+     * - isHomeTenant           - True if this is the home tenant profile of the account, false if it's a guest tenant profile
+     */
     isHomeTenant?: boolean;
 };
 
@@ -83,10 +81,16 @@ export function buildTenantProfileFromIdTokenClaims(
 ): TenantProfile {
     const { oid, sub, tid, name, tfp, acr } = idTokenClaims;
 
+    /**
+     * Since there is no way to determine if the authority is AAD or B2C, we exhaust all the possible claims that can serve as tenant ID with the following precedence:
+     * tid - TenantID claim that identifies the tenant that issued the token in AAD. Expected in all AAD ID tokens, not present in B2C ID Tokens.
+     * tfp - Trust Framework Policy claim that identifies the policy that was used to authenticate the user. Functions as tenant for B2C scenarios.
+     * acr - Authentication Context Class Reference claim used only with older B2C policies. Fallback in case tfp is not present, but likely won't be present anyway.
+     */
     const tenantId = tid || tfp || acr || "";
 
     return {
-        tenantId: tenantId.toLowerCase(),
+        tenantId: tenantId,
         localAccountId: oid || sub || "",
         name: name,
         isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),

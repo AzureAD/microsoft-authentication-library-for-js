@@ -320,22 +320,10 @@ export abstract class CacheManager implements ICacheManager {
         accountEntity: AccountEntity,
         accountFilter?: AccountFilter
     ): AccountInfo[] {
-        const tenantProfileFilter: TenantProfileFilter | undefined =
-            accountFilter
-                ? {
-                      localAccountId: accountFilter.localAccountId,
-                      loginHint: accountFilter.loginHint,
-                      name: accountFilter.name,
-                      username: accountFilter.username,
-                      sid: accountFilter.sid,
-                      isHomeTenant: accountFilter.isHomeTenant,
-                  }
-                : undefined;
-
         return this.getTenantProfilesFromAccountEntity(
             accountEntity,
             accountFilter?.tenantId,
-            tenantProfileFilter
+            accountFilter
         );
     }
 
@@ -1068,7 +1056,7 @@ export abstract class CacheManager implements ICacheManager {
                 }
             );
 
-            const updatedAccount = Object.assign(new AccountEntity(), {
+            const updatedAccount = CacheManager.toObject(new AccountEntity(), {
                 ...baseAccount,
             });
 
@@ -1846,7 +1834,9 @@ export abstract class CacheManager implements ICacheManager {
         entity: AccountEntity | CredentialEntity,
         realm: string
     ): boolean {
-        return !!(entity.realm && realm === entity.realm);
+        return !!(
+            entity.realm?.toLowerCase() && realm === entity.realm.toLowerCase()
+        );
     }
 
     /**

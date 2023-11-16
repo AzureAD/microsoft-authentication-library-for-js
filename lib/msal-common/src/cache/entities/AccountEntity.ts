@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CacheAccountType } from "../../utils/Constants";
+import { CacheAccountType, Separators } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo";
@@ -68,7 +68,7 @@ export class AccountEntity {
      */
     generateAccountId(): string {
         const accountId: Array<string> = [this.homeAccountId, this.environment];
-        return accountId.join("-").toLowerCase();
+        return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
 
     /**
@@ -125,7 +125,7 @@ export class AccountEntity {
             homeTenantId || accountInterface.tenantId || "",
         ];
 
-        return accountKey.join("-").toLowerCase();
+        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
 
     /**
@@ -295,7 +295,7 @@ export class AccountEntity {
                     }
                 } catch (e) {}
             }
-            logger.verbose("No client info in response");
+            logger.warning("No client info in response");
         }
 
         // default to "sub" claim

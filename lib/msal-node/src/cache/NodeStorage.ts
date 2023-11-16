@@ -231,7 +231,10 @@ export class NodeStorage extends CacheManager {
      * @returns
      */
     getCachedAccountEntity(accountKey: string): AccountEntity | null {
-        return Object.assign(new AccountEntity(), this.getItem(accountKey));
+        const cachedAccount = this.getItem(accountKey);
+        return cachedAccount
+            ? Object.assign(new AccountEntity(), this.getItem(accountKey))
+            : null;
     }
 
     /**

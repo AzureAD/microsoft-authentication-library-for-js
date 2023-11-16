@@ -92,7 +92,7 @@ export function getTenantIdFromIdTokenClaims(
     if (idTokenClaims) {
         const tenantId =
             idTokenClaims.tid || idTokenClaims.tfp || idTokenClaims.acr;
-        return tenantId?.toLowerCase() || null;
+        return tenantId || null;
     }
     return null;
 }
