@@ -4,6 +4,7 @@
  */
 
 export const invalidManagedIdentityIdType = "invalid_managed_identity_id_type";
+export const invalidResource = "invalid_resource";
 export const missingId = "missing_client_id";
 export const unableToCreateSource = "unable_to_create_source";
 export const urlParseError = "url_parse_error";

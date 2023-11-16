@@ -13,12 +13,14 @@ export { ManagedIdentityErrorCodes };
 export const ManagedIdentityErrorMessages = {
     [ManagedIdentityErrorCodes.invalidManagedIdentityIdType]:
         "More than one ManagedIdentityIdType was provided.",
+    [ManagedIdentityErrorCodes.invalidResource]:
+        "The supplied resource is an invalid URL.",
     [ManagedIdentityErrorCodes.missingId]:
         "A ManagedIdentityId id was not provided.",
     [ManagedIdentityErrorCodes.unableToCreateSource]:
         "Unable to create a Managed Identity source based on environment variables.",
     [ManagedIdentityErrorCodes.urlParseError]:
-        "The Managed Identity's 'IDENTITY_ENDPOINT' environment variable is malformed."
+        "The Managed Identity's 'IDENTITY_ENDPOINT' environment variable is malformed.",
 };
 
 export class ManagedIdentityError extends AuthError {

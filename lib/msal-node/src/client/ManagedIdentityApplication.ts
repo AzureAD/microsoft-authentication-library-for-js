@@ -16,6 +16,7 @@ import {
     ProtocolMode,
     StaticAuthorityOptions,
     AuthenticationResult,
+    UrlString,
 } from "@azure/msal-common";
 import {
     ManagedIdentityConfiguration,
@@ -30,6 +31,10 @@ import { ManagedIdentityClient } from "./ManagedIdentityClient";
 import { ManagedIdentityRequestParams } from "../request/ManagedIdentityRequestParams";
 import { NodeStorage } from "../cache/NodeStorage";
 import { DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY } from "../utils/Constants";
+import {
+    ManagedIdentityErrorCodes,
+    createManagedIdentityError,
+} from "../error/ManagedIdentityError";
 
 /**
  * Class to initialize a managed identity and identify the service
@@ -115,12 +120,23 @@ export class ManagedIdentityApplication {
     public async acquireToken(
         managedIdentityRequestParams: ManagedIdentityRequestParams
     ): Promise<AuthenticationResult> {
+        const resourceUrlString = new UrlString(
+            managedIdentityRequestParams.resource.replace("/.default", "")
+        );
+        try {
+            resourceUrlString.validateAsUri();
+        } catch (e) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.invalidResource
+            );
+        }
+
         const managedIdentityRequest: ManagedIdentityRequest = {
-            ...managedIdentityRequestParams,
-            /*
-             * the managedIdentityRequest's resource may be passed in as "{ResourceIdUri}" or {ResourceIdUri/.default}
-             * if "/.default" is present, delete it
-             */
+            forceRefresh: managedIdentityRequestParams.forceRefresh,
+            resource: managedIdentityRequestParams.resource.replace(
+                "/.default",
+                ""
+            ),
             scopes: [
                 managedIdentityRequestParams.resource.replace("/.default", ""),
             ],
