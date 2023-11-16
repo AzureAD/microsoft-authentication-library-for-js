@@ -485,13 +485,26 @@ export class ResponseHandler {
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (serverTokenResponse.refresh_token) {
+            let rtExpiresOn: number | undefined;
+            if (serverTokenResponse.refresh_token_expires_in) {
+                const rtExpiresIn: number =
+                    typeof serverTokenResponse.refresh_token_expires_in ===
+                    "string"
+                        ? parseInt(
+                              serverTokenResponse.refresh_token_expires_in,
+                              10
+                          )
+                        : serverTokenResponse.refresh_token_expires_in;
+                rtExpiresOn = reqTimestamp + rtExpiresIn;
+            }
             cachedRefreshToken = CacheHelpers.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.refresh_token,
                 this.clientId,
                 serverTokenResponse.foci,
-                userAssertionHash
+                userAssertionHash,
+                rtExpiresOn
             );
         }
 

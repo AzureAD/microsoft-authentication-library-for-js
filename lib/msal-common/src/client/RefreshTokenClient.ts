@@ -215,6 +215,15 @@ export class RefreshTokenClient extends BaseClient {
                 InteractionRequiredAuthErrorCodes.noTokensFound
             );
         }
+
+        if (
+            refreshToken.expiresOn &&
+            Number(refreshToken.expiresOn) < TimeUtils.nowSeconds() + 5 * 60 //TODO: Make this configurable
+        ) {
+            throw createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.refreshTokenExpired
+            );
+        }
         // attach cached RT size to the current measurement
 
         const refreshTokenRequest: CommonRefreshTokenRequest = {
