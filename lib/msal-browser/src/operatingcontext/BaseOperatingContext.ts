@@ -66,15 +66,16 @@ export abstract class BaseOperatingContext {
         this.browserEnvironment = typeof window !== "undefined";
         this.config = buildConfiguration(config, this.browserEnvironment);
 
-        let localStorage: Storage | undefined;
+        let sessionStorage: Storage | undefined;
         try {
-            localStorage = window[BrowserCacheLocation.LocalStorage];
+            sessionStorage = window[BrowserCacheLocation.SessionStorage];
             // Mute errors if it's a non-browser environment or cookies are blocked.
         } catch (e) {}
 
-        const logLevelKey = localStorage?.getItem(LOG_LEVEL_CACHE_KEY);
+        const logLevelKey = sessionStorage?.getItem(LOG_LEVEL_CACHE_KEY);
         const piiLoggingEnabled =
-            localStorage?.getItem(LOG_PII_CACHE_KEY)?.toLowerCase() === "true";
+            sessionStorage?.getItem(LOG_PII_CACHE_KEY)?.toLowerCase() ===
+            "true";
 
         if (logLevelKey || piiLoggingEnabled) {
             const logLevel =
