@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1700097456306,
+  "lastUpdate": 1700254015530,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3192,6 +3192,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.05%",
             "unit": "ops/sec",
             "extra": "215 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1398c679873833417c0e118e2b95cd8cf8017005",
+          "message": "Make AADServerParamKeys individual exports (#6701)\n\nMoves AADServerParamKeys to separate exports under a new \"Constants\"\r\nfolder. Removes SSOTypes which was redundant.",
+          "timestamp": "2023-11-17T12:41:46-08:00",
+          "tree_id": "64967f22bae9004db06c9c882601d6b35c56fa0d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1398c679873833417c0e118e2b95cd8cf8017005"
+        },
+        "date": 1700254014526,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 228728,
+            "range": "±1.15%",
+            "unit": "ops/sec",
+            "extra": "240 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 187082,
+            "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "209 samples"
           }
         ]
       }
