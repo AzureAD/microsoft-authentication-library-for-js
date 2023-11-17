@@ -5,14 +5,11 @@
 
 import { PopupRequest, RedirectRequest } from "../../src";
 import { AccountInfo } from "../../src/naa/AccountInfo";
-import {
-    AccountByHomeIdRequest,
-    AccountByLocalIdRequest,
-    AccountByUsernameRequest,
-} from "../../src/naa/AccountRequests";
+import { AuthResult } from "../../src/naa/AuthResult";
 import { BridgeError } from "../../src/naa/BridgeError";
 import { BridgeStatusCode } from "../../src/naa/BridgeStatusCode";
-import { InitializeBridgeResponse } from "../../src/naa/InitializeBridgeResponse";
+import { InitContext } from "../../src/naa/InitContext";
+
 import { TokenRequest } from "../../src/naa/TokenRequest";
 import { TokenResponse } from "../../src/naa/TokenResponse";
 import { TEST_TOKENS } from "../utils/StringConstants";
@@ -21,7 +18,7 @@ export const NAA_CLIENT_ID: string = "clientid";
 export const NAA_SCOPE: string = "User.Read";
 export const NAA_CORRELATION_ID: string = "1234";
 export const NAA_CLIENT_CAPABILITIES: string[] = [];
-export const INIT_BRIDGE_RESPONSE: InitializeBridgeResponse = {
+export const INIT_CONTEXT_RESPONSE: InitContext = {
     sdkName: "test",
     sdkVersion: "1.0.0",
     capabilities: { queryAccount: false },
@@ -39,8 +36,14 @@ export const REDIRECT_REQUEST: RedirectRequest = {
     correlationId: NAA_CORRELATION_ID,
 };
 
-export const SILENT_TOKEN_RESPONSE: TokenResponse = {
-    access_token: TEST_TOKENS.ACCESS_TOKEN,
+export const SILENT_TOKEN_RESPONSE: AuthResult = {
+    token: {
+        access_token: TEST_TOKENS.ACCESS_TOKEN,
+        expires_in: 4290,
+        id_token: TEST_TOKENS.IDTOKEN_V2,
+        properties: null,
+        scope: "User.Read",
+    },
     account: {
         environment: "login.microsoftonline.com",
         homeAccountId:
@@ -67,10 +70,6 @@ export const SILENT_TOKEN_RESPONSE: TokenResponse = {
         tenantId: "51178b70-16cc-41b5-bef1-ae1808139065",
         username: "AdeleV@vc6w6.onmicrosoft.com",
     },
-    expires_in: 4290,
-    id_token: TEST_TOKENS.IDTOKEN_V2,
-    properties: null,
-    scope: "User.Read",
 };
 
 export const SILENT_TOKEN_REQUEST: TokenRequest = {
@@ -164,18 +163,6 @@ export const BRIDGE_ERROR_NAA_UNAVAILABLE: BridgeError = {
     subError: "",
     description: "Account unavailable",
     properties: {},
-};
-
-export const ACCOUNT_INFO_HOME_ID: AccountByHomeIdRequest = {
-    homeAccountId: "A",
-};
-
-export const ACCOUNT_INFO_LOCAL_ID: AccountByLocalIdRequest = {
-    localAccountId: "B",
-};
-
-export const ACCOUNT_INFO_USERNAME: AccountByUsernameRequest = {
-    username: "C",
 };
 
 export const ACCOUNT_INFO_RESPONSE: AccountInfo = {
