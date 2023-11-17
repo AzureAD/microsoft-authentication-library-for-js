@@ -13,9 +13,9 @@ import {
     AuthenticationScheme,
     PromptValue,
     Separators,
-    AADServerParamKeys,
     HeaderNames,
 } from "../utils/Constants";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys";
 import {
     ClientConfiguration,
     isOidcProtocolMode,

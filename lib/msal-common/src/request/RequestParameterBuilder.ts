@@ -4,10 +4,8 @@
  */
 
 import {
-    AADServerParamKeys,
     Constants,
     ResponseMode,
-    SSOTypes,
     CLIENT_INFO,
     AuthenticationScheme,
     ClaimsRequestKeys,
@@ -16,6 +14,7 @@ import {
     ThrottlingConstants,
     HeaderNames,
 } from "../utils/Constants";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys";
 import { ScopeSet } from "./ScopeSet";
 import {
     createClientConfigurationError,
@@ -161,7 +160,7 @@ export class RequestParameterBuilder {
      */
     addDomainHint(domainHint: string): void {
         this.parameters.set(
-            SSOTypes.DOMAIN_HINT,
+            AADServerParamKeys.DOMAIN_HINT,
             encodeURIComponent(domainHint)
         );
     }
@@ -171,7 +170,10 @@ export class RequestParameterBuilder {
      * @param loginHint
      */
     addLoginHint(loginHint: string): void {
-        this.parameters.set(SSOTypes.LOGIN_HINT, encodeURIComponent(loginHint));
+        this.parameters.set(
+            AADServerParamKeys.LOGIN_HINT,
+            encodeURIComponent(loginHint)
+        );
     }
 
     /**
@@ -201,7 +203,7 @@ export class RequestParameterBuilder {
      * @param sid
      */
     addSid(sid: string): void {
-        this.parameters.set(SSOTypes.SID, encodeURIComponent(sid));
+        this.parameters.set(AADServerParamKeys.SID, encodeURIComponent(sid));
     }
 
     /**
