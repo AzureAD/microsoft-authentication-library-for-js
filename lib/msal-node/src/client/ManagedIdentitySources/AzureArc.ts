@@ -3,12 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    CacheManager,
-    INetworkModule,
-    Logger,
-    UrlString,
-} from "@azure/msal-common";
+import { INetworkModule, Logger, UrlString } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
@@ -22,6 +17,7 @@ import {
     METADATA_HEADER_NAME,
     ManagedIdentityIdType,
 } from "../../utils/Constants";
+import { NodeStorage } from "../../cache/NodeStorage";
 
 const ARC_API_VERSION: string = "2019-11-01";
 
@@ -33,19 +29,19 @@ export class AzureArc extends BaseManagedIdentitySource {
 
     constructor(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         endpoint: string
     ) {
-        super(logger, cacheManager, networkClient, cryptoProvider);
+        super(logger, nodeStorage, networkClient, cryptoProvider);
 
         this.endpoint = endpoint;
     }
 
     public static tryCreate(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): AzureArc | null {
@@ -63,7 +59,7 @@ export class AzureArc extends BaseManagedIdentitySource {
         return areEnvironmentVariablesValidated
             ? new AzureArc(
                   logger,
-                  cacheManager,
+                  nodeStorage,
                   networkClient,
                   cryptoProvider,
                   endpoint as string

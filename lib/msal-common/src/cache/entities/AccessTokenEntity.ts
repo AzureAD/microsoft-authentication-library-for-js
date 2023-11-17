@@ -49,8 +49,6 @@ export class AccessTokenEntity extends CredentialEntity {
     tokenType?: AuthenticationScheme;
     requestedClaims?: string;
     requestedClaimsHash?: string;
-    managedIdentityClientId?: string;
-    managedIdentityResource?: string;
 
     /**
      * Create AccessTokenEntity
