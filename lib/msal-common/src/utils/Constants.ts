@@ -123,62 +123,6 @@ export type AADAuthorityConstants =
     (typeof AADAuthorityConstants)[keyof typeof AADAuthorityConstants];
 
 /**
- * Keys in the hashParams sent by AAD Server
- */
-export const AADServerParamKeys = {
-    CLIENT_ID: "client_id",
-    REDIRECT_URI: "redirect_uri",
-    RESPONSE_TYPE: "response_type",
-    RESPONSE_MODE: "response_mode",
-    GRANT_TYPE: "grant_type",
-    CLAIMS: "claims",
-    SCOPE: "scope",
-    ERROR: "error",
-    ERROR_DESCRIPTION: "error_description",
-    ACCESS_TOKEN: "access_token",
-    ID_TOKEN: "id_token",
-    REFRESH_TOKEN: "refresh_token",
-    EXPIRES_IN: "expires_in",
-    STATE: "state",
-    NONCE: "nonce",
-    PROMPT: "prompt",
-    SESSION_STATE: "session_state",
-    CLIENT_INFO: "client_info",
-    CODE: "code",
-    CODE_CHALLENGE: "code_challenge",
-    CODE_CHALLENGE_METHOD: "code_challenge_method",
-    CODE_VERIFIER: "code_verifier",
-    CLIENT_REQUEST_ID: "client-request-id",
-    X_CLIENT_SKU: "x-client-SKU",
-    X_CLIENT_VER: "x-client-VER",
-    X_CLIENT_OS: "x-client-OS",
-    X_CLIENT_CPU: "x-client-CPU",
-    X_CLIENT_CURR_TELEM: "x-client-current-telemetry",
-    X_CLIENT_LAST_TELEM: "x-client-last-telemetry",
-    X_MS_LIB_CAPABILITY: "x-ms-lib-capability",
-    X_APP_NAME: "x-app-name",
-    X_APP_VER: "x-app-ver",
-    POST_LOGOUT_URI: "post_logout_redirect_uri",
-    ID_TOKEN_HINT: "id_token_hint",
-    DEVICE_CODE: "device_code",
-    CLIENT_SECRET: "client_secret",
-    CLIENT_ASSERTION: "client_assertion",
-    CLIENT_ASSERTION_TYPE: "client_assertion_type",
-    TOKEN_TYPE: "token_type",
-    REQ_CNF: "req_cnf",
-    OBO_ASSERTION: "assertion",
-    REQUESTED_TOKEN_USE: "requested_token_use",
-    ON_BEHALF_OF: "on_behalf_of",
-    FOCI: "foci",
-    CCS_HEADER: "X-AnchorMailbox",
-    RETURN_SPA_CODE: "return_spa_code",
-    NATIVE_BROKER: "nativebroker",
-    LOGOUT_HINT: "logout_hint",
-} as const;
-export type AADServerParamKeys =
-    (typeof AADServerParamKeys)[keyof typeof AADServerParamKeys];
-
-/**
  * Claims request keys
  */
 export const ClaimsRequestKeys = {
@@ -201,22 +145,6 @@ export const PromptValue = {
     CREATE: "create",
     NO_SESSION: "no_session",
 };
-
-/**
- * SSO Types - generated to populate hints
- */
-export const SSOTypes = {
-    ACCOUNT: "account",
-    SID: "sid",
-    LOGIN_HINT: "login_hint",
-    ID_TOKEN: "id_token",
-    DOMAIN_HINT: "domain_hint",
-    ORGANIZATIONS: "organizations",
-    CONSUMERS: "consumers",
-    ACCOUNT_ID: "accountIdentifier",
-    HOMEACCOUNT_ID: "homeAccountIdentifier",
-} as const;
-export type SSOTypes = (typeof SSOTypes)[keyof typeof SSOTypes];
 
 /**
  * allowed values for codeVerifier
