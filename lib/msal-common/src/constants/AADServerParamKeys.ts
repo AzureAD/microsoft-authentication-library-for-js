@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 export const CLIENT_ID = "client_id";
 export const REDIRECT_URI = "redirect_uri";
 export const RESPONSE_TYPE = "response_type";
