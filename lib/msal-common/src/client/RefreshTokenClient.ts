@@ -218,7 +218,10 @@ export class RefreshTokenClient extends BaseClient {
 
         if (
             refreshToken.expiresOn &&
-            Number(refreshToken.expiresOn) < TimeUtils.nowSeconds() + 5 * 60 //TODO: Make this configurable
+            TimeUtils.isTokenExpired(
+                refreshToken.expiresOn,
+                this.config.systemOptions.refreshTokenExpirationOffsetSeconds
+            )
         ) {
             throw createInteractionRequiredAuthError(
                 InteractionRequiredAuthErrorCodes.refreshTokenExpired
