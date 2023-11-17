@@ -2,7 +2,7 @@
 
 These are steps needed to enable MSAL JS logging for your applications:
 
-1. In the MSAL [Configuration](./configuration.md) object, you can enable logging to collect msal js logs. We enable different levels of logging and an appropriate level can be chosen as needed. 
+1. In the MSAL [Configuration](./configuration.md) object, you can enable logging to collect msal js logs. We enable different levels of logging and an appropriate level can be chosen as needed.
 
 2. The logger options can be set as below, the example chooses `LogLevel.Trace`
 
@@ -21,26 +21,26 @@ const msalConfig = {
         loggerOptions: {
             logLevel: LogLevel.Trace,
             loggerCallback: (level, message, containsPii) => {
-                if (containsPii) {	
-                    return;	
+                if (containsPii) {
+                    return;
                 }
-                switch (level) {	
-                    case LogLevel.Error:	
-                        console.error(message);	
-                        return;	
-                    case LogLevel.Info:	
-                        console.info(message);	
-                        return;	
-                    case LogLevel.Verbose:	
-                        console.debug(message);	
-                        return;	
-                    case LogLevel.Warning:	
-                        console.warn(message);	
-                        return;	
+                switch (level) {
+                    case LogLevel.Error:
+                        console.error(message);
+                        return;
+                    case LogLevel.Info:
+                        console.info(message);
+                        return;
+                    case LogLevel.Verbose:
+                        console.debug(message);
+                        return;
+                    case LogLevel.Warning:
+                        console.warn(message);
+                        return;
                     default:
                         console.log(message);
                         return;
-                }    
+                }
             }
         }
     },
@@ -48,7 +48,7 @@ const msalConfig = {
     ...
 }
 
-const msalInstance = new PublicClientApplication(msalConfig);      
+const msalInstance = new PublicClientApplication(msalConfig);
 
 ```
 
@@ -59,5 +59,26 @@ An example usage in a sample can be accessed [here](https://github.com/AzureAD/m
 
     ![browser console](./images/BrowserLogEnablement.png)
 
+## Override log level and PII setting
 
+These are the steps to override MSAL log level and PII settings to troubleshoot errors in non-dev environments:
 
+### Navigate to local storage
+
+1. Open developer tools by pressing F12
+2. Navigate to `Application` tab
+3. Click `Storage` and expand `Local Storage`
+4. Select target domain
+
+Additional details can be found [here](https://learn.microsoft.com/en-us/microsoft-edge/devtools-guide-chromium/storage/localstorage).
+
+### Override log level
+
+Add `msal.browser.log.level` key to `Local Storage`, set it's value to the desired log level (`Verbose`, for example) and refresh the page.
+Check `LogLevel` enum for the available options [here](../../msal-common/src/logger/Logger.ts).
+
+### Override PII log setting
+
+Add `msal.browser.log.pii` key to `Local Storage`, set it's value to `true` or `false` and refresh the page.
+
+**_NOTE:_** Make sure to remove the log keys from `Local Storage` once troubleshooting is done.
