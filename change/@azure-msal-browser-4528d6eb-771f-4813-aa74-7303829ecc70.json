@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Allow overriding log level and PII setting with local storage key-values #6704",
+  "comment": "Allow overriding log level and PII setting with session storage key-values #6704",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"

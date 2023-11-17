@@ -63,22 +63,20 @@ An example usage in a sample can be accessed [here](https://github.com/AzureAD/m
 
 These are the steps to override MSAL log level and PII settings to troubleshoot errors in non-dev environments:
 
-### Navigate to local storage
+### Navigate to session storage
 
 1. Open developer tools by pressing F12
 2. Navigate to `Application` tab
-3. Click `Storage` and expand `Local Storage`
+3. Click `Storage` and expand `Session Storage`
 4. Select target domain
 
-Additional details can be found [here](https://learn.microsoft.com/en-us/microsoft-edge/devtools-guide-chromium/storage/localstorage).
+Additional details can be found [here](https://learn.microsoft.com/en-us/microsoft-edge/devtools-guide-chromium/storage/sessionstorage).
 
 ### Override log level
 
-Add `msal.browser.log.level` key to `Local Storage`, set it's value to the desired log level (`Verbose`, for example) and refresh the page.
+Add `msal.browser.log.level` key to `Session Storage`, set it's value to the desired log level (`Verbose`, for example) and refresh the page.
 Check `LogLevel` enum for the available options [here](../../msal-common/src/logger/Logger.ts).
 
 ### Override PII log setting
 
-Add `msal.browser.log.pii` key to `Local Storage`, set it's value to `true` or `false` and refresh the page.
-
-**_NOTE:_** Make sure to remove the log keys from `Local Storage` once troubleshooting is done.
+Add `msal.browser.log.pii` key to `Session Storage`, set it's value to `true` or `false` and refresh the page.
