@@ -353,11 +353,25 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     },
 };
 
-export const MANAGED_IDENTITY_RESOURCE =
-    "URI_of_the_managed_identity_assigned_to_the_azure_resource";
+export const MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR =
+    "There was an error retrieving the access token from the managed identity.";
 
-export const MANAGED_IDENTITY_CLIENT_ID =
-    "unique_identifier_generated_by_Azure_AD_for_the_azure_resource";
+export const MANAGED_IDENTITY_RESOURCE_BASE = "https://graph.microsoft.com";
+// scopes
+export const MANAGED_IDENTITY_RESOURCE = `${MANAGED_IDENTITY_RESOURCE_BASE}/.default`;
+
+// client ids
+export const MANAGED_IDENTITY_RESOURCE_ID =
+    "unique_identifier_generated_by_azure_ad_for_the_azure_resource";
+export const MANAGED_IDENTITY_RESOURCE_ID_2 =
+    "unique_identifier_generated_by_azure_ad_for_the_azure_resource_2";
+export const MANAGED_IDENTITY_RESOURCE_ID_3 =
+    "/subscriptions/someguid/resourcegroups/uami_group/providers/microsoft.managedidentityclient/userassignedidentities/uami";
+
+// cache keys
+export const MANAGED_IDENTITY_SYSTEM_ASSIGNED_CACHE_KEY = `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-system_assigned_managed_identity-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+export const MANAGED_IDENTITY_USER_ASSIGNED_CLIENT_ID_CACHE_KEY = `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${MANAGED_IDENTITY_RESOURCE_ID}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+export const MANAGED_IDENTITY_USER_ASSIGNED_OBJECT_ID_CACHE_KEY = `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${MANAGED_IDENTITY_RESOURCE_ID_3}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
 
 export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
     AuthenticationResult,
@@ -390,7 +404,7 @@ export const DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Aut
         ...DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
         correlationId: DEFAULT_MANAGED_IDENTITY_ID,
     };
-export const DEFAULT_NON_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT: AuthenticationResult =
+export const DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT: AuthenticationResult =
     {
         ...DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
         correlationId: MANAGED_IDENTITY_RESOURCE,

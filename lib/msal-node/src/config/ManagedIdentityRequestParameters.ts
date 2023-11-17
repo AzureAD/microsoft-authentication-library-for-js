@@ -21,7 +21,6 @@ export class ManagedIdentityRequestParameters {
         this.queryParameters = {} as Record<string, string>;
     }
 
-    // copied from createExtraQueryParameters in DeviceCodeClient
     public computeUri(): string {
         const parameterBuilder = new RequestParameterBuilder();
 

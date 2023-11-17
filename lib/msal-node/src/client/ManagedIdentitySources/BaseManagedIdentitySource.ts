@@ -6,7 +6,6 @@
 import {
     AuthError,
     Authority,
-    CacheManager,
     ClientAuthErrorCodes,
     Constants,
     HeaderNames,
@@ -31,21 +30,22 @@ import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError";
+import { NodeStorage } from "../../cache/NodeStorage";
 
 export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
-    private cacheManager: CacheManager;
+    private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
 
     constructor(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ) {
         this.logger = logger;
-        this.cacheManager = cacheManager;
+        this.nodeStorage = nodeStorage;
         this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
     }
@@ -124,9 +124,17 @@ export abstract class BaseManagedIdentitySource {
             correlation_id: response.body.correlationId,
         };
 
+        // compute refresh_in as 1/2 of expires_in, but only if expires_in > 2h
+        if (
+            serverTokenResponse.expires_in &&
+            serverTokenResponse.expires_in > 2 * 3600
+        ) {
+            serverTokenResponse.refresh_in = serverTokenResponse.expires_in / 2;
+        }
+
         const responseHandler = new ResponseHandler(
             managedIdentityId.id,
-            this.cacheManager,
+            this.nodeStorage,
             this.cryptoProvider,
             this.logger,
             null,

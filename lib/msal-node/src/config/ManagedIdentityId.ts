@@ -40,7 +40,7 @@ export class ManagedIdentityId {
 
         if (userAssignedClientId) {
             if (userAssignedResourceId || userAssignedObjectId) {
-                createManagedIdentityError(
+                throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.invalidManagedIdentityIdType
                 );
             }
@@ -49,7 +49,7 @@ export class ManagedIdentityId {
             this.idType = ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID;
         } else if (userAssignedResourceId) {
             if (userAssignedClientId || userAssignedObjectId) {
-                createManagedIdentityError(
+                throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.invalidManagedIdentityIdType
                 );
             }
@@ -58,7 +58,7 @@ export class ManagedIdentityId {
             this.idType = ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID;
         } else if (userAssignedObjectId) {
             if (userAssignedClientId || userAssignedResourceId) {
-                createManagedIdentityError(
+                throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.invalidManagedIdentityIdType
                 );
             }

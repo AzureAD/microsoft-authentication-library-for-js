@@ -5,7 +5,6 @@
 
 import {
     Authority,
-    CacheManager,
     INetworkModule,
     Logger,
     AuthenticationResult,
@@ -29,12 +28,18 @@ import { NodeStorage } from "../cache/NodeStorage";
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ManagedIdentityClient.cs
  */
 export class ManagedIdentityClient {
-    private static identitySource:
+    private logger: Logger;
+    private nodeStorage: NodeStorage;
+    private networkClient: INetworkModule;
+    private cryptoProvider: CryptoProvider;
+
+    static identitySource:
         | ServiceFabric
         | AppService
         | CloudShell
         | AzureArc
-        | Imds;
+        | Imds
+        | undefined;
 
     constructor(
         logger: Logger,
@@ -42,15 +47,10 @@ export class ManagedIdentityClient {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ) {
-        if (!ManagedIdentityClient.identitySource) {
-            ManagedIdentityClient.identitySource =
-                this.selectManagedIdentitySource(
-                    logger,
-                    nodeStorage,
-                    networkClient,
-                    cryptoProvider
-                );
-        }
+        this.logger = logger;
+        this.nodeStorage = nodeStorage;
+        this.networkClient = networkClient;
+        this.cryptoProvider = cryptoProvider;
     }
 
     public async sendManagedIdentityTokenRequest(
@@ -59,6 +59,16 @@ export class ManagedIdentityClient {
         fakeAuthority: Authority,
         refreshAccessToken?: boolean
     ): Promise<AuthenticationResult> {
+        if (!ManagedIdentityClient.identitySource) {
+            ManagedIdentityClient.identitySource =
+                this.selectManagedIdentitySource(
+                    this.logger,
+                    this.nodeStorage,
+                    this.networkClient,
+                    this.cryptoProvider
+                );
+        }
+
         return await ManagedIdentityClient.identitySource.acquireTokenWithManagedIdentity(
             managedIdentityRequest,
             managedIdentityId,
@@ -73,42 +83,18 @@ export class ManagedIdentityClient {
      */
     private selectManagedIdentitySource(
         logger: Logger,
-        cacheManager: CacheManager,
+        nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): ServiceFabric | AppService | CloudShell | AzureArc | Imds {
         const source =
             AppService.tryCreate(
                 logger,
-                cacheManager,
+                nodeStorage,
                 networkClient,
                 cryptoProvider
             ) ||
-            Imds.tryCreate(logger, cacheManager, networkClient, cryptoProvider);
-
-        /*
-         *  ServiceFabric.tryCreate(
-         *      logger,
-         *      cacheManager,
-         *      networkClient,
-         *      cryptoProvider
-         *  ) ||
-         *  // *** AppService goes here ***
-         *  CloudShell.tryCreate(
-         *      logger,
-         *      cacheManager,
-         *      networkClient,
-         *      cryptoProvider
-         *  ) ||
-         *  AzureArc.tryCreate(
-         *      logger,
-         *      cacheManager,
-         *      networkClient,
-         *      cryptoProvider
-         *  ) ||
-         *  // *** Imds goes here ***
-         */
-
+            Imds.tryCreate(logger, nodeStorage, networkClient, cryptoProvider);
         if (!source) {
             throw createManagedIdentityError(
                 ManagedIdentityErrorCodes.unableToCreateSource

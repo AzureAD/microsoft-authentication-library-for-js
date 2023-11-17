@@ -1124,7 +1124,7 @@ export class Authority {
      */
     getPreferredCache(): string {
         if (this.managedIdentity) {
-            return Constants.DEFAULT_AUTHORITY;
+            return Constants.DEFAULT_AUTHORITY_HOST;
         } else if (this.discoveryComplete()) {
             return this.metadata.preferred_cache;
         } else {
