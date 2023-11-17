@@ -239,3 +239,6 @@ export const CacheLookupPolicy = {
 } as const;
 export type CacheLookupPolicy =
     (typeof CacheLookupPolicy)[keyof typeof CacheLookupPolicy];
+
+export const LOG_LEVEL_CACHE_KEY = "msal.browser.log.level";
+export const LOG_PII_CACHE_KEY = "msal.browser.log.pii";
