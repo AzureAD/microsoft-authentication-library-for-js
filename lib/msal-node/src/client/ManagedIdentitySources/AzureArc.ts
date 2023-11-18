@@ -3,7 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, Logger, UrlString } from "@azure/msal-common";
+import {
+    AuthError,
+    ClientAuthErrorCodes,
+    createClientAuthError,
+    HttpStatus,
+    INetworkModule,
+    NetworkResponse,
+    NetworkRequestOptions,
+    Logger,
+    UrlString,
+} from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
@@ -13,11 +23,14 @@ import {
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError";
 import {
+    AUTHORIZATION_HEADER_NAME,
     HttpMethod,
     METADATA_HEADER_NAME,
     ManagedIdentityIdType,
 } from "../../utils/Constants";
 import { NodeStorage } from "../../cache/NodeStorage";
+import * as fs from "fs";
+import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
 
 const ARC_API_VERSION: string = "2019-11-01";
 
@@ -88,6 +101,51 @@ export class AzureArc extends BaseManagedIdentitySource {
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
         return request;
+    }
+
+    public async retryPolicy(
+        networkClient: INetworkModule,
+        response: NetworkResponse<ManagedIdentityTokenResponse>,
+        networkRequest: ManagedIdentityRequestParameters,
+        networkRequestOptions: NetworkRequestOptions
+    ): Promise<NetworkResponse<ManagedIdentityTokenResponse>> {
+        if (response.status !== HttpStatus.UNAUTHORIZED) {
+            return response;
+        }
+
+        const wwwAuthHeader: string = response.headers["WWW-Authenticate"];
+        if (!wwwAuthHeader) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
+            );
+        }
+        if (!wwwAuthHeader.includes("Basic realm=")) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
+            );
+        }
+
+        const secretFile = wwwAuthHeader.split("Basic realm=")[1];
+        const secret = fs.readFileSync(secretFile, "utf-8");
+        const authHeaderValue = `Basic ${secret}`;
+
+        this.logger.info(
+            `[Managed Identity] Adding authorization header to the request.`
+        );
+        networkRequest.headers[AUTHORIZATION_HEADER_NAME] = authHeaderValue;
+
+        try {
+            return await networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
+                networkRequest.computeUri(),
+                networkRequestOptions
+            );
+        } catch (error) {
+            if (error instanceof AuthError) {
+                throw error;
+            } else {
+                throw createClientAuthError(ClientAuthErrorCodes.networkError);
+            }
+        }
     }
 }
 

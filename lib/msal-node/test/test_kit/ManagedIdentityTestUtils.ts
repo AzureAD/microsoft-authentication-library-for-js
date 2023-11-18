@@ -27,6 +27,13 @@ export class ManagedIdentityTestUtils {
         );
     }
 
+    static isAzureArc(): boolean {
+        return (
+            // !! converts to boolean
+            !!process.env["IDENTITY_ENDPOINT"] && !!process.env["IMDS_ENDPOINT"]
+        );
+    }
+
     static isIMDS(): boolean {
         return !ManagedIdentityTestUtils.isAppService();
     }
@@ -114,5 +121,38 @@ export class ManagedIdentityTestUtils {
                 });
             }
         })();
+    }
+
+    static getManagedIdentityNetworkAzure401Client() {
+        return new Azure401CustomHttpClient();
+    }
+}
+
+export class Azure401CustomHttpClient implements INetworkModule {
+    sendGetRequestAsync<T>(
+        _url: string,
+        _options?: NetworkRequestOptions,
+        _cancellationToken?: number
+    ): Promise<NetworkResponse<T>> {
+        return new Promise<NetworkResponse<T>>((resolve, _reject) => {
+            resolve({
+                status: 401,
+                body: {
+                    message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
+                    correlationId: DEFAULT_MANAGED_IDENTITY_ID,
+                } as ManagedIdentityTokenResponse,
+                headers: {
+                    "WWW-Authenticate":
+                        "Basic realm=lib/msal-node/test/test_kit/AzureArcSecret.key",
+                } as Record<string, string>,
+            } as NetworkResponse<T>);
+        });
+    }
+
+    sendPostRequestAsync<T>(
+        _url: string,
+        _options?: NetworkRequestOptions
+    ): Promise<NetworkResponse<T>> {
+        throw Error("not implemented");
     }
 }

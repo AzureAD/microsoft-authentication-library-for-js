@@ -9,6 +9,7 @@ import { ManagedIdentityRequestParams } from "../../src/request/ManagedIdentityR
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+    MANAGED_IDENTITY_AZURE_ARC_WWW_AUTHENTICATE_HEADER,
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_RESOURCE_ID_2,
@@ -19,7 +20,10 @@ import {
     MANAGED_IDENTITY_USER_ASSIGNED_OBJECT_ID_CACHE_KEY,
 } from "../test_kit/StringConstants";
 
-import { ManagedIdentityTestUtils } from "../test_kit/ManagedIdentityTestUtils";
+import {
+    ManagedIdentityTestUtils,
+    Azure401CustomHttpClient,
+} from "../test_kit/ManagedIdentityTestUtils";
 import { DEFAULT_MANAGED_IDENTITY_ID } from "../../src/utils/Constants";
 import {
     AccessTokenEntity,
@@ -132,10 +136,11 @@ describe("ManagedIdentityApplication unit tests", () => {
         });
 
         test("acquires a User Assigned Client Id token", async () => {
+            expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
+
             const managedIdentityApplication = new ManagedIdentityApplication(
                 userAssignedClientIdConfig
             );
-            expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -190,6 +195,103 @@ describe("ManagedIdentityApplication unit tests", () => {
                 expect(cachedManagedIdentityResult.accessToken).toEqual(
                     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
+            });
+        });
+    });
+
+    describe("Acquires a token successfully via an Azure Arc Managed Identity", () => {
+        beforeAll(() => {
+            // make a copy
+            process.env = { ...OLD_ENVS };
+
+            process.env["IDENTITY_ENDPOINT"] = "fake_IDENTITY_ENDPOINT";
+            process.env["IMDS_ENDPOINT"] = "fake_IMDS_ENDPOINT";
+        });
+
+        afterAll(() => {
+            // restore old environment
+            process.env = OLD_ENVS;
+        });
+
+        // Azure Arc Managed Identities can only be system assigned
+        describe("System Assigned", () => {
+            let managedIdentityApplication: ManagedIdentityApplication;
+            beforeEach(() => {
+                managedIdentityApplication = new ManagedIdentityApplication(
+                    systemAssignedConfig
+                );
+            });
+
+            test("acquires a token", async () => {
+                expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+
+                const networkManagedIdentityResult: AuthenticationResult =
+                    await managedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
+
+                expect(networkManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
+            });
+
+            test("returns an already acquired token from the cache", async () => {
+                expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+
+                const networkManagedIdentityResult: AuthenticationResult =
+                    await managedIdentityApplication.acquireToken({
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    });
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
+
+                expect(networkManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
+
+                const cachedManagedIdentityResult: AuthenticationResult =
+                    await managedIdentityApplication.acquireToken({
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    });
+                expect(cachedManagedIdentityResult.fromCache).toBe(true);
+                expect(cachedManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
+            });
+
+            test("attempts to acquire a token, a 401 and WWW-Authenticate header are returned form the azure arc managed identity, then retries the network request with the WWW-Authenticate header", async () => {
+                expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+
+                const managedIdentityApplicationAzureArc401: ManagedIdentityApplication =
+                    new ManagedIdentityApplication({
+                        system: {
+                            networkClient:
+                                ManagedIdentityTestUtils.getManagedIdentityNetworkAzure401Client() as INetworkModule,
+                            // managedIdentityIdParams will be omitted for system assigned
+                        },
+                    });
+
+                const sendGetRequestAsyncSpy = sinon.spy(
+                    Azure401CustomHttpClient.prototype,
+                    <any>"sendGetRequestAsync"
+                );
+
+                try {
+                    // this request will fail because of the way it's mocked
+                    await managedIdentityApplicationAzureArc401.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                } catch (e) {
+                    // check if the network request was retried
+                    expect(sendGetRequestAsyncSpy.calledTwice).toBe(true);
+                    // check if the retried network request had the WWW-Authenticate header
+                    expect(
+                        sendGetRequestAsyncSpy.getCall(1).args[1].headers
+                            .Authorization
+                    ).toEqual(
+                        MANAGED_IDENTITY_AZURE_ARC_WWW_AUTHENTICATE_HEADER
+                    );
+                }
             });
         });
     });

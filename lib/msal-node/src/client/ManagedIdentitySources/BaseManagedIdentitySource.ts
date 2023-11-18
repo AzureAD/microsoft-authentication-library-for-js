@@ -18,18 +18,13 @@ import {
     TimeUtils,
     createClientAuthError,
     AuthenticationResult,
-    HttpStatus,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest";
-import { AUTHORIZATION_HEADER_NAME, HttpMethod } from "../../utils/Constants";
+import { HttpMethod } from "../../utils/Constants";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
-import {
-    ManagedIdentityErrorCodes,
-    createManagedIdentityError,
-} from "../../error/ManagedIdentityError";
 import { NodeStorage } from "../../cache/NodeStorage";
 
 export abstract class BaseManagedIdentitySource {
@@ -54,6 +49,13 @@ export abstract class BaseManagedIdentitySource {
         request: string,
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters;
+
+    retryPolicy?(
+        networkClient: INetworkModule,
+        response: NetworkResponse<ManagedIdentityTokenResponse>,
+        networkRequest: ManagedIdentityRequestParameters,
+        networkRequestOptions: NetworkRequestOptions
+    ): Promise<NetworkResponse<ManagedIdentityTokenResponse>>;
 
     public async acquireTokenWithManagedIdentity(
         managedIdentityRequest: ManagedIdentityRequest,
@@ -101,10 +103,10 @@ export abstract class BaseManagedIdentitySource {
             }
         }
 
-        // Azure Arc
-        if (response.status === HttpStatus.UNAUTHORIZED) {
-            response = await this.retryWithWWWAuthenticate(
-                response.headers["WWW-Authenticate"],
+        if (response.status !== 200 && this.retryPolicy) {
+            response = await this.retryPolicy(
+                this.networkClient,
+                response,
                 networkRequest,
                 networkRequestOptions
             );
@@ -153,44 +155,5 @@ export abstract class BaseManagedIdentitySource {
             reqTimestamp,
             managedIdentityRequest
         );
-    }
-
-    private async retryWithWWWAuthenticate(
-        challenge: string | undefined,
-        networkRequest: ManagedIdentityRequestParameters,
-        networkRequestOptions: NetworkRequestOptions
-    ): Promise<NetworkResponse<ManagedIdentityTokenResponse>> {
-        if (!challenge) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
-            );
-        }
-
-        const splitChallenge = challenge.split("=");
-        if (splitChallenge.length !== 2) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
-            );
-        }
-
-        const authHeaderValue = `Basic ${splitChallenge[1]}`;
-
-        this.logger.info(
-            `[Managed Identity] Adding authorization header to the request.`
-        );
-        networkRequest.headers[AUTHORIZATION_HEADER_NAME] = authHeaderValue;
-
-        try {
-            return await this.networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
-                networkRequest.computeUri(),
-                networkRequestOptions
-            );
-        } catch (error) {
-            if (error instanceof AuthError) {
-                throw error;
-            } else {
-                throw createClientAuthError(ClientAuthErrorCodes.networkError);
-            }
-        }
     }
 }

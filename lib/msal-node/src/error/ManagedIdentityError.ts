@@ -24,9 +24,9 @@ export const ManagedIdentityErrorMessages = {
     [ManagedIdentityErrorCodes.urlParseError]:
         "The Managed Identity's 'IDENTITY_ENDPOINT' environment variable is malformed.",
     [ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing]:
-        "The WWW-Authenticate header is not found.",
+        "A 401 response was received form the Azure Arc Managed Identity, but the WWW-Authenticate header is missing.",
     [ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat]:
-        "The WWW-Authenticate header is in an unsupported format.",
+        "A 401 response was received form the Azure Arc Managed Identity, but the WWW-Authenticate header is in an unsupported format.",
 };
 
 export class ManagedIdentityError extends AuthError {
