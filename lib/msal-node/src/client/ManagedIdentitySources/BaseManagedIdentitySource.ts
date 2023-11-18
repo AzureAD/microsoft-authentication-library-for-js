@@ -18,6 +18,7 @@ import {
     TimeUtils,
     createClientAuthError,
     AuthenticationResult,
+    HttpStatus,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
@@ -103,7 +104,10 @@ export abstract class BaseManagedIdentitySource {
             }
         }
 
-        if (response.status !== 200 && this.retryPolicy) {
+        if (
+            response.status !== HttpStatus.SUCCESS_RANGE_START &&
+            this.retryPolicy
+        ) {
             response = await this.retryPolicy(
                 this.networkClient,
                 response,
