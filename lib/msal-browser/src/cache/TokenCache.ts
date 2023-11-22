@@ -268,7 +268,7 @@ export class TokenCache implements ITokenCache {
                 authority,
                 homeAccountId,
                 idTokenClaims,
-                this.cryptoObj.base64Decode,
+                base64Decode,
                 clientInfo,
                 claimsTenantId,
                 undefined,
