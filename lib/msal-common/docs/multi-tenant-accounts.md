@@ -230,8 +230,8 @@ if (guestTenantProfile) {
             }
         });
 } else {
-    // If the tenant profile isn't found in the account, that means the user hasn't authenticated with that tenant. This is the custom getToken function from the first example.
-    const guestTenantAuthResponse = await myMSALObj.getToken({
+    // If the tenant profile isn't found in the account, that means the user hasn't authenticated with that tenant. This is the custom getTokenMultiTenant function from the first example.
+    const guestTenantAuthResponse = await myMSALObj.getTokenMultiTenant({
         ...guestTenantRequest,
         account: homeAccount,
     });
