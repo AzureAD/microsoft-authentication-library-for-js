@@ -203,7 +203,7 @@ function createHiddenIframe(): HTMLIFrameElement {
         "sandbox",
         "allow-scripts allow-same-origin allow-forms"
     );
-    document.getElementsByTagName("body")[0].appendChild(authFrame);
+    document.body.appendChild(authFrame);
 
     return authFrame;
 }

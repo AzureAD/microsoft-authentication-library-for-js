@@ -20,16 +20,15 @@ import {
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
 import {
-    AADServerParamKeys,
     PromptValue,
     ResponseMode,
-    SSOTypes,
     AuthenticationScheme,
     ThrottlingConstants,
     Constants,
     HeaderNames,
     ONE_DAY_IN_MS,
 } from "../../src/utils/Constants";
+import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { TestError } from "../test_kit/TestErrors";
 import { Authority } from "../../src/authority/Authority";
@@ -268,14 +267,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.LOGIN_HINT}=${encodeURIComponent(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
                         TEST_CONFIG.LOGIN_HINT
                     )}`
                 )
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.DOMAIN_HINT}=${encodeURIComponent(
+                    `${AADServerParamKeys.DOMAIN_HINT}=${encodeURIComponent(
                         TEST_CONFIG.DOMAIN_HINT
                     )}`
                 )
@@ -328,7 +327,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.LOGIN_HINT}=${encodeURIComponent(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
                         TEST_CONFIG.LOGIN_HINT
                     )}`
                 )
@@ -398,7 +397,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.SID}=${encodeURIComponent(testTokenClaims.sid)}`
+                    `${AADServerParamKeys.SID}=${encodeURIComponent(
+                        testTokenClaims.sid
+                    )}`
                 )
             ).toBe(true);
             expect(
@@ -465,12 +466,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.SID}=${encodeURIComponent(testTokenClaims.sid)}`
+                    `${AADServerParamKeys.SID}=${encodeURIComponent(
+                        testTokenClaims.sid
+                    )}`
                 )
             ).toBe(false);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.LOGIN_HINT}=${encodeURIComponent(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
                         testTokenClaims.login_hint
                     )}`
                 )
@@ -513,11 +516,15 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).toEqual(
-                expect.not.arrayContaining([`${SSOTypes.LOGIN_HINT}=`])
+                expect.not.arrayContaining([
+                    `${AADServerParamKeys.LOGIN_HINT}=`,
+                ])
             );
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`
+                    `${AADServerParamKeys.SID}=${encodeURIComponent(
+                        TEST_CONFIG.SID
+                    )}`
                 )
             ).toBe(true);
         });
@@ -552,12 +559,12 @@ describe("AuthorizationCodeClient unit tests", () => {
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.LOGIN_HINT}=${encodeURIComponent(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
                         TEST_CONFIG.LOGIN_HINT
                     )}`
                 )
             ).toBe(true);
-            expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
+            expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
 
         it("Ignores sid if prompt!=None", async () => {
@@ -587,8 +594,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT,
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl.includes(`${SSOTypes.LOGIN_HINT}=`)).toBe(false);
-            expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
+            expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
+                false
+            );
+            expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
 
         it("Prefers loginHint over Account if both provided and account does not have token claims", async () => {
@@ -620,19 +629,19 @@ describe("AuthorizationCodeClient unit tests", () => {
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.LOGIN_HINT}=${encodeURIComponent(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
                         TEST_CONFIG.LOGIN_HINT
                     )}`
                 )
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.LOGIN_HINT}=${encodeURIComponent(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
                         TEST_ACCOUNT_INFO.username
                     )}`
                 )
             ).toBe(false);
-            expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
+            expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
 
         it("Uses sid from account if not provided in request and prompt=None, overrides login_hint", async () => {
@@ -691,10 +700,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.SID}=${encodeURIComponent(testTokenClaims.sid)}`
+                    `${AADServerParamKeys.SID}=${encodeURIComponent(
+                        testTokenClaims.sid
+                    )}`
                 )
             ).toBe(true);
-            expect(loginUrl.includes(`${SSOTypes.LOGIN_HINT}=`)).toBe(false);
+            expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
+                false
+            );
         });
 
         it("Uses loginHint instead of sid from account prompt!=None", async () => {
@@ -768,10 +781,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT,
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
+            expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.LOGIN_HINT}=${encodeURIComponent(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
                         TEST_CONFIG.LOGIN_HINT
                     )}`
                 )
@@ -850,12 +863,12 @@ describe("AuthorizationCodeClient unit tests", () => {
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.LOGIN_HINT}=${encodeURIComponent(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
                         TEST_CONFIG.LOGIN_HINT
                     )}`
                 )
             ).toBe(true);
-            expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
+            expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
 
         it("Sets login_hint to Account.username if login_hint and sid are not provided", async () => {
@@ -886,12 +899,12 @@ describe("AuthorizationCodeClient unit tests", () => {
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(
                 loginUrl.includes(
-                    `${SSOTypes.LOGIN_HINT}=${encodeURIComponent(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
                         TEST_ACCOUNT_INFO.username
                     )}`
                 )
             ).toBe(true);
-            expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
+            expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
 
         it("Ignores Account if prompt is select_account", async () => {
@@ -921,8 +934,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT,
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl.includes(`${SSOTypes.LOGIN_HINT}=`)).toBe(false);
-            expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
+            expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
+                false
+            );
+            expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
 
         it("Ignores loginHint if prompt is select_account", async () => {
@@ -952,8 +967,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT,
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl.includes(`${SSOTypes.LOGIN_HINT}=`)).toBe(false);
-            expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
+            expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
+                false
+            );
+            expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
 
         it("Ignores sid if prompt is select_account", async () => {
@@ -983,8 +1000,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT,
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl.includes(`${SSOTypes.LOGIN_HINT}=`)).toBe(false);
-            expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
+            expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
+                false
+            );
+            expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
 
         it("Creates a login URL with scopes from given token request", async () => {

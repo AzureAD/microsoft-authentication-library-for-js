@@ -17,8 +17,8 @@ import {
     AuthenticationScheme,
     Errors,
     HeaderNames,
-    AADServerParamKeys,
 } from "../utils/Constants";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
