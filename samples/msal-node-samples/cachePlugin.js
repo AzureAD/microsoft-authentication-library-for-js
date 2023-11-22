@@ -25,6 +25,7 @@ module.exports = function (cacheLocation) {
                     if (err) {
                         reject(err);
                     }
+                    resolve();
                 });
             }
         });
