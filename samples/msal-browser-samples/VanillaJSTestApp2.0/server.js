@@ -37,8 +37,7 @@ if (argv.p) {
     port = argv.p;
 }
 
-// Configure morgan module to log all requests.
-app.use(morgan('dev'));
+let logHttpRequests = true;
 
 // Set the front-end folder to serve public assets.
 app.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/lib")));
@@ -47,6 +46,9 @@ const sampleName = argv.sample;
 const isSample = sampleFolders.includes(sampleName);
 if (sampleName && isSample) {
     console.log(`Starting sample ${sampleName}`);
+    if (sampleName === "customizable-e2e-test") {
+        logHttpRequests = false;
+    }
     app.use(express.static('app/' + sampleName));
 } else {
     if (sampleName && !isSample) {
@@ -55,6 +57,12 @@ if (sampleName && isSample) {
     console.log("Running default sample.\n");
     app.use(express.static('app/default'));
 }
+
+if (logHttpRequests) {
+    // Configure morgan module to log all requests.
+    app.use(morgan('dev'));
+}
+
 
 // set up a route for redirect.html. When using popup and silent APIs, 
 // we recommend setting the redirectUri to a blank page or a page that does not implement MSAL.
