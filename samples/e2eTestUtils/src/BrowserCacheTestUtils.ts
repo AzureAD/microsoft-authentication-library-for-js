@@ -117,14 +117,19 @@ export class BrowserCacheUtils {
     ): Promise<boolean> {
         const storage = await this.getWindowStorage();
 
-        const matches = accessTokenKeys.filter((key) => {
-            const tokenVal = JSON.parse(storage[key]);
-            const tokenScopes = tokenVal.target.toLowerCase().split(" ");
+        const matches = accessTokenKeys
+            .filter((key) => {
+                // Ignore PoP tokens
+                return key.indexOf("accesstoken_with_authscheme") === -1;
+            })
+            .filter((key) => {
+                const tokenVal = JSON.parse(storage[key]);
+                const tokenScopes = tokenVal.target.toLowerCase().split(" ");
 
-            return scopes.every((scope) => {
-                return tokenScopes.includes(scope.toLowerCase());
+                return scopes.every((scope) => {
+                    return tokenScopes.includes(scope.toLowerCase());
+                });
             });
-        });
 
         return matches.length === targetTokenMatchesNumber;
     }
