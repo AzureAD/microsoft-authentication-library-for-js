@@ -13,11 +13,8 @@ router.use('/lib', express.static(path.join(__dirname, '../node_modules/@azure/m
 router.get('/login', (req, res) => {
     const authCodeUrlParameters = {
         scopes: ["user.read"],
-        redirectUri: "https://localhost:3000/auth/server-redirect",
-        responseMode: "form_post",
-        extraQueryParameters: {
-            "nativebroker": "1",
-        }
+        redirectUri: "http://localhost:3000/auth/server-redirect",
+        responseMode: "form_post"
     };
 
     // Set request state to use hybrid spa or implicit flow 
@@ -45,7 +42,7 @@ router.post('/server-redirect', (req, res) => {
     const tokenRequest = {
         code: req.body.code,
         scopes: ["user.read"],
-        redirectUri: "https://localhost:3000/auth/server-redirect"
+        redirectUri: "http://localhost:3000/auth/server-redirect"
     };
 
     // Check if request is done via hybrid spa or implicit flow

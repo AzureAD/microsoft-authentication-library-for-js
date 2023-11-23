@@ -6,7 +6,7 @@
     const msalInstance = new msal.PublicClientApplication({
         auth: {
             clientId: "{{clientId}}",
-            redirectUri: "https://localhost:3000/auth/client-redirect",
+            redirectUri: "http://localhost:3000/auth/client-redirect",
             authority: "{{authority}}"
         },
         system: {
