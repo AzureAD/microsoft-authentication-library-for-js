@@ -1146,7 +1146,6 @@ export abstract class CacheManager implements ICacheManager {
         // Use authority tenantId for cache lookup filter if it's defined, otherwise use tenantId from account passed in
         const requestTenantId =
             account.tenantId || getTenantFromAuthorityString(request.authority);
-
         const tokenKeys = this.getTokenKeys();
         const cachedAccount = this.readAccountFromCache(account);
         const cachedIdToken = this.getIdToken(
@@ -1834,9 +1833,7 @@ export abstract class CacheManager implements ICacheManager {
         entity: AccountEntity | CredentialEntity,
         realm: string
     ): boolean {
-        return !!(
-            entity.realm?.toLowerCase() && realm === entity.realm.toLowerCase()
-        );
+        return !!(entity.realm?.toLowerCase() === realm.toLowerCase());
     }
 
     /**

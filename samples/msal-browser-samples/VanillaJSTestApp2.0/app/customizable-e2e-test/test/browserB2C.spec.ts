@@ -47,7 +47,8 @@ async function verifyTokenStore(
         )
     ).toBeTruthy();
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toEqual(6);
+    // 1 AT + 1 IDT + 1 Account + 1 RT + 1 Account Keys + 1 Token Keys + 2 active account filters = 8
+    expect(Object.keys(storage).length).toEqual(8);
 }
 
 describe("B2C Tests", () => {
