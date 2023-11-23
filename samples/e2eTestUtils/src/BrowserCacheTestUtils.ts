@@ -112,11 +112,12 @@ export class BrowserCacheUtils {
 
     async accessTokenForScopesExists(
         accessTokenKeys: Array<string>,
-        scopes: Array<String>
+        scopes: Array<String>,
+        targetTokenMatchesNumber: number = 1
     ): Promise<boolean> {
         const storage = await this.getWindowStorage();
 
-        return accessTokenKeys.some((key) => {
+        const matches = accessTokenKeys.filter((key) => {
             const tokenVal = JSON.parse(storage[key]);
             const tokenScopes = tokenVal.target.toLowerCase().split(" ");
 
@@ -124,6 +125,8 @@ export class BrowserCacheUtils {
                 return tokenScopes.includes(scope.toLowerCase());
             });
         });
+
+        return matches.length === targetTokenMatchesNumber;
     }
 
     async popAccessTokenForScopesExists(

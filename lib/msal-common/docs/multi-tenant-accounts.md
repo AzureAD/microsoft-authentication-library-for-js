@@ -40,7 +40,7 @@ In order to authenticate with multiple tenants, you can use either `login` or `a
 > Note:
 >
 > -   For `login`/`acquireToken` interactive and `ssoSilent` APIs, the tenant context is set from the authority's `tenantId`.
-> -   For `acquireTokenSilent` the tenant context is set from the `AccountInfo` object passed in.
+> -   For `acquireTokenSilent` the tenant context is set from the `AccountInfo` object passed in when searching the cache for matching tokens, regardless of the tenantId in the request's authority.
 
 MSAL Browser example:
 
