@@ -1,5 +1,3 @@
-let homeAccountId = "";
-
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
 let myMSALObj, requestConfig, tenantConfig, signInType;
@@ -27,24 +25,32 @@ function setInitializedFlagTrue() {
 }
 
 function handleResponse(resp) {
+    let activeAccount;
     if (resp !== null) {
-        homeAccountId = resp.account.homeAccountId;
-        showWelcomeMessage(resp.account);
+        activeAccount = resp.account;
+        myMSALObj.setActiveAccount(activeAccount);
+        showWelcomeMessage(activeAccount);
         if (resp.accessToken) {
             updateUI(resp);
         }
-        return resp;
     } else {
-        // need to call getAccount here?
-        const currentAccounts = myMSALObj.getAllAccounts({ isHomeTenant: true });
-        if (currentAccounts === null) {
-            return;
-        } else if (currentAccounts.length > 1) {
-            // Add choose account code here
-        } else if (currentAccounts.length === 1) {
-            homeAccountId = currentAccounts[0].homeAccountId;
-            showWelcomeMessage(currentAccounts[0]);
+        activeAccount = myMSALObj.getActiveAccount();
+        if(!activeAccount) {
+            const currentAccounts = myMSALObj.getAllAccounts();
+            if (currentAccounts.length === 0) {
+                return;
+            } else if (currentAccounts.length > 1) {
+                activeAccount = currentAccounts.sort((account) => {
+                    return account.tenantId === account.homeAccountId.split(".")[1] ? -1 : 1; 
+                })[0];
+            } else if (currentAccounts.length === 1) {
+                activeAccount = currentAccounts[0];
+
+            }    
         }
+        
+        myMSALObj.setActiveAccount(activeAccount);
+        showWelcomeMessage(activeAccount);
     }
 }
 
@@ -60,7 +66,7 @@ async function signIn(signInType) {
 
 function signOut(signOutType) {
     const logoutRequest = {
-        account: myMSALObj.getAccount({ homeAccountId, isHomeTenant: true } )
+        account: myMSALObj.getActiveAccount()
     };
 
     if (signOutType === "popup") {
@@ -72,7 +78,7 @@ function signOut(signOutType) {
 
 async function getTokenPopup() {
     const request = requestConfig;
-    const currentAcc = myMSALObj.getAccount({ homeAccountId, isHomeTenant: true } );
+    const currentAcc = myMSALObj.getActiveAccount();
     if (currentAcc) {
         request.account = currentAcc;
         response = await myMSALObj.acquireTokenPopup(request).then(handleResponse).catch(error => {
@@ -83,7 +89,7 @@ async function getTokenPopup() {
 
 async function getTokenRedirect() {
     const request = requestConfig;
-    const currentAcc = myMSALObj.getAccount({ homeAccountId, isHomeTenant: true } );
+    const currentAcc = myMSALObj.getActiveAccount();
     if (currentAcc) {
         request.account = currentAcc;
         myMSALObj.acquireTokenRedirect(request);
@@ -92,7 +98,7 @@ async function getTokenRedirect() {
 
 async function getTokenSilently() {
     const request = requestConfig;
-    const currentAcc = myMSALObj.getAccount({ homeAccountId, isHomeTenant: true } );
+    const currentAcc = myMSALObj.getActiveAccount();
     if (currentAcc) {
         request.account = currentAcc;
         response = await myMSALObj.acquireTokenSilent(request).then(handleResponse).catch(error => {
@@ -103,14 +109,15 @@ async function getTokenSilently() {
 
 async function getGuestTokenSilently() {
     const request = requestConfig;
-    if (tenantConfig.guest) {
-        const guestAccount = myMSALObj.getAccount({ homeAccountId, tenantId: tenantConfig.guest.tenantId } );
+    if (tenantConfig?.guest) {
+        const currentAcc = myMSALObj.getActiveAccount();
+        const guestAccount = myMSALObj.getAccount({ homeAccountId: currentAcc?.homeAccountId, tenantId: tenantConfig.guest.tenantId } );
         if (guestAccount) {
             response = await myMSALObj.acquireTokenSilent({ ...request, account: guestAccount }).then(handleResponse).catch(error => {
                 console.error(error);
             });
         } else {
-            const homeAccount = myMSALObj.getAccount({ homeAccountId, isHomeTenant: true } );
+            const homeAccount = myMSALObj.getAccount({ homeAccountId } );
             response = await myMSALObj.acquireTokenSilent({
                  ...request,
                  account: homeAccount,
@@ -121,6 +128,6 @@ async function getGuestTokenSilently() {
             });
         }
     } else {
-        console.error("No guest tenant in MSAL Config");
+        console.error("Sample Configuration Error: No guest tenant in MSAL Config");
     }
 }
