@@ -60,7 +60,7 @@ export class DeviceCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response);
-        return await responseHandler.handleServerTokenResponse(
+        return responseHandler.handleServerTokenResponse(
             response,
             this.authority,
             reqTimestamp,

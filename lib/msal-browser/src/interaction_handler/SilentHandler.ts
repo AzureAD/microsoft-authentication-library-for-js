@@ -40,7 +40,7 @@ export async function initiateAuthRequest(
         throw createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri);
     }
     if (navigateFrameWait) {
-        return await invokeAsync(
+        return invokeAsync(
             loadFrame,
             PerformanceEvents.SilentHandlerLoadFrame,
             logger,
@@ -203,7 +203,7 @@ function createHiddenIframe(): HTMLIFrameElement {
         "sandbox",
         "allow-scripts allow-same-origin allow-forms"
     );
-    document.getElementsByTagName("body")[0].appendChild(authFrame);
+    document.body.appendChild(authFrame);
 
     return authFrame;
 }

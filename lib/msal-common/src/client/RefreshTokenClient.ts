@@ -17,8 +17,8 @@ import {
     AuthenticationScheme,
     Errors,
     HeaderNames,
-    AADServerParamKeys,
 } from "../utils/Constants";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
@@ -140,7 +140,7 @@ export class RefreshTokenClient extends BaseClient {
         // if the app is part of the family, retrive a Family refresh token if present and make a refreshTokenRequest
         if (isFOCI) {
             try {
-                return invokeAsync(
+                return await invokeAsync(
                     this.acquireTokenWithCachedRefreshToken.bind(this),
                     PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
                     this.logger,

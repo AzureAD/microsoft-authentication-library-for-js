@@ -59,7 +59,7 @@ export class OnBehalfOfClient extends BaseClient {
         );
 
         if (request.skipCache) {
-            return await this.executeTokenRequest(
+            return this.executeTokenRequest(
                 request,
                 this.authority,
                 this.userAssertionHash
@@ -151,7 +151,7 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.serverTelemetryManager.incrementCacheHits();
         }
 
-        return await ResponseHandler.generateAuthenticationResult(
+        return ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             this.authority,
             {
