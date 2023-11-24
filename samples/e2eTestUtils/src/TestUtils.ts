@@ -142,10 +142,10 @@ export async function setupCredentials(
     const { user, lab } = labConfig;
 
     if (user.userType === "Guest") {
-        username = user.homeUPN;
-        guestUsername = user.upn;
+        username = user.homeUPN || "";
+        guestUsername = user.upn || "";
     } else {
-        username = user.upn;
+        username = user.upn || "";
     }
 
     if (!lab.labName) {
