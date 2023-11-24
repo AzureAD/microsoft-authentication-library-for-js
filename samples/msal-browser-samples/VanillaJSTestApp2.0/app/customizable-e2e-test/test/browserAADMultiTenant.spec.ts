@@ -56,7 +56,7 @@ describe("AAD-Prod Tests", () => {
             labApiParams
         );
 
-        [username, accountPwd, guestUsername] = await setupCredentials(
+        [username, accountPwd] = await setupCredentials(
             envResponse[0],
             labClient
         );

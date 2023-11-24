@@ -134,17 +134,21 @@ export async function retrieveAppConfiguration(
 export async function setupCredentials(
     labConfig: LabConfig,
     labClient: LabClient
-): Promise<[string, string, string]> {
+): Promise<[string, string]> {
     let username = "";
     let accountPwd = "";
-    let guestUsername = "";
 
     const { user, lab } = labConfig;
 
     if (user.userType === "Guest") {
-        username = user.homeUPN || "";
-        guestUsername = user.upn || "";
+        if (!user.homeUPN) {
+            throw Error("Guest user does not have a homeUPN");
+        }
+        username = user.homeUPN;
     } else {
+        if (!user.upn) {
+            throw Error("User does not have a upn");
+        }
         username = user.upn || "";
     }
 
@@ -152,15 +156,15 @@ export async function setupCredentials(
         throw Error("No Labname provided!");
     }
 
-    const testPwdSecret = await labClient.getSecret(labConfig.lab.labName);
+    const testPwdSecret = await labClient.getSecret(lab.labName);
 
     accountPwd = testPwdSecret.value;
 
     if (!accountPwd) {
-        throw "Unable to get account password!";
+        throw Error("Unable to get account password!");
     }
 
-    return [username, accountPwd, guestUsername];
+    return [username, accountPwd];
 }
 
 export async function b2cLocalAccountEnterCredentials(
