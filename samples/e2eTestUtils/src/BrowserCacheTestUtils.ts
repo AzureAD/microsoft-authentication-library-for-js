@@ -1,4 +1,5 @@
 import * as puppeteer from "puppeteer";
+import { AccountEntity } from "../../../lib/msal-browser/src";
 
 export interface ServerTelemetryEntity {
     failedRequests: Array<string | number>;
@@ -224,7 +225,9 @@ export class BrowserCacheUtils {
         expect(tokenStore.accessTokens).toHaveLength(totalAccessTokens);
         expect(tokenStore.refreshTokens).toHaveLength(refreshTokens || 1);
 
-        const account = await this.getAccountFromCache(tokenStore.idTokens[0]);
+        const account = (await this.getAccountFromCache(
+            tokenStore.idTokens[0]
+        )) as AccountEntity;
         expect(account).toBeDefined();
         expect(account["tenantProfiles"]).toHaveLength(numberOfTenants);
         expect(
