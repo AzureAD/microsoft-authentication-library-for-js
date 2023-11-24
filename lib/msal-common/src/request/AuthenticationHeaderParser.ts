@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { Constants, HeaderNames } from "../utils/Constants";
 
 type WWWAuthenticateChallenges = {
@@ -40,9 +43,8 @@ export class AuthenticationHeaderParser {
             if (authenticationInfoChallenges.nextnonce) {
                 return authenticationInfoChallenges.nextnonce;
             }
-            throw ClientConfigurationError.createInvalidAuthenticationHeaderError(
-                HeaderNames.AuthenticationInfo,
-                "nextnonce challenge is missing."
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidAuthenticationHeader
             );
         }
 
@@ -56,14 +58,15 @@ export class AuthenticationHeaderParser {
             if (wwwAuthenticateChallenges.nonce) {
                 return wwwAuthenticateChallenges.nonce;
             }
-            throw ClientConfigurationError.createInvalidAuthenticationHeaderError(
-                HeaderNames.WWWAuthenticate,
-                "nonce challenge is missing."
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidAuthenticationHeader
             );
         }
 
         // If neither header is present, throw missing headers error
-        throw ClientConfigurationError.createMissingNonceAuthenticationHeadersError();
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.missingNonceAuthenticationHeader
+        );
     }
 
     /**

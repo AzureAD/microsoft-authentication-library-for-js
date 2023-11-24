@@ -173,7 +173,9 @@ describe("ServerTelemetryManager.ts", () => {
                 testPayload,
                 testCacheManager
             );
-            telemetryManager.setCacheOutcome(CacheOutcome.FORCE_REFRESH);
+            telemetryManager.setCacheOutcome(
+                CacheOutcome.FORCE_REFRESH_OR_CLAIMS
+            );
             const currHeaderVal =
                 telemetryManager.generateCurrentRequestHeaderValue();
             expect(currHeaderVal).toEqual(`5|${testApiCode},1,,,|,`);
@@ -359,7 +361,11 @@ describe("ServerTelemetryManager.ts", () => {
     });
 
     it("incrementCacheHits", () => {
-        const initialCacheValue = new ServerTelemetryEntity();
+        const initialCacheValue: ServerTelemetryEntity = {
+            failedRequests: [],
+            errors: [],
+            cacheHits: 0,
+        };
         initialCacheValue.cacheHits = 1;
         testCacheManager.setServerTelemetry(cacheKey, initialCacheValue);
         const telemetryManager = new ServerTelemetryManager(

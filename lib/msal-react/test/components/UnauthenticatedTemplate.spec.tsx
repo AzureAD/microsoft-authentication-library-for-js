@@ -29,8 +29,9 @@ describe("UnauthenticatedTemplate tests", () => {
         },
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
         pca = new PublicClientApplication(msalConfig);
+        await pca.initialize();
     });
 
     afterEach(() => {

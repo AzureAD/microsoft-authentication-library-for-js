@@ -8,7 +8,10 @@ import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { AccountInfo } from "../../account/AccountInfo";
-import { ClientAuthError } from "../../error/ClientAuthError";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../../error/ClientAuthError";
 import { AuthorityType } from "../../authority/AuthorityType";
 import { Logger } from "../../logger/Logger";
 import { TokenClaims } from "../../account/TokenClaims";
@@ -140,15 +143,15 @@ export class AccountEntity {
             (authority && authority.getPreferredCache());
 
         if (!env) {
-            throw ClientAuthError.createInvalidCacheEnvironmentError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidCacheEnvironment
+            );
         }
 
         account.environment = env;
         // non AAD scenarios can have empty realm
         account.realm =
             accountDetails.idTokenClaims.tid || Constants.EMPTY_STRING;
-
-        account.idTokenClaims = accountDetails.idTokenClaims;
 
         // How do you account for MSA CID here?
         account.localAccountId =
@@ -202,7 +205,6 @@ export class AccountEntity {
 
         account.username = accountInfo.username;
         account.name = accountInfo.name;
-        account.idTokenClaims = accountInfo.idTokenClaims;
 
         account.cloudGraphHostName = cloudGraphHostName;
         account.msGraphHost = msGraphHost;

@@ -28,17 +28,12 @@ import {
     Authority,
     StubbedNetworkModule,
     AuthToken,
-    IdTokenEntity,
-    AccessTokenEntity,
-    RefreshTokenEntity,
     AppMetadataEntity,
     ServerTelemetryEntity,
     ThrottlingEntity,
     CredentialType,
     ProtocolMode,
-    AccountInfo,
-    AuthError,
-    ClientAuthErrorMessage,
+    CacheHelpers,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
@@ -50,6 +45,7 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
 import { base64Decode } from "../../src/encode/Base64Decode";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -202,14 +198,14 @@ describe("BrowserCacheManager tests", () => {
 
         it("Adds existing tokens to token key map on initialization", () => {
             // Pre-populate localstorage with tokens
-            const testIdToken = IdTokenEntity.createIdTokenEntity(
+            const testIdToken = CacheHelpers.createIdTokenEntity(
                 "homeAccountId",
                 "environment",
                 TEST_TOKENS.IDTOKEN_V2,
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 "tenantId"
             );
-            const testAccessToken = AccessTokenEntity.createAccessTokenEntity(
+            const testAccessToken = CacheHelpers.createAccessTokenEntity(
                 "homeAccountId",
                 "environment",
                 TEST_TOKENS.ACCESS_TOKEN,
@@ -218,25 +214,24 @@ describe("BrowserCacheManager tests", () => {
                 "scope",
                 1000,
                 1000,
-                browserCrypto
+                browserCrypto.base64Decode
             );
-            const testRefreshToken =
-                RefreshTokenEntity.createRefreshTokenEntity(
-                    "homeAccountId",
-                    "environment",
-                    TEST_TOKENS.REFRESH_TOKEN,
-                    TEST_CONFIG.MSAL_CLIENT_ID
-                );
+            const testRefreshToken = CacheHelpers.createRefreshTokenEntity(
+                "homeAccountId",
+                "environment",
+                TEST_TOKENS.REFRESH_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
             window.localStorage.setItem(
-                testIdToken.generateCredentialKey(),
+                CacheHelpers.generateCredentialKey(testIdToken),
                 JSON.stringify(testIdToken)
             );
             window.localStorage.setItem(
-                testAccessToken.generateCredentialKey(),
+                CacheHelpers.generateCredentialKey(testAccessToken),
                 JSON.stringify(testAccessToken)
             );
             window.localStorage.setItem(
-                testRefreshToken.generateCredentialKey(),
+                CacheHelpers.generateCredentialKey(testRefreshToken),
                 JSON.stringify(testRefreshToken)
             );
 
@@ -279,14 +274,14 @@ describe("BrowserCacheManager tests", () => {
 
         it("Does not add tokens for other clientIds to token key map", () => {
             // Pre-populate localstorage with tokens
-            const testIdToken = IdTokenEntity.createIdTokenEntity(
+            const testIdToken = CacheHelpers.createIdTokenEntity(
                 "homeAccountId",
                 "environment",
                 TEST_TOKENS.IDTOKEN_V2,
                 "other-client-id",
                 "tenantId"
             );
-            const testAccessToken = AccessTokenEntity.createAccessTokenEntity(
+            const testAccessToken = CacheHelpers.createAccessTokenEntity(
                 "homeAccountId",
                 "environment",
                 TEST_TOKENS.ACCESS_TOKEN,
@@ -295,25 +290,24 @@ describe("BrowserCacheManager tests", () => {
                 "scope",
                 1000,
                 1000,
-                browserCrypto
+                browserCrypto.base64Decode
             );
-            const testRefreshToken =
-                RefreshTokenEntity.createRefreshTokenEntity(
-                    "homeAccountId",
-                    "environment",
-                    TEST_TOKENS.REFRESH_TOKEN,
-                    "other-client-id"
-                );
+            const testRefreshToken = CacheHelpers.createRefreshTokenEntity(
+                "homeAccountId",
+                "environment",
+                TEST_TOKENS.REFRESH_TOKEN,
+                "other-client-id"
+            );
             window.localStorage.setItem(
-                testIdToken.generateCredentialKey(),
+                CacheHelpers.generateCredentialKey(testIdToken),
                 JSON.stringify(testIdToken)
             );
             window.localStorage.setItem(
-                testAccessToken.generateCredentialKey(),
+                CacheHelpers.generateCredentialKey(testAccessToken),
                 JSON.stringify(testAccessToken)
             );
             window.localStorage.setItem(
-                testRefreshToken.generateCredentialKey(),
+                CacheHelpers.generateCredentialKey(testRefreshToken),
                 JSON.stringify(testRefreshToken)
             );
 
@@ -649,7 +643,7 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getIdTokenCredential returns IdTokenEntity", () => {
-                    const testIdToken = IdTokenEntity.createIdTokenEntity(
+                    const testIdToken = CacheHelpers.createIdTokenEntity(
                         "homeAccountId",
                         "environment",
                         TEST_TOKENS.IDTOKEN_V2,
@@ -662,24 +656,14 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getIdTokenCredential(
-                            testIdToken.generateCredentialKey()
-                        )
-                    ).toEqual(testIdToken);
-                    expect(
-                        browserSessionStorage.getIdTokenCredential(
-                            testIdToken.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(IdTokenEntity);
-                    expect(
-                        browserLocalStorage.getIdTokenCredential(
-                            testIdToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testIdToken)
                         )
                     ).toEqual(testIdToken);
                     expect(
                         browserLocalStorage.getIdTokenCredential(
-                            testIdToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testIdToken)
                         )
-                    ).toBeInstanceOf(IdTokenEntity);
+                    ).toEqual(testIdToken);
                 });
             });
 
@@ -732,7 +716,7 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getAccessTokenCredential returns AccessTokenEntity", () => {
                     const testAccessToken =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.ACCESS_TOKEN,
@@ -741,7 +725,7 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -756,29 +740,19 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAccessToken.generateCredentialKey()
-                        )
-                    ).toEqual(testAccessToken);
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAccessToken.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAccessToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAccessToken)
                         )
                     ).toEqual(testAccessToken);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAccessToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAccessToken)
                         )
-                    ).toBeInstanceOf(AccessTokenEntity);
+                    ).toEqual(testAccessToken);
                 });
 
                 it("getAccessTokenCredential returns Bearer access token when authentication scheme is set to Bearer and both a Bearer and pop token are in the cache", () => {
                     const testAccessTokenWithoutAuthScheme =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.ACCESS_TOKEN,
@@ -787,13 +761,13 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.BEARER,
                             "oboAssertion"
                         );
                     const testAccessTokenWithAuthScheme =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.POP_TOKEN,
@@ -802,7 +776,7 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.POP,
                             "oboAssertion"
@@ -818,7 +792,7 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getAccessTokenCredential returns Bearer access token when authentication scheme is set to Bearer and both a Bearer and pop token are in the cache", () => {
                     const testAccessTokenWithoutAuthScheme =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.ACCESS_TOKEN,
@@ -827,13 +801,13 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.BEARER,
                             "oboAssertion"
                         );
                     const testAccessTokenWithAuthScheme =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.POP_TOKEN,
@@ -842,7 +816,7 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.POP,
                             "oboAssertion"
@@ -865,39 +839,37 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithoutAuthScheme
+                            )
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithoutAuthScheme
+                            )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithoutAuthScheme
+                            )
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithoutAuthScheme
+                            )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
                 });
 
                 it("getAccessTokenCredential returns PoP access token when authentication scheme is set to pop and both a Bearer and pop token are in the cache", () => {
                     const testAccessTokenWithoutAuthScheme =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.ACCESS_TOKEN,
@@ -906,13 +878,13 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.BEARER,
                             "oboAssertion"
                         );
                     const testAccessTokenWithAuthScheme =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.POP_TOKEN,
@@ -921,7 +893,7 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.POP,
                             "oboAssertion"
@@ -944,38 +916,36 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithAuthScheme
+                            )
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithAuthScheme
+                            )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithAuthScheme
+                            )
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithAuthScheme
+                            )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
                 });
 
                 it("clearTokensWithClaimsInCache clears all access tokens with claims in tokenKeys", () => {
-                    const testAT1 = AccessTokenEntity.createAccessTokenEntity(
+                    const testAT1 = CacheHelpers.createAccessTokenEntity(
                         "homeAccountId1",
                         "environment",
                         "secret1",
@@ -984,12 +954,12 @@ describe("BrowserCacheManager tests", () => {
                         "openid",
                         1000,
                         1000,
-                        browserCrypto,
+                        browserCrypto.base64Decode,
                         500,
                         AuthenticationScheme.BEARER,
                         "oboAssertion"
                     );
-                    const testAT2 = AccessTokenEntity.createAccessTokenEntity(
+                    const testAT2 = CacheHelpers.createAccessTokenEntity(
                         "homeAccountId2",
                         "environment",
                         "secret2",
@@ -998,7 +968,7 @@ describe("BrowserCacheManager tests", () => {
                         "openid",
                         1000,
                         1000,
-                        browserCrypto,
+                        browserCrypto.base64Decode,
                         500,
                         AuthenticationScheme.BEARER,
                         "oboAssertion",
@@ -1006,7 +976,7 @@ describe("BrowserCacheManager tests", () => {
                         "claims",
                         "claims-hash"
                     );
-                    const testAT3 = AccessTokenEntity.createAccessTokenEntity(
+                    const testAT3 = CacheHelpers.createAccessTokenEntity(
                         "homeAccountId3",
                         "environment",
                         "secret3",
@@ -1015,14 +985,14 @@ describe("BrowserCacheManager tests", () => {
                         "openid",
                         1000,
                         1000,
-                        browserCrypto,
+                        browserCrypto.base64Decode,
                         500,
                         AuthenticationScheme.BEARER,
                         "oboAssertion",
                         undefined,
                         "claims"
                     );
-                    const testAT4 = AccessTokenEntity.createAccessTokenEntity(
+                    const testAT4 = CacheHelpers.createAccessTokenEntity(
                         "homeAccountId4",
                         "environment",
                         "secret4",
@@ -1031,7 +1001,7 @@ describe("BrowserCacheManager tests", () => {
                         "openid",
                         1000,
                         1000,
-                        browserCrypto,
+                        browserCrypto.base64Decode,
                         500,
                         AuthenticationScheme.BEARER,
                         "oboAssertion",
@@ -1064,10 +1034,10 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
                         accessToken: [
-                            testAT1.generateCredentialKey(),
-                            testAT2.generateCredentialKey(),
-                            testAT3.generateCredentialKey(),
-                            testAT4.generateCredentialKey(),
+                            CacheHelpers.generateCredentialKey(testAT1),
+                            CacheHelpers.generateCredentialKey(testAT2),
+                            CacheHelpers.generateCredentialKey(testAT3),
+                            CacheHelpers.generateCredentialKey(testAT4),
                         ],
                         refreshToken: [],
                     });
@@ -1075,10 +1045,10 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserSessionStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
                         accessToken: [
-                            testAT1.generateCredentialKey(),
-                            testAT2.generateCredentialKey(),
-                            testAT3.generateCredentialKey(),
-                            testAT4.generateCredentialKey(),
+                            CacheHelpers.generateCredentialKey(testAT1),
+                            CacheHelpers.generateCredentialKey(testAT2),
+                            CacheHelpers.generateCredentialKey(testAT3),
+                            CacheHelpers.generateCredentialKey(testAT4),
                         ],
                         refreshToken: [],
                     });
@@ -1092,160 +1062,104 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAT1.generateCredentialKey()
-                        )
-                    ).toEqual(testAT1);
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAT1.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAT1.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT1)
                         )
                     ).toEqual(testAT1);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAT1.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT1)
                         )
-                    ).toBeInstanceOf(AccessTokenEntity);
+                    ).toEqual(testAT1);
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAT2.generateCredentialKey()
-                        )
-                    ).toEqual(testAT2);
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAT2.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAT2.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT2)
                         )
                     ).toEqual(testAT2);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAT2.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT2)
                         )
-                    ).toBeInstanceOf(AccessTokenEntity);
+                    ).toEqual(testAT2);
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAT3.generateCredentialKey()
-                        )
-                    ).toEqual(testAT3);
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAT3.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAT3.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT3)
                         )
                     ).toEqual(testAT3);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAT3.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT3)
                         )
-                    ).toBeInstanceOf(AccessTokenEntity);
+                    ).toEqual(testAT3);
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAT4.generateCredentialKey()
-                        )
-                    ).toEqual(testAT4);
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAT4.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAT4.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT4)
                         )
                     ).toEqual(testAT4);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAT4.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT4)
                         )
-                    ).toBeInstanceOf(AccessTokenEntity);
+                    ).toEqual(testAT4);
 
-                    browserSessionStorage.clearTokensAndKeysWithClaims();
-                    browserLocalStorage.clearTokensAndKeysWithClaims();
+                    browserSessionStorage.clearTokensAndKeysWithClaims(
+                        getDefaultPerformanceClient()
+                    );
+                    browserLocalStorage.clearTokensAndKeysWithClaims(
+                        getDefaultPerformanceClient()
+                    );
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAT1.generateCredentialKey()
-                        )
-                    ).toEqual(testAT1);
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAT1.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAT1.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT1)
                         )
                     ).toEqual(testAT1);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAT1.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT1)
                         )
-                    ).toBeInstanceOf(AccessTokenEntity);
+                    ).toEqual(testAT1);
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAT2.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT2)
                         )
                     ).toBeNull();
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAT2.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT2)
                         )
                     ).toBeNull();
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAT3.generateCredentialKey()
-                        )
-                    ).toEqual(testAT3);
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAT3.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAT3.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT3)
                         )
                     ).toEqual(testAT3);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAT3.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT3)
                         )
-                    ).toBeInstanceOf(AccessTokenEntity);
+                    ).toEqual(testAT3);
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAT2.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT2)
                         )
                     ).toBeNull();
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAT2.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAT2)
                         )
                     ).toBeNull();
 
                     expect(browserLocalStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
                         accessToken: [
-                            testAT1.generateCredentialKey(),
-                            testAT3.generateCredentialKey(),
+                            CacheHelpers.generateCredentialKey(testAT1),
+                            CacheHelpers.generateCredentialKey(testAT3),
                         ],
                         refreshToken: [],
                     });
@@ -1253,8 +1167,8 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserSessionStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
                         accessToken: [
-                            testAT1.generateCredentialKey(),
-                            testAT3.generateCredentialKey(),
+                            CacheHelpers.generateCredentialKey(testAT1),
+                            CacheHelpers.generateCredentialKey(testAT3),
                         ],
                         refreshToken: [],
                     });
@@ -1317,7 +1231,7 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getRefreshTokenCredential returns RefreshTokenEntity", () => {
                     const testRefreshToken =
-                        RefreshTokenEntity.createRefreshTokenEntity(
+                        CacheHelpers.createRefreshTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.REFRESH_TOKEN,
@@ -1335,24 +1249,14 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getRefreshTokenCredential(
-                            testRefreshToken.generateCredentialKey()
-                        )
-                    ).toEqual(testRefreshToken);
-                    expect(
-                        browserSessionStorage.getRefreshTokenCredential(
-                            testRefreshToken.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(RefreshTokenEntity);
-                    expect(
-                        browserLocalStorage.getRefreshTokenCredential(
-                            testRefreshToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testRefreshToken)
                         )
                     ).toEqual(testRefreshToken);
                     expect(
                         browserLocalStorage.getRefreshTokenCredential(
-                            testRefreshToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testRefreshToken)
                         )
-                    ).toBeInstanceOf(RefreshTokenEntity);
+                    ).toEqual(testRefreshToken);
                 });
             });
 
@@ -1480,7 +1384,11 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getServerTelemetry returns ServerTelemetryEntity", () => {
                     const testKey = "server-telemetry-clientId";
-                    const testVal = new ServerTelemetryEntity();
+                    const testVal = {
+                        failedRequests: ["61|test-correlationId"],
+                        errors: ["test_error"],
+                        cacheHits: 2,
+                    };
 
                     browserLocalStorage.setServerTelemetry(testKey, testVal);
                     browserSessionStorage.setServerTelemetry(testKey, testVal);
@@ -1489,14 +1397,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getServerTelemetry(testKey)
                     ).toEqual(testVal);
                     expect(
-                        browserSessionStorage.getServerTelemetry(testKey)
-                    ).toBeInstanceOf(ServerTelemetryEntity);
-                    expect(
                         browserLocalStorage.getServerTelemetry(testKey)
                     ).toEqual(testVal);
-                    expect(
-                        browserLocalStorage.getServerTelemetry(testKey)
-                    ).toBeInstanceOf(ServerTelemetryEntity);
                 });
             });
 
@@ -1542,15 +1444,12 @@ describe("BrowserCacheManager tests", () => {
                         .returns(false);
                     browserSessionStorage.setAuthorityMetadata(key, testObj);
                     browserLocalStorage.setAuthorityMetadata(key, testObj);
-
                     expect(
                         browserSessionStorage.getAuthorityMetadata(key)
                     ).toBeNull();
                     expect(
                         browserLocalStorage.getAuthorityMetadata(key)
                     ).toBeNull();
-                    expect(browserSessionStorage.containsKey(key)).toBe(false);
-                    expect(browserLocalStorage.containsKey(key)).toBe(false);
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
@@ -1929,7 +1828,7 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getIdTokenCredential returns IdTokenEntity", () => {
-                    const testIdToken = IdTokenEntity.createIdTokenEntity(
+                    const testIdToken = CacheHelpers.createIdTokenEntity(
                         "homeAccountId",
                         "environment",
                         TEST_TOKENS.IDTOKEN_V2,
@@ -1942,24 +1841,14 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getIdTokenCredential(
-                            testIdToken.generateCredentialKey()
-                        )
-                    ).toEqual(testIdToken);
-                    expect(
-                        browserSessionStorage.getIdTokenCredential(
-                            testIdToken.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(IdTokenEntity);
-                    expect(
-                        browserLocalStorage.getIdTokenCredential(
-                            testIdToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testIdToken)
                         )
                     ).toEqual(testIdToken);
                     expect(
                         browserLocalStorage.getIdTokenCredential(
-                            testIdToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testIdToken)
                         )
-                    ).toBeInstanceOf(IdTokenEntity);
+                    ).toEqual(testIdToken);
                 });
             });
 
@@ -2012,7 +1901,7 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getAccessTokenCredential returns AccessTokenEntity", () => {
                     const testAccessToken =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.ACCESS_TOKEN,
@@ -2021,7 +1910,7 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.BEARER,
                             "oboAssertion"
@@ -2036,29 +1925,19 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAccessToken.generateCredentialKey()
-                        )
-                    ).toEqual(testAccessToken);
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAccessToken.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAccessToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAccessToken)
                         )
                     ).toEqual(testAccessToken);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAccessToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testAccessToken)
                         )
-                    ).toBeInstanceOf(AccessTokenEntity);
+                    ).toEqual(testAccessToken);
                 });
 
                 it("getAccessTokenCredential returns Bearer access token when authentication scheme is set to Bearer and both a Bearer and pop token are in the cache", () => {
                     const testAccessTokenWithoutAuthScheme =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.ACCESS_TOKEN,
@@ -2067,13 +1946,13 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.BEARER,
                             "oboAssertion"
                         );
                     const testAccessTokenWithAuthScheme =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.POP_TOKEN,
@@ -2082,7 +1961,7 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.POP,
                             "oboAssertion"
@@ -2105,39 +1984,37 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithoutAuthScheme
+                            )
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithoutAuthScheme
+                            )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithoutAuthScheme
+                            )
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithoutAuthScheme
+                            )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithoutAuthScheme.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
                 });
 
                 it("getAccessTokenCredential returns PoP access token when authentication scheme is set to pop and both a Bearer and pop token are in the cache", () => {
                     const testAccessTokenWithoutAuthScheme =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.ACCESS_TOKEN,
@@ -2146,13 +2023,13 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.BEARER,
                             "oboAssertion"
                         );
                     const testAccessTokenWithAuthScheme =
-                        AccessTokenEntity.createAccessTokenEntity(
+                        CacheHelpers.createAccessTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.POP_TOKEN,
@@ -2161,7 +2038,7 @@ describe("BrowserCacheManager tests", () => {
                             "openid",
                             1000,
                             1000,
-                            browserCrypto,
+                            browserCrypto.base64Decode,
                             500,
                             AuthenticationScheme.POP,
                             "oboAssertion"
@@ -2184,34 +2061,32 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithAuthScheme
+                            )
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithAuthScheme
+                            )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
-                    expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithAuthScheme
+                            )
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(
+                                testAccessTokenWithAuthScheme
+                            )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            testAccessTokenWithAuthScheme.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(AccessTokenEntity);
                 });
             });
 
@@ -2264,7 +2139,7 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getRefreshTokenCredential returns RefreshTokenEntity", () => {
                     const testRefreshToken =
-                        RefreshTokenEntity.createRefreshTokenEntity(
+                        CacheHelpers.createRefreshTokenEntity(
                             "homeAccountId",
                             "environment",
                             TEST_TOKENS.REFRESH_TOKEN,
@@ -2282,24 +2157,14 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getRefreshTokenCredential(
-                            testRefreshToken.generateCredentialKey()
-                        )
-                    ).toEqual(testRefreshToken);
-                    expect(
-                        browserSessionStorage.getRefreshTokenCredential(
-                            testRefreshToken.generateCredentialKey()
-                        )
-                    ).toBeInstanceOf(RefreshTokenEntity);
-                    expect(
-                        browserLocalStorage.getRefreshTokenCredential(
-                            testRefreshToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testRefreshToken)
                         )
                     ).toEqual(testRefreshToken);
                     expect(
                         browserLocalStorage.getRefreshTokenCredential(
-                            testRefreshToken.generateCredentialKey()
+                            CacheHelpers.generateCredentialKey(testRefreshToken)
                         )
-                    ).toBeInstanceOf(RefreshTokenEntity);
+                    ).toEqual(testRefreshToken);
                 });
             });
 
@@ -2427,7 +2292,11 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getServerTelemetry returns ServerTelemetryEntity", () => {
                     const testKey = "server-telemetry-clientId";
-                    const testVal = new ServerTelemetryEntity();
+                    const testVal = {
+                        failedRequests: ["61|test-correlationId"],
+                        errors: ["test_error"],
+                        cacheHits: 2,
+                    };
 
                     browserLocalStorage.setServerTelemetry(testKey, testVal);
                     browserSessionStorage.setServerTelemetry(testKey, testVal);
@@ -2436,14 +2305,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getServerTelemetry(testKey)
                     ).toEqual(testVal);
                     expect(
-                        browserSessionStorage.getServerTelemetry(testKey)
-                    ).toBeInstanceOf(ServerTelemetryEntity);
-                    expect(
                         browserLocalStorage.getServerTelemetry(testKey)
                     ).toEqual(testVal);
-                    expect(
-                        browserLocalStorage.getServerTelemetry(testKey)
-                    ).toBeInstanceOf(ServerTelemetryEntity);
                 });
             });
 
@@ -2496,8 +2359,6 @@ describe("BrowserCacheManager tests", () => {
                     expect(
                         browserLocalStorage.getAuthorityMetadata(key)
                     ).toBeNull();
-                    expect(browserSessionStorage.containsKey(key)).toBe(false);
-                    expect(browserLocalStorage.containsKey(key)).toBe(false);
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
@@ -3410,642 +3271,6 @@ describe("BrowserCacheManager tests", () => {
                 idToken: ["idToken2"],
                 accessToken: ["accessToken1"],
                 refreshToken: ["refreshToken2"],
-            });
-        });
-
-        describe("getAccountInfoByFilter", () => {
-            cacheConfig = {
-                temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-                cacheLocation: BrowserCacheLocation.SessionStorage,
-                storeAuthStateInCookie: false,
-                secureCookies: false,
-                cacheMigrationEnabled: false,
-                claimsBasedCachingEnabled: false,
-            };
-            logger = new Logger({
-                loggerCallback: (
-                    level: LogLevel,
-                    message: string,
-                    containsPii: boolean
-                ): void => {},
-                piiLoggingEnabled: true,
-            });
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-
-            const accountEntity1 = {
-                homeAccountId: "test-home-accountId-1",
-                localAccountId: "test-local-accountId-1",
-                username: "user-1@example.com",
-                environment: "test-environment-1",
-                realm: "test-tenantId-1",
-                name: "name-1",
-                idTokenClaims: {},
-                authorityType: "MSSTS",
-            };
-
-            const accountEntity2 = {
-                homeAccountId: "test-home-accountId-2",
-                localAccountId: "test-local-accountId-2",
-                username: "user-2@example.com",
-                environment: "test-environment-2",
-                realm: "test-tenantId-2",
-                name: "name-2",
-                idTokenClaims: {},
-                authorityType: "MSSTS",
-            };
-
-            const account1: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: accountEntity1.homeAccountId,
-                localAccountId: accountEntity1.localAccountId,
-                username: accountEntity1.username,
-                environment: accountEntity1.environment,
-                tenantId: accountEntity1.realm,
-                name: accountEntity1.name,
-                idTokenClaims: accountEntity1.idTokenClaims,
-                nativeAccountId: undefined,
-            };
-
-            const account2: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: accountEntity2.homeAccountId,
-                localAccountId: accountEntity2.localAccountId,
-                username: accountEntity2.username,
-                environment: accountEntity2.environment,
-                tenantId: accountEntity2.realm,
-                name: accountEntity2.name,
-                idTokenClaims: accountEntity2.idTokenClaims,
-                nativeAccountId: undefined,
-            };
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
-            const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
-
-            beforeEach(() => {
-                browserStorage.setItem(
-                    cacheKey1,
-                    JSON.stringify(accountEntity1)
-                );
-                browserStorage.setItem(
-                    cacheKey2,
-                    JSON.stringify(accountEntity2)
-                );
-                browserStorage.addAccountKeyToMap(cacheKey1);
-                browserStorage.addAccountKeyToMap(cacheKey2);
-            });
-
-            afterEach(() => {
-                browserStorage.clear();
-            });
-
-            it("Matches accounts by username", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { username: account1.username };
-                const account2Filter = { username: account2.username };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by homeAccountId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {
-                    homeAccountId: account1.homeAccountId,
-                };
-                const account2Filter = {
-                    homeAccountId: account2.homeAccountId,
-                };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by localAccountId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {
-                    localAccountId: account1.localAccountId,
-                };
-                const account2Filter = {
-                    localAccountId: account2.localAccountId,
-                };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by tenantId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { tenantId: account1.tenantId };
-                const account2Filter = { tenantId: account2.tenantId };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by environment", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { environment: account1.environment };
-                const account2Filter = { environment: account2.environment };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by all filters", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = account1;
-                const account2Filter = account2;
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-        });
-
-        describe("getAccountInfoByHints", () => {
-            cacheConfig = {
-                temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-                cacheLocation: BrowserCacheLocation.SessionStorage,
-                storeAuthStateInCookie: false,
-                secureCookies: false,
-                cacheMigrationEnabled: false,
-                claimsBasedCachingEnabled: false,
-            };
-            logger = new Logger({
-                loggerCallback: (
-                    level: LogLevel,
-                    message: string,
-                    containsPii: boolean
-                ): void => {},
-                piiLoggingEnabled: true,
-            });
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-
-            const accountEntity1 = {
-                homeAccountId: "test-home-accountId-1",
-                localAccountId: "test-local-accountId-1",
-                username: "user-1@example.com",
-                environment: "test-environment-1",
-                realm: "test-tenantId-1",
-                name: "name-1",
-                idTokenClaims: {
-                    sid: "session-1",
-                },
-                authorityType: "MSSTS",
-            };
-
-            const accountEntity2 = {
-                homeAccountId: "test-home-accountId-2",
-                localAccountId: "test-local-accountId-2",
-                username: "user-2@example.com",
-                environment: "test-environment-2",
-                realm: "test-tenantId-2",
-                name: "name-2",
-                idTokenClaims: {
-                    sid: "session-2",
-                },
-                authorityType: "MSSTS",
-            };
-
-            const account1: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: accountEntity1.homeAccountId,
-                localAccountId: accountEntity1.localAccountId,
-                username: accountEntity1.username,
-                environment: accountEntity1.environment,
-                tenantId: accountEntity1.realm,
-                name: accountEntity1.name,
-                idTokenClaims: accountEntity1.idTokenClaims,
-                nativeAccountId: undefined,
-            };
-
-            const account2: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: accountEntity2.homeAccountId,
-                localAccountId: accountEntity2.localAccountId,
-                username: accountEntity2.username,
-                environment: accountEntity2.environment,
-                tenantId: accountEntity2.realm,
-                name: accountEntity2.name,
-                idTokenClaims: accountEntity2.idTokenClaims,
-                nativeAccountId: undefined,
-            };
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
-            const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
-
-            beforeEach(() => {
-                browserStorage.setItem(
-                    cacheKey1,
-                    JSON.stringify(accountEntity1)
-                );
-                browserStorage.setItem(
-                    cacheKey2,
-                    JSON.stringify(accountEntity2)
-                );
-                browserStorage.addAccountKeyToMap(cacheKey1);
-                browserStorage.addAccountKeyToMap(cacheKey2);
-            });
-
-            afterEach(() => {
-                browserStorage.clear();
-            });
-
-            it("Matches accounts by username", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { username: account1.username };
-                const account2Filter = { username: account2.username };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by homeAccountId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {
-                    homeAccountId: account1.homeAccountId,
-                };
-                const account2Filter = {
-                    homeAccountId: account2.homeAccountId,
-                };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by localAccountId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {
-                    localAccountId: account1.localAccountId,
-                };
-                const account2Filter = {
-                    localAccountId: account2.localAccountId,
-                };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by tenantId", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { tenantId: account1.tenantId };
-                const account2Filter = { tenantId: account2.tenantId };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by environment", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = { environment: account1.environment };
-                const account2Filter = { environment: account2.environment };
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-
-            it("Matches accounts by all filters", () => {
-                expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = account1;
-                const account2Filter = account2;
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account1Filter)
-                ).toContainEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toHaveLength(1);
-                expect(
-                    browserStorage.getAccountInfoByFilter(account2Filter)
-                ).toContainEqual(account2);
-            });
-        });
-
-        describe("getAccountInfoByHints", () => {
-            cacheConfig = {
-                cacheLocation: BrowserCacheLocation.SessionStorage,
-                temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-                storeAuthStateInCookie: false,
-                secureCookies: false,
-                cacheMigrationEnabled: false,
-                claimsBasedCachingEnabled: false,
-            };
-            logger = new Logger({
-                loggerCallback: (
-                    level: LogLevel,
-                    message: string,
-                    containsPii: boolean
-                ): void => {},
-                piiLoggingEnabled: true,
-            });
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-
-            const accountEntity1 = {
-                homeAccountId: "test-home-accountId-1",
-                localAccountId: "test-local-accountId-1",
-                username: "user-1@example.com",
-                environment: "test-environment-1",
-                realm: "test-tenantId-1",
-                name: "name-1",
-                idTokenClaims: {
-                    sid: "session-1",
-                },
-                authorityType: "MSSTS",
-            };
-
-            const accountEntity2 = {
-                homeAccountId: "test-home-accountId-2",
-                localAccountId: "test-local-accountId-2",
-                username: "user-2@example.com",
-                environment: "test-environment-2",
-                realm: "test-tenantId-2",
-                name: "name-2",
-                idTokenClaims: {
-                    sid: "session-2",
-                },
-                authorityType: "MSSTS",
-            };
-
-            const account1: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: accountEntity1.homeAccountId,
-                localAccountId: accountEntity1.localAccountId,
-                username: accountEntity1.username,
-                environment: accountEntity1.environment,
-                tenantId: accountEntity1.realm,
-                name: accountEntity1.name,
-                idTokenClaims: accountEntity1.idTokenClaims,
-                nativeAccountId: undefined,
-            };
-
-            const account2: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: accountEntity2.homeAccountId,
-                localAccountId: accountEntity2.localAccountId,
-                username: accountEntity2.username,
-                environment: accountEntity2.environment,
-                tenantId: accountEntity2.realm,
-                name: accountEntity2.name,
-                idTokenClaims: accountEntity2.idTokenClaims,
-                nativeAccountId: undefined,
-            };
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
-            const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
-
-            beforeEach(() => {
-                browserStorage.setItem(
-                    cacheKey1,
-                    JSON.stringify(accountEntity1)
-                );
-                browserStorage.setItem(
-                    cacheKey2,
-                    JSON.stringify(accountEntity2)
-                );
-                browserStorage.addAccountKeyToMap(cacheKey1);
-                browserStorage.addAccountKeyToMap(cacheKey2);
-            });
-
-            afterEach(() => {
-                browserStorage.clear();
-            });
-
-            it("Matches account by loginHint", () => {
-                expect(
-                    browserStorage.getAccountInfoByHints(account1.username)
-                ).toEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByHints(account2.username)
-                ).toEqual(account2);
-            });
-
-            it("Matches account by sid", () => {
-                expect(
-                    browserStorage.getAccountInfoByHints(
-                        undefined,
-                        account1.idTokenClaims!.sid
-                    )
-                ).toEqual(account1);
-                expect(
-                    browserStorage.getAccountInfoByHints(
-                        undefined,
-                        account2.idTokenClaims!.sid
-                    )
-                ).toEqual(account2);
-            });
-
-            it("Throws if multiple accounts match by loginHint", (done) => {
-                const accountEntity3 = {
-                    homeAccountId: "test-home-accountId-3",
-                    localAccountId: "test-local-accountId-3",
-                    username: accountEntity1.username, // Keep this the same as account 1
-                    environment: "test-environment-3",
-                    realm: "test-tenantId-3",
-                    name: "name-3",
-                    idTokenClaims: accountEntity1.idTokenClaims, // Keep this the same as account 1
-                    authorityType: "MSSTS",
-                };
-
-                const account3: AccountInfo = {
-                    homeAccountId: accountEntity3.homeAccountId,
-                    localAccountId: accountEntity3.localAccountId,
-                    username: accountEntity3.username,
-                    environment: accountEntity3.environment,
-                    tenantId: accountEntity3.realm,
-                    name: accountEntity3.name,
-                    idTokenClaims: accountEntity3.idTokenClaims,
-                    nativeAccountId: undefined,
-                };
-
-                const cacheKey3 =
-                    AccountEntity.generateAccountCacheKey(account3);
-                browserStorage.setItem(
-                    cacheKey3,
-                    JSON.stringify(accountEntity3)
-                );
-                browserStorage.addAccountKeyToMap(cacheKey3);
-
-                try {
-                    browserStorage.getAccountInfoByHints(
-                        accountEntity3.username
-                    );
-                } catch (e) {
-                    expect((e as AuthError).errorCode).toEqual(
-                        ClientAuthErrorMessage.multipleMatchingAccounts.code
-                    );
-                    expect((e as AuthError).errorMessage).toEqual(
-                        ClientAuthErrorMessage.multipleMatchingAccounts.desc
-                    );
-                    done();
-                }
-            });
-
-            it("Throws if multiple accounts match by sid", (done) => {
-                const accountEntity3 = {
-                    homeAccountId: "test-home-accountId-3",
-                    localAccountId: "test-local-accountId-3",
-                    username: accountEntity1.username, // Keep this the same as account 1
-                    environment: "test-environment-3",
-                    realm: "test-tenantId-3",
-                    name: "name-3",
-                    idTokenClaims: accountEntity1.idTokenClaims, // Keep this the same as account 1
-                    authorityType: "MSSTS",
-                };
-
-                const account3: AccountInfo = {
-                    homeAccountId: accountEntity3.homeAccountId,
-                    localAccountId: accountEntity3.localAccountId,
-                    username: accountEntity3.username,
-                    environment: accountEntity3.environment,
-                    tenantId: accountEntity3.realm,
-                    name: accountEntity3.name,
-                    idTokenClaims: accountEntity3.idTokenClaims,
-                    nativeAccountId: undefined,
-                };
-
-                const cacheKey3 =
-                    AccountEntity.generateAccountCacheKey(account3);
-                browserStorage.setItem(
-                    cacheKey3,
-                    JSON.stringify(accountEntity3)
-                );
-                browserStorage.addAccountKeyToMap(cacheKey3);
-
-                try {
-                    browserStorage.getAccountInfoByHints(
-                        undefined,
-                        accountEntity3.idTokenClaims!.sid
-                    );
-                } catch (e) {
-                    expect((e as AuthError).errorCode).toEqual(
-                        ClientAuthErrorMessage.multipleMatchingAccounts.code
-                    );
-                    expect((e as AuthError).errorMessage).toEqual(
-                        ClientAuthErrorMessage.multipleMatchingAccounts.desc
-                    );
-                    done();
-                }
-            });
-
-            it("Returns null if no accounts match", () => {
-                expect(
-                    browserStorage.getAccountInfoByHints("fakeUser@contoso.com")
-                ).toBe(null);
-                expect(
-                    browserStorage.getAccountInfoByHints(undefined, "fake-sid")
-                ).toBe(null);
             });
         });
     });

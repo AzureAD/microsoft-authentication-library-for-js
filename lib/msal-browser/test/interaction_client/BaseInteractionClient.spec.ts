@@ -8,9 +8,19 @@ import {
     AccountInfo,
     AccountEntity,
     TokenClaims,
-    ClientConfigurationError,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+    CacheManager,
+    IdTokenEntity,
+    AuthorityMetadataEntity,
 } from "@azure/msal-common";
-import { TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "../utils/StringConstants";
+import {
+    TEST_DATA_CLIENT_INFO,
+    TEST_CONFIG,
+    TEST_TOKENS,
+    DEFAULT_TENANT_DISCOVERY_RESPONSE,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+} from "../utils/StringConstants";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { EndSessionRequest, PublicClientApplication } from "../../src";
 
@@ -34,9 +44,11 @@ describe("BaseInteractionClient", () => {
             },
         });
 
+        await pca.initialize();
+
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
-        await pca.initialize();
+
         // @ts-ignore
         testClient = new testInteractionClient(
             // @ts-ignore
@@ -82,6 +94,15 @@ describe("BaseInteractionClient", () => {
                 username: testIdTokenClaims.preferred_username || "",
             };
 
+            const idToken1: IdTokenEntity = {
+                realm: testAccountInfo1.tenantId,
+                environment: testAccountInfo1.environment,
+                credentialType: "IdToken",
+                secret: TEST_TOKENS.IDTOKEN_V2,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                homeAccountId: testAccountInfo1.homeAccountId,
+            };
+
             const testAccount1: AccountEntity = new AccountEntity();
             testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
             testAccount1.localAccountId = testAccountInfo1.localAccountId;
@@ -101,6 +122,15 @@ describe("BaseInteractionClient", () => {
                 username: testIdTokenClaims.preferred_username || "",
             };
 
+            const idToken2: IdTokenEntity = {
+                realm: testAccountInfo2.tenantId,
+                environment: testAccountInfo2.environment,
+                credentialType: "IdToken",
+                secret: TEST_TOKENS.IDTOKEN_V2,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                homeAccountId: testAccountInfo2.homeAccountId,
+            };
+
             const testAccount2: AccountEntity = new AccountEntity();
             testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
             testAccount2.localAccountId = testAccountInfo2.localAccountId;
@@ -116,11 +146,34 @@ describe("BaseInteractionClient", () => {
             // @ts-ignore
             pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
+            pca.browserStorage.setIdTokenCredential(idToken1);
+            // @ts-ignore
             pca.browserStorage.setAccount(testAccount2);
+            // @ts-ignore
+            pca.browserStorage.setIdTokenCredential(idToken2);
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAuthorityMetadataByAlias"
+            ).mockImplementation((host: string) => {
+                const metadata =
+                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0];
+                const openIdConfigResponse =
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body;
+                const authorityMetadata = new AuthorityMetadataEntity();
+                authorityMetadata.updateCloudDiscoveryMetadata(metadata, true);
+                authorityMetadata.updateEndpointMetadata(
+                    // @ts-ignore
+                    openIdConfigResponse,
+                    true
+                );
+                return authorityMetadata;
+            });
         });
 
         afterEach(() => {
             window.sessionStorage.clear();
+            jest.restoreAllMocks();
         });
 
         it("Removes all accounts from cache if no account provided", async () => {
@@ -168,7 +221,9 @@ describe("BaseInteractionClient", () => {
                 })
                 .catch((error) => {
                     expect(error).toStrictEqual(
-                        ClientConfigurationError.createAuthorityMismatchError()
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.authorityMismatch
+                        )
                     );
                 });
         });

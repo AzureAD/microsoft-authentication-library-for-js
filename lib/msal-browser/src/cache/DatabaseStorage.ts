@@ -85,7 +85,7 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
      */
     private async validateDbIsOpen(): Promise<void> {
         if (!this.dbOpen) {
-            return await this.open();
+            return this.open();
         }
     }
 

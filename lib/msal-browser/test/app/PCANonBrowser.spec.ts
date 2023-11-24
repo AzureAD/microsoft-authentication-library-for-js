@@ -5,6 +5,17 @@ import { TEST_CONFIG } from "../utils/StringConstants";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 
+/**
+ * Tests for PublicClientApplication.ts when run in a non-browser environment
+ *
+ * Non-browser environments include server side rendering used in frameworks such as NextJS and Angular
+ *
+ * https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
+ * https://angular.io/guide/universal
+ *
+ * Expectation is that developer has to invoke initialize server side....
+ */
+
 describe("Non-browser environment", () => {
     it("Constructor doesnt throw if window is undefined", () => {
         new PublicClientApplication({
@@ -14,126 +25,142 @@ describe("Non-browser environment", () => {
         });
     });
 
-    it("acquireTokenSilent throws", (done) => {
+    it("acquireTokenSilent throws", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
 
-        instance
-            .acquireTokenSilent({ scopes: ["openid"], account: undefined })
-            .catch((error) => {
-                expect(error.errorCode).toEqual(
-                    BrowserAuthErrorMessage.notInBrowserEnvironment.code
-                );
-                done();
+        await instance.initialize();
+        try {
+            await instance.acquireTokenSilent({
+                scopes: ["openid"],
+                account: undefined,
             });
+        } catch (error: any) {
+            expect(error.errorCode).toEqual(
+                BrowserAuthErrorMessage.notInBrowserEnvironment.code
+            );
+        }
     });
 
-    it("ssoSilent throws", (done) => {
+    it("ssoSilent throws", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
 
-        instance.ssoSilent({}).catch((error) => {
+        await instance.initialize();
+        try {
+            await instance.ssoSilent({});
+        } catch (error: any) {
             expect(error.errorCode).toEqual(
                 BrowserAuthErrorMessage.notInBrowserEnvironment.code
             );
-            done();
-        });
+        }
     });
 
-    it("acquireTokenPopup throws", (done) => {
+    it("acquireTokenPopup throws", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
 
-        instance.acquireTokenPopup({ scopes: ["openid"] }).catch((error) => {
+        await instance.initialize();
+        try {
+            await instance.acquireTokenPopup({ scopes: ["openid"] });
+        } catch (error: any) {
             expect(error.errorCode).toEqual(
                 BrowserAuthErrorMessage.notInBrowserEnvironment.code
             );
-            done();
-        });
+        }
     });
 
-    it("acquireTokenRedirect throws", (done) => {
+    it("acquireTokenRedirect throws", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
 
-        instance.acquireTokenRedirect({ scopes: ["openid"] }).catch((error) => {
+        await instance.initialize();
+        try {
+            await instance.acquireTokenRedirect({ scopes: ["openid"] });
+        } catch (error: any) {
             expect(error.errorCode).toEqual(
                 BrowserAuthErrorMessage.notInBrowserEnvironment.code
             );
-            done();
-        });
+        }
     });
 
-    it("loginPopup throws", (done) => {
+    it("loginPopup throws", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
 
-        instance.loginPopup({ scopes: ["openid"] }).catch((error) => {
+        await instance.initialize();
+        try {
+            await instance.loginPopup({ scopes: ["openid"] });
+        } catch (error: any) {
             expect(error.errorCode).toEqual(
                 BrowserAuthErrorMessage.notInBrowserEnvironment.code
             );
-            done();
-        });
+        }
     });
 
-    it("loginRedirect throws", (done) => {
+    it("loginRedirect throws", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
 
-        instance.loginRedirect({ scopes: ["openid"] }).catch((error) => {
+        await instance.initialize();
+        try {
+            await instance.loginRedirect({ scopes: ["openid"] });
+        } catch (error: any) {
             expect(error.errorCode).toEqual(
                 BrowserAuthErrorMessage.notInBrowserEnvironment.code
             );
-            done();
-        });
+        }
     });
 
-    it("logoutRedirect throws", (done) => {
+    it("logoutRedirect throws", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
 
-        instance.logoutRedirect().catch((error) => {
+        await instance.initialize();
+        try {
+            await instance.logoutRedirect();
+        } catch (error: any) {
             expect(error.errorCode).toEqual(
                 BrowserAuthErrorMessage.notInBrowserEnvironment.code
             );
-            done();
-        });
+        }
     });
 
-    it("logoutPopup throws", (done) => {
+    it("logoutPopup throws", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
-
-        instance.logoutPopup().catch((error) => {
+        await instance.initialize();
+        try {
+            await instance.logoutPopup();
+        } catch (error: any) {
             expect(error.errorCode).toEqual(
                 BrowserAuthErrorMessage.notInBrowserEnvironment.code
             );
-            done();
-        });
+        }
     });
 
     it("getAllAccounts returns empty array", async () => {
@@ -175,14 +202,14 @@ describe("Non-browser environment", () => {
         });
     });
 
-    it("addEventCallback does not throw", (done) => {
+    it("addEventCallback does not throw", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
 
+        await instance.initialize();
         expect(() => instance.addEventCallback(() => {})).not.toThrow();
-        done();
     });
 });

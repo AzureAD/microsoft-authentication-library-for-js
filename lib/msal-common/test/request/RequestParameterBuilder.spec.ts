@@ -1,13 +1,12 @@
 import {
     Constants,
-    SSOTypes,
     PromptValue,
-    AADServerParamKeys,
     ResponseMode,
     GrantType,
     AuthenticationScheme,
     HeaderNames,
 } from "../../src/utils/Constants";
+import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys";
 import {
     TEST_CONFIG,
     TEST_URIS,
@@ -20,8 +19,9 @@ import {
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
 import sinon from "sinon";
 import {
-    ClientConfigurationError,
+    ClientConfigurationErrorCodes,
     ClientConfigurationErrorMessage,
+    createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
 
 describe("RequestParameterBuilder unit tests", () => {
@@ -91,14 +91,14 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
         expect(
             requestQueryString.includes(
-                `${SSOTypes.DOMAIN_HINT}=${encodeURIComponent(
+                `${AADServerParamKeys.DOMAIN_HINT}=${encodeURIComponent(
                     TEST_CONFIG.DOMAIN_HINT
                 )}`
             )
         ).toBe(true);
         expect(
             requestQueryString.includes(
-                `${SSOTypes.LOGIN_HINT}=${encodeURIComponent(
+                `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
                     TEST_CONFIG.LOGIN_HINT
                 )}`
             )
@@ -173,7 +173,9 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
         expect(
             requestQueryString.includes(
-                `${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`
+                `${AADServerParamKeys.SID}=${encodeURIComponent(
+                    TEST_CONFIG.SID
+                )}`
             )
         ).toBe(true);
         expect(
@@ -329,8 +331,9 @@ describe("RequestParameterBuilder unit tests", () => {
                 ""
             )
         ).toThrowError(
-            ClientConfigurationError.createInvalidCodeChallengeParamsError()
-                .errorMessage
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.pkceParamsMissing
+            )
         );
     });
 
@@ -342,8 +345,9 @@ describe("RequestParameterBuilder unit tests", () => {
                 AADServerParamKeys.CODE_CHALLENGE_METHOD
             )
         ).toThrowError(
-            ClientConfigurationError.createInvalidCodeChallengeParamsError()
-                .errorMessage
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.pkceParamsMissing
+            )
         );
     });
 

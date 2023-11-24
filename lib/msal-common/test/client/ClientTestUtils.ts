@@ -6,8 +6,6 @@
 import {
     ClientConfiguration,
     Constants,
-    PkceCodes,
-    ClientAuthError,
     AccountEntity,
     AppMetadataEntity,
     ThrottlingEntity,
@@ -23,15 +21,15 @@ import {
     LogLevel,
     TokenKeys,
     ServerTelemetryManager,
+    createClientAuthError,
+    ClientAuthErrorCodes,
+    CacheHelpers,
 } from "../../src";
 import {
-    AUTHENTICATION_RESULT,
-    ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_CRYPTO_VALUES,
     TEST_POP_VALUES,
-    TEST_TOKENS,
 } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
@@ -92,7 +90,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as IdTokenEntity) || null;
     }
     setIdTokenCredential(value: IdTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -107,7 +105,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as AccessTokenEntity) || null;
     }
     setAccessTokenCredential(value: AccessTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -122,7 +120,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
     setRefreshTokenCredential(value: RefreshTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -197,7 +195,7 @@ export class MockStorageClass extends CacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string {
-        const updatedCacheKey = credential.generateCredentialKey();
+        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 
         if (currentCacheKey !== updatedCacheKey) {
             const cacheItem = this.store[currentCacheKey];
@@ -217,31 +215,10 @@ export const mockCrypto = {
         return RANDOM_TEST_GUID;
     },
     base64Decode(input: string): string {
-        if (AUTHENTICATION_RESULT.body.id_token.includes(input)) {
-            return JSON.stringify(ID_TOKEN_CLAIMS);
-        }
-        switch (input) {
-            case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                return TEST_POP_VALUES.DECODED_REQ_CNF;
-            case TEST_TOKENS.POP_TOKEN_PAYLOAD:
-                return TEST_TOKENS.DECODED_POP_TOKEN_PAYLOAD;
-            default:
-                return input;
-        }
+        return Buffer.from(input, "base64").toString("utf8");
     },
     base64Encode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.DECODED_REQ_CNF:
-                return TEST_POP_VALUES.ENCODED_REQ_CNF;
-            default:
-                return input;
-        }
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
-        return {
-            challenge: TEST_CONFIG.TEST_CHALLENGE,
-            verifier: TEST_CONFIG.TEST_VERIFIER,
-        };
+        return Buffer.from(input, "utf-8").toString("base64");
     },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
@@ -307,7 +284,9 @@ export class ClientTestUtils {
         );
 
         await authority.resolveEndpointsAsync().catch((error) => {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
+            );
         });
 
         let serverTelemetryManager = null;

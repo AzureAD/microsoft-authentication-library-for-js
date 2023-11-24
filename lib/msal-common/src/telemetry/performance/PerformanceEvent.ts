@@ -101,8 +101,10 @@ export const PerformanceEvents = {
     /**
      * Time spent sending/waiting for the response of a request to the token endpoint
      */
-    BaseClientExecutePostToTokenEndpoint:
-        "baseClientExecutePostToTokenEndpoint",
+    RefreshTokenClientExecutePostToTokenEndpoint:
+        "refreshTokenClientExecutePostToTokenEndpoint",
+    AuthorizationCodeClientExecutePostToTokenEndpoint:
+        "authorizationCodeClientExecutePostToTokenEndpoint",
     /**
      * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
      */
@@ -150,6 +152,9 @@ export const PerformanceEvents = {
      * Internal API for acquiring token from cache
      */
     AcquireTokenFromCache: "acquireTokenFromCache",
+    SilentFlowClientAcquireCachedToken: "silentFlowClientAcquireCachedToken",
+    SilentFlowClientGenerateResultFromCacheRecord:
+        "silentFlowClientGenerateResultFromCacheRecord",
 
     /**
      * acquireTokenBySilentIframe (msal-browser).
@@ -180,6 +185,7 @@ export const PerformanceEvents = {
     SilentHandlerInitiateAuthRequest: "silentHandlerInitiateAuthRequest",
     SilentHandlerMonitorIframeForHash: "silentHandlerMonitorIframeForHash",
     SilentHandlerLoadFrame: "silentHandlerLoadFrame",
+    SilentHandlerLoadFrameSync: "silentHandlerLoadFrameSync",
 
     /**
      * Helper functions in StandardInteractionClient class (msal-browser)
@@ -202,7 +208,7 @@ export const PerformanceEvents = {
      * Functions from InteractionHandler (msal-browser)
      */
     HandleCodeResponseFromServer: "handleCodeResponseFromServer",
-    HandleCodeResponseFromHash: "handleCodeResponseFromHash",
+    HandleCodeResponse: "handleCodeResponse",
     UpdateTokenEndpointAuthority: "updateTokenEndpointAuthority",
 
     /**
@@ -223,6 +229,7 @@ export const PerformanceEvents = {
      * handleServerTokenResponse API in ResponseHandler (msal-common)
      */
     HandleServerTokenResponse: "handleServerTokenResponse",
+    DeserializeResponse: "deserializeResponse",
 
     /**
      * Authority functions
@@ -230,6 +237,8 @@ export const PerformanceEvents = {
     AuthorityFactoryCreateDiscoveredInstance:
         "authorityFactoryCreateDiscoveredInstance",
     AuthorityResolveEndpointsAsync: "authorityResolveEndpointsAsync",
+    AuthorityResolveEndpointsFromLocalSources:
+        "authorityResolveEndpointsFromLocalSources",
     AuthorityGetCloudDiscoveryMetadataFromNetwork:
         "authorityGetCloudDiscoveryMetadataFromNetwork",
     AuthorityUpdateCloudDiscoveryMetadata:
@@ -264,10 +273,22 @@ export const PerformanceEvents = {
 
     NativeGenerateAuthResult: "nativeGenerateAuthResult",
 
+    RemoveHiddenIframe: "removeHiddenIframe",
+
     /**
      * Cache operations
      */
     ClearTokensAndKeysWithClaims: "clearTokensAndKeysWithClaims",
+    CacheManagerGetRefreshToken: "cacheManagerGetRefreshToken",
+
+    /**
+     * Crypto Operations
+     */
+    GeneratePkceCodes: "generatePkceCodes",
+    GenerateCodeVerifier: "generateCodeVerifier",
+    GenerateCodeChallengeFromVerifier: "generateCodeChallengeFromVerifier",
+    Sha256Digest: "sha256Digest",
+    GetRandomValues: "getRandomValues",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -435,6 +456,12 @@ export type PerformanceEvent = {
     cacheLookupPolicy?: number | undefined;
 
     /**
+     * Cache Outcome
+     * @type {?number}
+     */
+    cacheOutcome?: number;
+
+    /**
      * Amount of time spent in the JS queue in milliseconds.
      *
      * @type {?number}
@@ -527,6 +554,18 @@ export type PerformanceEvent = {
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
+
+    /**
+     * Nested App Auth Fields
+     */
+    nestedAppAuthRequest?: boolean;
+
+    /**
+     * Multiple matched access/id/refresh tokens in the cache
+     */
+    multiMatchedAT?: number;
+    multiMatchedID?: number;
+    multiMatchedRT?: number;
 };
 
 export const IntFields: ReadonlySet<string> = new Set([
@@ -539,4 +578,7 @@ export const IntFields: ReadonlySet<string> = new Set([
     "queuedTimeMs",
     "startTimeMs",
     "status",
+    "multiMatchedAT",
+    "multiMatchedID",
+    "multiMatchedRT",
 ]);

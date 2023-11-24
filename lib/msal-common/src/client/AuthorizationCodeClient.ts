@@ -13,9 +13,9 @@ import {
     AuthenticationScheme,
     PromptValue,
     Separators,
-    AADServerParamKeys,
     HeaderNames,
 } from "../utils/Constants";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys";
 import {
     ClientConfiguration,
     isOidcProtocolMode,
@@ -25,7 +25,10 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
@@ -39,7 +42,10 @@ import {
     buildClientInfo,
 } from "../account/ClientInfo";
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
@@ -110,7 +116,9 @@ export class AuthorizationCodeClient extends BaseClient {
         );
 
         if (!request.code) {
-            throw ClientAuthError.createTokenRequestCannotBeMadeError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.requestCannotBeMade
+            );
         }
 
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -163,7 +171,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param hashFragment
      */
     handleFragmentResponse(
-        hashFragment: string,
+        serverParams: ServerAuthorizationCodeResponse,
         cachedState: string
     ): AuthorizationCodePayload {
         // Handle responses.
@@ -176,29 +184,20 @@ export class AuthorizationCodeClient extends BaseClient {
             null
         );
 
-        const serverParams: ServerAuthorizationCodeResponse =
-            UrlString.getDeserializedCodeResponse(
-                this.config.authOptions.authority.options.OIDCOptions
-                    ?.serverResponseType,
-                hashFragment
-            );
-
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
             serverParams,
-            cachedState,
-            this.cryptoUtils
+            cachedState
         );
 
         // throw when there is no auth code in the response
         if (!serverParams.code) {
-            throw ClientAuthError.createNoAuthCodeInServerResponseError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
+            );
         }
-        return {
-            ...serverParams,
-            // Code param is optional in ServerAuthorizationCodeResponse but required in AuthorizationCodePaylod
-            code: serverParams.code,
-        };
+
+        return serverParams as AuthorizationCodePayload;
     }
 
     /**
@@ -209,7 +208,9 @@ export class AuthorizationCodeClient extends BaseClient {
     getLogoutUri(logoutRequest: CommonEndSessionRequest): string {
         // Throw error if logoutRequest is null/undefined
         if (!logoutRequest) {
-            throw ClientConfigurationError.createEmptyLogoutRequestError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.logoutRequestEmpty
+            );
         }
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
@@ -270,7 +271,9 @@ export class AuthorizationCodeClient extends BaseClient {
         );
 
         const thumbprint: RequestThumbprint = {
-            clientId: this.config.authOptions.clientId,
+            clientId:
+                request.tokenBodyParameters?.clientId ||
+                this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes,
             claims: request.claims,
@@ -283,11 +286,18 @@ export class AuthorizationCodeClient extends BaseClient {
 
         return invokeAsync(
             this.executePostToTokenEndpoint.bind(this),
-            PerformanceEvents.BaseClientExecutePostToTokenEndpoint,
+            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
+        )(
+            endpoint,
+            requestBody,
+            headers,
+            thumbprint,
+            request.correlationId,
+            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint
+        );
     }
 
     /**
@@ -371,18 +381,22 @@ export class AuthorizationCodeClient extends BaseClient {
                 this.performanceClient
             );
 
-            this.performanceClient?.setPreQueueTime(
+            const reqCnfData = await invokeAsync(
+                popTokenGenerator.generateCnf.bind(popTokenGenerator),
                 PerformanceEvents.PopTokenGenerateCnf,
+                this.logger,
+                this.performanceClient,
                 request.correlationId
-            );
-            const reqCnfData = await popTokenGenerator.generateCnf(request);
+            )(request, this.logger);
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
-                throw ClientConfigurationError.createMissingSshJwkError();
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                );
             }
         }
 
@@ -652,7 +666,13 @@ export class AuthorizationCodeClient extends BaseClient {
                     this.cryptoUtils
                 );
                 // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-                const reqCnfData = await popTokenGenerator.generateCnf(request);
+                const reqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(request, this.logger);
                 parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
             }
         }

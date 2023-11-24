@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { setPassword, getPassword, deletePassword } from "keytar";
+import keytar from "keytar";
 import { FilePersistence } from "./FilePersistence";
 import { IPersistence } from "./IPersistence";
 import { PersistenceError } from "../error/PersistenceError";
@@ -57,7 +57,11 @@ export class KeychainPersistence
 
     public async save(contents: string): Promise<void> {
         try {
-            await setPassword(this.serviceName, this.accountName, contents);
+            await keytar.setPassword(
+                this.serviceName,
+                this.accountName,
+                contents
+            );
         } catch (err) {
             if (isNodeError(err)) {
                 throw PersistenceError.createKeychainPersistenceError(
@@ -73,7 +77,7 @@ export class KeychainPersistence
 
     public async load(): Promise<string | null> {
         try {
-            return await getPassword(this.serviceName, this.accountName);
+            return await keytar.getPassword(this.serviceName, this.accountName);
         } catch (err) {
             if (isNodeError(err)) {
                 throw PersistenceError.createKeychainPersistenceError(
@@ -88,7 +92,10 @@ export class KeychainPersistence
     public async delete(): Promise<boolean> {
         try {
             await this.filePersistence.delete();
-            return await deletePassword(this.serviceName, this.accountName);
+            return await keytar.deletePassword(
+                this.serviceName,
+                this.accountName
+            );
         } catch (err) {
             if (isNodeError(err)) {
                 throw PersistenceError.createKeychainPersistenceError(

@@ -17,7 +17,6 @@ import {
     CommonClientCredentialRequest,
     CommonOnBehalfOfRequest,
     AuthenticationResult,
-    ClientAuthError,
     AzureRegionConfiguration,
     AuthError,
     Constants,
@@ -25,6 +24,8 @@ import {
     OIDC_DEFAULT_SCOPES,
     UrlString,
     AADAuthorityConstants,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
@@ -125,7 +126,9 @@ export class ConfidentialClientApplication
                 tenantId as AADAuthorityConstants
             )
         ) {
-            throw ClientAuthError.createMissingTenantIdError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.missingTenantIdError
+            );
         }
 
         const azureRegionConfiguration: AzureRegionConfiguration = {
@@ -155,7 +158,7 @@ export class ConfidentialClientApplication
                 "Client credential client created",
                 validRequest.correlationId
             );
-            return clientCredentialClient.acquireToken(validRequest);
+            return await clientCredentialClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -200,7 +203,7 @@ export class ConfidentialClientApplication
                 "On behalf of client created",
                 validRequest.correlationId
             );
-            return oboClient.acquireToken(validRequest);
+            return await oboClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -233,7 +236,9 @@ export class ConfidentialClientApplication
             (clientAssertionNotEmpty && certificateNotEmpty) ||
             (clientSecretNotEmpty && certificateNotEmpty)
         ) {
-            throw ClientAuthError.createInvalidCredentialError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidClientCredential
+            );
         }
 
         if (configuration.auth.clientSecret) {
@@ -249,7 +254,9 @@ export class ConfidentialClientApplication
         }
 
         if (!certificateNotEmpty) {
-            throw ClientAuthError.createInvalidCredentialError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidClientCredential
+            );
         } else {
             this.clientAssertion = ClientAssertion.fromCertificate(
                 certificate.thumbprint,

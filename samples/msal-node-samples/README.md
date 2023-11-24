@@ -83,13 +83,17 @@ Each application has an `index.js` file, which is considered the entry point of 
 
 Some of the samples, like the `auth-code` sample, have a `config/` directory in which configuration files for different scenarios are included. You can also create your own configuration `.json` file based on the examples in the `config/` directory and just update the `scenario` variable in these sample applications to customize the configuration to match your Azure AD app registration.
 
+An exception is the client secret, which must be stored in an `.env` file instead of the configuration since secrets should never be hardcoded. The dotenv npm package can be used to store secrets or certificates in a .env file (located in project's root directory) that should be included in .gitignore to prevent accidental uploads of the secrets.
+
+Please see "Certificates and Secrets" (https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets) for more information.
+
 ```javascript
 const config = {
     auth: {
         clientId: "YOUR_CLIENT_ID",
         authority: "YOUR_AUTHORITY_URL",
         knownAuthorities: ["YOUR_KNOWN_AUTHORITY"], // typically applies to apps on Azure AD B2C
-        clientSecret: "YOUR_CLIENT_SECRET" // only applies to Confidential Client applications, such as backend web applications
+        clientSecret: process.env.CLIENT_SECRET // only applies to Confidential Client applications, such as backend web applications
     }
 };
 ```

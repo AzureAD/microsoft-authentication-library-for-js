@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Adding logging to make regional scenarios more clear",
+  "packageName": "@azure/msal-node",
+  "email": "trwalke@microsoft.com",
+  "dependentChangeType": "patch"
+}

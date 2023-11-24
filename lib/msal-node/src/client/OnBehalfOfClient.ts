@@ -14,10 +14,11 @@ import {
     AuthToken,
     BaseClient,
     CacheOutcome,
-    ClientAuthError,
+    ClientAuthErrorCodes,
     ClientConfiguration,
     CommonOnBehalfOfRequest,
     Constants,
+    createClientAuthError,
     CredentialFilter,
     CredentialType,
     GrantType,
@@ -58,7 +59,7 @@ export class OnBehalfOfClient extends BaseClient {
         );
 
         if (request.skipCache) {
-            return await this.executeTokenRequest(
+            return this.executeTokenRequest(
                 request,
                 this.authority,
                 this.userAssertionHash
@@ -101,7 +102,9 @@ export class OnBehalfOfClient extends BaseClient {
             this.logger.info(
                 "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties."
             );
-            throw ClientAuthError.createRefreshRequiredError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired
+            );
         } else if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
@@ -115,7 +118,9 @@ export class OnBehalfOfClient extends BaseClient {
             this.logger.info(
                 `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`
             );
-            throw ClientAuthError.createRefreshRequiredError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenRefreshRequired
+            );
         }
 
         // fetch the idToken from cache
@@ -146,7 +151,7 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.serverTelemetryManager.incrementCacheHits();
         }
 
-        return await ResponseHandler.generateAuthenticationResult(
+        return ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             this.authority,
             {
@@ -229,7 +234,9 @@ export class OnBehalfOfClient extends BaseClient {
         if (numAccessTokens < 1) {
             return null;
         } else if (numAccessTokens > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens
+            );
         }
 
         return accessTokens[0] as AccessTokenEntity;

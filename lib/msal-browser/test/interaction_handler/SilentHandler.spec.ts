@@ -4,167 +4,32 @@
  */
 
 import {
-    PkceCodes,
-    AuthorityFactory,
-    CommonAuthorizationCodeRequest,
-    Constants,
-    AuthorizationCodeClient,
-    ProtocolMode,
     Logger,
     LoggerOptions,
-    AuthenticationScheme,
-    AuthorityOptions,
-    ClientConfiguration,
     IPerformanceClient,
+    ServerResponseType,
 } from "@azure/msal-common";
-import sinon from "sinon";
-import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
-import {
-    Configuration,
-    buildConfiguration,
-} from "../../src/config/Configuration";
-import {
-    TEST_CONFIG,
-    testNavUrl,
-    TEST_URIS,
-    RANDOM_TEST_GUID,
-    TEST_POP_VALUES,
-    TEST_CRYPTO_VALUES,
-} from "../utils/StringConstants";
-import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
+import * as SilentHandler from "../../src/interaction_handler/SilentHandler";
+import { testNavUrl, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import {
     BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { TestStorageManager } from "../cache/TestStorageManager";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 const DEFAULT_POLL_INTERVAL_MS = 30;
 
-const testPkceCodes = {
-    challenge: "TestChallenge",
-    verifier: "TestVerifier",
-} as PkceCodes;
-
-const testNetworkResult = {
-    testParam: "testValue",
-};
-
-const defaultTokenRequest: CommonAuthorizationCodeRequest = {
-    redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-    code: "thisIsATestCode",
-    scopes: TEST_CONFIG.DEFAULT_SCOPES,
-    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-    authority: `${Constants.DEFAULT_AUTHORITY}/`,
-    correlationId: RANDOM_TEST_GUID,
-    authenticationScheme: AuthenticationScheme.BEARER,
-};
-
-const networkInterface = {
-    sendGetRequestAsync<T>(): T {
-        return {} as T;
-    },
-    sendPostRequestAsync<T>(): T {
-        return {} as T;
-    },
-};
-
 describe("SilentHandler.ts Unit Tests", () => {
-    let authCodeModule: AuthorizationCodeClient;
     let browserRequestLogger: Logger;
-    let browserStorage: BrowserCacheManager;
     let performanceClient: IPerformanceClient;
 
     beforeEach(() => {
-        const appConfig: Configuration = {
-            auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            },
-        };
-        const configObj = buildConfiguration(appConfig, true);
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: ProtocolMode.AAD,
-            knownAuthorities: [],
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-        };
         const loggerOptions: LoggerOptions = {
             loggerCallback: (): void => {},
             piiLoggingEnabled: true,
         };
-        const logger: Logger = new Logger(loggerOptions);
-        const authorityInstance = AuthorityFactory.createInstance(
-            configObj.auth.authority,
-            networkInterface,
-            browserStorage,
-            authorityOptions,
-            logger
-        );
-        const authConfig: ClientConfiguration = {
-            authOptions: {
-                ...configObj.auth,
-                authority: authorityInstance,
-            },
-            systemOptions: {
-                tokenRenewalOffsetSeconds:
-                    configObj.system.tokenRenewalOffsetSeconds,
-            },
-            cryptoInterface: {
-                createNewGuid: (): string => {
-                    return "newGuid";
-                },
-                base64Decode: (input: string): string => {
-                    return "testDecodedString";
-                },
-                base64Encode: (input: string): string => {
-                    return "testEncodedString";
-                },
-                generatePkceCodes: async (): Promise<PkceCodes> => {
-                    return testPkceCodes;
-                },
-                getPublicKeyThumbprint: async (): Promise<string> => {
-                    return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                },
-                signJwt: async (): Promise<string> => {
-                    return "signedJwt";
-                },
-                removeTokenBindingKey: async (): Promise<boolean> => {
-                    return Promise.resolve(true);
-                },
-                clearKeystore: async (): Promise<boolean> => {
-                    return Promise.resolve(true);
-                },
-                hashString: async (): Promise<string> => {
-                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-                },
-            },
-            networkInterface: {
-                sendGetRequestAsync: async (): Promise<any> => {
-                    return testNetworkResult;
-                },
-                sendPostRequestAsync: async (): Promise<any> => {
-                    return testNetworkResult;
-                },
-            },
-            loggerOptions: loggerOptions,
-        };
-        authConfig.storageInterface = new TestStorageManager(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            authConfig.cryptoInterface!,
-            logger
-        );
-        authCodeModule = new AuthorizationCodeClient(authConfig);
-        const browserCrypto = new CryptoOps(logger);
-        browserStorage = new BrowserCacheManager(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            configObj.cache,
-            browserCrypto,
-            logger
-        );
-        browserRequestLogger = new Logger(authConfig.loggerOptions!);
+        browserRequestLogger = new Logger(loggerOptions);
         performanceClient = {
             startMeasurement: jest.fn(),
             endMeasurement: jest.fn(),
@@ -183,48 +48,18 @@ describe("SilentHandler.ts Unit Tests", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
-    });
-
-    describe("Constructor", () => {
-        it("creates a subclass of InteractionHandler called SilentHandler", () => {
-            const silentHandler = new SilentHandler(
-                authCodeModule,
-                browserStorage,
-                defaultTokenRequest,
-                browserRequestLogger,
-                {
-                    navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS,
-                    pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS,
-                },
-                performanceClient
-            );
-            expect(silentHandler instanceof SilentHandler).toBe(true);
-            expect(silentHandler instanceof InteractionHandler).toBe(true);
-        });
+        jest.restoreAllMocks();
     });
 
     describe("initiateAuthRequest()", () => {
         it("throws error if requestUrl is empty", async () => {
-            const silentHandler = new SilentHandler(
-                authCodeModule,
-                browserStorage,
-                defaultTokenRequest,
-                browserRequestLogger,
-                {
-                    navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS,
-                    pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS,
-                },
-                performanceClient
-            );
             await expect(
-                silentHandler.initiateAuthRequest("")
-            ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
-            );
-            await expect(
-                //@ts-ignore
-                silentHandler.initiateAuthRequest(null)
+                SilentHandler.initiateAuthRequest(
+                    "",
+                    performanceClient,
+                    browserRequestLogger,
+                    RANDOM_TEST_GUID
+                )
             ).rejects.toMatchObject(
                 createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
             );
@@ -233,49 +68,34 @@ describe("SilentHandler.ts Unit Tests", () => {
         it(
             "Creates a frame asynchronously when created with default timeout",
             async () => {
-                const silentHandler = new SilentHandler(
-                    authCodeModule,
-                    browserStorage,
-                    defaultTokenRequest,
+                const startTime = Date.now();
+                const authFrame = await SilentHandler.initiateAuthRequest(
+                    testNavUrl,
+                    performanceClient,
                     browserRequestLogger,
-                    {
-                        navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS,
-                        pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS,
-                    },
-                    performanceClient
+                    RANDOM_TEST_GUID,
+                    DEFAULT_IFRAME_TIMEOUT_MS
                 );
-                const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
-                const authFrame = await silentHandler.initiateAuthRequest(
-                    testNavUrl
+                const endTime = Date.now();
+                expect(endTime - startTime).toBeGreaterThanOrEqual(
+                    DEFAULT_IFRAME_TIMEOUT_MS
                 );
-                expect(loadFrameSpy.called).toBe(true);
                 expect(authFrame instanceof HTMLIFrameElement).toBe(true);
             },
             DEFAULT_IFRAME_TIMEOUT_MS + 1000
         );
 
         it("Creates a frame synchronously when created with a timeout of 0", async () => {
-            const silentHandler = new SilentHandler(
-                authCodeModule,
-                browserStorage,
-                defaultTokenRequest,
+            const startTime = Date.now();
+            const authFrame = await SilentHandler.initiateAuthRequest(
+                testNavUrl,
+                performanceClient,
                 browserRequestLogger,
-                {
-                    navigateFrameWait: 0,
-                    pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS,
-                },
-                performanceClient
+                RANDOM_TEST_GUID,
+                0
             );
-            const loadFrameSyncSpy = sinon.spy(
-                silentHandler,
-                <any>"loadFrameSync"
-            );
-            const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
-            const authFrame = await silentHandler.initiateAuthRequest(
-                testNavUrl
-            );
-            expect(loadFrameSyncSpy.calledOnce).toBe(true);
-            expect(loadFrameSpy.called).toBe(false);
+            const endTime = Date.now();
+            expect(endTime - startTime).toBeLessThan(DEFAULT_IFRAME_TIMEOUT_MS);
             expect(authFrame instanceof HTMLIFrameElement).toBe(true);
         });
     });
@@ -289,19 +109,16 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
             };
 
-            const silentHandler = new SilentHandler(
-                authCodeModule,
-                browserStorage,
-                defaultTokenRequest,
+            SilentHandler.monitorIframeForHash(
+                // @ts-ignore
+                iframe,
+                500,
+                DEFAULT_POLL_INTERVAL_MS,
+                performanceClient,
                 browserRequestLogger,
-                {
-                    navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS,
-                    pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS,
-                },
-                performanceClient
-            );
-            // @ts-ignore
-            silentHandler.monitorIframeForHash(iframe, 500).catch((e) => {
+                RANDOM_TEST_GUID,
+                ServerResponseType.FRAGMENT
+            ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
                     createBrowserAuthError(
@@ -324,19 +141,16 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
             };
 
-            const silentHandler = new SilentHandler(
-                authCodeModule,
-                browserStorage,
-                defaultTokenRequest,
+            SilentHandler.monitorIframeForHash(
+                // @ts-ignore
+                iframe,
+                2000,
+                DEFAULT_POLL_INTERVAL_MS,
+                performanceClient,
                 browserRequestLogger,
-                {
-                    navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS,
-                    pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS,
-                },
-                performanceClient
-            );
-            // @ts-ignore
-            silentHandler.monitorIframeForHash(iframe, 2000).catch((e) => {
+                RANDOM_TEST_GUID,
+                ServerResponseType.FRAGMENT
+            ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
                     createBrowserAuthError(
@@ -380,107 +194,24 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
             };
 
-            const silentHandler = new SilentHandler(
-                authCodeModule,
-                browserStorage,
-                defaultTokenRequest,
+            SilentHandler.monitorIframeForHash(
+                // @ts-ignore
+                iframe,
+                1000,
+                DEFAULT_POLL_INTERVAL_MS,
+                performanceClient,
                 browserRequestLogger,
-                {
-                    navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS,
-                    pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS,
-                },
-                performanceClient
-            );
-            silentHandler
-                //@ts-ignore
-                .monitorIframeForHash(iframe, 1000)
-                .then((hash: string) => {
-                    expect(hash).toEqual("#code=hello");
-                    done();
-                });
+                RANDOM_TEST_GUID,
+                ServerResponseType.FRAGMENT
+            ).then((hash: string) => {
+                expect(hash).toEqual("#code=hello");
+                done();
+            });
 
             setTimeout(() => {
                 iframe.contentWindow.location = {
                     href: "http://localhost/#code=hello",
                     hash: "#code=hello",
-                };
-            }, 500);
-        });
-
-        it("Throws hash empty error", (done) => {
-            const iframe = {
-                contentWindow: {
-                    location: {
-                        href: "about:blank",
-                        hash: "",
-                    },
-                },
-            };
-
-            const silentHandler = new SilentHandler(
-                authCodeModule,
-                browserStorage,
-                defaultTokenRequest,
-                browserRequestLogger,
-                {
-                    navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS,
-                    pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS,
-                },
-                performanceClient
-            );
-            // @ts-ignore
-            silentHandler.monitorIframeForHash(iframe, 1000).catch((e) => {
-                expect(e).toBeInstanceOf(BrowserAuthError);
-                expect(e).toMatchObject(
-                    createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
-                );
-                done();
-            });
-
-            setTimeout(() => {
-                iframe.contentWindow.location = {
-                    href: "http://localhost/",
-                    hash: "",
-                };
-            }, 500);
-        });
-
-        it("Throws hashDoesNotContainKnownProperties error", (done) => {
-            const iframe = {
-                contentWindow: {
-                    location: {
-                        href: "about:blank",
-                        hash: "",
-                    },
-                },
-            };
-
-            const silentHandler = new SilentHandler(
-                authCodeModule,
-                browserStorage,
-                defaultTokenRequest,
-                browserRequestLogger,
-                {
-                    navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS,
-                    pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS,
-                },
-                performanceClient
-            );
-            // @ts-ignore
-            silentHandler.monitorIframeForHash(iframe, 1000).catch((e) => {
-                expect(e).toBeInstanceOf(BrowserAuthError);
-                expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-                    )
-                );
-                done();
-            });
-
-            setTimeout(() => {
-                iframe.contentWindow.location = {
-                    href: "http://localhost/#myCustomHash",
-                    hash: "myCustomHash",
                 };
             }, 500);
         });
