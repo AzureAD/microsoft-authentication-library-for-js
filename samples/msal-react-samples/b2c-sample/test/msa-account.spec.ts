@@ -1,13 +1,19 @@
 import * as puppeteer from "puppeteer";
-import {Screenshot, setupCredentials, b2cMsaAccountEnterCredentials, RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
-import { LabClient } from "e2e-test-utils/src/LabClient";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { UserTypes, B2cProviders } from "e2e-test-utils/src/Constants";
-import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
+import {
+    Screenshot,
+    setupCredentials,
+    b2cMsaAccountEnterCredentials,
+    RETRY_TIMES,
+    LabClient,
+    LabApiQueryParams,
+    UserTypes,
+    B2cProviders,
+    BrowserCacheUtils,
+} from "e2e-test-utils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/msa-account-tests`;
 
-describe('B2C user-flow tests (msa account)', () => {
+describe("B2C user-flow tests (msa account)", () => {
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -25,13 +31,18 @@ describe('B2C user-flow tests (msa account)', () => {
 
         const labApiParams: LabApiQueryParams = {
             userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.TWITTER
+            b2cProvider: B2cProviders.TWITTER,
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParams
+        );
 
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
     });
 
     beforeEach(async () => {
@@ -49,18 +60,29 @@ describe('B2C user-flow tests (msa account)', () => {
 
     it("Edits profile with the policy", async (): Promise<void> => {
         const testName = "editProfileWithPolicy";
-        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
+        const signInButton = await page.waitForSelector(
+            "xpath=//button[contains(., 'Login')]"
+        );
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const loginRedirectButton = await page.waitForSelector("xpath=//li[contains(., 'Sign in using Redirect')]");
+        const loginRedirectButton = await page.waitForSelector(
+            "xpath=//li[contains(., 'Sign in using Redirect')]"
+        );
         await loginRedirectButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
 
-        await b2cMsaAccountEnterCredentials(page, screenshot, username, accountPwd);
+        await b2cMsaAccountEnterCredentials(
+            page,
+            screenshot,
+            username,
+            accountPwd
+        );
 
         // Verify UI now displays logged in content
         await page.waitForXPath("//header[contains(., 'Welcome,')]");
@@ -71,25 +93,44 @@ describe('B2C user-flow tests (msa account)', () => {
         expect(tokenStoreBeforeEdit.idTokens.length).toBe(1);
         expect(tokenStoreBeforeEdit.accessTokens.length).toBe(1);
         expect(tokenStoreBeforeEdit.refreshTokens.length).toBe(1);
-        expect(await BrowserCache.getAccountFromCache(tokenStoreBeforeEdit.idTokens[0])).not.toBeNull();
-        expect(await BrowserCache.accessTokenForScopesExists(tokenStoreBeforeEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
+        expect(
+            await BrowserCache.getAccountFromCache(
+                tokenStoreBeforeEdit.idTokens[0]
+            )
+        ).not.toBeNull();
+        expect(
+            await BrowserCache.accessTokenForScopesExists(
+                tokenStoreBeforeEdit.accessTokens,
+                ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
+            )
+        ).toBeTruthy;
 
         // initiate edit profile flow
-        const editProfileButton = await page.waitForSelector("#editProfileButton");
+        const editProfileButton = await page.waitForSelector(
+            "#editProfileButton"
+        );
         if (editProfileButton) {
             await editProfileButton.click();
         }
         let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
-        await page.waitForSelector("#attributeVerification", {visible: true});
-        await page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
-        await page.type("#displayName", `${displayName}`),
-        await page.click("#continue");
+        await page.waitForSelector("#attributeVerification", { visible: true });
+        await page.$eval("#displayName", (el: any) => (el.value = "")), // clear the text field
+            await page.type("#displayName", `${displayName}`),
+            await page.click("#continue");
         await Promise.all([
-            page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`),
+            page.waitForFunction(
+                `window.location.href.startsWith("http://localhost:${port}")`
+            ),
             page.waitForSelector("#idTokenClaims"),
-            page.waitForXPath("//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]", {timeout: 4000})
+            page.waitForXPath(
+                "//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]",
+                { timeout: 4000 }
+            ),
         ]);
-        const idTokenClaims = await page.$eval("#idTokenClaims", (e) => e.textContent);
+        const idTokenClaims = await page.$eval(
+            "#idTokenClaims",
+            (e) => e.textContent
+        );
         expect(idTokenClaims).toContain("B2C_1_SISOPolicy"); // implies the current active account
         expect(idTokenClaims).toContain(`${displayName}`);
 
@@ -98,9 +139,21 @@ describe('B2C user-flow tests (msa account)', () => {
         expect(tokenStoreAfterEdit.idTokens.length).toBe(2); // 1 for each policy
         expect(tokenStoreAfterEdit.accessTokens.length).toBe(1);
         expect(tokenStoreAfterEdit.refreshTokens.length).toBe(2); // 1 for each policy
-        expect(await BrowserCache.getAccountFromCache(tokenStoreAfterEdit.idTokens[0])).not.toBeNull();
-        expect(await BrowserCache.getAccountFromCache(tokenStoreAfterEdit.idTokens[1])).not.toBeNull(); // new account after edit
-        expect(await BrowserCache.accessTokenForScopesExists(tokenStoreAfterEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
+        expect(
+            await BrowserCache.getAccountFromCache(
+                tokenStoreAfterEdit.idTokens[0]
+            )
+        ).not.toBeNull();
+        expect(
+            await BrowserCache.getAccountFromCache(
+                tokenStoreAfterEdit.idTokens[1]
+            )
+        ).not.toBeNull(); // new account after edit
+        expect(
+            await BrowserCache.accessTokenForScopesExists(
+                tokenStoreAfterEdit.accessTokens,
+                ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
+            )
+        ).toBeTruthy;
     });
-  }
-);
+});

@@ -2,6 +2,202 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 07 Nov 2023 00:01:50 GMT",
+      "version": "14.4.0",
+      "tag": "@azure/msal-common_v14.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "42a5e13c333d34be82734bcc3cd91ff7e8dd7d25",
+            "comment": "Convert ServerTelemetryEntity to Type instead of Class #6651"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "e9dd9337c02fcfe008514f5fd057087d3409cc91",
+            "comment": "Make SHR header configurable #6654"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "33ae9c8143a924c2d7f2114c1ff4a869c259a97c",
+            "comment": "Instrument functions that drop multiple matched tokens #6647"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "619e10fe4ffb23060137150cd93c954cc2ca05ae",
+            "comment": "Update hash/query parsing to use runtime provided APIs #6646"
+          }
+        ],
+        "patch": [
+          {
+            "author": "trwalke@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "9ed331c47f6a8d6c10a640a884a3db966f6a58a4",
+            "comment": "Removing allowestsrnonmsi query parameter"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "db14ee4cb268de9e048fb3ab31a953917f2abdeb",
+            "comment": "Update cache outcome log message #6644"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 30 Oct 2023 21:38:25 GMT",
+      "version": "14.3.0",
+      "tag": "@azure/msal-common_v14.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5f49a5e39a6d0d5ae319c7a21ed18d06d8a6fd51",
+            "comment": "Refactor token cache entities to be defined as Types rather than Classes #6580"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3e4c956c57e1476632cab77832493d4d0c51470b",
+            "comment": "Don't use temporary cache for silent & popup flows #6586"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c93777ed04311851fe2a7028bb5d86e073c98f52",
+            "comment": "Fix hardcoded metadata fetching for tenanted authorities #6622"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Oct 2023 17:24:19 GMT",
+      "version": "14.2.0",
+      "tag": "@azure/msal-common_v14.2.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "@azure/msal-common",
+            "commit": "618c4caa4bf0fb0bd64128dadb7a0c8a681c6b87",
+            "comment": "Added some new error codes/messages for NestedAppAuth. #6359"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "cfac159c239152524542e7fe6d76ca5e0b415b7f",
+            "comment": "Add new PerformanceEvents for create/remove hidden iframe #6533"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "31fb0a77a6bf9db77a41330fa09a76db4ff030c0",
+            "comment": "Additional ATS instrumentation #6562"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0f5e6c2142889ea9f43d808f270aec9264afd363",
+            "comment": "Build account objects from cached ID Token #6529"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 05 Oct 2023 18:06:41 GMT",
+      "version": "14.1.0",
+      "tag": "@azure/msal-common_v14.1.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4d75b093973b1c0b01feb4601f07d10390d44dd2",
+            "comment": "Refactor ClientAuthError for reduced size #6433"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0cad734bb8ded0a17c9eeedfd8d25c7717bbf6a7",
+            "comment": "Refactor JoseHeaderError and AuthError for reduced size #6497"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "19eed25a69afd6d57caad4230cff9d333f91d309",
+            "comment": "Do not add v2.0 to authority endpoint if already exists #6457"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "781325ba46c8c7eb216b8fff8eebda253aadfea9",
+            "comment": "Instrument Crypto APIs #6512"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ae92c9a9fefcdc98b3bff206d66c9bc4db1db76c",
+            "comment": "Refactor ClientConfigurationError #6471"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "bfdd254075e204a9c101e8614efd6965c7d40dd7",
+            "comment": "Add tokenBodyParameters support in RefreshTokenClient #6504"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5f19f7f29e8eeac7c53030598c1bf6fc7a96c615",
+            "comment": "Refactor InteractionRequiredAuthError #6472"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ae39f51c138afa8160f17f9d5e1fc6f3f01afb08",
+            "comment": "use invoke for telem measurements #6486"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "a9af309d6ead067c79e221a49eb804758c613655",
+            "comment": "Add missing queue measurement instrumentation #6480"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "48659582a1634c48324194d812177f8a1d8c8b01",
+            "comment": "Add getAccount and enhance account filtering #6499"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3f74c7263ffb405a3183186640945337fbf5cfd4",
+            "comment": "Modified proactive refresh in silent-flow to also return the cached token when the token needs to be refreshed #6397"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "fbbb9060775198412eead3e844ef6f4d1968cea3",
+            "comment": "Turn off composite/project references"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Sep 2023 22:13:47 GMT",
       "version": "14.0.3",
       "tag": "@azure/msal-common_v14.0.3",

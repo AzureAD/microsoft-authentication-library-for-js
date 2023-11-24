@@ -4,9 +4,10 @@
  */
 
 import {
+    AuthErrorCodes,
     AuthenticationResult,
     BaseClient,
-    ClientAuthError,
+    ClientAuthErrorCodes,
     ClientConfiguration,
     CommonDeviceCodeRequest,
     Constants,
@@ -17,10 +18,11 @@ import {
     ResponseHandler,
     ServerAuthorizationTokenResponse,
     ServerDeviceCodeResponse,
-    ServerError,
     StringUtils,
     TimeUtils,
     UrlString,
+    createAuthError,
+    createClientAuthError,
 } from "@azure/msal-common";
 
 /**
@@ -58,7 +60,7 @@ export class DeviceCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response);
-        return await responseHandler.handleServerTokenResponse(
+        return responseHandler.handleServerTokenResponse(
             response,
             this.authority,
             reqTimestamp,
@@ -200,7 +202,9 @@ export class DeviceCodeClient extends BaseClient {
             this.logger.error(
                 "Token request cancelled by setting DeviceCodeRequest.cancel = true"
             );
-            throw ClientAuthError.createDeviceCodeCancelledError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.deviceCodePollingCancelled
+            );
         } else if (
             userSpecifiedTimeout &&
             userSpecifiedTimeout < deviceCodeExpirationTime &&
@@ -209,7 +213,9 @@ export class DeviceCodeClient extends BaseClient {
             this.logger.error(
                 `User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`
             );
-            throw ClientAuthError.createUserTimeoutReachedError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.userTimeoutReached
+            );
         } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
             if (userSpecifiedTimeout) {
                 this.logger.verbose(
@@ -219,7 +225,7 @@ export class DeviceCodeClient extends BaseClient {
             this.logger.error(
                 `Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`
             );
-            throw ClientAuthError.createDeviceCodeExpiredError();
+            throw createClientAuthError(ClientAuthErrorCodes.deviceCodeExpired);
         }
         return true;
     }
@@ -295,7 +301,8 @@ export class DeviceCodeClient extends BaseClient {
                     this.logger.info(
                         "Unexpected error in polling from the server"
                     );
-                    throw ServerError.createPostRequestFailed(
+                    throw createAuthError(
+                        AuthErrorCodes.postRequestFailed,
                         response.body.error
                     );
                 }
@@ -312,7 +319,9 @@ export class DeviceCodeClient extends BaseClient {
          * and in the rare case the conditionals in continuePolling() may not catch everything...
          */
         this.logger.error("Polling stopped for unknown reasons.");
-        throw ClientAuthError.createDeviceCodeUnknownError();
+        throw createClientAuthError(
+            ClientAuthErrorCodes.deviceCodeUnknownError
+        );
     }
 
     /**

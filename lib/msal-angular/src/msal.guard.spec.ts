@@ -5,7 +5,6 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { Location } from '@angular/common';
 import {
   BrowserSystemOptions,
-  BrowserUtils,
   InteractionType,
   IPublicClientApplication,
   LogLevel,
@@ -102,7 +101,7 @@ describe('MsalGuard', () => {
 
   it('returns false if page with MSAL Guard is set as redirectUri', (done) => {
     spyOn(UrlString, 'hashContainsKnownProperties').and.returnValue(true);
-    spyOn(BrowserUtils, 'isInIframe').and.returnValue(true);
+    spyOnProperty(window, 'parent', 'get').and.returnValue({ ...window });
 
     guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
       expect(result).toBeFalse();

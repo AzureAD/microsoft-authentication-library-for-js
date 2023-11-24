@@ -29,7 +29,6 @@ import {
     TokenClaims,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
-    AuthToken,
     PersistentCacheKeys,
     AuthorizationCodeClient,
     ResponseMode,
@@ -45,11 +44,14 @@ import {
     CommonEndSessionRequest,
     ServerTelemetryManager,
     AccountEntity,
-    ClientConfigurationError,
     AuthError,
     NetworkManager,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+    IdTokenEntity,
+    CredentialType,
 } from "@azure/msal-common";
-import { BrowserUtils } from "../../src/utils/BrowserUtils";
+import * as BrowserUtils from "../../src/utils/BrowserUtils";
 import {
     TemporaryCacheKeys,
     ApiId,
@@ -65,6 +67,8 @@ import {
 } from "../../src/error/BrowserAuthError";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
+import * as PkceGenerator from "../../src/crypto/PkceGenerator";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
@@ -118,13 +122,23 @@ describe("RedirectClient", () => {
             },
         });
 
-        //Implementation of PCA was moved to controller.
-        pca = (pca as any).controller;
         await pca.initialize();
 
-        sinon
-            .stub(CryptoOps.prototype, "createNewGuid")
-            .returns(RANDOM_TEST_GUID);
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
+        jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+            RANDOM_TEST_GUID
+        );
+
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateExternal"
+        ).mockResolvedValue(true);
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateInternal"
+        ).mockResolvedValue(true);
 
         // @ts-ignore
         browserStorage = pca.browserStorage;
@@ -190,18 +204,17 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .returns(TEST_HASHES.TEST_SUCCESS_HASH_NO_STATE);
-            redirectClient.handleRedirectPromise().then((response) => {
-                expect(response).toBe(null);
-                expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(0);
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise("#code=ThisIsAnAuthCode")
+                .then((response) => {
+                    expect(response).toBe(null);
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
         });
 
-        it("cleans temporary cache and return null if state is wrong interaction type", (done) => {
+        it("If response hash is not a Redirect response cleans temporary cache, return null and don't remove hash", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
@@ -213,13 +226,14 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .returns(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
             redirectClient.handleRedirectPromise().then((response) => {
                 expect(response).toBe(null);
                 expect(window.localStorage.length).toEqual(0);
                 expect(window.sessionStorage.length).toEqual(0);
+                expect(window.location.hash).toEqual(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+                );
                 done();
             });
         });
@@ -240,9 +254,12 @@ describe("RedirectClient", () => {
                 "Unexpected error!",
                 "Unexpected error"
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .throws(testError);
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"getRedirectResponse"
+            ).mockImplementation(() => {
+                throw testError;
+            });
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(testError);
                 expect(window.localStorage.length).toEqual(0);
@@ -263,16 +280,142 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            //sinon.stub(BrowserProtocolUtils, "extractBrowserRequestState").returns(null);
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .returns(TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META);
-            redirectClient.handleRedirectPromise().then((response) => {
-                expect(response).toBe(null);
-                expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(0);
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META
+                )
+                .then((response) => {
+                    expect(response).toBe(null);
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
+        });
+
+        it("cleans temporary cache and re-throws error thrown by handleResponse when loginRequestUrl == current url", (done) => {
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                window.location.href,
+                true
+            );
+            const statekey = browserStorage.generateStateKey(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            browserStorage.setTemporaryCache(
+                statekey,
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                true
+            );
+
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockRejectedValue("Error in handleResponse");
+            redirectClient
+                .handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                )
+                .catch((e) => {
+                    expect(e).toEqual("Error in handleResponse");
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
+        });
+
+        it("cleans temporary cache and re-throws error thrown by handleResponse after clientside navigation to loginRequestUrl", (done) => {
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateInternal"
+            ).mockResolvedValue(false); // Client-side navigation
+
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                window.location.href + "/differentPath",
+                true
+            );
+            const statekey = browserStorage.generateStateKey(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            browserStorage.setTemporaryCache(
+                statekey,
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                true
+            );
+
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockRejectedValue("Error in handleResponse");
+            redirectClient
+                .handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                )
+                .catch((e) => {
+                    expect(e).toEqual("Error in handleResponse");
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
+        });
+
+        it("cleans temporary cache and re-throws error thrown by handleResponse when navigateToLoginRequestUrl is false", (done) => {
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                window.location.href + "/differentPath",
+                true
+            );
+            const statekey = browserStorage.generateStateKey(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            browserStorage.setTemporaryCache(
+                statekey,
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                true
+            );
+
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockRejectedValue("Error in handleResponse");
+            redirectClient = // @ts-ignore
+                redirectClient = new RedirectClient(
+                    {
+                        // @ts-ignore
+                        ...pca.config,
+                        auth: {
+                            // @ts-ignore
+                            ...pca.config.auth,
+                            navigateToLoginRequestUrl: false,
+                        },
+                    },
+                    browserStorage,
+                    //@ts-ignore
+                    pca.browserCrypto,
+                    //@ts-ignore
+                    pca.logger,
+                    //@ts-ignore
+                    pca.eventHandler,
+                    //@ts-ignore
+                    pca.navigationClient,
+                    //@ts-ignore
+                    pca.performanceClient,
+                    //@ts-ignore
+                    pca.nativeInternalStorage
+                );
+            redirectClient
+                .handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                )
+                .catch((e) => {
+                    expect(e).toEqual("Error in handleResponse");
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
         });
 
         it("gets hash from cache and processes response", async () => {
@@ -411,6 +554,8 @@ describe("RedirectClient", () => {
                     allowNativeBroker: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -878,6 +1023,8 @@ describe("RedirectClient", () => {
                 },
             });
 
+            await pca.initialize();
+
             //PCA implementation moved to controller
             pca = (pca as any).controller;
 
@@ -1037,6 +1184,8 @@ describe("RedirectClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -1215,6 +1364,8 @@ describe("RedirectClient", () => {
                 },
             });
 
+            await pca.initialize();
+
             //PCA implementation moved to controller
             pca = (pca as any).controller;
 
@@ -1331,6 +1482,8 @@ describe("RedirectClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -1525,13 +1678,16 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 });
+            });
             redirectClient.handleRedirectPromise().then(() => {
                 expect(window.location.href).toEqual(loginRequestUrl);
             });
@@ -1544,13 +1700,16 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 });
+            });
             redirectClient
                 .handleRedirectPromise(
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
@@ -1574,13 +1733,16 @@ describe("RedirectClient", () => {
             window.location.hash = "testHash";
             const clearHashSpy = sinon.spy(BrowserUtils, "clearHash");
 
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 });
+            });
 
             redirectClient.handleRedirectPromise().then(() => {
                 expect(clearHashSpy.notCalled).toBe(true);
@@ -1598,14 +1760,17 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
-                    done();
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 });
+                done();
+            });
             redirectClient.handleRedirectPromise();
         });
 
@@ -1663,15 +1828,18 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(window.location.href).not.toContain("#testHash");
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
-                    done();
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(window.location.href).not.toContain("#testHash");
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 });
+                done();
+            });
             redirectClient.handleRedirectPromise();
         });
     });
@@ -1690,7 +1858,9 @@ describe("RedirectClient", () => {
             };
 
             expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(
-                ClientConfigurationError.createMissingSshJwkError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                )
             );
         });
 
@@ -1708,7 +1878,9 @@ describe("RedirectClient", () => {
             };
 
             expect(redirectClient.acquireToken(request)).rejects.toThrow(
-                ClientConfigurationError.createMissingSshKidError()
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshKid
+                )
             );
         });
 
@@ -1723,7 +1895,7 @@ describe("RedirectClient", () => {
                         Promise.reject(err);
                     }
                 });
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -1755,7 +1927,7 @@ describe("RedirectClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -1826,7 +1998,7 @@ describe("RedirectClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -1940,7 +2112,7 @@ describe("RedirectClient", () => {
                 loginHint: testIdTokenClaims.preferred_username || "",
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2031,7 +2203,7 @@ describe("RedirectClient", () => {
                 account: testAccount,
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2100,7 +2272,7 @@ describe("RedirectClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2169,7 +2341,7 @@ describe("RedirectClient", () => {
                 browserCrypto,
                 testLogger
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2229,7 +2401,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2301,7 +2473,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2374,7 +2546,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2447,7 +2619,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2508,7 +2680,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2559,7 +2731,7 @@ describe("RedirectClient", () => {
                     expect(navigateUrl).toEqual(testNavUrl);
                     return Promise.resolve(done());
                 });
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2601,7 +2773,7 @@ describe("RedirectClient", () => {
                         return Promise.resolve();
                     }
                 );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2627,7 +2799,7 @@ describe("RedirectClient", () => {
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2688,7 +2860,7 @@ describe("RedirectClient", () => {
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2755,7 +2927,7 @@ describe("RedirectClient", () => {
                 browserCrypto,
                 testLogger
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2816,7 +2988,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2879,7 +3051,7 @@ describe("RedirectClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             );
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -2935,6 +3107,13 @@ describe("RedirectClient", () => {
                     NetworkManager.prototype,
                     "sendPostRequest"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
             });
 
             it("does not store idToken if storeInCache.idToken = false", async () => {
@@ -3096,7 +3275,7 @@ describe("RedirectClient", () => {
             });
         });
 
-        it("includes postLogoutRedirectUri if one is configured", (done) => {
+        it("includes postLogoutRedirectUri if one is configured", async () => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
@@ -3110,7 +3289,6 @@ describe("RedirectClient", () => {
                                 postLogoutRedirectUri
                             )}`
                         );
-                        done();
                         return Promise.resolve(true);
                     }
                 );
@@ -3121,6 +3299,8 @@ describe("RedirectClient", () => {
                     postLogoutRedirectUri,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -3148,7 +3328,7 @@ describe("RedirectClient", () => {
             redirectClient.logout();
         });
 
-        it("doesn't include postLogoutRedirectUri if null is configured", (done) => {
+        it("doesn't include postLogoutRedirectUri if null is configured", async () => {
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
                 .callsFake(
@@ -3159,7 +3339,6 @@ describe("RedirectClient", () => {
                         expect(urlNavigate).not.toContain(
                             `post_logout_redirect_uri`
                         );
-                        done();
                         return Promise.resolve(true);
                     }
                 );
@@ -3170,6 +3349,8 @@ describe("RedirectClient", () => {
                     postLogoutRedirectUri: null,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -3621,26 +3802,16 @@ describe("RedirectClient", () => {
         });
 
         it("clears active account entry from the cache", async () => {
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-
             const testAccountInfo: AccountInfo = {
                 authorityType: "MSSTS",
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-                idTokenClaims: testIdTokenClaims,
-                name: testIdTokenClaims.name || "",
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                name: ID_TOKEN_CLAIMS.name,
                 nativeAccountId: undefined,
             };
 
@@ -3654,7 +3825,15 @@ describe("RedirectClient", () => {
             testAccount.authorityType = "MSSTS";
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-            testAccount.idTokenClaims = testIdTokenClaims;
+
+            const testIdToken: IdTokenEntity = {
+                homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                environment: testAccount.environment,
+                realm: ID_TOKEN_CLAIMS.tid,
+                secret: TEST_TOKENS.IDTOKEN_V2,
+                credentialType: CredentialType.ID_TOKEN,
+            };
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,
@@ -3674,6 +3853,8 @@ describe("RedirectClient", () => {
                 );
 
             browserStorage.setAccount(testAccount);
+            browserStorage.setIdTokenCredential(testIdToken);
+
             pca.setActiveAccount(testAccountInfo);
             expect(pca.getActiveAccount()).toStrictEqual(testAccountInfo);
 

@@ -34,12 +34,14 @@ import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import {
     NativeAuthError,
-    NativeAuthErrorMessage,
+    NativeAuthErrorCodes,
+    NativeAuthErrorMessages,
 } from "../../src/error/NativeAuthError";
 import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import { IPublicClientApplication } from "../../src";
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {
@@ -60,29 +62,32 @@ testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
 testAccountEntity.nativeAccountId = "nativeAccountId";
 
-const testAccountInfo: AccountInfo = testAccountEntity.getAccountInfo();
+const testAccountInfo: AccountInfo = {
+    ...testAccountEntity.getAccountInfo(),
+    idTokenClaims: ID_TOKEN_CLAIMS,
+};
 
-const testIdToken: IdTokenEntity = new IdTokenEntity();
-testIdToken.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-testIdToken.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testIdToken.environment = testAccountEntity.environment;
-testIdToken.realm = ID_TOKEN_CLAIMS.tid;
-testIdToken.secret = TEST_TOKENS.IDTOKEN_V2;
-testIdToken.credentialType = CredentialType.ID_TOKEN;
+const testIdToken: IdTokenEntity = {
+    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: TEST_TOKENS.IDTOKEN_V2,
+    credentialType: CredentialType.ID_TOKEN,
+};
 
-const testAccessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-testAccessTokenEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-testAccessTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testAccessTokenEntity.environment = testAccountEntity.environment;
-testAccessTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccessTokenEntity.secret = TEST_TOKENS.ACCESS_TOKEN;
-testAccessTokenEntity.target = TEST_CONFIG.DEFAULT_SCOPES.join(" ");
-testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
-testAccessTokenEntity.expiresOn = `${
-    TimeUtils.nowSeconds() + TEST_CONFIG.TOKEN_EXPIRY
-}`;
-testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
-testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
+const testAccessTokenEntity: AccessTokenEntity = {
+    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: TEST_TOKENS.ACCESS_TOKEN,
+    target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+    credentialType: CredentialType.ACCESS_TOKEN,
+    tokenType: AuthenticationScheme.BEARER,
+    expiresOn: `${TimeUtils.nowSeconds() + TEST_CONFIG.TOKEN_EXPIRY}`,
+    cachedAt: `${TimeUtils.nowSeconds()}`,
+};
 
 const testCacheRecord: CacheRecord = {
     account: testAccountEntity,
@@ -105,12 +110,55 @@ describe("NativeInteractionClient Tests", () => {
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;
 
-    beforeEach(() => {
+    beforeAll(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
+
+        await pca.initialize();
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
+        wamProvider = new NativeMessageHandler(
+            pca.getLogger(),
+            2000,
+            getDefaultPerformanceClient()
+        );
+        // @ts-ignore
+        nativeInteractionClient = new NativeInteractionClient(
+            // @ts-ignore
+            pca.config,
+            // @ts-ignore
+            pca.browserStorage,
+            // @ts-ignore
+            pca.browserCrypto,
+            pca.getLogger(),
+            // @ts-ignore
+            pca.eventHandler,
+            // @ts-ignore
+            pca.navigationClient,
+            ApiId.acquireTokenRedirect,
+            // @ts-ignore
+            pca.performanceClient,
+            wamProvider,
+            "nativeAccountId",
+            // @ts-ignore
+            pca.nativeInternalStorage,
+            RANDOM_TEST_GUID
+        );
+    });
+
+    beforeEach(async () => {
+        pca = new PublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
+        });
+
+        await pca.initialize();
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
@@ -123,8 +171,7 @@ describe("NativeInteractionClient Tests", () => {
         wamProvider = new NativeMessageHandler(
             pca.getLogger(),
             2000,
-            getDefaultPerformanceClient(),
-            new CryptoOps(new Logger({}))
+            getDefaultPerformanceClient()
         );
 
         nativeInteractionClient = new NativeInteractionClient(
@@ -178,7 +225,7 @@ describe("NativeInteractionClient Tests", () => {
         };
 
         sinon
-            .stub(CacheManager.prototype, "getAccountInfoFilteredBy")
+            .stub(CacheManager.prototype, "getBaseAccountInfo")
             .returns(testAccountInfo);
 
         sinon
@@ -197,9 +244,7 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
             expect(response.scopes).toEqual(TEST_CONFIG.DEFAULT_SCOPES);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
-            expect(response.account).toEqual(
-                testAccountEntity.getAccountInfo()
-            );
+            expect(response.account).toEqual(testAccountInfo);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
     });
@@ -441,11 +486,9 @@ describe("NativeInteractionClient Tests", () => {
                     scopes: ["User.Read"],
                 })
                 .catch((e) => {
-                    expect(e.errorCode).toBe(
-                        NativeAuthErrorMessage.userSwitch.code
-                    );
+                    expect(e.errorCode).toBe(NativeAuthErrorCodes.userSwitch);
                     expect(e.errorMessage).toBe(
-                        NativeAuthErrorMessage.userSwitch.desc
+                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
                     );
                     done();
                 });

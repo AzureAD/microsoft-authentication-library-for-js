@@ -12,7 +12,8 @@
         "christian-kohler.npm-intellisense",
         "ryanluker.vscode-coverage-gutters",
         "mikestead.dotenv",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "orta.vscode-jest"
     ],
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
     "unwantedRecommendations": []

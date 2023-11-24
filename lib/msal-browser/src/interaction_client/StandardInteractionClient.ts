@@ -12,7 +12,6 @@ import {
     AuthorityOptions,
     Authority,
     AuthorityFactory,
-    ServerAuthorizationCodeResponse,
     UrlString,
     CommonEndSessionRequest,
     ProtocolUtils,
@@ -21,25 +20,21 @@ import {
     AccountInfo,
     AzureCloudOptions,
     PerformanceEvents,
-    AuthError,
+    invokeAsync,
+    BaseAuthRequest,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
-import {
-    createBrowserAuthError,
-    BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import {
-    BrowserProtocolUtils,
-    BrowserStateObject,
-} from "../utils/BrowserProtocolUtils";
+import { BrowserStateObject } from "../utils/BrowserProtocolUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import * as BrowserUtils from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { generatePkceCodes } from "../crypto/PkceGenerator";
+import { createNewGuid } from "../crypto/BrowserCrypto";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -54,14 +49,15 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     ): Promise<CommonAuthorizationCodeRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            request.correlationId
+            this.correlationId
         );
-        this.logger.verbose(
-            "initializeAuthorizationRequest called",
-            request.correlationId
-        );
-        const generatedPkceParams =
-            await this.browserCrypto.generatePkceCodes();
+        const generatedPkceParams = await invokeAsync(
+            generatePkceCodes,
+            PerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(this.performanceClient, this.logger, this.correlationId);
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -89,8 +85,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         );
 
         const validLogoutRequest: CommonEndSessionRequest = {
-            correlationId:
-                this.correlationId || this.browserCrypto.createNewGuid(),
+            correlationId: this.correlationId || createNewGuid(),
             ...logoutRequest,
         };
 
@@ -219,15 +214,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
         // Create auth module.
-        this.performanceClient.setPreQueueTime(
+        const clientConfig = await invokeAsync(
+            this.getClientConfiguration.bind(this),
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
-        const clientConfig = await this.getClientConfiguration(
-            serverTelemetryManager,
-            authorityUrl,
-            requestAzureCloudOptions
-        );
+        )(serverTelemetryManager, authorityUrl, requestAzureCloudOptions);
         return new AuthorizationCodeClient(
             clientConfig,
             this.performanceClient
@@ -249,18 +242,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.correlationId
         );
-        this.logger.verbose(
-            "getClientConfiguration called",
-            this.correlationId
-        );
-        this.performanceClient.setPreQueueTime(
+        const discoveredAuthority = await invokeAsync(
+            this.getDiscoveredAuthority.bind(this),
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
-        const discoveredAuthority = await this.getDiscoveredAuthority(
-            requestAuthority,
-            requestAzureCloudOptions
-        );
+        )(requestAuthority, requestAzureCloudOptions);
         const logger = this.config.system.loggerOptions;
 
         return {
@@ -299,44 +287,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * @param hash
-     * @param interactionType
-     */
-    protected validateAndExtractStateFromHash(
-        serverParams: ServerAuthorizationCodeResponse,
-        interactionType: InteractionType,
-        requestCorrelationId?: string
-    ): string {
-        this.logger.verbose(
-            "validateAndExtractStateFromHash called",
-            requestCorrelationId
-        );
-        if (!serverParams.state) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
-        }
-
-        const platformStateObj =
-            BrowserProtocolUtils.extractBrowserRequestState(
-                this.browserCrypto,
-                serverParams.state
-            );
-        if (!platformStateObj) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToParseState
-            );
-        }
-
-        if (platformStateObj.interactionType !== interactionType) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.stateInteractionTypeMismatch
-            );
-        }
-
-        this.logger.verbose("Returning state from hash", requestCorrelationId);
-        return serverParams.state;
-    }
-
-    /**
      * Used to get a discovered version of the default authority.
      * @param requestAuthority
      * @param requestCorrelationId
@@ -349,15 +299,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.correlationId
         );
-        this.logger.verbose(
-            "getDiscoveredAuthority called",
-            this.correlationId
-        );
-        const getAuthorityMeasurement =
-            this.performanceClient?.startMeasurement(
-                PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-                this.correlationId
-            );
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             OIDCOptions: this.config.auth.OIDCOptions,
@@ -378,15 +319,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             userAuthority,
             requestAzureCloudOptions || this.config.auth.azureCloudOptions
         );
-        this.logger.verbose(
-            "Creating discovered authority with configured authority",
-            this.correlationId
-        );
-        this.performanceClient.setPreQueueTime(
+        return invokeAsync(
+            AuthorityFactory.createDiscoveredInstance.bind(AuthorityFactory),
             PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
-        return await AuthorityFactory.createDiscoveredInstance(
+        )(
             builtAuthority,
             this.config.system.networkClient,
             this.browserStorage,
@@ -394,23 +333,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )
-            .then((result: Authority) => {
-                getAuthorityMeasurement.end({
-                    success: true,
-                });
-
-                return result;
-            })
-            .catch((error: AuthError) => {
-                getAuthorityMeasurement.end({
-                    errorCode: error.errorCode,
-                    subErrorCode: error.subError,
-                    success: false,
-                });
-
-                throw error;
-            });
+        );
     }
 
     /**
@@ -426,10 +349,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.correlationId
         );
-        this.logger.verbose(
-            "initializeAuthorizationRequest called",
-            this.correlationId
-        );
+
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType,
@@ -440,16 +360,19 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             browserState
         );
 
-        this.performanceClient.setPreQueueTime(
+        const baseRequest: BaseAuthRequest = await invokeAsync(
+            this.initializeBaseRequest.bind(this),
             PerformanceEvents.InitializeBaseRequest,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
+        )(request);
 
         const validatedRequest: AuthorizationUrlRequest = {
-            ...(await this.initializeBaseRequest(request)),
+            ...baseRequest,
             redirectUri: redirectUri,
             state: state,
-            nonce: request.nonce || this.browserCrypto.createNewGuid(),
+            nonce: request.nonce || createNewGuid(),
             responseMode: this.config.auth.OIDCOptions
                 .serverResponseType as ResponseMode,
         };

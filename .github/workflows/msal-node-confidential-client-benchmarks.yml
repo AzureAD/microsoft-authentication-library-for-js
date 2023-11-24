@@ -1,0 +1,35 @@
+# Do not run this workflow on pull request since this workflow has permission to modify contents.
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  # deployments permission to deploy GitHub pages website
+  deployments: write
+  # contents permission to update benchmark contents in gh-pages branch
+  contents: write
+
+jobs:
+  benchmark:
+    name: Performance regression check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - name: Run benchmark
+        run: cd regression-tests/msal-node/client-credential && npm install && node index.js | tee output.txt
+
+      # gh-pages branch is updated and pushed automatically with extracted benchmark data
+      # By default, this action assumes that gh-pages is the GitHub Pages branch and that
+      # /dev/bench is a path to put the benchmark dashboard page. They can be tweaked by
+      # the gh-pages-branch, gh-repository and benchmark-data-dir-path inputs.
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: msal-node client-credential Regression Test
+          tool: 'benchmarkjs'
+          output-file-path: regression-tests/msal-node/client-credential/output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Push and deploy GitHub pages branch automatically
+          auto-push: true

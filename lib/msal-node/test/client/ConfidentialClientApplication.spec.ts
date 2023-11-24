@@ -5,6 +5,8 @@ import {
     AuthenticationResult,
     OIDC_DEFAULT_SCOPES,
     CommonClientCredentialRequest,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
 import {
@@ -17,7 +19,6 @@ import {
     AuthorizationCodeRequest,
     ClientCredentialClient,
     RefreshTokenRequest,
-    ClientAuthError,
 } from "../../src";
 import {
     fakeAuthority,
@@ -249,7 +250,9 @@ describe("ConfidentialClientApplication", () => {
 
         await expect(
             authApp.acquireTokenByClientCredential(request)
-        ).rejects.toMatchObject(ClientAuthError.createMissingTenantIdError());
+        ).rejects.toMatchObject(
+            createClientAuthError(ClientAuthErrorCodes.missingTenantIdError)
+        );
     });
 
     test("acquireTokenByClientCredential handles AuthErrors as expected", async () => {

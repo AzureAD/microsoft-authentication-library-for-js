@@ -28,9 +28,11 @@ import {
     AuthError,
     AzureCloudOptions,
     AuthorizationCodePayload,
-    ClientAuthError,
     Constants,
     StringUtils,
+    createClientAuthError,
+    ClientAuthErrorCodes,
+    buildStaticAuthorityOptions,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -94,7 +96,8 @@ export abstract class ClientApplication {
         this.storage = new NodeStorage(
             this.logger,
             this.config.auth.clientId,
-            this.cryptoProvider
+            this.cryptoProvider,
+            buildStaticAuthorityOptions(this.config.auth)
         );
         this.tokenCache = new TokenCache(
             this.storage,
@@ -182,7 +185,7 @@ export abstract class ClientApplication {
                 "Auth code client created",
                 validRequest.correlationId
             );
-            return authorizationCodeClient.acquireToken(
+            return await authorizationCodeClient.acquireToken(
                 validRequest,
                 authCodePayLoad
             );
@@ -235,7 +238,7 @@ export abstract class ClientApplication {
                 "Refresh token client created",
                 validRequest.correlationId
             );
-            return refreshTokenClient.acquireToken(validRequest);
+            return await refreshTokenClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -283,7 +286,7 @@ export abstract class ClientApplication {
                 "Silent flow client created",
                 validRequest.correlationId
             );
-            return silentFlowClient.acquireToken(validRequest);
+            return await silentFlowClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -334,7 +337,7 @@ export abstract class ClientApplication {
                 "Username password client created",
                 validRequest.correlationId
             );
-            return usernamePasswordClient.acquireToken(validRequest);
+            return await usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -367,7 +370,7 @@ export abstract class ClientApplication {
         }
 
         if (state !== cachedState) {
-            throw ClientAuthError.createStateMismatchError();
+            throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
         }
     }
 
@@ -409,15 +412,16 @@ export abstract class ClientApplication {
             : this.config.auth.azureCloudOptions;
 
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
-        this.logger.verbose(
-            `building oauth client configuration with the authority: ${authority}`,
-            requestCorrelationId
-        );
         const discoveredAuthority = await this.createAuthority(
             authority,
             azureRegionConfiguration,
             requestCorrelationId,
             userAzureCloudOptions
+        );
+
+        this.logger.info(
+            `Building oauth client configuration with the following authority: ${discoveredAuthority.tokenEndpoint}.`,
+            requestCorrelationId
         );
 
         serverTelemetryManager?.updateRegionDiscoveryMetadata(
@@ -577,7 +581,7 @@ export abstract class ClientApplication {
                 this.config.auth.skipAuthorityMetadataCache,
         };
 
-        return await AuthorityFactory.createDiscoveredInstance(
+        return AuthorityFactory.createDiscoveredInstance(
             authorityUrl,
             this.config.system.networkClient,
             this.storage,

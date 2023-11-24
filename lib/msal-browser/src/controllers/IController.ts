@@ -8,7 +8,7 @@ import {
     Logger,
     PerformanceCallbackFunction,
     IPerformanceClient,
-    CommonSilentFlowRequest,
+    AccountFilter,
 } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -47,11 +47,6 @@ export interface IController {
         accountId?: string
     ): Promise<AuthenticationResult>;
 
-    acquireTokenByRefreshToken(
-        commonRequest: CommonSilentFlowRequest,
-        silentRequest: SilentRequest
-    ): Promise<AuthenticationResult>;
-
     addEventCallback(callback: EventCallbackFunction): string | null;
 
     removeEventCallback(callbackId: string): void;
@@ -64,13 +59,15 @@ export interface IController {
 
     disableAccountStorageEvents(): void;
 
+    getAccount(accountFilter: AccountFilter): AccountInfo | null;
+
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
 
     getAccountByLocalId(localId: string): AccountInfo | null;
 
     getAccountByUsername(userName: string): AccountInfo | null;
 
-    getAllAccounts(): AccountInfo[];
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
 
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
 

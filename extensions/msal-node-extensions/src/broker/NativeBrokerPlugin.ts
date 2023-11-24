@@ -7,9 +7,11 @@ import {
     AccountInfo,
     AuthenticationResult,
     AuthenticationScheme,
-    ClientAuthError,
-    ClientConfigurationError,
+    ClientAuthErrorCodes,
+    ClientConfigurationErrorCodes,
     Constants,
+    createClientAuthError,
+    createClientConfigurationError,
     IdTokenClaims,
     INativeBrokerPlugin,
     InteractionRequiredAuthError,
@@ -356,7 +358,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
         const account = await this.getAccount(request);
         if (!account) {
-            throw ClientAuthError.createNoAccountFoundError();
+            throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
 
         return new Promise((resolve, reject) => {
@@ -592,21 +594,29 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     );
                 case ErrorStatus.NoNetwork:
                 case ErrorStatus.NetworkTemporarilyUnavailable:
-                    return ClientAuthError.createNoNetworkConnectivityError();
+                    return createClientAuthError(
+                        ClientAuthErrorCodes.noNetworkConnectivity
+                    );
                 case ErrorStatus.ServerTemporarilyUnavailable:
                     return new ServerError(
                         ErrorCodes.SERVER_UNAVAILABLE,
                         errorContext
                     );
                 case ErrorStatus.UserCanceled:
-                    return ClientAuthError.createUserCanceledError();
+                    return createClientAuthError(
+                        ClientAuthErrorCodes.userCanceled
+                    );
                 case ErrorStatus.AuthorityUntrusted:
-                    return ClientConfigurationError.createUntrustedAuthorityError();
+                    return createClientConfigurationError(
+                        ClientConfigurationErrorCodes.untrustedAuthority
+                    );
                 case ErrorStatus.UserSwitched:
                     // Not an error case, if there's customer demand we can surface this as a response property
                     return null;
                 case ErrorStatus.AccountNotFound:
-                    return ClientAuthError.createNoAccountFoundError();
+                    return createClientAuthError(
+                        ClientAuthErrorCodes.noAccountFound
+                    );
                 default:
                     return new NativeAuthError(
                         ErrorStatus[errorStatus],

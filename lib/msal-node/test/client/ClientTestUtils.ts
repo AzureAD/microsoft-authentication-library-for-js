@@ -12,7 +12,6 @@ import {
     ClientConfiguration,
     Constants,
     PkceCodes,
-    ClientAuthError,
     AccountEntity,
     AppMetadataEntity,
     ThrottlingEntity,
@@ -27,6 +26,9 @@ import {
     Logger,
     LogLevel,
     TokenKeys,
+    createClientAuthError,
+    ClientAuthErrorCodes,
+    CacheHelpers,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -93,7 +95,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as IdTokenEntity) || null;
     }
     setIdTokenCredential(value: IdTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -108,7 +110,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as AccessTokenEntity) || null;
     }
     setAccessTokenCredential(value: AccessTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -123,7 +125,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
     setRefreshTokenCredential(value: RefreshTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -187,7 +189,7 @@ export class MockStorageClass extends CacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string {
-        const updatedCacheKey = credential.generateCredentialKey();
+        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 
         if (currentCacheKey !== updatedCacheKey) {
             const cacheItem = this.store[currentCacheKey];
@@ -293,8 +295,10 @@ export class ClientTestUtils {
             logger
         );
 
-        await authority.resolveEndpointsAsync().catch((error) => {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
+        await authority.resolveEndpointsAsync().catch(() => {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError
+            );
         });
 
         return {

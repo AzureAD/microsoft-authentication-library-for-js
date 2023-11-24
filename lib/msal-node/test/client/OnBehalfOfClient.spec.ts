@@ -43,28 +43,30 @@ testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
 testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
 
-const testAccessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-testAccessTokenEntity.homeAccountId = "home_account_id";
-testAccessTokenEntity.clientId = "client_id";
-testAccessTokenEntity.environment = "env";
-testAccessTokenEntity.realm = "this_is_tid";
-testAccessTokenEntity.secret = "access_token";
-testAccessTokenEntity.target =
-    TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
-    " " +
-    TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" ");
-testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
-testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
-testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
-testAccessTokenEntity.userAssertionHash = "user_assertion_hash";
-
-const testIdToken: IdTokenEntity = new IdTokenEntity();
-testIdToken.homeAccountId = "home_account_id";
-testIdToken.clientId = "client_id_for_id_token";
-testIdToken.environment = "env_id_token";
-testIdToken.realm = "this_is_tid_id_token";
-testIdToken.secret = TEST_TOKENS.IDTOKEN_V2;
-testIdToken.credentialType = CredentialType.ID_TOKEN;
+let testAccessTokenEntity: AccessTokenEntity = {
+    homeAccountId: "home_account_id",
+    clientId: "client_id",
+    environment: "env",
+    realm: "this_is_tid",
+    secret: "access_token",
+    target:
+        TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
+        " " +
+        TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+    credentialType: CredentialType.ACCESS_TOKEN,
+    cachedAt: `${TimeUtils.nowSeconds()}`,
+    expiresOn: `${TimeUtils.nowSeconds() + 3600}`,
+    tokenType: AuthenticationScheme.BEARER,
+    userAssertionHash: "user_assertion_hash",
+};
+const testIdToken: IdTokenEntity = {
+    homeAccountId: "home_account_id",
+    clientId: "client_id_for_id_token",
+    environment: "env_id_token",
+    realm: "this_is_tid_id_token",
+    secret: TEST_TOKENS.IDTOKEN_V2,
+    credentialType: CredentialType.ID_TOKEN,
+};
 
 describe("OnBehalfOf unit tests", () => {
     let config: ClientConfiguration;

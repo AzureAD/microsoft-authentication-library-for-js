@@ -7,6 +7,7 @@ const exphbs = require('express-handlebars');
 const msal = require('@azure/msal-node');
 const path = require('path');
 const url = require('url');
+require('dotenv').config();
 
 /**
  * Command line arguments can be used to configure:
@@ -110,7 +111,7 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
     // Home Route
     router.get('/', (req, res) => {
         // if redirectUri is set to the main route "/", redirect to "/redirect" route for handling authZ code
-        if (req.query.code ) return res.redirect(url.format({pathname: "/redirect", query: req.query}));
+        if (req.query.code) return res.redirect(url.format({ pathname: "/redirect", query: req.query }));
 
         res.render("login", { showSignInButton: true });
     });
@@ -225,7 +226,13 @@ if (argv.$0 === "index.js") {
 
     // Build MSAL ClientApplication Configuration object
     const clientConfig = {
-        auth: config.authOptions,
+        auth: {
+            clientId: config.authOptions.clientId,
+            authority: config.authOptions.authority,
+            redirectUri: config.authOptions.redirectUri,
+            clientSecret: process.env.CLIENT_SECRET,
+            knownAuthorities: [config.authOptions.knownAuthorities]
+        },
         cache: {
             cachePlugin
         },

@@ -1,15 +1,17 @@
 import sinon from "sinon";
 import {
     AADServerParamKeys,
-    AuthError,
+    AuthErrorCodes,
     Authority,
     BaseClient,
-    ClientAuthError,
+    ClientAuthErrorCodes,
     ClientConfiguration,
     CommonDeviceCodeRequest,
     Constants,
     GrantType,
     ThrottlingConstants,
+    createAuthError,
+    createClientAuthError,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -562,7 +564,9 @@ describe("DeviceCodeClient unit tests", () => {
             const client = new DeviceCodeClient(config);
             request.cancel = true;
             await expect(client.acquireToken(request)).rejects.toMatchObject(
-                ClientAuthError.createDeviceCodeCancelledError()
+                createClientAuthError(
+                    ClientAuthErrorCodes.deviceCodePollingCancelled
+                )
             );
         }, 6000);
 
@@ -589,7 +593,7 @@ describe("DeviceCodeClient unit tests", () => {
 
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(
-                ClientAuthError.createDeviceCodeExpiredError()
+                createClientAuthError(ClientAuthErrorCodes.deviceCodeExpired)
             );
         }, 6000);
 
@@ -618,7 +622,7 @@ describe("DeviceCodeClient unit tests", () => {
 
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(
-                ClientAuthError.createUserTimeoutReachedError()
+                createClientAuthError(ClientAuthErrorCodes.userTimeoutReached)
             );
             expect(tokenRequestStub.callCount).toBe(1);
         }, 15000);
@@ -646,7 +650,10 @@ describe("DeviceCodeClient unit tests", () => {
 
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(
-                AuthError.createPostRequestFailed("Service Unavailable")
+                createAuthError(
+                    AuthErrorCodes.postRequestFailed,
+                    "Service Unavailable"
+                )
             );
         }, 15000);
     });

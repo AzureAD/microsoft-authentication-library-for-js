@@ -31,7 +31,6 @@ export const invoke = <T extends Array<any>, U>(
             eventName,
             correlationId
         );
-        telemetryClient?.setPreQueueTime(eventName, correlationId);
         try {
             const result = callback(...args);
             inProgressEvent?.end({

@@ -3,9 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import {
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+} from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 import { Constants, OIDC_SCOPES } from "../utils/Constants";
 
 /**
@@ -69,7 +75,9 @@ export class ScopeSet {
     private validateInputScopes(inputScopes: Array<string>): void {
         // Check if scopes are required but not given or is an empty array
         if (!inputScopes || inputScopes.length < 1) {
-            throw ClientConfigurationError.createEmptyScopesArrayError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.emptyInputScopesError
+            );
         }
     }
 
@@ -133,7 +141,9 @@ export class ScopeSet {
         try {
             newScopes.forEach((newScope) => this.appendScope(newScope));
         } catch (e) {
-            throw ClientAuthError.createAppendScopeSetError(e as string);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.cannotAppendScopeSet
+            );
         }
     }
 
@@ -143,7 +153,9 @@ export class ScopeSet {
      */
     removeScope(scope: string): void {
         if (!scope) {
-            throw ClientAuthError.createRemoveEmptyScopeFromSetError(scope);
+            throw createClientAuthError(
+                ClientAuthErrorCodes.cannotRemoveEmptyScope
+            );
         }
         this.scopes.delete(scope.trim());
     }
@@ -164,7 +176,9 @@ export class ScopeSet {
      */
     unionScopeSets(otherScopes: ScopeSet): Set<string> {
         if (!otherScopes) {
-            throw ClientAuthError.createEmptyInputScopeSetError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.emptyInputScopeSet
+            );
         }
         const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
         otherScopes.scopes.forEach((scope) =>
@@ -180,7 +194,9 @@ export class ScopeSet {
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
         if (!otherScopes) {
-            throw ClientAuthError.createEmptyInputScopeSetError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.emptyInputScopeSet
+            );
         }
 
         // Do not allow OIDC scopes to be the only intersecting scopes

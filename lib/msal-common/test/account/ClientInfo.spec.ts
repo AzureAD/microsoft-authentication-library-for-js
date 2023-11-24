@@ -4,16 +4,17 @@ import {
     ClientInfo,
 } from "../../src/account/ClientInfo";
 import {
-    TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     RANDOM_TEST_GUID,
     TEST_POP_VALUES,
     TEST_CRYPTO_VALUES,
 } from "../test_kit/StringConstants";
-import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
+import { ICrypto } from "../../src/crypto/ICrypto";
 import {
     ClientAuthError,
+    ClientAuthErrorCodes,
     ClientAuthErrorMessage,
+    createClientAuthError,
 } from "../../src/error/ClientAuthError";
 import { Constants } from "../../src";
 
@@ -46,12 +47,6 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                         default:
                             return input;
                     }
-                },
-                async generatePkceCodes(): Promise<PkceCodes> {
-                    return {
-                        challenge: TEST_CONFIG.TEST_CHALLENGE,
-                        verifier: TEST_CONFIG.TEST_VERIFIER,
-                    };
                 },
                 async getPublicKeyThumbprint(): Promise<string> {
                     return TEST_POP_VALUES.KID;
@@ -119,7 +114,9 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                 ClientAuthError
             );
             expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(
-                ClientAuthErrorMessage.clientInfoDecodingError.desc
+                createClientAuthError(
+                    ClientAuthErrorCodes.clientInfoDecodingError
+                )
             );
         });
 

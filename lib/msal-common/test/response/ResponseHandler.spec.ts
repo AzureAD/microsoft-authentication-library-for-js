@@ -20,7 +20,7 @@ import {
     INetworkModule,
     NetworkRequestOptions,
 } from "../../src/network/INetworkModule";
-import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
+import { ICrypto } from "../../src/crypto/ICrypto";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
 import { MockStorageClass } from "../client/ClientTestUtils";
 import { TokenClaims } from "../../src/account/TokenClaims";
@@ -37,7 +37,7 @@ import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AuthError } from "../../src/error/AuthError";
 import {
     ClientAuthError,
-    ClientAuthErrorMessage,
+    ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError";
 import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
 import { ServerError } from "../../src/error/ServerError";
@@ -78,12 +78,6 @@ const cryptoInterface: ICrypto = {
             default:
                 return input;
         }
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
-        return {
-            challenge: TEST_CONFIG.TEST_CHALLENGE,
-            verifier: TEST_CONFIG.TEST_VERIFIER,
-        };
     },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
@@ -227,10 +221,7 @@ describe("ResponseHandler.ts", () => {
                 if (e instanceof AuthError) {
                     expect(e).toBeInstanceOf(ClientAuthError);
                     expect(e.errorCode).toBe(
-                        ClientAuthErrorMessage.invalidCacheEnvironment.code
-                    );
-                    expect(e.errorMessage).toBe(
-                        ClientAuthErrorMessage.invalidCacheEnvironment.desc
+                        ClientAuthErrorCodes.invalidCacheEnvironment
                     );
                 } else {
                     throw e;
@@ -599,20 +590,16 @@ describe("ResponseHandler.ts", () => {
                 null,
                 null
             );
-            const stateMismatchSpy = sinon.spy(
-                ClientAuthError,
-                "createStateMismatchError"
-            );
 
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    "differentState",
-                    cryptoInterface
+                    "differentState"
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
-                expect(stateMismatchSpy.calledOnce).toBe(true);
+                // @ts-ignore
+                expect(e.errorCode).toBe(ClientAuthErrorCodes.stateMismatch);
                 done();
             }
         });
@@ -623,10 +610,6 @@ describe("ResponseHandler.ts", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
             };
-            const stateMismatchSpy = sinon.spy(
-                ClientAuthError,
-                "createStateMismatchError"
-            );
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
@@ -638,10 +621,8 @@ describe("ResponseHandler.ts", () => {
             );
             responseHandler.validateServerAuthorizationCodeResponse(
                 testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                cryptoInterface
+                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
             );
-            expect(stateMismatchSpy.notCalled).toBe(true);
         });
 
         it("Does not throw state mismatch error when Uri encoded characters have different casing", () => {
@@ -650,10 +631,6 @@ describe("ResponseHandler.ts", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
             };
-            const stateMismatchSpy = sinon.spy(
-                ClientAuthError,
-                "createStateMismatchError"
-            );
 
             const testAltState =
                 "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3d%3d";
@@ -667,10 +644,8 @@ describe("ResponseHandler.ts", () => {
             );
             responseHandler.validateServerAuthorizationCodeResponse(
                 testServerCodeResponse,
-                testAltState,
-                cryptoInterface
+                testAltState
             );
-            expect(stateMismatchSpy.notCalled).toBe(true);
         });
 
         it("throws interactionRequiredError", (done) => {
@@ -692,8 +667,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                    cryptoInterface
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(InteractionRequiredAuthError);
@@ -720,8 +694,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                    cryptoInterface
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -748,8 +721,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                    cryptoInterface
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -776,46 +748,12 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                    cryptoInterface
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 done();
             }
-        });
-
-        it("calls buildClientInfo if clientInfo in response", () => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
-            // Can't spy on buildClientInfo, spy on one of its function calls instead
-            const buildClientInfoSpy = sinon.spy(
-                cryptoInterface,
-                "base64Decode"
-            );
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            responseHandler.validateServerAuthorizationCodeResponse(
-                testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                cryptoInterface
-            );
-            expect(buildClientInfoSpy.calledOnce).toBe(true);
-            expect(
-                buildClientInfoSpy.calledWith(
-                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
-                )
-            ).toBe(true);
         });
 
         it("does not call buildClientInfo if clientInfo not in response", () => {
@@ -839,8 +777,7 @@ describe("ResponseHandler.ts", () => {
             );
             responseHandler.validateServerAuthorizationCodeResponse(
                 testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                cryptoInterface
+                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
             );
             expect(buildClientInfoSpy.notCalled).toBe(true);
         });
@@ -864,15 +801,12 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    "dummy-state-%20%%%30%%%%%40",
-                    cryptoInterface
+                    "dummy-state-%20%%%30%%%%%40"
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
                 const err = e as ClientAuthError;
-                expect(err.message).toContain(
-                    `Cached state URI could not be decoded`
-                );
+                expect(err.errorCode).toBe(ClientAuthErrorCodes.invalidState);
                 done();
             }
         });

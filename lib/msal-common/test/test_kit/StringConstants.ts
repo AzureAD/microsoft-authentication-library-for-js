@@ -5,11 +5,7 @@
 
 // This file contains the string constants used by the test classes.
 
-import {
-    AuthenticationScheme,
-    Constants,
-    ONE_DAY_IN_MS,
-} from "../../src/utils/Constants";
+import { AuthenticationScheme, Constants } from "../../src/utils/Constants";
 import { RequestThumbprint, ThrottlingEntity, AccountInfo } from "../../src";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 
@@ -67,7 +63,6 @@ export const ID_TOKEN_CLAIMS = {
     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
     nonce: "123523",
     aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY",
-    auth_time: Date.now() - ONE_DAY_IN_MS * 2,
 };
 
 // Test Expiration Vals
@@ -153,6 +148,7 @@ export const TEST_CONFIG = {
     MSAL_CLIENT_SECRET: "ThisIsASecret",
     MSAL_TENANT_ID: "3338040d-6c67-4c5b-b112-36a304b66dad",
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
+    validAuthorityHost: "login.microsoftonline.com",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
     ADFS_VALID_AUTHORITY: "https://on.prem/adfs",
     DSTS_VALID_AUTHORITY: "https://domain.dsts.subdomain/dstsv2/tenant",
@@ -188,6 +184,8 @@ export const TEST_CONFIG = {
     DEFAULT_TOKEN_RENEWAL_OFFSET: 300,
     TEST_CONFIG_ASSERTION: "DefaultAssertion",
     TEST_REQUEST_ASSERTION: "RequestAssertion",
+    CLOUD_DISCOVERY_METADATA:
+        '{"tenant_discovery_endpoint":"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration","api-version":"1.1","metadata":[{"preferred_network":"login.microsoftonline.com","preferred_cache":"login.windows.net","aliases":["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]},{"preferred_network":"login.partner.microsoftonline.cn","preferred_cache":"login.partner.microsoftonline.cn","aliases":["login.partner.microsoftonline.cn","login.chinacloudapi.cn"]},{"preferred_network":"login.microsoftonline.de","preferred_cache":"login.microsoftonline.de","aliases":["login.microsoftonline.de"]},{"preferred_network":"login.microsoftonline.us","preferred_cache":"login.microsoftonline.us","aliases":["login.microsoftonline.us","login.usgovcloudapi.net"]},{"preferred_network":"login-us.microsoftonline.com","preferred_cache":"login-us.microsoftonline.com","aliases":["login-us.microsoftonline.com"]}]}',
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
@@ -244,14 +242,26 @@ export const TEST_STATE_VALUES = {
     TEST_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==${Constants.RESOURCE_DELIM}userState`,
 };
 
-export const TEST_HOST_LIST = [
-    "login.windows.net",
-    "login.chinacloudapi.cn",
-    "login.cloudgovapi.us",
-    "login.microsoftonline.com",
-    "login.microsoftonline.de",
-    "login.microsoftonline.us",
-];
+export const CLOUD_HOSTS = {
+    PublicCloud: "login.microsoftonline.com",
+    ChinaCloud: "login.chinacloudapi.cn",
+    GermanyCloud: "login.microsoftonline.de",
+    USGovAGCloud: "login.microsoftonline.us",
+    USGovCloud: "login-us.microsoftonline.com",
+};
+
+export const METADATA_ALIASES = {
+    PublicCloud: [
+        "login.microsoftonline.com",
+        "login.windows.net",
+        "login.microsoft.com",
+        "sts.windows.net",
+    ],
+    ChinaCloud: ["login.partner.microsoftonline.cn", "login.chinacloudapi.cn"],
+    GermanyCloud: ["login.microsoftonline.de"],
+    USGovAGCloud: ["login.microsoftonline.us", "login.usgovcloudapi.net"],
+    USGovCloud: ["login-us.microsoftonline.com"],
+};
 
 export const PREFERRED_CACHE_ALIAS = "login.windows.net";
 export const ADFS_AUTHORITY = "myadfs.com/adfs";

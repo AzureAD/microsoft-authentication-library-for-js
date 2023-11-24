@@ -2,7 +2,8 @@ import { TEST_URIS, TEST_HASHES } from "../test_kit/StringConstants";
 import { UrlString } from "../../src/url/UrlString";
 import {
     ClientConfigurationError,
-    ClientConfigurationErrorMessage,
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
 import { IUri } from "../../src/url/IUri";
 import sinon from "sinon";
@@ -20,7 +21,9 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("constructor throws error if uri is empty or null", () => {
         // @ts-ignore
         expect(() => new UrlString(null)).toThrowError(
-            ClientConfigurationErrorMessage.urlEmptyError.desc
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError
+            )
         );
         // @ts-ignore
         expect(() => new UrlString(null)).toThrowError(
@@ -28,7 +31,9 @@ describe("UrlString.ts Class Unit Tests", () => {
         );
 
         expect(() => new UrlString("")).toThrowError(
-            ClientConfigurationErrorMessage.urlEmptyError.desc
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlEmptyError
+            )
         );
         expect(() => new UrlString("")).toThrowError(ClientConfigurationError);
     });
@@ -40,7 +45,9 @@ describe("UrlString.ts Class Unit Tests", () => {
             .throws(urlComponentError);
         let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI);
         expect(() => urlObj.validateAsUri()).toThrowError(
-            `${ClientConfigurationErrorMessage.urlParseError.desc} Given Error: ${urlComponentError}`
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError
+            )
         );
         expect(() => urlObj.validateAsUri()).toThrowError(
             ClientConfigurationError
@@ -51,7 +58,9 @@ describe("UrlString.ts Class Unit Tests", () => {
         const insecureUrlString = "http://login.microsoft.com/common";
         let urlObj = new UrlString(insecureUrlString);
         expect(() => urlObj.validateAsUri()).toThrowError(
-            `${ClientConfigurationErrorMessage.authorityUriInsecure.desc} Given URI: ${insecureUrlString}`
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityUriInsecure
+            )
         );
         expect(() => urlObj.validateAsUri()).toThrowError(
             ClientConfigurationError
@@ -118,54 +127,6 @@ describe("UrlString.ts Class Unit Tests", () => {
         const newUrlObj = urlObj.replaceTenantPath(sampleTenantId2);
         expect(newUrlObj.urlString).toContain("sample-tenantid");
         expect(newUrlObj.urlString).not.toContain(sampleTenantId2);
-    });
-
-    it("getHash returns the anchor part of the URL correctly, or nothing if there is no anchor", () => {
-        const urlWithHash =
-            TEST_URIS.TEST_AUTH_ENDPT + TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH;
-        const urlWithHashAndSlash =
-            TEST_URIS.TEST_AUTH_ENDPT +
-            "#/" +
-            TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH.substring(1);
-        const urlWithoutHash = TEST_URIS.TEST_AUTH_ENDPT;
-
-        const urlObjWithHash = new UrlString(urlWithHash);
-        const urlObjWithHashAndSlash = new UrlString(urlWithHashAndSlash);
-        const urlObjWithoutHash = new UrlString(urlWithoutHash);
-
-        expect(urlObjWithHash.getHash()).toBe(
-            TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH.substring(1)
-        );
-        expect(urlObjWithHashAndSlash.getHash()).toBe(
-            TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH.substring(1)
-        );
-        expect(urlObjWithoutHash.getHash()).toHaveLength(0);
-    });
-
-    it("getDeserializedHash returns the hash as a deserialized object", () => {
-        const serializedHash = "#param1=value1&param2=value2&param3=value3";
-        const deserializedHash = {
-            param1: "value1",
-            param2: "value2",
-            param3: "value3",
-        };
-
-        expect(UrlString.getDeserializedHash(serializedHash)).toEqual(
-            deserializedHash
-        );
-    });
-
-    it("getDeserializedHash returns empty object if key/value is undefined", () => {
-        let serializedHash = "#=value1";
-        const deserializedHash = {};
-        expect(UrlString.getDeserializedHash(serializedHash)).toEqual(
-            deserializedHash
-        );
-
-        serializedHash = "#key1=";
-        expect(UrlString.getDeserializedHash(serializedHash)).toEqual(
-            deserializedHash
-        );
     });
 
     it("getUrlComponents returns all path components", () => {

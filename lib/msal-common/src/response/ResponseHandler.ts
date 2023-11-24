@@ -4,9 +4,11 @@
  */
 
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
-import { buildClientInfo } from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
@@ -17,7 +19,10 @@ import { Authority } from "../authority/Authority";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
-import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
+import {
+    InteractionRequiredAuthError,
+    isInteractionRequiredError,
+} from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, RequestStateObject } from "../utils/ProtocolUtils";
@@ -38,6 +43,8 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient"
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
+import { AccountInfo } from "../account/AccountInfo";
+import * as CacheHelpers from "../cache/utils/CacheHelpers";
 
 /**
  * Class that handles response parsing.
@@ -74,80 +81,81 @@ export class ResponseHandler {
     /**
      * Function which validates server authorization code response.
      * @param serverResponseHash
-     * @param cachedState
+     * @param requestState
      * @param cryptoObj
      */
     validateServerAuthorizationCodeResponse(
-        serverResponseHash: ServerAuthorizationCodeResponse,
-        cachedState: string,
-        cryptoObj: ICrypto
+        serverResponse: ServerAuthorizationCodeResponse,
+        requestState: string
     ): void {
-        if (!serverResponseHash.state || !cachedState) {
-            throw serverResponseHash.state
-                ? ClientAuthError.createStateNotFoundError("Cached State")
-                : ClientAuthError.createStateNotFoundError("Server State");
+        if (!serverResponse.state || !requestState) {
+            throw serverResponse.state
+                ? createClientAuthError(
+                      ClientAuthErrorCodes.stateNotFound,
+                      "Cached State"
+                  )
+                : createClientAuthError(
+                      ClientAuthErrorCodes.stateNotFound,
+                      "Server State"
+                  );
         }
 
-        let decodedServerResponseHash: string;
-        let decodedCachedState: string;
+        let decodedServerResponseState: string;
+        let decodedRequestState: string;
 
         try {
-            decodedServerResponseHash = decodeURIComponent(
-                serverResponseHash.state
+            decodedServerResponseState = decodeURIComponent(
+                serverResponse.state
             );
         } catch (e) {
-            throw ClientAuthError.createInvalidStateError(
-                serverResponseHash.state,
-                `Server response hash URI could not be decoded`
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidState,
+                serverResponse.state
             );
         }
 
         try {
-            decodedCachedState = decodeURIComponent(cachedState);
+            decodedRequestState = decodeURIComponent(requestState);
         } catch (e) {
-            throw ClientAuthError.createInvalidStateError(
-                serverResponseHash.state,
-                `Cached state URI could not be decoded`
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidState,
+                serverResponse.state
             );
         }
 
-        if (decodedServerResponseHash !== decodedCachedState) {
-            throw ClientAuthError.createStateMismatchError();
+        if (decodedServerResponseState !== decodedRequestState) {
+            throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
         }
 
         // Check for error
         if (
-            serverResponseHash.error ||
-            serverResponseHash.error_description ||
-            serverResponseHash.suberror
+            serverResponse.error ||
+            serverResponse.error_description ||
+            serverResponse.suberror
         ) {
             if (
-                InteractionRequiredAuthError.isInteractionRequiredError(
-                    serverResponseHash.error,
-                    serverResponseHash.error_description,
-                    serverResponseHash.suberror
+                isInteractionRequiredError(
+                    serverResponse.error,
+                    serverResponse.error_description,
+                    serverResponse.suberror
                 )
             ) {
                 throw new InteractionRequiredAuthError(
-                    serverResponseHash.error || Constants.EMPTY_STRING,
-                    serverResponseHash.error_description,
-                    serverResponseHash.suberror,
-                    serverResponseHash.timestamp || Constants.EMPTY_STRING,
-                    serverResponseHash.trace_id || Constants.EMPTY_STRING,
-                    serverResponseHash.correlation_id || Constants.EMPTY_STRING,
-                    serverResponseHash.claims || Constants.EMPTY_STRING
+                    serverResponse.error || "",
+                    serverResponse.error_description,
+                    serverResponse.suberror,
+                    serverResponse.timestamp || "",
+                    serverResponse.trace_id || "",
+                    serverResponse.correlation_id || "",
+                    serverResponse.claims || ""
                 );
             }
 
             throw new ServerError(
-                serverResponseHash.error || Constants.EMPTY_STRING,
-                serverResponseHash.error_description,
-                serverResponseHash.suberror
+                serverResponse.error || "",
+                serverResponse.error_description,
+                serverResponse.suberror
             );
-        }
-
-        if (serverResponseHash.client_info) {
-            buildClientInfo(serverResponseHash.client_info, cryptoObj);
         }
     }
 
@@ -202,7 +210,7 @@ export class ResponseHandler {
             }
 
             if (
-                InteractionRequiredAuthError.isInteractionRequiredError(
+                isInteractionRequiredError(
                     serverResponse.error,
                     serverResponse.error_description,
                     serverResponse.suberror
@@ -255,7 +263,9 @@ export class ResponseHandler {
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && authCodePayload.nonce) {
                 if (idTokenClaims.nonce !== authCodePayload.nonce) {
-                    throw ClientAuthError.createNonceMismatchError();
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.nonceMismatch
+                    );
                 }
             }
 
@@ -263,7 +273,9 @@ export class ResponseHandler {
             if (request.maxAge || request.maxAge === 0) {
                 const authTime = idTokenClaims.auth_time;
                 if (!authTime) {
-                    throw ClientAuthError.createAuthTimeNotFoundError();
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.authTimeNotFound
+                    );
                 }
 
                 checkMaxAge(authTime, request.maxAge);
@@ -330,7 +342,7 @@ export class ResponseHandler {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
                     );
-                    return ResponseHandler.generateAuthenticationResult(
+                    return await ResponseHandler.generateAuthenticationResult(
                         this.cryptoObj,
                         authority,
                         cacheRecord,
@@ -389,14 +401,16 @@ export class ResponseHandler {
     ): CacheRecord {
         const env = authority.getPreferredCache();
         if (!env) {
-            throw ClientAuthError.createInvalidCacheEnvironmentError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidCacheEnvironment
+            );
         }
 
         // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity | undefined;
         let cachedAccount: AccountEntity | undefined;
         if (serverTokenResponse.id_token && !!idTokenClaims) {
-            cachedIdToken = IdTokenEntity.createIdTokenEntity(
+            cachedIdToken = CacheHelpers.createIdTokenEntity(
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.id_token,
@@ -449,16 +463,16 @@ export class ResponseHandler {
                     : undefined;
 
             // non AAD scenarios can have empty realm
-            cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
+            cachedAccessToken = CacheHelpers.createAccessTokenEntity(
                 this.homeAccountIdentifier,
                 env,
-                serverTokenResponse.access_token || Constants.EMPTY_STRING,
+                serverTokenResponse.access_token,
                 this.clientId,
                 idTokenClaims?.tid || authority.tenant,
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
-                this.cryptoObj,
+                this.cryptoObj.base64Decode,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
@@ -471,10 +485,10 @@ export class ResponseHandler {
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (serverTokenResponse.refresh_token) {
-            cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
+            cachedRefreshToken = CacheHelpers.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
                 env,
-                serverTokenResponse.refresh_token || Constants.EMPTY_STRING,
+                serverTokenResponse.refresh_token,
                 this.clientId,
                 serverTokenResponse.foci,
                 userAssertionHash
@@ -537,7 +551,9 @@ export class ResponseHandler {
                 const { secret, keyId } = cacheRecord.accessToken;
 
                 if (!keyId) {
-                    throw ClientAuthError.createKeyIdMissingError();
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.keyIdMissing
+                    );
                 }
 
                 accessToken = await popTokenGenerator.signPopToken(
@@ -579,14 +595,19 @@ export class ResponseHandler {
                 serverTokenResponse?.spa_accountid;
         }
 
+        const accountInfo: AccountInfo | null = cacheRecord.account
+            ? {
+                  ...cacheRecord.account.getAccountInfo(),
+                  idTokenClaims,
+              }
+            : null;
+
         return {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes,
-            account: cacheRecord.account
-                ? cacheRecord.account.getAccountInfo()
-                : null,
+            account: accountInfo,
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,

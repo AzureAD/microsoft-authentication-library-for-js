@@ -14,7 +14,8 @@ import {
     UrlString,
     ServerTelemetryManager,
     ServerTelemetryRequest,
-    ClientConfigurationError,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
     Authority,
     AuthorityOptions,
     AuthorityFactory,
@@ -31,11 +32,12 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../packageMetadata";
 import { BrowserConstants } from "../utils/BrowserConstants";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import * as BrowserUtils from "../utils/BrowserUtils";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { createNewGuid } from "../crypto/BrowserCrypto";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -67,8 +69,7 @@ export abstract class BaseInteractionClient {
         this.eventHandler = eventHandler;
         this.navigationClient = navigationClient;
         this.nativeMessageHandler = nativeMessageHandler;
-        this.correlationId =
-            correlationId || this.browserCrypto.createNewGuid();
+        this.correlationId = correlationId || createNewGuid();
         this.logger = logger.clone(
             BrowserConstants.MSAL_SKU,
             version,
@@ -140,9 +141,8 @@ export abstract class BaseInteractionClient {
     ): Promise<BaseAuthRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.InitializeBaseRequest,
-            request.correlationId
+            this.correlationId
         );
-        this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
 
         if (account) {
@@ -170,10 +170,14 @@ export abstract class BaseInteractionClient {
                 AuthenticationScheme.SSH
             ) {
                 if (!request.sshJwk) {
-                    throw ClientConfigurationError.createMissingSshJwkError();
+                    throw createClientConfigurationError(
+                        ClientConfigurationErrorCodes.missingSshJwk
+                    );
                 }
                 if (!request.sshKid) {
-                    throw ClientConfigurationError.createMissingSshKidError();
+                    throw createClientConfigurationError(
+                        ClientConfigurationErrorCodes.missingSshKid
+                    );
                 }
             }
             this.logger.verbose(
@@ -227,7 +231,9 @@ export abstract class BaseInteractionClient {
         );
 
         if (!discoveredAuthority.isAlias(account.environment)) {
-            throw ClientConfigurationError.createAuthorityMismatchError();
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityMismatch
+            );
         }
     }
 
@@ -260,7 +266,6 @@ export abstract class BaseInteractionClient {
     /**
      * Used to get a discovered version of the default authority.
      * @param requestAuthority
-     * @param requestCorrelationId
      */
     protected async getDiscoveredAuthority(
         requestAuthority?: string
@@ -278,7 +283,7 @@ export abstract class BaseInteractionClient {
             this.logger.verbose(
                 "Creating discovered authority with request authority"
             );
-            return await AuthorityFactory.createDiscoveredInstance(
+            return AuthorityFactory.createDiscoveredInstance(
                 requestAuthority,
                 this.config.system.networkClient,
                 this.browserStorage,
@@ -290,7 +295,7 @@ export abstract class BaseInteractionClient {
         this.logger.verbose(
             "Creating discovered authority with configured authority"
         );
-        return await AuthorityFactory.createDiscoveredInstance(
+        return AuthorityFactory.createDiscoveredInstance(
             this.config.auth.authority,
             this.config.system.networkClient,
             this.browserStorage,

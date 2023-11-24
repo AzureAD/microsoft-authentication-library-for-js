@@ -10,7 +10,7 @@ import {
     Authority,
     BaseClient,
     CacheOutcome,
-    ClientAuthError,
+    ClientAuthErrorCodes,
     ClientConfiguration,
     CommonClientCredentialRequest,
     Constants,
@@ -27,6 +27,7 @@ import {
     TimeUtils,
     TokenCacheContext,
     UrlString,
+    createClientAuthError,
 } from "@azure/msal-common";
 
 /**
@@ -35,7 +36,6 @@ import {
 export class ClientCredentialClient extends BaseClient {
     private scopeSet: ScopeSet;
     private readonly appTokenProvider?: IAppTokenProvider;
-    private lastCacheOutcome: CacheOutcome;
 
     constructor(
         configuration: ClientConfiguration,
@@ -55,23 +55,20 @@ export class ClientCredentialClient extends BaseClient {
         this.scopeSet = new ScopeSet(request.scopes || []);
 
         if (request.skipCache) {
-            return await this.executeTokenRequest(request, this.authority);
+            return this.executeTokenRequest(request, this.authority);
         }
 
-        const cachedAuthenticationResult =
+        const [cachedAuthenticationResult, lastCacheOutcome] =
             await this.getCachedAuthenticationResult(request);
 
         if (cachedAuthenticationResult) {
             // if the token is not expired but must be refreshed; get a new one in the background
-            if (
-                this.lastCacheOutcome ===
-                CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
-            ) {
+            if (lastCacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
                 this.logger.info(
                     "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );
 
-                // return the cached token, don't wait for the result of this request
+                // refresh the access token in the background
                 const refreshAccessToken = true;
                 await this.executeTokenRequest(
                     request,
@@ -80,13 +77,10 @@ export class ClientCredentialClient extends BaseClient {
                 );
             }
 
-            // reset the last cache outcome
-            this.lastCacheOutcome = CacheOutcome.NO_CACHE_HIT;
-
-            // otherwise, the token is not expired and does not need to be refreshed
+            // return the cached token
             return cachedAuthenticationResult;
         } else {
-            return await this.executeTokenRequest(request, this.authority);
+            return this.executeTokenRequest(request, this.authority);
         }
     }
 
@@ -95,7 +89,9 @@ export class ClientCredentialClient extends BaseClient {
      */
     private async getCachedAuthenticationResult(
         request: CommonClientCredentialRequest
-    ): Promise<AuthenticationResult | null> {
+    ): Promise<[AuthenticationResult | null, CacheOutcome]> {
+        let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
+
         // read the user-supplied cache into memory, if applicable
         let cacheContext;
         if (this.config.serializableCache && this.config.persistencePlugin) {
@@ -118,11 +114,10 @@ export class ClientCredentialClient extends BaseClient {
 
         // must refresh due to non-existent access_token
         if (!cachedAccessToken) {
-            this.lastCacheOutcome = CacheOutcome.NO_CACHED_ACCESS_TOKEN;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
-            return null;
+            return [null, CacheOutcome.NO_CACHED_ACCESS_TOKEN];
         }
 
         // must refresh due to the expires_in value
@@ -132,12 +127,10 @@ export class ClientCredentialClient extends BaseClient {
                 this.config.systemOptions.tokenRenewalOffsetSeconds
             )
         ) {
-            this.lastCacheOutcome = CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED;
             this.serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
-
-            return null;
+            return [null, CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED];
         }
 
         // must refresh (in the background) due to the refresh_in value
@@ -145,25 +138,28 @@ export class ClientCredentialClient extends BaseClient {
             cachedAccessToken.refreshOn &&
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn.toString(), 0)
         ) {
-            this.lastCacheOutcome = CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN;
+            lastCacheOutcome = CacheOutcome.PROACTIVELY_REFRESHED;
             this.serverTelemetryManager?.setCacheOutcome(
-                CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN
+                CacheOutcome.PROACTIVELY_REFRESHED
             );
         }
 
-        return await ResponseHandler.generateAuthenticationResult(
-            this.cryptoUtils,
-            this.authority,
-            {
-                account: null,
-                idToken: null,
-                accessToken: cachedAccessToken,
-                refreshToken: null,
-                appMetadata: null,
-            },
-            true,
-            request
-        );
+        return [
+            await ResponseHandler.generateAuthenticationResult(
+                this.cryptoUtils,
+                this.authority,
+                {
+                    account: null,
+                    idToken: null,
+                    accessToken: cachedAccessToken,
+                    refreshToken: null,
+                    appMetadata: null,
+                },
+                true,
+                request
+            ),
+            lastCacheOutcome,
+        ];
     }
 
     /**
@@ -185,7 +181,9 @@ export class ClientCredentialClient extends BaseClient {
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+            throw createClientAuthError(
+                ClientAuthErrorCodes.multipleMatchingTokens
+            );
         }
         return accessTokens[0] as AccessTokenEntity;
     }
@@ -231,6 +229,7 @@ export class ClientCredentialClient extends BaseClient {
                 authority.tokenEndpoint,
                 queryParametersString
             );
+
             const requestBody = this.createTokenRequestBody(request);
             const headers: Record<string, string> =
                 this.createTokenRequestHeaders();
@@ -245,6 +244,10 @@ export class ClientCredentialClient extends BaseClient {
                 shrClaims: request.shrClaims,
                 sshKid: request.sshKid,
             };
+
+            this.logger.info(
+                "Sending token request to endpoint: " + authority.tokenEndpoint
+            );
 
             reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.executePostToTokenEndpoint(
