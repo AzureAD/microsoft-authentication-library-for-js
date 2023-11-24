@@ -117,10 +117,10 @@ async function getGuestTokenSilently() {
                 console.error(error);
             });
         } else {
-            const homeAccount = myMSALObj.getAccount({ homeAccountId } );
+            const currentAcc = myMSALObj.getActiveAccount();
             response = await myMSALObj.acquireTokenSilent({
                  ...request,
-                 account: homeAccount,
+                 account: currentAcc,
                  authority: tenantConfig.guest.authority,
                  cacheLookupPolicy: msal.CacheLookupPolicy.RefreshToken
             }).then(handleResponse).catch(error => {

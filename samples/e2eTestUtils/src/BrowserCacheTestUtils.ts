@@ -230,7 +230,8 @@ export class BrowserCacheUtils {
         expect(
             await this.accessTokenForScopesExists(
                 tokenStore.accessTokens,
-                scopes
+                scopes,
+                totalAccessTokens
             )
         ).toBeTruthy();
         const storage = await this.getWindowStorage();

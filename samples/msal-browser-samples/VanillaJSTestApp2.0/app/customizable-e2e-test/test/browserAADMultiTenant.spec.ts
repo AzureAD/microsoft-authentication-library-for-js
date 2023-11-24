@@ -27,7 +27,7 @@ import {
 import fs from "fs";
 import { GuestHomedIn } from "e2e-test-utils/src/Constants";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/multiTenantTests`;
 let sampleHomeUrl = "";
 
 describe("AAD-Prod Tests", () => {
