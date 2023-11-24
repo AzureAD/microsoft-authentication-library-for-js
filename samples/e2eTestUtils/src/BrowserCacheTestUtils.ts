@@ -206,4 +206,36 @@ export class BrowserCacheUtils {
     static getTelemetryKey(clientId: string): string {
         return "server-telemetry-" + clientId;
     }
+
+    async verifyTokenStore(options: {
+        scopes: string[];
+        idTokens?: number;
+        accessTokens?: number;
+        refreshTokens?: number;
+        numberOfTenants?: number;
+    }): Promise<void> {
+        const tokenStore = await this.getTokens();
+        const { scopes, idTokens, accessTokens, refreshTokens } = options;
+        const numberOfTenants = options.numberOfTenants || 1;
+        const totalIdTokens = (idTokens || 1) * numberOfTenants;
+        const totalAccessTokens = (accessTokens || 1) * numberOfTenants;
+        const totalRefreshTokens = refreshTokens || 1;
+        expect(tokenStore.idTokens).toHaveLength(totalIdTokens);
+        expect(tokenStore.accessTokens).toHaveLength(totalAccessTokens);
+        expect(tokenStore.refreshTokens).toHaveLength(refreshTokens || 1);
+
+        const account = await this.getAccountFromCache(tokenStore.idTokens[0]);
+        expect(account).toBeDefined();
+        expect(account["tenantProfiles"]).toHaveLength(numberOfTenants);
+        expect(
+            await this.accessTokenForScopesExists(
+                tokenStore.accessTokens,
+                scopes
+            )
+        ).toBeTruthy();
+        const storage = await this.getWindowStorage();
+        expect(Object.keys(storage).length).toEqual(
+            totalIdTokens + totalAccessTokens + totalRefreshTokens + 5 // 1 Account + 1 Account Keys + 1 Token Keys + 2 active token filters = 5
+        );
+    }
 }

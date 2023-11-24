@@ -30,37 +30,6 @@ import { GuestHomedIn } from "e2e-test-utils/src/Constants";
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 let sampleHomeUrl = "";
 
-async function verifyTokenStore(
-    BrowserCache: BrowserCacheUtils,
-    scopes: string[],
-    numberOfTenants: number = 1
-): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens).toHaveLength(1 * numberOfTenants);
-    expect(tokenStore.accessTokens).toHaveLength(1 * numberOfTenants);
-    expect(tokenStore.refreshTokens).toHaveLength(1);
-
-    const account = await BrowserCache.getAccountFromCache(
-        tokenStore.idTokens[0]
-    );
-    expect(account).toBeDefined();
-
-    expect(account["tenantProfiles"]).toHaveLength(numberOfTenants);
-    expect(
-        await BrowserCache.accessTokenForScopesExists(
-            tokenStore.accessTokens,
-            scopes,
-            numberOfTenants
-        )
-    ).toBeTruthy();
-    const storage = await BrowserCache.getWindowStorage();
-    const crossTenantArtifactCount = 4; // 1 account object + 1 refresh token + 1 account keys array + 1 token keys array = 4
-    const perTenantArtifactCount = 2; // 1 id token + 1 access token per tenant
-    expect(Object.keys(storage).length).toEqual(
-        crossTenantArtifactCount + numberOfTenants * perTenantArtifactCount
-    );
-}
-
 describe("AAD-Prod Tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -255,7 +224,9 @@ describe("AAD-Prod Tests", () => {
             );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("acquireTokenSilent from cache (home tenant token)", async () => {
@@ -283,7 +254,9 @@ describe("AAD-Prod Tests", () => {
             ]);
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("acquireTokenSilent via RefreshToken (home tenant token)", async () => {
@@ -305,7 +278,9 @@ describe("AAD-Prod Tests", () => {
             );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("acquireTokenSilent via RefreshToken (guest tenant token)", async () => {
@@ -322,11 +297,10 @@ describe("AAD-Prod Tests", () => {
             );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(
-                BrowserCache,
-                aadTokenRequest.scopes,
-                2 // two tenants authenticated with
-            );
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+                numberOfTenants: 2,
+            });
         });
 
         it("acquireTokenSilent from cache (guest tenant token)", async () => {
@@ -353,11 +327,10 @@ describe("AAD-Prod Tests", () => {
             ]);
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(
-                BrowserCache,
-                aadTokenRequest.scopes,
-                2 // two tenants authenticated with
-            );
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+                numberOfTenants: 2,
+            });
         });
     });
 });
