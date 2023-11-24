@@ -226,11 +226,17 @@ export class BrowserCacheUtils {
 
         const account = await this.getAccountFromCache(tokenStore.idTokens[0]);
         expect(account).toBeDefined();
-        if (account.hasOwnProperty("tenantProfiles")) {
-            // @ts-ignore
-            expect(account["tenantProfiles"]).toHaveLength(numberOfTenants);
+        if (account) {
+            if (account.hasOwnProperty("tenantProfiles")) {
+                // @ts-ignore
+                expect(account["tenantProfiles"]).toHaveLength(numberOfTenants);
+            } else {
+                throw new Error(
+                    "Account does not have a tenantProfiles property"
+                );
+            }
         } else {
-            throw new Error("Account does not have a tenantProfiles property");
+            throw new Error("Account is null");
         }
         expect(
             await this.accessTokenForScopesExists(
