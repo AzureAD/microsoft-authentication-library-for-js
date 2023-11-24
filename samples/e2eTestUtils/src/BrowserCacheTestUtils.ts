@@ -1,5 +1,4 @@
 import * as puppeteer from "puppeteer";
-import { AccountEntity } from "../../../lib/msal-browser/src";
 
 export interface ServerTelemetryEntity {
     failedRequests: Array<string | number>;
@@ -225,11 +224,14 @@ export class BrowserCacheUtils {
         expect(tokenStore.accessTokens).toHaveLength(totalAccessTokens);
         expect(tokenStore.refreshTokens).toHaveLength(refreshTokens || 1);
 
-        const account = (await this.getAccountFromCache(
-            tokenStore.idTokens[0]
-        )) as AccountEntity;
+        const account = await this.getAccountFromCache(tokenStore.idTokens[0]);
         expect(account).toBeDefined();
-        expect(account["tenantProfiles"]).toHaveLength(numberOfTenants);
+        if (account.hasOwnProperty("tenantProfiles")) {
+            // @ts-ignore
+            expect(account["tenantProfiles"]).toHaveLength(numberOfTenants);
+        } else {
+            throw new Error("Account does not have a tenantProfiles property");
+        }
         expect(
             await this.accessTokenForScopesExists(
                 tokenStore.accessTokens,
