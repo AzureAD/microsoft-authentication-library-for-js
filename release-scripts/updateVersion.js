@@ -6,13 +6,12 @@
 const path = require("path");
 const fs = require("fs");
 
-const exclude = ["msal-angularjs"]; // Libs that should be excluded
 const failures = 0;
 
 const LIB_DIR = path.resolve(process.cwd(), "lib");
 const EXTENSIONS_DIR = path.resolve(process.cwd(), "extensions");
 const libFolders = fs.readdirSync(LIB_DIR, { withFileTypes: true }).filter(function(file) {
-    return file.isDirectory() && exclude.indexOf(file.name) === -1 && fs.existsSync(path.resolve(LIB_DIR, file.name, "package.json"));
+    return file.isDirectory() && fs.existsSync(path.resolve(LIB_DIR, file.name, "package.json"));
 }).map(function(file) {
     return file.name;
 });
