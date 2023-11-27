@@ -1,7 +1,7 @@
 ---
 page_type: sample
-name: A Node.js & Express web app authenticating users against Azure AD for Customers with MSAL Node
-description: This sample demonstrates a Node.js & Express web app authenticating users against Azure Active Directory Customer Identity Access Management (Azure AD for Customers) with Microsoft Authentication Library for Node (MSAL Node)
+name: A Node.js & Express web app that signs in users by using Microsoft Entra External ID for Customers with MSAL Node
+description: This sample demonstrates a Node.js & Express web app authenticating users by using Microsoft Entra External ID for Customers with Microsoft Authentication Library for Node (MSAL Node)
 languages:
  - javascript
 products:
@@ -10,7 +10,9 @@ products:
 urlFragment: ms-identity-ciam-javascript-tutorial-5-sign-in-express
 extensions:
     services: 
-    - ms-identity
+    - active-directory
+    sub-service:
+    - ciam
     platform: 
     - JavaScript
     endpoint: 
@@ -19,10 +21,9 @@ extensions:
     - 100
     client: 
     - Node.js & Express web app
-    service: 
 ---
 
-# A Node.js & Express web app authenticating users against Azure AD for Customers with MSAL Node
+# A Node.js & Express web app authenticating users by using Microsoft Entra External ID for Customers
 
 * [Usage](#usage)
 * [Overview](#overview)
@@ -40,95 +41,75 @@ extensions:
 
 |          Instruction  |                Description                 |
 |-----------------------|--------------------------------------------|
-| **App integration use case**          | This code samples applies to **customer app integration uses case**![Yes button](yes.png "Title"). If you're looking for a workforce integration use [Tutorial: Enable a Node.js (Express) application to sign in users by using Microsoft Entra ID](https://github.com/Azure-Samples/ms-identity-docs-code-javascript)                |
-| **Scenario**        | Sign in users. |
-| **Official documentation**           |   Use the instructions in this page to learn how to run this code sample or use our docs at [Microsoft Entra External ID for customers documentation](https://learn.microsoft.com/azure/active-directory/external-identities/customers/)     |
+| **Use case**          | This code sample applies to **customer configuration uses case**![Yes button](yes.png "Title"). If you're looking for a workforce configuration use case, use [Tutorial: Enable a Node.js (Express) application to sign in users by using Microsoft Entra ID](https://github.com/Azure-Samples/ms-identity-node)      |
+| **Scenario**        | Sign in users. You acquire an ID token by using authorization code flow with PKCE. |
+|    **Add sign in to your app**        | Use the instructions in [Sign in users in a Node.js web app](https://learn.microsoft.com/entra/external-id/customers/tutorial-web-app-node-sign-in-prepare-tenant) to learn how to add sign in to your Node web app. |
+|**Product documentation** | Explore [Microsoft Entra ID for customers documentation](https://review.learn.microsoft.com/entra/external-id/customers/) |
 
 ## Overview
 
-This sample demonstrates a Node.js & Express web app that lets users sign-in with Azure Active Directory Consumers Identity and Access Management (Azure AD for Customers) using the [Microsoft Authentication Library for Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) (MSAL Node).
-
-Here you'll learn about [ID Tokens](https://docs.microsoft.com/azure/active-directory/develop/id-tokens), [OIDC scopes](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes), [single-sign on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso), **silent requests** and more.
-
-## Scenario
-
-1. The client Node.js & Express web app uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD for Customers**.
-1. The **ID Token** proves that the user has successfully authenticated against **Azure AD for Customers**.
-
-![Scenario Image](./ReadmeFiles/topology.png)
+This sample demonstrates how sign in users into a a Node.js & Express web app by using Microsoft Entra External ID for Customers. The samples utilizes the [Microsoft Authentication Library for Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) (MSAL Node) to simplify adding authentication to the Node.js web app.
 
 ## Contents
 
 | File/folder           | Description                                |
 |-----------------------|--------------------------------------------|
 | `App/app.js`          | Application entry point.                   |
-| `App/authConfig.js`   | Contains authentication parameters.        |
-| `App/auth/AuthProvider.js`  | Main authentication logic resides here.    |
+| `App/authConfig.js`   | Contains authentication parameters such as your tenant sub-domain, Application (Client) ID, app client secret and redirect URI.        |
+| `App/auth/AuthProvider.js`  | The main authentication logic resides here.    |
 
 ## Prerequisites
 
-* [Node.js](https://nodejs.org/en/download/) must be installed to run this sample.
-* [Visual Studio Code](https://code.visualstudio.com/download) is recommended for running and editing this sample.
+* You must install in your computer [Node.js](https://nodejs.org/en/download/) to run this sample.
+* We recommend [Visual Studio Code](https://code.visualstudio.com/download) for running and editing this sample.
 * [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
 * An **Azure AD for Customers** tenant. For more information, see: [How to get an Azure AD for Customers tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
-* A user account with permissions to create applications in your **Azure AD for Customers** tenant.
+* Microsoft Entra ID for customers tenant. If you don't already have one, [sign up for a free trial](https://aka.ms/ciam-free-trial).
 
-## Setup the sample
+## Prepare your tenant
 
-### Step 1: Clone or download this repository
+### Register web application in your tenant
 
-From your shell or command line:
+To enable your application to sign in users with Microsoft Entra, Microsoft Entra ID for customers must be made aware of the application you create. The app registration establishes a trust relationship between the app and Microsoft Entra. When you register an application, External ID generates a unique identifier known as an **Application (client) ID**, a value used to identify your app when creating authentication requests.
 
-```console
-git clone https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial.git
-```
+You can register an app in your tenant by using two methods:
 
-or download and extract the repository *.zip* file.
+* Use Microsoft Graph PowerShell to automatically register the app. This option automatically creates the applications and related objects app secrets, then modifies your project config files, so you run the app without any further action.
 
-> :warning: To avoid path length limitations on Windows, we recommend cloning into a directory near the root of your drive.
+    <details>
+       <summary>Expand this section if you want to use this automation:</summary>
+    
+    > :warning: If you have never used **Microsoft Graph PowerShell** before, we recommend you go through the [App Creation Scripts Guide](./AppCreationScripts/AppCreationScripts.md) once to ensure that you've prepared your environment correctly for this step.
+    
+    1. Ensure that you have PowerShell 7 or later installed.
+    1. Run the script to create your Microsoft Entra ID application and configure the code of the sample application accordingly.
+    1. For interactive process in PowerShell, run:
+    
+        ```PowerShell
+        cd .\AppCreationScripts\
+        .\Configure.ps1 -TenantId "[Optional] - your tenant id" -AzureEnvironmentName "[Optional] - Azure environment, defaults to 'Global'"
+        ```
+    
+    > Other ways of running the scripts are described in [App Creation Scripts guide](./AppCreationScripts/AppCreationScripts.md). The scripts also provides a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
+    
+    > :information_source: This sample can make use of client certificates. You can use **AppCreationScripts** to register an Microsoft Entra ID application with certificates. For more information see, [Use client certificate for authentication in your Node.js web app instead of client secrets](https://review.learn.microsoft.com/entra/external-id/customers/how-to-web-app-node-use-certificate)
+    
+    </details>
 
-### Step 2: Install project dependencies
+* Manually register your apps in Microsoft Entra Admin center. To do, follow these steps:
 
-```console
-    cd 1-Authentication\5-sign-in-express\App
-    npm install
-```
-
-### Step 3: Register the sample application(s) in your tenant
-
-There is one project in this sample. To register it, you can:
-
-- follow the steps below for manually register your apps
-- or use PowerShell scripts that:
-  - **automatically** creates the Azure AD applications and related objects (passwords, permissions, dependencies) for you.
-  - modify the projects' configuration files.
-
-<details>
-   <summary>Expand this section if you want to use this automation:</summary>
-
-> :warning: If you have never used **Microsoft Graph PowerShell** before, we recommend you go through the [App Creation Scripts Guide](./AppCreationScripts/AppCreationScripts.md) once to ensure that your environment is prepared correctly for this step.
-
-1. Ensure that you have PowerShell 7 or later installed.
-1. Run the script to create your Azure AD application and configure the code of the sample application accordingly.
-1. For interactive process -in PowerShell, run:
-
-    ```PowerShell
-    cd .\AppCreationScripts\
-    .\Configure.ps1 -TenantId "[Optional] - your tenant id" -AzureEnvironmentName "[Optional] - Azure environment, defaults to 'Global'"
-    ```
-
-> Other ways of running the scripts are described in [App Creation Scripts guide](./AppCreationScripts/AppCreationScripts.md). The scripts also provide a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
-
-> :information_source: This sample can make use of client certificates. You can use **AppCreationScripts** to register an Azure AD application with certificates. See: [How to use certificates instead of client secrets](./README-use-certificate.md)
-
-</details>
-
-#### Choose the Azure AD for Customers tenant where you want to create your applications
-
-To manually register the apps, as a first step you'll need to:
-
-1. Sign in to the [Azure portal](https://portal.azure.com).
-1. If your account is present in more than one Azure AD for Customers tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory** to change your portal session to the desired Azure AD for Customers tenant.
+    1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [Application Developer](~/identity/role-based-access-control/permissions-reference.md#application-developer).
+    1. If you have access to multiple tenants, use the **Settings** icon :::image type="icon" source="~/external-id/customers/media/common/admin-center-settings-icon.png" border="false"::: in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu. 
+    1. Browse to **Identity** >**Applications** > **App registrations**.
+    1. Select **+ New registration**.
+    1. In the **Register an application** page that appears;
+    
+        1. Enter a meaningful application **Name** that is displayed to users of the app, for example *ciam-client-app*.
+        1. Under **Supported account types**, select **Accounts in this organizational directory only**.
+    
+    1. Select **Register**.
+    1. The application's **Overview** pane displays upon successful registration. Record the **Application (client) ID** to be used in your application source code.
+    
 
 #### Create User Flows
 
@@ -184,6 +165,28 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-node-webapp` app copied from the Azure portal.
 1. Find the placeholder `Enter_the_Tenant_Subdomain_Here` and replace it with the Directory (tenant) subdomain. For instance, if your tenant primary domain is `contoso.onmicrosoft.com`, use `contoso`. If you don't have your tenant domain name, learn how to [read your tenant details](https://review.learn.microsoft.com/azure/active-directory/external-identities/customers/how-to-create-customer-tenant-portal#get-the-customer-tenant-details).
 1. Find the key `Enter_the_Client_Secret_Here` and replace the existing value with the generated secret that you saved during the creation of `ciam-msal-node-webapp` copied from the Azure portal.
+
+## Setup the sample
+
+### Step 1: Clone or download this repository
+
+From your shell or command line:
+
+```console
+git clone https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial.git
+```
+
+or download and extract the repository *.zip* file.
+
+> :warning: To avoid path length limitations on Windows, we recommend cloning into a directory near the root of your drive.
+
+### Step 2: Install project dependencies
+
+```console
+    cd 1-Authentication\5-sign-in-express\App
+    npm install
+```
+
 
 ### Step 4: Running the sample
 
