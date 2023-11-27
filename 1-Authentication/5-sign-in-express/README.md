@@ -66,109 +66,130 @@ This sample demonstrates how sign in users into a a Node.js & Express web app by
 * An **Azure AD for Customers** tenant. For more information, see: [How to get an Azure AD for Customers tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
 * Microsoft Entra ID for customers tenant. If you don't already have one, [sign up for a free trial](https://aka.ms/ciam-free-trial).
 
-## Prepare your tenant
 
-### Register web application in your tenant
+## Register web application in your tenant
 
 To enable your application to sign in users with Microsoft Entra, Microsoft Entra ID for customers must be made aware of the application you create. The app registration establishes a trust relationship between the app and Microsoft Entra. When you register an application, External ID generates a unique identifier known as an **Application (client) ID**, a value used to identify your app when creating authentication requests.
 
-You can register an app in your tenant by using two methods:
+You can register an app in your tenant automatically by using Microsoft Graph PowerShell or Manually register your apps in Microsoft Entra Admin center. 
 
-* Use Microsoft Graph PowerShell to automatically register the app. This option automatically creates the applications and related objects app secrets, then modifies your project config files, so you run the app without any further action.
+When you use Microsoft Graph PowerShell, you automatically register the applications and related objects app secrets, then modifies your project config files, so you run the app without any further action.
 
-    <details>
-       <summary>Expand this section if you want to use this automation:</summary>
-    
-    > :warning: If you have never used **Microsoft Graph PowerShell** before, we recommend you go through the [App Creation Scripts Guide](./AppCreationScripts/AppCreationScripts.md) once to ensure that you've prepared your environment correctly for this step.
-    
-    1. Ensure that you have PowerShell 7 or later installed.
-    1. Run the script to create your Microsoft Entra ID application and configure the code of the sample application accordingly.
-    1. For interactive process in PowerShell, run:
-    
-        ```PowerShell
-        cd .\AppCreationScripts\
-        .\Configure.ps1 -TenantId "[Optional] - your tenant id" -AzureEnvironmentName "[Optional] - Azure environment, defaults to 'Global'"
-        ```
-    
-    > Other ways of running the scripts are described in [App Creation Scripts guide](./AppCreationScripts/AppCreationScripts.md). The scripts also provides a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
-    
-    > :information_source: This sample can make use of client certificates. You can use **AppCreationScripts** to register an Microsoft Entra ID application with certificates. For more information see, [Use client certificate for authentication in your Node.js web app instead of client secrets](https://review.learn.microsoft.com/entra/external-id/customers/how-to-web-app-node-use-certificate)
-    
-    </details>
+<details>
+    <summary>Expand this section if you want to use this automation:</summary>
 
-* Manually register your apps in Microsoft Entra Admin center. To do, follow these steps:
+> :warning: If you have never used **Microsoft Graph PowerShell** before, we recommend you go through the [App Creation Scripts Guide](./AppCreationScripts/AppCreationScripts.md) once to ensure that you've prepared your environment correctly for this step.
 
-    1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [Application Developer](~/identity/role-based-access-control/permissions-reference.md#application-developer).
-    1. If you have access to multiple tenants, use the **Settings** icon ![settings icon](admin-center-settings-icon.png "Title") in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu. 
-    1. Browse to **Identity** >**Applications** > **App registrations**.
-    1. Select **+ New registration**.
-    1. In the **Register an application** page that appears;
-    
-        1. Enter a meaningful application **Name** that is displayed to users of the app, for example *ciam-client-app*.
-        1. Under **Supported account types**, select **Accounts in this organizational directory only**.
-    
-    1. Select **Register**.
-    1. The application's **Overview** pane displays upon successful registration. Record the **Application (client) ID** to be used in your application source code.
-    
+1. Ensure that you have PowerShell 7 or later installed.
+1. Run the script to create your Microsoft Entra ID application and configure the code of the sample application accordingly.
+1. For interactive process in PowerShell, run:
 
-#### Create User Flows
+    ```PowerShell
+    cd .\AppCreationScripts\
+    .\Configure.ps1 -TenantId "[Optional] - your tenant id" -AzureEnvironmentName "[Optional] - Azure environment, defaults to 'Global'"
+    ```
 
-Please refer to: [Tutorial: Create user flow in Azure Active Directory CIAM](https://github.com/microsoft/entra-previews/blob/PP2/docs/3-Create-sign-up-and-sign-in-user-flow.md)
+> Other ways of running the scripts are described in [App Creation Scripts guide](./AppCreationScripts/AppCreationScripts.md). The scripts also provides a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
 
-> :information_source: To enable password reset in Customer Identity Access Management (CIAM) in Azure Active Directory (Azure AD), please refer to: [Tutorial: Enable self-service password reset](https://github.com/microsoft/entra-previews/blob/PP2/docs/4-Enable-password-reset.md)
+> :note: This sample can make use of client certificates. You can use **AppCreationScripts** to register an Microsoft Entra ID application with certificates. For more information see, [Use client certificate for authentication in your Node.js web app instead of client secrets](https://review.learn.microsoft.com/entra/external-id/customers/how-to-web-app-node-use-certificate).
 
-#### Add External Identity Providers
+</details>
 
-Please refer to:
+To manually register your apps in Microsoft Entra Admin center, follow these steps:
 
-* [Tutorial: Add Google as an identity provider](https://github.com/microsoft/entra-previews/blob/PP2/docs/6-Add-Google-identity-provider.md)
-* [Tutorial: Add Facebook as an identity provider](https://github.com/microsoft/entra-previews/blob/PP2/docs/7-Add-Facebook-identity-provider.md)
+1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [Application Developer](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#application-developer).
+1. If you have access to multiple tenants, use the **Settings** icon (![settings icon](admin-center-settings-icon.png "Title")) in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu. 
+1. Browse to **Identity** >**Applications** > **App registrations**.
+1. Select **+ New registration**.
+1. In the **Register an application** page that appears;
 
-#### Register the client app (ciam-msal-node-webapp)
+    1. Enter a meaningful application **Name** that is displayed to users of the app, for example *ciam-client-app*.
+    1. Under **Supported account types**, select **Accounts in this organizational directory only**.
 
-1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD for Customers** service.
-1. Select the **App Registrations** blade on the left, then select **New registration**.
-1. In the **Register an application page** that appears, enter your application's registration information:
-    1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ciam-msal-node-webapp`.
-    1. Under **Supported account types**, select **Accounts in this organizational directory only**
-    1. Select **Register** to create the application.
-1. In the **Overview** blade, find and note the **Application (client) ID** and *Directory (tenant) ID**. You use these values in your app's configuration file(s) later in your code.
-1. In the app's registration screen, select the **Authentication** blade to the left.
-1. If you don't have a platform added, select **Add a platform** and select the **Web** option.
-    1. In the **Redirect URI** section enter the following redirect URI:
-        1. `http://localhost:3000/`
-        1. `http://localhost:3000/auth/redirect`
-    1. Click **Save** to save your changes.
-1. In the app's registration screen, select the **Certificates & secrets** blade in the left to open the page where you can generate secrets and upload certificates.
-1. In the **Client secrets** section, select **New client secret**:
-    1. Type a key description (for instance `app secret`).
-    1. Select one of the available key durations (**6 months**, **12 months** or **Custom**) as per your security posture.
-    1. The generated key value will be displayed when you select the **Add** button. Copy and save the generated value for use in later steps.
-    1. You'll need this key later in your code's configuration files. This key value will not be displayed again, and is not retrievable by any other means, so make sure to note it from the Azure portal before navigating to any other screen or blade.
-    > :warning: For enhanced security, consider using **certificates** instead of client secrets. See: [How to use certificates instead of secrets](./README-use-certificate.md).
-1. Since this app signs-in users, we will now proceed to select **delegated permissions**, which is is required by apps signing-in users.
-    1. In the app's registration screen, select the **API permissions** blade in the left to open the page where we add access to the APIs that your application needs:
-    1. Select the **Add a permission** button and then:
-    1. Ensure that the **Microsoft APIs** tab is selected.
-    1. In the *Commonly used Microsoft APIs* section, select **Microsoft Graph**
-    1. In the **Delegated permissions** section, select **openid**, **offline_access** in the list. Use the search box if necessary.
-    1. Select the **Add permissions** button at the bottom.
-1. At this stage, the permissions are assigned correctly, but since it's a CIAM tenant, the users themselves cannot consent to these permissions. To get around this problem, we'd let the [tenant administrator consent on behalf of all users in the tenant](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent). Select the **Grant admin consent for {tenant}** button, and then select **Yes** when you are asked if you want to grant consent for the requested permissions for all accounts in the tenant. You need to be a tenant admin to be able to carry out this operation.
+1. Select **Register**.
+1. The application's **Overview** pane displays upon successful registration. Record the **Application (client) ID** to be used in your application source code.
 
-##### Configure the client app (ciam-msal-node-webapp) to use your app registration
+To specify your app type to your app registration, follow these steps:
 
-Open the project in your IDE (like Visual Studio or Visual Studio Code) to configure the code.
+1. Under **Manage**, select **Authentication**.
+1. On the **Platform configurations** page, select **Add a platform**, and then select **Web** option.
+1. For the **Redirect URIs** enter `http://localhost:3000/auth/redirect`.
+1. Select **Configure** to save your changes.
 
-> In the steps below, "ClientID" is the same as "Application ID" or "AppId".
+## Add app client secret
 
-1. Open the `App\authConfig.js` file.
-1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-node-webapp` app copied from the Azure portal.
-1. Find the placeholder `Enter_the_Tenant_Subdomain_Here` and replace it with the Directory (tenant) subdomain. For instance, if your tenant primary domain is `contoso.onmicrosoft.com`, use `contoso`. If you don't have your tenant domain name, learn how to [read your tenant details](https://review.learn.microsoft.com/azure/active-directory/external-identities/customers/how-to-create-customer-tenant-portal#get-the-customer-tenant-details).
-1. Find the key `Enter_the_Client_Secret_Here` and replace the existing value with the generated secret that you saved during the creation of `ciam-msal-node-webapp` copied from the Azure portal.
+Create a client secret for the registered application. The application uses the client secret to prove its identity when it requests for tokens:
 
-## Setup the sample
+1. From the **App registrations** page, select the application that you created (such as *ciam-client-app*) to open its **Overview** page.
+1. Under **Manage**, select **Certificates & secrets**.
+1. Select **New client secret**.
+1. In the **Description** box, enter a description for the client secret (for example, *ciam app client secret*).
+1. Under **Expires**, select a duration for which the secret is valid (per your organizations security rules), and then select **Add**.
+1. Record the secret's **Value**. You'll use this value for configuration in a later step.
 
-### Step 1: Clone or download this repository
+> :information_source: The secret value won't be displayed again, and is not retrievable by any means, after you navigate away from the **Certificates and secrets** page, so make sure you record it. For enhanced security, [Use client certificate for authentication in your Node.js web app instead of client secrets](https://learn.microsoft.com/entra/external-id/customers/how-to-web-app-node-use-certificate).
+
+## Grant API permissions
+
+1. From the **App registrations** page, select the application that you created (such as *ciam-client-app*) to open its **Overview** page.
+1. Under **Manage**, select **API permissions**.
+1. Under **Configured permissions**, select **Add a permission**.
+1. Select **Microsoft APIs** tab.
+1. Under **Commonly used Microsoft APIs** section, select **Microsoft Graph**.
+1. Select **Delegated permissions** option.
+1. Under **Select permissions** section, search for and select both **openid** and **offline_access** permissions.
+1. Select the **Add permissions** button. 
+1. At this point, you've assigned the permissions correctly. However, since the tenant is a customer's tenant, the consumer users themselves can't consent to these permissions. You as the admin must consent to these permissions on behalf of all the users in the tenant:
+
+    1. Select **Grant admin consent for \<your tenant name\>**, then select **Yes**.
+    1. Select **Refresh**, then verify that **Granted for \<your tenant name\>** appears under **Status** for both scopes.
+
+## Create user Flows
+
+Follow these steps to create a user flow a customer can use to sign in or sign up for an application.
+
+1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [External ID User Flow Administrator](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#external-id-user-flow-administrator).  
+1. If you have access to multiple tenants, use the **Settings** icon (![settings icon](admin-center-settings-icon.png "Title")) in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu.
+1. Browse to **Identity** > **External Identities** > **User flows**.
+1. Select **+ New user flow**.
+1. On the **Create** page:
+
+   1. Enter a **Name** for the user flow, such as *SignInSignUpSample*.
+   1. In the **Identity providers** list, select **Email Accounts**. This identity provider allows users to sign-in or sign-up using their email address.
+   
+         > note: Additional identity providers will be listed here only after you set up federation with them. For example, if you set up federation with [Google](https://learn.microsoft.com/entra/external-id/customers/how-to-google-federation-customers) or [Facebook](https://learn.microsoft.com/entra/external-id/customers/how-to-facebook-federation-customers), you'll be able to select those additional identity providers here.  
+
+   1. Under **Email accounts**, you can select one of the two options. For this tutorial, select **Email with password**.
+
+      - **Email with password**: Allows new users to sign up and sign in using an email address as the sign-in name and a password as their first factor credential.  
+      - **Email one-time-passcode**: Allows new users to sign up and sign in using an email address as the sign-in name and email one-time passcode as their first factor credential.
+
+         > note: Email one-time passcode must be enabled at the tenant level (**All Identity Providers** > **Email One-time-passcode**) for this option to be available at the user flow level.
+
+   1. Under **User attributes**, choose the attributes you want to collect from the user upon sign-up. By selecting **Show more**, you can choose attributes and claims for **Country/Region**, **Display Name**, and **Postal Code**. Select **OK**. (Users are only prompted for attributes when they sign up for the first time.)
+
+1. Select **Create**. The new user flow appears in the **User flows** list. If necessary, refresh the page.
+
+To enable self-service password reset, use the steps in [Enable self-service password reset](https://learn.microsoft.com/entra/external-id/customers/how-to-enable-password-reset-customers) article.
+
+## Associate the web application with the user flow
+
+Although many applications can be associated with your user flow, a single application can only be associated with one user flow. A user flow allows configuration of the user experience for specific applications. For example, you can configure a user flow that requires users to sign-in or sign-up with a phone number or email address.
+
+1. On the sidebar menu, select **Identity**.
+1. Select **External Identities**, then **User flows**.
+1. In the **User flows** page, select the **User flow name** you created earlier, for example, _SignInSignUpSample_.
+1. Under **Use**, select **Applications**.
+1. Select **Add application**.
+   <!--[Screenshot the shows how to associate an application to a user flow.](media/20-create-user-flow-add-application.png)-->
+1. Select the application from the list such as *ciam-client-app* or use the search box to find the application, and then select it.
+
+1. Choose **Select**.
+
+
+
+
+## Clone or download sample web application
 
 From your shell or command line:
 
@@ -176,9 +197,6 @@ From your shell or command line:
 git clone https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial.git
 ```
 
-or download and extract the repository *.zip* file.
-
-> :warning: To avoid path length limitations on Windows, we recommend cloning into a directory near the root of your drive.
 
 ### Step 2: Install project dependencies
 
@@ -194,6 +212,9 @@ or download and extract the repository *.zip* file.
     cd 1-Authentication\5-sign-in-express\App
     npm start
 ```
+
+## Configure the client app (ciam-msal-node-webapp) to use your app registration
+
 
 ## Explore the sample
 
