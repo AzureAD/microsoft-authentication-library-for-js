@@ -35,6 +35,7 @@ jobs:
       with:
         node-version: 20
         cache: 'npm'
+        check-latest: true
 
     - name: Install Dependencies
       run: npm ci --workspace=${{ inputs.path }}/${{ inputs.lib-name }} --include-workspace-root
