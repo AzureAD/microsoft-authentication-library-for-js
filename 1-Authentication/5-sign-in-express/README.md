@@ -1,6 +1,6 @@
 ---
 page_type: sample
-name: A Node.js & Express web app that signs in users by using Microsoft Entra External ID for Customers with MSAL Node
+name: Sign in users in a sample Node.js & Express web app by using Microsoft Entra External ID for customers
 description: This sample demonstrates a Node.js & Express web app authenticating users by using Microsoft Entra External ID for Customers with Microsoft Authentication Library for Node (MSAL Node)
 languages:
  - javascript
@@ -23,10 +23,10 @@ extensions:
     - Node.js & Express web app
 ---
 
-# A Node.js & Express web app authenticating users by using Microsoft Entra External ID for Customers
+# Sign in users in a sample Node.js & Express web app by using Microsoft Entra External ID for customers
 
-* [Usage](#usage)
 * [Overview](#overview)
+* [Usage](#usage)
 * [Scenario](#scenario)
 * [Contents](#contents)
 * [Prerequisites](#prerequisites)
@@ -37,6 +37,10 @@ extensions:
 * [Contributing](#contributing)
 * [Learn More](#learn-more)
 
+## Overview
+
+This sample demonstrates how to sign in users into a sample Node.js & Express web app by using Microsoft Entra External ID for customers. The samples utilizes the [Microsoft Authentication Library for Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) (MSAL Node) to simplify adding authentication to the Node.js web app.
+
 ## Usage
 
 |          Instruction  |                Description                 |
@@ -45,10 +49,6 @@ extensions:
 | **Scenario**        | Sign in users. You acquire an ID token by using authorization code flow with PKCE. |
 |    **Add sign in to your app**        | Use the instructions in [Sign in users in a Node.js web app](https://learn.microsoft.com/entra/external-id/customers/tutorial-web-app-node-sign-in-prepare-tenant) to learn how to add sign in to your Node web app. |
 |**Product documentation** | Explore [Microsoft Entra ID for customers documentation](https://review.learn.microsoft.com/entra/external-id/customers/) |
-
-## Overview
-
-This sample demonstrates how sign in users into a a Node.js & Express web app by using Microsoft Entra External ID for Customers. The samples utilizes the [Microsoft Authentication Library for Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) (MSAL Node) to simplify adding authentication to the Node.js web app.
 
 ## Contents
 
@@ -62,7 +62,7 @@ This sample demonstrates how sign in users into a a Node.js & Express web app by
 
 * You must install in your computer [Node.js](https://nodejs.org/en/download/) to run this sample.
 * We recommend [Visual Studio Code](https://code.visualstudio.com/download) for running and editing this sample.
-* An **Azure AD for Customers** tenant. For more information, see: [How to get an Azure AD for Customers tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
+* An **Azure AD for Customers** tenant. For more information, see: [How to get an Azure AD for customers tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
 * Microsoft Entra ID for customers tenant. If you don't already have one, [sign up for a free trial](https://aka.ms/ciam-free-trial).
 * If you'd like to use Azure services, such as hosting your app in Azure App Service, [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
 
