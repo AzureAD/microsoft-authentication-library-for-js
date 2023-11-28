@@ -91,7 +91,7 @@ When you use Microsoft Graph PowerShell, you automatically register the applicat
 
 > Other ways of running the scripts are described in [App Creation Scripts guide](./AppCreationScripts/AppCreationScripts.md). The scripts also provides a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
 
-> :exclamation: This sample can make use of client certificates. You can use **AppCreationScripts** to register an Microsoft Entra ID application with certificates. For more information see, [Use client certificate for authentication in your Node.js web app instead of client secrets](https://review.learn.microsoft.com/entra/external-id/customers/how-to-web-app-node-use-certificate).
+> :exclamation: NOTE: This sample can make use of client certificates. You can use **AppCreationScripts** to register an Microsoft Entra ID application with certificates. For more information see, [Use client certificate for authentication in your Node.js web app instead of client secrets](https://review.learn.microsoft.com/entra/external-id/customers/how-to-web-app-node-use-certificate).
 
 </details>
 
@@ -157,14 +157,14 @@ Follow these steps to create a user flow a customer can use to sign in or sign u
    1. Enter a **Name** for the user flow, such as *SignInSignUpSample*.
    1. In the **Identity providers** list, select **Email Accounts**. This identity provider allows users to sign-in or sign-up using their email address.
    
-         > :exclamation: Additional identity providers will be listed here only after you set up federation with them. For example, if you set up federation with [Google](https://learn.microsoft.com/entra/external-id/customers/how-to-google-federation-customers) or [Facebook](https://learn.microsoft.com/entra/external-id/customers/how-to-facebook-federation-customers), you'll be able to select those additional identity providers here.  
+         > :exclamation: NOTE: Additional identity providers will be listed here only after you set up federation with them. For example, if you set up federation with [Google](https://learn.microsoft.com/entra/external-id/customers/how-to-google-federation-customers) or [Facebook](https://learn.microsoft.com/entra/external-id/customers/how-to-facebook-federation-customers), you'll be able to select those additional identity providers here.  
 
    1. Under **Email accounts**, you can select one of the two options. For this tutorial, select **Email with password**.
 
       - **Email with password**: Allows new users to sign up and sign in using an email address as the sign-in name and a password as their first factor credential.  
       - **Email one-time-passcode**: Allows new users to sign up and sign in using an email address as the sign-in name and email one-time passcode as their first factor credential.
 
-         > :exclamation: Email one-time passcode must be enabled at the tenant level (**All Identity Providers** > **Email One-time-passcode**) for this option to be available at the user flow level.
+         > :exclamation: NOTE: Email one-time passcode must be enabled at the tenant level (**All Identity Providers** > **Email One-time-passcode**) for this option to be available at the user flow level.
 
    1. Under **User attributes**, choose the attributes you want to collect from the user upon sign-up. By selecting **Show more**, you can choose attributes and claims for **Country/Region**, **Display Name**, and **Postal Code**. Select **OK**. (Users are only prompted for attributes when they sign up for the first time.)
 
