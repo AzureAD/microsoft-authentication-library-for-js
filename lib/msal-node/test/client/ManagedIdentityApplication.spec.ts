@@ -266,7 +266,9 @@ describe("ManagedIdentityApplication unit tests", () => {
                     new ManagedIdentityApplication({
                         system: {
                             networkClient:
-                                ManagedIdentityTestUtils.getManagedIdentityNetworkAzure401Client() as INetworkModule,
+                                ManagedIdentityTestUtils.getManagedIdentityNetworkAzure401Client(
+                                    "Basic realm=lib/msal-node/test/test_kit/AzureArcSecret.key"
+                                ) as INetworkModule,
                             // managedIdentityIdParams will be omitted for system assigned
                         },
                     });
@@ -292,6 +294,100 @@ describe("ManagedIdentityApplication unit tests", () => {
                         MANAGED_IDENTITY_AZURE_ARC_WWW_AUTHENTICATE_HEADER
                     );
                 }
+            });
+
+            describe("Errors", () => {
+                test("throws an error when a user assigned managed identity is used", async () => {
+                    expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+
+                    const managedIdentityApplication =
+                        new ManagedIdentityApplication(
+                            userAssignedClientIdConfig
+                        );
+
+                    await expect(
+                        managedIdentityApplication.acquireToken(
+                            managedIdentityRequestParams
+                        )
+                    ).rejects.toMatchObject(
+                        createManagedIdentityError(
+                            ManagedIdentityErrorCodes.unableToCreateAzureArc
+                        )
+                    );
+                });
+
+                test("throws an error when the WWW-Authenticate header is missing", async () => {
+                    expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+
+                    const managedIdentityApplicationAzureArc401: ManagedIdentityApplication =
+                        new ManagedIdentityApplication({
+                            system: {
+                                networkClient:
+                                    ManagedIdentityTestUtils.getManagedIdentityNetworkAzure401Client() as INetworkModule,
+                                // managedIdentityIdParams will be omitted for system assigned
+                            },
+                        });
+
+                    await expect(
+                        managedIdentityApplicationAzureArc401.acquireToken(
+                            managedIdentityRequestParams
+                        )
+                    ).rejects.toMatchObject(
+                        createManagedIdentityError(
+                            ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
+                        )
+                    );
+                });
+
+                test("throws an error when the WWW-Authenticate header is in an unsupported format", async () => {
+                    expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+
+                    const managedIdentityApplicationAzureArc401: ManagedIdentityApplication =
+                        new ManagedIdentityApplication({
+                            system: {
+                                networkClient:
+                                    ManagedIdentityTestUtils.getManagedIdentityNetworkAzure401Client(
+                                        "unsupported_format"
+                                    ) as INetworkModule,
+                                // managedIdentityIdParams will be omitted for system assigned
+                            },
+                        });
+
+                    await expect(
+                        managedIdentityApplicationAzureArc401.acquireToken(
+                            managedIdentityRequestParams
+                        )
+                    ).rejects.toMatchObject(
+                        createManagedIdentityError(
+                            ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
+                        )
+                    );
+                });
+
+                test("throws an error when the secret file cannot be found", async () => {
+                    expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+
+                    const managedIdentityApplicationAzureArc401: ManagedIdentityApplication =
+                        new ManagedIdentityApplication({
+                            system: {
+                                networkClient:
+                                    ManagedIdentityTestUtils.getManagedIdentityNetworkAzure401Client(
+                                        "Basic realm=invalid/secret/file/location.key"
+                                    ) as INetworkModule,
+                                // managedIdentityIdParams will be omitted for system assigned
+                            },
+                        });
+
+                    await expect(
+                        managedIdentityApplicationAzureArc401.acquireToken(
+                            managedIdentityRequestParams
+                        )
+                    ).rejects.toMatchObject(
+                        createManagedIdentityError(
+                            ManagedIdentityErrorCodes.unableToReadSecretFile
+                        )
+                    );
+                });
             });
         });
     });

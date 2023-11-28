@@ -21,6 +21,8 @@ export const ManagedIdentityErrorMessages = {
         "Azure Arc Managed Identities can only be system assigned.",
     [ManagedIdentityErrorCodes.unableToCreateSource]:
         "Unable to create a Managed Identity source based on environment variables.",
+    [ManagedIdentityErrorCodes.unableToReadSecretFile]:
+        "Unable to read the secret file.",
     [ManagedIdentityErrorCodes.urlParseError]:
         "The Managed Identity's 'IDENTITY_ENDPOINT' environment variable is malformed.",
     [ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing]:

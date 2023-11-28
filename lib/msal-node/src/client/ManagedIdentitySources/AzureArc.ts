@@ -132,7 +132,14 @@ export class AzureArc extends BaseManagedIdentitySource {
             }
 
             const secretFile = wwwAuthHeader.split("Basic realm=")[1];
-            const secret = fs.readFileSync(secretFile, "utf-8");
+            let secret;
+            try {
+                secret = fs.readFileSync(secretFile, "utf-8");
+            } catch (e) {
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.unableToReadSecretFile
+                );
+            }
             const authHeaderValue = `Basic ${secret}`;
 
             this.logger.info(

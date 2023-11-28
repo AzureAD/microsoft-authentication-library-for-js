@@ -123,28 +123,37 @@ export class ManagedIdentityTestUtils {
         })();
     }
 
-    static getManagedIdentityNetworkAzure401Client() {
-        return new Azure401CustomHttpClient();
+    static getManagedIdentityNetworkAzure401Client(
+        wwwAuthenticateHeader?: string
+    ) {
+        return new Azure401CustomHttpClient(wwwAuthenticateHeader || undefined);
     }
 }
 
 export class Azure401CustomHttpClient implements INetworkModule {
+    private wwwAuthenticateHeader;
+
+    constructor(wwwAuthenticateHeader: string | undefined) {
+        this.wwwAuthenticateHeader = wwwAuthenticateHeader;
+    }
+
     sendGetRequestAsync<T>(
         _url: string,
         _options?: NetworkRequestOptions,
         _cancellationToken?: number
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
+            const headers: Record<string, string> = {};
+            if (this.wwwAuthenticateHeader) {
+                headers["WWW-Authenticate"] = this.wwwAuthenticateHeader;
+            }
             resolve({
                 status: 401,
                 body: {
                     message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
                     correlationId: DEFAULT_MANAGED_IDENTITY_ID,
                 } as ManagedIdentityTokenResponse,
-                headers: {
-                    "WWW-Authenticate":
-                        "Basic realm=lib/msal-node/test/test_kit/AzureArcSecret.key",
-                } as Record<string, string>,
+                headers,
             } as NetworkResponse<T>);
         });
     }
