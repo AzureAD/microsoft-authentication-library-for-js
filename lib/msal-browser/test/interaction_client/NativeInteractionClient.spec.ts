@@ -42,10 +42,7 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { IPublicClientApplication } from "../../src";
-import {
-    buildAccountFromIdTokenClaims,
-    buildIdToken,
-} from "../../../../shared-test-utils/CredentialGenerators";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {

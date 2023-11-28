@@ -24,10 +24,7 @@ import {
     AuthenticationResult,
     AccountInfo,
 } from "@azure/msal-common";
-import {
-    buildAccountFromIdTokenClaims,
-    buildIdToken,
-} from "../../../../shared-test-utils/CredentialGenerators";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
 const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     ID_TOKEN_CLAIMS,

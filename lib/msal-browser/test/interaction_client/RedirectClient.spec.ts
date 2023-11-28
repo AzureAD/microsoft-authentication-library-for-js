@@ -80,10 +80,7 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import {
-    buildAccountFromIdTokenClaims,
-    buildIdToken,
-} from "../../../../shared-test-utils/CredentialGenerators";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,

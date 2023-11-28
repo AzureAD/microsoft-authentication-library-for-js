@@ -31,10 +31,7 @@ import {
 } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
-import {
-    buildAccountFromIdTokenClaims,
-    buildIdToken,
-} from "../../../../shared-test-utils/CredentialGenerators";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 import { mockCrypto } from "../client/ClientTestUtils";
 import { TestError } from "../test_kit/TestErrors";
 import { CacheManager } from "../../src/cache/CacheManager";

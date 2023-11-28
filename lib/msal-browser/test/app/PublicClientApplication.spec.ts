@@ -113,10 +113,7 @@ import {
     Configuration,
     buildConfiguration,
 } from "../../src/config/Configuration";
-import {
-    buildAccountFromIdTokenClaims,
-    buildIdToken,
-} from "../../../../shared-test-utils/CredentialGenerators";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,

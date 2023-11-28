@@ -1,6 +1,6 @@
 import { AccountEntity } from "../../src";
 import * as AccountInfo from "../../src/account/AccountInfo";
-import { buildAccountFromIdTokenClaims } from "../../../../shared-test-utils/CredentialGenerators";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import {
     ID_TOKEN_ALT_CLAIMS,
     ID_TOKEN_CLAIMS,

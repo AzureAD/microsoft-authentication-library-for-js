@@ -22,10 +22,7 @@ import {
     ID_TOKEN_ALT_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
 } from "../test_kit/StringConstants";
-import {
-    buildAccountFromIdTokenClaims,
-    buildIdToken,
-} from "../../../../shared-test-utils/CredentialGenerators";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
 export class MockCache {
     cacheManager: MockStorageClass;

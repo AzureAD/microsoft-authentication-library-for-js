@@ -57,7 +57,7 @@ import {
 } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
-import { buildAccountFromIdTokenClaims } from "../../../../shared-test-utils/CredentialGenerators";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;

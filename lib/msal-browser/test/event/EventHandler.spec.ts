@@ -5,7 +5,7 @@ import sinon from "sinon";
 import { EventHandler } from "../../src/event/EventHandler";
 import { Logger, LogLevel, AccountInfo, AccountEntity } from "../../src";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { buildAccountFromIdTokenClaims } from "../../../../shared-test-utils/CredentialGenerators";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { ID_TOKEN_CLAIMS } from "../utils/StringConstants";
 
 describe("Event API tests", () => {
