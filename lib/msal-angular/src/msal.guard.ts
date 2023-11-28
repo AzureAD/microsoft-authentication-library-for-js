@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { Injectable, Inject } from '@angular/core';
-import { Location } from '@angular/common';
+import { Injectable, Inject } from "@angular/core";
+import { Location } from "@angular/common";
 import {
   ActivatedRouteSnapshot,
   RouterStateSnapshot,
   UrlTree,
   Router,
-} from '@angular/router';
+} from "@angular/router";
 import {
   InteractionType,
   BrowserConfigurationAuthError,
@@ -19,13 +19,13 @@ import {
   PopupRequest,
   RedirectRequest,
   AuthenticationResult,
-} from '@azure/msal-browser';
-import { Observable, of } from 'rxjs';
-import { concatMap, catchError, map } from 'rxjs/operators';
-import { MsalService } from './msal.service';
-import { MsalGuardConfiguration } from './msal.guard.config';
-import { MsalBroadcastService } from './msal.broadcast.service';
-import { MSAL_GUARD_CONFIG } from './constants';
+} from "@azure/msal-browser";
+import { Observable, of } from "rxjs";
+import { concatMap, catchError, map } from "rxjs/operators";
+import { MsalService } from "./msal.service";
+import { MsalGuardConfiguration } from "./msal.guard.config";
+import { MsalBroadcastService } from "./msal.broadcast.service";
+import { MSAL_GUARD_CONFIG } from "./constants";
 
 @Injectable()
 export class MsalGuard {
@@ -56,9 +56,9 @@ export class MsalGuard {
    * @returns Full destination url
    */
   getDestinationUrl(path: string): string {
-    this.authService.getLogger().verbose('Guard - getting destination url');
+    this.authService.getLogger().verbose("Guard - getting destination url");
     // Absolute base url for the application (default to origin if base element not present)
-    const baseElements = document.getElementsByTagName('base');
+    const baseElements = document.getElementsByTagName("base");
     const baseUrl = this.location.normalize(
       baseElements.length ? baseElements[0].href : window.location.origin
     );
@@ -67,10 +67,10 @@ export class MsalGuard {
     const pathUrl = this.location.prepareExternalUrl(path);
 
     // Hash location strategy
-    if (pathUrl.startsWith('#')) {
+    if (pathUrl.startsWith("#")) {
       this.authService
         .getLogger()
-        .verbose('Guard - destination by hash routing');
+        .verbose("Guard - destination by hash routing");
       return `${baseUrl}/${pathUrl}`;
     }
 
@@ -87,17 +87,17 @@ export class MsalGuard {
    */
   private loginInteractively(state: RouterStateSnapshot): Observable<boolean> {
     const authRequest =
-      typeof this.msalGuardConfig.authRequest === 'function'
+      typeof this.msalGuardConfig.authRequest === "function"
         ? this.msalGuardConfig.authRequest(this.authService, state)
         : { ...this.msalGuardConfig.authRequest };
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
-      this.authService.getLogger().verbose('Guard - logging in by popup');
+      this.authService.getLogger().verbose("Guard - logging in by popup");
       return this.authService.loginPopup(authRequest as PopupRequest).pipe(
         map((response: AuthenticationResult) => {
           this.authService
             .getLogger()
             .verbose(
-              'Guard - login by popup successful, can activate, setting active account'
+              "Guard - login by popup successful, can activate, setting active account"
             );
           this.authService.instance.setActiveAccount(response.account);
           return true;
@@ -105,7 +105,7 @@ export class MsalGuard {
       );
     }
 
-    this.authService.getLogger().verbose('Guard - logging in by redirect');
+    this.authService.getLogger().verbose("Guard - logging in by redirect");
     const redirectStartPage = this.getDestinationUrl(state.url);
     return this.authService
       .loginRedirect({
@@ -127,17 +127,17 @@ export class MsalGuard {
       this.msalGuardConfig.interactionType !== InteractionType.Redirect
     ) {
       throw new BrowserConfigurationAuthError(
-        'invalid_interaction_type',
-        'Invalid interaction type provided to MSAL Guard. InteractionType.Popup or InteractionType.Redirect must be provided in the MsalGuardConfiguration'
+        "invalid_interaction_type",
+        "Invalid interaction type provided to MSAL Guard. InteractionType.Popup or InteractionType.Redirect must be provided in the MsalGuardConfiguration"
       );
     }
-    this.authService.getLogger().verbose('MSAL Guard activated');
+    this.authService.getLogger().verbose("MSAL Guard activated");
 
     /*
      * If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
      * short-circuit to prevent redirecting or popups.
      */
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       if (
         UrlString.hashContainsKnownProperties(window.location.hash) &&
         BrowserUtils.isInIframe() &&
@@ -147,7 +147,7 @@ export class MsalGuard {
         this.authService
           .getLogger()
           .warning(
-            'Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication.'
+            "Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication."
           );
         return of(false);
       }
@@ -155,7 +155,7 @@ export class MsalGuard {
       this.authService
         .getLogger()
         .info(
-          'Guard - window is undefined, MSAL does not support server-side token acquisition'
+          "Guard - window is undefined, MSAL does not support server-side token acquisition"
         );
       return of(true);
     }
@@ -182,19 +182,19 @@ export class MsalGuard {
             this.authService
               .getLogger()
               .verbose(
-                'Guard - no accounts retrieved, log in required to activate'
+                "Guard - no accounts retrieved, log in required to activate"
               );
             return this.loginInteractively(state);
           }
           this.authService
             .getLogger()
-            .verbose('Guard - no accounts retrieved, no state, cannot load');
+            .verbose("Guard - no accounts retrieved, no state, cannot load");
           return of(false);
         }
 
         this.authService
           .getLogger()
-          .verbose('Guard - at least 1 account exists, can activate or load');
+          .verbose("Guard - at least 1 account exists, can activate or load");
 
         // Prevent navigating the app to /#code= or /code=
         if (state) {
@@ -215,23 +215,23 @@ export class MsalGuard {
             !!state.root.fragment &&
             this.includesCode(`#${state.root.fragment}`);
           const hashRouting: boolean =
-            this.location.prepareExternalUrl(state.url).indexOf('#') === 0;
+            this.location.prepareExternalUrl(state.url).indexOf("#") === 0;
 
           // Ensure code parameter is in fragment (and not in query parameter), or that hash hash routing is used
           if (urlContainsCode && (fragmentContainsCode || hashRouting)) {
             this.authService
               .getLogger()
               .info(
-                'Guard - Hash contains known code response, stopping navigation.'
+                "Guard - Hash contains known code response, stopping navigation."
               );
 
             // Path routing (navigate to current path without hash)
-            if (currentPath.indexOf('#') > -1) {
+            if (currentPath.indexOf("#") > -1) {
               return of(this.parseUrl(this.location.path()));
             }
 
             // Hash routing (navigate to root path)
-            return of(this.parseUrl(''));
+            return of(this.parseUrl(""));
           }
         }
 
@@ -240,7 +240,7 @@ export class MsalGuard {
       catchError((error: Error) => {
         this.authService
           .getLogger()
-          .error('Guard - error while logging in, unable to activate');
+          .error("Guard - error while logging in, unable to activate");
         this.authService
           .getLogger()
           .errorPii(`Guard - error: ${error.message}`);
@@ -250,7 +250,7 @@ export class MsalGuard {
         if (this.loginFailedRoute && state) {
           this.authService
             .getLogger()
-            .verbose('Guard - loginFailedRoute set, redirecting');
+            .verbose("Guard - loginFailedRoute set, redirecting");
           return of(this.loginFailedRoute);
         }
         return of(false);
@@ -260,10 +260,10 @@ export class MsalGuard {
 
   includesCode(path: string): boolean {
     return (
-      (path.lastIndexOf('/code') > -1 &&
-        path.lastIndexOf('/code') === path.length - '/code'.length) || // path.endsWith("/code")
-      path.indexOf('#code=') > -1 ||
-      path.indexOf('&code=') > -1
+      (path.lastIndexOf("/code") > -1 &&
+        path.lastIndexOf("/code") === path.length - "/code".length) || // path.endsWith("/code")
+      path.indexOf("#code=") > -1 ||
+      path.indexOf("&code=") > -1
     );
   }
 
@@ -271,7 +271,7 @@ export class MsalGuard {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    this.authService.getLogger().verbose('Guard - canActivate');
+    this.authService.getLogger().verbose("Guard - canActivate");
     return this.activateHelper(state);
   }
 
@@ -279,12 +279,12 @@ export class MsalGuard {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    this.authService.getLogger().verbose('Guard - canActivateChild');
+    this.authService.getLogger().verbose("Guard - canActivateChild");
     return this.activateHelper(state);
   }
 
   canMatch(): Observable<boolean | UrlTree> {
-    this.authService.getLogger().verbose('Guard - canLoad');
+    this.authService.getLogger().verbose("Guard - canLoad");
     return this.activateHelper();
   }
 }

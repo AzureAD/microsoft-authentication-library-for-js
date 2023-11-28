@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { Inject, Injectable } from '@angular/core';
-import { Location } from '@angular/common';
+import { Inject, Injectable } from "@angular/core";
+import { Location } from "@angular/common";
 import {
   IPublicClientApplication,
   EndSessionRequest,
@@ -16,11 +16,11 @@ import {
   SsoSilentRequest,
   Logger,
   WrapperSKU,
-} from '@azure/msal-browser';
-import { Observable, from } from 'rxjs';
-import { IMsalService } from './IMsalService';
-import { name, version } from './packageMetadata';
-import { MSAL_INSTANCE } from './constants';
+} from "@azure/msal-browser";
+import { Observable, from } from "rxjs";
+import { IMsalService } from "./IMsalService";
+import { name, version } from "./packageMetadata";
+import { MSAL_INSTANCE } from "./constants";
 
 @Injectable()
 export class MsalService implements IMsalService {
@@ -31,7 +31,7 @@ export class MsalService implements IMsalService {
     @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
     private location: Location
   ) {
-    const hash = this.location.path(true).split('#').pop();
+    const hash = this.location.path(true).split("#").pop();
     if (hash) {
       this.redirectHash = `#${hash}`;
     }

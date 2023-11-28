@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { Injectable, Inject } from '@angular/core';
-import { Location, DOCUMENT } from '@angular/common';
+import { Injectable, Inject } from "@angular/core";
+import { Location, DOCUMENT } from "@angular/common";
 import {
   HttpRequest,
   HttpHandler,
   HttpEvent,
   HttpInterceptor,
-} from '@angular/common/http'; // eslint-disable-line import/no-unresolved
+} from "@angular/common/http"; // eslint-disable-line import/no-unresolved
 import {
   AccountInfo,
   AuthenticationResult,
@@ -19,18 +19,18 @@ import {
   InteractionType,
   StringUtils,
   UrlString,
-} from '@azure/msal-browser';
-import { Observable, EMPTY, of } from 'rxjs';
-import { switchMap, catchError, take, filter } from 'rxjs/operators';
-import { MsalService } from './msal.service';
+} from "@azure/msal-browser";
+import { Observable, EMPTY, of } from "rxjs";
+import { switchMap, catchError, take, filter } from "rxjs/operators";
+import { MsalService } from "./msal.service";
 import {
   MsalInterceptorAuthRequest,
   MsalInterceptorConfiguration,
   ProtectedResourceScopes,
   MatchingResources,
-} from './msal.interceptor.config';
-import { MsalBroadcastService } from './msal.broadcast.service';
-import { MSAL_INTERCEPTOR_CONFIG } from './constants';
+} from "./msal.interceptor.config";
+import { MsalBroadcastService } from "./msal.broadcast.service";
+import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
@@ -58,19 +58,19 @@ export class MsalInterceptor implements HttpInterceptor {
       this.msalInterceptorConfig.interactionType !== InteractionType.Redirect
     ) {
       throw new BrowserConfigurationAuthError(
-        'invalid_interaction_type',
-        'Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration'
+        "invalid_interaction_type",
+        "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration"
       );
     }
 
-    this.authService.getLogger().verbose('MSAL Interceptor activated');
+    this.authService.getLogger().verbose("MSAL Interceptor activated");
     const scopes = this.getScopesForEndpoint(req.url, req.method);
 
     // If no scopes for endpoint, does not acquire token
     if (!scopes || scopes.length === 0) {
       this.authService
         .getLogger()
-        .verbose('Interceptor - no scopes for endpoint');
+        .verbose("Interceptor - no scopes for endpoint");
       return next.handle(req);
     }
 
@@ -79,17 +79,17 @@ export class MsalInterceptor implements HttpInterceptor {
     if (!!this.authService.instance.getActiveAccount()) {
       this.authService
         .getLogger()
-        .verbose('Interceptor - active account selected');
+        .verbose("Interceptor - active account selected");
       account = this.authService.instance.getActiveAccount();
     } else {
       this.authService
         .getLogger()
-        .verbose('Interceptor - no active account, fallback to first account');
+        .verbose("Interceptor - no active account, fallback to first account");
       account = this.authService.instance.getAllAccounts()[0];
     }
 
     const authRequest =
-      typeof this.msalInterceptorConfig.authRequest === 'function'
+      typeof this.msalInterceptorConfig.authRequest === "function"
         ? this.msalInterceptorConfig.authRequest(this.authService, req, {
             account: account,
           })
@@ -106,9 +106,9 @@ export class MsalInterceptor implements HttpInterceptor {
       switchMap((result: AuthenticationResult) => {
         this.authService
           .getLogger()
-          .verbose('Interceptor - setting authorization headers');
+          .verbose("Interceptor - setting authorization headers");
         const headers = req.headers.set(
-          'Authorization',
+          "Authorization",
           `Bearer ${result.accessToken}`
         );
 
@@ -138,7 +138,7 @@ export class MsalInterceptor implements HttpInterceptor {
           this.authService
             .getLogger()
             .error(
-              'Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.'
+              "Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve."
             );
           return this.msalBroadcastService.inProgress$.pipe(
             take(1),
@@ -163,7 +163,7 @@ export class MsalInterceptor implements HttpInterceptor {
             this.authService
               .getLogger()
               .error(
-                'Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.'
+                "Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve."
               );
             return this.msalBroadcastService.inProgress$.pipe(
               filter(
@@ -194,14 +194,14 @@ export class MsalInterceptor implements HttpInterceptor {
       this.authService
         .getLogger()
         .verbose(
-          'Interceptor - error acquiring token silently, acquiring by popup'
+          "Interceptor - error acquiring token silently, acquiring by popup"
         );
       return this.authService.acquireTokenPopup({ ...authRequest, scopes });
     }
     this.authService
       .getLogger()
       .verbose(
-        'Interceptor - error acquiring token silently, acquiring by redirect'
+        "Interceptor - error acquiring token silently, acquiring by redirect"
       );
     const redirectStartPage = window.location.href;
     this.authService.acquireTokenRedirect({
@@ -225,7 +225,7 @@ export class MsalInterceptor implements HttpInterceptor {
   ): Array<string> | null {
     this.authService
       .getLogger()
-      .verbose('Interceptor - getting scopes for endpoint');
+      .verbose("Interceptor - getting scopes for endpoint");
 
     // Ensures endpoints and protected resources compared are normalized
     const normalizedEndpoint = this.location.normalize(endpoint);
@@ -296,8 +296,8 @@ export class MsalInterceptor implements HttpInterceptor {
       if (
         keyComponents.HostNameAndPort === endpointComponents.HostNameAndPort &&
         StringUtils.matchPattern(relativeNormalizedKey, absoluteEndpoint) &&
-        relativeNormalizedKey !== '' &&
-        relativeNormalizedKey !== '/*'
+        relativeNormalizedKey !== "" &&
+        relativeNormalizedKey !== "/*"
       ) {
         matchingResources.relativeResources.push(key);
       }
@@ -312,7 +312,7 @@ export class MsalInterceptor implements HttpInterceptor {
    * @returns
    */
   private getAbsoluteUrl(url: string): string {
-    const link = this._document.createElement('a');
+    const link = this._document.createElement("a");
     link.href = url;
     return link.href;
   }
@@ -347,7 +347,7 @@ export class MsalInterceptor implements HttpInterceptor {
 
       methodAndScopesArray.forEach((entry) => {
         // Entry is either array of scopes or ProtectedResourceScopes object
-        if (typeof entry === 'string') {
+        if (typeof entry === "string") {
           scopesForEndpoint.push(entry);
         } else {
           // Ensure methods being compared are normalized
@@ -378,7 +378,7 @@ export class MsalInterceptor implements HttpInterceptor {
         this.authService
           .getLogger()
           .warning(
-            'Interceptor - More than 1 matching scopes for endpoint found.'
+            "Interceptor - More than 1 matching scopes for endpoint found."
           );
       }
       // Returns scopes for first matching endpoint
