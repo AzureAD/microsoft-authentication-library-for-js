@@ -374,7 +374,7 @@ There is one web app in this sample. To deploy it to **Azure App Services**, you
 1. Type a globally unique name for your web app and select **Enter**. The name must be unique across all of **Azure** services. After you respond to all the prompts, **VS Code** shows the **Azure** resources that are being created for your app in its notification popup.
 1. Select **Yes** when prompted to update your configuration. This action runs `npm install` on the target **Linux** server.
 
-#### Update the CIAM app registration to use hosted version
+#### Update app registration to use deployed app
 
 1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [Application Developer](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#application-developer).
 1. Browse to **Identity** >**Applications** > **App registrations**.
