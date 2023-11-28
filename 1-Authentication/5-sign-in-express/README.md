@@ -62,16 +62,15 @@ This sample demonstrates how sign in users into a a Node.js & Express web app by
 
 * You must install in your computer [Node.js](https://nodejs.org/en/download/) to run this sample.
 * We recommend [Visual Studio Code](https://code.visualstudio.com/download) for running and editing this sample.
-* [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
 * An **Azure AD for Customers** tenant. For more information, see: [How to get an Azure AD for Customers tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
 * Microsoft Entra ID for customers tenant. If you don't already have one, [sign up for a free trial](https://aka.ms/ciam-free-trial).
-
+* If you'd like to use Azure services, such as hosting your app in Azure App Service, [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
 
 ## Register web application in your tenant
 
 To enable your application to sign in users with Microsoft Entra, Microsoft Entra ID for customers must be made aware of the application you create. The app registration establishes a trust relationship between the app and Microsoft Entra. When you register an application, External ID generates a unique identifier known as an **Application (client) ID**, a value used to identify your app when creating authentication requests.
 
-You can register an app in your tenant automatically by using Microsoft Graph PowerShell or Manually register your apps in Microsoft Entra Admin center. 
+You can register an app in your tenant automatically by using Microsoft Graph PowerShell or Manually register your apps in Microsoft Entra Admin center.
 
 When you use Microsoft Graph PowerShell, you automatically register the applications and related objects app secrets, then modifies your project config files, so you run the app without any further action.
 
