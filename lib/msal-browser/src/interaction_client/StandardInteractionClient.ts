@@ -258,7 +258,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 clientCapabilities: this.config.auth.clientCapabilities,
             },
             systemOptions: {
-                ...this.config.system,
+                tokenRenewalOffsetSeconds:
+                    this.config.system.tokenRenewalOffsetSeconds,
                 preventCorsPreflight: true,
             },
             loggerOptions: {
