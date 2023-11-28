@@ -3,17 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { Inject, Injectable, Optional } from '@angular/core';
+import { Inject, Injectable, Optional } from "@angular/core";
 import {
   EventMessage,
   EventMessageUtils,
   IPublicClientApplication,
   InteractionStatus,
-} from '@azure/msal-browser';
-import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
-import { MsalService } from './msal.service';
-import { MsalBroadcastConfiguration } from './msal.broadcast.config';
-import { MSAL_BROADCAST_CONFIG, MSAL_INSTANCE } from './constants';
+} from "@azure/msal-browser";
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from "rxjs";
+import { MsalService } from "./msal.service";
+import { MsalBroadcastConfiguration } from "./msal.broadcast.config";
+import { MSAL_BROADCAST_CONFIG, MSAL_INSTANCE } from "./constants";
 
 @Injectable()
 export class MsalBroadcastService {

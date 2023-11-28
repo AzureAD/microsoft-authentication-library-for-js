@@ -19,7 +19,7 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "editor.formatOnSave": true,
-    "jest.autoRun": "off",
+    "jest.runMode": "on-demand",
     "jest.jestCommandLine": "npm test --",
     "jest.virtualFolders": [
         {
