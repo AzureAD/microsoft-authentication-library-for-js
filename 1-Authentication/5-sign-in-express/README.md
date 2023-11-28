@@ -213,10 +213,10 @@ If you choose to download the *.zip* file, extract the sample app file to a fold
 
 1. In your code editor, open *App\authConfig.js* file. 
 
-1. Find the placeholder: 
-    
+1. Find the placeholder:
+
     1. `Enter_the_Application_Id_Here` and replace it with the Application (client) ID of the app you registered earlier.
-     
+    
     1. `Enter_the_Tenant_Subdomain_Here` and replace it with the Directory (tenant) subdomain. For example, if your tenant primary domain is `contoso.onmicrosoft.com`, use `contoso`. If you don't have your tenant name, learn how to [read your tenant details](https://learn.microsoft.com/entra/external-id/customers/how-to-create-customer-tenant-portal#get-the-customer-tenant-details).
      
     1. `Enter_the_Client_Secret_Here` and replace it with the app secret value you copied earlier.
