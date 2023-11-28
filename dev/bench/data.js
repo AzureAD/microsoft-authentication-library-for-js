@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701196869218,
+  "lastUpdate": 1701206894438,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3306,6 +3306,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.96%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "codexeon",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8068ac08fbccae2f9c93ea1a2d692f5d91e1f085",
+          "message": "Nested App Auth is not working with Android response (#6707)\n\nAndroid API to return a response through Nested App Auth bridge is in a\r\nslightly different format than the other platforms. The payload looks\r\nlike { data: string } instead of string. The other implementations are\r\nall using a consistent format, and there is only one location in code\r\nthat we depend on bridge response format. Fix is to allow both response\r\nformats.",
+          "timestamp": "2023-11-28T13:22:59-08:00",
+          "tree_id": "5c5f5ceee2850083547ddaa0eb77aab6a74d327d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8068ac08fbccae2f9c93ea1a2d692f5d91e1f085"
+        },
+        "date": 1701206893399,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 199943,
+            "range": "±1.46%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 182411,
+            "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
