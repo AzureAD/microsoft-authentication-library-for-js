@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1700265098924,
+  "lastUpdate": 1701196869218,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3268,6 +3268,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.23%",
             "unit": "ops/sec",
             "extra": "209 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "77c626b23389f7c7044cfe69efbdf3fbd5a074e9",
+          "message": "Version bump automation enhancements (#6725)\n\nThis PR:\r\n- Migrates msal-angular to us double quotes\r\n- Updates `/vscode/settings.json` to set jest `runMode` to `on-demand`\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2023-11-28T10:35:54-08:00",
+          "tree_id": "ec71e0a24693d6d5b2c9b5f358a7756a41d0d932",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/77c626b23389f7c7044cfe69efbdf3fbd5a074e9"
+        },
+        "date": 1701196868181,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192369,
+            "range": "±2.02%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 195722,
+            "range": "±1.96%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
