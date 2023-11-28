@@ -1,31 +1,31 @@
-import { TestBed } from '@angular/core/testing';
-import { Location } from '@angular/common';
-import { Router } from '@angular/router';
+import { TestBed } from "@angular/core/testing";
+import { Location } from "@angular/common";
+import { Router } from "@angular/router";
 import {
   InteractionType,
   NavigationClient,
   NavigationOptions,
   PublicClientApplication,
-} from '@azure/msal-browser';
-import { MsalBroadcastService } from './msal.broadcast.service';
-import { MsalGuard } from './msal.guard';
-import { MsalCustomNavigationClient } from './msal.navigation.client';
-import { MsalModule, MsalService } from './public-api';
+} from "@azure/msal-browser";
+import { MsalBroadcastService } from "./msal.broadcast.service";
+import { MsalGuard } from "./msal.guard";
+import { MsalCustomNavigationClient } from "./msal.navigation.client";
+import { MsalModule, MsalService } from "./public-api";
 
 let authService: MsalService;
 let navigationClient: MsalCustomNavigationClient;
 let routerMock = {
-  navigateByUrl: jasmine.createSpy('navigateByUrl').and.resolveTo(),
+  navigateByUrl: jasmine.createSpy("navigateByUrl").and.resolveTo(),
 };
 
 const msalInstance = new PublicClientApplication({
   auth: {
-    clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
-    redirectUri: 'http://localhost:4200',
+    clientId: "6226576d-37e9-49eb-b201-ec1eeb0029b6",
+    redirectUri: "http://localhost:4200",
   },
 });
 
-describe('MsalCustomNaviationClient', () => {
+describe("MsalCustomNaviationClient", () => {
   beforeAll(() => {
     TestBed.resetTestingModule();
 
@@ -49,14 +49,14 @@ describe('MsalCustomNaviationClient', () => {
     navigationClient = TestBed.inject(MsalCustomNavigationClient);
   });
 
-  describe('NavigateInternal Unit tests', () => {
-    it('is created', () => {
+  describe("NavigateInternal Unit tests", () => {
+    it("is created", () => {
       expect(navigationClient).toBeTruthy();
     });
 
-    it('NavigateInternal (noHistory false)', (done) => {
-      const url = 'http://localhost:4200/profile';
-      const normalizedAbsoluteUrl = '/profile';
+    it("NavigateInternal (noHistory false)", (done) => {
+      const url = "http://localhost:4200/profile";
+      const normalizedAbsoluteUrl = "/profile";
 
       const options = {
         noHistory: false,
@@ -75,8 +75,8 @@ describe('MsalCustomNaviationClient', () => {
       });
     });
 
-    it('NavigateInternal (noHistory true)', (done) => {
-      const url = 'http://localhost:4200/profile';
+    it("NavigateInternal (noHistory true)", (done) => {
+      const url = "http://localhost:4200/profile";
 
       const options = {
         noHistory: true,
@@ -84,7 +84,7 @@ describe('MsalCustomNaviationClient', () => {
 
       const windowLocationReplaceSpy = spyOn(
         NavigationClient.prototype,
-        'navigateInternal'
+        "navigateInternal"
       );
       navigationClient.navigateInternal(url, options).then(() => {
         expect(windowLocationReplaceSpy).toHaveBeenCalledWith(url, options);

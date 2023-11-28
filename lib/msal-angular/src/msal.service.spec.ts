@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from "@angular/core/testing";
 import {
   AuthenticationResult,
   AuthError,
@@ -6,16 +6,16 @@ import {
   Logger,
   PublicClientApplication,
   SilentRequest,
-} from '@azure/msal-browser';
-import { MsalModule, MsalBroadcastService, MsalService } from './public-api';
+} from "@azure/msal-browser";
+import { MsalModule, MsalBroadcastService, MsalService } from "./public-api";
 
 let authService: MsalService;
 let broadcastService: MsalBroadcastService;
 
 const msalInstance = new PublicClientApplication({
   auth: {
-    clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
-    redirectUri: 'http://localhost:4200',
+    clientId: "6226576d-37e9-49eb-b201-ec1eeb0029b6",
+    redirectUri: "http://localhost:4200",
   },
 });
 
@@ -36,16 +36,16 @@ function initializeMsal() {
   broadcastService = TestBed.inject(MsalBroadcastService);
 }
 
-describe('MsalService', () => {
+describe("MsalService", () => {
   beforeAll(initializeMsal);
 
-  describe('loginPopup', () => {
-    it('success', (done) => {
+  describe("loginPopup", () => {
+    it("success", (done) => {
       const sampleIdToken = {
-        idToken: '123abc',
+        idToken: "123abc",
       };
 
-      spyOn(PublicClientApplication.prototype, 'loginPopup').and.returnValue(
+      spyOn(PublicClientApplication.prototype, "loginPopup").and.returnValue(
         new Promise((resolve) => {
           //@ts-ignore
           resolve(sampleIdToken);
@@ -53,7 +53,7 @@ describe('MsalService', () => {
       );
 
       const request = {
-        scopes: ['user.read'],
+        scopes: ["user.read"],
       };
 
       authService
@@ -67,17 +67,17 @@ describe('MsalService', () => {
         });
     });
 
-    it('failure', (done) => {
-      const sampleError = new AuthError('123', 'message');
+    it("failure", (done) => {
+      const sampleError = new AuthError("123", "message");
 
-      spyOn(PublicClientApplication.prototype, 'loginPopup').and.returnValue(
+      spyOn(PublicClientApplication.prototype, "loginPopup").and.returnValue(
         new Promise((resolve, reject) => {
           reject(sampleError);
         })
       );
 
       const request = {
-        scopes: ['wrong.scope'],
+        scopes: ["wrong.scope"],
       };
 
       authService.loginPopup(request).subscribe({
@@ -92,16 +92,16 @@ describe('MsalService', () => {
     });
   });
 
-  describe('loginRedirect', () => {
-    it('success', async () => {
-      spyOn(PublicClientApplication.prototype, 'loginRedirect').and.returnValue(
+  describe("loginRedirect", () => {
+    it("success", async () => {
+      spyOn(PublicClientApplication.prototype, "loginRedirect").and.returnValue(
         new Promise((resolve) => {
           resolve();
         })
       );
 
       const request = {
-        scopes: ['user.read'],
+        scopes: ["user.read"],
       };
 
       await authService.loginRedirect(request);
@@ -112,9 +112,9 @@ describe('MsalService', () => {
     });
   });
 
-  describe('logout', () => {
-    it('calls logout on msalService', async () => {
-      spyOn(PublicClientApplication.prototype, 'logout').and.returnValue(
+  describe("logout", () => {
+    it("calls logout on msalService", async () => {
+      spyOn(PublicClientApplication.prototype, "logout").and.returnValue(
         new Promise((resolve) => {
           resolve();
         })
@@ -124,9 +124,9 @@ describe('MsalService', () => {
     });
   });
 
-  describe('logoutPopup', () => {
-    it('calls logoutPopup on msalService', async () => {
-      spyOn(PublicClientApplication.prototype, 'logoutPopup').and.returnValue(
+  describe("logoutPopup", () => {
+    it("calls logoutPopup on msalService", async () => {
+      spyOn(PublicClientApplication.prototype, "logoutPopup").and.returnValue(
         new Promise((resolve) => {
           resolve();
         })
@@ -136,11 +136,11 @@ describe('MsalService', () => {
     });
   });
 
-  describe('logoutRedirect', () => {
-    it('calls logoutRedirect on msalService', async () => {
+  describe("logoutRedirect", () => {
+    it("calls logoutRedirect on msalService", async () => {
       spyOn(
         PublicClientApplication.prototype,
-        'logoutRedirect'
+        "logoutRedirect"
       ).and.returnValue(
         new Promise((resolve) => {
           resolve();
@@ -153,13 +153,13 @@ describe('MsalService', () => {
     });
   });
 
-  describe('ssoSilent', () => {
-    it('success', (done) => {
+  describe("ssoSilent", () => {
+    it("success", (done) => {
       const sampleIdToken = {
-        idToken: 'id-token',
+        idToken: "id-token",
       };
 
-      spyOn(PublicClientApplication.prototype, 'ssoSilent').and.returnValue(
+      spyOn(PublicClientApplication.prototype, "ssoSilent").and.returnValue(
         new Promise((resolve) => {
           //@ts-ignore
           resolve(sampleIdToken);
@@ -167,8 +167,8 @@ describe('MsalService', () => {
       );
 
       const request = {
-        scopes: ['user.read'],
-        loginHint: 'name@example.com',
+        scopes: ["user.read"],
+        loginHint: "name@example.com",
       };
 
       authService
@@ -182,18 +182,18 @@ describe('MsalService', () => {
         });
     });
 
-    it('failure', (done) => {
-      const sampleError = new AuthError('123', 'message');
+    it("failure", (done) => {
+      const sampleError = new AuthError("123", "message");
 
-      spyOn(PublicClientApplication.prototype, 'ssoSilent').and.returnValue(
+      spyOn(PublicClientApplication.prototype, "ssoSilent").and.returnValue(
         new Promise((resolve, reject) => {
           reject(sampleError);
         })
       );
 
       const request = {
-        scopes: ['user.read'],
-        loginHint: 'name@example.com',
+        scopes: ["user.read"],
+        loginHint: "name@example.com",
       };
 
       authService.ssoSilent(request).subscribe({
@@ -208,15 +208,15 @@ describe('MsalService', () => {
     });
   });
 
-  describe('acquireTokenSilent', () => {
-    it('success', (done) => {
+  describe("acquireTokenSilent", () => {
+    it("success", (done) => {
       const sampleAccessToken = {
-        accessToken: '123abc',
+        accessToken: "123abc",
       };
 
       spyOn(
         PublicClientApplication.prototype,
-        'acquireTokenSilent'
+        "acquireTokenSilent"
       ).and.returnValue(
         new Promise((resolve) => {
           //@ts-ignore
@@ -225,7 +225,7 @@ describe('MsalService', () => {
       );
 
       const request: SilentRequest = {
-        scopes: ['user.read'],
+        scopes: ["user.read"],
         account: null,
       };
 
@@ -240,12 +240,12 @@ describe('MsalService', () => {
         });
     });
 
-    it('failure', (done) => {
-      const sampleError = new AuthError('123', 'message');
+    it("failure", (done) => {
+      const sampleError = new AuthError("123", "message");
 
       spyOn(
         PublicClientApplication.prototype,
-        'acquireTokenSilent'
+        "acquireTokenSilent"
       ).and.returnValue(
         new Promise((resolve, reject) => {
           reject(sampleError);
@@ -253,7 +253,7 @@ describe('MsalService', () => {
       );
 
       const request: SilentRequest = {
-        scopes: ['wrong.scope'],
+        scopes: ["wrong.scope"],
         account: null,
       };
 
@@ -269,11 +269,11 @@ describe('MsalService', () => {
     });
   });
 
-  describe('acquireTokenRedirect', () => {
-    it('success', async () => {
+  describe("acquireTokenRedirect", () => {
+    it("success", async () => {
       spyOn(
         PublicClientApplication.prototype,
-        'acquireTokenRedirect'
+        "acquireTokenRedirect"
       ).and.returnValue(
         new Promise((resolve) => {
           resolve();
@@ -281,7 +281,7 @@ describe('MsalService', () => {
       );
 
       await authService.acquireTokenRedirect({
-        scopes: ['user.read'],
+        scopes: ["user.read"],
       });
 
       expect(
@@ -290,15 +290,15 @@ describe('MsalService', () => {
     });
   });
 
-  describe('acquireTokenPopup', () => {
-    it('success', (done) => {
+  describe("acquireTokenPopup", () => {
+    it("success", (done) => {
       const sampleAccessToken = {
-        accessToken: '123abc',
+        accessToken: "123abc",
       };
 
       spyOn(
         PublicClientApplication.prototype,
-        'acquireTokenPopup'
+        "acquireTokenPopup"
       ).and.returnValue(
         new Promise((resolve) => {
           //@ts-ignore
@@ -307,7 +307,7 @@ describe('MsalService', () => {
       );
 
       const request = {
-        scopes: ['user.read'],
+        scopes: ["user.read"],
       };
 
       authService
@@ -321,12 +321,12 @@ describe('MsalService', () => {
         });
     });
 
-    it('failure', (done) => {
-      const sampleError = new AuthError('123', 'message');
+    it("failure", (done) => {
+      const sampleError = new AuthError("123", "message");
 
       spyOn(
         PublicClientApplication.prototype,
-        'acquireTokenPopup'
+        "acquireTokenPopup"
       ).and.returnValue(
         new Promise((resolve, reject) => {
           reject(sampleError);
@@ -334,7 +334,7 @@ describe('MsalService', () => {
       );
 
       const request = {
-        scopes: ['wrong.scope'],
+        scopes: ["wrong.scope"],
       };
 
       authService.acquireTokenPopup(request).subscribe({
@@ -349,19 +349,19 @@ describe('MsalService', () => {
     });
   });
 
-  describe('handleRedirectObservable', () => {
-    it('success', (done) => {
+  describe("handleRedirectObservable", () => {
+    it("success", (done) => {
       const sampleAccessToken = {
-        accessToken: '123abc',
+        accessToken: "123abc",
       };
 
-      spyOn(PublicClientApplication.prototype, 'initialize').and.returnValue(
+      spyOn(PublicClientApplication.prototype, "initialize").and.returnValue(
         Promise.resolve()
       );
 
       spyOn(
         PublicClientApplication.prototype,
-        'handleRedirectPromise'
+        "handleRedirectPromise"
       ).and.returnValue(
         new Promise((resolve) => {
           //@ts-ignore
@@ -383,16 +383,16 @@ describe('MsalService', () => {
         });
     });
 
-    it('failure', (done) => {
-      const sampleError = new AuthError('123', 'message');
+    it("failure", (done) => {
+      const sampleError = new AuthError("123", "message");
 
-      spyOn(PublicClientApplication.prototype, 'initialize').and.returnValue(
+      spyOn(PublicClientApplication.prototype, "initialize").and.returnValue(
         Promise.resolve()
       );
 
       spyOn(
         PublicClientApplication.prototype,
-        'handleRedirectPromise'
+        "handleRedirectPromise"
       ).and.returnValue(
         new Promise((resolve, reject) => {
           reject(sampleError);
@@ -413,16 +413,16 @@ describe('MsalService', () => {
       });
     });
 
-    it('called with hash', (done) => {
+    it("called with hash", (done) => {
       const sampleAccessToken = {
-        accessToken: '123abc',
+        accessToken: "123abc",
       };
 
-      const hash = '#/test';
+      const hash = "#/test";
 
       spyOn(
         PublicClientApplication.prototype,
-        'handleRedirectPromise'
+        "handleRedirectPromise"
       ).and.returnValue(
         new Promise((resolve) => {
           //@ts-ignore
@@ -442,9 +442,9 @@ describe('MsalService', () => {
     });
   });
 
-  describe('setLogger', () => {
-    it('works', () => {
-      spyOn(PublicClientApplication.prototype, 'setLogger');
+  describe("setLogger", () => {
+    it("works", () => {
+      spyOn(PublicClientApplication.prototype, "setLogger");
       authService.setLogger(new Logger({}));
       expect(PublicClientApplication.prototype.setLogger).toHaveBeenCalled();
     });
