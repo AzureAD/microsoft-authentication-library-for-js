@@ -186,45 +186,65 @@ Although many applications can be associated with your user flow, a single appli
 
 1. Choose **Select**.
 
-
-
-
 ## Clone or download sample web application
 
-From your shell or command line:
+To get the web app sample code, [Download the .zip file](https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial/archive/refs/heads/main.zip) or clone the sample web application from GitHub by running the following command:
 
 ```console
 git clone https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial.git
 ```
 
+If you choose to download the *.zip* file, extract the sample app file to a folder where the total length of the path is 260 or fewer characters.
 
-### Step 2: Install project dependencies
+## Install project dependencies
+
+1. Open a console window, and change to the directory that contains the Node.js sample app:
 
 ```console
     cd 1-Authentication\5-sign-in-express\App
+```
+
+1. Run the following commands to install app dependencies:
+
+```console
     npm install
 ```
 
+## Configure the sample web app to use your app registration
 
-### Step 4: Running the sample
+1. In your code editor, open *App\authConfig.js* file. 
 
-```console
-    cd 1-Authentication\5-sign-in-express\App
-    npm start
-```
+1. Find the placeholder: 
+    
+    1. `Enter_the_Application_Id_Here` and replace it with the Application (client) ID of the app you registered earlier.
+     
+    1. `Enter_the_Tenant_Subdomain_Here` and replace it with the Directory (tenant) subdomain. For example, if your tenant primary domain is `contoso.onmicrosoft.com`, use `contoso`. If you don't have your tenant name, learn how to [read your tenant details](https://learn.microsoft.com/entra/external-id/customers/how-to-create-customer-tenant-portal#get-the-customer-tenant-details).
+     
+    1. `Enter_the_Client_Secret_Here` and replace it with the app secret value you copied earlier.
 
-## Configure the client app (ciam-msal-node-webapp) to use your app registration
+## Run and test sample web app
 
+You can now test the sample Node.js web app. You need to start the Node.js server and access it through your browser at `http://localhost:3000`.
 
-## Explore the sample
+1. In your terminal, run the following command:
 
-1. Open your browser and navigate to `http://localhost:3000`.
-1. Select the **Sign In** link.
-1. Select the **View ID token claims** link to see the claims in your ID token.
+    ```console
+        npm start 
+    ```
 
-![Screenshot](./ReadmeFiles/screenshot.png)
+1. Open your browser, then go to http://localhost:3000.
 
-> :information_source: Did the sample not work for you as expected? Then please reach out to us using the [GitHub Issues](../../../../issues) page.
+1. After the page completes loading, select **Sign in** link. You're prompted to sign in.
+
+1. On the sign-in page, type your **Email address**, select **Next**, type your **Password**, then select **Sign in**. If you don't have an account, select **No account? Create one** link, which starts the sign-up flow.
+
+1. If you choose the sign-up option, after filling in your email, one-time passcode, new password and more account details, you complete the whole sign-up flow. You see a page similar to the following screenshot. You see a similar page if you choose the sign-in option.
+
+    ![Screenshot](./ReadmeFiles/screenshot.png)
+
+1. Select **Sign out** to sign the user out of the web app or select **View ID token claims** to view ID token claims returned by Microsoft Entra.
+
+> :information_source: If the sample didn't work for you as expected, reach out to us using the [GitHub Issues](../../../../issues) page.
 
 ## We'd love your feedback!
 
@@ -235,61 +255,136 @@ Were we successful in addressing your learning objective? Consider taking a mome
 <details>
 	<summary>Expand for troubleshooting info</summary>
 
-> * Use [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) to get support from the community. Ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
-Ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
-Make sure that your questions or comments are tagged with [`azure-active-directory-b2c` `node` `ms-identity` `adal` `msal-js` `msal`].
+> * Use [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) to get support from the community. Ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before. Make sure that your questions or comments are tagged with [`azure-active-directory-b2c` `node` `ms-identity` `adal` `msal-js` `msal`].
 
-To provide feedback on or suggest features for Azure Active Directory, visit [User Voice page](https://feedback.azure.com/d365community/forum/79b1327d-d925-ec11-b6e6-000d3a4f06a4).
+To provide feedback on or suggest features for Microsoft Entra ID or Microsoft Entra External ID, visit [User Voice page](https://feedback.azure.com/d365community/forum/79b1327d-d925-ec11-b6e6-000d3a4f06a4).
 </details>
 
 ## About the code
 
 ### Initialization
 
-// Explain how the app is configured
+In order to use MSAL Node, we instantiate the [ConfidentialClientApplication](https://learn.microsoft.com/javascript/api/@azure/msal-node/confidentialclientapplication?view=azure-node-latest):
 
-### Sign-in
+1. Create the configuration object, `msalConfig`,  as shown in the *App/authConfig.js* file:
 
-// Explain how the app signs in users
+    ```javascript
+    const msalConfig = {
+        auth: {
+            clientId: process.env.CLIENT_ID || 'Enter_the_Application_Id_Here', // 'Application (client) ID' of app registration in Microsoft Entra - this value is a GUID
+            authority: process.env.AUTHORITY || `https://${TENANT_SUBDOMAIN}.ciamlogin.com/`, // Replace the placeholder with your tenant name
+            clientSecret: process.env.CLIENT_SECRET || 'Enter_the_Client_Secret_Here', // Client secret generated from the app registration in Azure portal
+        },
+        ...
+        ...
+    };
+    ```
 
-### Sign-out
+1. Use the `msalConfig` object to instantiate the confidential client application shown in the *App/auth/AuthProvider.js file (`AuthProvider` class):  
 
-To sing-out the current user, the app destroys the session that holds user data and navigates the browser to the Azure AD logout endpoint to end the session with Azure AD. This is shown in [auth.js](./App/routes/auth.js):
+    ```javascript
+    ...
+    ...
+    getMsalInstance(msalConfig) {
+        return new msal.ConfidentialClientApplication(msalConfig);
+    }
+    ....
+    ...
+    ```
+
+### Sign in
+
+The first leg of auth code flow generates an authorization code request URL, then redirects to that URL to obtain the authorization code. This first leg is implemented in the `redirectToAuthCodeUrl` method. Notice how we use MSALs [getAuthCodeUrl](https://learn.microsoft.com/javascript/api/%40azure/msal-node/confidentialclientapplication?view=azure-node-latest#@azure-msal-node-confidentialclientapplication-getauthcodeurl) method to generate authorization code URL, then redirect to the authorization code URL itself:
+
 
 ```javascript
+    async redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams, msalInstance) {
+        ...
+        ...
+
+        try {
+            const authCodeUrlResponse = await msalInstance.getAuthCodeUrl(req.session.authCodeUrlRequest);
+            res.redirect(authCodeUrlResponse);
+        } catch (error) {
+            next(error);
+        }
+    }
+```
+
+In the second leg of auth code flow uses, use the authorization code to request an ID token by using MSAL's [acquireTokenByCode]() method. You can store the ID token and user account information in an express session.
+
+```javascript
+    async handleRedirect(req, res, next) {
+        const authCodeRequest = {
+            ...req.session.authCodeRequest,
+            code: req.body.code, // authZ code
+            ...
+        };
+
+        try {
+            const msalInstance = this.getMsalInstance(this.config.msalConfig);
+            msalInstance.getTokenCache().deserialize(req.session.tokenCache);
+
+            const tokenResponse = await msalInstance.acquireTokenByCode(authCodeRequest, req.body);
+
+            req.session.tokenCache = msalInstance.getTokenCache().serialize();
+            req.session.idToken = tokenResponse.idToken;
+            req.session.account = tokenResponse.account;
+            req.session.isAuthenticated = true;
+            ...
+            ...
+        } catch (error) {
+            next(error);
+        }
+    }
+```
+
+### Sign out
+
+When you want to sign the user out of the application, it isn't enough to end the user's session. You must redirect the user to the `logoutUri`. Otherwise, the user might be able to reauthenticate to your applications without reentering their credentials. If the name of your tenant is contoso, then the logoutUri looks similar to `https://contoso.ciamlogin.com/contoso.onmicrosoft.com/oauth2/v2.0/logout?post_logout_redirect_uri=http://localhost:3000`.
+
+```javascript
+    async logout(req, res, next) {
+        /**
+         * Construct a logout URI and redirect the user to end the session with Microsoft Entra ID. 
+        */
+        const logoutUri = `${this.config.msalConfig.auth.authority}${TENANT_SUBDOMAIN}.onmicrosoft.com/oauth2/v2.0/logout?post_logout_redirect_uri=${this.config.postLogoutRedirectUri}`;
+    
+        req.session.destroy(() => {
+            res.redirect(logoutUri);
+        });
+    }
 ```
 
 ### Deploying Web app to Azure App Service
 
 There is one web app in this sample. To deploy it to **Azure App Services**, you'll need to:
 
-- create an **Azure App Service**
-- publish the projects to the **App Services**, and
-- update its client(s) to call the website instead of the local environment.
+- Create an **Azure App Service**
+- Publish the projects to the **App Services**, and
+- Update its client(s) to call the website instead of the local environment.
 
-> :information_source: If you would like to use **VS Code Azure Tools** extension for deployment, [watch the tutorial](https://docs.microsoft.com/azure/developer/javascript/tutorial-vscode-azure-app-service-node-01) offered by Microsoft Docs.
 
-#### Deploy your files (ciam-msal-node-webapp)
+#### Deploy your files of your web app
 
-1. In the **VS Code** activity bar, select the **Azure** logo to show the **Azure App Service** explorer. Select **Sign in to Azure...** and follow the instructions. Once signed in, the explorer should show the name of your **Azure** subscription(s).
-2. On the **App Service** explorer section you will see an upward-facing arrow icon. Click on it publish your local files in the project folder to **Azure App Services** (use "Browse" option if needed, and locate the right folder).
-3. Choose a creation option based on the operating system to which you want to deploy. in this sample, we choose **Linux**.
-4. Select a **Node.js** version when prompted. An **LTS** version is recommended.
-5. Type a globally unique name for your web app and press Enter. The name must be unique across all of **Azure**. (e.g. `ciam-msal-node-webapp`)
-6. After you respond to all the prompts, **VS Code** shows the **Azure** resources that are being created for your app in its notification popup.
-7. Select **Yes** when prompted to update your configuration to run `npm install` on the target **Linux** server.
+1. In the **VS Code** activity bar, select the **Azure** logo to show the **Azure App Service** explorer.
+1. Select **Sign in to Azure...**, then follow the instructions. Once signed in, the explorer should show the name of your **Azure** subscription(s).
+1. On the **App Service** explorer section you see an upward-facing arrow icon. Select it publish your local files in the project folder to **Azure App Services** (use "Browse" option if needed, and locate the right folder).
+1. Choose a creation option based on the operating system to which you want to deploy. In this sample, we illustrate by using the **Linux** option.
+1. Select a **Node.js** version when prompted. We recommend a **LTS** version.
+1. Type a globally unique name for your web app and select **Enter**. The name must be unique across all of **Azure** services. After you respond to all the prompts, **VS Code** shows the **Azure** resources that are being created for your app in its notification popup.
+1. Select **Yes** when prompted to update your configuration. This action runs `npm install` on the target **Linux** server.
 
-#### Update the CIAM app registration (ciam-msal-node-webapp)
+#### Update the CIAM app registration to use hosted version
 
-1. Navigate back to to the [Azure portal](https://portal.azure.com).
-In the left-hand navigation pane, select the **Azure Active Directory** service, and then select **App registrations (Preview)**.
-1. In the resulting screen, select the `ciam-msal-node-webapp` application.
-1. In the app's registration screen, select **Authentication** in the menu.
-    1. In the **Redirect URIs** section, update the reply URLs to match the site URL of your Azure deployment. For example:
-        1. `https://ciam-msal-node-webapp.azurewebsites.net`
-        1. `https://ciam-msal-node-webapp.azurewebsites.net/auth/redirect`
+1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [Application Developer](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#application-developer).
+1. Browse to **Identity** >**Applications** > **App registrations**.
+1. From the app registration list, select the app that you want to update.
+1. Under **Manage**, select **Authentication**.
+1. Update your **Redirect URIs** to to match the site URL of your Azure deployment such as `https://ciam-msal-node-webapp.azurewebsites.net/auth/redirect`.
+1. Select **Configure** to save your changes.
 
-> :warning: If your app is using an *in-memory* storage, **Azure App Services** will spin down your web site if it is inactive, and any records that your app was keeping will be empty. In addition, if you increase the instance count of your website, requests will be distributed among the instances. Your app's records, therefore, will not be the same on each instance.
+> :warning: If your app use *in-memory* storage, **Azure App Services** will spin down your web site if it is inactive. This action empties any records in the memory. In addition, if you increase the instance count of your website, Azure Service distributes the requests among the instances. Therefore, rour app's records won't be the same on each instance.
 </details>
 
 ## Contributing
@@ -300,14 +395,11 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 ## Learn More
 
-* [Customize the default branding](https://github.com/microsoft/entra-previews/blob/PP2/docs/5-Customize-default-branding.md)
-* [OAuth 2.0 device authorization grant flow](https://github.com/microsoft/entra-previews/blob/PP2/docs/9-OAuth2-device-code.md)
-* [Customize sign-in strings](https://github.com/microsoft/entra-previews/blob/PP2/docs/8-Customize-sign-in-strings.md)
+* [Customize the default branding](https://learn.microsoft.com/entra/external-id/customers/how-to-customize-branding-customers)
+* [Language customize](https://learn.microsoft.com/entra/external-id/customers/how-to-customize-languages-customers)
 * [Building Zero Trust ready apps](https://aka.ms/ztdevsession)
-* [Initialize client applications using MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-initializing-client-applications)
-* [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
-* [Handle MSAL.js exceptions and errors](https://docs.microsoft.com/azure/active-directory/develop/msal-handling-exceptions?tabs=javascript)
-* [Logging in MSAL.js applications](https://docs.microsoft.com/azure/active-directory/develop/msal-logging?tabs=javascript)
-* [Pass custom state in authentication requests using MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-pass-custom-state-authentication-request)
-* [Prompt behavior in MSAL.js interactive requests](https://docs.microsoft.com/azure/active-directory/develop/msal-js-prompt-behavior)
-* [Use MSAL.js to work with Azure AD B2C](https://docs.microsoft.com/azure/active-directory/develop/msal-b2c-overview)
+* [Initialize client applications using MSAL.js](https://learn.microsoft.com/entra/identity-platform/msal-js-initializing-client-applications)
+* [Single sign-on with MSAL.js](https://learn.microsoft.com/entra/identity-platform/msal-js-sso)
+* [Handle MSAL.js exceptions and errors](https://learn.microsoft.com/entra/msal/dotnet/advanced/exceptions/msal-error-handling?tabs=javascript)
+* [Logging in MSAL.js applications](https://learn.microsoft.com/entra/msal/dotnet/advanced/exceptions/msal-logging?tabs=javascript)
+* [Pass custom state in authentication requests using MSAL.js](https://learn.microsoft.com/entra/identity-platform/msal-js-pass-custom-state-authentication-request)
