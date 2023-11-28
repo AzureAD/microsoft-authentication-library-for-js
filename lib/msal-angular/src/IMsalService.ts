@@ -11,8 +11,8 @@ import {
   RedirectRequest,
   SilentRequest,
   Logger,
-} from '@azure/msal-browser';
-import { Observable } from 'rxjs';
+} from "@azure/msal-browser";
+import { Observable } from "rxjs";
 
 export interface IMsalService {
   initialize(): Observable<void>;

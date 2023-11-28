@@ -9,7 +9,7 @@ import {
     AccountByLocalIdRequest,
     AccountByUsernameRequest,
 } from "./AccountRequests";
-import { AuthBridge } from "./AuthBridge";
+import { AuthBridge, AuthBridgeResponse } from "./AuthBridge";
 import { BridgeCapabilities } from "./BridgeCapabilities";
 import { BridgeRequest } from "./BridgeRequest";
 import { BridgeRequestEnvelope, BridgeMethods } from "./BridgeRequestEnvelope";
@@ -60,9 +60,11 @@ export class BridgeProxy implements IBridgeProxy {
 
             window.nestedAppAuthBridge.addEventListener(
                 "message",
-                (response: string) => {
+                (response: AuthBridgeResponse) => {
+                    const responsePayload =
+                        typeof response === "string" ? response : response.data;
                     const responseEnvelope: BridgeResponseEnvelope =
-                        JSON.parse(response);
+                        JSON.parse(responsePayload);
                     const request = BridgeProxy.bridgeRequests.find(
                         (element) =>
                             element.requestId === responseEnvelope.requestId
