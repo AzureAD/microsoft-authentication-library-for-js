@@ -245,7 +245,7 @@ You can now test the sample Node.js web app. You need to start the Node.js serve
 
 > :information_source: If the sample didn't work for you as expected, reach out to us using the [GitHub Issues](../../../../issues) page.
 
-## We'd love your feedback!
+## We'd love your feedback
 
 Were we successful in addressing your learning objective? Consider taking a moment to [share your experience with us](https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR_ivMYEeUKlEq8CxnMPgdNZUNDlUTTk2NVNYQkZSSjdaTk5KT1o4V1VVNS4u).
 
@@ -294,7 +294,6 @@ In order to use MSAL Node, we instantiate the [ConfidentialClientApplication](ht
 ### Sign in
 
 The first leg of auth code flow generates an authorization code request URL, then redirects to that URL to obtain the authorization code. This first leg is implemented in the `redirectToAuthCodeUrl` method. Notice how we use MSALs [getAuthCodeUrl](https://learn.microsoft.com/javascript/api/%40azure/msal-node/confidentialclientapplication?view=azure-node-latest#@azure-msal-node-confidentialclientapplication-getauthcodeurl) method to generate authorization code URL, then redirect to the authorization code URL itself:
-
 
 ```javascript
     async redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams, msalInstance) {
@@ -362,7 +361,6 @@ There is one web app in this sample. To deploy it to **Azure App Services**, you
 - Create an **Azure App Service**
 - Publish the projects to the **App Services**, and
 - Update its client(s) to call the website instead of the local environment.
-
 
 #### Deploy your files of your web app
 
