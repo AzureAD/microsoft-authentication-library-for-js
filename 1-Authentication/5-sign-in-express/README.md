@@ -148,7 +148,7 @@ Create a client secret for the registered application. The application uses the 
 Follow these steps to create a user flow a customer can use to sign in or sign up for an application.
 
 1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [External ID User Flow Administrator](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#external-id-user-flow-administrator).  
-1. If you have access to multiple tenants, use the **Settings** icon (![settings icon](admin-center-settings-icon.png "Title")) in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu.
+1. If you have access to multiple tenants, use the **Settings** icon (![settings icon](./ReadmeFiles/admin-center-settings-icon.png "Title")) in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu.
 1. Browse to **Identity** > **External Identities** > **User flows**.
 1. Select **+ New user flow**.
 1. On the **Create** page:
