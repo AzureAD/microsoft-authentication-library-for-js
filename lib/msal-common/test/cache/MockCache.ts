@@ -4,7 +4,6 @@
  */
 
 import {
-    AccountEntity,
     AppMetadataEntity,
     AuthorityMetadataEntity,
     CacheManager,
@@ -14,14 +13,7 @@ import {
     StaticAuthorityOptions,
     CredentialType,
     AuthenticationScheme,
-    TokenClaims,
-    IdTokenEntity,
 } from "../../src";
-import {
-    AccountInfo,
-    TenantProfile,
-    buildTenantProfileFromIdTokenClaims,
-} from "../../src/account/AccountInfo";
 import { MockStorageClass } from "../client/ClientTestUtils";
 import {
     TEST_TOKENS,
@@ -30,6 +22,10 @@ import {
     ID_TOKEN_ALT_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
 } from "../test_kit/StringConstants";
+import {
+    buildAccountFromIdTokenClaims,
+    buildIdToken,
+} from "../../../../shared-test-utils/CredentialGenerators";
 
 export class MockCache {
     cacheManager: MockStorageClass;
@@ -288,64 +284,4 @@ export class MockCache {
 
         this.cacheManager.setAuthorityMetadata(cacheKey, authorityMetadata);
     }
-}
-
-export function buildAccountFromIdTokenClaims(
-    idTokenClaims: TokenClaims,
-    guestIdTokenClaimsList?: TokenClaims[]
-): AccountEntity {
-    const { oid, tid, preferred_username, emails, name } = idTokenClaims;
-    const tenantId = tid || "";
-    const email = emails ? emails[0] : null;
-
-    const homeAccountId = `${oid}.${tid}`;
-
-    const accountInfo: AccountInfo = {
-        homeAccountId: homeAccountId || "",
-        username: preferred_username || email || "",
-        localAccountId: oid || "",
-        tenantId: tenantId,
-        environment: "login.windows.net",
-        authorityType: "MSSTS",
-        name: name,
-        tenantProfiles: new Map<string, TenantProfile>([
-            [
-                tenantId,
-                buildTenantProfileFromIdTokenClaims(
-                    homeAccountId,
-                    idTokenClaims
-                ),
-            ],
-        ]),
-    };
-    guestIdTokenClaimsList?.forEach((guestIdTokenClaims: TokenClaims) => {
-        const guestTenantId = guestIdTokenClaims.tid || "";
-        accountInfo.tenantProfiles?.set(
-            guestTenantId,
-            buildTenantProfileFromIdTokenClaims(
-                accountInfo.homeAccountId,
-                guestIdTokenClaims
-            )
-        );
-    });
-    return AccountEntity.createFromAccountInfo(accountInfo);
-}
-
-export function buildIdToken(
-    idTokenClaims: TokenClaims,
-    idTokenSecret: string,
-    options?: Partial<IdTokenEntity>
-): IdTokenEntity {
-    const { oid, tid } = idTokenClaims;
-    const homeAccountId = `${oid}.${tid}`;
-    const idToken = {
-        realm: tid || "",
-        environment: "login.microsoftonline.com",
-        credentialType: CredentialType.ID_TOKEN,
-        secret: idTokenSecret,
-        clientId: "mock_client_id",
-        homeAccountId: homeAccountId,
-    };
-
-    return { ...idToken, ...options };
 }

@@ -30,11 +30,11 @@ import {
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
+import { MockCache } from "./MockCache";
 import {
-    MockCache,
     buildAccountFromIdTokenClaims,
     buildIdToken,
-} from "./MockCache";
+} from "../../../../shared-test-utils/CredentialGenerators";
 import { mockCrypto } from "../client/ClientTestUtils";
 import { TestError } from "../test_kit/TestErrors";
 import { CacheManager } from "../../src/cache/CacheManager";

@@ -45,7 +45,7 @@ import { IPublicClientApplication } from "../../src";
 import {
     buildAccountFromIdTokenClaims,
     buildIdToken,
-} from "../cache/TestStorageManager";
+} from "../../../../shared-test-utils/CredentialGenerators";
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {

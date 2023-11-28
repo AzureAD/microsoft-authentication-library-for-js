@@ -55,7 +55,7 @@ import {
 } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { Logger } from "../../src/logger/Logger";
-import { buildAccountFromIdTokenClaims } from "../cache/MockCache";
+import { buildAccountFromIdTokenClaims } from "../../../../shared-test-utils/CredentialGenerators";
 
 const testAccountEntity: AccountEntity =
     buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);

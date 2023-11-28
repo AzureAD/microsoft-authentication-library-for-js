@@ -38,7 +38,7 @@ import {
 } from "../utils/StringConstants";
 import { BrowserAuthErrorMessage, SilentRequest } from "../../src";
 import { base64Decode } from "../../src/encode/Base64Decode";
-import { buildAccountFromIdTokenClaims } from "./TestStorageManager";
+import { buildAccountFromIdTokenClaims } from "../../../../shared-test-utils/CredentialGenerators";
 
 describe("TokenCache tests", () => {
     let configuration: BrowserConfiguration;

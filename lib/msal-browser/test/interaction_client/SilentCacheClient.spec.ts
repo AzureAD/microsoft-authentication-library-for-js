@@ -27,7 +27,7 @@ import {
 import {
     buildAccountFromIdTokenClaims,
     buildIdToken,
-} from "../cache/TestStorageManager";
+} from "../../../../shared-test-utils/CredentialGenerators";
 
 const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     ID_TOKEN_CLAIMS,

@@ -83,7 +83,7 @@ import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import {
     buildAccountFromIdTokenClaims,
     buildIdToken,
-} from "../cache/TestStorageManager";
+} from "../../../../shared-test-utils/CredentialGenerators";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,

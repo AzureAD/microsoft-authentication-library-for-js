@@ -28,7 +28,7 @@ import { LogLevel, Logger } from "../../../src/logger/Logger";
 import { Authority } from "../../../src/authority/Authority";
 import { AuthorityType } from "../../../src/authority/AuthorityType";
 import { TokenClaims } from "../../../src";
-import { buildAccountFromIdTokenClaims } from "../MockCache";
+import { buildAccountFromIdTokenClaims } from "../../../../../shared-test-utils/CredentialGenerators";
 
 const cryptoInterface: ICrypto = {
     createNewGuid(): string {
