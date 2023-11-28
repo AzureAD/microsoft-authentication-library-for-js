@@ -47,6 +47,9 @@ import {
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { invoke, invokeAsync } from "../utils/FunctionWrappers";
+
+const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
+
 /**
  * OAuth2.0 refresh token client
  * @internal
@@ -220,7 +223,8 @@ export class RefreshTokenClient extends BaseClient {
             refreshToken.expiresOn &&
             TimeUtils.isTokenExpired(
                 refreshToken.expiresOn,
-                this.config.systemOptions.refreshTokenExpirationOffsetSeconds
+                request.refreshTokenExpirationOffsetSeconds ||
+                    DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
             )
         ) {
             throw createInteractionRequiredAuthError(

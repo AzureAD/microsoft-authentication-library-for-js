@@ -93,13 +93,11 @@ export type AuthOptions = {
 
 /**
  * Use this to configure token renewal info in the Configuration object
+ *
+ * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
  */
 export type SystemOptions = {
-    /** If the access token will expire within the configured value, consider it already expired. Primarily used to account for client clock skew. */
     tokenRenewalOffsetSeconds?: number;
-    /** If refresh token will expire within the configured value, consider it already expired. Primarily used to pre-emptively invoke interaction when cached refresh token is close to expiry. */
-    refreshTokenExpirationOffsetSeconds?: number;
-    /** Enable/disable preflight CORS requests */
     preventCorsPreflight?: boolean;
 };
 
@@ -164,7 +162,6 @@ export type ApplicationTelemetry = {
 
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    refreshTokenExpirationOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     preventCorsPreflight: false,
 };
 
