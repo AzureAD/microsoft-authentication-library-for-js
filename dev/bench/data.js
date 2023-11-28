@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701208265558,
+  "lastUpdate": 1701211608705,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3382,6 +3382,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.06%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "34c460d88f84263fe931d964860a30ddf4a1d981",
+          "message": "React - Move rollup to dev deps (#6728)\n\nRollup and plugin-typescript were added to regular dependencies at some\r\npoint, moving back to devDependencies",
+          "timestamp": "2023-11-28T14:41:38-08:00",
+          "tree_id": "0293f73e9d164a8275cba21eb041edef6ebcdec4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/34c460d88f84263fe931d964860a30ddf4a1d981"
+        },
+        "date": 1701211607591,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 212947,
+            "range": "±1.85%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 181331,
+            "range": "±1.92%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
