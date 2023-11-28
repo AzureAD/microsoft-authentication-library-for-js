@@ -41,7 +41,7 @@ extensions:
 
 |          Instruction  |                Description                 |
 |-----------------------|--------------------------------------------|
-| **Use case**          | This code sample applies to **customer configuration uses case**![Yes button](yes.png "Title"). If you're looking for a workforce configuration use case, use [Tutorial: Enable a Node.js (Express) application to sign in users by using Microsoft Entra ID](https://github.com/Azure-Samples/ms-identity-node)      |
+| **Use case**          | This code sample applies to **customer configuration uses case**![Yes button](./ReadmeFiles/yes.png "Title"). If you're looking for a workforce configuration use case, use [Tutorial: Enable a Node.js (Express) application to sign in users by using Microsoft Entra ID](https://github.com/Azure-Samples/ms-identity-node)      |
 | **Scenario**        | Sign in users. You acquire an ID token by using authorization code flow with PKCE. |
 |    **Add sign in to your app**        | Use the instructions in [Sign in users in a Node.js web app](https://learn.microsoft.com/entra/external-id/customers/tutorial-web-app-node-sign-in-prepare-tenant) to learn how to add sign in to your Node web app. |
 |**Product documentation** | Explore [Microsoft Entra ID for customers documentation](https://review.learn.microsoft.com/entra/external-id/customers/) |
@@ -98,7 +98,7 @@ When you use Microsoft Graph PowerShell, you automatically register the applicat
 To manually register your apps in Microsoft Entra Admin center, follow these steps:
 
 1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [Application Developer](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#application-developer).
-1. If you have access to multiple tenants, use the **Settings** icon (![settings icon](admin-center-settings-icon.png "Title")) in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu. 
+1. If you have access to multiple tenants, use the **Settings** icon (![settings icon](./ReadmeFiles/admin-center-settings-icon.png "Title")) in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu. 
 1. Browse to **Identity** >**Applications** > **App registrations**.
 1. Select **+ New registration**.
 1. In the **Register an application** page that appears;
