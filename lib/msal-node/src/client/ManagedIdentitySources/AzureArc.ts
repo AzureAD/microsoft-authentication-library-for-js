@@ -13,6 +13,8 @@ import {
     NetworkRequestOptions,
     Logger,
     UrlString,
+    ResponseHandler,
+    ServerAuthorizationTokenResponse,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
@@ -103,49 +105,63 @@ export class AzureArc extends BaseManagedIdentitySource {
         return request;
     }
 
-    public async retryPolicy(
+    public async validateResponseAsync(
         networkClient: INetworkModule,
-        response: NetworkResponse<ManagedIdentityTokenResponse>,
+        originalResponse: NetworkResponse<ManagedIdentityTokenResponse>,
         networkRequest: ManagedIdentityRequestParameters,
-        networkRequestOptions: NetworkRequestOptions
-    ): Promise<NetworkResponse<ManagedIdentityTokenResponse>> {
-        if (response.status !== HttpStatus.UNAUTHORIZED) {
-            return response;
-        }
+        networkRequestOptions: NetworkRequestOptions,
+        responseHandler: ResponseHandler,
+        refreshAccessToken: boolean | undefined
+    ): Promise<ServerAuthorizationTokenResponse> {
+        let retryResponse:
+            | NetworkResponse<ManagedIdentityTokenResponse>
+            | undefined;
 
-        const wwwAuthHeader: string = response.headers["WWW-Authenticate"];
-        if (!wwwAuthHeader) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
+        if (originalResponse.status === HttpStatus.UNAUTHORIZED) {
+            const wwwAuthHeader: string =
+                originalResponse.headers["WWW-Authenticate"];
+            if (!wwwAuthHeader) {
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
+                );
+            }
+            if (!wwwAuthHeader.includes("Basic realm=")) {
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
+                );
+            }
+
+            const secretFile = wwwAuthHeader.split("Basic realm=")[1];
+            const secret = fs.readFileSync(secretFile, "utf-8");
+            const authHeaderValue = `Basic ${secret}`;
+
+            this.logger.info(
+                `[Managed Identity] Adding authorization header to the request.`
             );
-        }
-        if (!wwwAuthHeader.includes("Basic realm=")) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
-            );
-        }
+            networkRequest.headers[AUTHORIZATION_HEADER_NAME] = authHeaderValue;
 
-        const secretFile = wwwAuthHeader.split("Basic realm=")[1];
-        const secret = fs.readFileSync(secretFile, "utf-8");
-        const authHeaderValue = `Basic ${secret}`;
-
-        this.logger.info(
-            `[Managed Identity] Adding authorization header to the request.`
-        );
-        networkRequest.headers[AUTHORIZATION_HEADER_NAME] = authHeaderValue;
-
-        try {
-            return await networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
-                networkRequest.computeUri(),
-                networkRequestOptions
-            );
-        } catch (error) {
-            if (error instanceof AuthError) {
-                throw error;
-            } else {
-                throw createClientAuthError(ClientAuthErrorCodes.networkError);
+            try {
+                retryResponse =
+                    await networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
+                        networkRequest.computeUri(),
+                        networkRequestOptions
+                    );
+            } catch (error) {
+                if (error instanceof AuthError) {
+                    throw error;
+                } else {
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.networkError
+                    );
+                }
             }
         }
+
+        return this.validateResponse(
+            retryResponse || originalResponse,
+            responseHandler,
+            refreshAccessToken
+        );
     }
 }
 

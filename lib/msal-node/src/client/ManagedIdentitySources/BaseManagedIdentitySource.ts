@@ -18,7 +18,6 @@ import {
     TimeUtils,
     createClientAuthError,
     AuthenticationResult,
-    HttpStatus,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
@@ -51,12 +50,55 @@ export abstract class BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters;
 
-    retryPolicy?(
-        networkClient: INetworkModule,
+    public async validateResponseAsync(
+        _networkClient: INetworkModule,
         response: NetworkResponse<ManagedIdentityTokenResponse>,
-        networkRequest: ManagedIdentityRequestParameters,
-        networkRequestOptions: NetworkRequestOptions
-    ): Promise<NetworkResponse<ManagedIdentityTokenResponse>>;
+        _networkRequest: ManagedIdentityRequestParameters,
+        _networkRequestOptions: NetworkRequestOptions,
+        responseHandler: ResponseHandler,
+        refreshAccessToken: boolean | undefined
+    ): Promise<ServerAuthorizationTokenResponse> {
+        return await this.validateResponse(
+            response,
+            responseHandler,
+            refreshAccessToken
+        );
+    }
+
+    public validateResponse(
+        response: NetworkResponse<ManagedIdentityTokenResponse>,
+        responseHandler: ResponseHandler,
+        refreshAccessToken: boolean | undefined
+    ): ServerAuthorizationTokenResponse {
+        const serverTokenResponse: ServerAuthorizationTokenResponse = {
+            status: response.status,
+
+            // success
+            access_token: response.body.access_token,
+            expires_in: response.body.expires_on,
+            scope: response.body.resource,
+            token_type: response.body.token_type,
+
+            // error
+            error: response.body.message,
+            correlation_id: response.body.correlationId,
+        };
+
+        // compute refresh_in as 1/2 of expires_in, but only if expires_in > 2h
+        if (
+            serverTokenResponse.expires_in &&
+            serverTokenResponse.expires_in > 2 * 3600
+        ) {
+            serverTokenResponse.refresh_in = serverTokenResponse.expires_in / 2;
+        }
+
+        responseHandler.validateTokenResponse(
+            serverTokenResponse,
+            refreshAccessToken
+        );
+
+        return serverTokenResponse;
+    }
 
     public async acquireTokenWithManagedIdentity(
         managedIdentityRequest: ManagedIdentityRequest,
@@ -104,40 +146,6 @@ export abstract class BaseManagedIdentitySource {
             }
         }
 
-        if (
-            response.status !== HttpStatus.SUCCESS_RANGE_START &&
-            this.retryPolicy
-        ) {
-            response = await this.retryPolicy(
-                this.networkClient,
-                response,
-                networkRequest,
-                networkRequestOptions
-            );
-        }
-
-        const serverTokenResponse: ServerAuthorizationTokenResponse = {
-            status: response.status,
-
-            // success
-            access_token: response.body.access_token,
-            expires_in: response.body.expires_on,
-            scope: response.body.resource,
-            token_type: response.body.token_type,
-
-            // error
-            error: response.body.message,
-            correlation_id: response.body.correlationId,
-        };
-
-        // compute refresh_in as 1/2 of expires_in, but only if expires_in > 2h
-        if (
-            serverTokenResponse.expires_in &&
-            serverTokenResponse.expires_in > 2 * 3600
-        ) {
-            serverTokenResponse.refresh_in = serverTokenResponse.expires_in / 2;
-        }
-
         const responseHandler = new ResponseHandler(
             managedIdentityId.id,
             this.nodeStorage,
@@ -147,10 +155,15 @@ export abstract class BaseManagedIdentitySource {
             null
         );
 
-        responseHandler.validateTokenResponse(
-            serverTokenResponse,
-            refreshAccessToken
-        );
+        const serverTokenResponse: ServerAuthorizationTokenResponse =
+            await this.validateResponseAsync(
+                this.networkClient,
+                response,
+                networkRequest,
+                networkRequestOptions,
+                responseHandler,
+                refreshAccessToken
+            );
 
         // caches the token
         return await responseHandler.handleServerTokenResponse(
