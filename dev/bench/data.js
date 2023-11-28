@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701206894438,
+  "lastUpdate": 1701208265558,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3342,6 +3342,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 182411,
             "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d276e850b0d76c040b024f653e49f52ee2aa11ca",
+          "message": "Add node 16 to node-extensions engines (#6726)\n\n- Adds node 16 to the node-extensions engines",
+          "timestamp": "2023-11-28T13:46:00-08:00",
+          "tree_id": "3a510e6583ed8c2d431bf5a012170afc597cabcd",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d276e850b0d76c040b024f653e49f52ee2aa11ca"
+        },
+        "date": 1701208264520,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 212905,
+            "range": "±1.87%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 186019,
+            "range": "±2.06%",
             "unit": "ops/sec",
             "extra": "222 samples"
           }
