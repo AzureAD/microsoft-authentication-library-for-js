@@ -211,7 +211,7 @@ If you choose to download the *.zip* file, extract the sample app file to a fold
 
 ## Configure the sample web app to use your app registration
 
-1. In your code editor, open *App\authConfig.js* file. 
+1. In your code editor, open *App\authConfig.js* file.
 
 1. Find the placeholder:
 
