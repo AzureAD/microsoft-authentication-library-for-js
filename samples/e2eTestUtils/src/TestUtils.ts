@@ -1,10 +1,14 @@
 import * as fs from "fs";
-import { Page, HTTPResponse, Browser } from "puppeteer";
+import { Page, HTTPResponse, Browser, WaitForOptions } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
 export const ONE_SECOND_IN_MS = 1000;
 export const RETRY_TIMES = 5;
+
+const WAIT_FOR_NAVIGATION_CONFIG: WaitForOptions = {
+    waitUntil: ["load", "domcontentloaded", "networkidle0"],
+};
 
 export class Screenshot {
     private folderName: string;
@@ -134,20 +138,30 @@ export async function setupCredentials(
     let username = "";
     let accountPwd = "";
 
-    if (labConfig.user.upn) {
-        username = labConfig.user.upn;
+    const { user, lab } = labConfig;
+
+    if (user.userType === "Guest") {
+        if (!user.homeUPN) {
+            throw Error("Guest user does not have a homeUPN");
+        }
+        username = user.homeUPN;
+    } else {
+        if (!user.upn) {
+            throw Error("User does not have a upn");
+        }
+        username = user.upn || "";
     }
 
-    if (!labConfig.lab.labName) {
+    if (!lab.labName) {
         throw Error("No Labname provided!");
     }
 
-    const testPwdSecret = await labClient.getSecret(labConfig.lab.labName);
+    const testPwdSecret = await labClient.getSecret(lab.labName);
 
     accountPwd = testPwdSecret.value;
 
     if (!accountPwd) {
-        throw "Unable to get account password!";
+        throw Error("Unable to get account password!");
     }
 
     return [username, accountPwd];
@@ -208,11 +222,7 @@ export async function enterCredentials(
     accountPwd: string
 ): Promise<void> {
     await Promise.all([
-        page
-            .waitForNavigation({
-                waitUntil: ["load", "domcontentloaded", "networkidle0"],
-            })
-            .catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}), // Wait for navigation but don't throw due to timeout
         page.waitForSelector("#i0116"),
         page.waitForSelector("#idSIButton9"),
     ]).catch(async (e) => {
@@ -237,9 +247,7 @@ export async function enterCredentials(
         await page.waitForSelector("#aadTile", { timeout: 1000 });
         await screenshot.takeScreenshot(page, "accountType");
         await Promise.all([
-            page.waitForNavigation({
-                waitUntil: ["load", "domcontentloaded", "networkidle0"],
-            }),
+            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
             page.click("#aadTile"),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
@@ -260,9 +268,7 @@ export async function enterCredentials(
 
         // Wait either for another navigation to Keep me signed in page or back to redirectUri
         Promise.race([
-            page.waitForNavigation({
-                waitUntil: ["load", "domcontentloaded", "networkidle0"],
-            }),
+            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
             page.waitForResponse(
                 (response: HTTPResponse) =>
                     response.url().startsWith(SAMPLE_HOME_URL),
@@ -294,9 +300,7 @@ export async function enterCredentials(
         await page.waitForSelector("#idSIButton9", { timeout: 1000 });
         await screenshot.takeScreenshot(page, "keepMeSignedInPage");
         await Promise.all([
-            page.waitForNavigation({
-                waitUntil: ["load", "domcontentloaded", "networkidle0"],
-            }),
+            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
             page.click("#idSIButton9"),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
@@ -311,9 +315,7 @@ export async function enterCredentials(
         await page.waitForSelector("#idSIButton9", { timeout: 1000 });
         await screenshot.takeScreenshot(page, "privateTenantSignInPage");
         await Promise.all([
-            page.waitForNavigation({
-                waitUntil: ["load", "domcontentloaded", "networkidle0"],
-            }),
+            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
             page.click("#idSIButton9"),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
@@ -333,9 +335,7 @@ export async function approveRemoteConnect(
         await page.waitForSelector("#remoteConnectSubmit");
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
-            page.waitForNavigation({
-                waitUntil: ["load", "domcontentloaded", "networkidle0"],
-            }),
+            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
             page.click("#remoteConnectSubmit"),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
@@ -398,11 +398,7 @@ export async function enterCredentialsADFS(
     accountPwd: string
 ): Promise<void> {
     await Promise.all([
-        page
-            .waitForNavigation({
-                waitUntil: ["load", "domcontentloaded", "networkidle0"],
-            })
-            .catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}), // Wait for navigation but don't throw due to timeout
         page.waitForSelector("#i0116"),
         page.waitForSelector("#idSIButton9"),
     ]).catch(async (e) => {

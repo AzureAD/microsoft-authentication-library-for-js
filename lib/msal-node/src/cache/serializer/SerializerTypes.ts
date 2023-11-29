@@ -57,6 +57,7 @@ export type SerializedAccountEntity = {
     client_info?: string;
     last_modification_time?: string;
     last_modification_app?: string;
+    tenantProfiles?: string[];
 };
 
 /**

@@ -29,27 +29,6 @@ import { RedirectRequest } from "../../../../../../lib/msal-browser/src";
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 let sampleHomeUrl = "";
 
-async function verifyTokenStore(
-    BrowserCache: BrowserCacheUtils,
-    scopes: string[]
-): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens).toHaveLength(1);
-    expect(tokenStore.accessTokens).toHaveLength(1);
-    expect(tokenStore.refreshTokens).toHaveLength(1);
-    expect(
-        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
-    ).toBeDefined();
-    expect(
-        await BrowserCache.accessTokenForScopesExists(
-            tokenStore.accessTokens,
-            scopes
-        )
-    ).toBeTruthy();
-    const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toEqual(6);
-}
-
 describe("AAD-Prod Tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -125,7 +104,9 @@ describe("AAD-Prod Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("Performs loginRedirect from url with empty query string", async () => {
@@ -139,7 +120,9 @@ describe("AAD-Prod Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
             expect(page.url()).toEqual(sampleHomeUrl);
         });
 
@@ -155,7 +138,9 @@ describe("AAD-Prod Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
             expect(page.url()).toEqual(testUrl);
         });
 
@@ -182,7 +167,9 @@ describe("AAD-Prod Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("Performs loginRedirect with relative redirectStartPage", async () => {
@@ -208,7 +195,9 @@ describe("AAD-Prod Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("Performs loginPopup", async () => {
@@ -230,7 +219,9 @@ describe("AAD-Prod Tests", () => {
             );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
     });
 
@@ -378,7 +369,9 @@ describe("AAD-Prod Tests", () => {
             );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("acquireTokenPopup", async () => {
@@ -397,7 +390,9 @@ describe("AAD-Prod Tests", () => {
             await screenshot.takeScreenshot(page, "acquireTokenPopupGotTokens");
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("acquireTokenSilent from Cache", async () => {
@@ -425,7 +420,9 @@ describe("AAD-Prod Tests", () => {
             ]);
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("acquireTokenSilent via RefreshToken", async () => {
@@ -447,7 +444,9 @@ describe("AAD-Prod Tests", () => {
             );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
     });
 });

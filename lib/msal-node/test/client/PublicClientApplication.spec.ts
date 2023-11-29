@@ -817,17 +817,8 @@ describe("PublicClientApplication", () => {
                 ...appConfig,
             });
 
-            const cryptoProvider = new CryptoProvider();
-            const accountEntity: AccountEntity = AccountEntity.createAccount(
-                {
-                    homeAccountId: mockAccountInfo.homeAccountId,
-                    idTokenClaims: AuthToken.extractTokenClaims(
-                        mockAuthenticationResult.idToken,
-                        cryptoProvider.base64Decode
-                    ),
-                },
-                fakeAuthority
-            );
+            const accountEntity: AccountEntity =
+                AccountEntity.createFromAccountInfo(mockAccountInfo);
 
             // @ts-ignore
             authApp.storage.setAccount(accountEntity);

@@ -63,6 +63,11 @@ export class Deserializer {
                     clientInfo: serializedAcc.client_info,
                     lastModificationTime: serializedAcc.last_modification_time,
                     lastModificationApp: serializedAcc.last_modification_app,
+                    tenantProfiles: serializedAcc.tenantProfiles?.map(
+                        (serializedTenantProfile) => {
+                            return JSON.parse(serializedTenantProfile);
+                        }
+                    ),
                 };
                 const account: AccountEntity = new AccountEntity();
                 CacheManager.toObject(account, mappedAcc);
