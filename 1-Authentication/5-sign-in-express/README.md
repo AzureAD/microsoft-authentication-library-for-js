@@ -97,7 +97,7 @@ When you use Microsoft Graph PowerShell, you automatically register the applicat
 To manually register your apps in Microsoft Entra Admin center, follow these steps:
 
 1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [Application Developer](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#application-developer).
-1. If you have access to multiple tenants, use the **Settings** icon (![settings icon](./ReadmeFiles/admin-center-settings-icon.png "Title")) in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu. 
+1. If you have access to multiple tenants, use the **Settings** icon (![settings icon](./ReadmeFiles/admin-center-settings-icon.png "Title")) in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu.
 1. Browse to **Identity** >**Applications** > **App registrations**.
 1. Select **+ New registration**.
 1. In the **Register an application** page that appears;
@@ -177,7 +177,7 @@ Although many applications can be associated with your user flow, a single appli
 
 1. On the sidebar menu, select **Identity**.
 1. Select **External Identities**, then **User flows**.
-1. In the **User flows** page, select the **User flow name** you created earlier, for example, _SignInSignUpSample_.
+1. In the **User flows** page, select the **User flow name** you created earlier, for example, *SignInSignUpSample*.
 1. Under **Use**, select **Applications**.
 1. Select **Add application**.
    <!--[Screenshot the shows how to associate an application to a user flow.](media/20-create-user-flow-add-application.png)-->
