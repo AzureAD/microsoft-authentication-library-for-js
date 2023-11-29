@@ -1,0 +1,22 @@
+trigger: none # Disable push triggers
+
+pr:
+    - dev
+
+resources:
+    repositories:
+        - repository: 1P
+          type: git
+          name: IDDP/msal-javascript-1p
+          ref: master
+
+jobs:
+    - template: templates/e2e-test-template.yml
+      parameters:
+          sampleName: PerformanceTelemetrySample
+          jobName: performance_telemetry_sample
+    - template: templates/e2e-test-template.yml
+      parameters:
+          sampleName: Broker_WAMTestApp
+          jobName: broker_wam_test_app
+          requiresCertificates: true
