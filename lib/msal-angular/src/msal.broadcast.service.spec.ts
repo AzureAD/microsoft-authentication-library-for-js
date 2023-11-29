@@ -1,21 +1,21 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from "@angular/core/testing";
 import {
   EventType,
   InteractionStatus,
   InteractionType,
   PublicClientApplication,
-} from '@azure/msal-browser';
-import { Subscription } from 'rxjs';
-import { MsalModule, MSAL_BROADCAST_CONFIG } from './public-api';
-import { MsalBroadcastService } from './msal.broadcast.service';
+} from "@azure/msal-browser";
+import { Subscription } from "rxjs";
+import { MsalModule, MSAL_BROADCAST_CONFIG } from "./public-api";
+import { MsalBroadcastService } from "./msal.broadcast.service";
 
 let broadcastService: MsalBroadcastService;
 let subscription: Subscription;
 
 const msalInstance = new PublicClientApplication({
   auth: {
-    clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
-    redirectUri: 'http://localhost:4200',
+    clientId: "6226576d-37e9-49eb-b201-ec1eeb0029b6",
+    redirectUri: "http://localhost:4200",
   },
 });
 
@@ -34,7 +34,7 @@ function initializeMsal(providers: any[] = []) {
   broadcastService = TestBed.inject(MsalBroadcastService);
 }
 
-describe('MsalBroadcastService', () => {
+describe("MsalBroadcastService", () => {
   beforeEach(() => {
     initializeMsal();
   });
@@ -43,7 +43,7 @@ describe('MsalBroadcastService', () => {
     subscription.unsubscribe();
   });
 
-  it('broadcasts event from PublicClientApplication', (done) => {
+  it("broadcasts event from PublicClientApplication", (done) => {
     const sub = broadcastService.msalSubject$.subscribe((result) => {
       expect(result.eventType).toEqual(EventType.LOGIN_START);
       expect(result.interactionType).toEqual(InteractionType.Popup);
@@ -74,7 +74,7 @@ describe('MsalBroadcastService', () => {
       .emitEvent(EventType.LOGIN_START, InteractionType.Popup);
   });
 
-  it('broadcasts previous events if MsalBroadcastConfig set and eventsToReplay is greater than 0', (done) => {
+  it("broadcasts previous events if MsalBroadcastConfig set and eventsToReplay is greater than 0", (done) => {
     initializeMsal([
       {
         provide: MSAL_BROADCAST_CONFIG,
@@ -173,7 +173,7 @@ describe('MsalBroadcastService', () => {
     newSubscription.unsubscribe();
   });
 
-  it('broadcasts the set number of past events if MsalBroadcastConfig and eventsToReplay is set', (done) => {
+  it("broadcasts the set number of past events if MsalBroadcastConfig and eventsToReplay is set", (done) => {
     initializeMsal([
       {
         provide: MSAL_BROADCAST_CONFIG,
@@ -282,7 +282,7 @@ describe('MsalBroadcastService', () => {
     newSubscription.unsubscribe();
   });
 
-  it('does not broadcasts previous events if MsalBroadcastConfig is not set', (done) => {
+  it("does not broadcasts previous events if MsalBroadcastConfig is not set", (done) => {
     const expectedMsalSubjectFirstSubscription = [
       {
         eventType: EventType.LOGIN_START,
@@ -366,7 +366,7 @@ describe('MsalBroadcastService', () => {
     newSubscription.unsubscribe();
   });
 
-  it('LOGIN_SUCCESS event does not set inProgress to None if handleRedirect is still in progress', (done) => {
+  it("LOGIN_SUCCESS event does not set inProgress to None if handleRedirect is still in progress", (done) => {
     const expectedInProgress = [
       InteractionStatus.Startup,
       InteractionStatus.HandleRedirect,
@@ -392,7 +392,7 @@ describe('MsalBroadcastService', () => {
       .emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
   });
 
-  it('HANDLE_REDIRECT_END event sets inProgress to None if handleRedirect is in progress', (done) => {
+  it("HANDLE_REDIRECT_END event sets inProgress to None if handleRedirect is in progress", (done) => {
     const expectedInProgress = [
       InteractionStatus.Startup,
       InteractionStatus.HandleRedirect,
@@ -423,7 +423,7 @@ describe('MsalBroadcastService', () => {
       .emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
   });
 
-  it('HANDLE_REDIRECT_END event does not set inProgress to None if login is in progress', (done) => {
+  it("HANDLE_REDIRECT_END event does not set inProgress to None if login is in progress", (done) => {
     const expectedInProgress = [
       InteractionStatus.Startup,
       InteractionStatus.HandleRedirect,

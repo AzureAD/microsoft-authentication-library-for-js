@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Nested App Auth fix for Android response (#6707)",
+  "packageName": "@azure/msal-browser",
+  "email": "dasau@microsoft.com",
+  "dependentChangeType": "patch"
+}
