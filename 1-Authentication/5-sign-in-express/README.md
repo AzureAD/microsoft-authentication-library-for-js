@@ -143,7 +143,7 @@ Create a client secret for the registered application. The application uses the 
     1. Select **Grant admin consent for \<your tenant name\>**, then select **Yes**.
     1. Select **Refresh**, then verify that **Granted for \<your tenant name\>** appears under **Status** for both scopes.
 
-## Create user Flows
+## Create user flow
 
 Follow these steps to create a user flow a customer can use to sign in or sign up for an application.
 
