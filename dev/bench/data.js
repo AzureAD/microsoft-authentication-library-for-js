@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701211608705,
+  "lastUpdate": 1701299167197,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3420,6 +3420,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.92%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "67fce83411aa71d9c493ac4a06a0b63b3ab43b1b",
+          "message": "Use ADO Pipeline for CI (#6418)\n\nMigrates from Github Actions to ADO CI template defined in the 1P repo\r\n\r\n---------\r\n\r\nCo-authored-by: Hector Morales <hemoral@microsoft.com>",
+          "timestamp": "2023-11-29T15:01:00-08:00",
+          "tree_id": "3deb0b9c354ccb168a3a565c20d1ad3199e85782",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/67fce83411aa71d9c493ac4a06a0b63b3ab43b1b"
+        },
+        "date": 1701299165605,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 201801,
+            "range": "±2.10%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 198520,
+            "range": "±1.94%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
