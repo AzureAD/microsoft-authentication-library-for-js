@@ -11,11 +11,11 @@ resources:
           ref: shared-build-pipeline
 
 jobs:
-    - template: templates/e2e-test-template.yml@1P
+    - template: ./pipelines/templates/e2e-test-template.yml@1P
       parameters:
           sampleName: PerformanceTelemetrySample
           jobName: performance_telemetry_sample
-    - template: templates/e2e-test-template.yml@1P
+    - template: ./pipelines/templates/e2e-test-template.yml@1P
       parameters:
           sampleName: Broker_WAMTestApp
           jobName: broker_wam_test_app
