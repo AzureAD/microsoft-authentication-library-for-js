@@ -24,24 +24,26 @@ import {
     AuthenticationResult,
     AccountInfo,
 } from "@azure/msal-common";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
-const testAccountEntity: AccountEntity = new AccountEntity();
-testAccountEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
-testAccountEntity.environment = "login.microsoftonline.com";
-testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
-testAccountEntity.name = ID_TOKEN_CLAIMS.name;
-testAccountEntity.authorityType = "MSSTS";
-
-const testIdToken: IdTokenEntity = {
-    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
-    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-    environment: testAccountEntity.environment,
-    realm: ID_TOKEN_CLAIMS.tid,
-    secret: TEST_TOKENS.IDTOKEN_V2,
-    credentialType: CredentialType.ID_TOKEN,
+const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
+    ID_TOKEN_CLAIMS,
+    undefined,
+    { environment: "login.microsoftonline.com" }
+);
+const testAccount: AccountInfo = {
+    ...testAccountEntity.getAccountInfo(),
+    idTokenClaims: ID_TOKEN_CLAIMS,
 };
+
+const testIdToken: IdTokenEntity = buildIdToken(
+    ID_TOKEN_CLAIMS,
+    TEST_TOKENS.IDTOKEN_V2,
+    {
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: testAccount.environment,
+    }
+);
 
 const testAccessTokenEntity: AccessTokenEntity = {
     homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
@@ -63,18 +65,6 @@ const testRefreshTokenEntity: RefreshTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: TEST_TOKENS.REFRESH_TOKEN,
     credentialType: CredentialType.REFRESH_TOKEN,
-};
-
-const testAccount: AccountInfo = {
-    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
-    environment: testAccountEntity.environment,
-    tenantId: ID_TOKEN_CLAIMS.tid,
-    username: ID_TOKEN_CLAIMS.preferred_username,
-    localAccountId: ID_TOKEN_CLAIMS.oid,
-    idTokenClaims: ID_TOKEN_CLAIMS,
-    name: ID_TOKEN_CLAIMS.name,
-    authorityType: "MSSTS",
-    nativeAccountId: undefined,
 };
 
 describe("SilentCacheClient", () => {
@@ -166,10 +156,7 @@ describe("SilentCacheClient", () => {
             pca.browserStorage.setIdTokenCredential(testIdToken);
 
             pca.setActiveAccount(testAccount);
-            expect(pca.getActiveAccount()).toEqual({
-                ...testAccount,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
-            });
+            expect(pca.getActiveAccount()).toEqual(testAccount);
             silentCacheClient.logout({ account: testAccount });
             //@ts-ignore
             expect(pca.getActiveAccount()).toEqual(null);

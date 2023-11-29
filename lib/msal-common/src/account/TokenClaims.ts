@@ -35,6 +35,14 @@ export type TokenClaims = {
      * Users' tenant or '9188040d-6c67-4c5b-b112-36a304b66dad' for personal accounts.
      */
     tid?: string;
+    /**
+     * Trusted Framework Policy (B2C) The name of the policy that was used to acquire the ID token.
+     */
+    tfp?: string;
+    /**
+     * Authentication Context Class Reference (B2C) Used only with older policies.
+     */
+    acr?: string;
     ver?: string;
     upn?: string;
     preferred_username?: string;
@@ -68,3 +76,23 @@ export type TokenClaims = {
     tenant_region_scope?: string;
     tenant_region_sub_scope?: string;
 };
+
+/**
+ * Gets tenantId from available ID token claims to set as credential realm with the following precedence:
+ * 1. tid - if the token is acquired from an Azure AD tenant tid will be present
+ * 2. tfp - if the token is acquired from a modern B2C tenant tfp should be present
+ * 3. acr - if the token is acquired from a legacy B2C tenant acr should be present
+ * Downcased to match the realm case-insensitive comparison requirements
+ * @param idTokenClaims
+ * @returns
+ */
+export function getTenantIdFromIdTokenClaims(
+    idTokenClaims?: TokenClaims
+): string | null {
+    if (idTokenClaims) {
+        const tenantId =
+            idTokenClaims.tid || idTokenClaims.tfp || idTokenClaims.acr;
+        return tenantId || null;
+    }
+    return null;
+}

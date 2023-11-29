@@ -51,7 +51,6 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                                 tenant
                             ),
                         };
-                        console.log(staticAuthorityOptions);
                         expect(
                             getAliasesFromStaticSources(staticAuthorityOptions)
                         ).toEqual(METADATA_ALIASES[cloudKey]);

@@ -42,8 +42,15 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
-import { TokenClaims } from "../account/TokenClaims";
-import { AccountInfo } from "../account/AccountInfo";
+import {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "../account/TokenClaims";
+import {
+    AccountInfo,
+    buildTenantProfileFromIdTokenClaims,
+    updateAccountTenantProfileData,
+} from "../account/AccountInfo";
 import * as CacheHelpers from "../cache/utils/CacheHelpers";
 
 /**
@@ -337,7 +344,7 @@ export class ResponseHandler {
                 cacheRecord.account
             ) {
                 const key = cacheRecord.account.generateAccountKey();
-                const account = this.cacheStorage.getAccount(key);
+                const account = this.cacheStorage.getAccount(key, this.logger);
                 if (!account) {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
@@ -371,6 +378,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
+
         return ResponseHandler.generateAuthenticationResult(
             this.cryptoObj,
             authority,
@@ -406,6 +414,8 @@ export class ResponseHandler {
             );
         }
 
+        const claimsTenantId = getTenantIdFromIdTokenClaims(idTokenClaims);
+
         // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity | undefined;
         let cachedAccount: AccountEntity | undefined;
@@ -415,18 +425,20 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.id_token,
                 this.clientId,
-                idTokenClaims.tid || ""
+                claimsTenantId || ""
             );
 
-            cachedAccount = AccountEntity.createAccount(
-                {
-                    homeAccountId: this.homeAccountIdentifier,
-                    idTokenClaims: idTokenClaims,
-                    clientInfo: serverTokenResponse.client_info,
-                    cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
-                    msGraphHost: authCodePayload?.msgraph_host,
-                },
-                authority
+            cachedAccount = buildAccountToCache(
+                this.cacheStorage,
+                authority,
+                this.homeAccountIdentifier,
+                idTokenClaims,
+                this.cryptoObj.base64Decode,
+                serverTokenResponse.client_info,
+                claimsTenantId,
+                authCodePayload,
+                undefined,
+                this.logger
             );
         }
 
@@ -468,7 +480,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.access_token,
                 this.clientId,
-                idTokenClaims?.tid || authority.tenant,
+                claimsTenantId || authority.tenant,
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
@@ -596,10 +608,11 @@ export class ResponseHandler {
         }
 
         const accountInfo: AccountInfo | null = cacheRecord.account
-            ? {
-                  ...cacheRecord.account.getAccountInfo(),
-                  idTokenClaims,
-              }
+            ? updateAccountTenantProfileData(
+                  cacheRecord.account.getAccountInfo(),
+                  undefined, // tenantProfile optional
+                  idTokenClaims
+              )
             : null;
 
         return {
@@ -632,4 +645,63 @@ export class ResponseHandler {
             fromNativeBroker: false,
         };
     }
+}
+
+export function buildAccountToCache(
+    cacheStorage: CacheManager,
+    authority: Authority,
+    homeAccountId: string,
+    idTokenClaims: TokenClaims,
+    base64Decode: (input: string) => string,
+    clientInfo?: string,
+    claimsTenantId?: string | null,
+    authCodePayload?: AuthorizationCodePayload,
+    nativeAccountId?: string,
+    logger?: Logger
+): AccountEntity {
+    logger?.verbose("setCachedAccount called");
+
+    // Check if base account is already cached
+    const accountKeys = cacheStorage.getAccountKeys();
+    const baseAccountKey = accountKeys.find((accountKey: string) => {
+        return accountKey.startsWith(homeAccountId);
+    });
+
+    let cachedAccount: AccountEntity | null = null;
+    if (baseAccountKey) {
+        cachedAccount = cacheStorage.getAccount(baseAccountKey, logger);
+    }
+
+    const baseAccount =
+        cachedAccount ||
+        AccountEntity.createAccount(
+            {
+                homeAccountId: homeAccountId,
+                idTokenClaims: idTokenClaims,
+                clientInfo: clientInfo,
+                cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
+                msGraphHost: authCodePayload?.msgraph_host,
+                nativeAccountId: nativeAccountId,
+            },
+            authority,
+            base64Decode
+        );
+
+    const tenantProfiles = baseAccount.tenantProfiles || [];
+
+    if (
+        claimsTenantId &&
+        !tenantProfiles.find((tenantProfile) => {
+            return tenantProfile.tenantId === claimsTenantId;
+        })
+    ) {
+        const newTenantProfile = buildTenantProfileFromIdTokenClaims(
+            homeAccountId,
+            idTokenClaims
+        );
+        tenantProfiles.push(newTenantProfile);
+    }
+    baseAccount.tenantProfiles = tenantProfiles;
+
+    return baseAccount;
 }
