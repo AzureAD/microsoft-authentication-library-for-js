@@ -8,14 +8,14 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: shared-build-pipeline
+          ref: master
 
 jobs:
-    - template: ./pipelines/templates/e2e-test-template.yml@1P
+    - template: .pipelines/templates/e2e-test-template.yml@1P
       parameters:
           sampleName: PerformanceTelemetrySample
           jobName: performance_telemetry_sample
-    - template: ./pipelines/templates/e2e-test-template.yml@1P
+    - template: .pipelines/templates/e2e-test-template.yml@1P
       parameters:
           sampleName: Broker_WAMTestApp
           jobName: broker_wam_test_app
