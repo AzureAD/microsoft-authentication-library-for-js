@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701299167197,
+  "lastUpdate": 1701299862461,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3458,6 +3458,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.94%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "392020bee299d01d14db2907da0cab681a3fbdc3",
+          "message": "Add support for Multi-tenant accounts and cross-tenant token caching (#6536)\n\nThis PR:\r\n- Adds `tenantProfiles` map to `AccountInfo` and `tenantProfiles` array\r\n(serialization) to `AccountEntity`\r\n- Adds `realm` filtering to `getIdToken` and `getAccessToken` so cached\r\ntokens are only matched if they were issued by the tenant in the\r\nrequest's authority\r\n- Updates cached account setting logic to cache `AccountEntity` objects\r\nwith the available data of the home tenant profile in client_info\r\n(localAccountId = uid, realm = utid).\r\n- Adds logic to update the `AccountInfo` objects that `getAccount` APIs\r\nreturn to reflect the tenant-specific data (tenant profile) in the ID\r\ntoken claims from the ID token that matches the account filter passed in\r\n- Adds logic to `getAllAccounts` to expand and return all tenant\r\nprofiles that match the filter into full `AccountInfo` objects to\r\nmaintain backward compatibility\r\n- Sets access token and ID token realm values to the best available\r\nvalue from ID token claims with precedence tid > tfp > acr to cover AAD\r\nand B2C cases\r\n\r\n---------\r\n\r\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2023-11-29T15:12:43-08:00",
+          "tree_id": "f95207a00d20d101a13a7475f9e01a4b191d95df",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/392020bee299d01d14db2907da0cab681a3fbdc3"
+        },
+        "date": 1701299861382,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 203858,
+            "range": "±1.68%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 206624,
+            "range": "±1.33%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
