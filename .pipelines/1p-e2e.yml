@@ -8,7 +8,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: master
+          ref: shared-build-pipeline
 
 jobs:
     - template: templates/e2e-test-template.yml
