@@ -60,7 +60,7 @@ This sample demonstrates how to sign in users into a sample Node.js & Express we
 
 ## Prerequisites
 
-* You must install in your computer [Node.js](https://nodejs.org/en/download/) to run this sample.
+* You must install [Node.js](https://nodejs.org/en/download/) in your computer to run this sample.
 * We recommend [Visual Studio Code](https://code.visualstudio.com/download) for running and editing this sample.
 * An **Azure AD for Customers** tenant. For more information, see: [How to get an Azure AD for customers tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
 * Microsoft Entra ID for customers tenant. If you don't already have one, [sign up for a free trial](https://aka.ms/ciam-free-trial).
