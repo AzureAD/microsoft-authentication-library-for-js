@@ -34,7 +34,7 @@ import { NodeStorage } from "../../cache/NodeStorage";
 import * as fs from "fs";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
 
-const ARC_API_VERSION: string = "2019-11-01";
+export const ARC_API_VERSION: string = "2019-11-01";
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/AzureArcManagedIdentitySource.cs

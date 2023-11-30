@@ -354,6 +354,8 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
 };
 
 export const MANAGED_IDENTITY_AZURE_ARC_WWW_AUTHENTICATE_HEADER = `Basic ${TEST_TOKENS.ACCESS_TOKEN}`;
+export const MANAGED_IDENTITY_CONTENT_TYPE_HEADER =
+    "application/x-www-form-urlencoded;charset=utf-8";
 
 export const MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR =
     "There was an error retrieving the access token from the managed identity.";
