@@ -57,6 +57,9 @@ This sample demonstrates how to sign in users into a sample Node.js & Express we
 | `App/app.js`          | Application entry point.                   |
 | `App/authConfig.js`   | Contains authentication parameters such as your tenant sub-domain, Application (Client) ID, app client secret and redirect URI.        |
 | `App/auth/AuthProvider.js`  | The main authentication logic resides here.    |
+|    `/App/views/`    |    This folder contains app views. This Node/Express sample app's views uses Handlebars. |
+|    `/App/routes/`    |    This folder contains app's routes. |
+
 
 ## Prerequisites
 
