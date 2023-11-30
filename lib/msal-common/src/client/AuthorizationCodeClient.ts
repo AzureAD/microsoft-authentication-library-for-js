@@ -254,7 +254,7 @@ export class AuthorizationCodeClient extends BaseClient {
             try {
                 const clientInfo = buildClientInfo(
                     request.clientInfo,
-                    this.cryptoUtils
+                    this.cryptoUtils.base64Decode
                 );
                 ccsCredential = {
                     credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
@@ -421,7 +421,7 @@ export class AuthorizationCodeClient extends BaseClient {
             try {
                 const clientInfo = buildClientInfo(
                     request.clientInfo,
-                    this.cryptoUtils
+                    this.cryptoUtils.base64Decode
                 );
                 ccsCred = {
                     credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
