@@ -478,7 +478,7 @@ describe("ResponseHandler.ts", () => {
                 access_token: "access-token",
                 refresh_token: "refresh-token",
                 id_token: "id-token",
-                client_info: "client-info",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             };
 
             const testAuthority = new Authority(
