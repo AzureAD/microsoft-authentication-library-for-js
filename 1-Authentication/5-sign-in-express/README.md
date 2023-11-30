@@ -1,7 +1,7 @@
 ---
 page_type: sample
 name: Sign in users in a sample Node.js & Express web app by using Microsoft Entra External ID for customers
-description: This sample demonstrates a Node.js & Express web app authenticating users by using Microsoft Entra External ID for Customers with Microsoft Authentication Library for Node (MSAL Node)
+description: This sample demonstrates a Node.js & Express web app authenticating users by using Microsoft Entra External ID for customers with Microsoft Authentication Library for Node (MSAL Node)
 languages:
  - javascript
 products:
