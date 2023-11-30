@@ -185,11 +185,17 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
     // Displays all cached accounts
     router.get('/allAccounts', async (req, res) => {
         const accounts = await msalTokenCache.getAllAccounts();
-
-        if (accounts.length > 0) {
-            res.render("authenticated", { accounts: JSON.stringify(accounts, null, 4) })
-        } else if (accounts.length === 0) {
-            res.render("authenticated", { accounts: JSON.stringify(accounts), noAccounts: true, showSignInButton: true });
+        const formattedAccounts = accounts.map((account) => {
+            let tenantProfiles = [];
+            account.tenantProfiles.forEach((profile) => {
+                tenantProfiles.push(profile);
+            });
+            return { ...account, tenantProfiles };
+        });
+        if (formattedAccounts.length > 0) {
+            res.render("authenticated", { accounts: JSON.stringify(formattedAccounts, null, 4) })
+        } else if (formattedAccounts.length === 0) {
+            res.render("authenticated", { accounts: JSON.stringify(formattedAccounts), noAccounts: true, showSignInButton: true });
         } else {
             res.render("authenticated", { failedToGetAccounts: true, showSignInButton: true })
         }
@@ -231,7 +237,7 @@ if (argv.$0 === "index.js") {
             authority: config.authOptions.authority,
             redirectUri: config.authOptions.redirectUri,
             clientSecret: process.env.CLIENT_SECRET,
-            knownAuthorities: [config.authOptions.knownAuthorities]
+            knownAuthorities: config.authOptions.knownAuthorities
         },
         cache: {
             cachePlugin

@@ -19,6 +19,7 @@ import {
     CacheRecord,
     TokenClaims,
     CacheHelpers,
+    buildAccountToCache,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
@@ -240,40 +241,43 @@ export class TokenCache implements ITokenCache {
         clientInfo?: string,
         requestHomeAccountId?: string
     ): AccountEntity {
-        let homeAccountId;
-        if (requestHomeAccountId) {
-            homeAccountId = requestHomeAccountId;
-        } else if (authority.authorityType !== undefined && clientInfo) {
-            homeAccountId = AccountEntity.generateHomeAccountId(
-                clientInfo,
-                authority.authorityType,
-                this.logger,
-                this.cryptoObj,
-                idTokenClaims
-            );
-        }
-
-        if (!homeAccountId) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
-            );
-        }
-
-        const accountEntity = AccountEntity.createAccount(
-            {
-                homeAccountId,
-                idTokenClaims: idTokenClaims,
-                clientInfo,
-                environment: authority.hostnameAndPort,
-            },
-            authority
-        );
-
         if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading account");
+            let homeAccountId;
+            if (requestHomeAccountId) {
+                homeAccountId = requestHomeAccountId;
+            } else if (authority.authorityType !== undefined && clientInfo) {
+                homeAccountId = AccountEntity.generateHomeAccountId(
+                    clientInfo,
+                    authority.authorityType,
+                    this.logger,
+                    this.cryptoObj,
+                    idTokenClaims
+                );
+            }
 
-            this.storage.setAccount(accountEntity);
-            return accountEntity;
+            if (!homeAccountId) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.unableToLoadToken
+                );
+            }
+            const claimsTenantId = idTokenClaims.tid;
+
+            const cachedAccount = buildAccountToCache(
+                this.storage,
+                authority,
+                homeAccountId,
+                idTokenClaims,
+                base64Decode,
+                clientInfo,
+                claimsTenantId,
+                undefined,
+                undefined,
+                this.logger
+            );
+
+            this.storage.setAccount(cachedAccount);
+            return cachedAccount;
         } else {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadToken
