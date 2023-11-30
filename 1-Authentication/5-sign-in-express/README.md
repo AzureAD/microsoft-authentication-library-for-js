@@ -60,7 +60,6 @@ This sample demonstrates how to sign users into a sample Node.js & Express web a
 |    `/App/views/`    |    This folder contains app views. This Node/Express sample app's views uses Handlebars. |
 |    `/App/routes/`    |    This folder contains app's routes. |
 
-
 ## Prerequisites
 
 * You must install [Node.js](https://nodejs.org/en/download/) in your computer to run this sample.
