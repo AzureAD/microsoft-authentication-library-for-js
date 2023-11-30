@@ -1,7 +1,7 @@
 ---
 page_type: sample
 name: Sign in users in a sample Node.js & Express web app by using Microsoft Entra External ID for customers
-description: This sample demonstrates a Node.js & Express web app authenticating users by using Microsoft Entra External ID for Customers with Microsoft Authentication Library for Node (MSAL Node)
+description: This sample demonstrates a Node.js & Express web app authenticating users by using Microsoft Entra External ID for customers with Microsoft Authentication Library for Node (MSAL Node)
 languages:
  - javascript
 products:
@@ -39,7 +39,7 @@ extensions:
 
 ## Overview
 
-This sample demonstrates how to sign in users into a sample Node.js & Express web app by using Microsoft Entra External ID for customers. The samples utilizes the [Microsoft Authentication Library for Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) (MSAL Node) to simplify adding authentication to the Node.js web app.
+This sample demonstrates how to sign users into a sample Node.js & Express web app by using Microsoft Entra External ID for customers. The samples utilizes the [Microsoft Authentication Library for Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) (MSAL Node) to simplify adding authentication to the Node.js web app.
 
 ## Usage
 
@@ -65,7 +65,6 @@ This sample demonstrates how to sign in users into a sample Node.js & Express we
 
 * You must install [Node.js](https://nodejs.org/en/download/) in your computer to run this sample.
 * We recommend [Visual Studio Code](https://code.visualstudio.com/download) for running and editing this sample.
-* An **Azure AD for Customers** tenant. For more information, see: [How to get an Azure AD for customers tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
 * Microsoft Entra ID for customers tenant. If you don't already have one, [sign up for a free trial](https://aka.ms/ciam-free-trial).
 * If you'd like to use Azure services, such as hosting your app in Azure App Service, [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
 
