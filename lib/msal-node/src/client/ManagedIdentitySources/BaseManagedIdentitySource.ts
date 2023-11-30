@@ -50,25 +50,20 @@ export abstract class BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters;
 
-    public async validateResponseAsync(
-        _networkClient: INetworkModule,
+    public async getServerTokenResponseAsync(
         response: NetworkResponse<ManagedIdentityTokenResponse>,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _networkClient: INetworkModule,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _networkRequest: ManagedIdentityRequestParameters,
-        _networkRequestOptions: NetworkRequestOptions,
-        responseHandler: ResponseHandler,
-        refreshAccessToken: boolean | undefined
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _networkRequestOptions: NetworkRequestOptions
     ): Promise<ServerAuthorizationTokenResponse> {
-        return await this.validateResponse(
-            response,
-            responseHandler,
-            refreshAccessToken
-        );
+        return await this.getServerTokenResponse(response);
     }
 
-    public validateResponse(
-        response: NetworkResponse<ManagedIdentityTokenResponse>,
-        responseHandler: ResponseHandler,
-        refreshAccessToken: boolean | undefined
+    public getServerTokenResponse(
+        response: NetworkResponse<ManagedIdentityTokenResponse>
     ): ServerAuthorizationTokenResponse {
         const serverTokenResponse: ServerAuthorizationTokenResponse = {
             status: response.status,
@@ -91,11 +86,6 @@ export abstract class BaseManagedIdentitySource {
         ) {
             serverTokenResponse.refresh_in = serverTokenResponse.expires_in / 2;
         }
-
-        responseHandler.validateTokenResponse(
-            serverTokenResponse,
-            refreshAccessToken
-        );
 
         return serverTokenResponse;
     }
@@ -156,14 +146,17 @@ export abstract class BaseManagedIdentitySource {
         );
 
         const serverTokenResponse: ServerAuthorizationTokenResponse =
-            await this.validateResponseAsync(
-                this.networkClient,
+            await this.getServerTokenResponseAsync(
                 response,
+                this.networkClient,
                 networkRequest,
-                networkRequestOptions,
-                responseHandler,
-                refreshAccessToken
+                networkRequestOptions
             );
+
+        responseHandler.validateTokenResponse(
+            serverTokenResponse,
+            refreshAccessToken
+        );
 
         // caches the token
         return await responseHandler.handleServerTokenResponse(

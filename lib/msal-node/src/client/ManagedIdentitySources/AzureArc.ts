@@ -13,7 +13,6 @@ import {
     NetworkRequestOptions,
     Logger,
     UrlString,
-    ResponseHandler,
     ServerAuthorizationTokenResponse,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
@@ -105,13 +104,11 @@ export class AzureArc extends BaseManagedIdentitySource {
         return request;
     }
 
-    public async validateResponseAsync(
-        networkClient: INetworkModule,
+    public async getServerTokenResponseAsync(
         originalResponse: NetworkResponse<ManagedIdentityTokenResponse>,
+        networkClient: INetworkModule,
         networkRequest: ManagedIdentityRequestParameters,
-        networkRequestOptions: NetworkRequestOptions,
-        responseHandler: ResponseHandler,
-        refreshAccessToken: boolean | undefined
+        networkRequestOptions: NetworkRequestOptions
     ): Promise<ServerAuthorizationTokenResponse> {
         let retryResponse:
             | NetworkResponse<ManagedIdentityTokenResponse>
@@ -164,11 +161,7 @@ export class AzureArc extends BaseManagedIdentitySource {
             }
         }
 
-        return this.validateResponse(
-            retryResponse || originalResponse,
-            responseHandler,
-            refreshAccessToken
-        );
+        return this.getServerTokenResponse(retryResponse || originalResponse);
     }
 }
 
