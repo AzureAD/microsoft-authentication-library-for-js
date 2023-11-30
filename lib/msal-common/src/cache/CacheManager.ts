@@ -1258,7 +1258,7 @@ export abstract class CacheManager implements ICacheManager {
             this.commonLogger.info(
                 "CacheManager:getIdToken - Multiple matching ID tokens found, clearing them"
             );
-            tokensToBeRemoved.forEach((idToken, key) => {
+            tokensToBeRemoved.forEach((_idToken, key) => {
                 this.removeIdToken(key);
             });
             if (performanceClient && correlationId) {

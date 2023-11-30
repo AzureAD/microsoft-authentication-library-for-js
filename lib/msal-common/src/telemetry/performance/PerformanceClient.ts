@@ -113,8 +113,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {IPerformanceMeasurement}
      */
     startPerformanceMeasurement(
-        measureName: string, // eslint-disable-line @typescript-eslint/no-unused-vars
-        correlationId: string // eslint-disable-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _measureName: string,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _correlationId: string
     ): IPerformanceMeasurement {
         return {} as IPerformanceMeasurement;
     }
