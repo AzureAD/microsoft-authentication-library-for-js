@@ -32,9 +32,9 @@ Implementing B2C user-flows is a matter of initiating authorization requests aga
 
 This sample comes with a pre-registered application for demo purposes. If you would like to use your own **Azure AD B2C** tenant and application, follow the steps below:
 
-1. [Create an Azure Active Directory B2C tenant](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-tenant)
-2. [Register a single-page application in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-register-spa)
-3. [Create user-flows in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-user-flows)
+1. [Create an Azure AD B2C tenant](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-tenant)
+2. [Register a single-page application in Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-register-spa)
+3. [Create user-flows in Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-user-flows)
 
 ### Configure the application
 

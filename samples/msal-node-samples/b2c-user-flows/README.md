@@ -12,9 +12,9 @@ This sample demonstrates a [confidential client application](../../../lib/msal-n
 
 ## Registration
 
-1. [Create an Azure Active Directory B2C tenant](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-tenant)
-2. [Register a web application in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-register-applications?tabs=app-reg-ga)
-3. [Create user flows in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-user-flows)
+1. [Create an Azure AD B2C tenant](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-tenant)
+2. [Register a web application in Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-register-applications?tabs=app-reg-ga)
+3. [Create user flows in Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-user-flows)
 
 ## Configuration
 
@@ -201,7 +201,7 @@ app.post('/redirect', async (req, res, next) => {
                          * We are to catch this error and redirect the user to LOGIN again with the resetPassword authority.
                          * For more information, visit: https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview#linking-user-flows
                          */
-                        if (JSON.stringify(req.body.error_description).includes('AADB2C90118')) {
+                        if (JSON.stringify(req.body.error_description).includes('ME-IDB2C90118')) {
                             // create a GUID against crsf
                             req.session.csrfToken = cryptoProvider.createNewGuid();
 
