@@ -39,7 +39,7 @@ extensions:
 
 ## Overview
 
-This sample demonstrates how to sign in users into a sample Node.js & Express web app by using Microsoft Entra External ID for customers. The samples utilizes the [Microsoft Authentication Library for Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) (MSAL Node) to simplify adding authentication to the Node.js web app.
+This sample demonstrates how to sign users into a sample Node.js & Express web app by using Microsoft Entra External ID for customers. The samples utilizes the [Microsoft Authentication Library for Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) (MSAL Node) to simplify adding authentication to the Node.js web app.
 
 ## Usage
 
