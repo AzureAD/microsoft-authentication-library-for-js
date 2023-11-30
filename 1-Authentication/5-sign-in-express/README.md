@@ -69,7 +69,7 @@ This sample demonstrates how to sign users into a sample Node.js & Express web a
 
 ## Register web application in your tenant
 
-To enable your application to sign in users with Microsoft Entra, Microsoft Entra ID for customers must be made aware of the application you create. The app registration establishes a trust relationship between the app and Microsoft Entra. When you register an application, External ID generates a unique identifier known as an **Application (client) ID**, a value used to identify your app when creating authentication requests.
+To enable your application to sign in users with Microsoft Entra ID for customers, Microsoft Entra ID for customers must be made aware of the application you create. The app registration establishes a trust relationship between the app and Microsoft Entra ID for customers. When you register an application, Microsoft Entra ID for customers generates a unique identifier known as an **Application (client) ID**, a value used to identify your app when creating authentication requests.
 
 You can register an app in your tenant automatically by using Microsoft Graph PowerShell or Manually register your apps in Microsoft Entra Admin center.
 
