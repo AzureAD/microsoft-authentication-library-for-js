@@ -11,7 +11,6 @@ import { BridgeStatusCode } from "../../src/naa/BridgeStatusCode";
 import { InitContext } from "../../src/naa/InitContext";
 
 import { TokenRequest } from "../../src/naa/TokenRequest";
-import { TokenResponse } from "../../src/naa/TokenResponse";
 import { TEST_TOKENS } from "../utils/StringConstants";
 
 export const NAA_CLIENT_ID: string = "clientid";
@@ -79,7 +78,7 @@ export const SILENT_TOKEN_REQUEST: TokenRequest = {
 };
 
 export const BRIDGE_ERROR_USER_INTERACTION_REQUIRED: BridgeError = {
-    status: BridgeStatusCode.USER_INTERACTION_REQUIRED,
+    status: BridgeStatusCode.UserInteractionRequired,
     code: "interaction_required",
     subError: "",
     description:
@@ -88,7 +87,7 @@ export const BRIDGE_ERROR_USER_INTERACTION_REQUIRED: BridgeError = {
 };
 
 export const BRIDGE_ERROR_USER_CANCEL: BridgeError = {
-    status: BridgeStatusCode.USER_CANCEL,
+    status: BridgeStatusCode.UserCancel,
     code: "",
     subError: "",
     description: "User cancelled the request",
@@ -96,7 +95,7 @@ export const BRIDGE_ERROR_USER_CANCEL: BridgeError = {
 };
 
 export const BRIDGE_ERROR_NOT_NETWORK: BridgeError = {
-    status: BridgeStatusCode.NO_NETWORK,
+    status: BridgeStatusCode.NoNetwork,
     code: "",
     subError: "",
     description: "Network unavailable",
@@ -104,7 +103,7 @@ export const BRIDGE_ERROR_NOT_NETWORK: BridgeError = {
 };
 
 export const BRIDGE_ERROR_TRANSIENT_ERROR_SERVER: BridgeError = {
-    status: BridgeStatusCode.TRANSIENT_ERROR,
+    status: BridgeStatusCode.TransientError,
     code: "something",
     subError: "",
     description: "A transient server error?",
@@ -112,7 +111,7 @@ export const BRIDGE_ERROR_TRANSIENT_ERROR_SERVER: BridgeError = {
 };
 
 export const BRIDGE_ERROR_TRANSIENT_ERROR_CLIENT: BridgeError = {
-    status: BridgeStatusCode.TRANSIENT_ERROR,
+    status: BridgeStatusCode.TransientError,
     code: "",
     subError: "",
     description: "A transient client error? (Notice nothing in code/subError",
@@ -120,7 +119,7 @@ export const BRIDGE_ERROR_TRANSIENT_ERROR_CLIENT: BridgeError = {
 };
 
 export const BRIDGE_ERROR_PERSISTENT_ERROR_CLIENT: BridgeError = {
-    status: BridgeStatusCode.PERSISTENT_ERROR,
+    status: BridgeStatusCode.PersistentError,
     code: "",
     subError: "",
     description: "A persistent client error? (Notice nothing in code/subError)",
@@ -128,7 +127,7 @@ export const BRIDGE_ERROR_PERSISTENT_ERROR_CLIENT: BridgeError = {
 };
 
 export const BRIDGE_ERROR_PERSISTENT_ERROR_SERVER: BridgeError = {
-    status: BridgeStatusCode.PERSISTENT_ERROR,
+    status: BridgeStatusCode.PersistentError,
     code: "invalid_request",
     subError: "",
     description: "A persistent server error? (Notice nothing in code/subError)",
@@ -137,7 +136,7 @@ export const BRIDGE_ERROR_PERSISTENT_ERROR_SERVER: BridgeError = {
 
 // Not sure when we would get this
 export const BRIDGE_ERROR_DISABLED: BridgeError = {
-    status: BridgeStatusCode.DISABLED,
+    status: BridgeStatusCode.Disabled,
     code: "",
     subError: "",
     description: "Something is disabled",
@@ -149,7 +148,7 @@ export const BRIDGE_ERROR_DISABLED: BridgeError = {
  * Or when we request account Info and it's not found
  */
 export const BRIDGE_ERROR_ACCOUNT_UNAVAILABLE: BridgeError = {
-    status: BridgeStatusCode.ACCOUNT_UNAVAILABLE,
+    status: BridgeStatusCode.AccountUnavailable,
     code: "",
     subError: "",
     description: "Account unavailable",
@@ -158,7 +157,7 @@ export const BRIDGE_ERROR_ACCOUNT_UNAVAILABLE: BridgeError = {
 
 // Not sure when we get this
 export const BRIDGE_ERROR_NAA_UNAVAILABLE: BridgeError = {
-    status: BridgeStatusCode.NESTED_APP_AUTH_UNAVAILABLE,
+    status: BridgeStatusCode.NestedAppAuthUnavailable,
     code: "",
     subError: "",
     description: "Account unavailable",

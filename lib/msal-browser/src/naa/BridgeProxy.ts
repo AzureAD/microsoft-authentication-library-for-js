@@ -4,24 +4,8 @@
  */
 
 import { AccountInfo } from "./AccountInfo";
-<<<<<<< HEAD
-import {
-    AccountByHomeIdRequest,
-    AccountByLocalIdRequest,
-    AccountByUsernameRequest,
-} from "./AccountRequests";
 import { AuthBridge, AuthBridgeResponse } from "./AuthBridge";
-||||||| parent of bff2567d8 (update nested app auth internal schema)
-import {
-    AccountByHomeIdRequest,
-    AccountByLocalIdRequest,
-    AccountByUsernameRequest,
-} from "./AccountRequests";
-import { AuthBridge } from "./AuthBridge";
-=======
-import { AuthBridge } from "./AuthBridge";
 import { AuthResult } from "./AuthResult";
->>>>>>> bff2567d8 (update nested app auth internal schema)
 import { BridgeCapabilities } from "./BridgeCapabilities";
 import { BridgeError } from "./BridgeError";
 import { BridgeRequest } from "./BridgeRequest";
@@ -95,7 +79,7 @@ export class BridgeProxy implements IBridgeProxy {
                 }
             );
 
-            const promise = new Promise<BridgeResponseEnvelope>(
+            const bridgeResponse = await new Promise<BridgeResponseEnvelope>(
                 (resolve, reject) => {
                     const message: BridgeRequestEnvelope = {
                         messageType: "NestedAppAuthRequest",
@@ -115,8 +99,8 @@ export class BridgeProxy implements IBridgeProxy {
                 }
             );
 
-            return promise.then((response) =>
-                BridgeProxy.validateBridgeResultOrThrow(response.initContext)
+            return BridgeProxy.validateBridgeResultOrThrow(
+                bridgeResponse.initContext
             );
         } catch (error) {
             window.console.log(error);
@@ -146,22 +130,22 @@ export class BridgeProxy implements IBridgeProxy {
         return this.getToken("GetToken", request);
     }
 
-    private getToken(
+    private async getToken(
         requestType: BridgeMethods,
         request: TokenRequest
     ): Promise<AuthResult> {
-        return this.sendRequest(requestType, {
+        const result = await this.sendRequest(requestType, {
             tokenParams: request,
-        }).then((result) => ({
+        });
+        return {
             token: BridgeProxy.validateBridgeResultOrThrow(result.token),
             account: BridgeProxy.validateBridgeResultOrThrow(result.account),
-        }));
+        };
     }
 
-    public getActiveAccount(): Promise<AccountInfo> {
-        return this.sendRequest("GetActiveAccount").then((result) =>
-            BridgeProxy.validateBridgeResultOrThrow(result.account)
-        );
+    public async getActiveAccount(): Promise<AccountInfo> {
+        const result = await this.sendRequest("GetActiveAccount");
+        return BridgeProxy.validateBridgeResultOrThrow(result.account);
     }
 
     public getHostCapabilities(): BridgeCapabilities | null {
@@ -203,7 +187,7 @@ export class BridgeProxy implements IBridgeProxy {
     private static validateBridgeResultOrThrow<T>(input: T | undefined): T {
         if (input === undefined) {
             const bridgeError: BridgeError = {
-                status: BridgeStatusCode.NESTED_APP_AUTH_UNAVAILABLE,
+                status: BridgeStatusCode.NestedAppAuthUnavailable,
             };
             throw bridgeError;
         }

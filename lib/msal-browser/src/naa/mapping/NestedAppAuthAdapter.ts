@@ -204,32 +204,32 @@ export class NestedAppAuthAdapter {
         | InteractionRequiredAuthError {
         if (isBridgeError(error)) {
             switch (error.status) {
-                case BridgeStatusCode.USER_CANCEL:
+                case BridgeStatusCode.UserCancel:
                     return new ClientAuthError(
                         ClientAuthErrorCodes.userCanceled
                     );
-                case BridgeStatusCode.NO_NETWORK:
+                case BridgeStatusCode.NoNetwork:
                     return new ClientAuthError(
                         ClientAuthErrorCodes.noNetworkConnectivity
                     );
-                case BridgeStatusCode.ACCOUNT_UNAVAILABLE:
+                case BridgeStatusCode.AccountUnavailable:
                     return new ClientAuthError(
                         ClientAuthErrorCodes.noAccountFound
                     );
-                case BridgeStatusCode.DISABLED:
+                case BridgeStatusCode.Disabled:
                     return new ClientAuthError(
                         ClientAuthErrorCodes.nestedAppAuthBridgeDisabled
                     );
-                case BridgeStatusCode.NESTED_APP_AUTH_UNAVAILABLE:
+                case BridgeStatusCode.NestedAppAuthUnavailable:
                     return new ClientAuthError(
                         error.code ||
                             ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
                         error.description
                     );
-                case BridgeStatusCode.TRANSIENT_ERROR:
-                case BridgeStatusCode.PERSISTENT_ERROR:
+                case BridgeStatusCode.TransientError:
+                case BridgeStatusCode.PersistentError:
                     return new ServerError(error.code, error.description);
-                case BridgeStatusCode.USER_INTERACTION_REQUIRED:
+                case BridgeStatusCode.UserInteractionRequired:
                     return new InteractionRequiredAuthError(
                         error.code,
                         error.description
