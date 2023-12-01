@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701469094238,
+  "lastUpdate": 1701472359294,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3572,6 +3572,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.84%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "666dcd297c21eaa923e0f09ce4d7804b160351aa",
+          "message": "Remove release pipeline files (#6723)\n\nRemove all release pipeline files and scripts once the migration to ADO\r\n+ OB is done",
+          "timestamp": "2023-12-01T15:06:54-08:00",
+          "tree_id": "c7d162840eb578840610c8197de8b589be8d4275",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/666dcd297c21eaa923e0f09ce4d7804b160351aa"
+        },
+        "date": 1701472358215,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 205316,
+            "range": "±1.20%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 195811,
+            "range": "±1.67%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
           }
         ]
       }
