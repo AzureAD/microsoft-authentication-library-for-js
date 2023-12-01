@@ -3,20 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { ModuleWithProviders, NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { IPublicClientApplication } from '@azure/msal-browser';
-import { MsalBroadcastService } from './msal.broadcast.service';
-import { MsalGuard } from './msal.guard';
-import { MsalGuardConfiguration } from './msal.guard.config';
-import { MsalInterceptorConfiguration } from './msal.interceptor.config';
-import { MsalRedirectComponent } from './msal.redirect.component';
-import { MsalService } from './msal.service';
+import { ModuleWithProviders, NgModule } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { IPublicClientApplication } from "@azure/msal-browser";
+import { MsalBroadcastService } from "./msal.broadcast.service";
+import { MsalGuard } from "./msal.guard";
+import { MsalGuardConfiguration } from "./msal.guard.config";
+import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
+import { MsalRedirectComponent } from "./msal.redirect.component";
+import { MsalService } from "./msal.service";
 import {
   MSAL_INSTANCE,
   MSAL_GUARD_CONFIG,
   MSAL_INTERCEPTOR_CONFIG,
-} from './constants';
+} from "./constants";
 
 @NgModule({
   declarations: [MsalRedirectComponent],
