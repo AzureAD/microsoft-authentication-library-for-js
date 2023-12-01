@@ -28,9 +28,19 @@ export {
 } from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
-export { AccountInfo, ActiveAccountFilters } from "./account/AccountInfo";
+export {
+    AccountInfo,
+    ActiveAccountFilters,
+    TenantProfile,
+    updateAccountTenantProfileData,
+    tenantIdMatchesHomeTenant,
+    buildTenantProfileFromIdTokenClaims,
+} from "./account/AccountInfo";
 export * as AuthToken from "./account/AuthToken";
-export { TokenClaims } from "./account/TokenClaims";
+export {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
 export {
@@ -136,7 +146,10 @@ export {
     DeviceCodeResponse,
     ServerDeviceCodeResponse,
 } from "./response/DeviceCodeResponse";
-export { ResponseHandler } from "./response/ResponseHandler";
+export {
+    ResponseHandler,
+    buildAccountToCache,
+} from "./response/ResponseHandler";
 export { ScopeSet } from "./request/ScopeSet";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser";
 // Logger Callback

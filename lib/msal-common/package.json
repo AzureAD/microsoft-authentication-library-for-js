@@ -79,6 +79,7 @@
     "@types/node": "^20.3.1",
     "@types/sinon": "^7.5.0",
     "eslint-config-msal": "^0.0.0",
+    "msal-test-utils": "^0.0.1",
     "jest": "^29.5.0",
     "lodash": "^4.17.21",
     "prettier": "2.8.7",
