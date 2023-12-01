@@ -4779,6 +4779,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentIframeSpy.calledOnce).toBeTruthy();
             });
 
+            it("Calls SilentCacheClient.acquireToken, SilentRefreshClient.acquireToken and SilentIframeClient.acquireToken if cache lookup throws and cached refresh token is expired when CacheLookupPolicy is set to Default", async () => {
+                const silentCacheSpy = jest
+                    .spyOn(SilentCacheClient.prototype, "acquireToken")
+                    .mockRejectedValue(refreshRequiredCacheError);
+                const silentRefreshSpy = jest
+                    .spyOn(SilentRefreshClient.prototype, "acquireToken")
+                    .mockRejectedValue(
+                        createInteractionRequiredAuthError(
+                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                        )
+                    );
+                const silentIframeSpy = jest
+                    .spyOn(SilentIframeClient.prototype, "acquireToken")
+                    .mockResolvedValue(testTokenResponse);
+
+                const response = pca.acquireTokenSilent({
+                    scopes: ["openid"],
+                    account: testAccount,
+                    cacheLookupPolicy: CacheLookupPolicy.Default,
+                });
+                await expect(response).resolves.toEqual(testTokenResponse);
+                expect(silentCacheSpy).toHaveBeenCalledTimes(1);
+                expect(silentRefreshSpy).toHaveBeenCalledTimes(1);
+                expect(silentIframeSpy).toHaveBeenCalledTimes(1);
+            });
+
             it("Calls SilentCacheClient.acquireToken, and doesn't call SilentRefreshClient.acquireToken or SilentIframeClient.acquireToken if cache lookup throws when CacheLookupPolicy is set to AccessToken", async () => {
                 const silentCacheSpy = sinon
                     .stub(SilentCacheClient.prototype, "acquireToken")

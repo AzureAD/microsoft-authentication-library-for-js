@@ -245,7 +245,10 @@ export class ClientTestUtils {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
-            new Logger({})
+            new Logger({}),
+            {
+                canonicalAuthority: TEST_CONFIG.validAuthority,
+            }
         );
 
         const testLoggerCallback = (): void => {

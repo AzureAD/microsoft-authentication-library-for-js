@@ -57,6 +57,7 @@ import {
 } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
+import { TimeUtils } from "../../src/utils/TimeUtils";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -1323,6 +1324,63 @@ describe("RefreshTokenClient unit tests", () => {
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
                     InteractionRequiredAuthErrorCodes.noTokensFound
+                )
+            );
+        });
+
+        it("Throws error if cached RT is expired", async () => {
+            const testScope2 = "scope2";
+            const tokenRequest: CommonSilentFlowRequest = {
+                scopes: [testScope2],
+                account: testAccountEntity.getAccountInfo(),
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface!.setRefreshTokenCredential({
+                ...testRefreshTokenEntity,
+                expiresOn: (TimeUtils.nowSeconds() - 48 * 60 * 60).toString(), // Set expiration to yesterday
+            });
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            await expect(
+                client.acquireTokenByRefreshToken(tokenRequest)
+            ).rejects.toMatchObject(
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                )
+            );
+        });
+
+        it("Throws error if cached RT expiration is within provided offset", async () => {
+            const testScope2 = "scope2";
+            const tokenRequest: CommonSilentFlowRequest = {
+                scopes: [testScope2],
+                account: testAccountEntity.getAccountInfo(),
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                refreshTokenExpirationOffsetSeconds: 60 * 60, // 1 hour
+            };
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface!.setRefreshTokenCredential({
+                ...testRefreshTokenEntity,
+                expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
+            });
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            await expect(
+                client.acquireTokenByRefreshToken(tokenRequest)
+            ).rejects.toMatchObject(
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
                 )
             );
         });
