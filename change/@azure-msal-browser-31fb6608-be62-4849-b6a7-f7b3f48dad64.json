@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Change Nested App Auth internal schema (#6737)",
+  "packageName": "@azure/msal-browser",
+  "email": "dasau@microsoft.com",
+  "dependentChangeType": "patch"
+}
