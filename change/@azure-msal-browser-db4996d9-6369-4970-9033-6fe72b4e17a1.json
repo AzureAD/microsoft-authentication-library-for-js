@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix logoutPopup request type",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

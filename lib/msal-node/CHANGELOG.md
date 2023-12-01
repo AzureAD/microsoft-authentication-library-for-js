@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 07 Nov 2023 20:59:07 GMT and should not be manually modified.
+This log was last generated on Fri, 01 Dec 2023 18:46:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.6.0
+
+Fri, 01 Dec 2023 18:46:06 GMT
+
+### Minor changes
+
+- Adding logging to make regional scenarios more clear (trwalke@microsoft.com)
+- Add support for Multi-tenant accounts and cross-tenant token caching #6466 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.5.0
+
+### Patches
+
+- Turn on return-await lint rule #6678 (thomas.norling@microsoft.com)
 
 ## 2.5.1
 

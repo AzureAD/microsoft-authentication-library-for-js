@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Version bump automation enhancements #6725",
-  "packageName": "@azure/msal-angular",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}
