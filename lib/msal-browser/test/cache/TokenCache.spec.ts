@@ -17,6 +17,7 @@ import {
     RefreshTokenEntity,
     TokenClaims,
     CacheHelpers,
+    Authority,
 } from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -28,6 +29,7 @@ import {
 } from "../../src/config/Configuration";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import {
+    ID_TOKEN_CLAIMS,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
@@ -36,6 +38,7 @@ import {
 } from "../utils/StringConstants";
 import { BrowserAuthErrorMessage, SilentRequest } from "../../src";
 import { base64Decode } from "../../src/encode/Base64Decode";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 describe("TokenCache tests", () => {
     let configuration: BrowserConfiguration;
@@ -111,7 +114,7 @@ describe("TokenCache tests", () => {
             );
             testEnvironment = "login.microsoftonline.com";
 
-            testClientInfo = `${TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED}.${TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED}`;
+            testClientInfo = TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
             testIdTokenClaims = AuthToken.extractTokenClaims(
                 testIdToken,
@@ -161,10 +164,16 @@ describe("TokenCache tests", () => {
             );
             refreshTokenKey =
                 CacheHelpers.generateCredentialKey(refreshTokenEntity);
+
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue(testEnvironment);
         });
 
         afterEach(() => {
             browserStorage.clear();
+            jest.restoreAllMocks();
         });
 
         it("loads id token with a request account", () => {
@@ -242,16 +251,11 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo,
             };
 
-            const testAccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: testHomeAccountId,
-                environment: testEnvironment,
-                tenantId: TEST_CONFIG.MSAL_TENANT_ID,
-                username: "AbeLi@microsoft.com",
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
-                name: testIdTokenClaims.name,
-                nativeAccountId: undefined,
-            };
+            const testAccountInfo = buildAccountFromIdTokenClaims(
+                ID_TOKEN_CLAIMS,
+                undefined,
+                { environment: testEnvironment }
+            ).getAccountInfo();
             const testAccountKey =
                 AccountEntity.generateAccountCacheKey(testAccountInfo);
             const result = tokenCache.loadExternalTokens(

@@ -4,19 +4,19 @@
  */
 
 // eslint-disable-next-line import/no-unresolved
-import { HttpRequest } from '@angular/common/http';
+import { HttpRequest } from "@angular/common/http";
 import {
   PopupRequest,
   RedirectRequest,
   InteractionType,
   SilentRequest,
-} from '@azure/msal-browser';
-import { MsalService } from './msal.service';
+} from "@azure/msal-browser";
+import { MsalService } from "./msal.service";
 
 export declare type MsalInterceptorAuthRequest =
-  | Omit<PopupRequest, 'scopes'>
-  | Omit<RedirectRequest, 'scopes'>
-  | Omit<SilentRequest, 'scopes'>;
+  | Omit<PopupRequest, "scopes">
+  | Omit<RedirectRequest, "scopes">
+  | Omit<SilentRequest, "scopes">;
 
 export type MsalInterceptorConfiguration = {
   interactionType: InteractionType.Popup | InteractionType.Redirect;

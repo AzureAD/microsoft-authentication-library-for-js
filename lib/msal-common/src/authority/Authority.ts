@@ -1066,12 +1066,12 @@ export class Authority {
         const matches = this.authorityOptions.knownAuthorities.filter(
             (authority) => {
                 return (
+                    authority &&
                     UrlString.getDomainFromUrl(authority).toLowerCase() ===
-                    this.hostnameAndPort
+                        this.hostnameAndPort
                 );
             }
         );
-
         return matches.length > 0;
     }
 
@@ -1250,6 +1250,33 @@ export class Authority {
         }
 
         return ciamAuthority;
+    }
+}
+
+/**
+ * Extract tenantId from authority
+ */
+export function getTenantFromAuthorityString(
+    authority: string
+): string | undefined {
+    const authorityUrl = new UrlString(authority);
+    const authorityUrlComponents = authorityUrl.getUrlComponents();
+    /**
+     * For credential matching purposes, tenantId is the last path segment of the authority URL:
+     *  AAD Authority - domain/tenantId -> Credentials are cached with realm = tenantId
+     *  B2C Authority - domain/{tenantId}?/.../policy -> Credentials are cached with realm = policy
+     *  tenantId is downcased because B2C policies can have mixed case but tfp claim is downcased
+     */
+    const tenantId =
+        authorityUrlComponents.PathSegments.slice(-1)[0].toLowerCase();
+
+    switch (tenantId) {
+        case AADAuthorityConstants.COMMON:
+        case AADAuthorityConstants.ORGANIZATIONS:
+        case AADAuthorityConstants.CONSUMERS:
+            return undefined;
+        default:
+            return tenantId;
     }
 }
 

@@ -1,0 +1,11 @@
+{
+  "name": "msal-test-utils",
+  "version": "0.0.1",
+  "license": "MIT",
+  "private": true,
+  "main": "src/index.ts",
+  "devDependencies": {
+    "typescript": "^4.9.5",
+    "@azure/msal-common": "^14.0.0"
+  }
+}
