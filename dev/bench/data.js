@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701299862461,
+  "lastUpdate": 1701460179147,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3496,6 +3496,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.33%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d937f7dff31feeeb88ac5694536dcf1191ad7dfc",
+          "message": "Post-release PR (#6740)\n\nPost-release PR\r\n\r\n---------\r\n\r\nCo-authored-by: Release Pipeline <release@msaljs.com>\r\nCo-authored-by: Hector Morales <hemoral@microsoft.com>",
+          "timestamp": "2023-12-01T14:43:48-05:00",
+          "tree_id": "26562f5d0c31b4073da50d26a429ce9d549af6d3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d937f7dff31feeeb88ac5694536dcf1191ad7dfc"
+        },
+        "date": 1701460177855,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 197181,
+            "range": "±1.57%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 212511,
+            "range": "±1.54%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
