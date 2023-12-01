@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 07 Nov 2023 00:01:50 GMT and should not be manually modified.
+This log was last generated on Fri, 01 Dec 2023 18:46:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.5.0
+
+Fri, 01 Dec 2023 18:46:06 GMT
+
+### Minor changes
+
+- Add support for Multi-tenant accounts and cross-tenant token caching #6466 (hemoral@microsoft.com)
+
+### Patches
+
+- Turn on return-await lint rule #6678 (thomas.norling@microsoft.com)
+- Move AADServerParamKeys to individual exports #6701 (thomas.norling@microsoft.com)
 
 ## 14.4.0
 

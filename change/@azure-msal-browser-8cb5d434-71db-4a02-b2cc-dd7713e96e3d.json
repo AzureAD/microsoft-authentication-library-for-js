@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Performance optimization when creating hidden iframe",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
