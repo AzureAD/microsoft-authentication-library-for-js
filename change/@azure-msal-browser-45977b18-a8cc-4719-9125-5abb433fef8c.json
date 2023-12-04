@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Increase default iframe timout to 10s #6700",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
