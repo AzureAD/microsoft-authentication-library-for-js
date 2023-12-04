@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 07 Nov 2023 00:01:50 GMT and should not be manually modified.
+This log was last generated on Fri, 01 Dec 2023 18:46:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.6.0
+
+Fri, 01 Dec 2023 18:46:06 GMT
+
+### Minor changes
+
+- Increase default iframe timout to 10s #6700 (hemoral@microsoft.com)
+- Add support for Multi-tenant accounts and cross-tenant token caching #6466 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.5.0
+
+### Patches
+
+- Nested App Auth minor fixes (#6672) (dasau@microsoft.com)
+- Performance optimization when creating hidden iframe (thomas.norling@microsoft.com)
+- Nested App Auth fix for Android response (#6707) (dasau@microsoft.com)
+- Fix logoutPopup request type (thomas.norling@microsoft.com)
+- Fix bug causing temporary cache not to be cleared #6676 (thomas.norling@microsoft.com)
 
 ## 3.5.0
 
