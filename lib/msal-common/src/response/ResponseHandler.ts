@@ -438,7 +438,7 @@ export class ResponseHandler {
                 env,
                 claimsTenantId,
                 authCodePayload,
-                undefined,
+                undefined, // nativeAccountId
                 this.logger
             );
         }
