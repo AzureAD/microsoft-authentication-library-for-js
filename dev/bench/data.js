@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701472359294,
+  "lastUpdate": 1701730993560,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3610,6 +3610,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.67%",
             "unit": "ops/sec",
             "extra": "230 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f0d87e330dc7186a609fe65f545ffbdabdc68876",
+          "message": "Fix external account loading (#6744)\n\nThis PR:\r\n- Adds environment as an optional parameter to `buildAccountToCache`\r\nutility function and passes in `authority.hostNameAndPort` as\r\nenvironment when `loadAccount` in `TokenCache` calls it.",
+          "timestamp": "2023-12-04T22:57:21Z",
+          "tree_id": "16f9d73cbc20ea5a0959ce6f9b46ff4b28ba212f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f0d87e330dc7186a609fe65f545ffbdabdc68876"
+        },
+        "date": 1701730991041,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 203372,
+            "range": "±1.31%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 210474,
+            "range": "±1.02%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
           }
         ]
       }
