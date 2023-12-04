@@ -435,9 +435,10 @@ export class ResponseHandler {
                 idTokenClaims,
                 this.cryptoObj.base64Decode,
                 serverTokenResponse.client_info,
+                env,
                 claimsTenantId,
                 authCodePayload,
-                undefined,
+                undefined, // nativeAccountId
                 this.logger
             );
         }
@@ -654,6 +655,7 @@ export function buildAccountToCache(
     idTokenClaims: TokenClaims,
     base64Decode: (input: string) => string,
     clientInfo?: string,
+    environment?: string,
     claimsTenantId?: string | null,
     authCodePayload?: AuthorizationCodePayload,
     nativeAccountId?: string,
@@ -676,9 +678,10 @@ export function buildAccountToCache(
         cachedAccount ||
         AccountEntity.createAccount(
             {
-                homeAccountId: homeAccountId,
-                idTokenClaims: idTokenClaims,
-                clientInfo: clientInfo,
+                homeAccountId,
+                idTokenClaims,
+                clientInfo,
+                environment,
                 cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
                 msGraphHost: authCodePayload?.msgraph_host,
                 nativeAccountId: nativeAccountId,

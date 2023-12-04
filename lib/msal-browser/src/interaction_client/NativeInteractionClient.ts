@@ -430,8 +430,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims,
             base64Decode,
             response.client_info,
+            undefined, // environment
             idTokenClaims.tid,
-            undefined,
+            undefined, // auth code payload
             response.account.id,
             this.logger
         );

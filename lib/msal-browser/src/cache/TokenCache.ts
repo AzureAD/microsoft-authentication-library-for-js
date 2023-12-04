@@ -270,9 +270,10 @@ export class TokenCache implements ITokenCache {
                 idTokenClaims,
                 base64Decode,
                 clientInfo,
+                authority.hostnameAndPort,
                 claimsTenantId,
-                undefined,
-                undefined,
+                undefined, // authCodePayload
+                undefined, // nativeAccountId
                 this.logger
             );
 
