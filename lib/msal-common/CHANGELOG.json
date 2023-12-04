@@ -2,6 +2,35 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 01 Dec 2023 18:46:06 GMT",
+      "version": "14.5.0",
+      "tag": "@azure/msal-common_v14.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Turn on return-await lint rule #6678"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Move AADServerParamKeys to individual exports #6701"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Add support for Multi-tenant accounts and cross-tenant token caching #6466"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Nov 2023 00:01:50 GMT",
       "version": "14.4.0",
       "tag": "@azure/msal-common_v14.4.0",

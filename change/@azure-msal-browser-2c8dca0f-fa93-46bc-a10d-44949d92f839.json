@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Nested App Auth minor fixes (#6672)",
-  "packageName": "@azure/msal-browser",
-  "email": "dasau@microsoft.com",
-  "dependentChangeType": "patch"
-}

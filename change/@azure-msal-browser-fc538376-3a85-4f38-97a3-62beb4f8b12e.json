@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix bug causing temporary cache not to be cleared #6676",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
