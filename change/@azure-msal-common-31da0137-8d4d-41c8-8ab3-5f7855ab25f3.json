@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Deprecate BrowserPerformanceMeasurement in favor of calculating telemetry event duration in place with browser performance API #6748",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
