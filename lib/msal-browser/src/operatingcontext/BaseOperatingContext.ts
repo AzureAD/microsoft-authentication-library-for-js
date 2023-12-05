@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ILoggerCallback, Logger, LogLevel } from "@azure/msal-common";
+import { Logger, LogLevel } from "@azure/msal-common";
 import {
     BrowserConfiguration,
     buildConfiguration,
@@ -29,33 +29,30 @@ export abstract class BaseOperatingContext {
     protected available: boolean;
     protected browserEnvironment: boolean;
 
-    protected static LOGGER_CALLBACKS: Map<number, ILoggerCallback> = new Map([
-        [
-            LogLevel.Error,
-            // eslint-disable-next-line no-console
-            (level: LogLevel, message: string) => console.error(message),
-        ],
-        [
-            LogLevel.Warning,
-            // eslint-disable-next-line no-console
-            (level: LogLevel, message: string) => console.warn(message),
-        ],
-        [
-            LogLevel.Info,
-            // eslint-disable-next-line no-console
-            (level: LogLevel, message: string) => console.info(message),
-        ],
-        [
-            LogLevel.Verbose,
-            // eslint-disable-next-line no-console
-            (level: LogLevel, message: string) => console.debug(message),
-        ],
-        [
-            LogLevel.Trace,
-            // eslint-disable-next-line no-console
-            (level: LogLevel, message: string) => console.trace(message),
-        ],
-    ]);
+    protected static loggerCallback(level: LogLevel, message: string): void {
+        switch (level) {
+            case LogLevel.Error:
+                // eslint-disable-next-line no-console
+                console.error(message);
+                return;
+            case LogLevel.Info:
+                // eslint-disable-next-line no-console
+                console.info(message);
+                return;
+            case LogLevel.Verbose:
+                // eslint-disable-next-line no-console
+                console.debug(message);
+                return;
+            case LogLevel.Warning:
+                // eslint-disable-next-line no-console
+                console.warn(message);
+                return;
+            default:
+                // eslint-disable-next-line no-console
+                console.log(message);
+                return;
+        }
+    }
 
     constructor(config: Configuration) {
         /*
@@ -76,40 +73,27 @@ export abstract class BaseOperatingContext {
         const piiLoggingEnabled =
             sessionStorage?.getItem(LOG_PII_CACHE_KEY)?.toLowerCase() ===
             "true";
+        const loggerOptions = {...this.config.system.loggerOptions};
 
         if (logLevelKey || piiLoggingEnabled) {
             const logLevel =
                 logLevelKey && Object.keys(LogLevel).includes(logLevelKey)
                     ? LogLevel[logLevelKey]
                     : undefined;
-            const loggerCallback =
-                logLevelKey &&
-                BaseOperatingContext.LOGGER_CALLBACKS.has(LogLevel[logLevelKey])
-                    ? BaseOperatingContext.LOGGER_CALLBACKS.get(
-                          LogLevel[logLevelKey]
-                      )
-                    : undefined;
-            const loggerOptions = this.config.system.loggerOptions;
-
-            this.logger = new Logger(
-                {
-                    correlationId: loggerOptions.correlationId,
-                    loggerCallback:
-                        loggerCallback || loggerOptions.loggerCallback,
-                    piiLoggingEnabled:
-                        piiLoggingEnabled || loggerOptions.piiLoggingEnabled,
-                    logLevel: logLevel || loggerOptions.logLevel,
-                },
-                name,
-                version
-            );
-        } else {
-            this.logger = new Logger(
-                this.config.system.loggerOptions,
-                name,
-                version
-            );
+            if (logLevel) {
+                loggerOptions.loggerCallback = BaseOperatingContext.loggerCallback;
+                loggerOptions.logLevel = logLevel;
+            }
+            if (piiLoggingEnabled) {
+                loggerOptions.piiLoggingEnabled = piiLoggingEnabled;
+            }
         }
+
+        this.logger = new Logger(
+            this.config.system.loggerOptions,
+            name,
+            version
+        );
         this.available = false;
     }
 
