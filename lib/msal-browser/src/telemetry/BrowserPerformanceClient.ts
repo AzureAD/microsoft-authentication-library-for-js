@@ -4,18 +4,15 @@
  */
 
 import {
+    Constants,
+    InProgressPerformanceEvent,
+    IPerformanceClient,
     Logger,
+    PerformanceClient,
     PerformanceEvent,
     PerformanceEvents,
-    IPerformanceClient,
-    PerformanceClient,
-    IPerformanceMeasurement,
-    InProgressPerformanceEvent,
-    SubMeasurement,
     PreQueueEvent,
-    Constants,
 } from "@azure/msal-common";
-import { BrowserPerformanceMeasurement } from "./BrowserPerformanceMeasurement";
 import { Configuration } from "../config/Configuration";
 import { name, version } from "../packageMetadata";
 
@@ -42,42 +39,12 @@ export class BrowserPerformanceClient
         );
     }
 
-    startPerformanceMeasurement(
-        measureName: string,
-        correlationId: string
-    ): IPerformanceMeasurement {
-        return new BrowserPerformanceMeasurement(measureName, correlationId);
-    }
-
     generateId(): string {
         return window.crypto.randomUUID();
     }
 
     private getPageVisibility(): string | null {
         return document.visibilityState?.toString() || null;
-    }
-
-    private deleteIncompleteSubMeasurements(
-        inProgressEvent: InProgressPerformanceEvent
-    ): void {
-        const rootEvent = this.eventsByCorrelationId.get(
-            inProgressEvent.event.correlationId
-        );
-        const isRootEvent =
-            rootEvent && rootEvent.eventId === inProgressEvent.event.eventId;
-        const incompleteMeasurements: SubMeasurement[] = [];
-        if (isRootEvent && rootEvent?.incompleteSubMeasurements) {
-            rootEvent.incompleteSubMeasurements.forEach((subMeasurement) => {
-                incompleteMeasurements.push({ ...subMeasurement });
-            });
-        }
-        // Clean up remaining marks for incomplete sub-measurements
-        if (incompleteMeasurements.length > 0) {
-            BrowserPerformanceMeasurement.flushMeasurements(
-                inProgressEvent.event.correlationId,
-                incompleteMeasurements
-            );
-        }
     }
 
     supportsBrowserPerformanceNow(): boolean {
@@ -102,30 +69,26 @@ export class BrowserPerformanceClient
     ): InProgressPerformanceEvent {
         // Capture page visibilityState and then invoke start/end measurement
         const startPageVisibility = this.getPageVisibility();
-
         const inProgressEvent = super.startMeasurement(
             measureName,
             correlationId
         );
+        const startTime: number | undefined =
+            this.supportsBrowserPerformanceNow()
+                ? window.performance.now()
+                : undefined;
 
         return {
             ...inProgressEvent,
             end: (
                 event?: Partial<PerformanceEvent>
             ): PerformanceEvent | null => {
-                const res = inProgressEvent.end({
+                return inProgressEvent.end({
+                    ...event,
                     startPageVisibility,
                     endPageVisibility: this.getPageVisibility(),
-                    ...event,
+                    durationMs: this.getPerformanceDurationMs(startTime),
                 });
-                this.deleteIncompleteSubMeasurements(inProgressEvent);
-
-                return res;
-            },
-            discard: () => {
-                inProgressEvent.discard();
-                this.deleteIncompleteSubMeasurements(inProgressEvent);
-                inProgressEvent.measurement.flushMeasurement();
             },
         };
     }
@@ -222,5 +185,20 @@ export class BrowserPerformanceClient
             resQueueTime,
             manuallyCompleted
         );
+    }
+
+    /**
+     * Returns event duration in milliseconds using window performance API if available. Returns undefined otherwise.
+     * @param startTime {DOMHighResTimeStamp | undefined}
+     * @returns {number | undefined}
+     */
+    private getPerformanceDurationMs(
+        startTime: DOMHighResTimeStamp | undefined
+    ): number | undefined {
+        if (!startTime || !this.supportsBrowserPerformanceNow()) {
+            return undefined;
+        }
+
+        return Math.round(window.performance.now() - startTime);
     }
 }

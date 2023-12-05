@@ -7,7 +7,6 @@ import {
     ApplicationTelemetry,
     IGuidGenerator,
     IPerformanceClient,
-    IPerformanceMeasurement,
     Logger,
     PerformanceClient,
     PerformanceEvents,
@@ -29,20 +28,6 @@ const logger = new Logger({
     loggerCallback: () => {},
 });
 
-class MockPerformanceMeasurement implements IPerformanceMeasurement {
-    startMeasurement(): void {}
-    endMeasurement(): void {}
-    flushMeasurement(): number | null {
-        return samplePerfDuration;
-    }
-}
-
-class UnsupportedBrowserPerformanceMeasurement extends MockPerformanceMeasurement {
-    flushMeasurement(): number | null {
-        return null;
-    }
-}
-
 class MockGuidGenerator implements IGuidGenerator {
     generateGuid(): string {
         return crypto["randomUUID"]();
@@ -52,6 +37,7 @@ class MockGuidGenerator implements IGuidGenerator {
     }
 }
 
+// @ts-ignore
 export class MockPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
@@ -74,27 +60,15 @@ export class MockPerformanceClient
         return this.guidGenerator.generateGuid();
     }
 
-    startPerformanceMeasurement(
-        measureName: string,
-        correlationId?: string
-    ): IPerformanceMeasurement {
-        return new MockPerformanceMeasurement();
-    }
-
     setPreQueueTime(
         eventName: PerformanceEvents,
         correlationId?: string | undefined
     ): void {
         return;
     }
-}
 
-class UnsupportedBrowserPerformanceClient extends MockPerformanceClient {
-    startPerformanceMeasurement(
-        measureName: string,
-        correlationId?: string
-    ): IPerformanceMeasurement {
-        return new UnsupportedBrowserPerformanceMeasurement();
+    getDurationMs(startTimeMs: number): number {
+        return samplePerfDuration;
     }
 }
 
@@ -304,14 +278,16 @@ describe("PerformanceClient.spec.ts", () => {
         const mockPerfClient = new MockPerformanceClient();
 
         const correlationId = "test-correlation-id";
+        const durationMs = 1;
 
         mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toBe(1);
             const event = events[0];
             expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(
-                Math.floor(samplePerfDuration)
+                Math.floor(durationMs)
             );
             expect(event.incompleteSubsCount).toEqual(0);
+            expect(event.durationMs).toEqual(Math.floor(samplePerfDuration));
             done();
         });
 
@@ -336,33 +312,12 @@ describe("PerformanceClient.spec.ts", () => {
         );
         subMeasure2.end({
             success: true,
-            durationMs: 1,
+            durationMs: durationMs,
         });
 
         topLevelEvent.end({
             success: true,
         });
-    });
-
-    it("Events are not emittted for unsupported browsers", () => {
-        const mockPerfClient = new UnsupportedBrowserPerformanceClient();
-
-        const correlationId = "test-correlation-id";
-
-        mockPerfClient.addPerformanceCallback((events) => {
-            expect(events.length).toBe(0);
-        });
-
-        // Start and end top-level measurement
-        const measure = mockPerfClient.startMeasurement(
-            PerformanceEvents.AcquireTokenSilent,
-            correlationId
-        );
-        const result = measure.end({
-            success: true,
-        });
-
-        expect(result).toBe(null);
     });
 
     it("gracefully handles two requests with the same correlation id", (done) => {

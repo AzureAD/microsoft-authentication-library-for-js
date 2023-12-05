@@ -3,34 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ApplicationTelemetry,
-    Logger,
-    PerformanceEvents,
-} from "@azure/msal-common";
-import { name, version } from "../../src/packageMetadata";
+import { PerformanceEvents } from "@azure/msal-common";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 import { TEST_CONFIG } from "../utils/StringConstants";
 
 const correlationId = "correlation-id";
+const perfTimeNow = 1234567890;
 
 let testAppConfig = {
     auth: {
         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
     },
 };
-
-jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
-    return {
-        BrowserPerformanceMeasurement: jest.fn().mockImplementation(() => {
-            return {
-                startMeasurement: () => {},
-                endMeasurement: () => {},
-                flushMeasurement: () => 50,
-            };
-        }),
-    };
-});
 
 describe("BrowserPerformanceClient.ts", () => {
     afterAll(() => {
@@ -42,7 +26,6 @@ describe("BrowserPerformanceClient.ts", () => {
         const browserPerfClient = new BrowserPerformanceClient(testAppConfig);
         const eventName = PerformanceEvents.AcquireTokenSilent;
         const correlationId = "test-correlation-id";
-        const perfTimeNow = 1234567890;
 
         jest.spyOn(window.performance, "now").mockReturnValue(perfTimeNow);
 
@@ -72,12 +55,22 @@ describe("BrowserPerformanceClient.ts", () => {
                 testAppConfig
             );
 
+            jest.spyOn(
+                browserPerfClient,
+                "supportsBrowserPerformanceNow"
+            ).mockReturnValue(true);
+            jest.spyOn(window.performance, "now")
+                .mockReturnValueOnce(perfTimeNow)
+                .mockReturnValue(perfTimeNow + 50);
+
             const measurement = browserPerfClient.startMeasurement(
                 PerformanceEvents.AcquireTokenSilent,
                 correlationId
             );
 
             const result = measurement.end();
+
+            console.log(JSON.stringify(result, null, 2));
 
             expect(result?.durationMs).toBe(50);
         });

@@ -5,6 +5,9 @@
 
 import { IPerformanceMeasurement, SubMeasurement } from "@azure/msal-common";
 
+/**
+ * @deprecated This class will be removed in a future major version
+ */
 export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
     private readonly measureName: string;
     private readonly correlationId: string;

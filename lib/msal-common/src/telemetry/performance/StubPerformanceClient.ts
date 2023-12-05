@@ -7,20 +7,7 @@ import {
     IPerformanceClient,
     InProgressPerformanceEvent,
 } from "./IPerformanceClient";
-import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceEvent, PerformanceEventStatus } from "./PerformanceEvent";
-
-export class StubPerformanceMeasurement implements IPerformanceMeasurement {
-    startMeasurement(): void {
-        return;
-    }
-    endMeasurement(): void {
-        return;
-    }
-    flushMeasurement(): number | null {
-        return null;
-    }
-}
 
 export class StubPerformanceClient implements IPerformanceClient {
     generateId(): string {
@@ -47,14 +34,8 @@ export class StubPerformanceClient implements IPerformanceClient {
                 startTimeMs: Date.now(),
                 correlationId: correlationId || "",
             },
-            measurement: new StubPerformanceMeasurement(),
         };
     }
-
-    startPerformanceMeasurement(): IPerformanceMeasurement {
-        return new StubPerformanceMeasurement();
-    }
-
     calculateQueuedTime(): number {
         return 0;
     }
