@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Turn on return-await lint rule #6678",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

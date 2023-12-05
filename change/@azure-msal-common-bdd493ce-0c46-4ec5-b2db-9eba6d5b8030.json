@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "Add support for Multi-tenant accounts and cross-tenant token caching #6466",
+  "type": "patch",
+  "comment": "Fix external account loading #6744",
   "packageName": "@azure/msal-common",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
