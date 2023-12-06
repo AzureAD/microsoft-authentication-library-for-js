@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701730993560,
+  "lastUpdate": 1701883451784,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3648,6 +3648,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.02%",
             "unit": "ops/sec",
             "extra": "237 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fd49b33e306006b14f05a05a9d4cb53dd9d71a00",
+          "message": "Node engines minimum (#6749)\n\nChanges engines fields in msal-node and msal-node-extensions to a\r\nminimum of 16 rather than choosing specific versions",
+          "timestamp": "2023-12-06T09:18:33-08:00",
+          "tree_id": "cdc25820b60854c3e08cbd0094ed96114180ebfe",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/fd49b33e306006b14f05a05a9d4cb53dd9d71a00"
+        },
+        "date": 1701883450676,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188656,
+            "range": "±1.84%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 187001,
+            "range": "±1.88%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
