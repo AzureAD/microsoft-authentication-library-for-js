@@ -164,11 +164,6 @@ describe("TokenCache tests", () => {
             );
             refreshTokenKey =
                 CacheHelpers.generateCredentialKey(refreshTokenEntity);
-
-            jest.spyOn(
-                Authority.prototype,
-                "getPreferredCache"
-            ).mockReturnValue(testEnvironment);
         });
 
         afterEach(() => {
