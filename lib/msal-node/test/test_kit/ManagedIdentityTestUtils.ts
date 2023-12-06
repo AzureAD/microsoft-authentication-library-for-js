@@ -12,12 +12,15 @@ import {
 } from "@azure/msal-common";
 import {
     MANAGED_IDENTITY_RESOURCE,
+    MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
 } from "./StringConstants";
 import { DEFAULT_MANAGED_IDENTITY_ID } from "../../src/utils/Constants";
 import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
+import { ManagedIdentityRequestParams } from "../../src";
+import { ManagedIdentityConfiguration } from "../../src/config/Configuration";
 
 export class ManagedIdentityTestUtils {
     static isAppService(): boolean {
@@ -36,7 +39,10 @@ export class ManagedIdentityTestUtils {
     }
 
     static isIMDS(): boolean {
-        return !ManagedIdentityTestUtils.isAppService();
+        return (
+            !ManagedIdentityTestUtils.isAppService() &&
+            !ManagedIdentityTestUtils.isAzureArc()
+        );
     }
 }
 
@@ -153,3 +159,27 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
         });
     }
 }
+
+export const managedIdentityRequestParams: ManagedIdentityRequestParams = {
+    resource: MANAGED_IDENTITY_RESOURCE,
+};
+
+export const userAssignedNetworkClient: ManagedIdentityNetworkClient =
+    new ManagedIdentityNetworkClient(MANAGED_IDENTITY_RESOURCE_ID);
+export const userAssignedClientIdConfig: ManagedIdentityConfiguration = {
+    system: {
+        networkClient: userAssignedNetworkClient,
+    },
+    managedIdentityIdParams: {
+        userAssignedClientId: MANAGED_IDENTITY_RESOURCE_ID,
+    },
+};
+
+export const systemAssignedConfig: ManagedIdentityConfiguration = {
+    system: {
+        networkClient: new ManagedIdentityNetworkClient(
+            DEFAULT_MANAGED_IDENTITY_ID
+        ),
+        // managedIdentityIdParams will be omitted for system assigned
+    },
+};
