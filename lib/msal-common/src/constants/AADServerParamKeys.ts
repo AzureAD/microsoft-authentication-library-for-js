@@ -16,6 +16,7 @@ export const ACCESS_TOKEN = "access_token";
 export const ID_TOKEN = "id_token";
 export const REFRESH_TOKEN = "refresh_token";
 export const EXPIRES_IN = "expires_in";
+export const REFRESH_TOKEN_EXPIRES_IN = "refresh_token_expires_in";
 export const STATE = "state";
 export const NONCE = "nonce";
 export const PROMPT = "prompt";

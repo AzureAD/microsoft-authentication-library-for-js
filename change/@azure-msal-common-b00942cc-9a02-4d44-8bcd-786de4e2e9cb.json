@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Check RT expiration before attempting to redeem it #6703",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
