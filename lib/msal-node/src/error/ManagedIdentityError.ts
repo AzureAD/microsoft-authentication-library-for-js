@@ -17,10 +17,18 @@ export const ManagedIdentityErrorMessages = {
         "The supplied resource is an invalid URL.",
     [ManagedIdentityErrorCodes.missingId]:
         "A ManagedIdentityId id was not provided.",
+    [ManagedIdentityErrorCodes.unableToCreateAzureArc]:
+        "Azure Arc Managed Identities can only be system assigned.",
     [ManagedIdentityErrorCodes.unableToCreateSource]:
         "Unable to create a Managed Identity source based on environment variables.",
+    [ManagedIdentityErrorCodes.unableToReadSecretFile]:
+        "Unable to read the secret file.",
     [ManagedIdentityErrorCodes.urlParseError]:
         "The Managed Identity's 'IDENTITY_ENDPOINT' environment variable is malformed.",
+    [ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing]:
+        "A 401 response was received form the Azure Arc Managed Identity, but the www-authenticate header is missing.",
+    [ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat]:
+        "A 401 response was received form the Azure Arc Managed Identity, but the www-authenticate header is in an unsupported format.",
 };
 
 export class ManagedIdentityError extends AuthError {

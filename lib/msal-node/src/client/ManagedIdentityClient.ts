@@ -94,6 +94,12 @@ export class ManagedIdentityClient {
                 networkClient,
                 cryptoProvider
             ) ||
+            AzureArc.tryCreate(
+                logger,
+                nodeStorage,
+                networkClient,
+                cryptoProvider
+            ) ||
             Imds.tryCreate(logger, nodeStorage, networkClient, cryptoProvider);
         if (!source) {
             throw createManagedIdentityError(

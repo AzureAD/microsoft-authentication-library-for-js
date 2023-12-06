@@ -50,6 +50,46 @@ export abstract class BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters;
 
+    public async getServerTokenResponseAsync(
+        response: NetworkResponse<ManagedIdentityTokenResponse>,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _networkClient: INetworkModule,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _networkRequest: ManagedIdentityRequestParameters,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _networkRequestOptions: NetworkRequestOptions
+    ): Promise<ServerAuthorizationTokenResponse> {
+        return await this.getServerTokenResponse(response);
+    }
+
+    public getServerTokenResponse(
+        response: NetworkResponse<ManagedIdentityTokenResponse>
+    ): ServerAuthorizationTokenResponse {
+        const serverTokenResponse: ServerAuthorizationTokenResponse = {
+            status: response.status,
+
+            // success
+            access_token: response.body.access_token,
+            expires_in: response.body.expires_on,
+            scope: response.body.resource,
+            token_type: response.body.token_type,
+
+            // error
+            error: response.body.message,
+            correlation_id: response.body.correlationId,
+        };
+
+        // compute refresh_in as 1/2 of expires_in, but only if expires_in > 2h
+        if (
+            serverTokenResponse.expires_in &&
+            serverTokenResponse.expires_in > 2 * 3600
+        ) {
+            serverTokenResponse.refresh_in = serverTokenResponse.expires_in / 2;
+        }
+
+        return serverTokenResponse;
+    }
+
     public async acquireTokenWithManagedIdentity(
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId,
@@ -96,28 +136,6 @@ export abstract class BaseManagedIdentitySource {
             }
         }
 
-        const serverTokenResponse: ServerAuthorizationTokenResponse = {
-            status: response.status,
-
-            // success
-            access_token: response.body.access_token,
-            expires_in: response.body.expires_on,
-            scope: response.body.resource,
-            token_type: response.body.token_type,
-
-            // error
-            error: response.body.message,
-            correlation_id: response.body.correlationId,
-        };
-
-        // compute refresh_in as 1/2 of expires_in, but only if expires_in > 2h
-        if (
-            serverTokenResponse.expires_in &&
-            serverTokenResponse.expires_in > 2 * 3600
-        ) {
-            serverTokenResponse.refresh_in = serverTokenResponse.expires_in / 2;
-        }
-
         const responseHandler = new ResponseHandler(
             managedIdentityId.id,
             this.nodeStorage,
@@ -126,6 +144,14 @@ export abstract class BaseManagedIdentitySource {
             null,
             null
         );
+
+        const serverTokenResponse: ServerAuthorizationTokenResponse =
+            await this.getServerTokenResponseAsync(
+                response,
+                this.networkClient,
+                networkRequest,
+                networkRequestOptions
+            );
 
         responseHandler.validateTokenResponse(
             serverTokenResponse,
