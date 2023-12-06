@@ -94,7 +94,10 @@ export class AzureArc extends BaseManagedIdentitySource {
         }
 
         const request: ManagedIdentityRequestParameters =
-            new ManagedIdentityRequestParameters(HttpMethod.GET, this.endpoint);
+            new ManagedIdentityRequestParameters(
+                HttpMethod.GET,
+                this.endpoint.replace("localhost", "127.0.0.1")
+            );
 
         request.headers[METADATA_HEADER_NAME] = "true";
         request.queryParameters["api-version"] = ARC_API_VERSION;
@@ -116,7 +119,7 @@ export class AzureArc extends BaseManagedIdentitySource {
 
         if (originalResponse.status === HttpStatus.UNAUTHORIZED) {
             const wwwAuthHeader: string =
-                originalResponse.headers["WWW-Authenticate"];
+                originalResponse.headers["www-authenticate"];
             if (!wwwAuthHeader) {
                 throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
@@ -195,5 +198,11 @@ const validateEnvironmentVariables = (
     logger.info(
         `[Managed Identity] Environment variables validation passed for Azure Arc managed identity. Endpoint URI: ${endpointUrlString}. Creating Azure Arc managed identity.`
     );
-    return [true, endpointUrlString];
+    return [
+        true,
+        // remove trailing slash
+        endpointUrlString.endsWith("/")
+            ? endpointUrlString.slice(0, -1)
+            : endpointUrlString,
+    ];
 };

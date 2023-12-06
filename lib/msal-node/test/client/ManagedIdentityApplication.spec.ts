@@ -252,7 +252,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                 );
             });
 
-            test("attempts to acquire a token, a 401 and WWW-Authenticate header are returned form the azure arc managed identity, then retries the network request with the WWW-Authenticate header", async () => {
+            test("attempts to acquire a token, a 401 and www-authenticate header are returned form the azure arc managed identity, then retries the network request with the www-authenticate header", async () => {
                 expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
 
                 const networkClient: ManagedIdentityNetworkClient =
@@ -296,7 +296,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                     2,
                     `${process.env[
                         "IDENTITY_ENDPOINT"
-                    ]?.toLowerCase()}/?api-version=${ARC_API_VERSION}&resource=${MANAGED_IDENTITY_RESOURCE_BASE}`,
+                    ]?.toLowerCase()}?api-version=${ARC_API_VERSION}&resource=${MANAGED_IDENTITY_RESOURCE_BASE}`,
                     {
                         headers: {
                             Authorization:
@@ -331,7 +331,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                     );
                 });
 
-                test("throws an error when the WWW-Authenticate header is missing", async () => {
+                test("throws an error when the www-authenticate header is missing", async () => {
                     expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
 
                     const managedIdentityApplication: ManagedIdentityApplication =
@@ -357,7 +357,7 @@ describe("ManagedIdentityApplication unit tests", () => {
                     );
                 });
 
-                test("throws an error when the WWW-Authenticate header is in an unsupported format", async () => {
+                test("throws an error when the www-authenticate header is in an unsupported format", async () => {
                     expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
 
                     const managedIdentityApplication: ManagedIdentityApplication =
@@ -411,7 +411,20 @@ describe("ManagedIdentityApplication unit tests", () => {
     });
 
     describe("Acquires a token successfully via an IMDS Managed Identity", () => {
-        // IMDS doesn't need an environment variable because there is a default IMDS endpoint
+        beforeAll(() => {
+            // make a copy
+            process.env = { ...OLD_ENVS };
+
+            // IMDS doesn't need environment variables because there is a default IMDS endpoint
+            process.env["IDENTITY_ENDPOINT"] = undefined;
+            process.env["IDENTITY_HEADER"] = undefined;
+            process.env["IMDS_ENDPOINT"] = undefined;
+        });
+
+        afterAll(() => {
+            // restore old environment
+            process.env = OLD_ENVS;
+        });
 
         describe("User Assigned", () => {
             test("acquires a User Assigned Client Id token", async () => {

@@ -106,7 +106,7 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
     ): NetworkResponse<T> {
         const headers: Record<string, string> = {};
         if (wwwAuthenticateHeader) {
-            headers["WWW-Authenticate"] = wwwAuthenticateHeader;
+            headers["www-authenticate"] = wwwAuthenticateHeader;
         }
 
         return {
