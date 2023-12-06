@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701883451784,
+  "lastUpdate": 1701891753460,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3686,6 +3686,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.88%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4ef12a58add1bf9d62bc30b700a80b860c340adc",
+          "message": "Add RT expiration check (#6703)\n\nAdds an RT expiration check when available - this is an optimization\r\nwhich avoids a wasted network call when the cached RT is expired. Only\r\napplicable to SPA apps using msal-browser",
+          "timestamp": "2023-12-06T11:36:37-08:00",
+          "tree_id": "61cbec2392167ee912cf98c2d0beb10604bd74ed",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4ef12a58add1bf9d62bc30b700a80b860c340adc"
+        },
+        "date": 1701891751339,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 206457,
+            "range": "±1.65%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 207033,
+            "range": "±1.40%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
