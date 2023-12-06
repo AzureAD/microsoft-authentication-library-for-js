@@ -20,6 +20,7 @@ import {
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
     MANAGED_IDENTITY_USER_ASSIGNED_CLIENT_ID_CACHE_KEY,
     MANAGED_IDENTITY_USER_ASSIGNED_OBJECT_ID_CACHE_KEY,
+    TEST_TOKENS,
 } from "../test_kit/StringConstants";
 
 import {
@@ -47,6 +48,9 @@ import { mockCrypto } from "./ClientTestUtils";
 import sinon from "sinon";
 import { ClientCredentialClient } from "../../src";
 import { ARC_API_VERSION } from "../../src/client/ManagedIdentitySources/AzureArc";
+import * as fs from "fs";
+
+jest.mock("fs");
 
 describe("ManagedIdentityApplication unit tests", () => {
     let OLD_ENVS: NodeJS.ProcessEnv;
@@ -270,7 +274,7 @@ describe("ManagedIdentityApplication unit tests", () => {
 
                 const networkErrorClient: ManagedIdentityNetworkErrorClient =
                     new ManagedIdentityNetworkErrorClient();
-                const spy = jest
+                const sendGetRequestAsyncSpy = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
                     // override the networkClient's sendGetRequestAsync method to return a 401
                     // and the WWW-Authentication header the first time the network request is executed
@@ -279,6 +283,10 @@ describe("ManagedIdentityApplication unit tests", () => {
                             "Basic realm=lib/msal-node/test/test_kit/AzureArcSecret.key"
                         )
                     );
+
+                const readFileSyncSpy = jest
+                    .spyOn(fs, "readFileSync")
+                    .mockReturnValueOnce(TEST_TOKENS.ACCESS_TOKEN);
 
                 const networkManagedIdentityResult: AuthenticationResult =
                     await managedIdentityApplication.acquireToken(
@@ -290,9 +298,10 @@ describe("ManagedIdentityApplication unit tests", () => {
                     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
 
-                expect(spy).toBeCalledTimes(2);
+                expect(sendGetRequestAsyncSpy).toBeCalledTimes(2);
+                expect(readFileSyncSpy).toBeCalledTimes(1);
 
-                expect(spy).nthCalledWith(
+                expect(sendGetRequestAsyncSpy).nthCalledWith(
                     2,
                     `${process.env[
                         "IDENTITY_ENDPOINT"
@@ -396,6 +405,12 @@ describe("ManagedIdentityApplication unit tests", () => {
                             },
                         });
 
+                    jest.spyOn(fs, "readFileSync").mockImplementationOnce(
+                        () => {
+                            throw new Error();
+                        }
+                    );
+
                     await expect(
                         managedIdentityApplication.acquireToken(
                             managedIdentityRequestParams
@@ -405,6 +420,8 @@ describe("ManagedIdentityApplication unit tests", () => {
                             ManagedIdentityErrorCodes.unableToReadSecretFile
                         )
                     );
+
+                    jest.restoreAllMocks();
                 });
             });
         });

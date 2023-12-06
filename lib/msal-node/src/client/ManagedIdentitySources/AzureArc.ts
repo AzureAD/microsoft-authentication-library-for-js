@@ -30,7 +30,7 @@ import {
     ManagedIdentityIdType,
 } from "../../utils/Constants";
 import { NodeStorage } from "../../cache/NodeStorage";
-import * as fs from "fs";
+import { readFileSync } from "fs";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
 
 export const ARC_API_VERSION: string = "2019-11-01";
@@ -134,7 +134,7 @@ export class AzureArc extends BaseManagedIdentitySource {
             const secretFile = wwwAuthHeader.split("Basic realm=")[1];
             let secret;
             try {
-                secret = fs.readFileSync(secretFile, "utf-8");
+                secret = readFileSync(secretFile, "utf-8");
             } catch (e) {
                 throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.unableToReadSecretFile
