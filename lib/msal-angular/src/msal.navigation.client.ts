@@ -3,15 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { Injectable } from '@angular/core';
-import { Location } from '@angular/common';
-import { Router } from '@angular/router';
+import { Injectable } from "@angular/core";
+import { Location } from "@angular/common";
+import { Router } from "@angular/router";
 import {
   NavigationClient,
   NavigationOptions,
   UrlString,
-} from '@azure/msal-browser';
-import { MsalService } from './msal.service';
+} from "@azure/msal-browser";
+import { MsalService } from "./msal.service";
 
 /**
  * Custom navigation used for Angular client-side navigation.
@@ -32,11 +32,11 @@ export class MsalCustomNavigationClient extends NavigationClient {
     url: string,
     options: NavigationOptions
   ): Promise<boolean> {
-    this.authService.getLogger().trace('MsalCustomNavigationClient called');
+    this.authService.getLogger().trace("MsalCustomNavigationClient called");
 
     this.authService
       .getLogger()
-      .verbose('MsalCustomNavigationClient - navigating');
+      .verbose("MsalCustomNavigationClient - navigating");
     this.authService
       .getLogger()
       .verbosePii(`MsalCustomNavigationClient - navigating to url: ${url}`);

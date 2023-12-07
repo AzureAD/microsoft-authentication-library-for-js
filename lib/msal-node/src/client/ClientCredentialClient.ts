@@ -55,7 +55,7 @@ export class ClientCredentialClient extends BaseClient {
         this.scopeSet = new ScopeSet(request.scopes || []);
 
         if (request.skipCache) {
-            return await this.executeTokenRequest(request, this.authority);
+            return this.executeTokenRequest(request, this.authority);
         }
 
         const [cachedAuthenticationResult, lastCacheOutcome] =
@@ -80,7 +80,7 @@ export class ClientCredentialClient extends BaseClient {
             // return the cached token
             return cachedAuthenticationResult;
         } else {
-            return await this.executeTokenRequest(request, this.authority);
+            return this.executeTokenRequest(request, this.authority);
         }
     }
 
@@ -229,6 +229,7 @@ export class ClientCredentialClient extends BaseClient {
                 authority.tokenEndpoint,
                 queryParametersString
             );
+
             const requestBody = this.createTokenRequestBody(request);
             const headers: Record<string, string> =
                 this.createTokenRequestHeaders();
@@ -243,6 +244,10 @@ export class ClientCredentialClient extends BaseClient {
                 shrClaims: request.shrClaims,
                 sshKid: request.sshKid,
             };
+
+            this.logger.info(
+                "Sending token request to endpoint: " + authority.tokenEndpoint
+            );
 
             reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.executePostToTokenEndpoint(

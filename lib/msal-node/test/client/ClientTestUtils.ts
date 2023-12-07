@@ -28,6 +28,7 @@ import {
     TokenKeys,
     createClientAuthError,
     ClientAuthErrorCodes,
+    CacheHelpers,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -35,6 +36,7 @@ import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_CRYPTO_VALUES,
+    TEST_DATA_CLIENT_INFO,
     TEST_POP_VALUES,
     TEST_TOKENS,
 } from "../test_kit/StringConstants";
@@ -52,6 +54,10 @@ export class MockStorageClass extends CacheManager {
             return account;
         }
         return null;
+    }
+
+    getCachedAccountEntity(accountKey: string): AccountEntity | null {
+        return this.getAccount(accountKey);
     }
 
     setAccount(value: AccountEntity): void {
@@ -75,6 +81,10 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
+    removeOutdatedAccount(accountKey: string): void {
+        this.removeAccount(accountKey);
+    }
+
     getAccountKeys(): string[] {
         return this.store[ACCOUNT_KEYS] || [];
     }
@@ -94,7 +104,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as IdTokenEntity) || null;
     }
     setIdTokenCredential(value: IdTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -109,7 +119,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as AccessTokenEntity) || null;
     }
     setAccessTokenCredential(value: AccessTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -124,7 +134,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
     setRefreshTokenCredential(value: RefreshTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -188,7 +198,7 @@ export class MockStorageClass extends CacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string {
-        const updatedCacheKey = credential.generateCredentialKey();
+        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 
         if (currentCacheKey !== updatedCacheKey) {
             const cacheItem = this.store[currentCacheKey];
@@ -216,6 +226,8 @@ export const mockCrypto = {
                 return TEST_POP_VALUES.DECODED_REQ_CNF;
             case TEST_TOKENS.POP_TOKEN_PAYLOAD:
                 return TEST_TOKENS.DECODED_POP_TOKEN_PAYLOAD;
+            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             default:
                 return input;
         }

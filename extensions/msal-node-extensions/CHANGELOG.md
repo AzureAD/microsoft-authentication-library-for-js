@@ -1,8 +1,53 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Tue, 05 Sep 2023 22:13:48 GMT and should not be manually modified.
+This log was last generated on Fri, 01 Dec 2023 18:46:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.8
+
+Fri, 01 Dec 2023 18:46:06 GMT
+
+### Patches
+
+- add Node 16 to engines (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.5.0
+
+## 1.0.7
+
+Tue, 07 Nov 2023 00:01:50 GMT
+
+### Patches
+
+- fix: Environment.getUserRootDirectory() only ever executes Windows code path (janusz@corechain.tech)
+- Bump @azure/msal-common to v14.4.0
+
+## 1.0.6
+
+Mon, 30 Oct 2023 21:38:25 GMT
+
+### Patches
+
+- Fix downstream ESM imports, fixes #6573 (janusz@corechain.tech)
+- Bump @azure/msal-common to v14.3.0
+
+## 1.0.5
+
+Wed, 18 Oct 2023 17:24:19 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.2.0
+
+## 1.0.4
+
+Thu, 05 Oct 2023 18:06:40 GMT
+
+### Patches
+
+-   Refactor ClientAuthError for reduced size #6433 (thomas.norling@microsoft.com)
+-   Refactor ClientConfigurationError #6471 (thomas.norling@microsoft.com)
+-   Bump @azure/msal-common to v14.1.0
 
 ## 1.0.3
 
@@ -10,7 +55,7 @@ Tue, 05 Sep 2023 22:13:48 GMT
 
 ### Patches
 
-- Bump @azure/msal-common to v14.0.3
+-   Bump @azure/msal-common to v14.0.3
 
 ## 1.0.2
 
@@ -18,7 +63,7 @@ Fri, 18 Aug 2023 18:40:02 GMT
 
 ### Patches
 
-- Bump @azure/msal-common to v14.0.2
+-   Bump @azure/msal-common to v14.0.2
 
 ## 1.0.1
 
@@ -26,8 +71,8 @@ Fri, 11 Aug 2023 19:00:44 GMT
 
 ### Patches
 
-- Update dist settings for packages #6322 (hemoral@microsoft.com)
-- Bump @azure/msal-common to v14.0.1
+-   Update dist settings for packages #6322 (hemoral@microsoft.com)
+-   Bump @azure/msal-common to v14.0.1
 
 ## 1.0.0
 

@@ -3,18 +3,21 @@
  * Licensed under the MIT License.
  */
 
-import { JoseHeaderError } from "../error/JoseHeaderError";
-import { JsonTypes } from "../utils/Constants";
+import {
+    JoseHeaderErrorCodes,
+    createJoseHeaderError,
+} from "../error/JoseHeaderError";
+import { JsonWebTokenTypes } from "../utils/Constants";
 
 export type JoseHeaderOptions = {
-    typ?: JsonTypes;
+    typ?: JsonWebTokenTypes;
     alg?: string;
     kid?: string;
 };
 
 /** @internal */
 export class JoseHeader {
-    public typ?: JsonTypes;
+    public typ?: JsonWebTokenTypes;
     public alg?: string;
     public kid?: string;
 
@@ -35,17 +38,17 @@ export class JoseHeader {
     static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions): string {
         // KeyID is required on the SHR header
         if (!shrHeaderOptions.kid) {
-            throw JoseHeaderError.createMissingKidError();
+            throw createJoseHeaderError(JoseHeaderErrorCodes.missingKidError);
         }
 
         // Alg is required on the SHR header
         if (!shrHeaderOptions.alg) {
-            throw JoseHeaderError.createMissingAlgError();
+            throw createJoseHeaderError(JoseHeaderErrorCodes.missingAlgError);
         }
 
         const shrHeader = new JoseHeader({
             // Access Token PoP headers must have type pop, but the type header can be overriden for special cases
-            typ: shrHeaderOptions.typ || JsonTypes.Pop,
+            typ: shrHeaderOptions.typ || JsonWebTokenTypes.Pop,
             kid: shrHeaderOptions.kid,
             alg: shrHeaderOptions.alg,
         });

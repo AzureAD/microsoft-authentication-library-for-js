@@ -5,19 +5,21 @@
 
 import * as puppeteer from "puppeteer";
 import {
-    Screenshot, 
-    createFolder, 
-    setupCredentials, 
-    RETRY_TIMES, 
+    Screenshot,
+    createFolder,
+    setupCredentials,
+    RETRY_TIMES,
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
-    validateCacheLocation} from "e2e-test-utils/src/TestUtils";
-import { NodeCacheTestUtils } from "e2e-test-utils/src/NodeCacheTestUtils";
-import { LabClient } from "e2e-test-utils/src/LabClient";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "e2e-test-utils/src/Constants";
+    validateCacheLocation,
+    NodeCacheTestUtils,
+    LabClient,
+    LabApiQueryParams,
+    AppTypes,
+    AzureEnvironments,
+} from "e2e-test-utils";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
 
 // Set test cache name/location
@@ -32,7 +34,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/AAD.json");
 
-describe('Device Code AAD Prod Tests', () => {
+describe("Device Code AAD Prod Tests", () => {
     jest.setTimeout(45000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
@@ -59,8 +61,13 @@ describe('Device Code AAD Prod Tests', () => {
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParms
+        );
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
     });
 
     afterAll(async () => {
@@ -68,7 +75,6 @@ describe('Device Code AAD Prod Tests', () => {
     });
 
     describe("Acquire Token", () => {
-
         beforeAll(async () => {
             clientConfig = { auth: config.authOptions, cache: { cachePlugin } };
             publicClientApplication = new PublicClientApplication(clientConfig);
@@ -90,19 +96,32 @@ describe('Device Code AAD Prod Tests', () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
 
             const deviceCodeCallback = async (deviceCodeResponse: any) => {
-                const { userCode, verificationUri} = deviceCodeResponse;
-                await enterDeviceCode(page, screenshot, userCode, verificationUri);
+                const { userCode, verificationUri } = deviceCodeResponse;
+                await enterDeviceCode(
+                    page,
+                    screenshot,
+                    userCode,
+                    verificationUri
+                );
                 await approveRemoteConnect(page, screenshot);
                 await enterCredentials(page, screenshot, username, accountPwd);
                 await page.waitForSelector("#message");
-                await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
+                await screenshot.takeScreenshot(
+                    page,
+                    "SuccessfulDeviceCodeMessage"
+                );
             };
 
-            await getTokenDeviceCode(config, publicClientApplication, { deviceCodeCallback: deviceCodeCallback });
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            await getTokenDeviceCode(config, publicClientApplication, {
+                deviceCodeCallback: deviceCodeCallback,
+            });
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
-         });
+        });
     });
 });

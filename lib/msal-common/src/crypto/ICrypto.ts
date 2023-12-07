@@ -3,9 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError } from "../error/AuthError";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
-import { SignedHttpRequest } from "./SignedHttpRequest";
+import { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest";
 
 /**
  * The PkceCodes type describes the structure
@@ -19,7 +22,11 @@ export type PkceCodes = {
 
 export type SignedHttpRequestParameters = Pick<
     BaseAuthRequest,
-    "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce"
+    | "resourceRequestMethod"
+    | "resourceRequestUri"
+    | "shrClaims"
+    | "shrNonce"
+    | "shrOptions"
 > & {
     correlationId?: string;
 };
@@ -43,10 +50,6 @@ export interface ICrypto {
      */
     base64Decode(input: string): string;
     /**
-     * Generate PKCE codes for OAuth. See RFC here: https://tools.ietf.org/html/rfc7636
-     */
-    generatePkceCodes(): Promise<PkceCodes>;
-    /**
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
@@ -69,6 +72,7 @@ export interface ICrypto {
     signJwt(
         payload: SignedHttpRequest,
         kid: string,
+        shrOptions?: ShrOptions,
         correlationId?: string
     ): Promise<string>;
     /**
@@ -80,48 +84,27 @@ export interface ICrypto {
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     createNewGuid: (): string => {
-        const notImplErr =
-            "Crypto interface - createNewGuid() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     base64Decode: (): string => {
-        const notImplErr =
-            "Crypto interface - base64Decode() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     base64Encode: (): string => {
-        const notImplErr =
-            "Crypto interface - base64Encode() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
-        const notImplErr =
-            "Crypto interface - generatePkceCodes() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async getPublicKeyThumbprint(): Promise<string> {
-        const notImplErr =
-            "Crypto interface - getPublicKeyThumbprint() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async removeTokenBindingKey(): Promise<boolean> {
-        const notImplErr =
-            "Crypto interface - removeTokenBindingKey() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async clearKeystore(): Promise<boolean> {
-        const notImplErr =
-            "Crypto interface - clearKeystore() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async signJwt(): Promise<string> {
-        const notImplErr =
-            "Crypto interface - signJwt() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async hashString(): Promise<string> {
-        const notImplErr =
-            "Crypto interface - hashString() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
 };

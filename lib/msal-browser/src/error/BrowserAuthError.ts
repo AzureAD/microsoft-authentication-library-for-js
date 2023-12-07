@@ -88,6 +88,8 @@ export const BrowserAuthErrorMessages = {
     [BrowserAuthErrorCodes.uninitializedPublicClientApplication]: `You must call and await the initialize function before attempting to call any other MSAL API.  ${ErrorLink}`,
     [BrowserAuthErrorCodes.nativePromptNotSupported]:
         "The provided prompt is not supported by the native platform. This request should be routed to the web based flow.",
+    [BrowserAuthErrorCodes.invalidBase64String]:
+        "Invalid base64 encoded string.",
 };
 
 /**
@@ -323,6 +325,12 @@ export const BrowserAuthErrorMessage = {
         code: BrowserAuthErrorCodes.nativePromptNotSupported,
         desc: BrowserAuthErrorMessages[
             BrowserAuthErrorCodes.nativePromptNotSupported
+        ],
+    },
+    invalidBase64StringError: {
+        code: BrowserAuthErrorCodes.invalidBase64String,
+        desc: BrowserAuthErrorMessages[
+            BrowserAuthErrorCodes.invalidBase64String
         ],
     },
 };

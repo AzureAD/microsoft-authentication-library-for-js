@@ -4,7 +4,6 @@
  */
 
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
-import { buildClientInfo } from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
 import {
     ClientAuthErrorCodes,
@@ -43,7 +42,16 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
-import { TokenClaims } from "../account/TokenClaims";
+import {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "../account/TokenClaims";
+import {
+    AccountInfo,
+    buildTenantProfileFromIdTokenClaims,
+    updateAccountTenantProfileData,
+} from "../account/AccountInfo";
+import * as CacheHelpers from "../cache/utils/CacheHelpers";
 
 /**
  * Class that handles response parsing.
@@ -80,16 +88,15 @@ export class ResponseHandler {
     /**
      * Function which validates server authorization code response.
      * @param serverResponseHash
-     * @param cachedState
+     * @param requestState
      * @param cryptoObj
      */
     validateServerAuthorizationCodeResponse(
-        serverResponseHash: ServerAuthorizationCodeResponse,
-        cachedState: string,
-        cryptoObj: ICrypto
+        serverResponse: ServerAuthorizationCodeResponse,
+        requestState: string
     ): void {
-        if (!serverResponseHash.state || !cachedState) {
-            throw serverResponseHash.state
+        if (!serverResponse.state || !requestState) {
+            throw serverResponse.state
                 ? createClientAuthError(
                       ClientAuthErrorCodes.stateNotFound,
                       "Cached State"
@@ -100,66 +107,62 @@ export class ResponseHandler {
                   );
         }
 
-        let decodedServerResponseHash: string;
-        let decodedCachedState: string;
+        let decodedServerResponseState: string;
+        let decodedRequestState: string;
 
         try {
-            decodedServerResponseHash = decodeURIComponent(
-                serverResponseHash.state
+            decodedServerResponseState = decodeURIComponent(
+                serverResponse.state
             );
         } catch (e) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.invalidState,
-                serverResponseHash.state
+                serverResponse.state
             );
         }
 
         try {
-            decodedCachedState = decodeURIComponent(cachedState);
+            decodedRequestState = decodeURIComponent(requestState);
         } catch (e) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.invalidState,
-                serverResponseHash.state
+                serverResponse.state
             );
         }
 
-        if (decodedServerResponseHash !== decodedCachedState) {
+        if (decodedServerResponseState !== decodedRequestState) {
             throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
         }
 
         // Check for error
         if (
-            serverResponseHash.error ||
-            serverResponseHash.error_description ||
-            serverResponseHash.suberror
+            serverResponse.error ||
+            serverResponse.error_description ||
+            serverResponse.suberror
         ) {
             if (
                 isInteractionRequiredError(
-                    serverResponseHash.error,
-                    serverResponseHash.error_description,
-                    serverResponseHash.suberror
+                    serverResponse.error,
+                    serverResponse.error_description,
+                    serverResponse.suberror
                 )
             ) {
                 throw new InteractionRequiredAuthError(
-                    serverResponseHash.error || Constants.EMPTY_STRING,
-                    serverResponseHash.error_description,
-                    serverResponseHash.suberror,
-                    serverResponseHash.timestamp || Constants.EMPTY_STRING,
-                    serverResponseHash.trace_id || Constants.EMPTY_STRING,
-                    serverResponseHash.correlation_id || Constants.EMPTY_STRING,
-                    serverResponseHash.claims || Constants.EMPTY_STRING
+                    serverResponse.error || "",
+                    serverResponse.error_description,
+                    serverResponse.suberror,
+                    serverResponse.timestamp || "",
+                    serverResponse.trace_id || "",
+                    serverResponse.correlation_id || "",
+                    serverResponse.claims || ""
                 );
             }
 
             throw new ServerError(
-                serverResponseHash.error || Constants.EMPTY_STRING,
-                serverResponseHash.error_description,
-                serverResponseHash.suberror
+                serverResponse.error || "",
+                serverResponse.error_description,
+                serverResponse.suberror
             );
-        }
-
-        if (serverResponseHash.client_info) {
-            buildClientInfo(serverResponseHash.client_info, cryptoObj);
         }
     }
 
@@ -341,12 +344,12 @@ export class ResponseHandler {
                 cacheRecord.account
             ) {
                 const key = cacheRecord.account.generateAccountKey();
-                const account = this.cacheStorage.getAccount(key);
+                const account = this.cacheStorage.getAccount(key, this.logger);
                 if (!account) {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
                     );
-                    return ResponseHandler.generateAuthenticationResult(
+                    return await ResponseHandler.generateAuthenticationResult(
                         this.cryptoObj,
                         authority,
                         cacheRecord,
@@ -375,6 +378,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
+
         return ResponseHandler.generateAuthenticationResult(
             this.cryptoObj,
             authority,
@@ -410,27 +414,32 @@ export class ResponseHandler {
             );
         }
 
+        const claimsTenantId = getTenantIdFromIdTokenClaims(idTokenClaims);
+
         // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity | undefined;
         let cachedAccount: AccountEntity | undefined;
         if (serverTokenResponse.id_token && !!idTokenClaims) {
-            cachedIdToken = IdTokenEntity.createIdTokenEntity(
+            cachedIdToken = CacheHelpers.createIdTokenEntity(
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.id_token,
                 this.clientId,
-                idTokenClaims.tid || ""
+                claimsTenantId || ""
             );
 
-            cachedAccount = AccountEntity.createAccount(
-                {
-                    homeAccountId: this.homeAccountIdentifier,
-                    idTokenClaims: idTokenClaims,
-                    clientInfo: serverTokenResponse.client_info,
-                    cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
-                    msGraphHost: authCodePayload?.msgraph_host,
-                },
-                authority
+            cachedAccount = buildAccountToCache(
+                this.cacheStorage,
+                authority,
+                this.homeAccountIdentifier,
+                idTokenClaims,
+                this.cryptoObj.base64Decode,
+                serverTokenResponse.client_info,
+                env,
+                claimsTenantId,
+                authCodePayload,
+                undefined, // nativeAccountId
+                this.logger
             );
         }
 
@@ -467,16 +476,16 @@ export class ResponseHandler {
                     : undefined;
 
             // non AAD scenarios can have empty realm
-            cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
+            cachedAccessToken = CacheHelpers.createAccessTokenEntity(
                 this.homeAccountIdentifier,
                 env,
-                serverTokenResponse.access_token || Constants.EMPTY_STRING,
+                serverTokenResponse.access_token,
                 this.clientId,
-                idTokenClaims?.tid || authority.tenant,
+                claimsTenantId || authority.tenant,
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
-                this.cryptoObj,
+                this.cryptoObj.base64Decode,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
@@ -489,13 +498,26 @@ export class ResponseHandler {
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (serverTokenResponse.refresh_token) {
-            cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
+            let rtExpiresOn: number | undefined;
+            if (serverTokenResponse.refresh_token_expires_in) {
+                const rtExpiresIn: number =
+                    typeof serverTokenResponse.refresh_token_expires_in ===
+                    "string"
+                        ? parseInt(
+                              serverTokenResponse.refresh_token_expires_in,
+                              10
+                          )
+                        : serverTokenResponse.refresh_token_expires_in;
+                rtExpiresOn = reqTimestamp + rtExpiresIn;
+            }
+            cachedRefreshToken = CacheHelpers.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
                 env,
-                serverTokenResponse.refresh_token || Constants.EMPTY_STRING,
+                serverTokenResponse.refresh_token,
                 this.clientId,
                 serverTokenResponse.foci,
-                userAssertionHash
+                userAssertionHash,
+                rtExpiresOn
             );
         }
 
@@ -599,14 +621,20 @@ export class ResponseHandler {
                 serverTokenResponse?.spa_accountid;
         }
 
+        const accountInfo: AccountInfo | null = cacheRecord.account
+            ? updateAccountTenantProfileData(
+                  cacheRecord.account.getAccountInfo(),
+                  undefined, // tenantProfile optional
+                  idTokenClaims
+              )
+            : null;
+
         return {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes,
-            account: cacheRecord.account
-                ? cacheRecord.account.getAccountInfo()
-                : null,
+            account: accountInfo,
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
@@ -631,4 +659,65 @@ export class ResponseHandler {
             fromNativeBroker: false,
         };
     }
+}
+
+export function buildAccountToCache(
+    cacheStorage: CacheManager,
+    authority: Authority,
+    homeAccountId: string,
+    idTokenClaims: TokenClaims,
+    base64Decode: (input: string) => string,
+    clientInfo?: string,
+    environment?: string,
+    claimsTenantId?: string | null,
+    authCodePayload?: AuthorizationCodePayload,
+    nativeAccountId?: string,
+    logger?: Logger
+): AccountEntity {
+    logger?.verbose("setCachedAccount called");
+
+    // Check if base account is already cached
+    const accountKeys = cacheStorage.getAccountKeys();
+    const baseAccountKey = accountKeys.find((accountKey: string) => {
+        return accountKey.startsWith(homeAccountId);
+    });
+
+    let cachedAccount: AccountEntity | null = null;
+    if (baseAccountKey) {
+        cachedAccount = cacheStorage.getAccount(baseAccountKey, logger);
+    }
+
+    const baseAccount =
+        cachedAccount ||
+        AccountEntity.createAccount(
+            {
+                homeAccountId,
+                idTokenClaims,
+                clientInfo,
+                environment,
+                cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
+                msGraphHost: authCodePayload?.msgraph_host,
+                nativeAccountId: nativeAccountId,
+            },
+            authority,
+            base64Decode
+        );
+
+    const tenantProfiles = baseAccount.tenantProfiles || [];
+
+    if (
+        claimsTenantId &&
+        !tenantProfiles.find((tenantProfile) => {
+            return tenantProfile.tenantId === claimsTenantId;
+        })
+    ) {
+        const newTenantProfile = buildTenantProfileFromIdTokenClaims(
+            homeAccountId,
+            idTokenClaims
+        );
+        tenantProfiles.push(newTenantProfile);
+    }
+    baseAccount.tenantProfiles = tenantProfiles;
+
+    return baseAccount;
 }

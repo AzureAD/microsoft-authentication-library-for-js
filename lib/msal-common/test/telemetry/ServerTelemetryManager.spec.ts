@@ -361,7 +361,11 @@ describe("ServerTelemetryManager.ts", () => {
     });
 
     it("incrementCacheHits", () => {
-        const initialCacheValue = new ServerTelemetryEntity();
+        const initialCacheValue: ServerTelemetryEntity = {
+            failedRequests: [],
+            errors: [],
+            cacheHits: 0,
+        };
         initialCacheValue.cacheHits = 1;
         testCacheManager.setServerTelemetry(cacheKey, initialCacheValue);
         const telemetryManager = new ServerTelemetryManager(

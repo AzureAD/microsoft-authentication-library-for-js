@@ -15,17 +15,19 @@ import { IController } from "../controllers/IController";
 import {
     PerformanceCallbackFunction,
     AccountInfo,
+    AccountFilter,
     Logger,
 } from "@azure/msal-common";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { ControllerFactory } from "../controllers/ControllerFactory";
+import * as ControllerFactory from "../controllers/ControllerFactory";
 import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -37,8 +39,9 @@ export class PublicClientApplication implements IPublicClientApplication {
     public static async createPublicClientApplication(
         configuration: Configuration
     ): Promise<IPublicClientApplication> {
-        const factory = new ControllerFactory(configuration);
-        const controller = await factory.createController();
+        const controller = await ControllerFactory.createV3Controller(
+            configuration
+        );
         const pca = new PublicClientApplication(configuration, controller);
 
         return pca;
@@ -189,11 +192,21 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
+     * Returns the first account found in the cache that matches the account filter passed in.
+     * @param accountFilter
+     * @returns The first account found in the cache matching the provided filter or null if no account could be found.
+     */
+    getAccount(accountFilter: AccountFilter): AccountInfo | null {
+        return this.controller.getAccount(accountFilter);
+    }
+
+    /**
      * Returns the signed in account matching homeAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
      * @param homeAccountId
      * @returns The account object stored in MSAL
+     * @deprecated - Use getAccount instead
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
         return this.controller.getAccountByHomeId(homeAccountId);
@@ -205,6 +218,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * or null when no matching account is found
      * @param localAccountId
      * @returns The account object stored in MSAL
+     * @deprecated - Use getAccount instead
      */
     getAccountByLocalId(localId: string): AccountInfo | null {
         return this.controller.getAccountByLocalId(localId);
@@ -217,19 +231,19 @@ export class PublicClientApplication implements IPublicClientApplication {
      * This API is provided for convenience but getAccountById should be used for best reliability
      * @param userName
      * @returns The account object stored in MSAL
+     * @deprecated - Use getAccount instead
      */
     getAccountByUsername(userName: string): AccountInfo | null {
         return this.controller.getAccountByUsername(userName);
     }
 
     /**
-     * Returns all accounts that MSAL currently has data for.
-     * (the account object is created at the time of successful login)
-     * or empty array when no accounts are found
-     * @returns Array of account objects in cache
+     * Returns all the accounts in the cache that match the optional filter. If no filter is provided, all accounts are returned.
+     * @param accountFilter - (Optional) filter to narrow down the accounts returned
+     * @returns Array of AccountInfo objects in cache
      */
-    getAllAccounts(): AccountInfo[] {
-        return this.controller.getAllAccounts();
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
+        return this.controller.getAllAccounts(accountFilter);
     }
 
     /**
@@ -293,7 +307,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Clears local cache for the current user then opens a popup window prompting the user to sign-out of the server
      * @param logoutRequest
      */
-    logoutPopup(logoutRequest?: EndSessionRequest): Promise<void> {
+    logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         return this.controller.logoutPopup(logoutRequest);
     }
 

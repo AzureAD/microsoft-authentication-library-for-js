@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 import {
     AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -11,7 +11,6 @@ import {
     TEST_DATA_CLIENT_INFO,
     ID_TOKEN_CLAIMS,
     TEST_URIS,
-    TEST_TOKENS,
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import {
@@ -56,75 +55,53 @@ import {
 } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { Logger } from "../../src/logger/Logger";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
-const testAccountEntity: AccountEntity = new AccountEntity();
-testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
-testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
-testAccountEntity.environment = "login.windows.net";
-testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
-testAccountEntity.name = ID_TOKEN_CLAIMS.name;
-testAccountEntity.authorityType = "MSSTS";
+const testAccountEntity: AccountEntity =
+    buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
-const testIdToken: IdTokenEntity = new IdTokenEntity();
-testIdToken.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testIdToken.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testIdToken.environment = testAccountEntity.environment;
-testIdToken.realm = ID_TOKEN_CLAIMS.tid;
-testIdToken.secret = AUTHENTICATION_RESULT.body.id_token;
-testIdToken.credentialType = CredentialType.ID_TOKEN;
+const testAccount: AccountInfo = {
+    ...testAccountEntity.getAccountInfo(),
+    idTokenClaims: ID_TOKEN_CLAIMS,
+};
 
-const testAccessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-testAccessTokenEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testAccessTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testAccessTokenEntity.environment = testAccountEntity.environment;
-testAccessTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccessTokenEntity.secret = AUTHENTICATION_RESULT.body.access_token;
-testAccessTokenEntity.target =
-    TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
-    " " +
-    TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" ");
-testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
-testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
-testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
+const testIdToken: IdTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.id_token,
+    credentialType: CredentialType.ID_TOKEN,
+};
 
-const testAccessTokenWithAuthSchemeEntity: AccessTokenEntity =
-    new AccessTokenEntity();
-testAccessTokenWithAuthSchemeEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testAccessTokenWithAuthSchemeEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testAccessTokenWithAuthSchemeEntity.environment = testAccountEntity.environment;
-testAccessTokenWithAuthSchemeEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccessTokenWithAuthSchemeEntity.secret = TEST_TOKENS.POP_TOKEN;
-testAccessTokenWithAuthSchemeEntity.target =
-    TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
-    " " +
-    TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" ");
-testAccessTokenWithAuthSchemeEntity.credentialType =
-    CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
-testAccessTokenWithAuthSchemeEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
-testAccessTokenWithAuthSchemeEntity.tokenType = AuthenticationScheme.POP;
+const testAccessTokenEntity: AccessTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.access_token,
+    target:
+        TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
+        " " +
+        TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+    credentialType: CredentialType.ACCESS_TOKEN,
+    cachedAt: `${TimeUtils.nowSeconds()}`,
+    expiresOn: (
+        TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
+    ).toString(),
+    tokenType: AuthenticationScheme.BEARER,
+};
 
-const testRefreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
-testRefreshTokenEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testRefreshTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testRefreshTokenEntity.environment = testAccountEntity.environment;
-testRefreshTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testRefreshTokenEntity.secret = AUTHENTICATION_RESULT.body.refresh_token;
-testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
+const testRefreshTokenEntity: RefreshTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.refresh_token,
+    credentialType: CredentialType.REFRESH_TOKEN,
+};
 
 describe("SilentFlowClient unit tests", () => {
-    const testAccount: AccountInfo = {
-        authorityType: "MSSTS",
-        homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
-        environment: "login.windows.net",
-        tenantId: ID_TOKEN_CLAIMS.tid,
-        username: ID_TOKEN_CLAIMS.preferred_username,
-        localAccountId: ID_TOKEN_CLAIMS.oid,
-        idTokenClaims: ID_TOKEN_CLAIMS,
-        name: ID_TOKEN_CLAIMS.name,
-        nativeAccountId: undefined,
-    };
-
     afterEach(() => {
         sinon.restore();
     });
@@ -167,9 +144,6 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"getEndpointMetadataFromNetwork"
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
@@ -227,9 +201,6 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
-            sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
             sinon
@@ -286,9 +257,6 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
-            sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
             sinon
@@ -334,9 +302,6 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"getEndpointMetadataFromNetwork"
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
@@ -402,9 +367,14 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"getEndpointMetadataFromNetwork"
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+
+            const idTokenClaimsWithAuthTime = {
+                ...ID_TOKEN_CLAIMS,
+                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+            };
             sinon
                 .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
+                .returns(idTokenClaimsWithAuthTime);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
@@ -440,9 +410,12 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(authResult.scopes).toEqual(testScopes);
-            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.account).toEqual({
+                ...testAccount,
+                idTokenClaims: idTokenClaimsWithAuthTime,
+            });
             expect(authResult.idToken).toEqual(testIdToken.secret);
-            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(authResult.idTokenClaims).toEqual(idTokenClaimsWithAuthTime);
             expect(authResult.accessToken).toEqual(
                 testAccessTokenEntity.secret
             );
@@ -491,52 +464,7 @@ describe("SilentFlowClient unit tests", () => {
             );
         });
 
-        it("Throws error if request object is null or undefined", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new SilentFlowClient(config, stubPerformanceClient);
-            //@ts-ignore
-            await expect(client.acquireToken(null)).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
-            );
-            //@ts-ignore
-            await expect(client.acquireToken(undefined)).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
-            );
-            //@ts-ignore
-            await expect(client.acquireCachedToken(null)).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
-            );
-
-            await expect(
-                //@ts-ignore
-                client.acquireCachedToken(undefined)
-            ).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
-            );
-        });
-
         it("Throws error if scopes are not included in request object", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
@@ -628,9 +556,6 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
-            sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
             sinon
@@ -671,9 +596,6 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
-            sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
             sinon
@@ -712,9 +634,6 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"getEndpointMetadataFromNetwork"
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
@@ -755,9 +674,6 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
-            sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
             sinon
@@ -791,19 +707,6 @@ describe("SilentFlowClient unit tests", () => {
     describe("acquireToken tests", () => {
         let config: ClientConfiguration;
         let client: SilentFlowClient;
-        const testAccount: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`,
-            tenantId: ID_TOKEN_CLAIMS.tid,
-            environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
-        };
-
-        let extractTokenClaims: SinonStub;
 
         beforeEach(async () => {
             sinon
@@ -813,16 +716,13 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             AUTHENTICATION_RESULT.body.client_info =
-                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
                     <any>"executePostToTokenEndpoint"
                 )
                 .resolves(AUTHENTICATION_RESULT);
-            extractTokenClaims = sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             sinon
                 .stub(CacheManager.prototype, "readAccountFromCache")
                 .returns(testAccountEntity);
@@ -861,11 +761,7 @@ describe("SilentFlowClient unit tests", () => {
 
             const authResult = await client.acquireToken(silentFlowRequest);
             expect(refreshTokenSpy.called).toBe(false);
-            const expectedScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
-                TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
-            ];
+            const expectedScopes = testAccessTokenEntity.target.split(" ");
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(authResult.scopes).toEqual(expectedScopes);
@@ -899,7 +795,7 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(true);
-            const refreshTokenClientSpy = sinon.stub(
+            const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
@@ -940,11 +836,7 @@ describe("SilentFlowClient unit tests", () => {
 
             const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
-            const expectedScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
-                TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
-            ];
+            const expectedScopes = testAccessTokenEntity.target.split(" ");
             expect(telemetryCacheHitSpy.calledOnce).toBe(true);
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
@@ -961,6 +853,14 @@ describe("SilentFlowClient unit tests", () => {
         it("Throws error if max age is equal to 0 or has transpired since the last end-user authentication", async () => {
             const client = new SilentFlowClient(config, stubPerformanceClient);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
+
+            const idTokenClaimsWithAuthTime = {
+                ...ID_TOKEN_CLAIMS,
+                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+            };
+            sinon
+                .stub(AuthToken, "extractTokenClaims")
+                .returns(idTokenClaimsWithAuthTime);
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -979,12 +879,6 @@ describe("SilentFlowClient unit tests", () => {
         });
 
         it("Throws error if max age is requested and auth time is not included in the token claims", async () => {
-            const idTokenClaimsWithoutAuthTime = {
-                ...ID_TOKEN_CLAIMS,
-                auth_time: undefined,
-            };
-            extractTokenClaims.returns(idTokenClaimsWithoutAuthTime);
-
             const client = new SilentFlowClient(config, stubPerformanceClient);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
@@ -1032,16 +926,13 @@ describe("SilentFlowClient unit tests", () => {
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             AUTHENTICATION_RESULT.body.client_info =
-                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
                     <any>"executePostToTokenEndpoint"
                 )
                 .resolves(AUTHENTICATION_RESULT);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             testAccessTokenEntity.refreshOn = `${
                 Number(testAccessTokenEntity.cachedAt) - 1
             }`;
@@ -1168,9 +1059,6 @@ describe("SilentFlowClient unit tests", () => {
                     <any>"getEndpointMetadataFromNetwork"
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .returns(ID_TOKEN_CLAIMS);
             testAccessTokenEntity.refreshOn = `${
                 Number(testAccessTokenEntity.cachedAt) - 1
             }`;

@@ -7,25 +7,28 @@ import {
     NetworkRequestOptions,
     INetworkModule,
 } from "../../../src/network/INetworkModule";
-import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
+import { ICrypto } from "../../../src/crypto/ICrypto";
 import {
     RANDOM_TEST_GUID,
     TEST_DATA_CLIENT_INFO,
-    TEST_CONFIG,
     TEST_TOKENS,
     TEST_URIS,
     TEST_POP_VALUES,
     PREFERRED_CACHE_ALIAS,
     TEST_CRYPTO_VALUES,
+    ID_TOKEN_CLAIMS,
+    GUEST_ID_TOKEN_CLAIMS,
 } from "../../test_kit/StringConstants";
 import sinon from "sinon";
 import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils";
-import { AccountInfo } from "../../../src/account/AccountInfo";
+import { AccountInfo, TenantProfile } from "../../../src/account/AccountInfo";
 import { AuthorityOptions } from "../../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../../src/authority/ProtocolMode";
 import { LogLevel, Logger } from "../../../src/logger/Logger";
 import { Authority } from "../../../src/authority/Authority";
 import { AuthorityType } from "../../../src/authority/AuthorityType";
+import { TokenClaims } from "../../../src";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 const cryptoInterface: ICrypto = {
     createNewGuid(): string {
@@ -54,12 +57,6 @@ const cryptoInterface: ICrypto = {
             default:
                 return input;
         }
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
-        return {
-            challenge: TEST_CONFIG.TEST_CHALLENGE,
-            verifier: TEST_CONFIG.TEST_VERIFIER,
-        };
     },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
@@ -135,7 +132,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         const ac = new AccountEntity();
         Object.assign(ac, mockAccountEntity);
         expect(ac.generateAccountKey()).toEqual(
-            "uid.utid-login.microsoftonline.com-microsoft"
+            "uid.utid-login.microsoftonline.com-utid"
         );
     });
 
@@ -177,7 +174,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("create an Account with sub instead of oid as localAccountId", () => {
@@ -217,7 +213,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.sub);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("create an Account with emails claim instead of preferred_username claim", () => {
@@ -256,7 +251,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("create an Account no preferred_username or emails claim", () => {
@@ -304,7 +298,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("creates a generic account", () => {
@@ -357,7 +350,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
         expect(acc.authorityType).toBe(CacheAccountType.GENERIC_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("verify if an object is an account entity", () => {
@@ -368,11 +360,54 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(AccountEntity.isAccountEntity(mockIdTokenEntity)).toEqual(false);
     });
 
+    it("getAccountInfo correctly deserializes tenantProfiles in an account entity", () => {
+        const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
+            GUEST_ID_TOKEN_CLAIMS,
+        ]);
+
+        const tenantProfiles = new Map<string, TenantProfile>();
+
+        accountEntity.tenantProfiles?.forEach((tenantProfile) => {
+            tenantProfiles.set(tenantProfile.tenantId, tenantProfile);
+        });
+
+        const accountInfo = accountEntity.getAccountInfo();
+        expect(accountInfo.tenantProfiles).toBeDefined();
+        expect(accountInfo.tenantProfiles?.size).toBe(2);
+        expect(accountInfo.tenantProfiles).toMatchObject(tenantProfiles);
+    });
+
+    it("getAccountInfo creates a new tenantProfiles map if AccountEntity doesn't have a tenantProfiles array", () => {
+        const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        accountEntity.tenantProfiles = undefined;
+
+        const accountInfo = accountEntity.getAccountInfo();
+        expect(accountInfo.tenantProfiles).toBeDefined();
+        expect(accountInfo.tenantProfiles?.size).toBe(0);
+        expect(accountInfo.tenantProfiles).toMatchObject(
+            new Map<string, TenantProfile>()
+        );
+    });
+
+    it("isSingleTenant returns true if AccountEntity doesn't have a tenantProfiles array", () => {
+        const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        accountEntity.tenantProfiles = undefined;
+
+        expect(accountEntity.isSingleTenant()).toBe(true);
+    });
+
+    it("isSingleTenant returns false if AccountEntity has a tenantProfiles array", () => {
+        const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+
+        expect(accountEntity.isSingleTenant()).toBe(false);
+    });
+
     describe("accountInfoIsEqual()", () => {
         let acc: AccountEntity;
+        let idTokenClaims: TokenClaims;
         beforeEach(() => {
             // Set up stubs
-            const idTokenClaims = {
+            idTokenClaims = {
                 ver: "2.0",
                 iat: 1536361411,
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -414,7 +449,10 @@ describe("AccountEntity.ts Unit Tests", () => {
         });
 
         it("returns false if two account info objects represent the same user but have different iat claims", () => {
-            const acc1: AccountInfo = acc.getAccountInfo();
+            const acc1: AccountInfo = {
+                ...acc.getAccountInfo(),
+                idTokenClaims: idTokenClaims,
+            };
             const acc2: AccountInfo = {
                 username: acc1.username,
                 homeAccountId: acc1.homeAccountId,
@@ -456,7 +494,10 @@ describe("AccountEntity.ts Unit Tests", () => {
         });
 
         it("returns false if two account info objects represent the same user but have different nonce claims", () => {
-            const acc1: AccountInfo = acc.getAccountInfo();
+            const acc1: AccountInfo = {
+                ...acc.getAccountInfo(),
+                idTokenClaims: idTokenClaims,
+            };
             const acc2: AccountInfo = {
                 username: acc1.username,
                 homeAccountId: acc1.homeAccountId,
@@ -498,7 +539,10 @@ describe("AccountEntity.ts Unit Tests", () => {
         });
 
         it("returns false if required AccountInfo parameters are not equal", () => {
-            const acc1: AccountInfo = acc.getAccountInfo();
+            const acc1: AccountInfo = {
+                ...acc.getAccountInfo(),
+                idTokenClaims: idTokenClaims,
+            };
             const acc2: AccountInfo = { ...acc1 };
             const acc3: AccountInfo = { ...acc1 };
             const acc4: AccountInfo = { ...acc1 };
@@ -635,7 +679,6 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
         expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
     it("creates a generic ADFS account without OID", () => {
@@ -688,6 +731,5 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(acc.localAccountId).toBe(idTokenClaims.sub);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
-        expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 });

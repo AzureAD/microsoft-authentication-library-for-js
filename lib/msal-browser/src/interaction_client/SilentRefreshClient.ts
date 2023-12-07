@@ -11,6 +11,7 @@ import {
     AuthError,
     AzureCloudOptions,
     PerformanceEvents,
+    invokeAsync,
 } from "@azure/msal-common";
 import { ApiId } from "../utils/BrowserConstants";
 import {
@@ -32,18 +33,17 @@ export class SilentRefreshClient extends StandardInteractionClient {
             request.correlationId
         );
 
-        this.performanceClient.setPreQueueTime(
+        const baseRequest = await invokeAsync(
+            this.initializeBaseRequest.bind(this),
             PerformanceEvents.InitializeBaseRequest,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
+        )(request, request.account);
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
-            ...(await this.initializeBaseRequest(request, request.account)),
+            ...baseRequest,
         };
-        const acquireTokenMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.SilentRefreshClientAcquireToken,
-            silentRequest.correlationId
-        );
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow
         );
@@ -53,34 +53,20 @@ export class SilentRefreshClient extends StandardInteractionClient {
             silentRequest.authority,
             silentRequest.azureCloudOptions
         );
-        this.logger.verbose("Refresh token client created");
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-        this.performanceClient.setPreQueueTime(
+        return invokeAsync(
+            refreshTokenClient.acquireTokenByRefreshToken.bind(
+                refreshTokenClient
+            ),
             PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken,
+            this.logger,
+            this.performanceClient,
             request.correlationId
-        );
-        return refreshTokenClient
-            .acquireTokenByRefreshToken(silentRequest)
-            .then((result) => result as AuthenticationResult)
-            .then((result: AuthenticationResult) => {
-                acquireTokenMeasurement.end({
-                    success: true,
-                    fromCache: result.fromCache,
-                    requestId: result.requestId,
-                });
-
-                return result;
-            })
-            .catch((e: AuthError) => {
-                (e as AuthError).setCorrelationId(this.correlationId);
-                serverTelemetryManager.cacheFailedRequest(e);
-                acquireTokenMeasurement.end({
-                    errorCode: e.errorCode,
-                    subErrorCode: e.subError,
-                    success: false,
-                });
-                throw e;
-            });
+        )(silentRequest).catch((e: AuthError) => {
+            (e as AuthError).setCorrelationId(this.correlationId);
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }) as Promise<AuthenticationResult>;
     }
 
     /**
@@ -106,15 +92,13 @@ export class SilentRefreshClient extends StandardInteractionClient {
         azureCloudOptions?: AzureCloudOptions
     ): Promise<RefreshTokenClient> {
         // Create auth module.
-        this.performanceClient.setPreQueueTime(
+        const clientConfig = await invokeAsync(
+            this.getClientConfiguration.bind(this),
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            this.logger,
+            this.performanceClient,
             this.correlationId
-        );
-        const clientConfig = await this.getClientConfiguration(
-            serverTelemetryManager,
-            authorityUrl,
-            azureCloudOptions
-        );
+        )(serverTelemetryManager, authorityUrl, azureCloudOptions);
         return new RefreshTokenClient(clientConfig, this.performanceClient);
     }
 }

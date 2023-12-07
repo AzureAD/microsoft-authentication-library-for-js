@@ -14,8 +14,8 @@ import { TokenClaims } from "./TokenClaims";
  * - name                   - Full name for the account, including given name and family name
  * - idToken                - raw ID token
  * - idTokenClaims          - Object contains claims from ID token
- * - localAccountId         - The user's account ID
  * - nativeAccountId        - The user's native account ID
+ * - tenantProfiles         - Map of tenant profile objects for each tenant that the account has authenticated with in the browser
  */
 export type AccountInfo = {
     homeAccountId: string;
@@ -36,9 +36,104 @@ export type AccountInfo = {
     };
     nativeAccountId?: string;
     authorityType?: string;
+    tenantProfiles?: Map<string, TenantProfile>;
+};
+
+/**
+ * Account details that vary across tenants for the same user
+ */
+export type TenantProfile = Pick<
+    AccountInfo,
+    "tenantId" | "localAccountId" | "name"
+> & {
+    /**
+     * - isHomeTenant           - True if this is the home tenant profile of the account, false if it's a guest tenant profile
+     */
+    isHomeTenant?: boolean;
 };
 
 export type ActiveAccountFilters = {
     homeAccountId: string;
     localAccountId: string;
+    tenantId?: string;
 };
+
+/**
+ * Returns true if tenantId matches the utid portion of homeAccountId
+ * @param tenantId
+ * @param homeAccountId
+ * @returns
+ */
+export function tenantIdMatchesHomeTenant(
+    tenantId?: string,
+    homeAccountId?: string
+): boolean {
+    return (
+        !!tenantId &&
+        !!homeAccountId &&
+        tenantId === homeAccountId.split(".")[1]
+    );
+}
+
+export function buildTenantProfileFromIdTokenClaims(
+    homeAccountId: string,
+    idTokenClaims: TokenClaims
+): TenantProfile {
+    const { oid, sub, tid, name, tfp, acr } = idTokenClaims;
+
+    /**
+     * Since there is no way to determine if the authority is AAD or B2C, we exhaust all the possible claims that can serve as tenant ID with the following precedence:
+     * tid - TenantID claim that identifies the tenant that issued the token in AAD. Expected in all AAD ID tokens, not present in B2C ID Tokens.
+     * tfp - Trust Framework Policy claim that identifies the policy that was used to authenticate the user. Functions as tenant for B2C scenarios.
+     * acr - Authentication Context Class Reference claim used only with older B2C policies. Fallback in case tfp is not present, but likely won't be present anyway.
+     */
+    const tenantId = tid || tfp || acr || "";
+
+    return {
+        tenantId: tenantId,
+        localAccountId: oid || sub || "",
+        name: name,
+        isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
+    };
+}
+
+/**
+ * Replaces account info that varies by tenant profile sourced from the ID token claims passed in with the tenant-specific account info
+ * @param baseAccountInfo
+ * @param idTokenClaims
+ * @returns
+ */
+export function updateAccountTenantProfileData(
+    baseAccountInfo: AccountInfo,
+    tenantProfile?: TenantProfile,
+    idTokenClaims?: TokenClaims
+): AccountInfo {
+    let updatedAccountInfo = baseAccountInfo;
+    // Tenant Profile overrides passed in account info
+    if (tenantProfile) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { isHomeTenant, ...tenantProfileOverride } = tenantProfile;
+        updatedAccountInfo = { ...baseAccountInfo, ...tenantProfileOverride };
+    }
+
+    // ID token claims override passed in account info and tenant profile
+    if (idTokenClaims) {
+        // Ignore isHomeTenant, loginHint, and sid which are part of tenant profile but not base account info
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { isHomeTenant, ...claimsSourcedTenantProfile } =
+            buildTenantProfileFromIdTokenClaims(
+                baseAccountInfo.homeAccountId,
+                idTokenClaims
+            );
+
+        updatedAccountInfo = {
+            ...updatedAccountInfo,
+            ...claimsSourcedTenantProfile,
+            idTokenClaims: idTokenClaims,
+        };
+
+        return updatedAccountInfo;
+    }
+
+    return updatedAccountInfo;
+}

@@ -1,11 +1,10 @@
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
 import {
     RANDOM_TEST_GUID,
-    TEST_CONFIG,
     TEST_CRYPTO_VALUES,
     TEST_POP_VALUES,
 } from "../test_kit/StringConstants";
-import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
+import { ICrypto } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";
 import {
@@ -44,12 +43,6 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
                     default:
                         return input;
                 }
-            },
-            async generatePkceCodes(): Promise<PkceCodes> {
-                return {
-                    challenge: TEST_CONFIG.TEST_CHALLENGE,
-                    verifier: TEST_CONFIG.TEST_VERIFIER,
-                };
             },
             async getPublicKeyThumbprint(): Promise<string> {
                 return TEST_POP_VALUES.KID;

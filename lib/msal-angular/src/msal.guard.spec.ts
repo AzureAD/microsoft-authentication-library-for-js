@@ -1,30 +1,29 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
-import { UrlTree } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
-import { Location } from '@angular/common';
+import { HttpClientTestingModule } from "@angular/common/http/testing";
+import { TestBed } from "@angular/core/testing";
+import { UrlTree } from "@angular/router";
+import { RouterTestingModule } from "@angular/router/testing";
+import { Location } from "@angular/common";
 import {
   BrowserSystemOptions,
-  BrowserUtils,
   InteractionType,
   IPublicClientApplication,
   LogLevel,
   PublicClientApplication,
   UrlString,
-} from '@azure/msal-browser';
-import { of } from 'rxjs';
+} from "@azure/msal-browser";
+import { of } from "rxjs";
 import {
   MsalModule,
   MsalGuard,
   MsalService,
   MsalBroadcastService,
-} from './public-api';
-import { MsalGuardConfiguration } from './msal.guard.config';
+} from "./public-api";
+import { MsalGuardConfiguration } from "./msal.guard.config";
 
 let guard: MsalGuard;
 let authService: MsalService;
 let routeMock: any = { snapshot: {} };
-let routeStateMock: any = { snapshot: {}, url: '/' };
+let routeStateMock: any = { snapshot: {}, url: "/" };
 let testInteractionType: InteractionType;
 let testLoginFailedRoute: string;
 let testConfiguration: Partial<MsalGuardConfiguration>;
@@ -33,8 +32,8 @@ let browserSystemOptions: BrowserSystemOptions;
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-      clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
-      redirectUri: 'http://localhost:4200',
+      clientId: "6226576d-37e9-49eb-b201-ec1eeb0029b6",
+      redirectUri: "http://localhost:4200",
     },
     system: {
       loggerOptions: {
@@ -75,34 +74,34 @@ function initializeMsal(providers: any[] = []) {
   guard = TestBed.inject(MsalGuard);
 }
 
-describe('MsalGuard', () => {
+describe("MsalGuard", () => {
   beforeEach(() => {
     testInteractionType = InteractionType.Popup;
     testLoginFailedRoute = undefined;
     testConfiguration = {};
     browserSystemOptions = {};
-    routeStateMock = { snapshot: {}, url: '/' };
+    routeStateMock = { snapshot: {}, url: "/" };
     initializeMsal();
   });
 
-  it('is created', () => {
+  it("is created", () => {
     expect(guard).toBeTruthy();
   });
 
-  it('throws error for silent interaction type', (done) => {
+  it("throws error for silent interaction type", (done) => {
     testInteractionType = InteractionType.Silent;
     initializeMsal();
     try {
       guard.canActivate(routeMock, routeStateMock).subscribe((result) => {});
     } catch (err) {
-      expect(err.errorCode).toBe('invalid_interaction_type');
+      expect(err.errorCode).toBe("invalid_interaction_type");
       done();
     }
   });
 
-  it('returns false if page with MSAL Guard is set as redirectUri', (done) => {
-    spyOn(UrlString, 'hashContainsKnownProperties').and.returnValue(true);
-    spyOn(BrowserUtils, 'isInIframe').and.returnValue(true);
+  it("returns false if page with MSAL Guard is set as redirectUri", (done) => {
+    spyOn(UrlString, "hashContainsKnownProperties").and.returnValue(true);
+    spyOnProperty(window, "parent", "get").and.returnValue({ ...window });
 
     guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
       expect(result).toBeFalse();
@@ -110,91 +109,91 @@ describe('MsalGuard', () => {
     });
   });
 
-  it('returns false if page contains known successful response (path routing)', (done) => {
+  it("returns false if page contains known successful response (path routing)", (done) => {
     initializeMsal([
       {
         provide: Location,
         useValue: {
           path: jasmine
-            .createSpy('path')
+            .createSpy("path")
             .and.callFake((hash: boolean) =>
-              hash ? '/path?code=123#code=456' : '/path'
+              hash ? "/path?code=123#code=456" : "/path"
             ),
           prepareExternalUrl: jasmine
-            .createSpy('prepareExternalUrl')
-            .and.callFake((url: string) => '/path'),
+            .createSpy("prepareExternalUrl")
+            .and.callFake((url: string) => "/path"),
         },
       },
     ]);
 
     routeStateMock = {
       snapshot: {},
-      url: '/path?code=123#code=456',
+      url: "/path?code=123#code=456",
       root: {
-        fragment: 'code=456',
+        fragment: "code=456",
       },
     };
 
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue([
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
       {
-        homeAccountId: 'test',
-        localAccountId: 'test',
-        environment: 'test',
-        tenantId: 'test',
-        username: 'test',
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test",
       },
     ]);
 
     guard
       .canActivate(routeMock, routeStateMock)
       .subscribe((result: UrlTree) => {
-        expect(result.toString()).toEqual('/path');
+        expect(result.toString()).toEqual("/path");
         done();
       });
   });
 
-  it('returns true if page contains code= in query parameters only', (done) => {
+  it("returns true if page contains code= in query parameters only", (done) => {
     initializeMsal([
       {
         provide: Location,
         useValue: {
           path: jasmine
-            .createSpy('path')
+            .createSpy("path")
             .and.callFake((hash: boolean) =>
-              hash ? '/path?code=123' : '/path'
+              hash ? "/path?code=123" : "/path"
             ),
           prepareExternalUrl: jasmine
-            .createSpy('prepareExternalUrl')
-            .and.callFake((url: string) => '/path'),
+            .createSpy("prepareExternalUrl")
+            .and.callFake((url: string) => "/path"),
         },
       },
     ]);
 
     routeStateMock = {
       snapshot: {},
-      url: '/path?code=123',
+      url: "/path?code=123",
       root: {
         fragment: null,
       },
     };
 
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue([
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
       {
-        homeAccountId: 'test',
-        localAccountId: 'test',
-        environment: 'test',
-        tenantId: 'test',
-        username: 'test',
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test",
       },
     ]);
 
@@ -206,41 +205,41 @@ describe('MsalGuard', () => {
       });
   });
 
-  it('returns true if page route doesnt end with /code', (done) => {
+  it("returns true if page route doesnt end with /code", (done) => {
     initializeMsal([
       {
         provide: Location,
         useValue: {
           path: jasmine
-            .createSpy('path')
-            .and.callFake((hash: boolean) => (hash ? '/codes' : '/')),
+            .createSpy("path")
+            .and.callFake((hash: boolean) => (hash ? "/codes" : "/")),
           prepareExternalUrl: jasmine
-            .createSpy('prepareExternalUrl')
-            .and.callFake((url: string) => '#/codes'),
+            .createSpy("prepareExternalUrl")
+            .and.callFake((url: string) => "#/codes"),
         },
       },
     ]);
 
     routeStateMock = {
       snapshot: {},
-      url: '/codes',
+      url: "/codes",
       root: {
         fragment: null,
       },
     };
 
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue([
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
       {
-        homeAccountId: 'test',
-        localAccountId: 'test',
-        environment: 'test',
-        tenantId: 'test',
-        username: 'test',
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test",
       },
     ]);
 
@@ -252,41 +251,41 @@ describe('MsalGuard', () => {
       });
   });
 
-  it('returns true if page route doesnt end with /code (short path)', (done) => {
+  it("returns true if page route doesnt end with /code (short path)", (done) => {
     initializeMsal([
       {
         provide: Location,
         useValue: {
           path: jasmine
-            .createSpy('path')
-            .and.callFake((hash: boolean) => (hash ? '/cod' : '/')),
+            .createSpy("path")
+            .and.callFake((hash: boolean) => (hash ? "/cod" : "/")),
           prepareExternalUrl: jasmine
-            .createSpy('prepareExternalUrl')
-            .and.callFake((url: string) => '#/cod'),
+            .createSpy("prepareExternalUrl")
+            .and.callFake((url: string) => "#/cod"),
         },
       },
     ]);
 
     routeStateMock = {
       snapshot: {},
-      url: '/cod',
+      url: "/cod",
       root: {
         fragment: null,
       },
     };
 
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue([
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
       {
-        homeAccountId: 'test',
-        localAccountId: 'test',
-        environment: 'test',
-        tenantId: 'test',
-        username: 'test',
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test",
       },
     ]);
 
@@ -298,65 +297,65 @@ describe('MsalGuard', () => {
       });
   });
 
-  it('returns false if page contains known successful response (hash routing)', (done) => {
+  it("returns false if page contains known successful response (hash routing)", (done) => {
     initializeMsal([
       {
         provide: Location,
         useValue: {
           path: jasmine
-            .createSpy('path')
-            .and.callFake((hash: boolean) => (hash ? '/code=' : '/')),
+            .createSpy("path")
+            .and.callFake((hash: boolean) => (hash ? "/code=" : "/")),
           prepareExternalUrl: jasmine
-            .createSpy('prepareExternalUrl')
-            .and.callFake((url: string) => '#/'),
+            .createSpy("prepareExternalUrl")
+            .and.callFake((url: string) => "#/"),
         },
       },
     ]);
 
     routeStateMock = {
       snapshot: {},
-      url: '/code',
+      url: "/code",
       root: {
         fragment: null,
       },
     };
 
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue([
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
       {
-        homeAccountId: 'test',
-        localAccountId: 'test',
-        environment: 'test',
-        tenantId: 'test',
-        username: 'test',
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test",
       },
     ]);
 
     guard
       .canActivate(routeMock, routeStateMock)
       .subscribe((result: UrlTree) => {
-        expect(result.toString()).toEqual('/');
+        expect(result.toString()).toEqual("/");
         done();
       });
   });
 
-  it('returns true for a logged in user', (done) => {
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+  it("returns true for a logged in user", (done) => {
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue([
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
       {
-        homeAccountId: 'test',
-        localAccountId: 'test',
-        environment: 'test',
-        tenantId: 'test',
-        username: 'test',
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test",
       },
     ]);
 
@@ -366,7 +365,7 @@ describe('MsalGuard', () => {
     });
   });
 
-  it('should return true after logging in with popup', (done) => {
+  it("should return true after logging in with popup", (done) => {
     testConfiguration = {
       authRequest: (authService, state) => {
         expect(state).toBeDefined();
@@ -375,16 +374,16 @@ describe('MsalGuard', () => {
       },
     };
     initializeMsal();
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue(
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue(
       []
     );
 
-    spyOn(MsalService.prototype, 'loginPopup').and.returnValue(
+    spyOn(MsalService.prototype, "loginPopup").and.returnValue(
       //@ts-ignore
       of(true)
     );
@@ -395,17 +394,17 @@ describe('MsalGuard', () => {
     });
   });
 
-  it('should return false after login with popup fails and no loginFailedRoute set', (done) => {
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+  it("should return false after login with popup fails and no loginFailedRoute set", (done) => {
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue(
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue(
       []
     );
 
-    spyOn(MsalService.prototype, 'loginPopup').and.throwError('login error');
+    spyOn(MsalService.prototype, "loginPopup").and.throwError("login error");
 
     guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
       expect(result).toBeFalse();
@@ -413,45 +412,45 @@ describe('MsalGuard', () => {
     });
   });
 
-  it('should return loginFailedRoute after login with popup fails and loginFailedRoute set', (done) => {
-    testLoginFailedRoute = 'failed';
+  it("should return loginFailedRoute after login with popup fails and loginFailedRoute set", (done) => {
+    testLoginFailedRoute = "failed";
     initializeMsal();
 
-    spyOn(guard, 'parseUrl').and.returnValue(
+    spyOn(guard, "parseUrl").and.returnValue(
       testLoginFailedRoute as unknown as UrlTree
     );
 
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue(
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue(
       []
     );
 
-    spyOn(MsalService.prototype, 'loginPopup').and.throwError('login error');
+    spyOn(MsalService.prototype, "loginPopup").and.throwError("login error");
 
     guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
-      expect(result).toBe('failed' as unknown as UrlTree);
+      expect(result).toBe("failed" as unknown as UrlTree);
       done();
     });
   });
 
-  it('should return false after logging in with redirect', (done) => {
+  it("should return false after logging in with redirect", (done) => {
     testInteractionType = InteractionType.Redirect;
     initializeMsal();
 
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue(
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue(
       []
     );
 
-    spyOn(PublicClientApplication.prototype, 'loginRedirect').and.returnValue(
+    spyOn(PublicClientApplication.prototype, "loginRedirect").and.returnValue(
       new Promise((resolve) => {
         resolve();
       })
@@ -463,19 +462,19 @@ describe('MsalGuard', () => {
     });
   });
 
-  it('canActivateChild returns true with logged in user', (done) => {
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+  it("canActivateChild returns true with logged in user", (done) => {
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue([
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
       {
-        homeAccountId: 'test',
-        localAccountId: 'test',
-        environment: 'test',
-        tenantId: 'test',
-        username: 'test',
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test",
       },
     ]);
 
@@ -485,19 +484,19 @@ describe('MsalGuard', () => {
     });
   });
 
-  it('canLoad returns true with logged in user', (done) => {
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+  it("canLoad returns true with logged in user", (done) => {
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue([
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
       {
-        homeAccountId: 'test',
-        localAccountId: 'test',
-        environment: 'test',
-        tenantId: 'test',
-        username: 'test',
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test",
       },
     ]);
 
@@ -507,13 +506,13 @@ describe('MsalGuard', () => {
     });
   });
 
-  it('canLoad returns false with no users logged in', (done) => {
-    spyOn(MsalService.prototype, 'handleRedirectObservable').and.returnValue(
+  it("canLoad returns false with no users logged in", (done) => {
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of('test')
+      of("test")
     );
 
-    spyOn(PublicClientApplication.prototype, 'getAllAccounts').and.returnValue(
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue(
       []
     );
 

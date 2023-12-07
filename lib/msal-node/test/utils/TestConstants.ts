@@ -6,9 +6,10 @@
 import {
     AccountInfo,
     ICrypto,
-    AuthError,
-    PkceCodes,
     AuthenticationResult,
+    createClientAuthError,
+    ClientAuthErrorCodes,
+    TenantProfile,
 } from "@azure/msal-common";
 
 export const TEST_CONSTANTS = {
@@ -96,49 +97,28 @@ export const AUTHENTICATION_RESULT = {
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     createNewGuid: (): string => {
-        const notImplErr =
-            "Crypto interface - createNewGuid() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     base64Decode: (): string => {
-        const notImplErr =
-            "Crypto interface - base64Decode() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     base64Encode: (): string => {
-        const notImplErr =
-            "Crypto interface - base64Encode() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
-        const notImplErr =
-            "Crypto interface - generatePkceCodes() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async getPublicKeyThumbprint(): Promise<string> {
-        const notImplErr =
-            "Crypto interface - getPublicKeyThumbprint() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async removeTokenBindingKey(): Promise<boolean> {
-        const notImplErr =
-            "Crypto interface - removeTokenBindingKey() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async clearKeystore(): Promise<boolean> {
-        const notImplErr =
-            "Crypto interface - clearKeystore() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async signJwt(): Promise<string> {
-        const notImplErr =
-            "Crypto interface - signJwt() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async hashString(): Promise<string> {
-        const notImplErr =
-            "Crypto interface - hashString() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
 };
 
@@ -253,6 +233,17 @@ export const mockAccountInfo: AccountInfo = {
     idTokenClaims: ID_TOKEN_CLAIMS,
     name: ID_TOKEN_CLAIMS.name,
     nativeAccountId: undefined,
+    tenantProfiles: new Map<string, TenantProfile>([
+        [
+            ID_TOKEN_CLAIMS.tid,
+            {
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+                name: ID_TOKEN_CLAIMS.name,
+                isHomeTenant: true,
+            } as TenantProfile,
+        ],
+    ]),
 };
 
 export const mockNativeAccountInfo: AccountInfo = {

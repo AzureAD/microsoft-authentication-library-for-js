@@ -8,12 +8,11 @@
  * @module @azure/msal-browser
  */
 
-/**
- * Warning: This set of exports is purely intended to be used by other MSAL libraries, and should be considered potentially unstable. We strongly discourage using them directly, you do so at your own risk.
- * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
- */
+import * as BrowserUtils from "./utils/BrowserUtils";
+export { BrowserUtils };
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
+export { PublicClientNext } from "./app/PublicClientNext";
 export { IController } from "./controllers/IController";
 export {
     Configuration,
@@ -32,12 +31,6 @@ export {
     ApiId,
     CacheLookupPolicy,
 } from "./utils/BrowserConstants";
-export { BrowserUtils } from "./utils/BrowserUtils";
-
-/*
- * export { IController} from "./controllers/IController";
- * export { StandardController } from "./controllers/StandardController";
- */
 
 // Browser Errors
 export {
@@ -113,6 +106,7 @@ export {
     IdTokenClaims,
     // Error
     AuthError,
+    AuthErrorCodes,
     AuthErrorMessage,
     ClientAuthError,
     ClientAuthErrorCodes,
@@ -141,6 +135,7 @@ export {
     // Utils
     StringUtils,
     UrlString,
+    JsonWebTokenTypes,
     // AzureCloudInstance enum
     AzureCloudInstance,
     AzureCloudOptions,
@@ -151,6 +146,7 @@ export {
     PerformanceEvents,
     // Telemetry
     InProgressPerformanceEvent,
+    TenantProfile,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

@@ -16,6 +16,8 @@ import {
     AuthorityType,
     RefreshTokenEntity,
     TokenClaims,
+    CacheHelpers,
+    Authority,
 } from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -27,6 +29,7 @@ import {
 } from "../../src/config/Configuration";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import {
+    ID_TOKEN_CLAIMS,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
@@ -35,6 +38,7 @@ import {
 } from "../utils/StringConstants";
 import { BrowserAuthErrorMessage, SilentRequest } from "../../src";
 import { base64Decode } from "../../src/encode/Base64Decode";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 describe("TokenCache tests", () => {
     let configuration: BrowserConfiguration;
@@ -110,7 +114,7 @@ describe("TokenCache tests", () => {
             );
             testEnvironment = "login.microsoftonline.com";
 
-            testClientInfo = `${TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED}.${TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED}`;
+            testClientInfo = TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
             testIdTokenClaims = AuthToken.extractTokenClaims(
                 testIdToken,
@@ -124,20 +128,20 @@ describe("TokenCache tests", () => {
                 testIdTokenClaims
             );
 
-            idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            idTokenEntity = CacheHelpers.createIdTokenEntity(
                 testHomeAccountId,
                 testEnvironment,
                 TEST_TOKENS.IDTOKEN_V2,
                 configuration.auth.clientId,
                 TEST_CONFIG.TENANT
             );
-            idTokenKey = idTokenEntity.generateCredentialKey();
+            idTokenKey = CacheHelpers.generateCredentialKey(idTokenEntity);
 
             scopeString = new ScopeSet(
                 TEST_CONFIG.DEFAULT_SCOPES
             ).printScopes();
             (testAccessToken = TEST_TOKENS.ACCESS_TOKEN),
-                (accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+                (accessTokenEntity = CacheHelpers.createAccessTokenEntity(
                     testHomeAccountId,
                     testEnvironment,
                     testAccessToken,
@@ -146,22 +150,25 @@ describe("TokenCache tests", () => {
                     scopeString,
                     TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                     TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
-                    cryptoObj
+                    cryptoObj.base64Decode
                 ));
-            accessTokenKey = accessTokenEntity.generateCredentialKey();
+            accessTokenKey =
+                CacheHelpers.generateCredentialKey(accessTokenEntity);
 
             testRefreshToken = TEST_TOKENS.REFRESH_TOKEN;
-            refreshTokenEntity = RefreshTokenEntity.createRefreshTokenEntity(
+            refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
                 testHomeAccountId,
                 testEnvironment,
                 testRefreshToken,
                 configuration.auth.clientId
             );
-            refreshTokenKey = refreshTokenEntity.generateCredentialKey();
+            refreshTokenKey =
+                CacheHelpers.generateCredentialKey(refreshTokenEntity);
         });
 
         afterEach(() => {
             browserStorage.clear();
+            jest.restoreAllMocks();
         });
 
         it("loads id token with a request account", () => {
@@ -187,14 +194,15 @@ describe("TokenCache tests", () => {
                 options
             );
 
-            const testIdTokenEntity = IdTokenEntity.createIdTokenEntity(
+            const testIdTokenEntity = CacheHelpers.createIdTokenEntity(
                 requestHomeAccountId,
                 testEnvironment,
                 TEST_TOKENS.IDTOKEN_V2,
                 configuration.auth.clientId,
                 TEST_CONFIG.TENANT
             );
-            const testIdTokenKey = testIdTokenEntity.generateCredentialKey();
+            const testIdTokenKey =
+                CacheHelpers.generateCredentialKey(testIdTokenEntity);
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getIdTokenCredential(testIdTokenKey)).toEqual(
@@ -238,17 +246,11 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo,
             };
 
-            const testAccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: testHomeAccountId,
-                environment: testEnvironment,
-                tenantId: TEST_CONFIG.MSAL_TENANT_ID,
-                username: "AbeLi@microsoft.com",
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
-                idTokenClaims: testIdTokenClaims,
-                name: testIdTokenClaims.name,
-                nativeAccountId: undefined,
-            };
+            const testAccountInfo = buildAccountFromIdTokenClaims(
+                ID_TOKEN_CLAIMS,
+                undefined,
+                { environment: testEnvironment }
+            ).getAccountInfo();
             const testAccountKey =
                 AccountEntity.generateAccountCacheKey(testAccountInfo);
             const result = tokenCache.loadExternalTokens(

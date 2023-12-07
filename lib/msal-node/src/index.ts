@@ -90,6 +90,7 @@ export {
     // Error
     AuthError,
     AuthErrorMessage,
+    AuthErrorCodes,
     ClientAuthError,
     ClientAuthErrorCodes,
     ClientAuthErrorMessage,
@@ -119,6 +120,7 @@ export {
     IAppTokenProvider,
     AppTokenProviderParameters,
     AppTokenProviderResult,
+    INativeBrokerPlugin,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata.js";

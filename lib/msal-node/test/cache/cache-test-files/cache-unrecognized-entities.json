@@ -5,17 +5,20 @@
         }
     },
     "Account": {
-        "uid.utid-login.microsoftonline.com-microsoft": {
+        "uid.utid-login.microsoftonline.com-utid": {
             "unrecognized_entity": {
                 "abc123": "123"
             },
             "username": "John Doe",
             "local_account_id": "object1234",
-            "realm": "microsoft",
+            "realm": "utid",
             "environment": "login.microsoftonline.com",
             "home_account_id": "uid.utid",
             "authority_type": "MSSTS",
-            "client_info": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+            "client_info": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+            "tenantProfiles": [
+                "{\"tenantId\":\"utid\",\"localAccountId\":\"object1234\",\"isHomeTenant\":true}"
+            ]
         }
     },
     "RefreshToken": {
@@ -36,11 +39,11 @@
         }
     },
     "AccessToken": {
-        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--": {
+        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-utid-scope1 scope2 scope3--": {
             "environment": "login.microsoftonline.com",
             "credential_type": "AccessToken",
             "secret": "an access token",
-            "realm": "microsoft",
+            "realm": "utid",
             "target": "scope1 scope2 scope3",
             "client_id": "mock_client_id",
             "cached_at": "1000",
@@ -48,11 +51,11 @@
             "extended_expires_on": "4600",
             "expires_on": "4600"
         },
-        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope4 scope5--": {
+        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-utid-scope4 scope5--": {
             "environment": "login.microsoftonline.com",
             "credential_type": "AccessToken",
             "secret": "an access token",
-            "realm": "microsoft",
+            "realm": "utid",
             "target": "scope4 scope5",
             "client_id": "mock_client_id",
             "cached_at": "1000",
@@ -62,11 +65,11 @@
         }
     },
     "IdToken": {
-        "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft---": {
-            "realm": "microsoft",
+        "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-utid---": {
+            "realm": "utid",
             "environment": "login.microsoftonline.com",
             "credential_type": "IdToken",
-            "secret": "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",
+            "secret": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjFMVE16YWtpaGlSbGFfOHoyQkVKVlhlV01xbyJ9.eyJ2ZXIiOiIyLjAiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vOTE4ODA0MGQtNmM2Ny00YzViLWIxMTItMzZhMzA0YjY2ZGFkL3YyLjAiLCJzdWIiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFJa3pxRlZyU2FTYUZIeTc4MmJidGFRIiwiYXVkIjoiNmNiMDQwMTgtYTNmNS00NmE3LWI5OTUtOTQwYzc4ZjVhZWYzIiwiZXhwIjoxNTM2MzYxNDExLCJpYXQiOjE1MzYyNzQ3MTEsIm5iZiI6MTUzNjI3NDcxMSwibmFtZSI6IkFiZSBMaW5jb2xuIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiQWJlTGlAbWljcm9zb2Z0LmNvbSIsIm9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC02NmYzLTMzMzJlY2E3ZWE4MSIsInRpZCI6IjMzMzgwNDBkLTZjNjctNGM1Yi1iMTEyLTM2YTMwNGI2NmRhZCIsIm5vbmNlIjoiMTIzNTIzIiwiYWlvIjoiRGYyVVZYTDFpeCFsTUNXTVNPSkJjRmF0emNHZnZGR2hqS3Y4cTVnMHg3MzJkUjVNQjVCaXN2R1FPN1lXQnlqZDhpUURMcSFlR2JJRGFreXA1bW5PcmNkcUhlWVNubHRlcFFtUnA2QUlaOGpZIn0=.1AFWW-Ck5nROwSlltm7GzZvDwUkqvhSQpm55TQsmVo9Y59cLhRXpvB8n-55HCr9Z6G_31_UbeUkoz612I2j_Sm9FFShSDDjoaLQr54CreGIJvjtmS3EkK9a7SJBbcpL1MpUtlfygow39tFjY7EVNW9plWUvRrTgVk7lYLprvfzw-CIqw3gHC-T7IK_m_xkr08INERBtaecwhTeN4chPC4W3jdmw_lIxzC48YoQ0dB1L9-ImX98Egypfrlbm0IBL5spFzL6JDZIRRJOu8vecJvj1mq-IUhGt0MacxX8jdxYLP-KUu2d9MbNKpCKJuZ7p8gwTL5B7NlUdh_dmSviPWrw",
             "client_id": "mock_client_id",
             "home_account_id": "uid.utid"
         }

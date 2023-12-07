@@ -28,9 +28,19 @@ export {
 } from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
-export { AccountInfo, ActiveAccountFilters } from "./account/AccountInfo";
+export {
+    AccountInfo,
+    ActiveAccountFilters,
+    TenantProfile,
+    updateAccountTenantProfileData,
+    tenantIdMatchesHomeTenant,
+    buildTenantProfileFromIdTokenClaims,
+} from "./account/AccountInfo";
 export * as AuthToken from "./account/AuthToken";
-export { TokenClaims } from "./account/TokenClaims";
+export {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
 export {
@@ -39,10 +49,15 @@ export {
     buildClientInfoFromHomeAccountId,
 } from "./account/ClientInfo";
 // Authority
-export { Authority } from "./authority/Authority";
+export {
+    Authority,
+    formatAuthorityUri,
+    buildStaticAuthorityOptions,
+} from "./authority/Authority";
 export {
     AuthorityOptions,
     AzureCloudInstance,
+    StaticAuthorityOptions,
 } from "./authority/AuthorityOptions";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
@@ -54,6 +69,7 @@ export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
 export {
     AccountCache,
+    AccountFilter,
     AccessTokenCache,
     IdTokenCache,
     RefreshTokenCache,
@@ -65,6 +81,7 @@ export {
 } from "./cache/utils/CacheTypes";
 export { CacheRecord } from "./cache/entities/CacheRecord";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
+export * as CacheHelpers from "./cache/utils/CacheHelpers";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
 export { IdTokenEntity } from "./cache/entities/IdTokenEntity";
@@ -98,7 +115,7 @@ export {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto";
-export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
+export { SignedHttpRequest, ShrOptions } from "./crypto/SignedHttpRequest";
 export { IGuidGenerator } from "./crypto/IGuidGenerator";
 export { JoseHeader } from "./crypto/JoseHeader";
 // Request
@@ -129,7 +146,10 @@ export {
     DeviceCodeResponse,
     ServerDeviceCodeResponse,
 } from "./response/DeviceCodeResponse";
-export { ResponseHandler } from "./response/ResponseHandler";
+export {
+    ResponseHandler,
+    buildAccountToCache,
+} from "./response/ResponseHandler";
 export { ScopeSet } from "./request/ScopeSet";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser";
 // Logger Callback
@@ -141,7 +161,12 @@ export {
     InteractionRequiredAuthErrorMessage,
     createInteractionRequiredAuthError,
 } from "./error/InteractionRequiredAuthError";
-export { AuthError, AuthErrorMessage } from "./error/AuthError";
+export {
+    AuthError,
+    AuthErrorMessage,
+    AuthErrorCodes,
+    createAuthError,
+} from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
 export {
     ClientAuthError,
@@ -169,19 +194,19 @@ export {
     CacheAccountType,
     AuthenticationScheme,
     CodeChallengeMethodValues,
-    SSOTypes,
     PasswordGrantConstants,
     ThrottlingConstants,
     ClaimsRequestKeys,
     HeaderNames,
-    AADServerParamKeys,
     Errors,
     THE_FAMILY_ID,
     ONE_DAY_IN_MS,
     GrantType,
     AADAuthorityConstants,
     HttpStatus,
+    JsonWebTokenTypes,
 } from "./utils/Constants";
+export * as AADServerParamKeys from "./constants/AADServerParamKeys";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export {
@@ -190,6 +215,7 @@ export {
     LibraryStateObject,
 } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
+export * as UrlUtils from "./utils/UrlUtils";
 export * from "./utils/FunctionWrappers";
 // Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";

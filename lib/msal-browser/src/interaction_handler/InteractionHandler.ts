@@ -7,17 +7,14 @@ import {
     AuthorizationCodePayload,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
-    AuthorityFactory,
-    Authority,
-    INetworkModule,
     CcsCredential,
     Logger,
     ServerError,
     IPerformanceClient,
     PerformanceEvents,
     invokeAsync,
-    createClientAuthError,
-    ClientAuthErrorCodes,
+    CcsCredentialType,
+    ServerAuthorizationCodeResponse,
 } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -25,10 +22,8 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
-import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-
-export type InteractionParams = {};
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 
 /**
  * Abstract class which defines operations for a browser interaction handling class.
@@ -58,37 +53,20 @@ export class InteractionHandler {
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponseFromHash(
-        locationHash: string,
-        state: string,
-        authority: Authority,
-        networkModule: INetworkModule
+    async handleCodeResponse(
+        response: ServerAuthorizationCodeResponse,
+        request: AuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.HandleCodeResponseFromHash,
-            this.authCodeRequest.correlationId
+            PerformanceEvents.HandleCodeResponse,
+            request.correlationId
         );
-        this.logger.verbose("InteractionHandler.handleCodeResponse called");
-        // Check that location hash isn't empty.
-        if (!locationHash) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
-        }
-
-        // Handle code response.
-        const stateKey = this.browserStorage.generateStateKey(state);
-        const requestState = this.browserStorage.getTemporaryCache(stateKey);
-        if (!requestState) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.stateNotFound,
-                "Cached State"
-            );
-        }
 
         let authCodeResponse;
         try {
             authCodeResponse = this.authModule.handleFragmentResponse(
-                locationHash,
-                requestState
+                response,
+                request.state
             );
         } catch (e) {
             if (
@@ -104,16 +82,13 @@ export class InteractionHandler {
             }
         }
 
-        this.performanceClient.setPreQueueTime(
+        return invokeAsync(
+            this.handleCodeResponseFromServer.bind(this),
             PerformanceEvents.HandleCodeResponseFromServer,
-            this.authCodeRequest.correlationId
-        );
-        return this.handleCodeResponseFromServer(
-            authCodeResponse,
-            state,
-            authority,
-            networkModule
-        );
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(authCodeResponse, request);
     }
 
     /**
@@ -126,63 +101,46 @@ export class InteractionHandler {
      */
     async handleCodeResponseFromServer(
         authCodeResponse: AuthorizationCodePayload,
-        state: string,
-        authority: Authority,
-        networkModule: INetworkModule,
+        request: AuthorizationUrlRequest,
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.HandleCodeResponseFromServer,
-            this.authCodeRequest.correlationId
+            request.correlationId
         );
         this.logger.trace(
             "InteractionHandler.handleCodeResponseFromServer called"
         );
-
-        // Handle code response.
-        const stateKey = this.browserStorage.generateStateKey(state);
-        const requestState = this.browserStorage.getTemporaryCache(stateKey);
-        if (!requestState) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.stateNotFound,
-                "Cached State"
-            );
-        }
-
-        // Get cached items
-        const nonceKey = this.browserStorage.generateNonceKey(requestState);
-        const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
 
         // Assign code to request
         this.authCodeRequest.code = authCodeResponse.code;
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
-            this.performanceClient.setPreQueueTime(
+            await invokeAsync(
+                this.authModule.updateAuthority.bind(this.authModule),
                 PerformanceEvents.UpdateTokenEndpointAuthority,
-                this.authCodeRequest.correlationId
-            );
-            await this.updateTokenEndpointAuthority(
-                authCodeResponse.cloud_instance_host_name,
-                authority,
-                networkModule
-            );
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(authCodeResponse.cloud_instance_host_name, request.correlationId);
         }
 
         // Nonce validation not needed when redirect not involved (e.g. hybrid spa, renewing token via rt)
         if (validateNonce) {
-            authCodeResponse.nonce = cachedNonce || undefined;
+            // TODO: Assigning "response nonce" to "request nonce" is confusing. Refactor the function doing validation to accept request nonce directly
+            authCodeResponse.nonce = request.nonce || undefined;
         }
 
-        authCodeResponse.state = requestState;
+        authCodeResponse.state = request.state;
 
         // Add CCS parameters if available
         if (authCodeResponse.client_info) {
             this.authCodeRequest.clientInfo = authCodeResponse.client_info;
         } else {
-            const cachedCcsCred = this.checkCcsCredentials();
-            if (cachedCcsCred) {
-                this.authCodeRequest.ccsCredential = cachedCcsCred;
+            const ccsCred = this.createCcsCredentials(request);
+            if (ccsCred) {
+                this.authCodeRequest.ccsCredential = ccsCred;
             }
         }
 
@@ -192,62 +150,29 @@ export class InteractionHandler {
             PerformanceEvents.AuthClientAcquireToken,
             this.logger,
             this.performanceClient,
-            this.authCodeRequest.correlationId
+            request.correlationId
         )(this.authCodeRequest, authCodeResponse)) as AuthenticationResult;
-        this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }
 
     /**
-     * Updates authority based on cloudInstanceHostname
-     * @param cloudInstanceHostname
-     * @param authority
-     * @param networkModule
+     * Build ccs creds if available
      */
-    protected async updateTokenEndpointAuthority(
-        cloudInstanceHostname: string,
-        authority: Authority,
-        networkModule: INetworkModule
-    ): Promise<void> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.UpdateTokenEndpointAuthority,
-            this.authCodeRequest.correlationId
-        );
-        const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
-        const cloudInstanceAuthority =
-            await AuthorityFactory.createDiscoveredInstance(
-                cloudInstanceAuthorityUri,
-                networkModule,
-                this.browserStorage,
-                authority.options,
-                this.logger,
-                this.performanceClient,
-                this.authCodeRequest.correlationId
-            );
-        this.authModule.updateAuthority(cloudInstanceAuthority);
-    }
-
-    /**
-     * Looks up ccs creds in the cache
-     */
-    protected checkCcsCredentials(): CcsCredential | null {
-        // Look up ccs credential in temp cache
-        const cachedCcsCred = this.browserStorage.getTemporaryCache(
-            TemporaryCacheKeys.CCS_CREDENTIAL,
-            true
-        );
-        if (cachedCcsCred) {
-            try {
-                return JSON.parse(cachedCcsCred) as CcsCredential;
-            } catch (e) {
-                this.authModule.logger.error(
-                    "Cache credential could not be parsed"
-                );
-                this.authModule.logger.errorPii(
-                    `Cache credential could not be parsed: ${cachedCcsCred}`
-                );
-            }
+    protected createCcsCredentials(
+        request: AuthorizationUrlRequest
+    ): CcsCredential | null {
+        if (request.account) {
+            return {
+                credential: request.account.homeAccountId,
+                type: CcsCredentialType.HOME_ACCOUNT_ID,
+            };
+        } else if (request.loginHint) {
+            return {
+                credential: request.loginHint,
+                type: CcsCredentialType.UPN,
+            };
         }
+
         return null;
     }
 }

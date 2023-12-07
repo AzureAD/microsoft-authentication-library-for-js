@@ -1,8 +1,103 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 05 Sep 2023 22:13:47 GMT and should not be manually modified.
+This log was last generated on Fri, 01 Dec 2023 18:46:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.6.0
+
+Fri, 01 Dec 2023 18:46:06 GMT
+
+### Minor changes
+
+- Increase default iframe timout to 10s #6700 (hemoral@microsoft.com)
+- Add support for Multi-tenant accounts and cross-tenant token caching #6466 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.5.0
+
+### Patches
+
+- Nested App Auth minor fixes (#6672) (dasau@microsoft.com)
+- Performance optimization when creating hidden iframe (thomas.norling@microsoft.com)
+- Nested App Auth fix for Android response (#6707) (dasau@microsoft.com)
+- Fix logoutPopup request type (thomas.norling@microsoft.com)
+- Fix bug causing temporary cache not to be cleared #6676 (thomas.norling@microsoft.com)
+
+## 3.5.0
+
+Tue, 07 Nov 2023 00:01:50 GMT
+
+### Minor changes
+
+- Optimize response parsing & address bugs related to query response type #6646 (thomas.norling@microsoft.com)
+- Convert ServerTelemetryEntity to Type instead of Class #6651 (thomas.norling@microsoft.com)
+- Make SHR header configurable #6654 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.4.0
+
+### Patches
+
+- Generate one correlation id across a flow #6650 (sameera.gajjarapu@microsoft.com)
+- Fix race condition which may cause popups not to close #6652 (thomas.norling@microsoft.com)
+
+## 3.4.0
+
+Mon, 30 Oct 2023 21:38:24 GMT
+
+### Minor changes
+
+- Don't use temporary cache for silent & popup flows #6586 (thomas.norling@microsoft.com)
+- Refactor token cache entities to be defined as Types rather than Classes #6580 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.3.0
+
+### Patches
+
+- Fix iframe fallback when RT is not found in cache (thomas.norling@microsoft.com)
+- Use invokeAsync in popup/redirect flows (thomas.norling@microsoft.com)
+- Add inlineDynamicImports to rollup config to fix CJS build. Make factory methods basic functions #6615 (kshabelko@microsoft.com)
+
+## 3.3.0
+
+Wed, 18 Oct 2023 17:24:19 GMT
+
+### Minor changes
+
+- Build account objects from cached ID Token #6529 (hemoral@microsoft.com)
+- Added new PublicClientNext and additional Operating Contexts and associated Controllers; Initially to address NestedAppAuth. #6359 (email not defined)
+- Replace custom encoder with TextEncoder in code challenge generator #6560 (thomas.norling@microsoft.com)
+- Preconnect to authority to speed up /token calls #6550 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.2.0
+
+### Patches
+
+- Instrument create/remove hidden iframe & refactor monitorIframeForHash #6533 (thomas.norling@microsoft.com)
+- Additional ATS instrumentation #6562 (thomas.norling@microsoft.com)
+- addressing rollup issue based on combined configuration (email not defined)
+
+## 3.2.0
+
+Thu, 05 Oct 2023 18:06:42 GMT
+
+### Minor changes
+
+-   Modified proactive refresh in silent-flow to also return the cached token when the token needs to be refreshed #6397. (rginsburg@microsoft.com)
+-   Refactor BrowserConfigurationAuthError #6473 (thomas.norling@microsoft.com)
+-   Add getAccount and enhance account filtering #6499 (hemoral@microsoft.com)
+-   Bump @azure/msal-common to v14.1.0
+
+### Patches
+
+-   doc: JSDoc for deprecated BrowserAuthErrorMessage (renaud.aste@ocea-sb.com)
+-   Instrument Crypto APIs #6512 (thomas.norling@microsoft.com)
+-   Refactor ClientAuthError for reduced size #6433 (thomas.norling@microsoft.com)
+-   Fix monitorIframeForHash telemetry event name (thomas.norling@microsoft.com)
+-   Use the proper algo name for `window.crypto.subtle.digest()` #6521 (kshabelko@microsoft.com)
+-   use invoke for telem measurements #6486 (thomas.norling@microsoft.com)
+-   Refactor NativeAuthError, JoseHeaderError and AuthError for reduced size #6497 (thomas.norling@microsoft.com)
+-   Update telemetry measurements to use invoke #6484 (thomas.norling@microsoft.com)
+-   Add tokenBodyParameters support in RefreshTokenClient #6504 (sameera.gajjarapu@microsoft.com)
+-   Refactor ClientConfigurationError #6471 (thomas.norling@microsoft.com)
+-   Refactor InteractionRequiredAuthError #6472 (thomas.norling@microsoft.com)
+-   Bug fix: id token Base64 decoding #6535 (lalimasharda@microsoft.com)
+-   Add missing queue measurement instrumentation #6480 (kshabelko@microsoft.com)
 
 ## 3.1.0
 
@@ -10,26 +105,26 @@ Tue, 05 Sep 2023 22:13:47 GMT
 
 ### Minor changes
 
-- Remove legacy code (IE11 Detection, XHRClient and custom GUID Generator) (thomas.norling@microsoft.com)
-- Remove redundant controller internal methods and classes from internals #6413 (kshabelko@microsoft.com)
-- New API to silently clear cache #6374 (lalimasharda@microsoft.com)
-- Remove browser internals #6420 (kshabelko@microsoft.com)
-- Bump @azure/msal-common to v14.0.3
+-   Remove legacy code (IE11 Detection, XHRClient and custom GUID Generator) (thomas.norling@microsoft.com)
+-   Remove redundant controller internal methods and classes from internals #6413 (kshabelko@microsoft.com)
+-   New API to silently clear cache #6374 (lalimasharda@microsoft.com)
+-   Remove browser internals #6420 (kshabelko@microsoft.com)
+-   Bump @azure/msal-common to v14.0.3
 
 ### Patches
 
-- Clear claims from cache when config is not set #6430 (sameera.gajjarapu@microsoft.com)
-- Add a linter rule to avoid floating promises #6421 (sameera.gajjarapu@microsoft.com)
-- Make AuthToken methods instead of class #6423 (thomas.norling@microsoft.com)
-- Make `eventName` of type string for `BrowserPerformanceClient` and `PerformanceClient` #6386 (kshabelko@microsoft.com)
-- Refactor BrowserAuthError to reduce size (thomas.norling@microsoft.com)
-- Make base64 encoder and decoder methods instead of classes #6416 (thomas.norling@microsoft.com)
-- Instrument ssoSilent #6383 (thomas.norling@microsoft.com)
-- Fix for source-map related errors #6398 (lalimasharda@microsoft.com)
+-   Clear claims from cache when config is not set #6430 (sameera.gajjarapu@microsoft.com)
+-   Add a linter rule to avoid floating promises #6421 (sameera.gajjarapu@microsoft.com)
+-   Make AuthToken methods instead of class #6423 (thomas.norling@microsoft.com)
+-   Make `eventName` of type string for `BrowserPerformanceClient` and `PerformanceClient` #6386 (kshabelko@microsoft.com)
+-   Refactor BrowserAuthError to reduce size (thomas.norling@microsoft.com)
+-   Make base64 encoder and decoder methods instead of classes #6416 (thomas.norling@microsoft.com)
+-   Instrument ssoSilent #6383 (thomas.norling@microsoft.com)
+-   Fix for source-map related errors #6398 (lalimasharda@microsoft.com)
 
 ### Changes
 
-- Remove isEmpty helper API (thomas.norling@microsoft.com)
+-   Remove isEmpty helper API (thomas.norling@microsoft.com)
 
 ## 3.0.2
 
@@ -37,9 +132,9 @@ Fri, 18 Aug 2023 18:40:03 GMT
 
 ### Patches
 
-- Fix input parameter type for addEventCallback (thomas.norling@microsoft.com)
-- Extend hydrateCache request type to include ssoSilentRequest, PopupRequest and RedirectRequest #6329 (thomas.norling@microsoft.com)
-- Bump @azure/msal-common to v14.0.2
+-   Fix input parameter type for addEventCallback (thomas.norling@microsoft.com)
+-   Extend hydrateCache request type to include ssoSilentRequest, PopupRequest and RedirectRequest #6329 (thomas.norling@microsoft.com)
+-   Bump @azure/msal-common to v14.0.2
 
 ## 3.0.1
 
@@ -47,13 +142,13 @@ Fri, 11 Aug 2023 19:00:44 GMT
 
 ### Patches
 
-- Update dist settings for packages #6322 (hemoral@microsoft.com)
-- Add `tokenBodyParameters` to silent and interaction request types #6325 (kshabelko@microsoft.com)
-- Bump @azure/msal-common to v14.0.1
+-   Update dist settings for packages #6322 (hemoral@microsoft.com)
+-   Add `tokenBodyParameters` to silent and interaction request types #6325 (kshabelko@microsoft.com)
+-   Bump @azure/msal-common to v14.0.1
 
 ### Changes
 
-- Pick up broker extra query params #6286 (kshabelko@microsoft.com)
+-   Pick up broker extra query params #6286 (kshabelko@microsoft.com)
 
 ## 3.0.0
 

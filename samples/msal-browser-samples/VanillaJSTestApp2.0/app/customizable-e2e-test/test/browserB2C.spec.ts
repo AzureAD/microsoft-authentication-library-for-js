@@ -12,16 +12,14 @@ import {
     getBrowser,
     getHomeUrl,
     pcaInitializedPoller,
-} from "e2e-test-utils/src/TestUtils";
-import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import {
+    BrowserCacheUtils,
+    LabApiQueryParams,
     AzureEnvironments,
     AppTypes,
     UserTypes,
     B2cProviders,
-} from "e2e-test-utils/src/Constants";
-import { LabClient } from "e2e-test-utils/src/LabClient";
+    LabClient,
+} from "e2e-test-utils";
 import {
     msalConfig as b2cMsalConfig,
     request as b2cTokenRequest,
@@ -30,27 +28,6 @@ import fs from "fs";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 let sampleHomeUrl = "";
-
-async function verifyTokenStore(
-    BrowserCache: BrowserCacheUtils,
-    scopes: string[]
-): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens).toHaveLength(1);
-    expect(tokenStore.accessTokens).toHaveLength(1);
-    expect(tokenStore.refreshTokens).toHaveLength(1);
-    expect(
-        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
-    ).toBeDefined();
-    expect(
-        await BrowserCache.accessTokenForScopesExists(
-            tokenStore.accessTokens,
-            scopes
-        )
-    ).toBeTruthy();
-    const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toEqual(6);
-}
 
 describe("B2C Tests", () => {
     let browser: puppeteer.Browser;
@@ -135,7 +112,9 @@ describe("B2C Tests", () => {
                 );
                 await waitForReturnToApp(screenshot, page);
 
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
 
             it("Performs loginPopup", async () => {
@@ -161,7 +140,9 @@ describe("B2C Tests", () => {
                     popupWindowClosed
                 );
 
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
         });
 
@@ -233,7 +214,9 @@ describe("B2C Tests", () => {
                 );
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
 
             it("acquireTokenPopup", async () => {
@@ -251,7 +234,9 @@ describe("B2C Tests", () => {
                 );
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
 
             it("acquireTokenSilent from Cache", async () => {
@@ -278,7 +263,9 @@ describe("B2C Tests", () => {
                 ]);
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
 
             it("acquireTokenSilent via RefreshToken", async () => {
@@ -296,7 +283,9 @@ describe("B2C Tests", () => {
                 );
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
         });
     });
@@ -357,7 +346,9 @@ describe("B2C Tests", () => {
                 );
                 await waitForReturnToApp(screenshot, page);
 
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
 
             it("Performs loginPopup", async () => {
@@ -383,7 +374,9 @@ describe("B2C Tests", () => {
                     popupWindowClosed
                 );
 
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
         });
 
@@ -455,7 +448,9 @@ describe("B2C Tests", () => {
                 );
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
 
             it("acquireTokenPopup", async () => {
@@ -473,7 +468,9 @@ describe("B2C Tests", () => {
                 );
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
 
             it("acquireTokenSilent from Cache", async () => {
@@ -500,7 +497,9 @@ describe("B2C Tests", () => {
                 ]);
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
 
             it("acquireTokenSilent via RefreshToken", async () => {
@@ -518,7 +517,9 @@ describe("B2C Tests", () => {
                 );
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await BrowserCache.verifyTokenStore({
+                    scopes: b2cTokenRequest.scopes,
+                });
             });
         });
     });

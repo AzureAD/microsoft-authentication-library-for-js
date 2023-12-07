@@ -15,6 +15,8 @@ import {
     RefreshTokenEntity,
     AppMetadataEntity,
     CacheManager,
+    CredentialType,
+    AuthenticationScheme,
 } from "@azure/msal-common";
 import {
     JsonCache,
@@ -61,6 +63,11 @@ export class Deserializer {
                     clientInfo: serializedAcc.client_info,
                     lastModificationTime: serializedAcc.last_modification_time,
                     lastModificationApp: serializedAcc.last_modification_app,
+                    tenantProfiles: serializedAcc.tenantProfiles?.map(
+                        (serializedTenantProfile) => {
+                            return JSON.parse(serializedTenantProfile);
+                        }
+                    ),
                 };
                 const account: AccountEntity = new AccountEntity();
                 CacheManager.toObject(account, mappedAcc);
@@ -82,16 +89,15 @@ export class Deserializer {
         if (idTokens) {
             Object.keys(idTokens).map(function (key) {
                 const serializedIdT = idTokens[key];
-                const mappedIdT = {
+                const idToken: IdTokenEntity = {
                     homeAccountId: serializedIdT.home_account_id,
                     environment: serializedIdT.environment,
-                    credentialType: serializedIdT.credential_type,
+                    credentialType:
+                        serializedIdT.credential_type as CredentialType,
                     clientId: serializedIdT.client_id,
                     secret: serializedIdT.secret,
                     realm: serializedIdT.realm,
                 };
-                const idToken: IdTokenEntity = new IdTokenEntity();
-                CacheManager.toObject(idToken, mappedIdT);
                 idObjects[key] = idToken;
             });
         }
@@ -109,10 +115,11 @@ export class Deserializer {
         if (accessTokens) {
             Object.keys(accessTokens).map(function (key) {
                 const serializedAT = accessTokens[key];
-                const mappedAT = {
+                const accessToken: AccessTokenEntity = {
                     homeAccountId: serializedAT.home_account_id,
                     environment: serializedAT.environment,
-                    credentialType: serializedAT.credential_type,
+                    credentialType:
+                        serializedAT.credential_type as CredentialType,
                     clientId: serializedAT.client_id,
                     secret: serializedAT.secret,
                     realm: serializedAT.realm,
@@ -122,13 +129,11 @@ export class Deserializer {
                     extendedExpiresOn: serializedAT.extended_expires_on,
                     refreshOn: serializedAT.refresh_on,
                     keyId: serializedAT.key_id,
-                    tokenType: serializedAT.token_type,
+                    tokenType: serializedAT.token_type as AuthenticationScheme,
                     requestedClaims: serializedAT.requestedClaims,
                     requestedClaimsHash: serializedAT.requestedClaimsHash,
                     userAssertionHash: serializedAT.userAssertionHash,
                 };
-                const accessToken: AccessTokenEntity = new AccessTokenEntity();
-                CacheManager.toObject(accessToken, mappedAT);
                 atObjects[key] = accessToken;
             });
         }
@@ -147,19 +152,17 @@ export class Deserializer {
         if (refreshTokens) {
             Object.keys(refreshTokens).map(function (key) {
                 const serializedRT = refreshTokens[key];
-                const mappedRT = {
+                const refreshToken: RefreshTokenEntity = {
                     homeAccountId: serializedRT.home_account_id,
                     environment: serializedRT.environment,
-                    credentialType: serializedRT.credential_type,
+                    credentialType:
+                        serializedRT.credential_type as CredentialType,
                     clientId: serializedRT.client_id,
                     secret: serializedRT.secret,
                     familyId: serializedRT.family_id,
                     target: serializedRT.target,
                     realm: serializedRT.realm,
                 };
-                const refreshToken: RefreshTokenEntity =
-                    new RefreshTokenEntity();
-                CacheManager.toObject(refreshToken, mappedRT);
                 rtObjects[key] = refreshToken;
             });
         }

@@ -16,8 +16,6 @@ import {
     testNavUrl,
     TEST_STATE_VALUES,
     TEST_SSH_VALUES,
-    DEFAULT_OPENID_CONFIG_RESPONSE,
-    DEFAULT_TENANT_DISCOVERY_RESPONSE,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
 } from "../utils/StringConstants";
@@ -34,10 +32,8 @@ import {
     CommonEndSessionRequest,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-    Authority,
     CommonAuthorizationCodeRequest,
     AuthError,
-    Logger,
     NetworkManager,
     ProtocolUtils,
     ProtocolMode,
@@ -47,7 +43,8 @@ import {
     ApiId,
     BrowserConstants,
 } from "../../src/utils/BrowserConstants";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
+import * as PkceGenerator from "../../src/crypto/PkceGenerator";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
@@ -58,7 +55,6 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorMessage,
 } from "../../src/error/BrowserAuthError";
-import { FetchClient } from "../../src/network/FetchClient";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
@@ -84,9 +80,10 @@ describe("PopupClient", () => {
             },
         });
 
+        await pca.initialize();
+
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
-        await pca.initialize();
 
         //@ts-ignore
         browserCacheManager = pca.browserStorage;
@@ -127,35 +124,14 @@ describe("PopupClient", () => {
             const popupWindow = {
                 ...window,
                 close: () => {},
+                focus: () => {},
+                location: {
+                    ...window.location,
+                    assign: () => {},
+                },
             };
             // @ts-ignore
-            sinon.stub(window, "open").returns(popupWindow);
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .returns(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(FetchClient.prototype, "sendGetRequestAsync")
-                .callsFake((url) => {
-                    console.log("HERE");
-                    if (
-                        url.startsWith(
-                            "https://login.microsoftonline.com/common/discovery/instance?"
-                        )
-                    ) {
-                        return Promise.resolve(
-                            DEFAULT_TENANT_DISCOVERY_RESPONSE
-                        );
-                    } else {
-                        return Promise.reject({
-                            headers: {},
-                            status: 404,
-                            body: {},
-                        });
-                    }
-                });
+            jest.spyOn(window, "open").mockReturnValue(popupWindow);
         });
 
         afterEach(() => {
@@ -217,7 +193,7 @@ describe("PopupClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -243,6 +219,8 @@ describe("PopupClient", () => {
                 },
             });
 
+            await pca.initialize();
+
             //PCA implementation moved to controller
             pca = (pca as any).controller;
 
@@ -266,7 +244,7 @@ describe("PopupClient", () => {
                 pca.nativeInternalStorage
             );
 
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
@@ -320,6 +298,8 @@ describe("PopupClient", () => {
                 },
             });
 
+            await pca.initialize();
+
             //PCA implementation moved to controller
             pca = (pca as any).controller;
 
@@ -380,19 +360,18 @@ describe("PopupClient", () => {
             sinon
                 .stub(NativeInteractionClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const nativeMessageHandler = new NativeMessageHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
-                getDefaultPerformanceClient(),
-                new CryptoOps(new Logger({}))
+                getDefaultPerformanceClient()
             );
             //@ts-ignore
             popupClient = new PopupClient(
@@ -421,7 +400,7 @@ describe("PopupClient", () => {
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
-        it("throws if server responds with accountId but extension message handler is not instantiated", (done) => {
+        it("throws if server responds with accountId but extension message handler is not instantiated", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -430,6 +409,8 @@ describe("PopupClient", () => {
                     allowNativeBroker: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -491,13 +472,13 @@ describe("PopupClient", () => {
             sinon
                 .stub(NativeInteractionClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             //@ts-ignore
             popupClient = new PopupClient(
                 //@ts-ignore
@@ -518,7 +499,7 @@ describe("PopupClient", () => {
                 pca.nativeInternalStorage
             );
 
-            popupClient
+            const result = await popupClient
                 .acquireToken({
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -532,7 +513,6 @@ describe("PopupClient", () => {
                         BrowserAuthErrorMessage.nativeConnectionNotEstablished
                             .desc
                     );
-                    done();
                 });
         });
 
@@ -592,23 +572,64 @@ describe("PopupClient", () => {
                 .stub(PopupClient.prototype, "monitorPopupForHash")
                 .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
             sinon
-                .stub(
-                    InteractionHandler.prototype,
-                    "handleCodeResponseFromHash"
-                )
+                .stub(InteractionHandler.prototype, "handleCodeResponse")
                 .resolves(testTokenResponse);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const tokenResp = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
             });
             expect(tokenResp).toEqual(testTokenResponse);
+        });
+
+        it("throws hash_empty_error if popup returns to redirectUri without a hash", (done) => {
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockResolvedValue("");
+
+            popupClient
+                .acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                })
+                .catch((e) => {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.hashEmptyError
+                        )
+                    );
+                    done();
+                });
+        });
+
+        it("throws hash_does_not_contain_known_properties error if popup returns to redirectUri with unrecognized params in the hash", (done) => {
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockResolvedValue(
+                "#fakeKey=fakeValue&anotherFakeKey=anotherFakeValue"
+            );
+
+            popupClient
+                .acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                })
+                .catch((e) => {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
+                        )
+                    );
+                    done();
+                });
         });
 
         describe("storeInCache tests", () => {
@@ -627,6 +648,13 @@ describe("PopupClient", () => {
                     NetworkManager.prototype,
                     "sendPostRequest"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
             });
 
             it("does not store idToken if storeInCache.idToken = false", async () => {
@@ -716,13 +744,13 @@ describe("PopupClient", () => {
             sinon
                 .stub(PopupClient.prototype, "initiateAuthRequest")
                 .throws(testError);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             try {
                 await popupClient.acquireToken({
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -775,7 +803,7 @@ describe("PopupClient", () => {
             expect(popupSpy.getCall(0).args).toHaveLength(3);
         });
 
-        it("opens popups asynchronously if configured", (done) => {
+        it("opens popups asynchronously if configured", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -784,6 +812,8 @@ describe("PopupClient", () => {
                     asyncPopups: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -821,11 +851,10 @@ describe("PopupClient", () => {
                             `msal.${TEST_CONFIG.MSAL_CLIENT_ID}`
                         )
                     ).toBeTruthy();
-                    done();
                     return null;
                 });
 
-            popupClient.logout().catch(() => {});
+            await popupClient.logout().catch(() => {});
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
@@ -855,7 +884,7 @@ describe("PopupClient", () => {
             }
         });
 
-        it("includes postLogoutRedirectUri if one is passed", (done) => {
+        it("includes postLogoutRedirectUri if one is passed", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -864,6 +893,8 @@ describe("PopupClient", () => {
                     asyncPopups: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -901,20 +932,19 @@ describe("PopupClient", () => {
                             postLogoutRedirectUri
                         )}`
                     );
-                    done();
                     throw "Stop Test";
                 });
 
             const postLogoutRedirectUri = "https://localhost:8000/logout";
 
-            popupClient
+            const result = await popupClient
                 .logout({
                     postLogoutRedirectUri,
                 })
                 .catch(() => {});
         });
 
-        it("includes postLogoutRedirectUri if one is configured", (done) => {
+        it("includes postLogoutRedirectUri if one is configured", async () => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
             let pca = new PublicClientApplication({
                 auth: {
@@ -925,6 +955,8 @@ describe("PopupClient", () => {
                     asyncPopups: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -960,14 +992,13 @@ describe("PopupClient", () => {
                             postLogoutRedirectUri
                         )}`
                     );
-                    done();
                     throw "Stop Test";
                 });
 
-            popupClient.logout().catch(() => {});
+            const result = await popupClient.logout().catch(() => {});
         });
 
-        it("includes postLogoutRedirectUri as current page if none is set on request", (done) => {
+        it("includes postLogoutRedirectUri as current page if none is set on request", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -976,6 +1007,8 @@ describe("PopupClient", () => {
                     asyncPopups: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -1013,14 +1046,13 @@ describe("PopupClient", () => {
                             window.location.href
                         )}`
                     );
-                    done();
                     throw "Stop Test";
                 });
 
-            popupClient.logout().catch(() => {});
+            const result = await popupClient.logout().catch(() => {});
         });
 
-        it("includes logoutHint if it is set on request", (done) => {
+        it("includes logoutHint if it is set on request", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1029,6 +1061,8 @@ describe("PopupClient", () => {
                     asyncPopups: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -1058,18 +1092,17 @@ describe("PopupClient", () => {
                     expect(urlNavigate).toContain(
                         `logout_hint=${encodeURIComponent(logoutHint)}`
                     );
-                    done();
                     throw "Stop Test";
                 });
 
-            popupClient
+            const result = await popupClient
                 .logout({
                     logoutHint,
                 })
                 .catch(() => {});
         });
 
-        it("includes logoutHint from ID token claims if account is passed in and logoutHint is not", (done) => {
+        it("includes logoutHint from ID token claims if account is passed in and logoutHint is not", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1078,6 +1111,8 @@ describe("PopupClient", () => {
                     asyncPopups: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -1134,7 +1169,6 @@ describe("PopupClient", () => {
             testAccount.authorityType = "MSSTS";
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-            testAccount.idTokenClaims = testIdTokenClaims;
 
             // @ts-ignore
             pca.browserStorage.setAccount(testAccount);
@@ -1145,18 +1179,17 @@ describe("PopupClient", () => {
                     expect(urlNavigate).toContain(
                         `logout_hint=${encodeURIComponent(logoutHint)}`
                     );
-                    done();
                     throw "Stop Test";
                 });
 
-            popupClient
+            const result = await popupClient
                 .logout({
                     account: testAccountInfo,
                 })
                 .catch(() => {});
         });
 
-        it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
+        it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1165,6 +1198,8 @@ describe("PopupClient", () => {
                     asyncPopups: true,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -1221,7 +1256,6 @@ describe("PopupClient", () => {
             testAccount.authorityType = "MSSTS";
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-            testAccount.idTokenClaims = testIdTokenClaims;
 
             // @ts-ignore
             pca.browserStorage.setAccount(testAccount);
@@ -1235,11 +1269,10 @@ describe("PopupClient", () => {
                     expect(urlNavigate).not.toContain(
                         `logout_hint=${encodeURIComponent(loginHint)}`
                     );
-                    done();
                     throw "Stop Test";
                 });
 
-            popupClient
+            const result = await popupClient
                 .logout({
                     account: testAccountInfo,
                     logoutHint,
@@ -1606,26 +1639,7 @@ describe("PopupClient", () => {
             }, 50);
         });
 
-        it("throws when popup has a hash but does not contain known properties", (done) => {
-            const popup: Window = {
-                //@ts-ignore
-                location: {
-                    href: "http://localhost",
-                    hash: "testHash",
-                },
-                close: () => {},
-                closed: false,
-            };
-            popupClient.monitorPopupForHash(popup).catch((e) => {
-                expect(e.errorCode).toEqual(
-                    BrowserAuthErrorMessage
-                        .hashDoesNotContainKnownPropertiesError.code
-                );
-                done();
-            });
-        });
-
-        it("throws timeout if popup is same origin but no hash is present", (done) => {
+        it("throws timeout if popup is same origin but no hash is present", async () => {
             const popup = {
                 location: {
                     href: "http://localhost",
@@ -1642,6 +1656,8 @@ describe("PopupClient", () => {
                     windowHashTimeout: 10,
                 },
             });
+
+            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -1668,13 +1684,14 @@ describe("PopupClient", () => {
                 TEST_CONFIG.CORRELATION_ID
             );
 
-            // @ts-ignore
-            popupClient.monitorPopupForHash(popup).catch((e) => {
-                expect(e.errorCode).toEqual(
-                    BrowserAuthErrorMessage.monitorPopupTimeoutError.code
-                );
-                done();
-            });
+            const result = await popupClient
+                //@ts-ignore
+                .monitorPopupForHash(popup)
+                .catch((e) => {
+                    expect(e.errorCode).toEqual(
+                        BrowserAuthErrorMessage.monitorPopupTimeoutError.code
+                    );
+                });
         });
 
         it("returns hash", (done) => {
@@ -1698,7 +1715,7 @@ describe("PopupClient", () => {
             });
         });
 
-        it("returns server code response in query form when serverResponseType in OIDCOptions is query", (done) => {
+        it("returns server code response in query form when serverResponseType in OIDCOptions is query", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1706,6 +1723,8 @@ describe("PopupClient", () => {
                     OIDCOptions: { serverResponseType: "query" },
                 },
             });
+
+            await pca.initialize();
 
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
@@ -1734,6 +1753,7 @@ describe("PopupClient", () => {
             const popup = {
                 location: {
                     href: TEST_URIS.TEST_QUERY_CODE_RESPONSE,
+                    search: "?code=authCode",
                 },
                 history: {
                     replaceState: () => {
@@ -1744,10 +1764,8 @@ describe("PopupClient", () => {
             };
 
             // @ts-ignore
-            popupClient.monitorPopupForHash(popup).then((hash: string) => {
-                expect(hash).toEqual("code=hello");
-                done();
-            });
+            const result = await popupClient.monitorPopupForHash(popup);
+            expect(result).toEqual("?code=authCode");
         });
 
         it("closed", (done) => {

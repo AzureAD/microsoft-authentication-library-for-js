@@ -6,14 +6,15 @@
 import {
     AuthorizationCodeClient,
     CommonAuthorizationCodeRequest,
-    ICrypto,
-    Authority,
-    INetworkModule,
     Logger,
     ServerError,
     IPerformanceClient,
     createClientAuthError,
     ClientAuthErrorCodes,
+    CcsCredential,
+    invokeAsync,
+    PerformanceEvents,
+    ServerAuthorizationCodeResponse,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -21,37 +22,36 @@ import {
 } from "../error/BrowserAuthError";
 import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 
-export type RedirectParams = InteractionParams & {
+export type RedirectParams = {
     navigationClient: INavigationClient;
     redirectTimeout: number;
     redirectStartPage: string;
     onRedirectNavigate?: (url: string) => void | boolean;
 };
 
-export class RedirectHandler extends InteractionHandler {
-    private browserCrypto: ICrypto;
+export class RedirectHandler {
+    authModule: AuthorizationCodeClient;
+    browserStorage: BrowserCacheManager;
+    authCodeRequest: CommonAuthorizationCodeRequest;
+    logger: Logger;
+    performanceClient: IPerformanceClient;
 
     constructor(
         authCodeModule: AuthorizationCodeClient,
         storageImpl: BrowserCacheManager,
         authCodeRequest: CommonAuthorizationCodeRequest,
         logger: Logger,
-        browserCrypto: ICrypto,
         performanceClient: IPerformanceClient
     ) {
-        super(
-            authCodeModule,
-            storageImpl,
-            authCodeRequest,
-            logger,
-            performanceClient
-        );
-        this.browserCrypto = browserCrypto;
+        this.authModule = authCodeModule;
+        this.browserStorage = storageImpl;
+        this.authCodeRequest = authCodeRequest;
+        this.logger = logger;
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -142,18 +142,11 @@ export class RedirectHandler extends InteractionHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponseFromHash(
-        locationHash: string,
-        state: string,
-        authority: Authority,
-        networkModule: INetworkModule
+    async handleCodeResponse(
+        response: ServerAuthorizationCodeResponse,
+        state: string
     ): Promise<AuthenticationResult> {
         this.logger.verbose("RedirectHandler.handleCodeResponse called");
-
-        // Check that location hash isn't empty.
-        if (!locationHash) {
-            throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
-        }
 
         // Interaction is completed - remove interaction status.
         this.browserStorage.setInteractionInProgress(false);
@@ -171,7 +164,7 @@ export class RedirectHandler extends InteractionHandler {
         let authCodeResponse;
         try {
             authCodeResponse = this.authModule.handleFragmentResponse(
-                locationHash,
+                response,
                 requestState
             );
         } catch (e) {
@@ -197,10 +190,15 @@ export class RedirectHandler extends InteractionHandler {
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
-            await this.updateTokenEndpointAuthority(
+            await invokeAsync(
+                this.authModule.updateAuthority.bind(this.authModule),
+                PerformanceEvents.UpdateTokenEndpointAuthority,
+                this.logger,
+                this.performanceClient,
+                this.authCodeRequest.correlationId
+            )(
                 authCodeResponse.cloud_instance_host_name,
-                authority,
-                networkModule
+                this.authCodeRequest.correlationId
             );
         }
 
@@ -225,5 +223,29 @@ export class RedirectHandler extends InteractionHandler {
 
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
+    }
+
+    /**
+     * Looks up ccs creds in the cache
+     */
+    protected checkCcsCredentials(): CcsCredential | null {
+        // Look up ccs credential in temp cache
+        const cachedCcsCred = this.browserStorage.getTemporaryCache(
+            TemporaryCacheKeys.CCS_CREDENTIAL,
+            true
+        );
+        if (cachedCcsCred) {
+            try {
+                return JSON.parse(cachedCcsCred) as CcsCredential;
+            } catch (e) {
+                this.authModule.logger.error(
+                    "Cache credential could not be parsed"
+                );
+                this.authModule.logger.errorPii(
+                    `Cache credential could not be parsed: ${cachedCcsCred}`
+                );
+            }
+        }
+        return null;
     }
 }

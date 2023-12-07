@@ -124,7 +124,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         let cacheContext;
         try {
             if (this.persistence) {
-                cacheContext = new TokenCacheContext(this, false);
+                cacheContext = new TokenCacheContext(this, true);
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
             return this.storage.getAllAccounts();

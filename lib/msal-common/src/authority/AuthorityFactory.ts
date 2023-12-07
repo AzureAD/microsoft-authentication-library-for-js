@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Authority } from "./Authority";
+import { Authority, formatAuthorityUri } from "./Authority";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -18,6 +18,7 @@ import { AuthorityOptions } from "./AuthorityOptions";
 import { Logger } from "../logger/Logger";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { invokeAsync } from "../utils/FunctionWrappers";
 
 /** @internal */
 export class AuthorityFactory {
@@ -44,9 +45,9 @@ export class AuthorityFactory {
             PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
             correlationId
         );
-
-        const authorityUriFinal =
-            Authority.transformCIAMAuthority(authorityUri);
+        const authorityUriFinal = Authority.transformCIAMAuthority(
+            formatAuthorityUri(authorityUri)
+        );
 
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority =
@@ -61,12 +62,15 @@ export class AuthorityFactory {
             );
 
         try {
-            performanceClient?.setPreQueueTime(
+            await invokeAsync(
+                acquireTokenAuthority.resolveEndpointsAsync.bind(
+                    acquireTokenAuthority
+                ),
                 PerformanceEvents.AuthorityResolveEndpointsAsync,
+                logger,
+                performanceClient,
                 correlationId
-            );
-
-            await acquireTokenAuthority.resolveEndpointsAsync();
+            )();
             return acquireTokenAuthority;
         } catch (e) {
             throw createClientAuthError(

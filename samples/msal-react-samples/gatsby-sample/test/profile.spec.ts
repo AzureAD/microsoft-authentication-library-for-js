@@ -1,27 +1,45 @@
 import * as puppeteer from "puppeteer";
-import {Screenshot, setupCredentials, enterCredentials, RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
-import { LabClient } from "e2e-test-utils/src/LabClient";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
-import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
+import {
+    Screenshot,
+    setupCredentials,
+    enterCredentials,
+    RETRY_TIMES,
+    LabClient,
+    LabApiQueryParams,
+    AzureEnvironments,
+    AppTypes,
+    BrowserCacheUtils,
+} from "e2e-test-utils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/profile-tests`;
 
-async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
+async function verifyTokenStore(
+    BrowserCache: BrowserCacheUtils,
+    scopes: string[]
+): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
     expect(tokenStore.idTokens.length).toBe(1);
     expect(tokenStore.accessTokens.length).toBe(1);
     expect(tokenStore.refreshTokens.length).toBe(1);
-    expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
-    expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
+    expect(
+        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+    ).not.toBeNull();
+    expect(
+        await BrowserCache.accessTokenForScopesExists(
+            tokenStore.accessTokens,
+            scopes
+        )
+    ).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
     expect(Object.keys(storage).length).toBe(7);
-    const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry("b5c2e510-4a17-4feb-b219-e55aa5b74144");
+    const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(
+        "b5c2e510-4a17-4feb-b219-e55aa5b74144"
+    );
     expect(telemetryCacheEntry).not.toBeNull;
     expect(telemetryCacheEntry["cacheHits"]).toBe(1);
 }
 
-describe('/profile', () => {
+describe("/profile", () => {
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -39,13 +57,18 @@ describe('/profile', () => {
 
         const labApiParams: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD
+            appType: AppTypes.CLOUD,
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+        const envResponse = await labClient.getVarsByCloudEnvironment(
+            labApiParams
+        );
 
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [username, accountPwd] = await setupCredentials(
+            envResponse[0],
+            labClient
+        );
     });
 
     beforeEach(async () => {
@@ -63,7 +86,9 @@ describe('/profile', () => {
 
     it("MsalAuthenticationTemplate - invokes loginRedirect if user is not signed in", async () => {
         const testName = "MsalAuthenticationTemplateBaseCase";
-        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
         await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
         await screenshot.takeScreenshot(page, "Home page loaded");
 
@@ -80,7 +105,9 @@ describe('/profile', () => {
 
         // Verify UI now displays logged in content
         await page.waitForXPath("//header[contains(.,'Welcome,')]");
-        const profileButton = await page.waitForSelector("xpath=//header//button");
+        const profileButton = await page.waitForSelector(
+            "xpath=//header//button"
+        );
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout with')]");
         expect(logoutButtons.length).toBe(2);
@@ -92,19 +119,29 @@ describe('/profile', () => {
 
     it("MsalAuthenticationTemplate - renders children without invoking login if user is already signed in", async () => {
         const testName = "MsalAuthenticationTemplateSignedInCase";
-        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
         await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
+        const signInButton = await page.waitForSelector(
+            "xpath=//button[contains(., 'Login')]"
+        );
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const loginPopupButton = await page.waitForSelector("xpath=//li[contains(., 'Sign in using Popup')]");
-        const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
+        const loginPopupButton = await page.waitForSelector(
+            "xpath=//li[contains(., 'Sign in using Popup')]"
+        );
+        const newPopupWindowPromise = new Promise<puppeteer.Page>((resolve) =>
+            page.once("popup", resolve)
+        );
         await loginPopupButton.click();
         const popupPage = await newPopupWindowPromise;
-        const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+        const popupWindowClosed = new Promise<void>((resolve) =>
+            popupPage.once("close", resolve)
+        );
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
@@ -113,7 +150,9 @@ describe('/profile', () => {
 
         // Verify UI now displays logged in content
         await page.waitForXPath("//header[contains(.,'Welcome,')]");
-        const profileButton = await page.waitForSelector("xpath=//header//button");
+        const profileButton = await page.waitForSelector(
+            "xpath=//header//button"
+        );
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout with')]");
         expect(logoutButtons.length).toBe(2);
@@ -127,5 +166,4 @@ describe('/profile', () => {
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
     });
-  }
-);
+});

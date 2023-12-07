@@ -6,6 +6,7 @@ import express from "express";
 import session from "express-session";
 import { PublicClientApplication, AuthorizationCodeRequest, LogLevel, CryptoProvider, AuthorizationUrlRequest, Configuration } from "@azure/msal-node";
 import { RequestWithPKCE } from "./types";
+import 'dotenv/config';
 
 const SERVER_PORT = process.env.PORT || 3000;
 
@@ -37,7 +38,7 @@ const app = express();
  * and set them as desired. Visit: https://www.npmjs.com/package/express-session
  */
 const sessionConfig = {
-    secret: 'ENTER_YOUR_SECRET_HERE',
+    secret: process.env.SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {

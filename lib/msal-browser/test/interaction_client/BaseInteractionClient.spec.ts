@@ -10,8 +10,19 @@ import {
     TokenClaims,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
+    CacheManager,
+    IdTokenEntity,
+    AuthorityMetadataEntity,
 } from "@azure/msal-common";
-import { TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "../utils/StringConstants";
+import {
+    TEST_DATA_CLIENT_INFO,
+    TEST_CONFIG,
+    TEST_TOKENS,
+    DEFAULT_TENANT_DISCOVERY_RESPONSE,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+    ID_TOKEN_CLAIMS,
+    ID_TOKEN_ALT_CLAIMS,
+} from "../utils/StringConstants";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { EndSessionRequest, PublicClientApplication } from "../../src";
 
@@ -35,9 +46,11 @@ describe("BaseInteractionClient", () => {
             },
         });
 
+        await pca.initialize();
+
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
-        await pca.initialize();
+
         // @ts-ignore
         testClient = new testInteractionClient(
             // @ts-ignore
@@ -64,23 +77,23 @@ describe("BaseInteractionClient", () => {
         let testAccountInfo2: AccountInfo;
 
         beforeEach(async () => {
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
+            const testIdTokenClaims: TokenClaims = ID_TOKEN_CLAIMS;
 
             testAccountInfo1 = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                localAccountId: testIdTokenClaims.oid || "",
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+            };
+
+            const idToken1: IdTokenEntity = {
+                realm: testAccountInfo1.tenantId,
+                environment: testAccountInfo1.environment,
+                credentialType: "IdToken",
+                secret: TEST_TOKENS.IDTOKEN_V2,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                homeAccountId: testAccountInfo1.homeAccountId,
             };
 
             const testAccount1: AccountEntity = new AccountEntity();
@@ -94,12 +107,23 @@ describe("BaseInteractionClient", () => {
             testAccount1.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
+            const testIdTokenClaims2: TokenClaims = ID_TOKEN_ALT_CLAIMS;
+
             testAccountInfo2 = {
                 homeAccountId: "different-home-account-id",
-                localAccountId: "different-local-account-id",
+                localAccountId: testIdTokenClaims2.oid || "",
                 environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
+                tenantId: testIdTokenClaims2.tid || "",
+                username: testIdTokenClaims2.preferred_username || "",
+            };
+
+            const idToken2: IdTokenEntity = {
+                realm: testAccountInfo2.tenantId,
+                environment: testAccountInfo2.environment,
+                credentialType: "IdToken",
+                secret: TEST_TOKENS.IDTOKEN_V2_ALT,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                homeAccountId: testAccountInfo2.homeAccountId,
             };
 
             const testAccount2: AccountEntity = new AccountEntity();
@@ -117,11 +141,34 @@ describe("BaseInteractionClient", () => {
             // @ts-ignore
             pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
+            pca.browserStorage.setIdTokenCredential(idToken1);
+            // @ts-ignore
             pca.browserStorage.setAccount(testAccount2);
+            // @ts-ignore
+            pca.browserStorage.setIdTokenCredential(idToken2);
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAuthorityMetadataByAlias"
+            ).mockImplementation((host: string) => {
+                const metadata =
+                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0];
+                const openIdConfigResponse =
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body;
+                const authorityMetadata = new AuthorityMetadataEntity();
+                authorityMetadata.updateCloudDiscoveryMetadata(metadata, true);
+                authorityMetadata.updateEndpointMetadata(
+                    // @ts-ignore
+                    openIdConfigResponse,
+                    true
+                );
+                return authorityMetadata;
+            });
         });
 
         afterEach(() => {
             window.sessionStorage.clear();
+            jest.restoreAllMocks();
         });
 
         it("Removes all accounts from cache if no account provided", async () => {

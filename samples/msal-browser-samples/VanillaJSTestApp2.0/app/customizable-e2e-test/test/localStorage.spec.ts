@@ -12,11 +12,12 @@ import {
     getBrowser,
     getHomeUrl,
     pcaInitializedPoller,
-} from "e2e-test-utils/src/TestUtils";
-import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
-import { LabClient } from "e2e-test-utils/src/LabClient";
+    BrowserCacheUtils,
+    LabApiQueryParams,
+    AzureEnvironments,
+    AppTypes,
+    LabClient,
+} from "e2e-test-utils";
 import {
     msalConfig as aadMsalConfig,
     request as aadTokenRequest,
@@ -24,27 +25,6 @@ import {
 import fs from "fs";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/localStorageTests`;
-
-async function verifyTokenStore(
-    BrowserCache: BrowserCacheUtils,
-    scopes: string[]
-): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens).toHaveLength(1);
-    expect(tokenStore.accessTokens).toHaveLength(1);
-    expect(tokenStore.refreshTokens).toHaveLength(1);
-    expect(
-        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
-    ).toBeDefined();
-    expect(
-        await BrowserCache.accessTokenForScopesExists(
-            tokenStore.accessTokens,
-            scopes
-        )
-    ).toBeTruthy();
-    const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toEqual(6);
-}
 
 describe("LocalStorage Tests", function () {
     let username = "";
@@ -120,7 +100,9 @@ describe("LocalStorage Tests", function () {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("Going back to app during redirect clears cache", async () => {
@@ -166,7 +148,9 @@ describe("LocalStorage Tests", function () {
             );
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
         });
 
         it("Closing popup before login resolves clears cache", async () => {

@@ -24,67 +24,61 @@ import {
     AuthenticationResult,
     AccountInfo,
 } from "@azure/msal-common";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
-const testAccountEntity: AccountEntity = new AccountEntity();
-testAccountEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
-testAccountEntity.environment = "login.microsoftonline.com";
-testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
-testAccountEntity.name = ID_TOKEN_CLAIMS.name;
-testAccountEntity.authorityType = "MSSTS";
-
-const testIdToken: IdTokenEntity = new IdTokenEntity();
-testIdToken.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-testIdToken.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testIdToken.environment = testAccountEntity.environment;
-testIdToken.realm = ID_TOKEN_CLAIMS.tid;
-testIdToken.secret = TEST_TOKENS.IDTOKEN_V2;
-testIdToken.credentialType = CredentialType.ID_TOKEN;
-
-const testAccessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-testAccessTokenEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-testAccessTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testAccessTokenEntity.environment = testAccountEntity.environment;
-testAccessTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccessTokenEntity.secret = TEST_TOKENS.ACCESS_TOKEN;
-testAccessTokenEntity.target = TEST_CONFIG.DEFAULT_SCOPES.join(" ");
-testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
-testAccessTokenEntity.expiresOn = `${TimeUtils.nowSeconds() + 3600}`;
-testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
-testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
-
-const testRefreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
-testRefreshTokenEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-testRefreshTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testRefreshTokenEntity.environment = testAccountEntity.environment;
-testRefreshTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testRefreshTokenEntity.secret = TEST_TOKENS.REFRESH_TOKEN;
-testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
-
+const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
+    ID_TOKEN_CLAIMS,
+    undefined,
+    { environment: "login.microsoftonline.com" }
+);
 const testAccount: AccountInfo = {
-    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
-    environment: testAccountEntity.environment,
-    tenantId: ID_TOKEN_CLAIMS.tid,
-    username: ID_TOKEN_CLAIMS.preferred_username,
-    localAccountId: ID_TOKEN_CLAIMS.oid,
+    ...testAccountEntity.getAccountInfo(),
     idTokenClaims: ID_TOKEN_CLAIMS,
-    name: ID_TOKEN_CLAIMS.name,
-    authorityType: "MSSTS",
-    nativeAccountId: undefined,
+};
+
+const testIdToken: IdTokenEntity = buildIdToken(
+    ID_TOKEN_CLAIMS,
+    TEST_TOKENS.IDTOKEN_V2,
+    {
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: testAccount.environment,
+    }
+);
+
+const testAccessTokenEntity: AccessTokenEntity = {
+    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: TEST_TOKENS.ACCESS_TOKEN,
+    target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+    credentialType: CredentialType.ACCESS_TOKEN,
+    expiresOn: `${TimeUtils.nowSeconds() + 3600}`,
+    cachedAt: `${TimeUtils.nowSeconds()}`,
+    tokenType: AuthenticationScheme.BEARER,
+};
+
+const testRefreshTokenEntity: RefreshTokenEntity = {
+    homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: TEST_TOKENS.REFRESH_TOKEN,
+    credentialType: CredentialType.REFRESH_TOKEN,
 };
 
 describe("SilentCacheClient", () => {
     let silentCacheClient: SilentCacheClient;
     let pca: PublicClientApplication;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
         });
 
+        await pca.initialize();
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
         // @ts-ignore
@@ -158,6 +152,9 @@ describe("SilentCacheClient", () => {
         it("logout clears browser cache", async () => {
             // @ts-ignore
             pca.browserStorage.setAccount(testAccountEntity);
+            // @ts-ignore
+            pca.browserStorage.setIdTokenCredential(testIdToken);
+
             pca.setActiveAccount(testAccount);
             expect(pca.getActiveAccount()).toEqual(testAccount);
             silentCacheClient.logout({ account: testAccount });

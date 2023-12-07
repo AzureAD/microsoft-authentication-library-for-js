@@ -4,13 +4,12 @@ import {
     ClientInfo,
 } from "../../src/account/ClientInfo";
 import {
-    TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     RANDOM_TEST_GUID,
     TEST_POP_VALUES,
     TEST_CRYPTO_VALUES,
 } from "../test_kit/StringConstants";
-import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
+import { ICrypto } from "../../src/crypto/ICrypto";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
@@ -49,12 +48,6 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                             return input;
                     }
                 },
-                async generatePkceCodes(): Promise<PkceCodes> {
-                    return {
-                        challenge: TEST_CONFIG.TEST_CHALLENGE,
-                        verifier: TEST_CONFIG.TEST_VERIFIER,
-                    };
-                },
                 async getPublicKeyThumbprint(): Promise<string> {
                     return TEST_POP_VALUES.KID;
                 },
@@ -87,27 +80,33 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                 ClientAuthError
             );
 
-            expect(() => buildClientInfo("", cryptoInterface)).toThrowError(
-                ClientAuthErrorMessage.clientInfoEmptyError.desc
-            );
-            expect(() => buildClientInfo("", cryptoInterface)).toThrowError(
-                ClientAuthError
-            );
+            expect(() =>
+                buildClientInfo("", cryptoInterface.base64Decode)
+            ).toThrowError(ClientAuthErrorMessage.clientInfoEmptyError.desc);
+            expect(() =>
+                buildClientInfo("", cryptoInterface.base64Decode)
+            ).toThrowError(ClientAuthError);
         });
 
         it("Throws error if function could not successfully decode ", () => {
             expect(() =>
-                buildClientInfo("ThisCan'tbeParsed", cryptoInterface)
+                buildClientInfo(
+                    "ThisCan'tbeParsed",
+                    cryptoInterface.base64Decode
+                )
             ).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(() =>
-                buildClientInfo("ThisCan'tbeParsed", cryptoInterface)
+                buildClientInfo(
+                    "ThisCan'tbeParsed",
+                    cryptoInterface.base64Decode
+                )
             ).toThrowError(ClientAuthError);
         });
 
         it("Succesfully returns decoded client info", () => {
             const clientInfo = buildClientInfo(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                cryptoInterface
+                cryptoInterface.base64Decode
             );
 
             expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
