@@ -50,7 +50,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
     });
 
     afterEach(() => {
+        // reset static variables after each test
         ManagedIdentityClient.identitySource = undefined;
+        ManagedIdentityApplication.nodeStorage = undefined;
     });
 
     // Azure Arc Managed Identities can only be system assigned
@@ -115,7 +117,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
 
             const networkErrorClient: ManagedIdentityNetworkErrorClient =
                 new ManagedIdentityNetworkErrorClient();
-            const sendGetRequestAsyncSpy = jest
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                 .spyOn(networkClient, <any>"sendGetRequestAsync")
                 // override the networkClient's sendGetRequestAsync method to return a 401
                 // and the WWW-Authentication header the first time the network request is executed
@@ -125,7 +127,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     )
                 );
 
-            const readFileSyncSpy = jest
+            const readFileSyncSpy: jest.SpyInstance = jest
                 .spyOn(fs, "readFileSync")
                 .mockReturnValueOnce(TEST_TOKENS.ACCESS_TOKEN);
 
