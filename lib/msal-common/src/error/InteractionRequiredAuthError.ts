@@ -30,6 +30,8 @@ const InteractionRequiredAuthErrorMessages = {
         "No refresh token found in the cache. Please sign-in.",
     [InteractionRequiredAuthErrorCodes.nativeAccountUnavailable]:
         "The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API.",
+    [InteractionRequiredAuthErrorCodes.refreshTokenExpired]:
+        "Refresh token has expired.",
 };
 
 /**
