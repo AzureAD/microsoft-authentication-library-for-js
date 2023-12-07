@@ -89,7 +89,7 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
-import { AuthorizationCodeRequest, EndSessionRequest, } from "../../src";
+import { AuthorizationCodeRequest, EndSessionRequest } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -105,7 +105,10 @@ import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../../src/error/BrowserConfigurationAuthError";
-import { buildConfiguration, Configuration, } from "../../src/config/Configuration";
+import {
+    buildConfiguration,
+    Configuration,
+} from "../../src/config/Configuration";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 import { afterEach, beforeEach } from "node:test";
 
@@ -5869,26 +5872,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                                 default:
                                     return;
                             }
-                        }
+                        },
                     },
                 },
             };
-            window.sessionStorage.setItem(
-                'msal.browser.log.level',
-                'Verbose'
-            );
+            window.sessionStorage.setItem("msal.browser.log.level", "Verbose");
 
             pca = new PublicClientApplication(msalConfig);
             const logger = pca.getLogger();
-            const loggerCallbackStub = jest.spyOn(logger, 'executeCallback').mockImplementation();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
 
             logger.info("test info");
             logger.verbose("test verbose");
             logger.verbosePii("test pii verbose");
 
             expect(loggerCallbackStub).toHaveBeenCalledTimes(2);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Info, expect.stringContaining("test info"), false);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test verbose"), false);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Info,
+                expect.stringContaining("test info"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test verbose"),
+                false
+            );
         });
 
         it("overrides log level from verbose to info", async () => {
@@ -5908,25 +5918,28 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                                 default:
                                     return;
                             }
-                        }
+                        },
                     },
                 },
             };
-            window.sessionStorage.setItem(
-                'msal.browser.log.level',
-                'Info'
-            );
+            window.sessionStorage.setItem("msal.browser.log.level", "Info");
 
             pca = new PublicClientApplication(msalConfig);
             const logger = pca.getLogger();
-            const loggerCallbackStub = jest.spyOn(logger, 'executeCallback').mockImplementation();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
 
             logger.info("test info");
             logger.verbose("test verbose");
             logger.verbosePii("test pii verbose");
 
             expect(loggerCallbackStub).toHaveBeenCalledTimes(1);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Info, expect.stringContaining("test info"), false);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Info,
+                expect.stringContaining("test info"),
+                false
+            );
         });
 
         it("overrides log pii to true", async () => {
@@ -5946,32 +5959,40 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                                 default:
                                     return;
                             }
-                        }
+                        },
                     },
                 },
             };
 
-            window.sessionStorage.setItem(
-                'msal.browser.log.level',
-                'Verbose'
-            );
-            window.sessionStorage.setItem(
-                'msal.browser.log.pii',
-                'true'
-            );
+            window.sessionStorage.setItem("msal.browser.log.level", "Verbose");
+            window.sessionStorage.setItem("msal.browser.log.pii", "true");
 
             pca = new PublicClientApplication(msalConfig);
             const logger = pca.getLogger();
-            const loggerCallbackStub = jest.spyOn(logger, 'executeCallback').mockImplementation();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
 
             logger.info("test info");
             logger.verbose("test verbose");
             logger.verbosePii("test pii verbose");
 
             expect(loggerCallbackStub).toHaveBeenCalledTimes(3);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Info, expect.stringContaining("test info"), false);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test verbose"), false);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test pii verbose"), true);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Info,
+                expect.stringContaining("test info"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test verbose"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test pii verbose"),
+                true
+            );
         });
 
         it("overrides log pii to false", async () => {
@@ -5992,31 +6013,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                                     return;
                             }
                         },
-                        piiLoggingEnabled: true
+                        piiLoggingEnabled: true,
                     },
                 },
             };
 
-            window.sessionStorage.setItem(
-                'msal.browser.log.level',
-                'Verbose'
-            );
-            window.sessionStorage.setItem(
-                'msal.browser.log.pii',
-                'false'
-            );
+            window.sessionStorage.setItem("msal.browser.log.level", "Verbose");
+            window.sessionStorage.setItem("msal.browser.log.pii", "false");
 
             pca = new PublicClientApplication(msalConfig);
             const logger = pca.getLogger();
-            const loggerCallbackStub = jest.spyOn(logger, 'executeCallback').mockImplementation();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
 
             logger.info("test info");
             logger.verbose("test verbose");
             logger.verbosePii("test pii verbose");
 
             expect(loggerCallbackStub).toHaveBeenCalledTimes(2);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Info, expect.stringContaining("test info"), false);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test verbose"), false);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Info,
+                expect.stringContaining("test info"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test verbose"),
+                false
+            );
         });
 
         it("does not override with empty log level and pii keys", async () => {
@@ -6040,32 +6065,40 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                                     return;
                             }
                         },
-                        piiLoggingEnabled: true
+                        piiLoggingEnabled: true,
                     },
                 },
             };
 
-            window.sessionStorage.setItem(
-                'msal.browser.log.level',
-                ''
-            );
-            window.sessionStorage.setItem(
-                'msal.browser.log.pii',
-                ''
-            );
+            window.sessionStorage.setItem("msal.browser.log.level", "");
+            window.sessionStorage.setItem("msal.browser.log.pii", "");
 
             pca = new PublicClientApplication(msalConfig);
             const logger = pca.getLogger();
-            const loggerCallbackStub = jest.spyOn(logger, 'executeCallback').mockImplementation();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
 
             logger.info("test info");
             logger.verbose("test verbose");
             logger.verbosePii("test pii verbose");
 
             expect(loggerCallbackStub).toHaveBeenCalledTimes(3);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Info, expect.stringContaining("test info"), false);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test verbose"), false);
-            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test pii verbose"), true);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Info,
+                expect.stringContaining("test info"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test verbose"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test pii verbose"),
+                true
+            );
         });
     });
 });
