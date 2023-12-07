@@ -70,28 +70,27 @@ export abstract class BaseOperatingContext {
         } catch (e) {}
 
         const logLevelKey = sessionStorage?.getItem(LOG_LEVEL_CACHE_KEY);
+        const piiLoggingKey = sessionStorage?.getItem(LOG_PII_CACHE_KEY)?.toLowerCase();
+
         const piiLoggingEnabled =
-            sessionStorage?.getItem(LOG_PII_CACHE_KEY)?.toLowerCase() ===
-            "true";
+            piiLoggingKey === "true" ? true : piiLoggingKey === "false" ? false : undefined;
         const loggerOptions = { ...this.config.system.loggerOptions };
 
-        if (logLevelKey || piiLoggingEnabled) {
-            const logLevel =
-                logLevelKey && Object.keys(LogLevel).includes(logLevelKey)
-                    ? LogLevel[logLevelKey]
-                    : undefined;
-            if (logLevel) {
-                loggerOptions.loggerCallback =
-                    BaseOperatingContext.loggerCallback;
-                loggerOptions.logLevel = logLevel;
-            }
-            if (piiLoggingEnabled) {
-                loggerOptions.piiLoggingEnabled = piiLoggingEnabled;
-            }
+        const logLevel =
+            logLevelKey && Object.keys(LogLevel).includes(logLevelKey)
+                ? LogLevel[logLevelKey]
+                : undefined;
+        if (logLevel) {
+            loggerOptions.loggerCallback =
+                BaseOperatingContext.loggerCallback;
+            loggerOptions.logLevel = logLevel;
+        }
+        if (piiLoggingEnabled !== undefined) {
+            loggerOptions.piiLoggingEnabled = piiLoggingEnabled;
         }
 
         this.logger = new Logger(
-            this.config.system.loggerOptions,
+            loggerOptions,
             name,
             version
         );

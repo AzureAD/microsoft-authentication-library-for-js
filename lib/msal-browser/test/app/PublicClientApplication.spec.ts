@@ -6,63 +6,63 @@
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import {
-    TEST_CONFIG,
-    TEST_URIS,
-    TEST_TOKENS,
-    ID_TOKEN_CLAIMS,
-    TEST_DATA_CLIENT_INFO,
-    TEST_TOKEN_LIFETIMES,
-    RANDOM_TEST_GUID,
-    testLogoutUrl,
-    TEST_STATE_VALUES,
-    TEST_HASHES,
-    DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-    testNavUrlNoRequest,
-    TEST_SSH_VALUES,
-    TEST_CRYPTO_VALUES,
+    DEFAULT_TENANT_DISCOVERY_RESPONSE,
     ID_TOKEN_ALT_CLAIMS,
+    ID_TOKEN_CLAIMS,
+    RANDOM_TEST_GUID,
+    TEST_CONFIG,
+    TEST_CRYPTO_VALUES,
+    TEST_DATA_CLIENT_INFO,
+    TEST_HASHES,
+    TEST_SSH_VALUES,
+    TEST_STATE_VALUES,
+    TEST_TOKEN_LIFETIMES,
+    TEST_TOKENS,
+    TEST_URIS,
+    testLogoutUrl,
+    testNavUrlNoRequest,
 } from "../utils/StringConstants";
 import {
-    AuthorityMetadataEntity,
-    ServerError,
-    Constants,
-    AccountInfo,
-    TokenClaims,
-    CommonAuthorizationUrlRequest,
-    AuthorizationCodeClient,
-    ResponseMode,
     AccountEntity,
-    ProtocolUtils,
+    AccountInfo,
     AuthenticationScheme,
-    RefreshTokenClient,
-    Logger,
-    ServerTelemetryEntity,
-    CommonSilentFlowRequest,
-    LogLevel,
-    CommonAuthorizationCodeRequest,
-    IdTokenEntity,
-    CacheManager,
-    PersistentCacheKeys,
     AuthError,
-    ProtocolMode,
-    ServerResponseType,
-    PerformanceEvents,
-    createClientAuthError,
-    ClientAuthErrorCodes,
-    createInteractionRequiredAuthError,
-    InteractionRequiredAuthErrorCodes,
+    AuthorityMetadataEntity,
+    AuthorizationCodeClient,
     CacheHelpers,
+    CacheManager,
+    ClientAuthErrorCodes,
+    CommonAuthorizationCodeRequest,
+    CommonAuthorizationUrlRequest,
+    CommonSilentFlowRequest,
+    Constants,
+    createClientAuthError,
+    createInteractionRequiredAuthError,
+    IdTokenEntity,
+    InteractionRequiredAuthErrorCodes,
+    Logger,
+    LogLevel,
+    PerformanceEvents,
+    PersistentCacheKeys,
+    ProtocolMode,
+    ProtocolUtils,
+    RefreshTokenClient,
+    ResponseMode,
+    ServerError,
+    ServerResponseType,
+    ServerTelemetryEntity,
+    TokenClaims,
 } from "@azure/msal-common";
 import {
     ApiId,
-    InteractionType,
-    WrapperSKU,
-    TemporaryCacheKeys,
-    BrowserConstants,
     BrowserCacheLocation,
+    BrowserConstants,
     CacheLookupPolicy,
+    InteractionType,
     NativeConstants,
+    TemporaryCacheKeys,
+    WrapperSKU,
 } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
@@ -80,20 +80,16 @@ import { base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
-    createBrowserAuthError,
     BrowserAuthErrorCodes,
     BrowserAuthErrorMessage,
+    createBrowserAuthError,
 } from "../../src/error/BrowserAuthError";
 import * as BrowserUtils from "../../src/utils/BrowserUtils";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
-import {
-    AuthorizationCodeRequest,
-    EndSessionRequest,
-    version,
-} from "../../src";
+import { AuthorizationCodeRequest, EndSessionRequest, } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -109,11 +105,9 @@ import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../../src/error/BrowserConfigurationAuthError";
-import {
-    Configuration,
-    buildConfiguration,
-} from "../../src/config/Configuration";
+import { buildConfiguration, Configuration, } from "../../src/config/Configuration";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
+import { afterEach, beforeEach } from "node:test";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -5828,6 +5822,224 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(result.idToken).toEqual(nativeResult.idToken);
             expect(result.account).toEqual(nativeAccount);
             expect(result.fromCache).toEqual(true);
+        });
+    });
+
+    describe("override logger settings tests", () => {
+        it("overrides log level from info to verbose", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Info,
+                        loggerCallback: (level, message, containsPii) => {
+                            switch (level) {
+                                case LogLevel.Info:
+                                    console.info(message);
+                                    return;
+                                default:
+                                    return;
+                            }
+                        }
+                    },
+                },
+            };
+            window.sessionStorage.setItem(
+                'msal.browser.log.level',
+                'Verbose'
+            );
+
+            pca = new PublicClientApplication(msalConfig);
+            const logger = pca.getLogger();
+            const loggerCallbackStub = jest.spyOn(logger, 'executeCallback').mockImplementation();
+
+            logger.info("test info");
+            logger.verbose("test verbose");
+            logger.verbosePii("test pii verbose");
+
+            expect(loggerCallbackStub).toHaveBeenCalledTimes(2);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Info, expect.stringContaining("test info"), false);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test verbose"), false);
+        });
+
+        it("overrides log level from verbose to info", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Verbose,
+                        loggerCallback: (level, message, containsPii) => {
+                            switch (level) {
+                                case LogLevel.Verbose:
+                                    console.debug(message);
+                                    return;
+                                default:
+                                    return;
+                            }
+                        }
+                    },
+                },
+            };
+            window.sessionStorage.setItem(
+                'msal.browser.log.level',
+                'Info'
+            );
+
+            pca = new PublicClientApplication(msalConfig);
+            const logger = pca.getLogger();
+            const loggerCallbackStub = jest.spyOn(logger, 'executeCallback').mockImplementation();
+
+            logger.info("test info");
+            logger.verbose("test verbose");
+            logger.verbosePii("test pii verbose");
+
+            expect(loggerCallbackStub).toHaveBeenCalledTimes(1);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Info, expect.stringContaining("test info"), false);
+        });
+
+        it("overrides log pii to true", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Info,
+                        loggerCallback: (level, message, containsPii) => {
+                            switch (level) {
+                                case LogLevel.Info:
+                                    console.info(message);
+                                    return;
+                                default:
+                                    return;
+                            }
+                        }
+                    },
+                },
+            };
+
+            window.sessionStorage.setItem(
+                'msal.browser.log.level',
+                'Verbose'
+            );
+            window.sessionStorage.setItem(
+                'msal.browser.log.pii',
+                'true'
+            );
+
+            pca = new PublicClientApplication(msalConfig);
+            const logger = pca.getLogger();
+            const loggerCallbackStub = jest.spyOn(logger, 'executeCallback').mockImplementation();
+
+            logger.info("test info");
+            logger.verbose("test verbose");
+            logger.verbosePii("test pii verbose");
+
+            expect(loggerCallbackStub).toHaveBeenCalledTimes(3);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Info, expect.stringContaining("test info"), false);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test verbose"), false);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test pii verbose"), true);
+        });
+
+        it("overrides log pii to false", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Info,
+                        loggerCallback: (level, message, containsPii) => {
+                            switch (level) {
+                                case LogLevel.Info:
+                                    console.info(message);
+                                    return;
+                                default:
+                                    return;
+                            }
+                        },
+                        piiLoggingEnabled: true
+                    },
+                },
+            };
+
+            window.sessionStorage.setItem(
+                'msal.browser.log.level',
+                'Verbose'
+            );
+            window.sessionStorage.setItem(
+                'msal.browser.log.pii',
+                'false'
+            );
+
+            pca = new PublicClientApplication(msalConfig);
+            const logger = pca.getLogger();
+            const loggerCallbackStub = jest.spyOn(logger, 'executeCallback').mockImplementation();
+
+            logger.info("test info");
+            logger.verbose("test verbose");
+            logger.verbosePii("test pii verbose");
+
+            expect(loggerCallbackStub).toHaveBeenCalledTimes(2);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Info, expect.stringContaining("test info"), false);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test verbose"), false);
+        });
+
+        it("does not override with empty log level and pii keys", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Verbose,
+                        loggerCallback: (level, message, containsPii) => {
+                            switch (level) {
+                                case LogLevel.Info:
+                                    console.info(message);
+                                    return;
+                                case LogLevel.Verbose:
+                                    console.debug(message);
+                                    return;
+                                default:
+                                    return;
+                            }
+                        },
+                        piiLoggingEnabled: true
+                    },
+                },
+            };
+
+            window.sessionStorage.setItem(
+                'msal.browser.log.level',
+                ''
+            );
+            window.sessionStorage.setItem(
+                'msal.browser.log.pii',
+                ''
+            );
+
+            pca = new PublicClientApplication(msalConfig);
+            const logger = pca.getLogger();
+            const loggerCallbackStub = jest.spyOn(logger, 'executeCallback').mockImplementation();
+
+            logger.info("test info");
+            logger.verbose("test verbose");
+            logger.verbosePii("test pii verbose");
+
+            expect(loggerCallbackStub).toHaveBeenCalledTimes(3);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Info, expect.stringContaining("test info"), false);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test verbose"), false);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(LogLevel.Verbose, expect.stringContaining("test pii verbose"), true);
         });
     });
 });

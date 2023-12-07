@@ -65,18 +65,30 @@ These are the steps to override MSAL log level and PII settings to troubleshoot 
 
 ### Navigate to session storage
 
-1. Open developer tools by pressing F12
-2. Navigate to `Application` tab
-3. Click `Storage` and expand `Session Storage`
-4. Select target domain
-
-Additional details can be found [here](https://learn.microsoft.com/en-us/microsoft-edge/devtools-guide-chromium/storage/sessionstorage).
+1. Open browser developer tools
+   - Edge, Chrome and Firefox browsers: press F12
+   - Safari: go into Safari's preferences (`Safari Menu` > `Preferences`), select the `Advanced Tab` and enable `Show features for web developers`. Once that menu is enabled, you will find the developer console by clicking on `Develop` > `Show Javascript Console`
+2. Navigate to `Session Storage`:
+   - [Edge](https://learn.microsoft.com/en-us/microsoft-edge/devtools-guide-chromium/storage/sessionstorage)
+   - [Chrome](https://developer.chrome.com/docs/devtools/storage/sessionstorage)
+   - [Firefox](https://firefox-source-docs.mozilla.org/devtools-user/storage_inspector/local_storage_session_storage)
+   - Safari: navigate to `Storage` tab and expand `Session Storage`
+3. Select target domain
 
 ### Override log level
 
-Add `msal.browser.log.level` key to `Session Storage`, set it's value to the desired log level (`Verbose`, for example) and refresh the page.
+Add `msal.browser.log.level` key to `Session Storage`, set it's value to the desired log level (`Verbose`, for example), refresh the page and retry the sign-in operation.
 Check `LogLevel` enum for the available options [here](../../msal-common/src/logger/Logger.ts).
 
 ### Override PII log setting
 
-Add `msal.browser.log.pii` key to `Session Storage`, set it's value to `true` or `false` and refresh the page.
+Add `msal.browser.log.pii` key to `Session Storage`, set it's value to `true` or `false`, refresh the page and retry the sign-in operation.
+
+### Retrieve captured logs
+
+1. Navigate to the console tab:
+   - [Edge](https://learn.microsoft.com/en-us/microsoft-edge/devtools-guide-chromium/console)
+   - [Chrome](https://developer.chrome.com/docs/devtools/console)
+   - [Firefox](https://firefox-source-docs.mozilla.org/devtools-user/browser_console)
+   - Safari: open JavaScript console and navigate to `Console`
+2. Please review the logs to ensure they do not contain sensitive data before sharing them
