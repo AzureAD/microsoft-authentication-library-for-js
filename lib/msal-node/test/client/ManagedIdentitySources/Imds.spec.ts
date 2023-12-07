@@ -11,18 +11,15 @@ import {
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_RESOURCE_ID_2,
-    MANAGED_IDENTITY_RESOURCE_ID_3,
-    MANAGED_IDENTITY_SYSTEM_ASSIGNED_CACHE_KEY,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
-    MANAGED_IDENTITY_USER_ASSIGNED_CLIENT_ID_CACHE_KEY,
-    MANAGED_IDENTITY_USER_ASSIGNED_OBJECT_ID_CACHE_KEY,
+    getCacheKey,
 } from "../../test_kit/StringConstants";
 
 import {
     ManagedIdentityTestUtils,
     ManagedIdentityNetworkClient,
     ManagedIdentityNetworkErrorClient,
-    userAssignedNetworkClient,
+    networkClient,
     userAssignedClientIdConfig,
     managedIdentityRequestParams,
     systemAssignedConfig,
@@ -44,7 +41,11 @@ import {
 } from "../../../src/error/ManagedIdentityError";
 import { mockCrypto } from "../ClientTestUtils";
 import sinon from "sinon";
-import { ClientCredentialClient } from "../../../src";
+import {
+    CacheKVStore,
+    ClientCredentialClient,
+    NodeStorage,
+} from "../../../src";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     let OLD_ENVS: NodeJS.ProcessEnv;
@@ -69,11 +70,12 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
     afterEach(() => {
         ManagedIdentityClient.identitySource = undefined;
+        ManagedIdentityApplication.nodeStorage = undefined;
     });
 
     const userAssignedObjectIdConfig: ManagedIdentityConfiguration = {
         system: {
-            networkClient: userAssignedNetworkClient,
+            networkClient,
         },
         managedIdentityIdParams: {
             userAssignedObjectId: MANAGED_IDENTITY_RESOURCE_ID,
@@ -81,7 +83,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     };
     const userAssignedResourceIdConfig: ManagedIdentityConfiguration = {
         system: {
-            networkClient: userAssignedNetworkClient,
+            networkClient,
         },
         managedIdentityIdParams: {
             userAssignedResourceId: MANAGED_IDENTITY_RESOURCE_ID,
@@ -92,9 +94,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         test("acquires a User Assigned Client Id token", async () => {
             expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
-            const managedIdentityApplication = new ManagedIdentityApplication(
-                userAssignedClientIdConfig
-            );
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedClientIdConfig);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -109,9 +110,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         test("acquires a User Assigned Object Id token", async () => {
             expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
-            const managedIdentityApplication = new ManagedIdentityApplication(
-                userAssignedObjectIdConfig
-            );
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedObjectIdConfig);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -126,9 +126,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         test("acquires a User Assigned Resource Id token", async () => {
             expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
-            const managedIdentityApplication = new ManagedIdentityApplication(
-                userAssignedResourceIdConfig
-            );
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedResourceIdConfig);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -275,9 +274,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
 
-            const nowSeconds = TimeUtils.nowSeconds();
-            const expiredRefreshOn = nowSeconds - 3600;
-            const fakeAccessTokenEntity =
+            const nowSeconds: number = TimeUtils.nowSeconds();
+            const expiredRefreshOn: number = nowSeconds - 3600;
+            const fakeAccessTokenEntity: AccessTokenEntity =
                 AccessTokenEntity.createAccessTokenEntity(
                     "", // homeAccountId
                     "https://login.microsoftonline.com/common/", // environment
@@ -354,31 +353,31 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             ).toBe(false);
         });
 
-        test("requests three tokens with two different resources while switching between user and system assigned, then requests them again to verify they are retrieved from the cache.", async () => {
+        test("requests three tokens with two different resources while switching between user and system assigned, then requests them again to verify they are retrieved from the cache, then verifies that their cache keys are correct", async () => {
             expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
-            // systemAssignedManagedIdentityApplicationR1 is the default System Assigned Managed Identity Application
+            // the imported systemAssignedManagedIdentityApplication is the default System Assigned Managed Identity Application.
+            // for reference, in this case it is equivalent to systemAssignedManagedIdentityApplicationResource1
 
-            const systemAssignedManagedIdentityApplicationR2: ManagedIdentityApplication =
+            const userAssignedClientIdManagedIdentityApplicationResource1: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
-                        networkClient: new ManagedIdentityNetworkClient(
-                            MANAGED_IDENTITY_RESOURCE_ID_2,
-                            MANAGED_IDENTITY_RESOURCE
-                        ),
+                        networkClient,
+                    },
+                    managedIdentityIdParams: {
+                        userAssignedClientId: MANAGED_IDENTITY_RESOURCE_ID,
                     },
                 });
 
-            const userAssignedClientIdManagedIdentityApplicationR2: ManagedIdentityApplication =
+            const userAssignedObjectIdManagedIdentityApplicationResource2: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
                         networkClient: new ManagedIdentityNetworkClient(
-                            MANAGED_IDENTITY_RESOURCE_ID_2,
-                            MANAGED_IDENTITY_RESOURCE
+                            MANAGED_IDENTITY_RESOURCE_ID_2
                         ),
                     },
                     managedIdentityIdParams: {
-                        userAssignedClientId: MANAGED_IDENTITY_RESOURCE_ID_2,
+                        userAssignedObjectId: MANAGED_IDENTITY_RESOURCE_ID_2,
                     },
                 });
 
@@ -390,135 +389,101 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 );
             expect(networkManagedIdentityResult.fromCache).toBe(false);
 
-            // ManagedIdentityClient.identitySource (IMDS in this case) is static/
-            // Therefore, this is needed to tell the ManagedIdentityClient to make a
-            // new instance of IMDS so that the relevant cache (nodeStorage) is used.
-            // Otherwise the same cache (nodeStorage) will be used for all three of
-            // these managed identity applications (and cause test failures).
+            // not needed in production, but this resets the network client for the next application
+            // since the network client is mocked for each application
             ManagedIdentityClient.identitySource = undefined;
 
             // resource R2 for system assigned - returned from a network request
             networkManagedIdentityResult =
-                await systemAssignedManagedIdentityApplicationR2.acquireToken(
+                await userAssignedClientIdManagedIdentityApplicationResource1.acquireToken(
                     managedIdentityRequestParams
                 );
             expect(networkManagedIdentityResult.fromCache).toBe(false);
 
-            // ManagedIdentityClient.identitySource (IMDS in this case) is static/
-            // Therefore, this is needed to tell the ManagedIdentityClient to make a
-            // new instance of IMDS so that the relevant cache (nodeStorage) is used.
-            // Otherwise the same cache (nodeStorage) will be used for all three of
-            // these managed identity applications (and cause test failures).
+            // not needed in production, but this resets the network client for the next application
+            // since the network client is mocked for each application
             ManagedIdentityClient.identitySource = undefined;
 
             // resource R2 for user assigned - returned from a network request
             networkManagedIdentityResult =
-                await userAssignedClientIdManagedIdentityApplicationR2.acquireToken(
+                await userAssignedObjectIdManagedIdentityApplicationResource2.acquireToken(
                     managedIdentityRequestParams
                 );
             expect(networkManagedIdentityResult.fromCache).toBe(false);
             // ********** end: return access tokens from a network request **********
 
             // ********** begin: return access tokens from the cache **********
-            // resource R1 for system assigned - same request as before, returned from the cache this time
+            // resource R1 for system assigned - new application (to prove static cache persists), but same request as before, returned from the cache this time
+            const systemAssignedManagedIdentityApplicationClone: ManagedIdentityApplication =
+                new ManagedIdentityApplication(systemAssignedConfig);
             let cachedManagedIdentityResult: AuthenticationResult =
-                await systemAssignedManagedIdentityApplication.acquireToken({
-                    resource: MANAGED_IDENTITY_RESOURCE,
-                });
+                await systemAssignedManagedIdentityApplicationClone.acquireToken(
+                    {
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    }
+                );
             expect(cachedManagedIdentityResult.fromCache).toBe(true);
 
-            // resource R2 for system assigned - same request as before, returned from the cache this time
-            cachedManagedIdentityResult =
-                await systemAssignedManagedIdentityApplicationR2.acquireToken({
-                    resource: MANAGED_IDENTITY_RESOURCE,
+            // resource R2 for system assigned - new application (to prove static cache persists), but same request as before, returned from the cache this time
+            const userAssignedClientIdManagedIdentityApplicationResource1Clone: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: {
+                        networkClient,
+                    },
+                    managedIdentityIdParams: {
+                        userAssignedClientId: MANAGED_IDENTITY_RESOURCE_ID,
+                    },
                 });
+            cachedManagedIdentityResult =
+                await userAssignedClientIdManagedIdentityApplicationResource1Clone.acquireToken(
+                    {
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    }
+                );
             expect(cachedManagedIdentityResult.fromCache).toBe(true);
 
-            // resource R2 for user assigned - same request as before, returned from the cache this time
+            // resource R2 for user assigned - new application (to prove static cache persists), but same request as before, returned from the cache this time
+            const userAssignedObjectIdManagedIdentityApplicationResource2Clone: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: {
+                        networkClient: new ManagedIdentityNetworkClient(
+                            MANAGED_IDENTITY_RESOURCE_ID_2 // client id
+                        ),
+                    },
+                    managedIdentityIdParams: {
+                        userAssignedObjectId: MANAGED_IDENTITY_RESOURCE_ID_2,
+                    },
+                });
             cachedManagedIdentityResult =
-                await userAssignedClientIdManagedIdentityApplicationR2.acquireToken(
+                await userAssignedObjectIdManagedIdentityApplicationResource2Clone.acquireToken(
                     {
                         resource: MANAGED_IDENTITY_RESOURCE,
                     }
                 );
             expect(cachedManagedIdentityResult.fromCache).toBe(true);
             // ********** end: return access tokens from the cache **********
-        });
 
-        test("acquires tokens, then verifies that their cache keys are correct", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+            const cache: CacheKVStore = (
+                ManagedIdentityApplication["nodeStorage"] as NodeStorage
+            )["cache"];
 
-            // systemAssignedManagedIdentityApplication is the default System Assigned Managed Identity Application
+            // the cache is static, and should have persisted across all six of the managed identity applications in this test
+            // there should be three items in the cache
+            expect(Object.keys(cache).length).toEqual(3);
 
-            const userAssignedClientIdManagedIdentityApplication: ManagedIdentityApplication =
-                new ManagedIdentityApplication(userAssignedClientIdConfig);
+            const cacheKeys: Array<string> = [
+                getCacheKey(),
+                getCacheKey(MANAGED_IDENTITY_RESOURCE_ID),
+                getCacheKey(MANAGED_IDENTITY_RESOURCE_ID_2),
+            ];
 
-            const userAssignedObjectIdManagedIdentityApplication: ManagedIdentityApplication =
-                new ManagedIdentityApplication({
-                    system: {
-                        networkClient: userAssignedNetworkClient,
-                    },
-                    managedIdentityIdParams: {
-                        userAssignedObjectId: MANAGED_IDENTITY_RESOURCE_ID_3,
-                    },
-                });
-
-            let networkManagedIdentityResult: AuthenticationResult =
-                await systemAssignedManagedIdentityApplication.acquireToken(
-                    managedIdentityRequestParams
-                );
-            expect(networkManagedIdentityResult.fromCache).toBe(false);
-
-            let cacheKey: string = Object.keys(
-                systemAssignedManagedIdentityApplication["nodeStorage"]["cache"]
-            )[0];
-            expect(cacheKey).toEqual(
-                MANAGED_IDENTITY_SYSTEM_ASSIGNED_CACHE_KEY
+            // verify the cache keys
+            const allCacheKeysExistandAreCorrect: boolean = cacheKeys.every(
+                (key) => {
+                    return Object.keys(cache).includes(key);
+                }
             );
-
-            // ManagedIdentityClient.identitySource (IMDS in this case) is static/
-            // Therefore, this is needed to tell the ManagedIdentityClient to make a
-            // new instance of IMDS so that the relevant cache (nodeStorage) is used.
-            // Otherwise the same cache (nodeStorage) will be used for all three of
-            // these managed identity applications (and cause test failures).
-            ManagedIdentityClient.identitySource = undefined;
-
-            networkManagedIdentityResult =
-                await userAssignedClientIdManagedIdentityApplication.acquireToken(
-                    managedIdentityRequestParams
-                );
-            expect(networkManagedIdentityResult.fromCache).toBe(false);
-
-            cacheKey = Object.keys(
-                userAssignedClientIdManagedIdentityApplication["nodeStorage"][
-                    "cache"
-                ]
-            )[0];
-            expect(cacheKey).toEqual(
-                MANAGED_IDENTITY_USER_ASSIGNED_CLIENT_ID_CACHE_KEY
-            );
-
-            // ManagedIdentityClient.identitySource (IMDS in this case) is static/
-            // Therefore, this is needed to tell the ManagedIdentityClient to make a
-            // new instance of IMDS so that the relevant cache (nodeStorage) is used.
-            // Otherwise the same cache (nodeStorage) will be used for all three of
-            // these managed identity applications (and cause test failures).
-            ManagedIdentityClient.identitySource = undefined;
-
-            networkManagedIdentityResult =
-                await userAssignedObjectIdManagedIdentityApplication.acquireToken(
-                    managedIdentityRequestParams
-                );
-            expect(networkManagedIdentityResult.fromCache).toBe(false);
-
-            cacheKey = Object.keys(
-                userAssignedObjectIdManagedIdentityApplication["nodeStorage"][
-                    "cache"
-                ]
-            )[0];
-            expect(cacheKey).toEqual(
-                MANAGED_IDENTITY_USER_ASSIGNED_OBJECT_ID_CACHE_KEY
-            );
+            expect(allCacheKeysExistandAreCorrect).toBe(true);
         });
     });
 
@@ -556,7 +521,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             const badUserAssignedClientIdConfig: ManagedIdentityConfiguration =
                 {
                     system: {
-                        networkClient: userAssignedNetworkClient,
+                        networkClient,
                     },
                     managedIdentityIdParams: {
                         userAssignedClientId: MANAGED_IDENTITY_RESOURCE_ID,
@@ -597,9 +562,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR
             );
 
-            const correlationIdCheck = serverError.errorMessage.includes(
-                DEFAULT_MANAGED_IDENTITY_ID
-            );
+            const correlationIdCheck: boolean =
+                serverError.errorMessage.includes(DEFAULT_MANAGED_IDENTITY_ID);
             expect(correlationIdCheck).toBe(true);
         });
     });

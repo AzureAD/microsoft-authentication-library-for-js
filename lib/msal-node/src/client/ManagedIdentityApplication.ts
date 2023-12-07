@@ -43,7 +43,7 @@ export class ManagedIdentityApplication {
     private config: ManagedIdentityNodeConfiguration;
 
     private logger: Logger;
-    private nodeStorage: NodeStorage;
+    static nodeStorage: NodeStorage | undefined;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
 
@@ -69,12 +69,14 @@ export class ManagedIdentityApplication {
             knownAuthorities: [Constants.DEFAULT_AUTHORITY],
         };
 
-        this.nodeStorage = new NodeStorage(
-            this.logger,
-            this.config.managedIdentityId.id,
-            DEFAULT_CRYPTO_IMPLEMENTATION,
-            fakeStatusAuthorityOptions
-        );
+        if (!ManagedIdentityApplication.nodeStorage) {
+            ManagedIdentityApplication.nodeStorage = new NodeStorage(
+                this.logger,
+                this.config.managedIdentityId.id,
+                DEFAULT_CRYPTO_IMPLEMENTATION,
+                fakeStatusAuthorityOptions
+            );
+        }
 
         this.networkClient = this.config.system.networkClient;
 
@@ -89,7 +91,7 @@ export class ManagedIdentityApplication {
         this.fakeAuthority = new Authority(
             DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
             this.networkClient,
-            this.nodeStorage,
+            ManagedIdentityApplication.nodeStorage as NodeStorage,
             fakeAuthorityOptions,
             this.logger,
             undefined,
@@ -106,7 +108,7 @@ export class ManagedIdentityApplication {
 
         this.managedIdentityClient = new ManagedIdentityClient(
             this.logger,
-            this.nodeStorage,
+            ManagedIdentityApplication.nodeStorage as NodeStorage,
             this.networkClient,
             this.cryptoProvider
         );
@@ -159,7 +161,7 @@ export class ManagedIdentityApplication {
                 this.config,
                 this.cryptoProvider,
                 this.fakeAuthority,
-                this.nodeStorage
+                ManagedIdentityApplication.nodeStorage as NodeStorage
             );
 
         if (cachedAuthenticationResult) {

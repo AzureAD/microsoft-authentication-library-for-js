@@ -50,9 +50,8 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
     private clientId: string;
     private resource: string | undefined;
 
-    constructor(clientId: string, resource?: string | undefined) {
+    constructor(clientId: string) {
         this.clientId = clientId;
-        this.resource = resource || undefined;
     }
 
     sendGetRequestAsync<T>(
@@ -67,9 +66,10 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
                     expires_on: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours
-                    resource: (
-                        this.resource || MANAGED_IDENTITY_RESOURCE
-                    ).replace("/.default", ""),
+                    resource: MANAGED_IDENTITY_RESOURCE.replace(
+                        "/.default",
+                        ""
+                    ),
                     token_type: AuthenticationScheme.BEARER,
                 } as ManagedIdentityTokenResponse,
             } as NetworkResponse<T>);
@@ -164,11 +164,12 @@ export const managedIdentityRequestParams: ManagedIdentityRequestParams = {
     resource: MANAGED_IDENTITY_RESOURCE,
 };
 
-export const userAssignedNetworkClient: ManagedIdentityNetworkClient =
+export const networkClient: ManagedIdentityNetworkClient =
     new ManagedIdentityNetworkClient(MANAGED_IDENTITY_RESOURCE_ID);
+
 export const userAssignedClientIdConfig: ManagedIdentityConfiguration = {
     system: {
-        networkClient: userAssignedNetworkClient,
+        networkClient,
     },
     managedIdentityIdParams: {
         userAssignedClientId: MANAGED_IDENTITY_RESOURCE_ID,
@@ -177,9 +178,7 @@ export const userAssignedClientIdConfig: ManagedIdentityConfiguration = {
 
 export const systemAssignedConfig: ManagedIdentityConfiguration = {
     system: {
-        networkClient: new ManagedIdentityNetworkClient(
-            DEFAULT_MANAGED_IDENTITY_ID
-        ),
+        networkClient,
         // managedIdentityIdParams will be omitted for system assigned
     },
 };

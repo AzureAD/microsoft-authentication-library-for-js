@@ -353,29 +353,28 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     },
 };
 
-export const MANAGED_IDENTITY_AZURE_ARC_WWW_AUTHENTICATE_HEADER = `Basic ${TEST_TOKENS.ACCESS_TOKEN}`;
-export const MANAGED_IDENTITY_CONTENT_TYPE_HEADER =
+export const MANAGED_IDENTITY_AZURE_ARC_WWW_AUTHENTICATE_HEADER: string = `Basic ${TEST_TOKENS.ACCESS_TOKEN}`;
+export const MANAGED_IDENTITY_CONTENT_TYPE_HEADER: string =
     "application/x-www-form-urlencoded;charset=utf-8";
 
-export const MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR =
+export const MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR: string =
     "There was an error retrieving the access token from the managed identity.";
 
-export const MANAGED_IDENTITY_RESOURCE_BASE = "https://graph.microsoft.com";
+export const MANAGED_IDENTITY_RESOURCE_BASE: string =
+    "https://graph.microsoft.com";
 // scopes
-export const MANAGED_IDENTITY_RESOURCE = `${MANAGED_IDENTITY_RESOURCE_BASE}/.default`;
+export const MANAGED_IDENTITY_RESOURCE: string = `${MANAGED_IDENTITY_RESOURCE_BASE}/.default`;
 
 // client ids
-export const MANAGED_IDENTITY_RESOURCE_ID =
+export const MANAGED_IDENTITY_RESOURCE_ID: string =
     "unique_identifier_generated_by_azure_ad_for_the_azure_resource";
-export const MANAGED_IDENTITY_RESOURCE_ID_2 =
-    "unique_identifier_generated_by_azure_ad_for_the_azure_resource_2";
-export const MANAGED_IDENTITY_RESOURCE_ID_3 =
+export const MANAGED_IDENTITY_RESOURCE_ID_2: string =
     "/subscriptions/someguid/resourcegroups/uami_group/providers/microsoft.managedidentityclient/userassignedidentities/uami";
 
-// cache keys
-export const MANAGED_IDENTITY_SYSTEM_ASSIGNED_CACHE_KEY = `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-system_assigned_managed_identity-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
-export const MANAGED_IDENTITY_USER_ASSIGNED_CLIENT_ID_CACHE_KEY = `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${MANAGED_IDENTITY_RESOURCE_ID}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
-export const MANAGED_IDENTITY_USER_ASSIGNED_OBJECT_ID_CACHE_KEY = `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${MANAGED_IDENTITY_RESOURCE_ID_3}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+export const getCacheKey = (resource?: string): string => {
+    const resourceHelper = resource || DEFAULT_MANAGED_IDENTITY_ID;
+    return `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${resourceHelper}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+};
 
 export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
     AuthenticationResult,
