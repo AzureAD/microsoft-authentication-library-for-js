@@ -43,7 +43,7 @@ export class ManagedIdentityApplication {
     private config: ManagedIdentityNodeConfiguration;
 
     private logger: Logger;
-    static nodeStorage: NodeStorage | undefined;
+    private static nodeStorage: NodeStorage | undefined;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
 

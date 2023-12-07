@@ -70,7 +70,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
     afterEach(() => {
         ManagedIdentityClient.identitySource = undefined;
-        ManagedIdentityApplication.nodeStorage = undefined;
+        ManagedIdentityApplication["nodeStorage"] = undefined;
     });
 
     const userAssignedObjectIdConfig: ManagedIdentityConfiguration = {
