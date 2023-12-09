@@ -52,6 +52,10 @@ import {
     updateAccountTenantProfileData,
 } from "../account/AccountInfo";
 import * as CacheHelpers from "../cache/utils/CacheHelpers";
+import {
+    InvalidGrantAuthError,
+    isInvalidGrantAuthError,
+} from "../error/InvalidGrantAuthError";
 
 /**
  * Class that handles response parsing.
@@ -231,6 +235,23 @@ export class ResponseHandler {
                     serverResponse.trace_id || Constants.EMPTY_STRING,
                     serverResponse.correlation_id || Constants.EMPTY_STRING,
                     serverResponse.claims || Constants.EMPTY_STRING
+                );
+            }
+
+            if (
+                isInvalidGrantAuthError(
+                    serverResponse.error,
+                    serverResponse.error_description,
+                    serverResponse.suberror
+                )
+            ) {
+                throw new InvalidGrantAuthError(
+                    serverResponse.error,
+                    serverResponse.error_description,
+                    serverResponse.suberror,
+                    serverResponse.timestamp || Constants.EMPTY_STRING,
+                    serverResponse.trace_id || Constants.EMPTY_STRING,
+                    serverResponse.correlation_id || Constants.EMPTY_STRING
                 );
             }
 

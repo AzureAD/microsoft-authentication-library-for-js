@@ -23,7 +23,6 @@ export const InteractionRequiredAuthSubErrorMessage = [
     "basic_action",
     "user_password_expired",
     "consent_required",
-    "bad_token",
 ];
 
 const InteractionRequiredAuthErrorMessages = {

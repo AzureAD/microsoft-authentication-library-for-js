@@ -53,7 +53,6 @@ import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
 import {
-    InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     createInteractionRequiredAuthError,
 } from "../../src/error/InteractionRequiredAuthError";
@@ -62,6 +61,7 @@ import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers";
+import { InvalidGrantAuthError } from "../../src/error/InvalidGrantAuthError";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -1394,8 +1394,9 @@ describe("RefreshTokenClient unit tests", () => {
                     <any>"executePostToTokenEndpoint"
                 )
                 .resolves(BAD_TOKEN_ERROR_RESPONSE);
+
             const serverResponse = BAD_TOKEN_ERROR_RESPONSE.body;
-            const interactionRequiredError = new InteractionRequiredAuthError(
+            const invalidGrantAuthError = new InvalidGrantAuthError(
                 serverResponse.error,
                 serverResponse.error_description,
                 serverResponse.suberror,
@@ -1426,7 +1427,7 @@ describe("RefreshTokenClient unit tests", () => {
 
             await expect(
                 client.acquireTokenByRefreshToken(silentFlowRequest)
-            ).rejects.toMatchObject(interactionRequiredError);
+            ).rejects.toMatchObject(invalidGrantAuthError);
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
