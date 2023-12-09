@@ -16,6 +16,11 @@ import {
     ValidCredentialType,
     TokenKeys,
     CacheHelpers,
+    TokenClaims,
+    CredentialType,
+    buildTenantProfileFromIdTokenClaims,
+    TenantProfile,
+    AccountInfo,
 } from "@azure/msal-common";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
@@ -33,6 +38,23 @@ export class TestStorageManager extends CacheManager {
         return null;
     }
 
+    removeAccountKeyFromMap(key: string): void {
+        const currentAccounts = this.getAccountKeys();
+        this.store[ACCOUNT_KEYS] = currentAccounts.filter(
+            (entry) => entry !== key
+        );
+    }
+
+    getCachedAccountEntity(key: string): AccountEntity | null {
+        const account = this.store[key] as AccountEntity;
+        if (!account) {
+            this.removeAccountKeyFromMap(key);
+            return null;
+        }
+
+        return account;
+    }
+
     setAccount(value: AccountEntity): void {
         const key = value.generateAccountKey();
         this.store[key] = value;
@@ -46,12 +68,11 @@ export class TestStorageManager extends CacheManager {
 
     async removeAccount(key: string): Promise<void> {
         await super.removeAccount(key);
-        const currentAccounts = this.getAccountKeys();
-        const removalIndex = currentAccounts.indexOf(key);
-        if (removalIndex > -1) {
-            currentAccounts.splice(removalIndex, 1);
-            this.store[ACCOUNT_KEYS] = currentAccounts;
-        }
+        this.removeAccountKeyFromMap(key);
+    }
+
+    removeOutdatedAccount(accountKey: string): void {
+        this.removeAccount(accountKey);
     }
 
     getAccountKeys(): string[] {

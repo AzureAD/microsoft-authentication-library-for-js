@@ -47,6 +47,9 @@ import {
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { invoke, invokeAsync } from "../utils/FunctionWrappers";
+
+const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
+
 /**
  * OAuth2.0 refresh token client
  * @internal
@@ -213,6 +216,19 @@ export class RefreshTokenClient extends BaseClient {
         if (!refreshToken) {
             throw createInteractionRequiredAuthError(
                 InteractionRequiredAuthErrorCodes.noTokensFound
+            );
+        }
+
+        if (
+            refreshToken.expiresOn &&
+            TimeUtils.isTokenExpired(
+                refreshToken.expiresOn,
+                request.refreshTokenExpirationOffsetSeconds ||
+                    DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
+            )
+        ) {
+            throw createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.refreshTokenExpired
             );
         }
         // attach cached RT size to the current measurement

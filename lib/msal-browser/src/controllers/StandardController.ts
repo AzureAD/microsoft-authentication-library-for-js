@@ -1549,7 +1549,7 @@ export class StandardController implements IController {
     ): string {
         const account =
             request.account ||
-            this.browserStorage.getAccountInfoFilteredBy({
+            this.getAccount({
                 loginHint: request.loginHint,
                 sid: request.sid,
             }) ||
@@ -2088,7 +2088,9 @@ export class StandardController implements IController {
                                         refreshTokenError.errorCode ===
                                             ClientAuthErrorCodes.tokenRefreshRequired)) ||
                                 refreshTokenError.errorCode ===
-                                    InteractionRequiredAuthErrorCodes.noTokensFound;
+                                    InteractionRequiredAuthErrorCodes.noTokensFound ||
+                                refreshTokenError.errorCode ===
+                                    InteractionRequiredAuthErrorCodes.refreshTokenExpired;
 
                             const tryIframeRenewal =
                                 cacheLookupPolicy ===

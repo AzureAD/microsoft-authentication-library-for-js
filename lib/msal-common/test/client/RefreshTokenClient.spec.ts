@@ -57,6 +57,8 @@ import {
 } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
+import { TimeUtils } from "../../src/utils/TimeUtils";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -299,17 +301,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: ID_TOKEN_CLAIMS.sub,
-            tenantId: ID_TOKEN_CLAIMS.tid,
-            environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
-        };
+        const testAccount: AccountInfo =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
 
         beforeEach(async () => {
             sinon
@@ -322,7 +316,7 @@ describe("RefreshTokenClient unit tests", () => {
                 .stub(Authority.prototype, "getPreferredCache")
                 .returns("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info =
-                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testRefreshTokenEntity);
@@ -425,7 +419,7 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(authResult.scopes).toEqual(expectedScopes);
-            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.account).toMatchObject(testAccount);
             expect(authResult.idToken).toEqual(
                 AUTHENTICATION_RESULT.body.id_token
             );
@@ -1055,17 +1049,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: ID_TOKEN_CLAIMS.sub,
-            tenantId: ID_TOKEN_CLAIMS.tid,
-            environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
-        };
+        const testAccount: AccountInfo =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
 
         beforeEach(async () => {
             sinon
@@ -1078,7 +1064,7 @@ describe("RefreshTokenClient unit tests", () => {
                 .stub(Authority.prototype, "getPreferredCache")
                 .returns("login.windows.net");
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info =
-                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
@@ -1323,6 +1309,63 @@ describe("RefreshTokenClient unit tests", () => {
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
                     InteractionRequiredAuthErrorCodes.noTokensFound
+                )
+            );
+        });
+
+        it("Throws error if cached RT is expired", async () => {
+            const testScope2 = "scope2";
+            const tokenRequest: CommonSilentFlowRequest = {
+                scopes: [testScope2],
+                account: testAccountEntity.getAccountInfo(),
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface!.setRefreshTokenCredential({
+                ...testRefreshTokenEntity,
+                expiresOn: (TimeUtils.nowSeconds() - 48 * 60 * 60).toString(), // Set expiration to yesterday
+            });
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            await expect(
+                client.acquireTokenByRefreshToken(tokenRequest)
+            ).rejects.toMatchObject(
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                )
+            );
+        });
+
+        it("Throws error if cached RT expiration is within provided offset", async () => {
+            const testScope2 = "scope2";
+            const tokenRequest: CommonSilentFlowRequest = {
+                scopes: [testScope2],
+                account: testAccountEntity.getAccountInfo(),
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                refreshTokenExpirationOffsetSeconds: 60 * 60, // 1 hour
+            };
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface!.setRefreshTokenCredential({
+                ...testRefreshTokenEntity,
+                expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
+            });
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            await expect(
+                client.acquireTokenByRefreshToken(tokenRequest)
+            ).rejects.toMatchObject(
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
                 )
             );
         });

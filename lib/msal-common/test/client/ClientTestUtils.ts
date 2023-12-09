@@ -42,12 +42,15 @@ export class MockStorageClass extends CacheManager {
     store = {};
 
     // Accounts
-    getAccount(key: string): AccountEntity | null {
-        const account: AccountEntity = this.store[key] as AccountEntity;
+    getCachedAccountEntity(accountKey: string): AccountEntity | null {
+        const account: AccountEntity = this.store[accountKey] as AccountEntity;
         if (AccountEntity.isAccountEntity(account)) {
             return account;
         }
         return null;
+    }
+    getAccount(key: string): AccountEntity | null {
+        return this.getCachedAccountEntity(key);
     }
 
     setAccount(value: AccountEntity): void {
@@ -69,6 +72,10 @@ export class MockStorageClass extends CacheManager {
             currentAccounts.splice(removalIndex, 1);
             this.store[ACCOUNT_KEYS] = currentAccounts;
         }
+    }
+
+    removeOutdatedAccount(accountKey: string): void {
+        delete this.store[accountKey];
     }
 
     getAccountKeys(): string[] {
@@ -245,7 +252,10 @@ export class ClientTestUtils {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
-            new Logger({})
+            new Logger({}),
+            {
+                canonicalAuthority: TEST_CONFIG.validAuthority,
+            }
         );
 
         const testLoggerCallback = (): void => {

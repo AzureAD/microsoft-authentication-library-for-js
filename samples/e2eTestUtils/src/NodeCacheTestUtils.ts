@@ -1,6 +1,6 @@
 import fs from "fs";
-import { Deserializer } from "./Deserializer";
-import { Serializer } from "./Serializer";
+import { Deserializer } from "../../../lib/msal-node/src/cache/serializer/Deserializer";
+import { Serializer } from "../../../lib/msal-node/src/cache/serializer/Serializer";
 
 export type tokenMap = {
     idTokens: any[];

@@ -33,7 +33,9 @@ import {
     invokeAsync,
     createAuthError,
     AuthErrorCodes,
+    updateAccountTenantProfileData,
     CacheHelpers,
+    buildAccountToCache,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -420,14 +422,19 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             idTokenClaims
         );
-        const accountEntity = AccountEntity.createAccount(
-            {
-                homeAccountId: homeAccountIdentifier,
-                idTokenClaims: idTokenClaims,
-                clientInfo: response.client_info,
-                nativeAccountId: response.account.id,
-            },
-            authority
+
+        const baseAccount = buildAccountToCache(
+            this.browserStorage,
+            authority,
+            homeAccountIdentifier,
+            idTokenClaims,
+            base64Decode,
+            response.client_info,
+            undefined, // environment
+            idTokenClaims.tid,
+            undefined, // auth code payload
+            response.account.id,
+            this.logger
         );
 
         // generate authenticationResult
@@ -435,13 +442,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             request,
             idTokenClaims,
-            accountEntity,
+            baseAccount,
             authority.canonicalAuthority,
             reqTimestamp
         );
 
         // cache accounts and tokens in the appropriate storage
-        this.cacheAccount(accountEntity);
+        this.cacheAccount(baseAccount);
         this.cacheNativeTokens(
             response,
             request,
@@ -580,14 +587,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims.tid ||
             Constants.EMPTY_STRING;
 
-        const fullAccountEntity: AccountEntity = idTokenClaims
-            ? Object.assign(new AccountEntity(), {
-                  ...accountEntity,
-                  idTokenClaims: idTokenClaims,
-              })
-            : accountEntity;
-
-        const accountInfo = fullAccountEntity.getAccountInfo();
+        const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
+            accountEntity.getAccountInfo(),
+            undefined, // tenantProfile optional
+            idTokenClaims
+        );
 
         // generate PoP token as needed
         const responseAccessToken = await this.generatePopAccessToken(

@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Fix bug causing temporary cache not to be cleared #6676",
+  "type": "minor",
+  "comment": "Check RT expiration before attempting to redeem it #6703",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

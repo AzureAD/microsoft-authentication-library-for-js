@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Turn on return-await lint rule #6678",
+  "comment": "Set engines field to >=16",
   "packageName": "@azure/msal-node",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
