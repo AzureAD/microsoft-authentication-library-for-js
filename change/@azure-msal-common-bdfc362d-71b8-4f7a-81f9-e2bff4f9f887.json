@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix token refreshes with relative redirectUri",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
