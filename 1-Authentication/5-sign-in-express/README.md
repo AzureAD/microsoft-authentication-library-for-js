@@ -23,7 +23,7 @@ extensions:
     - Node.js & Express web app
 ---
 
-# Sign in users in a sample Node.js & Express web app by using Microsoft Entra External ID for customers
+# Sign in users in a sample Node.js (Express.js) web app by using Microsoft Entra External ID for customers
 
 * [Overview](#overview)
 * [Usage](#usage)
@@ -67,13 +67,13 @@ This sample demonstrates how to sign users into a sample Node.js & Express web a
 * Microsoft Entra ID for customers tenant. If you don't already have one, [sign up for a free trial](https://aka.ms/ciam-free-trial).
 * If you'd like to use Azure services, such as hosting your app in Azure App Service, [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
 
-## Register web application in your tenant
-
-To enable your application to sign in users with Microsoft Entra ID for customers, Microsoft Entra ID for customers must be made aware of the application you create. The app registration establishes a trust relationship between the app and Microsoft Entra ID for customers. When you register an application, Microsoft Entra ID for customers generates a unique identifier known as an **Application (client) ID**, a value used to identify your app when creating authentication requests.
+## Register the web application in your tenant
 
 You can register an app in your tenant automatically by using Microsoft Graph PowerShell or Manually register your apps in Microsoft Entra Admin center.
 
 When you use Microsoft Graph PowerShell, you automatically register the applications and related objects app secrets, then modifies your project config files, so you run the app without any further action.
+
+To register your app manually in the Microsoft Entra admin center use the steps in [Register the web app](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#register-the-web-app).
 
 <details>
     <summary>Expand this section if you want to use this automation:</summary>
@@ -95,154 +95,37 @@ When you use Microsoft Graph PowerShell, you automatically register the applicat
 
 </details>
 
-To manually register your apps in Microsoft Entra Admin center, follow these steps:
-
-1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [Application Developer](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#application-developer).
-1. If you have access to multiple tenants, use the **Settings** icon (![settings icon](./ReadmeFiles/admin-center-settings-icon.png "Title")) in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu.
-1. Browse to **Identity** >**Applications** > **App registrations**.
-1. Select **+ New registration**.
-1. In the **Register an application** page that appears;
-
-    1. Enter a meaningful application **Name** that is displayed to users of the app, for example *ciam-client-app*.
-    1. Under **Supported account types**, select **Accounts in this organizational directory only**.
-
-1. Select **Register**.
-1. The application's **Overview** pane displays upon successful registration. Record the **Application (client) ID** to be used in your application source code.
-
-To specify your app type to your app registration, follow these steps:
-
-1. Under **Manage**, select **Authentication**.
-1. On the **Platform configurations** page, select **Add a platform**, and then select **Web** option.
-1. For the **Redirect URIs** enter `http://localhost:3000/auth/redirect`.
-1. Select **Configure** to save your changes.
-
 ## Add app client secret
 
-Create a client secret for the registered application. The application uses the client secret to prove its identity when it requests for tokens:
-
-1. From the **App registrations** page, select the application that you created (such as *ciam-client-app*) to open its **Overview** page.
-1. Under **Manage**, select **Certificates & secrets**.
-1. Select **New client secret**.
-1. In the **Description** box, enter a description for the client secret (for example, *ciam app client secret*).
-1. Under **Expires**, select a duration for which the secret is valid (per your organizations security rules), and then select **Add**.
-1. Record the secret's **Value**. You'll use this value for configuration in a later step.
-
-> :information_source: The secret value won't be displayed again, and is not retrievable by any means, after you navigate away from the **Certificates and secrets** page, so make sure you record it. For enhanced security, [Use client certificate for authentication in your Node.js web app instead of client secrets](https://learn.microsoft.com/entra/external-id/customers/how-to-web-app-node-use-certificate).
+To create a client secret for the registered application, use the steps in [Add app client secret](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#add-app-client-secret)
 
 ## Grant API permissions
 
-1. From the **App registrations** page, select the application that you created (such as *ciam-client-app*) to open its **Overview** page.
-1. Under **Manage**, select **API permissions**.
-1. Under **Configured permissions**, select **Add a permission**.
-1. Select **Microsoft APIs** tab.
-1. Under **Commonly used Microsoft APIs** section, select **Microsoft Graph**.
-1. Select **Delegated permissions** option.
-1. Under **Select permissions** section, search for and select both **openid** and **offline_access** permissions.
-1. Select the **Add permissions** button. 
-1. At this point, you've assigned the permissions correctly. However, since the tenant is a customer's tenant, the consumer users themselves can't consent to these permissions. You as the admin must consent to these permissions on behalf of all the users in the tenant:
-
-    1. Select **Grant admin consent for \<your tenant name\>**, then select **Yes**.
-    1. Select **Refresh**, then verify that **Granted for \<your tenant name\>** appears under **Status** for both scopes.
+To grant delegated permissions, use the steps in [Grant API permissions](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#grant-api-permissions).
 
 ## Create user flow
 
-Follow these steps to create a user flow a customer can use to sign in or sign up for an application.
-
-1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an [External ID User Flow Administrator](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#external-id-user-flow-administrator).  
-1. If you have access to multiple tenants, use the **Settings** icon (![settings icon](./ReadmeFiles/admin-center-settings-icon.png "Title")) in the top menu to switch to your customer tenant from the **Directories + subscriptions** menu.
-1. Browse to **Identity** > **External Identities** > **User flows**.
-1. Select **+ New user flow**.
-1. On the **Create** page:
-
-   1. Enter a **Name** for the user flow, such as *SignInSignUpSample*.
-   1. In the **Identity providers** list, select **Email Accounts**. This identity provider allows users to sign-in or sign-up using their email address.
-   
-         > :exclamation: NOTE: Additional identity providers will be listed here only after you set up federation with them. For example, if you set up federation with [Google](https://learn.microsoft.com/entra/external-id/customers/how-to-google-federation-customers) or [Facebook](https://learn.microsoft.com/entra/external-id/customers/how-to-facebook-federation-customers), you'll be able to select those additional identity providers here.  
-
-   1. Under **Email accounts**, you can select one of the two options. For this tutorial, select **Email with password**.
-
-      - **Email with password**: Allows new users to sign up and sign in using an email address as the sign-in name and a password as their first factor credential.  
-      - **Email one-time-passcode**: Allows new users to sign up and sign in using an email address as the sign-in name and email one-time passcode as their first factor credential.
-
-         > :exclamation: NOTE: Email one-time passcode must be enabled at the tenant level (**All Identity Providers** > **Email One-time-passcode**) for this option to be available at the user flow level.
-
-   1. Under **User attributes**, choose the attributes you want to collect from the user upon sign-up. By selecting **Show more**, you can choose attributes and claims for **Country/Region**, **Display Name**, and **Postal Code**. Select **OK**. (Users are only prompted for attributes when they sign up for the first time.)
-
-1. Select **Create**. The new user flow appears in the **User flows** list. If necessary, refresh the page.
-
-To enable self-service password reset, use the steps in [Enable self-service password reset](https://learn.microsoft.com/entra/external-id/customers/how-to-enable-password-reset-customers) article.
+To create a user flow a customer can use to sign in or sign up for an application, use the steps in [Create a user flow](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#create-a-user-flow) 
 
 ## Associate the web application with the user flow
 
-Although many applications can be associated with your user flow, a single application can only be associated with one user flow. A user flow allows configuration of the user experience for specific applications. For example, you can configure a user flow that requires users to sign-in or sign-up with a phone number or email address.
-
-1. On the sidebar menu, select **Identity**.
-1. Select **External Identities**, then **User flows**.
-1. In the **User flows** page, select the **User flow name** you created earlier, for example, *SignInSignUpSample*.
-1. Under **Use**, select **Applications**.
-1. Select **Add application**.
-   <!--[Screenshot the shows how to associate an application to a user flow.](media/20-create-user-flow-add-application.png)-->
-1. Select the application from the list such as *ciam-client-app* or use the search box to find the application, and then select it.
-
-1. Choose **Select**.
+To associate the web application with the user flow, use the steps in [Associate the web application with the user flow](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#associate-the-web-application-with-the-user-flow).
 
 ## Clone or download sample web application
 
-To get the web app sample code, [Download the .zip file](https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial/archive/refs/heads/main.zip) or clone the sample web application from GitHub by running the following command:
-
-```console
-git clone https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial.git
-```
-
-If you choose to download the *.zip* file, extract the sample app file to a folder where the total length of the path is 260 or fewer characters.
+To get the web app sample code, use the steps in [Clone or download sample web application](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#clone-or-download-sample-web-application).
 
 ## Install project dependencies
 
-1. Open a console window, and change to the directory that contains the Node.js sample app:
-
-```console
-    cd 1-Authentication\5-sign-in-express\App
-```
-
-1. Run the following commands to install app dependencies:
-
-```console
-    npm install
-```
+To install app dependencies, use the steps in [Install project dependencies](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#install-project-dependencies).
 
 ## Configure the sample web app to use your app registration
 
-1. In your code editor, open *App\authConfig.js* file.
-
-1. Find the placeholder:
-
-    1. `Enter_the_Application_Id_Here` and replace it with the Application (client) ID of the app you registered earlier.
-    
-    1. `Enter_the_Tenant_Subdomain_Here` and replace it with the Directory (tenant) subdomain. For example, if your tenant primary domain is `contoso.onmicrosoft.com`, use `contoso`. If you don't have your tenant name, learn how to [read your tenant details](https://learn.microsoft.com/entra/external-id/customers/how-to-create-customer-tenant-portal#get-the-customer-tenant-details).
-     
-    1. `Enter_the_Client_Secret_Here` and replace it with the app secret value you copied earlier.
+Once you download the sample app, you need to update it so that it uses the settings of the web app that you registered. To do so, use the steps in [Configure the sample web app](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#configure-the-sample-web-app).
 
 ## Run and test sample web app
 
-You can now test the sample Node.js web app. You need to start the Node.js server and access it through your browser at `http://localhost:3000`.
-
-1. In your terminal, run the following command:
-
-    ```console
-        npm start 
-    ```
-
-1. Open your browser, then go to http://localhost:3000.
-
-1. After the page completes loading, select **Sign in** link. You're prompted to sign in.
-
-1. On the sign-in page, type your **Email address**, select **Next**, type your **Password**, then select **Sign in**. If you don't have an account, select **No account? Create one** link, which starts the sign-up flow.
-
-1. If you choose the sign-up option, after filling in your email, one-time passcode, new password and more account details, you complete the whole sign-up flow. You see a page similar to the following screenshot. You see a similar page if you choose the sign-in option.
-
-    ![Screenshot](./ReadmeFiles/screenshot.png)
-
-1. Select **Sign out** to sign the user out of the web app or select **View ID token claims** to view ID token claims returned by Microsoft Entra.
+You can now test the sample Node.js web app. You need to start the Node.js server and access it through your browser at `http://localhost:3000`. To do so, use the steps in [Run and test sample web app](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#run-and-test-sample-web-app).
 
 > :information_source: If the sample didn't work for you as expected, reach out to us using the [GitHub Issues](../../../../issues) page.
 
@@ -359,9 +242,9 @@ When you want to sign the user out of the application, it isn't enough to end th
 
 There is one web app in this sample. To deploy it to **Azure App Services**, you'll need to:
 
-- Create an **Azure App Service**
-- Publish the projects to the **App Services**, and
-- Update its client(s) to call the website instead of the local environment.
+*Create an **Azure App Service**
+*Publish the projects to the **App Services**, and
+*Update its client(s) to call the website instead of the local environment.
 
 #### Deploy your files of your web app
 
@@ -400,4 +283,4 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 * [Single sign-on with MSAL.js](https://learn.microsoft.com/entra/identity-platform/msal-js-sso)
 * [Handle MSAL.js exceptions and errors](https://learn.microsoft.com/entra/msal/dotnet/advanced/exceptions/msal-error-handling?tabs=javascript)
 * [Logging in MSAL.js applications](https://learn.microsoft.com/entra/msal/dotnet/advanced/exceptions/msal-logging?tabs=javascript)
-* [Pass custom state in authentication requests using MSAL.js](https://learn.microsoft.com/entra/identity-platform/msal-js-pass-custom-state-authentication-request)
+* [Pass custom state in authentication requests using MSAL.js](https://learn.microsoft.com/entra/identity-platform/msal-js-pass-custom-state-authentication-request).
