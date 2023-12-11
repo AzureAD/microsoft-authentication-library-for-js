@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701891753460,
+  "lastUpdate": 1702332431496,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3724,6 +3724,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.40%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "21afd757cd901dc1b2a0f6ce663ab05166e12067",
+          "message": "Update FAQ with note about same domain requirements (#6762)\n\nFixes #6734",
+          "timestamp": "2023-12-11T22:01:36Z",
+          "tree_id": "34061532ee067206318555403c08ddebd38d79e7",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/21afd757cd901dc1b2a0f6ce663ab05166e12067"
+        },
+        "date": 1702332430375,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 174118,
+            "range": "±1.63%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 206429,
+            "range": "±1.37%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
