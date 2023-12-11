@@ -12,14 +12,35 @@ import {
     PerformanceEvent,
     PerformanceEvents,
     PreQueueEvent,
+    SubMeasurement,
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { name, version } from "../packageMetadata";
+import {
+    BROWSER_PERF_ENABLED_KEY,
+    BrowserCacheLocation,
+} from "../utils/BrowserConstants";
 
 export class BrowserPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
 {
+    private static PERF_MEASUREMENT_MODULE = (() => {
+        let sessionStorage: Storage | undefined;
+        try {
+            sessionStorage = window[BrowserCacheLocation.SessionStorage];
+            const perfEnabled = sessionStorage?.getItem(
+                BROWSER_PERF_ENABLED_KEY
+            );
+            if (Number(perfEnabled) === 1) {
+                return import("./BrowserPerformanceMeasurement");
+            }
+            // Mute errors if it's a non-browser environment or cookies are blocked.
+        } catch (e) {}
+
+        return undefined;
+    })();
+
     constructor(configuration: Configuration, intFields?: Set<string>) {
         super(
             configuration.auth.clientId,
@@ -45,6 +66,34 @@ export class BrowserPerformanceClient
 
     private getPageVisibility(): string | null {
         return document.visibilityState?.toString() || null;
+    }
+
+    private deleteIncompleteSubMeasurements(
+        inProgressEvent: InProgressPerformanceEvent
+    ): void {
+        void BrowserPerformanceClient.PERF_MEASUREMENT_MODULE?.then(
+            (module) => {
+                const rootEvent = this.eventsByCorrelationId.get(
+                    inProgressEvent.event.correlationId
+                );
+                const isRootEvent =
+                    rootEvent &&
+                    rootEvent.eventId === inProgressEvent.event.eventId;
+                const incompleteMeasurements: SubMeasurement[] = [];
+                if (isRootEvent && rootEvent?.incompleteSubMeasurements) {
+                    rootEvent.incompleteSubMeasurements.forEach(
+                        (subMeasurement: SubMeasurement) => {
+                            incompleteMeasurements.push({ ...subMeasurement });
+                        }
+                    );
+                }
+                // Clean up remaining marks for incomplete sub-measurements
+                module.BrowserPerformanceMeasurement.flushMeasurements(
+                    inProgressEvent.event.correlationId,
+                    incompleteMeasurements
+                );
+            }
+        );
     }
 
     supportsBrowserPerformanceNow(): boolean {
@@ -78,17 +127,41 @@ export class BrowserPerformanceClient
                 ? window.performance.now()
                 : undefined;
 
+        const browserMeasurement =
+            BrowserPerformanceClient.PERF_MEASUREMENT_MODULE?.then((module) => {
+                return new module.BrowserPerformanceMeasurement(
+                    measureName,
+                    inProgressEvent.event.correlationId
+                );
+            });
+        void browserMeasurement?.then((measurement) =>
+            measurement.startMeasurement()
+        );
+
         return {
             ...inProgressEvent,
             end: (
                 event?: Partial<PerformanceEvent>
             ): PerformanceEvent | null => {
-                return inProgressEvent.end({
+                const res = inProgressEvent.end({
                     ...event,
                     startPageVisibility,
                     endPageVisibility: this.getPageVisibility(),
-                    durationMs: this.getPerformanceDurationMs(startTime),
+                    durationMs: this.getPerfDurationMs(startTime),
                 });
+                void browserMeasurement?.then((measurement) =>
+                    measurement.endMeasurement()
+                );
+                this.deleteIncompleteSubMeasurements(inProgressEvent);
+
+                return res;
+            },
+            discard: () => {
+                inProgressEvent.discard();
+                void browserMeasurement?.then((measurement) =>
+                    measurement.flushMeasurement()
+                );
+                this.deleteIncompleteSubMeasurements(inProgressEvent);
             },
         };
     }
@@ -192,7 +265,7 @@ export class BrowserPerformanceClient
      * @param startTime {DOMHighResTimeStamp | undefined}
      * @returns {number | undefined}
      */
-    private getPerformanceDurationMs(
+    private getPerfDurationMs(
         startTime: DOMHighResTimeStamp | undefined
     ): number | undefined {
         if (!startTime || !this.supportsBrowserPerformanceNow()) {

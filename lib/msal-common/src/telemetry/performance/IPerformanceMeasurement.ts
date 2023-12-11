@@ -3,9 +3,6 @@
  * Licensed under the MIT License.
  */
 
-/**
- * @deprecated This class will be removed in a future major version
- */
 export interface IPerformanceMeasurement {
     startMeasurement(): void;
     endMeasurement(): void;

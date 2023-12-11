@@ -70,9 +70,11 @@ describe("BrowserPerformanceClient.ts", () => {
 
             const result = measurement.end();
 
-            console.log(JSON.stringify(result, null, 2));
-
             expect(result?.durationMs).toBe(50);
+            expect(
+                // @ts-ignore
+                BrowserPerformanceClient.PERF_MEASUREMENT_MODULE
+            ).toBeUndefined();
         });
 
         it("captures page visibilityState", () => {
