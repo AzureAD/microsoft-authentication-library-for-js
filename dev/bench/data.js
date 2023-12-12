@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1702409616711,
+  "lastUpdate": 1702420466051,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3838,6 +3838,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.98%",
             "unit": "ops/sec",
             "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "793b5e6fd8ad3aa8bcfe8315cd8e852e0f4ee3b5",
+          "message": "Handle bad_token by removing bad refresh token from cache (#6757)\n\nThis PR:\r\n- Catches `bad_token` sub error and handles it by immediately removing\r\nthe refresh token used in the refresh request, then lets the error\r\nbubble up to be handled as it is today\r\n- Adds test for this scenario\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2023-12-12T14:28:50-08:00",
+          "tree_id": "c9f5d32433d3c4ec342b89936140cfb5ff91eda3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/793b5e6fd8ad3aa8bcfe8315cd8e852e0f4ee3b5"
+        },
+        "date": 1702420465209,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 183667,
+            "range": "±1.75%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 183363,
+            "range": "±2.09%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
