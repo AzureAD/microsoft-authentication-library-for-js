@@ -2,17 +2,19 @@
 
 ### Note
 
-> This feature is not yet officially supported in MSALJS. An [alpha package](https://www.npmjs.com/package/@azure/msal-node/v/2.3.0-alpha.0) has been upload to npm.
+> This feature is in preview and feedback is welcome. See the [preview package](https://www.npmjs.com/package/@azure/msal-node/v/2.3.0-alpha.0) that has been upload to npm.
 
-A common challenge for developers is the management of secrets, credentials, certificates, and keys used to secure communication between services. [Managed identities](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview) in Azure eliminate the need for developers to handle these credentials manually. MSALJS supports acquiring tokens through the managed identity service when used with applications running inside Azure infrastructure, such as:
+A common challenge for developers is the management of secrets, credentials, certificates, and keys used to secure communication between services. [Managed identities](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview) in Azure eliminate the need for developers to handle these credentials manually. MSALJS's msal-node library supports acquiring tokens through the managed identity service when used with applications running inside Azure infrastructure, such as:
 
 -   [Azure App Service](https://azure.microsoft.com/products/app-service/) (API version `2019-08-01` and above)
 -   [Azure VMs](https://azure.microsoft.com/free/virtual-machines/)
 -   [Azure Arc](https://learn.microsoft.com/en-us/azure/azure-arc/overview)
--   [Azure Cloud Shell](https://learn.microsoft.com/en-us/azure/cloud-shell/overview)
--   [Azure Service Fabric](https://learn.microsoft.com/en-us/azure/service-fabric/service-fabric-overview)
+-   [Azure Cloud Shell](https://learn.microsoft.com/en-us/azure/cloud-shell/overview) (not yet supported)
+-   [Azure Service Fabric](https://learn.microsoft.com/en-us/azure/service-fabric/service-fabric-overview) (not yet supported)
 
 For a complete list, refer to [Azure services that can use managed identities to access other services](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identities-status).
+
+> Browser-based MSALJS libraries do not offer confidential flows because there is no confidentiality between the browser and the token issuer. Additionally, they do not offer managed identity because the browser is not hosted on Azure.
 
 ## Which SDK to use - Azure SDK or MSAL?
 
@@ -64,20 +66,14 @@ const systemAssignedManagedIdentityApplication = new ManagedIdentityApplication(
     config
 );
 
-const managedIdentityRequest: ManagedIdentityRequestParams = {
+const managedIdentityRequestParams: ManagedIdentityRequestParams = {
     resource: "https://management.azure.com",
 };
 
-try {
-    const response =
-        await systemAssignedManagedIdentityApplication.acquireToken(
-            managedIdentityRequest
-        );
-    console.log(response);
-} catch (error) {
-    console.log(error);
-    throw error;
-}
+const response = await systemAssignedManagedIdentityApplication.acquireToken(
+    managedIdentityRequestParams
+);
+console.log(response);
 ```
 
 ### User-assigned managed identities
@@ -108,25 +104,20 @@ const config: ManagedIdentityConfiguration = {
 const userAssignedClientIdManagedIdentityApplication =
     new ManagedIdentityApplication(config);
 
-const managedIdentityRequest: ManagedIdentityRequestParams = {
+const managedIdentityRequestParams: ManagedIdentityRequestParams = {
     resource: "https://management.azure.com",
 };
 
-try {
-    const response =
-        await userAssignedClientIdManagedIdentityApplication.acquireToken(
-            managedIdentityRequest
-        );
-    console.log(response);
-} catch (error) {
-    console.log(error);
-    throw error;
-}
+const response =
+    await userAssignedClientIdManagedIdentityApplication.acquireToken(
+        managedIdentityRequestParams
+    );
+console.log(response);
 ```
 
 ## Caching
 
-By default, MSALJS supports in-memory caching. Managed identity in MSALJS does not support cache extensibility because of security concerns when using distributed cache. Since a token acquired for managed identity belongs to an Azure resource, using a distributed cache might expose it to the other Azure resources sharing the cache.
+MSALJS caches tokens from managed identity in memory. There is no eviction, but memory is not a concern because a limited number of managed identities can be defined. Cache extensibility is not supported in this scenario because tokens should not be shared between machines.
 
 ## Troubleshooting
 
