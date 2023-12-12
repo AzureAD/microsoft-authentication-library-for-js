@@ -110,7 +110,6 @@ import {
     Configuration,
 } from "../../src/config/Configuration";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
-import { afterEach, beforeEach } from "node:test";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
