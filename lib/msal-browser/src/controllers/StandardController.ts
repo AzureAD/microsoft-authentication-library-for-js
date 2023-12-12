@@ -2081,7 +2081,9 @@ export class StandardController implements IController {
                             const isSilentlyResolvable =
                                 (!(
                                     refreshTokenError instanceof
-                                    InteractionRequiredAuthError
+                                        InteractionRequiredAuthError &&
+                                    refreshTokenError.subError !==
+                                        InteractionRequiredAuthErrorCodes.badToken
                                 ) &&
                                     (refreshTokenError.errorCode ===
                                         BrowserConstants.INVALID_GRANT_ERROR ||
