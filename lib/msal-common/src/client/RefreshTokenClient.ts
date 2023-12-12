@@ -48,10 +48,6 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { invoke, invokeAsync } from "../utils/FunctionWrappers";
 import { generateCredentialKey } from "../cache/utils/CacheHelpers";
-import {
-    InvalidGrantAuthError,
-    InvalidGrantAuthErrorCodes,
-} from "../error/InvalidGrantAuthError";
 
 const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 
@@ -259,8 +255,8 @@ export class RefreshTokenClient extends BaseClient {
             )(refreshTokenRequest);
         } catch (e) {
             if (
-                e instanceof InvalidGrantAuthError &&
-                e.subError === InvalidGrantAuthErrorCodes.badToken
+                e instanceof InteractionRequiredAuthError &&
+                e.subError === InteractionRequiredAuthErrorCodes.badToken
             ) {
                 // Remove bad refresh token from cache
                 this.logger.verbose(
