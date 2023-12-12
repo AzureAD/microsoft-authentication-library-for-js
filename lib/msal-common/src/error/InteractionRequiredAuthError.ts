@@ -35,7 +35,7 @@ const InteractionRequiredAuthErrorMessages = {
     [InteractionRequiredAuthErrorCodes.refreshTokenExpired]:
         "Refresh token has expired.",
     [InteractionRequiredAuthErrorCodes.badToken]:
-        "Server returned invalid_grant because of an unusable refresh token was used. Refresh token must be removed from cache.",
+        "Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.",
 };
 
 /**
