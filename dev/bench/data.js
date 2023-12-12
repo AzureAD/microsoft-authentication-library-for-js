@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1702392026831,
+  "lastUpdate": 1702409616711,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3798,6 +3798,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 196522,
             "range": "±1.90%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "162a8c1e2eaf7bc1992cb9ba11100818cf788391",
+          "message": "Convert ThrottlingEntity into a type (#6754)\n\nContinues the work to convert all our cache entities from static classes\r\ninto Types & functions for perf and size",
+          "timestamp": "2023-12-12T19:27:57Z",
+          "tree_id": "500129f93c4f3fe1f3e00c61bfe2c88b2b87ca53",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/162a8c1e2eaf7bc1992cb9ba11100818cf788391"
+        },
+        "date": 1702409614918,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 221484,
+            "range": "±1.37%",
+            "unit": "ops/sec",
+            "extra": "211 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 187400,
+            "range": "±1.98%",
             "unit": "ops/sec",
             "extra": "218 samples"
           }
