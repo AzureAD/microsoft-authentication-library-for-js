@@ -1,0 +1,15 @@
+{
+  "name": "managed-identity",
+  "version": "1.0.0",
+  "description": "Confidential Client Managed Identity",
+  "scripts": {
+    "build": "npx tsc",
+    "start:app": "npm run build && node build/index.js"
+  },
+  "dependencies": {
+    "@azure/msal-node": "2.3.0-alpha.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
