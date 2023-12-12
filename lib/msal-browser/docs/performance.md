@@ -124,4 +124,4 @@ Applications that want to enable performance measurements reported to the browse
     - [Firefox](https://firefox-source-docs.mozilla.org/devtools-user/storage_inspector/local_storage_session_storage)
     - Safari: navigate to `Storage` tab and expand `Session Storage`
 3. Select target domain
-4. Add `msal.browser.performance.enabled` key to `Session Stirage`, set it's value to `1`, refresh the page and check the browser's performance timeline.
+4. Add `msal.browser.performance.enabled` key to `Session Storage`, set it's value to `1`, refresh the page and check the browser's performance timeline.
