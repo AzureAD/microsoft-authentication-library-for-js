@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1702332431496,
+  "lastUpdate": 1702392026831,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3762,6 +3762,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.37%",
             "unit": "ops/sec",
             "extra": "225 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8c1c63df4be8e057eb3e08e0ce086570b0fd9ac0",
+          "message": "Allow overriding log level and PII setting with session storage key-values (#6704)\n\nAllow overriding log level and PII setting with session storage\r\nkey-values to troubleshoot errors in non-dev environments.",
+          "timestamp": "2023-12-12T09:34:54-05:00",
+          "tree_id": "cc4cfaa79d7e6ee5ae483340993f4dad38c90243",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8c1c63df4be8e057eb3e08e0ce086570b0fd9ac0"
+        },
+        "date": 1702392025963,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190986,
+            "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 196522,
+            "range": "±1.90%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
           }
         ]
       }
