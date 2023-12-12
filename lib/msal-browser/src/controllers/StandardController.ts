@@ -2078,44 +2078,11 @@ export class StandardController implements IController {
                         silentRequest.correlationId
                     )(silentRequest, cacheLookupPolicy).catch(
                         (refreshTokenError: AuthError) => {
-                            const isSilentlyResolvable =
-                                (!(
-                                    refreshTokenError instanceof
-                                        InteractionRequiredAuthError &&
-                                    refreshTokenError.subError !==
-                                        InteractionRequiredAuthErrorCodes.badToken
-                                ) &&
-                                    (refreshTokenError.errorCode ===
-                                        BrowserConstants.INVALID_GRANT_ERROR ||
-                                        refreshTokenError.errorCode ===
-                                            ClientAuthErrorCodes.tokenRefreshRequired)) ||
-                                refreshTokenError.errorCode ===
-                                    InteractionRequiredAuthErrorCodes.noTokensFound ||
-                                refreshTokenError.errorCode ===
-                                    InteractionRequiredAuthErrorCodes.refreshTokenExpired;
-
-                            const tryIframeRenewal =
-                                cacheLookupPolicy ===
-                                    CacheLookupPolicy.Default ||
-                                cacheLookupPolicy === CacheLookupPolicy.Skip ||
-                                cacheLookupPolicy ===
-                                    CacheLookupPolicy.RefreshTokenAndNetwork;
-
-                            if (isSilentlyResolvable && tryIframeRenewal) {
-                                this.logger.verbose(
-                                    "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
-                                    request.correlationId
-                                );
-                                return invokeAsync(
-                                    this.acquireTokenBySilentIframe.bind(this),
-                                    PerformanceEvents.AcquireTokenBySilentIframe,
-                                    this.logger,
-                                    this.performanceClient,
-                                    silentRequest.correlationId
-                                )(silentRequest);
-                            } else {
-                                throw refreshTokenError;
-                            }
+                            return this.handleRefreshTokenError(
+                                refreshTokenError,
+                                silentRequest,
+                                cacheLookupPolicy
+                            );
                         }
                     );
                 }
@@ -2157,5 +2124,67 @@ export class StandardController implements IController {
                     this.trackPageVisibility
                 );
             });
+    }
+
+    /**
+     * Determines whether an error thrown by the refresh token endpoint requires interaction or not. If the error can be resolved silently, it
+     * falls back to silent iframe renewl, if not, it re-throws the error to be handled as interaction required.
+     * @param refreshTokenError
+     * @param silentRequest
+     * @param cacheLookupPolicy
+     * @returns
+     */
+    private handleRefreshTokenError(
+        refreshTokenError: AuthError,
+        silentRequest: CommonSilentFlowRequest,
+        cacheLookupPolicy: CacheLookupPolicy
+    ): Promise<AuthenticationResult> {
+        const noInteractionRequired = !(
+            refreshTokenError instanceof InteractionRequiredAuthError &&
+            // For refresh token errors, bad_token does not always require interaction (silently resolvable)
+            refreshTokenError.subError !==
+                InteractionRequiredAuthErrorCodes.badToken
+        );
+
+        // Errors that result when the refresh token needs to be replaced
+        const refreshTokenRefreshRequired =
+            refreshTokenError.errorCode ===
+                BrowserConstants.INVALID_GRANT_ERROR ||
+            refreshTokenError.errorCode ===
+                ClientAuthErrorCodes.tokenRefreshRequired;
+
+        // Errors that may be resolved before falling back to interaction (through iframe renewal)
+        const isSilentlyResolvable =
+            (noInteractionRequired && refreshTokenRefreshRequired) ||
+            refreshTokenError.errorCode ===
+                InteractionRequiredAuthErrorCodes.noTokensFound ||
+            refreshTokenError.errorCode ===
+                InteractionRequiredAuthErrorCodes.refreshTokenExpired;
+
+        // Only these policies allow for an iframe renewal attempt
+        const iframeRenewalPolicies: CacheLookupPolicy[] = [
+            CacheLookupPolicy.Default,
+            CacheLookupPolicy.Skip,
+            CacheLookupPolicy.RefreshTokenAndNetwork,
+        ];
+        const tryIframeRenewal =
+            iframeRenewalPolicies.includes(cacheLookupPolicy);
+
+        if (isSilentlyResolvable && tryIframeRenewal) {
+            this.logger.verbose(
+                "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
+                silentRequest.correlationId
+            );
+            return invokeAsync(
+                this.acquireTokenBySilentIframe.bind(this),
+                PerformanceEvents.AcquireTokenBySilentIframe,
+                this.logger,
+                this.performanceClient,
+                silentRequest.correlationId
+            )(silentRequest);
+        } else {
+            // Error cannot be silently resolved or iframe renewal is not allowed, interaction required
+            throw refreshTokenError;
+        }
     }
 }
