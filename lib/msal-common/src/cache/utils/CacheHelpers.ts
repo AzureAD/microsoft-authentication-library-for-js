@@ -14,6 +14,7 @@ import {
     CredentialType,
     SERVER_TELEM_CONSTANTS,
     Separators,
+    ThrottlingConstants,
 } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
@@ -326,6 +327,25 @@ export function isServerTelemetryEntity(key: string, entity?: object): boolean {
             entity.hasOwnProperty("failedRequests") &&
             entity.hasOwnProperty("errors") &&
             entity.hasOwnProperty("cacheHits");
+    }
+
+    return validateKey && validateEntity;
+}
+
+/**
+ * validates if a given cache entry is "Throttling", parses <key,value>
+ * @param key
+ * @param entity
+ */
+export function isThrottlingEntity(key: string, entity?: object): boolean {
+    let validateKey: boolean = false;
+    if (key) {
+        validateKey = key.indexOf(ThrottlingConstants.THROTTLING_PREFIX) === 0;
+    }
+
+    let validateEntity: boolean = true;
+    if (entity) {
+        validateEntity = entity.hasOwnProperty("throttleTime");
     }
 
     return validateKey && validateEntity;

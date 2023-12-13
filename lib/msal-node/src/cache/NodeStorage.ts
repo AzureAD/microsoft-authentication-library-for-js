@@ -421,10 +421,7 @@ export class NodeStorage extends CacheManager {
         ) as ThrottlingEntity;
         if (
             throttlingCache &&
-            ThrottlingEntity.isThrottlingEntity(
-                throttlingCacheKey,
-                throttlingCache
-            )
+            CacheHelpers.isThrottlingEntity(throttlingCacheKey, throttlingCache)
         ) {
             return throttlingCache;
         }
