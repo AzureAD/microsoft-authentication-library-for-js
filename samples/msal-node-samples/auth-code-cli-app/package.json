@@ -1,19 +1,26 @@
 {
-  "name": "msal-node-auth-code-cli-app",
-  "version": "1.0.0",
-  "description": "CLI sample for msal-node public client application using using auth code flow with PKCE to sign-in users on azure ad",
-  "main": "src/index.js",
-  "private": true,
-  "scripts": {
-    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "start": "node .",
-    "start:build": "npm run build:package && npm start"
-  },
-  "author": "Microsoft",
-  "license": "MIT",
-  "dependencies": {
-    "@azure/msal-node": "^2.1.0",
-    "axios": "^1.4.0",
-    "open": "^8.4.0"
-  }
+    "name": "msal-node-auth-code-cli-app",
+    "version": "1.0.0",
+    "description": "CLI sample for msal-node public client application using using auth code flow with PKCE to sign-in users on azure ad",
+    "main": "src/index.js",
+    "private": true,
+    "scripts": {
+        "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+        "start": "node .",
+        "start:build": "npm run build:package && npm start",
+        "test": "jest"
+    },
+    "author": "Microsoft",
+    "license": "MIT",
+    "dependencies": {
+        "@azure/msal-node": "^2.1.0",
+        "axios": "^1.6.0",
+        "open": "^8.4.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.5.8",
+        "e2e-test-utils": "^0.0.1",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.1.1"
+    }
 }

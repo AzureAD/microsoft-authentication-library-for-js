@@ -6,62 +6,63 @@
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import {
-    TEST_CONFIG,
-    TEST_URIS,
-    TEST_TOKENS,
-    ID_TOKEN_CLAIMS,
-    TEST_DATA_CLIENT_INFO,
-    TEST_TOKEN_LIFETIMES,
-    RANDOM_TEST_GUID,
-    testLogoutUrl,
-    TEST_STATE_VALUES,
-    TEST_HASHES,
-    DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-    testNavUrlNoRequest,
-    TEST_SSH_VALUES,
+    DEFAULT_TENANT_DISCOVERY_RESPONSE,
+    ID_TOKEN_ALT_CLAIMS,
+    ID_TOKEN_CLAIMS,
+    RANDOM_TEST_GUID,
+    TEST_CONFIG,
     TEST_CRYPTO_VALUES,
+    TEST_DATA_CLIENT_INFO,
+    TEST_HASHES,
+    TEST_SSH_VALUES,
+    TEST_STATE_VALUES,
+    TEST_TOKEN_LIFETIMES,
+    TEST_TOKENS,
+    TEST_URIS,
+    testLogoutUrl,
+    testNavUrlNoRequest,
 } from "../utils/StringConstants";
 import {
-    AuthorityMetadataEntity,
-    ServerError,
-    Constants,
-    AccountInfo,
-    TokenClaims,
-    CommonAuthorizationUrlRequest,
-    AuthorizationCodeClient,
-    ResponseMode,
     AccountEntity,
-    ProtocolUtils,
+    AccountInfo,
     AuthenticationScheme,
-    RefreshTokenClient,
-    Logger,
-    ServerTelemetryEntity,
-    CommonSilentFlowRequest,
-    LogLevel,
-    CommonAuthorizationCodeRequest,
-    IdTokenEntity,
-    CacheManager,
-    PersistentCacheKeys,
-    Authority,
     AuthError,
-    ProtocolMode,
-    ServerResponseType,
-    PerformanceEvents,
-    createClientAuthError,
+    AuthorityMetadataEntity,
+    AuthorizationCodeClient,
+    CacheHelpers,
+    CacheManager,
     ClientAuthErrorCodes,
+    CommonAuthorizationCodeRequest,
+    CommonAuthorizationUrlRequest,
+    CommonSilentFlowRequest,
+    Constants,
+    createClientAuthError,
     createInteractionRequiredAuthError,
+    IdTokenEntity,
     InteractionRequiredAuthErrorCodes,
+    Logger,
+    LogLevel,
+    PerformanceEvents,
+    PersistentCacheKeys,
+    ProtocolMode,
+    ProtocolUtils,
+    RefreshTokenClient,
+    ResponseMode,
+    ServerError,
+    ServerResponseType,
+    ServerTelemetryEntity,
+    TokenClaims,
 } from "@azure/msal-common";
 import {
     ApiId,
-    InteractionType,
-    WrapperSKU,
-    TemporaryCacheKeys,
-    BrowserConstants,
     BrowserCacheLocation,
+    BrowserConstants,
     CacheLookupPolicy,
+    InteractionType,
     NativeConstants,
+    TemporaryCacheKeys,
+    WrapperSKU,
 } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
@@ -79,20 +80,16 @@ import { base64Encode } from "../../src/encode/Base64Encode";
 import { FetchClient } from "../../src/network/FetchClient";
 import {
     BrowserAuthError,
-    createBrowserAuthError,
     BrowserAuthErrorCodes,
     BrowserAuthErrorMessage,
+    createBrowserAuthError,
 } from "../../src/error/BrowserAuthError";
 import * as BrowserUtils from "../../src/utils/BrowserUtils";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
-import {
-    AuthorizationCodeRequest,
-    EndSessionRequest,
-    version,
-} from "../../src";
+import { AuthorizationCodeRequest, EndSessionRequest } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -109,9 +106,10 @@ import {
     createBrowserConfigurationAuthError,
 } from "../../src/error/BrowserConfigurationAuthError";
 import {
-    Configuration,
     buildConfiguration,
+    Configuration,
 } from "../../src/config/Configuration";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -193,6 +191,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         BrowserPerformanceMeasurement.flushMeasurements = jest
             .fn()
             .mockReturnValue(null);
+
+        // Navigation not allowed in tests
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateExternal"
+        ).mockImplementation();
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateInternal"
+        ).mockImplementation();
     });
 
     afterEach(() => {
@@ -761,16 +769,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 },
             };
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
+            const testIdTokenClaims: TokenClaims = ID_TOKEN_CLAIMS;
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -900,21 +899,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Looks for server code response in query param if OIDCOptions.serverResponseType is set to query", async () => {
-            /**
-             * The testing environment does not accept query params, so instead we see that it ignores a hash fragment.
-             * That means handleRedirectPromise is looking for a hash in a query param instead of a hash fragment.
-             */
-            sinon
-                .stub(RedirectClient.prototype, "handleRedirectPromise")
-                .callsFake(
-                    async (hash): Promise<AuthenticationResult | null> => {
-                        expect(hash).toBe("");
-                        return null;
-                    }
-                );
+            const responseSpy = jest.spyOn(
+                RedirectClient.prototype,
+                <any>"getRedirectResponse"
+            );
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            const responseString = `?code=authCode&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`;
 
-            window.location.hash = "#code=hello";
-            await pca.handleRedirectPromise();
+            jest.spyOn(window, "location", "get").mockReturnValueOnce({
+                ...window.location,
+                search: responseString,
+            });
+            await pca.handleRedirectPromise().catch(() => {
+                // This will likely throw, but we're not testing the e2e here
+            });
+
+            expect(responseSpy).toHaveBeenCalledTimes(1);
+            expect(responseSpy).lastReturnedWith([
+                {
+                    code: "authCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                },
+                responseString,
+            ]);
         });
     });
 
@@ -924,24 +934,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
 
-        it("throws an error if initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
-            await pca.initialize();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
-            try {
-                pca.loginRedirect();
-            } catch (e) {
+            pca.loginRedirect().catch((e) => {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.uninitializedPublicClientApplication
                     )
                 );
-            }
+                done();
+            });
         });
 
         it("doesnt mutate request correlation id", async () => {
@@ -957,14 +965,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Uses default request if no request provided", (done) => {
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(StandardController.prototype, "acquireTokenRedirect")
                 .callsFake(async (request): Promise<void> => {
                     expect(request.scopes).toContain("openid");
                     expect(request.scopes).toContain("profile");
+                    expect(request.correlationId).toEqual(RANDOM_TEST_GUID);
                     done();
                     return;
                 });
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
+                expect(events[0].success).toBe(true);
+                expect(events[0].accessTokenSize).toBe(16);
+                expect(events[0].idTokenSize).toBe(12);
+                expect(events[0].requestId).toBe(undefined);
+                expect(events[0].visibilityChangeCount).toBe(0);
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
 
             pca.loginRedirect();
         });
@@ -997,24 +1020,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
 
-        it("throws an error if initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
-            await pca.initialize();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
-            try {
-                pca.acquireTokenRedirect({ scopes: [] });
-            } catch (e) {
+            pca.acquireTokenRedirect({ scopes: [] }).catch((e) => {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.uninitializedPublicClientApplication
                     )
                 );
-            }
+                done();
+            });
         });
         it("goes directly to the native broker if nativeAccountId is present", async () => {
             const config = {
@@ -1041,6 +1062,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 username: "AbeLi@microsoft.com",
                 nativeAccountId: "test-nativeAccountId",
             };
+
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
 
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireTokenRedirect")
@@ -1616,15 +1641,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             sinon
                 .stub(StandardController.prototype, "acquireTokenPopup")
                 .callsFake(async (request) => {
                     expect(request.scopes).toContain("openid");
                     expect(request.scopes).toContain("profile");
+                    expect(request.correlationId).toEqual(RANDOM_TEST_GUID);
                     done();
 
                     return testTokenResponse;
                 });
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
+                expect(events[0].success).toBe(true);
+                expect(events[0].accessTokenSize).toBe(16);
+                expect(events[0].idTokenSize).toBe(12);
+                expect(events[0].requestId).toBe(undefined);
+                expect(events[0].visibilityChangeCount).toBe(0);
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
 
             pca.loginPopup();
         });
@@ -1703,9 +1742,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
 
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
             const nativeAcquireTokenSpy = sinon
                 .stub(NativeInteractionClient.prototype, "acquireToken")
-                .callsFake(async () => {
+                .callsFake(async (request) => {
+                    expect(request.correlationId).toBe(RANDOM_TEST_GUID);
                     return testTokenResponse;
                 });
             const popupSpy = sinon
@@ -3461,6 +3505,52 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentIframeSpy.calledOnce).toBe(true);
         });
 
+        it("Calls SilentIframeClient.acquireToken and returns its response if no RT is cached", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            const silentCacheSpy = sinon
+                .stub(SilentCacheClient.prototype, "acquireToken")
+                .rejects("Expired");
+            const silentRefreshSpy = sinon
+                .stub(SilentRefreshClient.prototype, "acquireToken")
+                .rejects(
+                    createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.noTokensFound
+                    )
+                );
+            const silentIframeSpy = sinon
+                .stub(SilentIframeClient.prototype, "acquireToken")
+                .resolves(testTokenResponse);
+
+            const response = await pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+            });
+            expect(response).toEqual(testTokenResponse);
+            expect(silentCacheSpy.calledOnce).toBe(true);
+            expect(silentRefreshSpy.calledOnce).toBe(true);
+            expect(silentIframeSpy.calledOnce).toBe(true);
+        });
+
         it("makes one network request with multiple parallel silent requests with same request", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -4677,6 +4767,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentIframeSpy.calledOnce).toBeTruthy();
             });
 
+            it("Calls SilentCacheClient.acquireToken, SilentRefreshClient.acquireToken and SilentIframeClient.acquireToken if cache lookup throws and cached refresh token is expired when CacheLookupPolicy is set to Default", async () => {
+                const silentCacheSpy = jest
+                    .spyOn(SilentCacheClient.prototype, "acquireToken")
+                    .mockRejectedValue(refreshRequiredCacheError);
+                const silentRefreshSpy = jest
+                    .spyOn(SilentRefreshClient.prototype, "acquireToken")
+                    .mockRejectedValue(
+                        createInteractionRequiredAuthError(
+                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                        )
+                    );
+                const silentIframeSpy = jest
+                    .spyOn(SilentIframeClient.prototype, "acquireToken")
+                    .mockResolvedValue(testTokenResponse);
+
+                const response = pca.acquireTokenSilent({
+                    scopes: ["openid"],
+                    account: testAccount,
+                    cacheLookupPolicy: CacheLookupPolicy.Default,
+                });
+                await expect(response).resolves.toEqual(testTokenResponse);
+                expect(silentCacheSpy).toHaveBeenCalledTimes(1);
+                expect(silentRefreshSpy).toHaveBeenCalledTimes(1);
+                expect(silentIframeSpy).toHaveBeenCalledTimes(1);
+            });
+
             it("Calls SilentCacheClient.acquireToken, and doesn't call SilentRefreshClient.acquireToken or SilentIframeClient.acquireToken if cache lookup throws when CacheLookupPolicy is set to AccessToken", async () => {
                 const silentCacheSpy = sinon
                     .stub(SilentCacheClient.prototype, "acquireToken")
@@ -4810,22 +4926,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
 
-        it("throws an error if initialize was not called prior", async () => {
+        it("throws an error if initialize was not called prior", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             });
-            await pca.initialize();
-            try {
-                pca.logout();
-            } catch (error: any) {
+            pca.logout().catch((error: any) => {
                 expect(error).toMatchObject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.uninitializedPublicClientApplication
                     )
                 );
-            }
+                done();
+            });
         });
 
         it("calls logoutRedirect", (done) => {
@@ -4973,39 +5087,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("clearCache tests", () => {
         // Account 1
-        const testAccountInfo1: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-            environment: "login.windows.net",
-            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-            username: "example@microsoft.com",
-            name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
+        const testAccount: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+
+        const testAccountInfo: AccountInfo = testAccount.getAccountInfo();
+        const matchAccount: AccountInfo = {
+            ...testAccountInfo,
             idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
         };
 
-        const testAccount1: AccountEntity = new AccountEntity();
-        testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
-        testAccount1.localAccountId = TEST_CONFIG.OID;
-        testAccount1.environment = testAccountInfo1.environment;
-        testAccount1.realm = testAccountInfo1.tenantId;
-        testAccount1.username = testAccountInfo1.username;
-        testAccount1.name = testAccountInfo1.name;
-        testAccount1.authorityType = "MSSTS";
-        testAccount1.clientInfo =
-            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-
-        const idTokenData1 = {
-            realm: testAccountInfo1.tenantId,
-            environment: testAccountInfo1.environment,
-            credentialType: "IdToken",
-            secret: TEST_TOKENS.IDTOKEN_V2,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            homeAccountId: testAccountInfo1.homeAccountId,
-        };
-
+        const testIdToken: IdTokenEntity = buildIdToken(
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2,
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+        );
         beforeEach(async () => {
             pca = (pca as any).controller;
             await pca.initialize();
@@ -5026,13 +5121,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount1);
-            const idToken1 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData1
-            );
+            pca.getBrowserStorage().setAccount(testAccount);
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken1);
+            pca.getBrowserStorage().setIdTokenCredential(testIdToken);
         });
 
         afterEach(() => {
@@ -5043,22 +5134,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("browser cache cleared when clearCache called without a ClearCacheRequest object", () => {
             expect(pca.getActiveAccount()).toEqual(null);
-            pca.setActiveAccount(testAccountInfo1);
+            pca.setActiveAccount(matchAccount);
             const activeAccount = pca.getActiveAccount();
-            expect(activeAccount?.idToken).not.toBeUndefined();
-            expect(activeAccount).toEqual(testAccountInfo1);
+            expect(activeAccount).toEqual(matchAccount);
             pca.clearCache();
             expect(pca.getActiveAccount()).toEqual(null);
         });
 
         it("browser cache cleared when clearCache called with a ClearCacheRequest object", () => {
             expect(pca.getActiveAccount()).toEqual(null);
-            pca.setActiveAccount(testAccountInfo1);
+            pca.setActiveAccount(matchAccount);
             const activeAccount = pca.getActiveAccount();
-            expect(activeAccount?.idToken).not.toBeUndefined();
-            expect(activeAccount).toEqual(testAccountInfo1);
+            expect(activeAccount).toEqual(matchAccount);
             pca.clearCache({
-                account: testAccountInfo1,
+                account: matchAccount,
                 correlationId: "test123",
             });
             expect(pca.getActiveAccount()).toEqual(null);
@@ -5067,146 +5156,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("getAccount tests", () => {
         // Account 1
-        const testAccountInfo1: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-            environment: "login.windows.net",
-            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-            username: "example@microsoft.com",
-            name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
-        };
+        const testAccount1: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        const testAccountInfo1: AccountInfo = testAccount1.getAccountInfo();
+        testAccountInfo1.idTokenClaims = ID_TOKEN_CLAIMS;
 
-        const testAccount1: AccountEntity = new AccountEntity();
-        testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
-        testAccount1.localAccountId = TEST_CONFIG.OID;
-        testAccount1.environment = testAccountInfo1.environment;
-        testAccount1.realm = testAccountInfo1.tenantId;
-        testAccount1.username = testAccountInfo1.username;
-        testAccount1.name = testAccountInfo1.name;
-        testAccount1.authorityType = "MSSTS";
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData1 = {
-            realm: testAccountInfo1.tenantId,
-            environment: testAccountInfo1.environment,
-            credentialType: "IdToken",
-            secret: TEST_TOKENS.IDTOKEN_V2,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            homeAccountId: testAccountInfo1.homeAccountId,
-        };
+        const idToken1: IdTokenEntity = buildIdToken(
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2,
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+        );
 
         // Account 2
-        const testAccountInfo2: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: "different-home-account-id",
-            environment: "login.windows.net",
-            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-            username: "anotherExample@microsoft.com",
-            name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
-        };
 
-        const testAccount2: AccountEntity = new AccountEntity();
-        testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
-        testAccount2.localAccountId = TEST_CONFIG.OID;
-        testAccount2.environment = testAccountInfo2.environment;
-        testAccount2.realm = testAccountInfo2.tenantId;
-        testAccount2.username = testAccountInfo2.username;
-        testAccount2.name = testAccountInfo2.name;
-        testAccount2.authorityType = "MSSTS";
+        const testAccount2: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
+        const testAccountInfo2: AccountInfo = testAccount2.getAccountInfo();
+        testAccountInfo2.idTokenClaims = ID_TOKEN_ALT_CLAIMS;
+
         testAccount2.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        const idTokenData2 = {
-            realm: testAccountInfo2.tenantId,
-            environment: testAccountInfo2.environment,
-            credentialType: "IdToken",
-            secret: TEST_TOKENS.IDTOKEN_V2,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            homeAccountId: testAccountInfo2.homeAccountId,
-        };
-
-        // Account 3
-        const testAccountInfo3: AccountInfo = {
-            authorityType: "ADFS",
-            homeAccountId: "another-home-account-id",
-            environment: "login.windows.net",
-            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-            username: "Unique Username",
-            name: "Abe Lincoln Two",
-            localAccountId: TEST_CONFIG.OID,
-            idToken: TEST_TOKENS.ID_TOKEN_V2_WITH_LOGIN_HINT,
-            idTokenClaims: { ...ID_TOKEN_CLAIMS, login_hint: "testLoginHint" },
-            nativeAccountId: undefined,
-        };
-
-        const testAccount3: AccountEntity = new AccountEntity();
-        testAccount3.homeAccountId = testAccountInfo3.homeAccountId;
-        testAccount3.localAccountId = TEST_CONFIG.OID;
-        testAccount3.environment = testAccountInfo3.environment;
-        testAccount3.realm = testAccountInfo3.tenantId;
-        testAccount3.username = testAccountInfo3.username;
-        testAccount3.name = testAccountInfo3.name;
-        testAccount3.authorityType = "ADFS";
-
-        testAccount3.clientInfo =
-            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount3.idTokenClaims = testAccountInfo3.idTokenClaims;
-
-        const idTokenData3 = {
-            realm: testAccountInfo3.tenantId,
-            environment: testAccountInfo3.environment,
-            credentialType: "IdToken",
-            secret: TEST_TOKENS.ID_TOKEN_V2_WITH_LOGIN_HINT,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            homeAccountId: testAccountInfo3.homeAccountId,
-            login_hint: "testLoginHint",
-        };
-
-        // Account 4
-        const testAccountInfo4: AccountInfo = {
-            authorityType: "MSA",
-            homeAccountId: "upn-account-id",
-            environment: "login.windows.net",
-            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-            username: "Upn User",
-            name: "Abe Lincoln Three",
-            localAccountId: TEST_CONFIG.OID,
-            idToken: TEST_TOKENS.ID_TOKEN_V2_WITH_UPN,
-            idTokenClaims: { ...ID_TOKEN_CLAIMS, upn: "testUpn" },
-            nativeAccountId: undefined,
-        };
-
-        const testAccount4: AccountEntity = new AccountEntity();
-        testAccount4.homeAccountId = testAccountInfo4.homeAccountId;
-        testAccount4.localAccountId = TEST_CONFIG.OID;
-        testAccount4.environment = testAccountInfo4.environment;
-        testAccount4.realm = testAccountInfo4.tenantId;
-        testAccount4.username = testAccountInfo4.username;
-        testAccount4.name = testAccountInfo4.name;
-        testAccount4.authorityType = "MSA";
-
-        testAccount4.clientInfo =
-            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount4.idTokenClaims = testAccountInfo4.idTokenClaims;
-
-        const idTokenData4 = {
-            realm: testAccountInfo4.tenantId,
-            environment: testAccountInfo4.environment,
-            credentialType: "IdToken",
-            secret: TEST_TOKENS.ID_TOKEN_V2_WITH_UPN,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            homeAccountId: testAccountInfo4.homeAccountId,
-            upn: "testUpn",
-        };
+        const idToken2: IdTokenEntity = buildIdToken(
+            ID_TOKEN_ALT_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2_ALT,
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+        );
 
         beforeEach(async () => {
             pca = (pca as any).controller;
@@ -5230,38 +5208,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.getBrowserStorage().setAccount(testAccount1);
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount2);
-            // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount3);
-            // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount4);
 
-            const idToken1 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData1
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken1);
 
-            const idToken2 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData2
-            );
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken2);
-
-            const idToken3 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData3
-            );
-            // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken3);
-
-            const idToken4 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData4
-            );
-            // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken4);
         });
 
         afterEach(() => {
@@ -5271,18 +5223,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAllAccounts with no account filter returns all signed in accounts", () => {
             const accounts = pca.getAllAccounts();
-            expect(accounts).toHaveLength(4);
-            expect(accounts[0].idToken).not.toBeUndefined();
-            expect(accounts[1].idToken).not.toBeUndefined();
-            expect(accounts[2].idToken).not.toBeUndefined();
-            expect(accounts[3].idToken).not.toBeUndefined();
+            expect(accounts).toHaveLength(2);
+            expect(accounts[0].idTokenClaims).not.toBeUndefined();
+            expect(accounts[1].idTokenClaims).not.toBeUndefined();
         });
 
         it("getAllAccounts returns all accounts matching the filter passed in", () => {
-            const accounts = pca.getAllAccounts({ authorityType: "MSSTS" });
+            const authorityType = "MSSTS";
+            const accounts = pca.getAllAccounts({ authorityType });
             expect(accounts).toHaveLength(2);
-            expect(accounts[0].authorityType).toBe("MSSTS");
-            expect(accounts[1].authorityType).toBe("MSSTS");
+            expect(accounts[0].authorityType).toBe(authorityType);
+            expect(accounts[1].authorityType).toBe(authorityType);
         });
 
         it("getAllAccounts returns empty array if no accounts signed in", () => {
@@ -5292,20 +5243,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("getAccountByUsername returns account specified", () => {
-            const account = pca.getAccountByUsername("example@microsoft.com");
-            expect(account?.idToken).not.toBeUndefined();
+            const account = pca.getAccountByUsername(
+                ID_TOKEN_CLAIMS.preferred_username
+            );
+            expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
 
         it("getAccountByUsername returns account specified with case mismatch", () => {
-            const account = pca.getAccountByUsername("Example@Microsoft.com");
-            expect(account?.idToken).not.toBeUndefined();
+            const account = pca.getAccountByUsername(
+                ID_TOKEN_CLAIMS.preferred_username.toUpperCase()
+            );
+            expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
 
             const account2 = pca.getAccountByUsername(
-                "anotherexample@microsoft.com"
+                ID_TOKEN_ALT_CLAIMS.preferred_username.toUpperCase()
             );
-            expect(account2?.idToken).not.toBeUndefined();
+            expect(account2?.idTokenClaims).not.toBeUndefined();
             expect(account2).toEqual(testAccountInfo2);
         });
 
@@ -5324,9 +5279,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByHomeId returns account specified", () => {
             const account = pca.getAccountByHomeId(
-                TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
+                testAccountInfo1.homeAccountId
             );
-            expect(account?.idToken).not.toBeUndefined();
+            expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
 
@@ -5342,8 +5297,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("getAccountByLocalId returns account specified", () => {
-            const account = pca.getAccountByLocalId(TEST_CONFIG.OID);
-            expect(account?.idToken).not.toBeUndefined();
+            const account = pca.getAccountByLocalId(ID_TOKEN_CLAIMS.oid);
+            expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
 
@@ -5367,72 +5322,72 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             describe("loginHint filter", () => {
                 it("getAccount returns account specified using login_hint", () => {
                     const account = pca.getAccount({
-                        loginHint: "testLoginHint",
+                        loginHint: ID_TOKEN_CLAIMS.login_hint,
                     });
-                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
-                        testAccountInfo3.homeAccountId
+                        testAccountInfo1.homeAccountId
                     );
                 });
                 it("getAccount returns account specified using username", () => {
                     const account = pca.getAccount({
-                        loginHint: "Unique Username",
+                        loginHint: ID_TOKEN_ALT_CLAIMS.preferred_username,
                     });
-                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
-                        testAccountInfo3.homeAccountId
+                        testAccountInfo2.homeAccountId
                     );
                 });
                 it("getAccount returns account specified using upn", () => {
                     const account = pca.getAccount({
-                        loginHint: "testUpn",
+                        loginHint: ID_TOKEN_CLAIMS.upn,
                     });
-                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
-                        testAccountInfo4.homeAccountId
+                        testAccountInfo1.homeAccountId
                     );
                 });
                 it("getAccount returns account specified using sid", () => {
                     const account = pca.getAccount({
-                        sid: "testSid",
+                        sid: ID_TOKEN_CLAIMS.sid,
                     });
-                    expect(account?.idToken).not.toBeUndefined();
+                    expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
-                        testAccountInfo3.homeAccountId
+                        testAccountInfo1.homeAccountId
                     );
                 });
             });
 
             it("getAccount returns account specified using homeAccountId", () => {
                 const account = pca.getAccount({
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    homeAccountId: testAccountInfo1.homeAccountId,
                 });
-                expect(account?.idToken).not.toBeUndefined();
+                expect(account?.idTokenClaims).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
 
             it("getAccount returns account specified using localAccountId", () => {
                 const account = pca.getAccount({
-                    localAccountId: TEST_CONFIG.OID,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
                 });
-                expect(account?.idToken).not.toBeUndefined();
+                expect(account?.idTokenClaims).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
 
             it("getAccount returns account specified using username", () => {
                 const account = pca.getAccount({
-                    username: "example@microsoft.com",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
                 });
-                expect(account?.idToken).not.toBeUndefined();
+                expect(account?.idTokenClaims).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
 
             it("getAccount returns account specified using a combination of homeAccountId and localAccountId", () => {
                 const account = pca.getAccount({
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                    localAccountId: TEST_CONFIG.OID,
+                    homeAccountId: testAccountInfo1.homeAccountId,
+                    localAccountId: testAccountInfo1.localAccountId,
                 });
-                expect(account?.idToken).not.toBeUndefined();
+                expect(account?.idTokenClaims).not.toBeUndefined();
                 expect(account).toEqual(testAccountInfo1);
             });
         });
@@ -5440,82 +5395,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("activeAccount API tests", () => {
         // Account 1
+        const testAccount1: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const testAccountInfo1: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
-            environment: "login.windows.net",
-            tenantId: ID_TOKEN_CLAIMS.tid,
-            username: "example@microsoft.com",
-            name: "Abe Lincoln",
-            localAccountId: ID_TOKEN_CLAIMS.oid,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
+            ...testAccount1.getAccountInfo(),
             idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
         };
 
-        const testAccount1: AccountEntity = new AccountEntity();
-        testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
-        testAccount1.localAccountId = testAccountInfo1.localAccountId;
-        testAccount1.environment = testAccountInfo1.environment;
-        testAccount1.realm = testAccountInfo1.tenantId;
-        testAccount1.username = testAccountInfo1.username;
-        testAccount1.name = testAccountInfo1.name;
-        testAccount1.authorityType = "MSSTS";
-        testAccount1.clientInfo =
-            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-
-        const idTokenData1 = {
-            realm: testAccountInfo1.tenantId,
-            environment: testAccountInfo1.environment,
-            credentialType: "IdToken",
-            secret: TEST_TOKENS.IDTOKEN_V2,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            homeAccountId: testAccountInfo1.homeAccountId,
-        };
-
-        const idToken1 = CacheManager.toObject(
-            new IdTokenEntity(),
-            idTokenData1
+        const idToken1: IdTokenEntity = buildIdToken(
+            ID_TOKEN_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2,
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
         );
 
         // Account 2
+
+        const testAccount2: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
         const testAccountInfo2: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId:
-                TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow2",
-            environment: "login.windows.net",
-            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-            username: "example@microsoft.com",
-            name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
+            ...testAccount2.getAccountInfo(),
+            idTokenClaims: ID_TOKEN_ALT_CLAIMS,
         };
 
-        const testAccount2: AccountEntity = new AccountEntity();
-        testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
-        testAccount2.localAccountId = TEST_CONFIG.OID;
-        testAccount2.environment = testAccountInfo2.environment;
-        testAccount2.realm = testAccountInfo2.tenantId;
-        testAccount2.username = testAccountInfo2.username;
-        testAccount2.name = testAccountInfo2.name;
-        testAccount2.authorityType = "MSSTS";
-        testAccount2.clientInfo =
-            TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-        testAccount2.idTokenClaims = ID_TOKEN_CLAIMS;
-
-        const idTokenData2 = {
-            realm: testAccountInfo2.tenantId,
-            environment: testAccountInfo2.environment,
-            credentialType: "IdToken",
-            secret: TEST_TOKENS.IDTOKEN_V2,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            homeAccountId: testAccountInfo2.homeAccountId,
-        };
-        const idToken2 = CacheManager.toObject(
-            new IdTokenEntity(),
-            idTokenData2
+        const idToken2: IdTokenEntity = buildIdToken(
+            ID_TOKEN_ALT_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2_ALT,
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
         );
 
         beforeEach(async () => {
@@ -5562,36 +5467,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(pca.getActiveAccount()).toBe(null);
                 pca.setActiveAccount(testAccountInfo1);
                 const activeAccount = pca.getActiveAccount();
-                expect(activeAccount?.idToken).not.toBeUndefined();
+                expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                 expect(activeAccount).toEqual(testAccountInfo1);
-            });
-
-            it("getActiveAccount looks up the current account values and returns them", () => {
-                pca.setActiveAccount(testAccountInfo1);
-                const activeAccount1 = pca.getActiveAccount();
-                expect(activeAccount1?.idToken).not.toBeUndefined();
-                expect(activeAccount1).toEqual(testAccountInfo1);
-
-                const newName = "Ben Franklin";
-                const newTestAccountInfo1 = {
-                    ...testAccountInfo1,
-                    name: newName,
-                };
-                const newTestAccount1 = {
-                    ...testAccount1,
-                    name: newName,
-                };
-
-                const cacheKey =
-                    AccountEntity.generateAccountCacheKey(newTestAccountInfo1);
-                window.sessionStorage.setItem(
-                    cacheKey,
-                    JSON.stringify(newTestAccount1)
-                );
-
-                const activeAccount2 = pca.getActiveAccount();
-                expect(activeAccount2?.idToken).not.toBeUndefined();
-                expect(activeAccount2).toEqual(newTestAccountInfo1);
             });
 
             it("getActiveAccount picks up legacy account id from local storage", async () => {
@@ -5637,7 +5514,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     pca.setActiveAccount(testAccountInfo1);
                     const activeAccount = pca.getActiveAccount();
                     expect(activeAccount).not.toBeNull();
-                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                     expect(activeAccount?.homeAccountId).toEqual(
                         testAccountInfo1.homeAccountId
                     );
@@ -5651,13 +5528,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                     pca.setActiveAccount(testAccountInfo1);
                     let activeAccount = pca.getActiveAccount();
-                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                     expect(activeAccount).toEqual(testAccountInfo1);
                     expect(activeAccount).not.toEqual(testAccountInfo2);
 
                     pca.setActiveAccount(testAccountInfo2);
                     activeAccount = pca.getActiveAccount();
-                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                     expect(pca.getActiveAccount()).not.toEqual(
                         testAccountInfo1
                     );
@@ -5669,13 +5546,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                     pca.setActiveAccount(testAccountInfo2);
                     const activeAccount = pca.getActiveAccount();
-                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                     expect(activeAccount).not.toEqual(testAccountInfo1);
                     expect(activeAccount).toEqual(testAccountInfo2);
 
                     const cacheKey2 =
                         AccountEntity.generateAccountCacheKey(testAccountInfo2);
-                    const idTokenKey2 = idToken2.generateCredentialKey();
+                    const idTokenKey2 =
+                        CacheHelpers.generateCredentialKey(idToken2);
                     window.sessionStorage.removeItem(cacheKey2);
                     window.sessionStorage.removeItem(idTokenKey2);
                     expect(pca.getActiveAccount()).toBe(null);
@@ -5877,15 +5755,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("hydrateCache tests", () => {
         const testAccount: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
-            localAccountId: ID_TOKEN_CLAIMS.oid,
-            environment: "login.windows.net",
-            tenantId: ID_TOKEN_CLAIMS.tid,
-            username: ID_TOKEN_CLAIMS.preferred_username,
+            ...buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo(),
             idTokenClaims: ID_TOKEN_CLAIMS,
-            name: ID_TOKEN_CLAIMS.name,
-            nativeAccountId: undefined,
         };
 
         const testAuthenticationResult: AuthenticationResult = {
@@ -5979,6 +5850,254 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(result.idToken).toEqual(nativeResult.idToken);
             expect(result.account).toEqual(nativeAccount);
             expect(result.fromCache).toEqual(true);
+        });
+    });
+
+    describe("override logger settings tests", () => {
+        it("overrides log level from info to verbose", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Info,
+                        loggerCallback: (level, message, containsPii) => {
+                            switch (level) {
+                                case LogLevel.Info:
+                                    console.info(message);
+                                    return;
+                                default:
+                                    return;
+                            }
+                        },
+                    },
+                },
+            };
+            window.sessionStorage.setItem("msal.browser.log.level", "Verbose");
+
+            pca = new PublicClientApplication(msalConfig);
+            const logger = pca.getLogger();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
+
+            logger.info("test info");
+            logger.verbose("test verbose");
+            logger.verbosePii("test pii verbose");
+
+            expect(loggerCallbackStub).toHaveBeenCalledTimes(2);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Info,
+                expect.stringContaining("test info"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test verbose"),
+                false
+            );
+        });
+
+        it("overrides log level from verbose to info", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Verbose,
+                        loggerCallback: (level, message, containsPii) => {
+                            switch (level) {
+                                case LogLevel.Verbose:
+                                    console.debug(message);
+                                    return;
+                                default:
+                                    return;
+                            }
+                        },
+                    },
+                },
+            };
+            window.sessionStorage.setItem("msal.browser.log.level", "Info");
+
+            pca = new PublicClientApplication(msalConfig);
+            const logger = pca.getLogger();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
+
+            logger.info("test info");
+            logger.verbose("test verbose");
+            logger.verbosePii("test pii verbose");
+
+            expect(loggerCallbackStub).toHaveBeenCalledTimes(1);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Info,
+                expect.stringContaining("test info"),
+                false
+            );
+        });
+
+        it("overrides log pii to true", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Info,
+                        loggerCallback: (level, message, containsPii) => {
+                            switch (level) {
+                                case LogLevel.Info:
+                                    console.info(message);
+                                    return;
+                                default:
+                                    return;
+                            }
+                        },
+                    },
+                },
+            };
+
+            window.sessionStorage.setItem("msal.browser.log.level", "Verbose");
+            window.sessionStorage.setItem("msal.browser.log.pii", "true");
+
+            pca = new PublicClientApplication(msalConfig);
+            const logger = pca.getLogger();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
+
+            logger.info("test info");
+            logger.verbose("test verbose");
+            logger.verbosePii("test pii verbose");
+
+            expect(loggerCallbackStub).toHaveBeenCalledTimes(3);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Info,
+                expect.stringContaining("test info"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test verbose"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test pii verbose"),
+                true
+            );
+        });
+
+        it("overrides log pii to false", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Info,
+                        loggerCallback: (level, message, containsPii) => {
+                            switch (level) {
+                                case LogLevel.Info:
+                                    console.info(message);
+                                    return;
+                                default:
+                                    return;
+                            }
+                        },
+                        piiLoggingEnabled: true,
+                    },
+                },
+            };
+
+            window.sessionStorage.setItem("msal.browser.log.level", "Verbose");
+            window.sessionStorage.setItem("msal.browser.log.pii", "false");
+
+            pca = new PublicClientApplication(msalConfig);
+            const logger = pca.getLogger();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
+
+            logger.info("test info");
+            logger.verbose("test verbose");
+            logger.verbosePii("test pii verbose");
+
+            expect(loggerCallbackStub).toHaveBeenCalledTimes(2);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Info,
+                expect.stringContaining("test info"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test verbose"),
+                false
+            );
+        });
+
+        it("does not override with empty log level and pii keys", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Verbose,
+                        loggerCallback: (level, message, containsPii) => {
+                            switch (level) {
+                                case LogLevel.Info:
+                                    console.info(message);
+                                    return;
+                                case LogLevel.Verbose:
+                                    console.debug(message);
+                                    return;
+                                default:
+                                    return;
+                            }
+                        },
+                        piiLoggingEnabled: true,
+                    },
+                },
+            };
+
+            window.sessionStorage.setItem("msal.browser.log.level", "");
+            window.sessionStorage.setItem("msal.browser.log.pii", "");
+
+            pca = new PublicClientApplication(msalConfig);
+            const logger = pca.getLogger();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
+
+            logger.info("test info");
+            logger.verbose("test verbose");
+            logger.verbosePii("test pii verbose");
+
+            expect(loggerCallbackStub).toHaveBeenCalledTimes(3);
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Info,
+                expect.stringContaining("test info"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test verbose"),
+                false
+            );
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining("test pii verbose"),
+                true
+            );
         });
     });
 });

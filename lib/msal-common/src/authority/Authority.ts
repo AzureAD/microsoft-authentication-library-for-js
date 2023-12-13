@@ -859,7 +859,7 @@ export class Authority {
         } else {
             const hardcodedMetadata =
                 getCloudDiscoveryMetadataFromHardcodedValues(
-                    this.canonicalAuthority
+                    this.hostnameAndPort
                 );
             if (hardcodedMetadata) {
                 this.logger.verbose(
@@ -1070,12 +1070,12 @@ export class Authority {
         const matches = this.authorityOptions.knownAuthorities.filter(
             (authority) => {
                 return (
+                    authority &&
                     UrlString.getDomainFromUrl(authority).toLowerCase() ===
-                    this.hostnameAndPort
+                        this.hostnameAndPort
                 );
             }
         );
-
         return matches.length > 0;
     }
 
@@ -1211,12 +1211,11 @@ export class Authority {
                 regionalMetadata.authorization_endpoint,
                 azureRegion
             );
-        // TODO: Enquire on whether we should leave the query string or remove it before releasing the feature
+
         regionalMetadata.token_endpoint =
             Authority.buildRegionalAuthorityString(
                 regionalMetadata.token_endpoint,
-                azureRegion,
-                Constants.REGIONAL_AUTH_NON_MSI_QUERY_STRING
+                azureRegion
             );
 
         if (regionalMetadata.end_session_endpoint) {
@@ -1260,6 +1259,33 @@ export class Authority {
     }
 }
 
+/**
+ * Extract tenantId from authority
+ */
+export function getTenantFromAuthorityString(
+    authority: string
+): string | undefined {
+    const authorityUrl = new UrlString(authority);
+    const authorityUrlComponents = authorityUrl.getUrlComponents();
+    /**
+     * For credential matching purposes, tenantId is the last path segment of the authority URL:
+     *  AAD Authority - domain/tenantId -> Credentials are cached with realm = tenantId
+     *  B2C Authority - domain/{tenantId}?/.../policy -> Credentials are cached with realm = policy
+     *  tenantId is downcased because B2C policies can have mixed case but tfp claim is downcased
+     */
+    const tenantId =
+        authorityUrlComponents.PathSegments.slice(-1)[0].toLowerCase();
+
+    switch (tenantId) {
+        case AADAuthorityConstants.COMMON:
+        case AADAuthorityConstants.ORGANIZATIONS:
+        case AADAuthorityConstants.CONSUMERS:
+            return undefined;
+        default:
+            return tenantId;
+    }
+}
+
 export function formatAuthorityUri(authorityUri: string): string {
     return authorityUri.endsWith(Constants.FORWARD_SLASH)
         ? authorityUri
@@ -1270,13 +1296,11 @@ export function buildStaticAuthorityOptions(
     authOptions: Partial<AuthorityOptions>
 ): StaticAuthorityOptions {
     const rawCloudDiscoveryMetadata = authOptions.cloudDiscoveryMetadata;
-    let cloudDiscoveryMetadata: CloudDiscoveryMetadata[] | undefined =
+    let cloudDiscoveryMetadata: CloudInstanceDiscoveryResponse | undefined =
         undefined;
     if (rawCloudDiscoveryMetadata) {
         try {
-            cloudDiscoveryMetadata = JSON.parse(
-                rawCloudDiscoveryMetadata
-            ).metadata;
+            cloudDiscoveryMetadata = JSON.parse(rawCloudDiscoveryMetadata);
         } catch (e) {
             throw createClientConfigurationError(
                 ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata

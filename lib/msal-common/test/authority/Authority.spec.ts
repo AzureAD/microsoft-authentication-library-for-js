@@ -1,4 +1,9 @@
-import { Authority } from "../../src/authority/Authority";
+import {
+    Authority,
+    buildStaticAuthorityOptions,
+    formatAuthorityUri,
+    getTenantFromAuthorityString,
+} from "../../src/authority/Authority";
 import {
     INetworkModule,
     NetworkRequestOptions,
@@ -15,6 +20,8 @@ import {
 import {
     ClientConfigurationErrorMessage,
     ClientConfigurationError,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "../../src/error/ClientConfigurationError";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import {
@@ -22,7 +29,10 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError";
-import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
+import {
+    AuthorityOptions,
+    StaticAuthorityOptions,
+} from "../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
 import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
@@ -606,7 +616,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     .replace(
                         "login.microsoftonline.com",
                         "westus2.login.microsoft.com"
-                    )}/?allowestsrnonmsi=true`
+                    )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
                 `${deepCopyOpenIdResponse.body.end_session_endpoint
@@ -661,7 +671,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     .replace(
                         "login.microsoftonline.com",
                         "westus2.login.microsoft.com"
-                    )}/?allowestsrnonmsi=true`
+                    )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
                 `${deepCopyOpenIdResponse.body.end_session_endpoint
@@ -723,7 +733,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     .replace(
                         "login.microsoftonline.com",
                         "westus2.login.microsoft.com"
-                    )}/?allowestsrnonmsi=true`
+                    )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
                 `${deepCopyOpenIdResponse.body.end_session_endpoint
@@ -778,7 +788,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     .replace(
                         "login.microsoftonline.com",
                         "centralus.login.microsoft.com"
-                    )}/?allowestsrnonmsi=true`
+                    )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
                 `${deepCopyOpenIdResponse.body.end_session_endpoint
@@ -1153,7 +1163,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     jwks_uri:
                         "https://login.microsoftonline.com/common/discovery/v2.0/keys",
                     token_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/token/?allowestsrnonmsi=true",
+                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/token/",
                 };
 
                 networkInterface.sendGetRequestAsync = (
@@ -1876,7 +1886,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     );
 
                     const hardcodedCloudDiscoveryMetadata =
-                        InstanceDiscoveryMetadata[Constants.DEFAULT_AUTHORITY];
+                        InstanceDiscoveryMetadata;
 
                     const expectedCloudDiscoveryMetadata =
                         hardcodedCloudDiscoveryMetadata.metadata[0];
@@ -2725,6 +2735,109 @@ describe("Authority.ts Class Unit Tests", () => {
                 "westus2"
             );
             expect(regionalResponse.end_session_endpoint).toBeUndefined();
+        });
+    });
+
+    describe("getTenantFromAuthorityString", () => {
+        it("returns tenantId if authority is a tenant-specific authority", () => {
+            expect(
+                getTenantFromAuthorityString(TEST_CONFIG.tenantedValidAuthority)
+            ).toBe(TEST_CONFIG.MSAL_TENANT_ID);
+        });
+        it("returns undefined if authority is a named authority (common, organizations, consumers", () => {
+            expect(
+                getTenantFromAuthorityString(TEST_CONFIG.validAuthority)
+            ).toBeUndefined();
+            expect(
+                getTenantFromAuthorityString(TEST_CONFIG.organizationsAuthority)
+            ).toBeUndefined();
+            expect(
+                getTenantFromAuthorityString(TEST_CONFIG.consumersAuthority)
+            ).toBeUndefined();
+        });
+    });
+
+    describe("formatAuthorityUri", () => {
+        it("returns the same authority URL if it already ends with a forward slash", () => {
+            const authorityUrl = "https://login.microsoftonline.com/common/";
+            expect(formatAuthorityUri(authorityUrl)).toBe(authorityUrl);
+        });
+
+        it("appends forward slash if authority URL does not end with a forward slash", () => {
+            const authorityUrl = "https://login.microsoftonline.com/common";
+            const formattedAuthorityUrl = authorityUrl + "/";
+            expect(formatAuthorityUri(authorityUrl)).toBe(
+                formattedAuthorityUrl
+            );
+        });
+    });
+
+    describe("buildStaticAuthorityOptions", () => {
+        const fullAuthorityOptions: Partial<AuthorityOptions> = {
+            authority: TEST_CONFIG.validAuthority,
+            knownAuthorities: [TEST_CONFIG.validAuthority],
+            cloudDiscoveryMetadata: TEST_CONFIG.CLOUD_DISCOVERY_METADATA,
+        };
+
+        const matchStaticAuthorityOptions: StaticAuthorityOptions = {
+            canonicalAuthority: TEST_CONFIG.validAuthority + "/",
+            knownAuthorities: [TEST_CONFIG.validAuthority],
+            cloudDiscoveryMetadata: JSON.parse(
+                TEST_CONFIG.CLOUD_DISCOVERY_METADATA
+            ),
+        };
+
+        it("correctly builds static authority options when all optional fields are correctly provided", () => {
+            const staticAuthorityOptions =
+                buildStaticAuthorityOptions(fullAuthorityOptions);
+            expect(staticAuthorityOptions).toEqual(matchStaticAuthorityOptions);
+        });
+
+        it("doesn't set canonicalAuthority if authority is not provided", () => {
+            const { authority, ...partialAuthorityOptions } =
+                fullAuthorityOptions;
+            const staticAuthorityOptions = buildStaticAuthorityOptions(
+                partialAuthorityOptions
+            );
+            expect(staticAuthorityOptions.canonicalAuthority).toBeUndefined();
+        });
+
+        it("doesn't set knownAuthorities if knownAuthorities array is not provided", () => {
+            const { knownAuthorities, ...partialAuthorityOptions } =
+                fullAuthorityOptions;
+            const staticAuthorityOptions = buildStaticAuthorityOptions(
+                partialAuthorityOptions
+            );
+            expect(staticAuthorityOptions.knownAuthorities).toBeUndefined();
+        });
+
+        it("doesn't set cloudDiscoveryMetadata if cloudDiscoveryMetadata string is not provided", () => {
+            const { cloudDiscoveryMetadata, ...partialAuthorityOptions } =
+                fullAuthorityOptions;
+            const staticAuthorityOptions = buildStaticAuthorityOptions(
+                partialAuthorityOptions
+            );
+            expect(
+                staticAuthorityOptions.cloudDiscoveryMetadata
+            ).toBeUndefined();
+        });
+
+        it("throws if cloudDiscoveryMetadata string is not valid JSON", () => {
+            const invalidCloudDiscoveryMetadata = "this-is-not-valid-json";
+            const invalidCloudDiscoveryMetadataOptions: Partial<AuthorityOptions> =
+                {
+                    ...fullAuthorityOptions,
+                    cloudDiscoveryMetadata: invalidCloudDiscoveryMetadata,
+                };
+            expect(() => {
+                buildStaticAuthorityOptions(
+                    invalidCloudDiscoveryMetadataOptions
+                );
+            }).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
+                )
+            );
         });
     });
 });

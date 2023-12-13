@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ThrottlingEntity } from "../../../src/cache/entities/ThrottlingEntity";
+import { CacheHelpers } from "../../../src";
 import { ThrottlingConstants, Separators } from "../../../src/utils/Constants";
 import { TEST_CONFIG } from "../../test_kit/StringConstants";
 
@@ -17,24 +17,24 @@ describe("ThrottlingEntity", () => {
             const throttlingObject = {
                 throttleTime: 0,
             };
-            expect(
-                ThrottlingEntity.isThrottlingEntity(key, throttlingObject)
-            ).toBe(true);
+            expect(CacheHelpers.isThrottlingEntity(key, throttlingObject)).toBe(
+                true
+            );
         });
 
         it("Verifies if an object is a ThrottlingEntity when no object is given", () => {
-            expect(ThrottlingEntity.isThrottlingEntity(key)).toBe(true);
+            expect(CacheHelpers.isThrottlingEntity(key)).toBe(true);
             // @ts-ignore
-            expect(ThrottlingEntity.isThrottlingEntity(key, null)).toBe(true);
+            expect(CacheHelpers.isThrottlingEntity(key, null)).toBe(true);
         });
 
         it("Verifies if an object is not a ThrottlingEntity based on field", () => {
             const throttlingObject = {
                 test: 0,
             };
-            expect(
-                ThrottlingEntity.isThrottlingEntity(key, throttlingObject)
-            ).toBe(false);
+            expect(CacheHelpers.isThrottlingEntity(key, throttlingObject)).toBe(
+                false
+            );
         });
 
         it("Verifies if an object is not a ThrottlingEntity based on key", () => {
@@ -42,14 +42,14 @@ describe("ThrottlingEntity", () => {
                 throttleTime: 0,
             };
             expect(
-                ThrottlingEntity.isThrottlingEntity("asd", throttlingObject)
+                CacheHelpers.isThrottlingEntity("asd", throttlingObject)
             ).toBe(false);
-            expect(
-                ThrottlingEntity.isThrottlingEntity("", throttlingObject)
-            ).toBe(false);
+            expect(CacheHelpers.isThrottlingEntity("", throttlingObject)).toBe(
+                false
+            );
             expect(
                 // @ts-ignore
-                ThrottlingEntity.isThrottlingEntity(null, throttlingObject)
+                CacheHelpers.isThrottlingEntity(null, throttlingObject)
             ).toBe(false);
         });
     });

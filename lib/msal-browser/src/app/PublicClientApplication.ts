@@ -20,13 +20,14 @@ import {
 } from "@azure/msal-common";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { ControllerFactory } from "../controllers/ControllerFactory";
+import * as ControllerFactory from "../controllers/ControllerFactory";
 import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -38,8 +39,9 @@ export class PublicClientApplication implements IPublicClientApplication {
     public static async createPublicClientApplication(
         configuration: Configuration
     ): Promise<IPublicClientApplication> {
-        const factory = new ControllerFactory(configuration);
-        const controller = await factory.createV3Controller();
+        const controller = await ControllerFactory.createV3Controller(
+            configuration
+        );
         const pca = new PublicClientApplication(configuration, controller);
 
         return pca;
@@ -305,7 +307,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Clears local cache for the current user then opens a popup window prompting the user to sign-out of the server
      * @param logoutRequest
      */
-    logoutPopup(logoutRequest?: EndSessionRequest): Promise<void> {
+    logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         return this.controller.logoutPopup(logoutRequest);
     }
 

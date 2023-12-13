@@ -17,8 +17,8 @@ import {
     AuthenticationScheme,
     Errors,
     HeaderNames,
-    AADServerParamKeys,
 } from "../utils/Constants";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
@@ -47,6 +47,10 @@ import {
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { invoke, invokeAsync } from "../utils/FunctionWrappers";
+import { generateCredentialKey } from "../cache/utils/CacheHelpers";
+
+const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
+
 /**
  * OAuth2.0 refresh token client
  * @internal
@@ -140,7 +144,7 @@ export class RefreshTokenClient extends BaseClient {
         // if the app is part of the family, retrive a Family refresh token if present and make a refreshTokenRequest
         if (isFOCI) {
             try {
-                return invokeAsync(
+                return await invokeAsync(
                     this.acquireTokenWithCachedRefreshToken.bind(this),
                     PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
                     this.logger,
@@ -202,11 +206,30 @@ export class RefreshTokenClient extends BaseClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request.account, foci);
+        )(
+            request.account,
+            foci,
+            undefined,
+            this.performanceClient,
+            request.correlationId
+        );
 
         if (!refreshToken) {
             throw createInteractionRequiredAuthError(
                 InteractionRequiredAuthErrorCodes.noTokensFound
+            );
+        }
+
+        if (
+            refreshToken.expiresOn &&
+            TimeUtils.isTokenExpired(
+                refreshToken.expiresOn,
+                request.refreshTokenExpirationOffsetSeconds ||
+                    DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
+            )
+        ) {
+            throw createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.refreshTokenExpired
             );
         }
         // attach cached RT size to the current measurement
@@ -222,13 +245,29 @@ export class RefreshTokenClient extends BaseClient {
             },
         };
 
-        return invokeAsync(
-            this.acquireToken.bind(this),
-            PerformanceEvents.RefreshTokenClientAcquireToken,
-            this.logger,
-            this.performanceClient,
-            request.correlationId
-        )(refreshTokenRequest);
+        try {
+            return await invokeAsync(
+                this.acquireToken.bind(this),
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(refreshTokenRequest);
+        } catch (e) {
+            if (
+                e instanceof InteractionRequiredAuthError &&
+                e.subError === InteractionRequiredAuthErrorCodes.badToken
+            ) {
+                // Remove bad refresh token from cache
+                this.logger.verbose(
+                    "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+                );
+                const badRefreshTokenKey = generateCredentialKey(refreshToken);
+                this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+            }
+
+            throw e;
+        }
     }
 
     /**

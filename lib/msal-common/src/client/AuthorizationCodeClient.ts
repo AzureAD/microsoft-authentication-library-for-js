@@ -13,9 +13,9 @@ import {
     AuthenticationScheme,
     PromptValue,
     Separators,
-    AADServerParamKeys,
     HeaderNames,
 } from "../utils/Constants";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys";
 import {
     ClientConfiguration,
     isOidcProtocolMode,
@@ -171,7 +171,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param hashFragment
      */
     handleFragmentResponse(
-        hashFragment: string,
+        serverParams: ServerAuthorizationCodeResponse,
         cachedState: string
     ): AuthorizationCodePayload {
         // Handle responses.
@@ -184,18 +184,10 @@ export class AuthorizationCodeClient extends BaseClient {
             null
         );
 
-        const serverParams: ServerAuthorizationCodeResponse =
-            UrlString.getDeserializedCodeResponse(
-                this.config.authOptions.authority.options.OIDCOptions
-                    ?.serverResponseType,
-                hashFragment
-            );
-
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
             serverParams,
-            cachedState,
-            this.cryptoUtils
+            cachedState
         );
 
         // throw when there is no auth code in the response
@@ -204,11 +196,8 @@ export class AuthorizationCodeClient extends BaseClient {
                 ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
             );
         }
-        return {
-            ...serverParams,
-            // Code param is optional in ServerAuthorizationCodeResponse but required in AuthorizationCodePaylod
-            code: serverParams.code,
-        };
+
+        return serverParams as AuthorizationCodePayload;
     }
 
     /**
@@ -265,7 +254,7 @@ export class AuthorizationCodeClient extends BaseClient {
             try {
                 const clientInfo = buildClientInfo(
                     request.clientInfo,
-                    this.cryptoUtils
+                    this.cryptoUtils.base64Decode
                 );
                 ccsCredential = {
                     credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
@@ -432,7 +421,7 @@ export class AuthorizationCodeClient extends BaseClient {
             try {
                 const clientInfo = buildClientInfo(
                     request.clientInfo,
-                    this.cryptoUtils
+                    this.cryptoUtils.base64Decode
                 );
                 ccsCred = {
                     credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,

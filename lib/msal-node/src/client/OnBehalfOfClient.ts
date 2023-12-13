@@ -59,7 +59,7 @@ export class OnBehalfOfClient extends BaseClient {
         );
 
         if (request.skipCache) {
-            return await this.executeTokenRequest(
+            return this.executeTokenRequest(
                 request,
                 this.authority,
                 this.userAssertionHash
@@ -151,7 +151,7 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.serverTelemetryManager.incrementCacheHits();
         }
 
-        return await ResponseHandler.generateAuthenticationResult(
+        return ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             this.authority,
             {
@@ -184,14 +184,14 @@ export class OnBehalfOfClient extends BaseClient {
             realm: this.authority.tenant,
         };
 
-        const idTokens: IdTokenEntity[] =
+        const idTokenMap: Map<string, IdTokenEntity> =
             this.cacheManager.getIdTokensByFilter(idTokenFilter);
 
         // When acquiring a token on behalf of an application, there might not be an id token in the cache
-        if (idTokens.length < 1) {
+        if (Object.values(idTokenMap).length < 1) {
             return null;
         }
-        return idTokens[0] as IdTokenEntity;
+        return Object.values(idTokenMap)[0] as IdTokenEntity;
     }
 
     /**

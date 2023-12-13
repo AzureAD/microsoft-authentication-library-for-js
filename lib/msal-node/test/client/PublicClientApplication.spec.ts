@@ -22,7 +22,7 @@ import {
     InteractionRequiredAuthError,
     AccountEntity,
     AuthToken,
-    IdTokenEntity,
+    CacheHelpers,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -746,7 +746,7 @@ describe("PublicClientApplication", () => {
             // @ts-ignore
             authApp.storage.setAccount(accountEntity);
 
-            const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            const idTokenEntity = CacheHelpers.createIdTokenEntity(
                 mockAccountInfo.homeAccountId,
                 mockAccountInfo.environment,
                 mockAuthenticationResult.idToken,
@@ -817,17 +817,8 @@ describe("PublicClientApplication", () => {
                 ...appConfig,
             });
 
-            const cryptoProvider = new CryptoProvider();
-            const accountEntity: AccountEntity = AccountEntity.createAccount(
-                {
-                    homeAccountId: mockAccountInfo.homeAccountId,
-                    idTokenClaims: AuthToken.extractTokenClaims(
-                        mockAuthenticationResult.idToken,
-                        cryptoProvider.base64Decode
-                    ),
-                },
-                fakeAuthority
-            );
+            const accountEntity: AccountEntity =
+                AccountEntity.createFromAccountInfo(mockAccountInfo);
 
             // @ts-ignore
             authApp.storage.setAccount(accountEntity);
@@ -835,7 +826,7 @@ describe("PublicClientApplication", () => {
             // @ts-ignore
             authApp.storage.setAccount(accountEntity);
 
-            const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            const idTokenEntity = CacheHelpers.createIdTokenEntity(
                 mockAccountInfo.homeAccountId,
                 mockAccountInfo.environment,
                 mockAuthenticationResult.idToken,

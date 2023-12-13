@@ -208,7 +208,7 @@ export const PerformanceEvents = {
      * Functions from InteractionHandler (msal-browser)
      */
     HandleCodeResponseFromServer: "handleCodeResponseFromServer",
-    HandleCodeResponseFromHash: "handleCodeResponseFromHash",
+    HandleCodeResponse: "handleCodeResponse",
     UpdateTokenEndpointAuthority: "updateTokenEndpointAuthority",
 
     /**
@@ -229,6 +229,7 @@ export const PerformanceEvents = {
      * handleServerTokenResponse API in ResponseHandler (msal-common)
      */
     HandleServerTokenResponse: "handleServerTokenResponse",
+    DeserializeResponse: "deserializeResponse",
 
     /**
      * Authority functions
@@ -558,6 +559,13 @@ export type PerformanceEvent = {
      * Nested App Auth Fields
      */
     nestedAppAuthRequest?: boolean;
+
+    /**
+     * Multiple matched access/id/refresh tokens in the cache
+     */
+    multiMatchedAT?: number;
+    multiMatchedID?: number;
+    multiMatchedRT?: number;
 };
 
 export const IntFields: ReadonlySet<string> = new Set([
@@ -570,4 +578,7 @@ export const IntFields: ReadonlySet<string> = new Set([
     "queuedTimeMs",
     "startTimeMs",
     "status",
+    "multiMatchedAT",
+    "multiMatchedID",
+    "multiMatchedRT",
 ]);

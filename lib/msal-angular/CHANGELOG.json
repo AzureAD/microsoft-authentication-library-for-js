@@ -2,6 +2,74 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Fri, 01 Dec 2023 18:46:06 GMT",
+      "version": "3.0.9",
+      "tag": "@azure/msal-angular_v3.0.9",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Version bump automation enhancements #6725"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.6.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Nov 2023 00:01:51 GMT",
+      "version": "3.0.8",
+      "tag": "@azure/msal-angular_v3.0.8",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.5.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 30 Oct 2023 21:38:25 GMT",
+      "version": "3.0.7",
+      "tag": "@azure/msal-angular_v3.0.7",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.4.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Oct 2023 17:24:19 GMT",
+      "version": "3.0.6",
+      "tag": "@azure/msal-angular_v3.0.6",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.3.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 05 Oct 2023 18:06:44 GMT",
       "version": "3.0.5",
       "tag": "@azure/msal-angular_v3.0.5",

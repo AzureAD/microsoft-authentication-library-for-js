@@ -8,7 +8,6 @@ import {
     Logger,
     CommonAuthorizationCodeRequest,
     AuthError,
-    Constants,
     IPerformanceClient,
     PerformanceEvents,
     invokeAsync,
@@ -81,13 +80,6 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             this.performanceClient,
             request.correlationId
         )(request, InteractionType.Silent);
-        this.browserStorage.updateCacheEntries(
-            silentRequest.state,
-            silentRequest.nonce,
-            silentRequest.authority,
-            silentRequest.loginHint || Constants.EMPTY_STRING,
-            silentRequest.account || null
-        );
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             this.apiId
@@ -122,7 +114,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             );
 
             // Handle auth code parameters from request
-            return invokeAsync(
+            return await invokeAsync(
                 interactionHandler.handleCodeResponseFromServer.bind(
                     interactionHandler
                 ),
@@ -137,9 +129,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                     cloud_graph_host_name: request.cloudGraphHostName,
                     cloud_instance_host_name: request.cloudInstanceHostName,
                 },
-                silentRequest.state,
-                authClient.authority,
-                this.networkClient,
+                silentRequest,
                 false
             );
         } catch (e) {
@@ -147,7 +137,6 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-            this.browserStorage.cleanRequestByState(silentRequest.state);
             throw e;
         }
     }

@@ -2,6 +2,80 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Fri, 01 Dec 2023 18:46:06 GMT",
+      "version": "2.0.8",
+      "tag": "@azure/msal-react_v2.0.8",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Move build dependencies to devDependencies"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v3.6.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Nov 2023 00:01:51 GMT",
+      "version": "2.0.7",
+      "tag": "@azure/msal-react_v2.0.7",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v3.5.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 30 Oct 2023 21:38:25 GMT",
+      "version": "2.0.6",
+      "tag": "@azure/msal-react_v2.0.6",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v3.4.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Oct 2023 17:24:19 GMT",
+      "version": "2.0.5",
+      "tag": "@azure/msal-react_v2.0.5",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "@azure/msal-react",
+            "commit": "618c4caa4bf0fb0bd64128dadb7a0c8a681c6b87",
+            "comment": "Add calls to initialize the PCA prior to using it in some tests."
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v3.3.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 05 Oct 2023 18:06:40 GMT",
       "version": "2.0.4",
       "tag": "@azure/msal-react_v2.0.4",

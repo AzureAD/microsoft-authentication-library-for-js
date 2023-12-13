@@ -23,6 +23,7 @@ import {
     ServerTelemetryManager,
     createClientAuthError,
     ClientAuthErrorCodes,
+    CacheHelpers,
 } from "../../src";
 import {
     RANDOM_TEST_GUID,
@@ -41,12 +42,15 @@ export class MockStorageClass extends CacheManager {
     store = {};
 
     // Accounts
-    getAccount(key: string): AccountEntity | null {
-        const account: AccountEntity = this.store[key] as AccountEntity;
+    getCachedAccountEntity(accountKey: string): AccountEntity | null {
+        const account: AccountEntity = this.store[accountKey] as AccountEntity;
         if (AccountEntity.isAccountEntity(account)) {
             return account;
         }
         return null;
+    }
+    getAccount(key: string): AccountEntity | null {
+        return this.getCachedAccountEntity(key);
     }
 
     setAccount(value: AccountEntity): void {
@@ -70,6 +74,10 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
+    removeOutdatedAccount(accountKey: string): void {
+        delete this.store[accountKey];
+    }
+
     getAccountKeys(): string[] {
         return this.store[ACCOUNT_KEYS] || [];
     }
@@ -89,7 +97,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as IdTokenEntity) || null;
     }
     setIdTokenCredential(value: IdTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -104,7 +112,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as AccessTokenEntity) || null;
     }
     setAccessTokenCredential(value: AccessTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -119,7 +127,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
     setRefreshTokenCredential(value: RefreshTokenEntity): void {
-        const key = value.generateCredentialKey();
+        const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -194,7 +202,7 @@ export class MockStorageClass extends CacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string {
-        const updatedCacheKey = credential.generateCredentialKey();
+        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 
         if (currentCacheKey !== updatedCacheKey) {
             const cacheItem = this.store[currentCacheKey];
@@ -244,7 +252,10 @@ export class ClientTestUtils {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
-            new Logger({})
+            new Logger({}),
+            {
+                canonicalAuthority: TEST_CONFIG.validAuthority,
+            }
         );
 
         const testLoggerCallback = (): void => {
