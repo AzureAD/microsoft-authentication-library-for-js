@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1702420466051,
+  "lastUpdate": 1702505428457,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3876,6 +3876,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.09%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "462e8768041263510096f31f826be31db1563fe7",
+          "message": "Fix token refresh with relative redirectUri (#6761)\n\nIn 3.2.0 we added redirectUri to the /token request in order to support\r\nbroker scenarios. This caused a regression when refreshing tokens with\r\nrelative URLs. This PR addresses this issue.\r\n\r\nFixes #6733",
+          "timestamp": "2023-12-13T14:04:36-08:00",
+          "tree_id": "5015afa98d65cc67c4ad49771e2e5523bda74c3e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/462e8768041263510096f31f826be31db1563fe7"
+        },
+        "date": 1702505426355,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 201555,
+            "range": "±1.28%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 172720,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
