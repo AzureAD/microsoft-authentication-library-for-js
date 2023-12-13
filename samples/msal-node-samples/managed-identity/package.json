@@ -1,7 +1,7 @@
 {
   "name": "managed-identity",
   "version": "1.0.0",
-  "description": "Confidential Client Managed Identity",
+  "description": "Managed Identity for Azure VM",
   "scripts": {
     "build": "npx tsc",
     "start:app": "npm run build && node build/index.js"
