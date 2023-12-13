@@ -12,3 +12,4 @@ export const refreshTokenExpired = "refresh_token_expired";
 export const interactionRequired = "interaction_required";
 export const consentRequired = "consent_required";
 export const loginRequired = "login_required";
+export const badToken = "bad_token";
