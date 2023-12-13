@@ -36,12 +36,12 @@ Before running the sample (and everytime changes are made to the sample), the Ty
     npx tsc
 ```
 
-This will compile the TypeScript into JavaScript, and put the compiled files in the build folder.
+This will compile the TypeScript into JavaScript, and put the compiled files in the dist folder.
 
 The sample can now be run by typing:
 
 ```console
-    node build/index.js
+    node dist/index.js
 ```
 
 An npm script has been configured in package.json, which will run both of the above npx and node commands. To compile and start the sample in one command, type:
