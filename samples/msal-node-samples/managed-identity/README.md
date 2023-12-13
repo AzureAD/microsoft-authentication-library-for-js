@@ -4,7 +4,8 @@ This sample demonstrates how to use [managed identity via the msal-node library]
 
 ## Note
 
-This sample is written in TypeScript and was developed with Node version 18.17.0.
+-   The functionality for this sample is in preview (alpha)
+-   This sample is written in TypeScript and was developed with Node version 18.17.0.
 
 ## Setup
 
