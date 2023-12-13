@@ -47,6 +47,7 @@ import {
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { invoke, invokeAsync } from "../utils/FunctionWrappers";
+import { generateCredentialKey } from "../cache/utils/CacheHelpers";
 
 const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 
@@ -244,13 +245,29 @@ export class RefreshTokenClient extends BaseClient {
             },
         };
 
-        return invokeAsync(
-            this.acquireToken.bind(this),
-            PerformanceEvents.RefreshTokenClientAcquireToken,
-            this.logger,
-            this.performanceClient,
-            request.correlationId
-        )(refreshTokenRequest);
+        try {
+            return await invokeAsync(
+                this.acquireToken.bind(this),
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(refreshTokenRequest);
+        } catch (e) {
+            if (
+                e instanceof InteractionRequiredAuthError &&
+                e.subError === InteractionRequiredAuthErrorCodes.badToken
+            ) {
+                // Remove bad refresh token from cache
+                this.logger.verbose(
+                    "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+                );
+                const badRefreshTokenKey = generateCredentialKey(refreshToken);
+                this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+            }
+
+            throw e;
+        }
     }
 
     /**

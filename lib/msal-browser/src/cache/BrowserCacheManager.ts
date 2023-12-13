@@ -1119,7 +1119,7 @@ export class BrowserCacheManager extends CacheManager {
         const parsedThrottlingCache = this.validateAndParseJson(value);
         if (
             !parsedThrottlingCache ||
-            !ThrottlingEntity.isThrottlingEntity(
+            !CacheHelpers.isThrottlingEntity(
                 throttlingCacheKey,
                 parsedThrottlingCache
             )
@@ -1131,10 +1131,7 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         this.logger.trace("BrowserCacheManager.getThrottlingCache: cache hit");
-        return CacheManager.toObject(
-            new ThrottlingEntity(),
-            parsedThrottlingCache
-        );
+        return parsedThrottlingCache as ThrottlingEntity;
     }
 
     /**
