@@ -28,6 +28,7 @@ import { DEFAULT_MANAGED_IDENTITY_ID } from "../../../src/utils/Constants";
 import {
     AccessTokenEntity,
     AuthenticationResult,
+    CacheHelpers,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
@@ -277,7 +278,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             const nowSeconds: number = TimeUtils.nowSeconds();
             const expiredRefreshOn: number = nowSeconds - 3600;
             const fakeAccessTokenEntity: AccessTokenEntity =
-                AccessTokenEntity.createAccessTokenEntity(
+                CacheHelpers.createAccessTokenEntity(
                     "", // homeAccountId
                     "https://login.microsoftonline.com/common/", // environment
                     "thisIs.an.accessT0ken", // accessToken
@@ -286,7 +287,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     ["https://graph.microsoft.com"].toString(), // scopes
                     nowSeconds + 3600, // expiresOn
                     nowSeconds + 3600, // extExpiresOn
-                    mockCrypto, // cryptoUtils
+                    mockCrypto.base64Decode, // cryptoUtils
                     expiredRefreshOn // refreshOn
                 );
             sinon

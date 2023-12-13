@@ -66,7 +66,7 @@ export class ManagedIdentityApplication {
         );
 
         const fakeStatusAuthorityOptions: StaticAuthorityOptions = {
-            knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+            canonicalAuthority: Constants.DEFAULT_AUTHORITY,
         };
 
         if (!ManagedIdentityApplication.nodeStorage) {
@@ -148,7 +148,7 @@ export class ManagedIdentityApplication {
 
         if (managedIdentityRequest.forceRefresh) {
             // make a network call to the managed identity source
-            return await this.managedIdentityClient.sendManagedIdentityTokenRequest(
+            return this.managedIdentityClient.sendManagedIdentityTokenRequest(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
                 this.fakeAuthority
@@ -184,7 +184,7 @@ export class ManagedIdentityApplication {
             return cachedAuthenticationResult;
         } else {
             // make a network call to the managed identity source
-            return await this.managedIdentityClient.sendManagedIdentityTokenRequest(
+            return this.managedIdentityClient.sendManagedIdentityTokenRequest(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
                 this.fakeAuthority

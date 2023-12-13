@@ -69,7 +69,7 @@ export class ManagedIdentityClient {
                 );
         }
 
-        return await ManagedIdentityClient.identitySource.acquireTokenWithManagedIdentity(
+        return ManagedIdentityClient.identitySource.acquireTokenWithManagedIdentity(
             managedIdentityRequest,
             managedIdentityId,
             fakeAuthority,
