@@ -11,13 +11,14 @@ import {
     PerformanceCallbackFunction,
     QueueMeasurement,
 } from "./IPerformanceClient";
-import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import {
     IntFields,
     PerformanceEvent,
     PerformanceEvents,
     PerformanceEventStatus,
 } from "./PerformanceEvent";
+import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
+import { StubPerformanceMeasurement } from "./StubPerformanceClient";
 
 export interface PreQueueEvent {
     name: PerformanceEvents;
@@ -111,6 +112,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} measureName
      * @param {string} correlationId
      * @returns {IPerformanceMeasurement}
+     * @deprecated This method will be removed in the next major version
      */
     startPerformanceMeasurement(
         measureName: string, // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -273,11 +275,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             `PerformanceClient: Performance measurement started for ${measureName}`,
             eventCorrelationId
         );
-        const performanceMeasurement = this.startPerformanceMeasurement(
-            measureName,
-            eventCorrelationId
-        );
-        performanceMeasurement.startMeasurement();
 
         const inProgressEvent: PerformanceEvent = {
             eventId: this.generateId(),
@@ -301,15 +298,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
             end: (
                 event?: Partial<PerformanceEvent>
             ): PerformanceEvent | null => {
-                return this.endMeasurement(
-                    {
-                        // Initial set of event properties
-                        ...inProgressEvent,
-                        // Properties set when event ends
-                        ...event,
-                    },
-                    performanceMeasurement
-                );
+                return this.endMeasurement({
+                    // Initial set of event properties
+                    ...inProgressEvent,
+                    // Properties set when event ends
+                    ...event,
+                });
             },
             discard: () => {
                 return this.discardMeasurements(inProgressEvent.correlationId);
@@ -323,8 +317,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     inProgressEvent.correlationId
                 );
             },
-            measurement: performanceMeasurement,
             event: inProgressEvent,
+            measurement: new StubPerformanceMeasurement(),
         };
     }
 
@@ -338,10 +332,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {IPerformanceMeasurement} measurement
      * @returns {(PerformanceEvent | null)}
      */
-    endMeasurement(
-        event: PerformanceEvent,
-        measurement?: IPerformanceMeasurement
-    ): PerformanceEvent | null {
+    endMeasurement(event: PerformanceEvent): PerformanceEvent | null {
         const rootEvent: PerformanceEvent | undefined =
             this.eventsByCorrelationId.get(event.correlationId);
         if (!rootEvent) {
@@ -365,17 +356,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
             rootEvent.incompleteSubMeasurements?.delete(event.eventId);
         }
 
-        measurement?.endMeasurement();
-        const durationMs = measurement?.flushMeasurement();
-        // null indicates no measurement was taken (e.g. needed performance APIs not present)
-        if (!durationMs) {
-            this.logger.trace(
-                "PerformanceClient: Performance measurement not taken",
-                rootEvent.correlationId
-            );
-            return null;
-        }
-
+        const durationMs =
+            event.durationMs || this.getDurationMs(event.startTimeMs);
         this.logger.trace(
             `PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`,
             event.correlationId
@@ -632,5 +614,16 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 event[key] = Math.floor(event[key]);
             }
         });
+    }
+
+    /**
+     * Returns event duration in milliseconds
+     * @param startTimeMs {number}
+     * @returns {number}
+     */
+    private getDurationMs(startTimeMs: number): number {
+        const durationMs = Date.now() - startTimeMs;
+        // Handle clock skew
+        return durationMs < 0 ? durationMs : 0;
     }
 }
