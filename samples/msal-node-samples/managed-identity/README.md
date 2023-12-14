@@ -7,21 +7,19 @@ This sample demonstrates how to use [managed identity via the msal-node library]
 -   The functionality for this sample is in preview (alpha)
 -   This sample is written in TypeScript and was developed with Node version 18.17.0.
 
-## Setup
+## Virtual Machine Setup
 
-In a terminal, navigate to the directory where `package.json` resides. Then type:
+Follow [this guide](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/qs-configure-portal-windows-vm) to setup an Azure VM, as well as add a system assigned and user assigned managed identity to the Azure VM.
+
+## Project Setup
+
+In a terminal on the Azure VM, navigate to the directory where `package.json` resides. Then type:
 
 ```console
     npm install
 ```
 
-## Register
-
-Follow [this guide](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/qs-configure-portal-windows-vm) to setup an Azure VM, as well as add a system assigned and user assigned managed identity to the Azure VM.
-
-## Local Changes
-
-Before running the sample on the Azure VM, the userAssignedClientId value in the managedIdentityIdParams object in index.ts needs to be replaced by the client id of the user assigned managed identity that was created in the previous step:
+Before running the sample, the userAssignedClientId value in the managedIdentityIdParams object in index.ts needs to be replaced by the client id of the user assigned managed identity that was created in the previous step:
 
 ```typescript
 const managedIdentityIdParams: ManagedIdentityIdParams = {
