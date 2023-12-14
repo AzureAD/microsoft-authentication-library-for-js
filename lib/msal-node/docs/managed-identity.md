@@ -54,25 +54,21 @@ const config: ManagedIdentityConfiguration = {
     system: {
         loggerOptions: {
             logLevel: LogLevel.Verbose,
-            loggerCallback: (_level, message, _containsPii) => {
-                console.log(message);
-            },
-            piiLoggingEnabled: true,
-        },
-    },
+        } as LoggerOptions,
+    } as NodeSystemOptions,
 };
 
-const systemAssignedManagedIdentityApplication = new ManagedIdentityApplication(
-    config
-);
+const systemAssignedManagedIdentityApplication: ManagedIdentityApplication =
+    new ManagedIdentityApplication(config);
 
 const managedIdentityRequestParams: ManagedIdentityRequestParams = {
     resource: "https://management.azure.com",
 };
 
-const response = await systemAssignedManagedIdentityApplication.acquireToken(
-    managedIdentityRequestParams
-);
+const response: AuthenticationResult =
+    await systemAssignedManagedIdentityApplication.acquireToken(
+        managedIdentityRequestParams
+    );
 console.log(response);
 ```
 
@@ -93,22 +89,18 @@ const config: ManagedIdentityConfiguration = {
     system: {
         loggerOptions: {
             logLevel: LogLevel.Verbose,
-            loggerCallback: (_level, message, _containsPii) => {
-                console.log(message);
-            },
-            piiLoggingEnabled: true,
-        },
-    },
+        } as LoggerOptions,
+    } as NodeSystemOptions,
 };
 
-const userAssignedClientIdManagedIdentityApplication =
+const userAssignedClientIdManagedIdentityApplication: ManagedIdentityApplication =
     new ManagedIdentityApplication(config);
 
 const managedIdentityRequestParams: ManagedIdentityRequestParams = {
     resource: "https://management.azure.com",
 };
 
-const response =
+const response: AuthenticationResult =
     await userAssignedClientIdManagedIdentityApplication.acquireToken(
         managedIdentityRequestParams
     );

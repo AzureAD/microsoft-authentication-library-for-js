@@ -36,6 +36,8 @@ export { UsernamePasswordClient } from "./client/UsernamePasswordClient.js";
 
 export {
     Configuration,
+    ManagedIdentityConfiguration,
+    ManagedIdentityIdParams,
     buildAppConfiguration,
     NodeAuthOptions,
     NodeSystemOptions,
