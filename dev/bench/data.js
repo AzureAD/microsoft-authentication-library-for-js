@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1702505428457,
+  "lastUpdate": 1702580377075,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3914,6 +3914,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.97%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c2dfe4ed005d7ec87d0eded9449935d17e811f65",
+          "message": "Reduce unnecessary cache lookups (#6753)\n\nWhen looking up tokens in the cache we:\r\n1. Get and parse: idToken, accessToken, refreshToken, account and\r\nappMetadata\r\n2. Evaluate the accessToken and if not found or expired throw\r\n3. Catch error and lookup the refreshToken again and attempt to exchange\r\nit over the network\r\n\r\nThere's 2 ways to improve this pattern, both addressed in this PR:\r\n1. Don't retrieve the refresh token until it's actually needed (if and\r\nwhen the accessToken needs to be refreshed)\r\n2. Don't retrieve idToken, account and appMetadata until they're needed\r\n(accessToken lookup was successful)\r\n\r\nThis saves 1 cache lookup on all calls and an additional 3 cache lookups\r\non calls that fail to return an access token from the cache",
+          "timestamp": "2023-12-14T10:53:58-08:00",
+          "tree_id": "a9a03f997b46b3cfe7ab97888e62e38fa04a513a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c2dfe4ed005d7ec87d0eded9449935d17e811f65"
+        },
+        "date": 1702580375787,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 196801,
+            "range": "±1.71%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 183389,
+            "range": "±1.71%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
