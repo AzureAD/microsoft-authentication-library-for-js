@@ -157,6 +157,7 @@ const performanceClient = {
     removePerformanceCallback: jest.fn(),
     addPerformanceCallback: jest.fn(),
     emitEvents: jest.fn(),
+    startPerformanceMeasurement: jest.fn(),
     generateId: jest.fn(),
     calculateQueuedTime: jest.fn(),
     addQueueMeasurement: jest.fn(),
