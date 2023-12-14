@@ -21,26 +21,53 @@ import {
     BrowserCacheLocation,
 } from "../utils/BrowserConstants";
 
+/**
+ * Returns browser performance measurement module if session flag is enabled. Returns undefined otherwise.
+ */
+function getPerfMeasurementModule() {
+    let sessionStorage: Storage | undefined;
+    try {
+        sessionStorage = window[BrowserCacheLocation.SessionStorage];
+        const perfEnabled = sessionStorage?.getItem(BROWSER_PERF_ENABLED_KEY);
+        if (Number(perfEnabled) === 1) {
+            return import("./BrowserPerformanceMeasurement");
+        }
+        // Mute errors if it's a non-browser environment or cookies are blocked.
+    } catch (e) {}
+
+    return undefined;
+}
+
+/**
+ * Returns boolean, indicating whether browser supports window.performance.now() function.
+ */
+function supportsBrowserPerformanceNow(): boolean {
+    return (
+        typeof window !== "undefined" &&
+        typeof window.performance !== "undefined" &&
+        typeof window.performance.now === "function"
+    );
+}
+
+/**
+ * Returns event duration in milliseconds using window performance API if available. Returns undefined otherwise.
+ * @param startTime {DOMHighResTimeStamp | undefined}
+ * @returns {number | undefined}
+ */
+function getPerfDurationMs(
+    startTime: DOMHighResTimeStamp | undefined
+): number | undefined {
+    if (!startTime || !supportsBrowserPerformanceNow()) {
+        return undefined;
+    }
+
+    return Math.round(window.performance.now() - startTime);
+}
+
 export class BrowserPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
 {
-    private static PERF_MEASUREMENT_MODULE = (() => {
-        let sessionStorage: Storage | undefined;
-        try {
-            sessionStorage = window[BrowserCacheLocation.SessionStorage];
-            const perfEnabled = sessionStorage?.getItem(
-                BROWSER_PERF_ENABLED_KEY
-            );
-            if (Number(perfEnabled) === 1) {
-                return import("./BrowserPerformanceMeasurement");
-            }
-            // Mute errors if it's a non-browser environment or cookies are blocked.
-        } catch (e) {}
-
-        return undefined;
-    })();
-
     constructor(configuration: Configuration, intFields?: Set<string>) {
         super(
             configuration.auth.clientId,
@@ -71,37 +98,27 @@ export class BrowserPerformanceClient
     private deleteIncompleteSubMeasurements(
         inProgressEvent: InProgressPerformanceEvent
     ): void {
-        void BrowserPerformanceClient.PERF_MEASUREMENT_MODULE?.then(
-            (module) => {
-                const rootEvent = this.eventsByCorrelationId.get(
-                    inProgressEvent.event.correlationId
-                );
-                const isRootEvent =
-                    rootEvent &&
-                    rootEvent.eventId === inProgressEvent.event.eventId;
-                const incompleteMeasurements: SubMeasurement[] = [];
-                if (isRootEvent && rootEvent?.incompleteSubMeasurements) {
-                    rootEvent.incompleteSubMeasurements.forEach(
-                        (subMeasurement: SubMeasurement) => {
-                            incompleteMeasurements.push({ ...subMeasurement });
-                        }
-                    );
-                }
-                // Clean up remaining marks for incomplete sub-measurements
-                module.BrowserPerformanceMeasurement.flushMeasurements(
-                    inProgressEvent.event.correlationId,
-                    incompleteMeasurements
+        void getPerfMeasurementModule()?.then((module) => {
+            const rootEvent = this.eventsByCorrelationId.get(
+                inProgressEvent.event.correlationId
+            );
+            const isRootEvent =
+                rootEvent &&
+                rootEvent.eventId === inProgressEvent.event.eventId;
+            const incompleteMeasurements: SubMeasurement[] = [];
+            if (isRootEvent && rootEvent?.incompleteSubMeasurements) {
+                rootEvent.incompleteSubMeasurements.forEach(
+                    (subMeasurement: SubMeasurement) => {
+                        incompleteMeasurements.push({ ...subMeasurement });
+                    }
                 );
             }
-        );
-    }
-
-    supportsBrowserPerformanceNow(): boolean {
-        return (
-            typeof window !== "undefined" &&
-            typeof window.performance !== "undefined" &&
-            typeof window.performance.now === "function"
-        );
+            // Clean up remaining marks for incomplete sub-measurements
+            module.BrowserPerformanceMeasurement.flushMeasurements(
+                inProgressEvent.event.correlationId,
+                incompleteMeasurements
+            );
+        });
     }
 
     /**
@@ -122,18 +139,18 @@ export class BrowserPerformanceClient
             measureName,
             correlationId
         );
-        const startTime: number | undefined =
-            this.supportsBrowserPerformanceNow()
-                ? window.performance.now()
-                : undefined;
+        const startTime: number | undefined = supportsBrowserPerformanceNow()
+            ? window.performance.now()
+            : undefined;
 
-        const browserMeasurement =
-            BrowserPerformanceClient.PERF_MEASUREMENT_MODULE?.then((module) => {
+        const browserMeasurement = getPerfMeasurementModule()?.then(
+            (module) => {
                 return new module.BrowserPerformanceMeasurement(
                     measureName,
                     inProgressEvent.event.correlationId
                 );
-            });
+            }
+        );
         void browserMeasurement?.then((measurement) =>
             measurement.startMeasurement()
         );
@@ -147,7 +164,7 @@ export class BrowserPerformanceClient
                     ...event,
                     startPageVisibility,
                     endPageVisibility: this.getPageVisibility(),
-                    durationMs: this.getPerfDurationMs(startTime),
+                    durationMs: getPerfDurationMs(startTime),
                 });
                 void browserMeasurement?.then((measurement) =>
                     measurement.endMeasurement()
@@ -176,7 +193,7 @@ export class BrowserPerformanceClient
         eventName: PerformanceEvents,
         correlationId?: string
     ): void {
-        if (!this.supportsBrowserPerformanceNow()) {
+        if (!supportsBrowserPerformanceNow()) {
             this.logger.trace(
                 `BrowserPerformanceClient: window performance API not available, unable to set telemetry queue time for ${eventName}`
             );
@@ -229,7 +246,7 @@ export class BrowserPerformanceClient
         queueTime?: number,
         manuallyCompleted?: boolean
     ): void {
-        if (!this.supportsBrowserPerformanceNow()) {
+        if (!supportsBrowserPerformanceNow()) {
             this.logger.trace(
                 `BrowserPerformanceClient: window performance API not available, unable to add queue measurement for ${eventName}`
             );
@@ -258,20 +275,5 @@ export class BrowserPerformanceClient
             resQueueTime,
             manuallyCompleted
         );
-    }
-
-    /**
-     * Returns event duration in milliseconds using window performance API if available. Returns undefined otherwise.
-     * @param startTime {DOMHighResTimeStamp | undefined}
-     * @returns {number | undefined}
-     */
-    private getPerfDurationMs(
-        startTime: DOMHighResTimeStamp | undefined
-    ): number | undefined {
-        if (!startTime || !this.supportsBrowserPerformanceNow()) {
-            return undefined;
-        }
-
-        return Math.round(window.performance.now() - startTime);
     }
 }
