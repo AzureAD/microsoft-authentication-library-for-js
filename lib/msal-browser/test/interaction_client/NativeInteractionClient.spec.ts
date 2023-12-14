@@ -216,28 +216,28 @@ describe("NativeInteractionClient Tests", () => {
     });
 
     describe("acquireTokensFromInternalCache Tests", () => {
-        const response: AuthenticationResult = {
-            authority: TEST_CONFIG.validAuthority,
-            uniqueId: TEST_ACCOUNT_INFO.localAccountId,
-            tenantId: TEST_ACCOUNT_INFO.tenantId,
-            scopes: TEST_CONFIG.DEFAULT_SCOPES,
-            account: TEST_ACCOUNT_INFO,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-            accessToken: TEST_TOKENS.ACCESS_TOKEN,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            fromCache: true,
-            correlationId: RANDOM_TEST_GUID,
-            expiresOn: new Date(Number(testAccessTokenEntity.expiresOn) * 1000),
-            tokenType: AuthenticationScheme.BEARER,
-        };
+        beforeEach(() => {
+            jest.spyOn(
+                CacheManager.prototype,
+                "getBaseAccountInfo"
+            ).mockReturnValue(TEST_ACCOUNT_INFO);
 
-        sinon
-            .stub(CacheManager.prototype, "getBaseAccountInfo")
-            .returns(TEST_ACCOUNT_INFO);
-
-        sinon
-            .stub(CacheManager.prototype, "readCacheRecord")
-            .returns(testCacheRecord);
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            ).mockReturnValue(testCacheRecord.accessToken);
+            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+                testCacheRecord.idToken
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "readAppMetadataFromCache"
+            ).mockReturnValue(testCacheRecord.appMetadata);
+            jest.spyOn(
+                CacheManager.prototype,
+                "readAccountFromCache"
+            ).mockReturnValue(testCacheRecord.account);
+        });
 
         it("Tokens found in cache", async () => {
             const response = await nativeInteractionClient.acquireToken({
