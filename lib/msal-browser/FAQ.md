@@ -255,7 +255,7 @@ If the developer provides `azureCloudOptions`, MSAL.js will overwrite any value 
 
 ## What should I set my `redirectUri` to?
 
-When you attempt to authenticate MSAL will navigate to your IDP's sign in page either in the current window, a popup window or a hidden iframe depending on whether you used a redirect, popup or silent API respectively. When authentication is complete the IDP will redirect the window to the `redirectUri` specified in the request with the authentication response in the url hash. You can use any page in your application as your `redirectUri` but there are some additional considerations you should be aware of depending on which API you are using. All pages used as a `redirectUri` **must** be registered as a Reply Url of type "SPA" on your app registration.
+When you attempt to authenticate MSAL will navigate to your IDP's sign in page either in the current window, a popup window or a hidden iframe depending on whether you used a redirect, popup or silent API respectively. When authentication is complete the IDP will redirect the window to the `redirectUri` specified in the request with the authentication response in the url hash. You can use any page in your application as your `redirectUri` but there are some additional considerations you should be aware of depending on which API you are using. All pages used as a `redirectUri` **must** be registered as a Reply Url of type "SPA" on your app registration. Additionally, the `redirectUri` must be of the same domain as the application requesting the token.
 
 ### RedirectUri for popup and silent flows
 

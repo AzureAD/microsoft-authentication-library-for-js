@@ -1,13 +1,17 @@
 import { ClientSecretCredential, AccessToken } from "@azure/identity";
 import axios from "axios";
-import { ENV_VARIABLES, LAB_SCOPE, LAB_API_ENDPOINT, ParamKeys } from "./Constants";
+import {
+    ENV_VARIABLES,
+    LAB_SCOPE,
+    LAB_API_ENDPOINT,
+    ParamKeys,
+} from "./Constants";
 import { LabApiQueryParams } from "./LabApiQueryParams";
 import * as dotenv from "dotenv";
 
 dotenv.config({ path: __dirname + `/../../../.env` });
 
 export class LabClient {
-
     private credentials: ClientSecretCredential;
     private currentToken: AccessToken | null;
     constructor() {
@@ -18,7 +22,11 @@ export class LabClient {
         if (!tenant || !clientId || !client_secret) {
             throw "Environment variables not set!";
         }
-        this.credentials = new ClientSecretCredential(tenant, clientId, client_secret);
+        this.credentials = new ClientSecretCredential(
+            tenant,
+            clientId,
+            client_secret
+        );
     }
 
     private async getCurrentToken(): Promise<string> {
@@ -34,12 +42,15 @@ export class LabClient {
         return this.currentToken.token;
     }
 
-    private async requestLabApi(endpoint: string, accessToken: string): Promise<any> {
+    private async requestLabApi(
+        endpoint: string,
+        accessToken: string
+    ): Promise<any> {
         try {
             const response = await axios(`${LAB_API_ENDPOINT}${endpoint}`, {
                 headers: {
-                    "Authorization": `Bearer ${accessToken}`
-                }
+                    Authorization: `Bearer ${accessToken}`,
+                },
             });
             return response.data;
         } catch (e) {
@@ -55,12 +66,16 @@ export class LabClient {
      * @param labApiParams
      * @returns
      */
-    async getVarsByCloudEnvironment(labApiParams: LabApiQueryParams): Promise<any> {
+    async getVarsByCloudEnvironment(
+        labApiParams: LabApiQueryParams
+    ): Promise<any> {
         const accessToken = await this.getCurrentToken();
         const apiParams: Array<string> = [];
 
         if (labApiParams.azureEnvironment) {
-            apiParams.push(`${ParamKeys.AZURE_ENVIRONMENT}=${labApiParams.azureEnvironment}`);
+            apiParams.push(
+                `${ParamKeys.AZURE_ENVIRONMENT}=${labApiParams.azureEnvironment}`
+            );
         }
 
         if (labApiParams.userType) {
@@ -68,15 +83,21 @@ export class LabClient {
         }
 
         if (labApiParams.federationProvider) {
-            apiParams.push(`${ParamKeys.FEDERATION_PROVIDER}=${labApiParams.federationProvider}`);
+            apiParams.push(
+                `${ParamKeys.FEDERATION_PROVIDER}=${labApiParams.federationProvider}`
+            );
         }
 
         if (labApiParams.b2cProvider) {
-            apiParams.push(`${ParamKeys.B2C_PROVIDER}=${labApiParams.b2cProvider}`);
+            apiParams.push(
+                `${ParamKeys.B2C_PROVIDER}=${labApiParams.b2cProvider}`
+            );
         }
 
         if (labApiParams.homeDomain) {
-            apiParams.push(`${ParamKeys.HOME_DOMAIN}=${labApiParams.homeDomain}`);
+            apiParams.push(
+                `${ParamKeys.HOME_DOMAIN}=${labApiParams.homeDomain}`
+            );
         }
 
         if (labApiParams.appType) {
@@ -84,15 +105,27 @@ export class LabClient {
         }
 
         if (labApiParams.signInAudience) {
-            apiParams.push(`${ParamKeys.SIGN_IN_AUDIENCE}=${labApiParams.signInAudience}`);
+            apiParams.push(
+                `${ParamKeys.SIGN_IN_AUDIENCE}=${labApiParams.signInAudience}`
+            );
         }
 
         if (labApiParams.publicClient) {
-            apiParams.push(`${ParamKeys.PUBLIC_CLIENT}=${labApiParams.publicClient}`);
+            apiParams.push(
+                `${ParamKeys.PUBLIC_CLIENT}=${labApiParams.publicClient}`
+            );
         }
 
         if (labApiParams.appPlatform) {
-            apiParams.push(`${ParamKeys.APP_PLATFORM}=${labApiParams.appPlatform}`);
+            apiParams.push(
+                `${ParamKeys.APP_PLATFORM}=${labApiParams.appPlatform}`
+            );
+        }
+
+        if (labApiParams.guestHomedIn) {
+            apiParams.push(
+                `${ParamKeys.GUEST_HOMED_IN}=${labApiParams.guestHomedIn}`
+            );
         }
 
         if (apiParams.length <= 0) {
@@ -106,6 +139,9 @@ export class LabClient {
     async getSecret(secretName: string): Promise<any> {
         const accessToken = await this.getCurrentToken();
 
-        return await this.requestLabApi(`/LabSecret?&Secret=${secretName}`, accessToken);
+        return await this.requestLabApi(
+            `/LabSecret?&Secret=${secretName}`,
+            accessToken
+        );
     }
 }

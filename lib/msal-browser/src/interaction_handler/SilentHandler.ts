@@ -9,6 +9,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     invoke,
+    ServerResponseType,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -39,7 +40,7 @@ export async function initiateAuthRequest(
         throw createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri);
     }
     if (navigateFrameWait) {
-        return await invokeAsync(
+        return invokeAsync(
             loadFrame,
             PerformanceEvents.SilentHandlerLoadFrame,
             logger,
@@ -67,7 +68,8 @@ export async function monitorIframeForHash(
     pollIntervalMilliseconds: number,
     performanceClient: IPerformanceClient,
     logger: Logger,
-    correlationId: string
+    correlationId: string,
+    responseType: ServerResponseType
 ): Promise<string> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.SilentHandlerMonitorIframeForHash,
@@ -110,12 +112,17 @@ export async function monitorIframeForHash(
                 return;
             }
 
-            const contentHash = contentWindow
-                ? contentWindow.location.hash
-                : "";
+            let responseString = "";
+            if (contentWindow) {
+                if (responseType === ServerResponseType.QUERY) {
+                    responseString = contentWindow.location.search;
+                } else {
+                    responseString = contentWindow.location.hash;
+                }
+            }
             window.clearTimeout(timeoutId);
             window.clearInterval(intervalId);
-            resolve(contentHash);
+            resolve(responseString);
         }, pollIntervalMilliseconds);
     }).finally(() => {
         invoke(
@@ -196,7 +203,7 @@ function createHiddenIframe(): HTMLIFrameElement {
         "sandbox",
         "allow-scripts allow-same-origin allow-forms"
     );
-    document.getElementsByTagName("body")[0].appendChild(authFrame);
+    document.body.appendChild(authFrame);
 
     return authFrame;
 }

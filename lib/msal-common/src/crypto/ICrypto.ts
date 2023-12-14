@@ -8,7 +8,7 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
-import { SignedHttpRequest } from "./SignedHttpRequest";
+import { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest";
 
 /**
  * The PkceCodes type describes the structure
@@ -22,7 +22,11 @@ export type PkceCodes = {
 
 export type SignedHttpRequestParameters = Pick<
     BaseAuthRequest,
-    "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce"
+    | "resourceRequestMethod"
+    | "resourceRequestUri"
+    | "shrClaims"
+    | "shrNonce"
+    | "shrOptions"
 > & {
     correlationId?: string;
 };
@@ -68,6 +72,7 @@ export interface ICrypto {
     signJwt(
         payload: SignedHttpRequest,
         kid: string,
+        shrOptions?: ShrOptions,
         correlationId?: string
     ): Promise<string>;
     /**

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "addressing rollup issue based on combined configuration",
-  "packageName": "@azure/msal-browser",
-  "email": "email not defined",
-  "dependentChangeType": "patch"
-}

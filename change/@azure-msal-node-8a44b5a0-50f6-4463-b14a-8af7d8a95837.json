@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Set engines field to >=16",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

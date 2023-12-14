@@ -141,7 +141,7 @@ export abstract class BaseInteractionClient {
     ): Promise<BaseAuthRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.InitializeBaseRequest,
-            request.correlationId
+            this.correlationId
         );
         const authority = request.authority || this.config.auth.authority;
 
@@ -266,7 +266,6 @@ export abstract class BaseInteractionClient {
     /**
      * Used to get a discovered version of the default authority.
      * @param requestAuthority
-     * @param requestCorrelationId
      */
     protected async getDiscoveredAuthority(
         requestAuthority?: string
@@ -284,7 +283,7 @@ export abstract class BaseInteractionClient {
             this.logger.verbose(
                 "Creating discovered authority with request authority"
             );
-            return await AuthorityFactory.createDiscoveredInstance(
+            return AuthorityFactory.createDiscoveredInstance(
                 requestAuthority,
                 this.config.system.networkClient,
                 this.browserStorage,
@@ -296,7 +295,7 @@ export abstract class BaseInteractionClient {
         this.logger.verbose(
             "Creating discovered authority with configured authority"
         );
-        return await AuthorityFactory.createDiscoveredInstance(
+        return AuthorityFactory.createDiscoveredInstance(
             this.config.auth.authority,
             this.config.system.networkClient,
             this.browserStorage,

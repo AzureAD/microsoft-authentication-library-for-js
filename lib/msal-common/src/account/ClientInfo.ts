@@ -7,7 +7,6 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError";
-import { ICrypto } from "../crypto/ICrypto";
 import { Separators, Constants } from "../utils/Constants";
 
 /**
@@ -25,14 +24,14 @@ export type ClientInfo = {
  */
 export function buildClientInfo(
     rawClientInfo: string,
-    crypto: ICrypto
+    base64Decode: (input: string) => string
 ): ClientInfo {
     if (!rawClientInfo) {
         throw createClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError);
     }
 
     try {
-        const decodedClientInfo: string = crypto.base64Decode(rawClientInfo);
+        const decodedClientInfo: string = base64Decode(rawClientInfo);
         return JSON.parse(decodedClientInfo) as ClientInfo;
     } catch (e) {
         throw createClientAuthError(

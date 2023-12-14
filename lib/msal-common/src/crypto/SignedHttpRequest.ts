@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { JoseHeaderOptions } from "./JoseHeader";
+
 export type SignedHttpRequest = {
     at?: string;
     cnf?: object;
@@ -13,4 +15,8 @@ export type SignedHttpRequest = {
     ts?: number;
     nonce?: string;
     client_claims?: string;
+};
+
+export type ShrOptions = {
+    header: JoseHeaderOptions;
 };

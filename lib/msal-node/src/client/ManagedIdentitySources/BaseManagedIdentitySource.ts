@@ -59,7 +59,7 @@ export abstract class BaseManagedIdentitySource {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _networkRequestOptions: NetworkRequestOptions
     ): Promise<ServerAuthorizationTokenResponse> {
-        return await this.getServerTokenResponse(response);
+        return this.getServerTokenResponse(response);
     }
 
     public getServerTokenResponse(
@@ -159,7 +159,7 @@ export abstract class BaseManagedIdentitySource {
         );
 
         // caches the token
-        return await responseHandler.handleServerTokenResponse(
+        return responseHandler.handleServerTokenResponse(
             serverTokenResponse,
             fakeAuthority,
             reqTimestamp,

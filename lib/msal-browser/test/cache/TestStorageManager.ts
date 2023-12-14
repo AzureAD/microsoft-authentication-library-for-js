@@ -12,11 +12,15 @@ import {
     AppMetadataEntity,
     ServerTelemetryEntity,
     ThrottlingEntity,
-    CredentialEntity,
-    CredentialType,
     AuthorityMetadataEntity,
     ValidCredentialType,
     TokenKeys,
+    CacheHelpers,
+    TokenClaims,
+    CredentialType,
+    buildTenantProfileFromIdTokenClaims,
+    TenantProfile,
+    AccountInfo,
 } from "@azure/msal-common";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
@@ -34,6 +38,23 @@ export class TestStorageManager extends CacheManager {
         return null;
     }
 
+    removeAccountKeyFromMap(key: string): void {
+        const currentAccounts = this.getAccountKeys();
+        this.store[ACCOUNT_KEYS] = currentAccounts.filter(
+            (entry) => entry !== key
+        );
+    }
+
+    getCachedAccountEntity(key: string): AccountEntity | null {
+        const account = this.store[key] as AccountEntity;
+        if (!account) {
+            this.removeAccountKeyFromMap(key);
+            return null;
+        }
+
+        return account;
+    }
+
     setAccount(value: AccountEntity): void {
         const key = value.generateAccountKey();
         this.store[key] = value;
@@ -47,12 +68,11 @@ export class TestStorageManager extends CacheManager {
 
     async removeAccount(key: string): Promise<void> {
         await super.removeAccount(key);
-        const currentAccounts = this.getAccountKeys();
-        const removalIndex = currentAccounts.indexOf(key);
-        if (removalIndex > -1) {
-            currentAccounts.splice(removalIndex, 1);
-            this.store[ACCOUNT_KEYS] = currentAccounts;
-        }
+        this.removeAccountKeyFromMap(key);
+    }
+
+    removeOutdatedAccount(accountKey: string): void {
+        this.removeAccount(accountKey);
     }
 
     getAccountKeys(): string[] {
@@ -75,7 +95,7 @@ export class TestStorageManager extends CacheManager {
     }
 
     setIdTokenCredential(idToken: IdTokenEntity): void {
-        const idTokenKey = idToken.generateCredentialKey();
+        const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
         this.store[idTokenKey] = idToken;
 
         const tokenKeys = this.getTokenKeys();
@@ -89,7 +109,7 @@ export class TestStorageManager extends CacheManager {
     }
 
     setAccessTokenCredential(accessToken: AccessTokenEntity): void {
-        const accessTokenKey = accessToken.generateCredentialKey();
+        const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
         this.store[accessTokenKey] = accessToken;
 
         const tokenKeys = this.getTokenKeys();
@@ -102,7 +122,8 @@ export class TestStorageManager extends CacheManager {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
-        const refreshTokenKey = refreshToken.generateCredentialKey();
+        const refreshTokenKey =
+            CacheHelpers.generateCredentialKey(refreshToken);
         this.store[refreshTokenKey] = refreshToken;
 
         const tokenKeys = this.getTokenKeys();
@@ -173,7 +194,7 @@ export class TestStorageManager extends CacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string {
-        const updatedCacheKey = credential.generateCredentialKey();
+        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 
         if (currentCacheKey !== updatedCacheKey) {
             const cacheItem = this.store[currentCacheKey];

@@ -1,7 +1,7 @@
 export const ENV_VARIABLES = {
     TENANT: "AZURE_TENANT_ID",
     CLIENT_ID: "AZURE_CLIENT_ID",
-    SECRET: "AZURE_CLIENT_SECRET"
+    SECRET: "AZURE_CLIENT_SECRET",
 };
 
 export const LAB_API_ENDPOINT = "https://msidlab.com/api";
@@ -16,7 +16,8 @@ export const ParamKeys = {
     APP_TYPE: "apptype",
     SIGN_IN_AUDIENCE: "signInAudience",
     PUBLIC_CLIENT: "publicClient",
-    APP_PLATFORM: "appPlatform"
+    APP_PLATFORM: "appPlatform",
+    GUEST_HOMED_IN: "guesthomedin",
 };
 
 // Lab API Query Param Values
@@ -28,7 +29,7 @@ export const AzureEnvironments = {
     PPE: "azureppe",
     US_GOV: "azureusgovernment",
     US_GOV_JEDI_PROD: "usgovernmentjediprod",
-    US_GOV_MIGRATED: "azureusgovernmentmigrated"
+    US_GOV_MIGRATED: "azureusgovernmentmigrated",
 };
 
 export const B2cProviders = {
@@ -38,7 +39,7 @@ export const B2cProviders = {
     GOOGLE: "google",
     LOCAL: "local",
     MICROSOFT: "microsoft",
-    TWITTER: "twitter"
+    TWITTER: "twitter",
 };
 
 export const FederationProviders = {
@@ -49,7 +50,7 @@ export const FederationProviders = {
     ADFS2019: "adfsv2019",
     B2C: "b2c",
     PING: "ping",
-    SHIBBOLETH: "shibboleth"
+    SHIBBOLETH: "shibboleth",
 };
 
 export const HomeDomains = {
@@ -57,7 +58,7 @@ export const HomeDomains = {
     LAB2: "msidlab2.com",
     LAB3: "msidlab3.com",
     LAB4: "msidlab4.com",
-    LAB8: "msidlab8.com"
+    LAB8: "msidlab8.com",
 };
 
 export const UserTypes = {
@@ -66,15 +67,20 @@ export const UserTypes = {
     ONPREM: "onprem",
     GUEST: "guest",
     MSA: "msa",
-    B2C: "b2c"
+    B2C: "b2c",
 };
 
 export const AppTypes = {
     CLOUD: "cloud",
-    ONPREM: "onprem"
+    ONPREM: "onprem",
 };
 
 export const AppPlatforms = {
     SPA: "spa",
-    WEB: "web"
+    WEB: "web",
+};
+
+export const GuestHomedIn = {
+    HOSTAZUREAD: "hostazuread",
+    ONPREM: "onprem",
 };

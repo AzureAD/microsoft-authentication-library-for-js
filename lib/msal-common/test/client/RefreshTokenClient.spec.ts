@@ -19,16 +19,17 @@ import {
     AUTHENTICATION_RESULT_WITH_HEADERS,
     CORS_RESPONSE_HEADERS,
     TEST_SSH_VALUES,
+    BAD_TOKEN_ERROR_RESPONSE,
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import {
-    AADServerParamKeys,
     GrantType,
     Constants,
     CredentialType,
     AuthenticationScheme,
     ThrottlingConstants,
 } from "../../src/utils/Constants";
+import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
@@ -52,11 +53,15 @@ import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
 import {
+    InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     createInteractionRequiredAuthError,
 } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
+import { TimeUtils } from "../../src/utils/TimeUtils";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -70,23 +75,24 @@ const testAppMetadata: AppMetadataEntity = new AppMetadataEntity();
 testAppMetadata.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
 testAppMetadata.familyId = TEST_CONFIG.THE_FAMILY_ID;
 
-const testRefreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
-testRefreshTokenEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testRefreshTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testRefreshTokenEntity.environment = testAccountEntity.environment;
-testRefreshTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testRefreshTokenEntity.secret = AUTHENTICATION_RESULT.body.refresh_token;
-testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
+const testRefreshTokenEntity: RefreshTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.refresh_token,
+    credentialType: CredentialType.REFRESH_TOKEN,
+};
 
-const testFamilyRefreshTokenEntity: RefreshTokenEntity =
-    new RefreshTokenEntity();
-testFamilyRefreshTokenEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testFamilyRefreshTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testFamilyRefreshTokenEntity.environment = testAccountEntity.environment;
-testFamilyRefreshTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testFamilyRefreshTokenEntity.secret = AUTHENTICATION_RESULT.body.refresh_token;
-testFamilyRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
-testFamilyRefreshTokenEntity.familyId = TEST_CONFIG.THE_FAMILY_ID;
+const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.refresh_token,
+    credentialType: CredentialType.REFRESH_TOKEN,
+    familyId: TEST_CONFIG.THE_FAMILY_ID,
+};
 
 describe("RefreshTokenClient unit tests", () => {
     afterEach(() => {
@@ -298,17 +304,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: ID_TOKEN_CLAIMS.sub,
-            tenantId: ID_TOKEN_CLAIMS.tid,
-            environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
-        };
+        const testAccount: AccountInfo =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
 
         beforeEach(async () => {
             sinon
@@ -321,7 +319,7 @@ describe("RefreshTokenClient unit tests", () => {
                 .stub(Authority.prototype, "getPreferredCache")
                 .returns("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info =
-                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testRefreshTokenEntity);
@@ -424,7 +422,7 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(authResult.scopes).toEqual(expectedScopes);
-            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.account).toMatchObject(testAccount);
             expect(authResult.idToken).toEqual(
                 AUTHENTICATION_RESULT.body.id_token
             );
@@ -1054,17 +1052,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo = {
-            authorityType: "MSSTS",
-            homeAccountId: ID_TOKEN_CLAIMS.sub,
-            tenantId: ID_TOKEN_CLAIMS.tid,
-            environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid,
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined,
-        };
+        const testAccount: AccountInfo =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
 
         beforeEach(async () => {
             sinon
@@ -1077,7 +1067,7 @@ describe("RefreshTokenClient unit tests", () => {
                 .stub(Authority.prototype, "getPreferredCache")
                 .returns("login.windows.net");
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info =
-                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
@@ -1324,6 +1314,126 @@ describe("RefreshTokenClient unit tests", () => {
                     InteractionRequiredAuthErrorCodes.noTokensFound
                 )
             );
+        });
+
+        it("Throws error if cached RT is expired", async () => {
+            const testScope2 = "scope2";
+            const tokenRequest: CommonSilentFlowRequest = {
+                scopes: [testScope2],
+                account: testAccountEntity.getAccountInfo(),
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface!.setRefreshTokenCredential({
+                ...testRefreshTokenEntity,
+                expiresOn: (TimeUtils.nowSeconds() - 48 * 60 * 60).toString(), // Set expiration to yesterday
+            });
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            await expect(
+                client.acquireTokenByRefreshToken(tokenRequest)
+            ).rejects.toMatchObject(
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                )
+            );
+        });
+
+        it("Throws error if cached RT expiration is within provided offset", async () => {
+            const testScope2 = "scope2";
+            const tokenRequest: CommonSilentFlowRequest = {
+                scopes: [testScope2],
+                account: testAccountEntity.getAccountInfo(),
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                refreshTokenExpirationOffsetSeconds: 60 * 60, // 1 hour
+            };
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface!.setRefreshTokenCredential({
+                ...testRefreshTokenEntity,
+                expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
+            });
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            await expect(
+                client.acquireTokenByRefreshToken(tokenRequest)
+            ).rejects.toMatchObject(
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                )
+            );
+        });
+
+        it("Removes refresh token if server returns invalid_grant with bad_token suberror", async () => {
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface!.setAccount(testAccountEntity);
+            config.storageInterface!.setRefreshTokenCredential(
+                testRefreshTokenEntity
+            );
+            config.storageInterface!.setAppMetadata(testAppMetadata);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const testAccount: AccountInfo =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
+            sinon
+                .stub(
+                    RefreshTokenClient.prototype,
+                    <any>"executePostToTokenEndpoint"
+                )
+                .resolves(BAD_TOKEN_ERROR_RESPONSE);
+
+            const serverResponse = BAD_TOKEN_ERROR_RESPONSE.body;
+            const invalidGrantAuthError = new InteractionRequiredAuthError(
+                serverResponse.error,
+                serverResponse.error_description,
+                serverResponse.suberror,
+                serverResponse.timestamp || Constants.EMPTY_STRING,
+                serverResponse.trace_id || Constants.EMPTY_STRING,
+                serverResponse.correlation_id || Constants.EMPTY_STRING,
+                // @ts-ignore
+                serverResponse.claims || Constants.EMPTY_STRING
+            );
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+
+            const badRefreshTokenKey = generateCredentialKey(
+                testRefreshTokenEntity
+            );
+
+            expect(
+                config.storageInterface!.getRefreshTokenCredential(
+                    badRefreshTokenKey
+                )
+            ).toBe(testRefreshTokenEntity);
+
+            await expect(
+                client.acquireTokenByRefreshToken(silentFlowRequest)
+            ).rejects.toMatchObject(invalidGrantAuthError);
+
+            expect(
+                config.storageInterface!.getRefreshTokenCredential(
+                    badRefreshTokenKey
+                )
+            ).toBe(null);
         });
     });
     describe("Telemetry protocol mode tests", () => {

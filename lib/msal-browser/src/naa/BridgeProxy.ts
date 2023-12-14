@@ -9,7 +9,7 @@ import {
     AccountByLocalIdRequest,
     AccountByUsernameRequest,
 } from "./AccountRequests";
-import { AuthBridge } from "./AuthBridge";
+import { AuthBridge, AuthBridgeResponse } from "./AuthBridge";
 import { BridgeCapabilities } from "./BridgeCapabilities";
 import { BridgeRequest } from "./BridgeRequest";
 import { BridgeRequestEnvelope, BridgeMethods } from "./BridgeRequestEnvelope";
@@ -36,7 +36,7 @@ export class BridgeProxy implements IBridgeProxy {
     static crypto: Crypto;
     sdkName: string;
     sdkVersion: string;
-    capabilities: BridgeCapabilities;
+    capabilities?: BridgeCapabilities;
 
     /**
      * initializeNestedAppAuthBridge - Initializes the bridge to the host app
@@ -60,9 +60,11 @@ export class BridgeProxy implements IBridgeProxy {
 
             window.nestedAppAuthBridge.addEventListener(
                 "message",
-                (response: string) => {
+                (response: AuthBridgeResponse) => {
+                    const responsePayload =
+                        typeof response === "string" ? response : response.data;
                     const responseEnvelope: BridgeResponseEnvelope =
-                        JSON.parse(response);
+                        JSON.parse(responsePayload);
                     const request = BridgeProxy.bridgeRequests.find(
                         (element) =>
                             element.requestId === responseEnvelope.requestId
@@ -101,7 +103,7 @@ export class BridgeProxy implements IBridgeProxy {
                 }
             );
 
-            return promise;
+            return await promise;
         } catch (error) {
             window.console.log(error);
             throw error;
@@ -162,6 +164,10 @@ export class BridgeProxy implements IBridgeProxy {
         return this.sendRequest<AccountInfo>("GetActiveAccount", undefined);
     }
 
+    public getHostCapabilities(): BridgeCapabilities | null {
+        return this.capabilities ?? null;
+    }
+
     /**
      * A method used to send a request to the bridge
      * @param request A token request
@@ -206,7 +212,7 @@ export class BridgeProxy implements IBridgeProxy {
     private constructor(
         sdkName: string,
         sdkVersion: string,
-        capabilities: BridgeCapabilities
+        capabilities?: BridgeCapabilities
     ) {
         this.sdkName = sdkName;
         this.sdkVersion = sdkVersion;

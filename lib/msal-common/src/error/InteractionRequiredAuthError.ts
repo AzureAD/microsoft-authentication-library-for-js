@@ -15,6 +15,7 @@ export const InteractionRequiredServerErrorMessage = [
     InteractionRequiredAuthErrorCodes.interactionRequired,
     InteractionRequiredAuthErrorCodes.consentRequired,
     InteractionRequiredAuthErrorCodes.loginRequired,
+    InteractionRequiredAuthErrorCodes.badToken,
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
@@ -23,6 +24,7 @@ export const InteractionRequiredAuthSubErrorMessage = [
     "basic_action",
     "user_password_expired",
     "consent_required",
+    "bad_token",
 ];
 
 const InteractionRequiredAuthErrorMessages = {
@@ -30,6 +32,10 @@ const InteractionRequiredAuthErrorMessages = {
         "No refresh token found in the cache. Please sign-in.",
     [InteractionRequiredAuthErrorCodes.nativeAccountUnavailable]:
         "The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API.",
+    [InteractionRequiredAuthErrorCodes.refreshTokenExpired]:
+        "Refresh token has expired.",
+    [InteractionRequiredAuthErrorCodes.badToken]:
+        "Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.",
 };
 
 /**
@@ -47,6 +53,12 @@ export const InteractionRequiredAuthErrorMessage = {
         code: InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
         desc: InteractionRequiredAuthErrorMessages[
             InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+        ],
+    },
+    bad_token: {
+        code: InteractionRequiredAuthErrorCodes.badToken,
+        desc: InteractionRequiredAuthErrorMessages[
+            InteractionRequiredAuthErrorCodes.badToken
         ],
     },
 };

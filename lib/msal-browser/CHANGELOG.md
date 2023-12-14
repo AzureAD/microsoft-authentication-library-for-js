@@ -1,8 +1,76 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 05 Oct 2023 18:06:42 GMT and should not be manually modified.
+This log was last generated on Fri, 01 Dec 2023 18:46:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.6.0
+
+Fri, 01 Dec 2023 18:46:06 GMT
+
+### Minor changes
+
+- Increase default iframe timout to 10s #6700 (hemoral@microsoft.com)
+- Add support for Multi-tenant accounts and cross-tenant token caching #6466 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.5.0
+
+### Patches
+
+- Nested App Auth minor fixes (#6672) (dasau@microsoft.com)
+- Performance optimization when creating hidden iframe (thomas.norling@microsoft.com)
+- Nested App Auth fix for Android response (#6707) (dasau@microsoft.com)
+- Fix logoutPopup request type (thomas.norling@microsoft.com)
+- Fix bug causing temporary cache not to be cleared #6676 (thomas.norling@microsoft.com)
+
+## 3.5.0
+
+Tue, 07 Nov 2023 00:01:50 GMT
+
+### Minor changes
+
+- Optimize response parsing & address bugs related to query response type #6646 (thomas.norling@microsoft.com)
+- Convert ServerTelemetryEntity to Type instead of Class #6651 (thomas.norling@microsoft.com)
+- Make SHR header configurable #6654 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.4.0
+
+### Patches
+
+- Generate one correlation id across a flow #6650 (sameera.gajjarapu@microsoft.com)
+- Fix race condition which may cause popups not to close #6652 (thomas.norling@microsoft.com)
+
+## 3.4.0
+
+Mon, 30 Oct 2023 21:38:24 GMT
+
+### Minor changes
+
+- Don't use temporary cache for silent & popup flows #6586 (thomas.norling@microsoft.com)
+- Refactor token cache entities to be defined as Types rather than Classes #6580 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.3.0
+
+### Patches
+
+- Fix iframe fallback when RT is not found in cache (thomas.norling@microsoft.com)
+- Use invokeAsync in popup/redirect flows (thomas.norling@microsoft.com)
+- Add inlineDynamicImports to rollup config to fix CJS build. Make factory methods basic functions #6615 (kshabelko@microsoft.com)
+
+## 3.3.0
+
+Wed, 18 Oct 2023 17:24:19 GMT
+
+### Minor changes
+
+- Build account objects from cached ID Token #6529 (hemoral@microsoft.com)
+- Added new PublicClientNext and additional Operating Contexts and associated Controllers; Initially to address NestedAppAuth. #6359 (email not defined)
+- Replace custom encoder with TextEncoder in code challenge generator #6560 (thomas.norling@microsoft.com)
+- Preconnect to authority to speed up /token calls #6550 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.2.0
+
+### Patches
+
+- Instrument create/remove hidden iframe & refactor monitorIframeForHash #6533 (thomas.norling@microsoft.com)
+- Additional ATS instrumentation #6562 (thomas.norling@microsoft.com)
+- addressing rollup issue based on combined configuration (email not defined)
 
 ## 3.2.0
 

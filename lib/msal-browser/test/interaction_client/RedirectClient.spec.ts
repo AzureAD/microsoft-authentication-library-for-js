@@ -80,6 +80,7 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -130,6 +131,15 @@ describe("RedirectClient", () => {
         jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
             RANDOM_TEST_GUID
         );
+
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateExternal"
+        ).mockResolvedValue(true);
+        jest.spyOn(
+            NavigationClient.prototype,
+            "navigateInternal"
+        ).mockResolvedValue(true);
 
         // @ts-ignore
         browserStorage = pca.browserStorage;
@@ -195,18 +205,17 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .returns(TEST_HASHES.TEST_SUCCESS_HASH_NO_STATE);
-            redirectClient.handleRedirectPromise().then((response) => {
-                expect(response).toBe(null);
-                expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(0);
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise("#code=ThisIsAnAuthCode")
+                .then((response) => {
+                    expect(response).toBe(null);
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
         });
 
-        it("cleans temporary cache and return null if state is wrong interaction type", (done) => {
+        it("If response hash is not a Redirect response cleans temporary cache, return null and don't remove hash", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
@@ -218,13 +227,14 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .returns(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
             redirectClient.handleRedirectPromise().then((response) => {
                 expect(response).toBe(null);
                 expect(window.localStorage.length).toEqual(0);
                 expect(window.sessionStorage.length).toEqual(0);
+                expect(window.location.hash).toEqual(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+                );
                 done();
             });
         });
@@ -245,9 +255,12 @@ describe("RedirectClient", () => {
                 "Unexpected error!",
                 "Unexpected error"
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .throws(testError);
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"getRedirectResponse"
+            ).mockImplementation(() => {
+                throw testError;
+            });
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(testError);
                 expect(window.localStorage.length).toEqual(0);
@@ -268,16 +281,142 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            //sinon.stub(BrowserProtocolUtils, "extractBrowserRequestState").returns(null);
-            sinon
-                .stub(RedirectClient.prototype, <any>"getRedirectResponseHash")
-                .returns(TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META);
-            redirectClient.handleRedirectPromise().then((response) => {
-                expect(response).toBe(null);
-                expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(0);
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META
+                )
+                .then((response) => {
+                    expect(response).toBe(null);
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
+        });
+
+        it("cleans temporary cache and re-throws error thrown by handleResponse when loginRequestUrl == current url", (done) => {
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                window.location.href,
+                true
+            );
+            const statekey = browserStorage.generateStateKey(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            browserStorage.setTemporaryCache(
+                statekey,
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                true
+            );
+
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockRejectedValue("Error in handleResponse");
+            redirectClient
+                .handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                )
+                .catch((e) => {
+                    expect(e).toEqual("Error in handleResponse");
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
+        });
+
+        it("cleans temporary cache and re-throws error thrown by handleResponse after clientside navigation to loginRequestUrl", (done) => {
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateInternal"
+            ).mockResolvedValue(false); // Client-side navigation
+
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                window.location.href + "/differentPath",
+                true
+            );
+            const statekey = browserStorage.generateStateKey(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            browserStorage.setTemporaryCache(
+                statekey,
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                true
+            );
+
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockRejectedValue("Error in handleResponse");
+            redirectClient
+                .handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                )
+                .catch((e) => {
+                    expect(e).toEqual("Error in handleResponse");
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
+        });
+
+        it("cleans temporary cache and re-throws error thrown by handleResponse when navigateToLoginRequestUrl is false", (done) => {
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                window.location.href + "/differentPath",
+                true
+            );
+            const statekey = browserStorage.generateStateKey(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            browserStorage.setTemporaryCache(
+                statekey,
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                true
+            );
+
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockRejectedValue("Error in handleResponse");
+            redirectClient = // @ts-ignore
+                redirectClient = new RedirectClient(
+                    {
+                        // @ts-ignore
+                        ...pca.config,
+                        auth: {
+                            // @ts-ignore
+                            ...pca.config.auth,
+                            navigateToLoginRequestUrl: false,
+                        },
+                    },
+                    browserStorage,
+                    //@ts-ignore
+                    pca.browserCrypto,
+                    //@ts-ignore
+                    pca.logger,
+                    //@ts-ignore
+                    pca.eventHandler,
+                    //@ts-ignore
+                    pca.navigationClient,
+                    //@ts-ignore
+                    pca.performanceClient,
+                    //@ts-ignore
+                    pca.nativeInternalStorage
+                );
+            redirectClient
+                .handleRedirectPromise(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                )
+                .catch((e) => {
+                    expect(e).toEqual("Error in handleResponse");
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
         });
 
         it("gets hash from cache and processes response", async () => {
@@ -340,30 +479,17 @@ describe("RedirectClient", () => {
                     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 },
             };
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-            };
+
+            const testAccount: AccountInfo =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
+                uniqueId: ID_TOKEN_CLAIMS.oid,
+                tenantId: ID_TOKEN_CLAIMS.tid,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 idToken: testServerTokenResponse.body.id_token,
-                idTokenClaims: testIdTokenClaims,
+                idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
@@ -373,6 +499,7 @@ describe("RedirectClient", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
+
             sinon
                 .stub(FetchClient.prototype, "sendGetRequestAsync")
                 .callsFake((url): any => {
@@ -508,31 +635,20 @@ describe("RedirectClient", () => {
                     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 },
             };
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-                nativeAccountId: "test-nativeAccountId",
-            };
+
+            const testAccount: AccountInfo = buildAccountFromIdTokenClaims(
+                ID_TOKEN_CLAIMS,
+                undefined,
+                { nativeAccountId: "test-nativeAccountId" }
+            ).getAccountInfo();
+
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
+                uniqueId: ID_TOKEN_CLAIMS.oid,
+                tenantId: ID_TOKEN_CLAIMS.tid,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 idToken: testServerTokenResponse.body.id_token,
-                idTokenClaims: testIdTokenClaims,
+                idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
@@ -542,6 +658,7 @@ describe("RedirectClient", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
+
             sinon
                 .stub(FetchClient.prototype, "sendGetRequestAsync")
                 .callsFake((url): any => {
@@ -828,32 +945,16 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-            };
+            const testAccount: AccountInfo =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
+                uniqueId: ID_TOKEN_CLAIMS.oid,
+                tenantId: ID_TOKEN_CLAIMS.tid,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 idToken: testServerTokenResponse.body.id_token,
-                idTokenClaims: testIdTokenClaims,
+                idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
@@ -991,32 +1092,16 @@ describe("RedirectClient", () => {
                     },
                 };
 
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid!,
-                username: testIdTokenClaims.preferred_username!,
-            };
+            const testAccount: AccountInfo =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid!,
-                tenantId: testIdTokenClaims.tid!,
+                uniqueId: ID_TOKEN_CLAIMS.oid,
+                tenantId: ID_TOKEN_CLAIMS.tid,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 idToken: testServerTokenResponse.body.id_token!,
-                idTokenClaims: testIdTokenClaims,
+                idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: testServerTokenResponse.body.access_token!,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
@@ -1169,32 +1254,16 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-            };
+            const testAccount: AccountInfo =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
+                uniqueId: ID_TOKEN_CLAIMS.oid,
+                tenantId: ID_TOKEN_CLAIMS.tid,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 idToken: testServerTokenResponse.body.id_token,
-                idTokenClaims: testIdTokenClaims,
+                idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
@@ -1540,13 +1609,16 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 });
+            });
             redirectClient.handleRedirectPromise().then(() => {
                 expect(window.location.href).toEqual(loginRequestUrl);
             });
@@ -1559,13 +1631,16 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 });
+            });
             redirectClient
                 .handleRedirectPromise(
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
@@ -1589,13 +1664,16 @@ describe("RedirectClient", () => {
             window.location.hash = "testHash";
             const clearHashSpy = sinon.spy(BrowserUtils, "clearHash");
 
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 });
+            });
 
             redirectClient.handleRedirectPromise().then(() => {
                 expect(clearHashSpy.notCalled).toBe(true);
@@ -1613,14 +1691,17 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
-                    done();
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 });
+                done();
+            });
             redirectClient.handleRedirectPromise();
         });
 
@@ -1678,15 +1759,18 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            sinon
-                .stub(RedirectClient.prototype, <any>"handleHash")
-                .callsFake((responseHash) => {
-                    expect(window.location.href).not.toContain("#testHash");
-                    expect(responseHash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
-                    done();
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockImplementation((response) => {
+                expect(window.location.href).not.toContain("#testHash");
+                expect(response).toEqual({
+                    code: "thisIsATestCode",
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 });
+                done();
+            });
             redirectClient.handleRedirectPromise();
         });
     });
@@ -1932,18 +2016,8 @@ describe("RedirectClient", () => {
         });
 
         it("Adds login_hint as CCS cache entry to the cache and urlNavigate", async () => {
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
             const testCcsCred: CcsCredential = {
-                credential: testIdTokenClaims.preferred_username || "",
+                credential: ID_TOKEN_CLAIMS.preferred_username || "",
                 type: CcsCredentialType.UPN,
             };
             const emptyRequest: CommonAuthorizationUrlRequest = {
@@ -1956,7 +2030,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                loginHint: testIdTokenClaims.preferred_username || "",
+                loginHint: ID_TOKEN_CLAIMS.preferred_username || "",
             };
 
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -2016,23 +2090,8 @@ describe("RedirectClient", () => {
         });
 
         it("Adds account homeAccountId as CCS cache entry to the cache and urlNavigate", async () => {
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-            };
+            const testAccount: AccountInfo =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
             const testCcsCred: CcsCredential = {
                 credential: testAccount.homeAccountId,
                 type: CcsCredentialType.HOME_ACCOUNT_ID,
@@ -3315,7 +3374,6 @@ describe("RedirectClient", () => {
             testAccount.authorityType = "MSSTS";
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-            testAccount.idTokenClaims = testIdTokenClaims;
 
             browserStorage.setAccount(testAccount);
 
@@ -3370,7 +3428,6 @@ describe("RedirectClient", () => {
             testAccount.authorityType = "MSSTS";
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-            testAccount.idTokenClaims = testIdTokenClaims;
 
             browserStorage.setAccount(testAccount);
 
@@ -3649,37 +3706,18 @@ describe("RedirectClient", () => {
         });
 
         it("clears active account entry from the cache", async () => {
+            const testAccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
             const testAccountInfo: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: ID_TOKEN_CLAIMS.tid,
-                username: ID_TOKEN_CLAIMS.preferred_username,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
+                ...testAccountEntity.getAccountInfo(),
                 idTokenClaims: ID_TOKEN_CLAIMS,
-                name: ID_TOKEN_CLAIMS.name,
-                nativeAccountId: undefined,
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-
-            const testIdToken: IdTokenEntity = new IdTokenEntity();
-            testIdToken.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
-            testIdToken.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-            testIdToken.environment = testAccount.environment;
-            testIdToken.realm = ID_TOKEN_CLAIMS.tid;
-            testIdToken.secret = TEST_TOKENS.IDTOKEN_V2;
-            testIdToken.credentialType = CredentialType.ID_TOKEN;
+            const testIdToken: IdTokenEntity = buildIdToken(
+                ID_TOKEN_CLAIMS,
+                TEST_TOKENS.IDTOKEN_V2,
+                { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+            );
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,
@@ -3698,7 +3736,7 @@ describe("RedirectClient", () => {
                     }
                 );
 
-            browserStorage.setAccount(testAccount);
+            browserStorage.setAccount(testAccountEntity);
             browserStorage.setIdTokenCredential(testIdToken);
 
             pca.setActiveAccount(testAccountInfo);

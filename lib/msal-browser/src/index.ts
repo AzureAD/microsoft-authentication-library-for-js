@@ -135,6 +135,7 @@ export {
     // Utils
     StringUtils,
     UrlString,
+    JsonWebTokenTypes,
     // AzureCloudInstance enum
     AzureCloudInstance,
     AzureCloudOptions,
@@ -145,6 +146,7 @@ export {
     PerformanceEvents,
     // Telemetry
     InProgressPerformanceEvent,
+    TenantProfile,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

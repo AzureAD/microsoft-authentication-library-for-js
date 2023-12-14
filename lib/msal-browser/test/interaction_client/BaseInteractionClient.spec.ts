@@ -20,6 +20,8 @@ import {
     TEST_TOKENS,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
+    ID_TOKEN_CLAIMS,
+    ID_TOKEN_ALT_CLAIMS,
 } from "../utils/StringConstants";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { EndSessionRequest, PublicClientApplication } from "../../src";
@@ -75,26 +77,17 @@ describe("BaseInteractionClient", () => {
         let testAccountInfo2: AccountInfo;
 
         beforeEach(async () => {
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
+            const testIdTokenClaims: TokenClaims = ID_TOKEN_CLAIMS;
 
             testAccountInfo1 = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                localAccountId: testIdTokenClaims.oid || "",
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
             };
 
-            const idTokenData1 = {
+            const idToken1: IdTokenEntity = {
                 realm: testAccountInfo1.tenantId,
                 environment: testAccountInfo1.environment,
                 credentialType: "IdToken",
@@ -102,11 +95,6 @@ describe("BaseInteractionClient", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 homeAccountId: testAccountInfo1.homeAccountId,
             };
-
-            const idToken1 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData1
-            );
 
             const testAccount1: AccountEntity = new AccountEntity();
             testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
@@ -119,27 +107,24 @@ describe("BaseInteractionClient", () => {
             testAccount1.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
+            const testIdTokenClaims2: TokenClaims = ID_TOKEN_ALT_CLAIMS;
+
             testAccountInfo2 = {
                 homeAccountId: "different-home-account-id",
-                localAccountId: "different-local-account-id",
+                localAccountId: testIdTokenClaims2.oid || "",
                 environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
+                tenantId: testIdTokenClaims2.tid || "",
+                username: testIdTokenClaims2.preferred_username || "",
             };
 
-            const idTokenData2 = {
+            const idToken2: IdTokenEntity = {
                 realm: testAccountInfo2.tenantId,
                 environment: testAccountInfo2.environment,
                 credentialType: "IdToken",
-                secret: TEST_TOKENS.IDTOKEN_V2,
+                secret: TEST_TOKENS.IDTOKEN_V2_ALT,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 homeAccountId: testAccountInfo2.homeAccountId,
             };
-
-            const idToken2 = CacheManager.toObject(
-                new IdTokenEntity(),
-                idTokenData2
-            );
 
             const testAccount2: AccountEntity = new AccountEntity();
             testAccount2.homeAccountId = testAccountInfo2.homeAccountId;

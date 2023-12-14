@@ -57,7 +57,7 @@ export class Environment {
     }
 
     static getUserRootDirectory(): string | null {
-        return !this.isWindowsPlatform
+        return !this.isWindowsPlatform()
             ? this.getUserHomeDirOnUnix()
             : this.getUserHomeDirOnWindows();
     }

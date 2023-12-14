@@ -3,18 +3,25 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CacheAccountType, Constants } from "../../utils/Constants";
+import { CacheAccountType, Separators } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { ICrypto } from "../../crypto/ICrypto";
-import { buildClientInfo } from "../../account/ClientInfo";
-import { AccountInfo } from "../../account/AccountInfo";
+import { ClientInfo, buildClientInfo } from "../../account/ClientInfo";
+import {
+    AccountInfo,
+    TenantProfile,
+    buildTenantProfileFromIdTokenClaims,
+} from "../../account/AccountInfo";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "../../error/ClientAuthError";
 import { AuthorityType } from "../../authority/AuthorityType";
 import { Logger } from "../../logger/Logger";
-import { TokenClaims } from "../../account/TokenClaims";
+import {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "../../account/TokenClaims";
 import { ProtocolMode } from "../../authority/ProtocolMode";
 
 /**
@@ -35,8 +42,8 @@ import { ProtocolMode } from "../../authority/ProtocolMode";
  *      name: Full name for the account, including given name and family name,
  *      lastModificationTime: last time this entity was modified in the cache
  *      lastModificationApp:
- *      idTokenClaims: Object containing claims parsed from ID token
  *      nativeAccountId: Account identifier on the native device
+ *      tenantProfiles: Array of tenant profile objects for each tenant that the account has authenticated with in the browser
  * }
  * @internal
  */
@@ -53,8 +60,8 @@ export class AccountEntity {
     lastModificationApp?: string;
     cloudGraphHostName?: string;
     msGraphHost?: string;
-    idTokenClaims?: TokenClaims;
     nativeAccountId?: string;
+    tenantProfiles?: Array<TenantProfile>;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -88,10 +95,22 @@ export class AccountEntity {
             username: this.username,
             localAccountId: this.localAccountId,
             name: this.name,
-            idTokenClaims: this.idTokenClaims,
             nativeAccountId: this.nativeAccountId,
             authorityType: this.authorityType,
+            // Deserialize tenant profiles array into a Map
+            tenantProfiles: new Map(
+                (this.tenantProfiles || []).map((tenantProfile) => {
+                    return [tenantProfile.tenantId, tenantProfile];
+                })
+            ),
         };
+    }
+
+    /**
+     * Returns true if the account entity is in single tenant format (outdated), false otherwise
+     */
+    isSingleTenant(): boolean {
+        return !this.tenantProfiles;
     }
 
     /**
@@ -99,10 +118,11 @@ export class AccountEntity {
      * @param accountInterface
      */
     static generateAccountCacheKey(accountInterface: AccountInfo): string {
+        const homeTenantId = accountInterface.homeAccountId.split(".")[1];
         const accountKey = [
             accountInterface.homeAccountId,
-            accountInterface.environment || Constants.EMPTY_STRING,
-            accountInterface.tenantId || Constants.EMPTY_STRING,
+            accountInterface.environment || "",
+            homeTenantId || accountInterface.tenantId || "",
         ];
 
         return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -121,8 +141,10 @@ export class AccountEntity {
             msGraphHost?: string;
             environment?: string;
             nativeAccountId?: string;
+            tenantProfiles?: Array<TenantProfile>;
         },
-        authority: Authority
+        authority: Authority,
+        base64Decode?: (input: string) => string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -132,6 +154,15 @@ export class AccountEntity {
             account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         } else {
             account.authorityType = CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        }
+
+        let clientInfo: ClientInfo | undefined;
+
+        if (accountDetails.clientInfo && base64Decode) {
+            clientInfo = buildClientInfo(
+                accountDetails.clientInfo,
+                base64Decode
+            );
         }
 
         account.clientInfo = accountDetails.clientInfo;
@@ -151,13 +182,16 @@ export class AccountEntity {
         account.environment = env;
         // non AAD scenarios can have empty realm
         account.realm =
-            accountDetails.idTokenClaims.tid || Constants.EMPTY_STRING;
+            clientInfo?.utid ||
+            getTenantIdFromIdTokenClaims(accountDetails.idTokenClaims) ||
+            "";
 
         // How do you account for MSA CID here?
         account.localAccountId =
+            clientInfo?.uid ||
             accountDetails.idTokenClaims.oid ||
             accountDetails.idTokenClaims.sub ||
-            Constants.EMPTY_STRING;
+            "";
 
         /*
          * In B2C scenarios the emails claim is used instead of preferred_username and it is an array.
@@ -171,11 +205,25 @@ export class AccountEntity {
             ? accountDetails.idTokenClaims.emails[0]
             : null;
 
-        account.username = preferredUsername || email || Constants.EMPTY_STRING;
+        account.username = preferredUsername || email || "";
         account.name = accountDetails.idTokenClaims.name;
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
         account.msGraphHost = accountDetails.msGraphHost;
+
+        if (accountDetails.tenantProfiles) {
+            account.tenantProfiles = accountDetails.tenantProfiles;
+        } else {
+            const tenantProfiles = [];
+            if (accountDetails.idTokenClaims) {
+                const tenantProfile = buildTenantProfileFromIdTokenClaims(
+                    accountDetails.homeAccountId,
+                    accountDetails.idTokenClaims
+                );
+                tenantProfiles.push(tenantProfile);
+            }
+            account.tenantProfiles = tenantProfiles;
+        }
 
         return account;
     }
@@ -208,6 +256,10 @@ export class AccountEntity {
 
         account.cloudGraphHostName = cloudGraphHostName;
         account.msGraphHost = msGraphHost;
+        // Serialize tenant profiles map into an array
+        account.tenantProfiles = Array.from(
+            accountInfo.tenantProfiles?.values() || []
+        );
 
         return account;
     }
@@ -224,31 +276,30 @@ export class AccountEntity {
         cryptoObj: ICrypto,
         idTokenClaims?: TokenClaims
     ): string {
-        const accountId = idTokenClaims?.sub
-            ? idTokenClaims.sub
-            : Constants.EMPTY_STRING;
-
-        // since ADFS does not have tid and does not set client_info
+        // since ADFS/DSTS do not have tid and does not set client_info
         if (
-            authType === AuthorityType.Adfs ||
-            authType === AuthorityType.Dsts
+            !(
+                authType === AuthorityType.Adfs ||
+                authType === AuthorityType.Dsts
+            )
         ) {
-            return accountId;
-        }
-
-        // for cases where there is clientInfo
-        if (serverClientInfo) {
-            try {
-                const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
-                if (clientInfo.uid && clientInfo.utid) {
-                    return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
-                }
-            } catch (e) {}
+            // for cases where there is clientInfo
+            if (serverClientInfo) {
+                try {
+                    const clientInfo = buildClientInfo(
+                        serverClientInfo,
+                        cryptoObj.base64Decode
+                    );
+                    if (clientInfo.uid && clientInfo.utid) {
+                        return `${clientInfo.uid}.${clientInfo.utid}`;
+                    }
+                } catch (e) {}
+            }
+            logger.warning("No client info in response");
         }
 
         // default to "sub" claim
-        logger.verbose("No client info in response");
-        return accountId;
+        return idTokenClaims?.sub || "";
     }
 
     /**
