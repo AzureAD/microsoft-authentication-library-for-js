@@ -11,7 +11,6 @@ import { ShrOptions } from "../crypto/SignedHttpRequest";
 
 /**
  * BaseAuthRequest
- * - authority               - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. Defaults to https://login.microsoftonline.com/common. If using the same authority for all request, authority should set on client application object and not request, to avoid resolving authority endpoints multiple times.
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - scopes                  - Array of scopes the application is requesting access to.
  * - authenticationScheme    - The type of token retrieved. Defaults to "Bearer". Can also be type "pop" or "SSH".
@@ -46,4 +45,8 @@ export type BaseAuthRequest = {
     maxAge?: number;
     tokenQueryParameters?: StringDict;
     storeInCache?: StoreInCache;
+    /**
+     * extraTokenRequestHeaders - Key-value pairs to be sent as headers in the token request.  Will overwrite client application configuration-level headers with the same name.
+     */
+    extraTokenRequestHeaders?: Record<string, string>;
 };

@@ -266,8 +266,10 @@ export class AuthorizationCodeClient extends BaseClient {
                 );
             }
         }
+
         const headers: Record<string, string> = this.createTokenRequestHeaders(
-            ccsCredential || request.ccsCredential
+            ccsCredential || request.ccsCredential,
+            request.extraTokenRequestHeaders
         );
 
         const thumbprint: RequestThumbprint = {

@@ -98,7 +98,8 @@ export abstract class BaseClient {
      * Creates default headers for requests to token endpoint
      */
     protected createTokenRequestHeaders(
-        ccsCred?: CcsCredential
+        ccsCred?: CcsCredential,
+        extraRequestHeaders?: Record<string, string>
     ): Record<string, string> {
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
@@ -126,6 +127,25 @@ export abstract class BaseClient {
                     break;
             }
         }
+
+        // Add client app configuration headers
+        const extraClientConfigTokenRequestHeaders =
+            this.config.authOptions.extraTokenRequestHeaders;
+
+        if (extraClientConfigTokenRequestHeaders) {
+            for (const headerName in extraClientConfigTokenRequestHeaders) {
+                headers[headerName] =
+                    extraClientConfigTokenRequestHeaders[headerName];
+            }
+        }
+
+        // Add request configuration headers
+        if (extraRequestHeaders) {
+            for (const headerName in extraRequestHeaders) {
+                headers[headerName] = extraRequestHeaders[headerName];
+            }
+        }
+
         return headers;
     }
 

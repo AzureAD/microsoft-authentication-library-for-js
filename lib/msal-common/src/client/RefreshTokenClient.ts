@@ -298,7 +298,8 @@ export class RefreshTokenClient extends BaseClient {
             request.correlationId
         )(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(
-            request.ccsCredential
+            request.ccsCredential,
+            request.extraTokenRequestHeaders
         );
         const thumbprint: RequestThumbprint = {
             clientId:

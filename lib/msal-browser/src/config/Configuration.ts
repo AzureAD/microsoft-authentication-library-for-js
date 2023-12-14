@@ -97,6 +97,10 @@ export type BrowserAuthOptions = {
      * App supports nested app auth or not; defaults to false
      */
     supportsNestedAppAuth?: boolean;
+    /**
+     * Headers and values to be added to all requests to the token endpoint. Can be overwritten by request-level headers with the same names.
+     */
+    extraTokenRequestHeaders?: Record<string, string>;
 };
 
 /** @internal */
@@ -278,6 +282,7 @@ export function buildConfiguration(
         },
         skipAuthorityMetadataCache: false,
         supportsNestedAppAuth: false,
+        extraTokenRequestHeaders: {},
     };
 
     // Default cache options for browser

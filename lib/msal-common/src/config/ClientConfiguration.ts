@@ -89,6 +89,10 @@ export type AuthOptions = {
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
+    /**
+     * - extraTokenRequestHeaders - Key-value pairs to be sent as headers in the request to the token endpoint
+     */
+    extraTokenRequestHeaders?: Record<string, string>;
 };
 
 /**
@@ -271,6 +275,7 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
         clientCapabilities: [],
         azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         skipAuthorityMetadataCache: false,
+        extraTokenRequestHeaders: {},
         ...authOptions,
     };
 }
