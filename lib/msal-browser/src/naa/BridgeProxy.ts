@@ -115,7 +115,7 @@ export class BridgeProxy implements IBridgeProxy {
     /**
      * getTokenInteractive - Attempts to get a token interactively from the bridge
      * @param request A token request
-     * @returns a promise that resolves to a token response or rejects with a BridgeError
+     * @returns a promise that resolves to an auth result or rejects with a BridgeError
      */
     public getTokenInteractive(request: TokenRequest): Promise<AuthResult> {
         return this.getToken("GetTokenPopup", request);
@@ -124,7 +124,7 @@ export class BridgeProxy implements IBridgeProxy {
     /**
      * getTokenSilent Attempts to get a token silently from the bridge
      * @param request A token request
-     * @returns a promise that resolves to a token response or rejects with a BridgeError
+     * @returns a promise that resolves to an auth result or rejects with a BridgeError
      */
     public getTokenSilent(request: TokenRequest): Promise<AuthResult> {
         return this.getToken("GetToken", request);
