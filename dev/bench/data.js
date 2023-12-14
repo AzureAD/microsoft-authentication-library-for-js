@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1702580377075,
+  "lastUpdate": 1702582009706,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3952,6 +3952,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.71%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4aacf4d835e64ad4340639c7f7b5b41c137f7ce6",
+          "message": "Dynamically load `BrowserPerformanceMeasurement` to capture browser perf measurements if session storage flag is set (#6748)\n\n- Dynamically load `BrowserPerformanceMeasurement` to capture browser\r\nperf measurements if session storage flag is set.\r\n- Calculate telemetry event duration using Unix epoch if browser\r\nperformance API is not available.\r\n- Update browser performance doc.",
+          "timestamp": "2023-12-14T14:21:13-05:00",
+          "tree_id": "f64e2efe36a66872544e5259f315217594342202",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4aacf4d835e64ad4340639c7f7b5b41c137f7ce6"
+        },
+        "date": 1702582008643,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 185521,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 182599,
+            "range": "±2.04%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
