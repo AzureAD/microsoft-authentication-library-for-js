@@ -24,6 +24,8 @@ export type CommonSilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
     /** Skip cache lookup and forces network call(s) to get fresh tokens */
     forceRefresh: boolean;
+    /** RedirectUri registered on the app registration - only required in brokering scenarios */
+    redirectUri?: string;
     /** Key value pairs to include on the POST body to the /token endpoint */
     tokenBodyParameters?: StringDict;
     /** If refresh token will expire within the configured value, consider it already expired. Used to pre-emptively invoke interaction when cached refresh token is close to expiry. */
