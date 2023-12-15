@@ -16,8 +16,8 @@ import {
     INativeBrokerPlugin,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient.js";
-import http from "http";
-import https from "https";
+import * as http from "http";
+import * as https from "https";
 
 /**
  * - clientId               - Client id of the application.
