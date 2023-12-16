@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1702582009706,
+  "lastUpdate": 1702714231806,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -3990,6 +3990,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.04%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "Dan Saunders",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "648501e4d9c65cb39322f97a9e09c5f93e1135b7",
+          "message": "Update Nested App Auth internal schema (#6737)\n\nCurrently Nested App Auth uses a schema that contains union types such\r\nas response.body where the body can contain a different structure\r\ndepending on the request type. This works in JavaScript that uses a\r\ndynamic JSON parser, but some native implementations require a strongly\r\ntyped schema. There are workarounds on native, but it is easier for all\r\nplatforms to support Nested App Auth if union types are removed from the\r\nschema.\r\n\r\nAlso remove AccountByHomeIdRequest, AccountByLocalIdRequest, and\r\nAccountByUsernameRequest that are not currently implemented.",
+          "timestamp": "2023-12-16T00:04:58-08:00",
+          "tree_id": "4ecf19226170fbb86cd9acfceebc689983f6674d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/648501e4d9c65cb39322f97a9e09c5f93e1135b7"
+        },
+        "date": 1702714230612,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 186436,
+            "range": "±1.81%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 186927,
+            "range": "±2.02%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
