@@ -210,26 +210,26 @@ export abstract class BaseManagedIdentitySource {
                 );
         }
     }
+
+    static getValidatedEnvVariableUrlString = (
+        envVariableStringName: string,
+        envVariable: string,
+        sourceName: string,
+        logger: Logger
+    ): string => {
+        try {
+            return new UrlString(envVariable).urlString;
+        } catch (error) {
+            logger.info(
+                `[Managed Identity] ${sourceName} managed identity is unavailable because the '${envVariableStringName}' environment variable is malformed.`
+            );
+
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes
+                    .MsiEnvironmentVariableUrlMalformedErrorCodes[
+                    envVariableStringName
+                ]
+            );
+        }
+    };
 }
-
-export const getValidatedEnvVariableUrlString = (
-    envVariableStringName: string,
-    envVariable: string,
-    sourceName: string,
-    logger: Logger
-): string => {
-    try {
-        return new UrlString(envVariable).urlString;
-    } catch (error) {
-        logger.info(
-            `[Managed Identity] ${sourceName} managed identity is unavailable because the '${envVariableStringName}' environment variable is malformed.`
-        );
-
-        throw createManagedIdentityError(
-            ManagedIdentityErrorCodes
-                .MsiEnvironmentVariableUrlMalformedErrorCodes[
-                envVariableStringName
-            ]
-        );
-    }
-};

@@ -6,10 +6,7 @@
 import { INetworkModule, Logger } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
-import {
-    BaseManagedIdentitySource,
-    getValidatedEnvVariableUrlString,
-} from "./BaseManagedIdentitySource";
+import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
 import { NodeStorage } from "../../cache/NodeStorage";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import {
@@ -46,9 +43,9 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         this.identityEndpoint = identityEndpoint;
         this.identityHeader = identityHeader;
 
-        if (systemAssigned) {
+        if (!systemAssigned) {
             logger.warning(
-                `[Managed Identity] ${ManagedIdentitySourceNames.SERVICE_FABRIC} user assigned managed identity ClientId or ResourceId is not configurable at runtime.`
+                `[Managed Identity] ${ManagedIdentitySourceNames.SERVICE_FABRIC} user assigned managed identity is configured in the cluster, not during runtime. See also: https://learn.microsoft.com/en-us/azure/service-fabric/configure-existing-cluster-enable-managed-identity-token-service.`
             );
         }
     }
@@ -143,12 +140,13 @@ const validateEnvironmentVariables = (
         return [false, undefined];
     }
 
-    const validatedIdentityEndpoint: string = getValidatedEnvVariableUrlString(
-        ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
-        identityEndpoint,
-        ManagedIdentitySourceNames.SERVICE_FABRIC,
-        logger
-    );
+    const validatedIdentityEndpoint: string =
+        ServiceFabric.getValidatedEnvVariableUrlString(
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
+            identityEndpoint,
+            ManagedIdentitySourceNames.SERVICE_FABRIC,
+            logger
+        );
 
     logger.info(
         `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating App Service managed identity.`

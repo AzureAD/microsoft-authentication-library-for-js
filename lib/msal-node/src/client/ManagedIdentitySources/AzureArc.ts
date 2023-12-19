@@ -16,10 +16,7 @@ import {
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
-import {
-    BaseManagedIdentitySource,
-    getValidatedEnvVariableUrlString,
-} from "./BaseManagedIdentitySource";
+import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import {
     ManagedIdentityErrorCodes,
@@ -193,14 +190,15 @@ const validateEnvironmentVariables = (
         return [false, undefined];
     }
 
-    const validatedIdentityEndpoint: string = getValidatedEnvVariableUrlString(
-        ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
-        identityEndpoint,
-        ManagedIdentitySourceNames.AZURE_ARC,
-        logger
-    );
+    const validatedIdentityEndpoint: string =
+        AzureArc.getValidatedEnvVariableUrlString(
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
+            identityEndpoint,
+            ManagedIdentitySourceNames.AZURE_ARC,
+            logger
+        );
 
-    getValidatedEnvVariableUrlString(
+    AzureArc.getValidatedEnvVariableUrlString(
         ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT,
         imdsEndpoint,
         ManagedIdentitySourceNames.AZURE_ARC,

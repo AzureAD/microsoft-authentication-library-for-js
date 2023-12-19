@@ -4,10 +4,7 @@
  */
 
 import { INetworkModule, Logger } from "@azure/msal-common";
-import {
-    BaseManagedIdentitySource,
-    getValidatedEnvVariableUrlString,
-} from "./BaseManagedIdentitySource";
+import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
 import {
     HttpMethod,
     APP_SERVICE_SECRET_HEADER_NAME,
@@ -125,12 +122,13 @@ const validateEnvironmentVariables = (
         return [false, undefined];
     }
 
-    const validatedIdentityEndpoint: string = getValidatedEnvVariableUrlString(
-        ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
-        identityEndpoint,
-        ManagedIdentitySourceNames.APP_SERVICE,
-        logger
-    );
+    const validatedIdentityEndpoint: string =
+        AppService.getValidatedEnvVariableUrlString(
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
+            identityEndpoint,
+            ManagedIdentitySourceNames.APP_SERVICE,
+            logger
+        );
 
     logger.info(
         `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.APP_SERVICE} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.APP_SERVICE} managed identity.`

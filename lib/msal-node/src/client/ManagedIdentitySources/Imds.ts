@@ -6,10 +6,7 @@
 import { INetworkModule, Logger } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
-import {
-    BaseManagedIdentitySource,
-    getValidatedEnvVariableUrlString,
-} from "./BaseManagedIdentitySource";
+import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import {
     API_VERSION_QUERY_PARAMETER_NAME,
@@ -68,7 +65,7 @@ export class Imds extends BaseManagedIdentitySource {
                     ]
                 }`
             );
-            validatedIdentityEndpoint = getValidatedEnvVariableUrlString(
+            validatedIdentityEndpoint = Imds.getValidatedEnvVariableUrlString(
                 ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST,
                 `${
                     process.env[
