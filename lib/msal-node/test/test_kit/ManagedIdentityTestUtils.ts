@@ -17,7 +17,10 @@ import {
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
 } from "./StringConstants";
-import { DEFAULT_MANAGED_IDENTITY_ID } from "../../src/utils/Constants";
+import {
+    DEFAULT_MANAGED_IDENTITY_ID,
+    ManagedIdentityEnvironmentVariableNames,
+} from "../../src/utils/Constants";
 import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
 import { ManagedIdentityRequestParams } from "../../src";
 import { ManagedIdentityConfiguration } from "../../src/config/Configuration";
@@ -26,22 +29,46 @@ export class ManagedIdentityTestUtils {
     static isAppService(): boolean {
         return (
             // !! converts to boolean
-            !!process.env["IDENTITY_ENDPOINT"] &&
-            !!process.env["IDENTITY_HEADER"]
+            !!process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+            ] &&
+            !!process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
+            ]
         );
     }
 
     static isAzureArc(): boolean {
         return (
             // !! converts to boolean
-            !!process.env["IDENTITY_ENDPOINT"] && !!process.env["IMDS_ENDPOINT"]
+            !!process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+            ] &&
+            !!process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT]
         );
     }
 
     static isIMDS(): boolean {
         return (
             !ManagedIdentityTestUtils.isAppService() &&
-            !ManagedIdentityTestUtils.isAzureArc()
+            !ManagedIdentityTestUtils.isAzureArc() &&
+            !ManagedIdentityTestUtils.isServiceFabric()
+        );
+    }
+
+    static isServiceFabric(): boolean {
+        return (
+            // !! converts to boolean
+            !!process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+            ] &&
+            !!process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
+            ] &&
+            !!process.env[
+                ManagedIdentityEnvironmentVariableNames
+                    .IDENTITY_SERVER_THUMBPRINT
+            ]
         );
     }
 }

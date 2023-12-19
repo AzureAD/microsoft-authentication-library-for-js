@@ -5,6 +5,7 @@
 
 import { AuthError } from "@azure/msal-common";
 import * as ManagedIdentityErrorCodes from "./ManagedIdentityErrorCodes";
+import { ManagedIdentityEnvironmentVariableNames } from "../utils/Constants";
 export { ManagedIdentityErrorCodes };
 
 /**
@@ -17,14 +18,22 @@ export const ManagedIdentityErrorMessages = {
         "The supplied resource is an invalid URL.",
     [ManagedIdentityErrorCodes.missingId]:
         "A ManagedIdentityId id was not provided.",
+    [ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes
+        .AZURE_POD_IDENTITY_AUTHORITY_HOST]: `The Managed Identity's '${ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST}' environment variable is malformed.`,
+    [ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes
+        .IDENTITY_ENDPOINT]: `The Managed Identity's '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' environment variable is malformed.`,
+    [ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes
+        .IMDS_ENDPOINT]: `The Managed Identity's '${ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT}' environment variable is malformed.`,
+    [ManagedIdentityErrorCodes.networkUnavailable]:
+        "Authentication unavailable. The request to the managed identity endpoint timed out.",
     [ManagedIdentityErrorCodes.unableToCreateAzureArc]:
         "Azure Arc Managed Identities can only be system assigned.",
     [ManagedIdentityErrorCodes.unableToCreateSource]:
         "Unable to create a Managed Identity source based on environment variables.",
     [ManagedIdentityErrorCodes.unableToReadSecretFile]:
         "Unable to read the secret file.",
-    [ManagedIdentityErrorCodes.urlParseError]:
-        "The Managed Identity's 'IDENTITY_ENDPOINT' environment variable is malformed.",
+    [ManagedIdentityErrorCodes.userAssignedNotAvailableAtRuntime]:
+        "Service Fabric user assigned managed identity ClientId or ResourceId is not configurable at runtime.",
     [ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing]:
         "A 401 response was received form the Azure Arc Managed Identity, but the www-authenticate header is missing.",
     [ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat]:

@@ -6,15 +6,19 @@
 import { INetworkModule, Logger } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
-import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
+import {
+    BaseManagedIdentitySource,
+    getValidatedEnvVariableUrlString,
+} from "./BaseManagedIdentitySource";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import {
+    API_VERSION_QUERY_PARAMETER_NAME,
     HttpMethod,
-    MANAGED_IDENTITY_CLIENT_ID,
-    MANAGED_IDENTITY_OBJECT_ID,
-    MANAGED_IDENTITY_RESOURCE_ID,
     METADATA_HEADER_NAME,
+    ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityIdType,
+    ManagedIdentitySourceNames,
+    RESOURCE_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants";
 import { NodeStorage } from "../../cache/NodeStorage";
 
@@ -26,18 +30,18 @@ const IMDS_API_VERSION: string = "2018-02-01";
 
 // Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ImdsManagedIdentitySource.cs
 export class Imds extends BaseManagedIdentitySource {
-    private endpoint: string;
+    private identityEndpoint: string;
 
     constructor(
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
-        endpoint: string
+        identityEndpoint: string
     ) {
         super(logger, nodeStorage, networkClient, cryptoProvider);
 
-        this.endpoint = endpoint;
+        this.identityEndpoint = identityEndpoint;
     }
 
     public static tryCreate(
@@ -46,18 +50,40 @@ export class Imds extends BaseManagedIdentitySource {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): Imds {
-        let endpoint: string;
+        let validatedIdentityEndpoint: string;
 
-        if (process.env["AZURE_POD_IDENTITY_AUTHORITY_HOST"]) {
+        if (
+            process.env[
+                ManagedIdentityEnvironmentVariableNames
+                    .AZURE_POD_IDENTITY_AUTHORITY_HOST
+            ]
+        ) {
             logger.info(
-                `[Managed Identity] Environment variable AZURE_POD_IDENTITY_AUTHORITY_HOST for IMDS returned endpoint: ${process.env["AZURE_POD_IDENTITY_AUTHORITY_HOST"]}`
+                `[Managed Identity] Environment variable ${
+                    ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST
+                } for ${ManagedIdentitySourceNames.IMDS} returned endpoint: ${
+                    process.env[
+                        ManagedIdentityEnvironmentVariableNames
+                            .AZURE_POD_IDENTITY_AUTHORITY_HOST
+                    ]
+                }`
             );
-            endpoint = `${process.env["AZURE_POD_IDENTITY_AUTHORITY_HOST"]}${IMDS_TOKEN_PATH}`;
+            validatedIdentityEndpoint = getValidatedEnvVariableUrlString(
+                ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST,
+                `${
+                    process.env[
+                        ManagedIdentityEnvironmentVariableNames
+                            .AZURE_POD_IDENTITY_AUTHORITY_HOST
+                    ]
+                }${IMDS_TOKEN_PATH}`,
+                ManagedIdentitySourceNames.IMDS,
+                logger
+            );
         } else {
             logger.info(
-                "[Managed Identity] Unable to find AZURE_POD_IDENTITY_AUTHORITY_HOST environment variable for IMDS, using the default endpoint."
+                `[Managed Identity] Unable to find ${ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST} environment variable for ${ManagedIdentitySourceNames.IMDS}, using the default endpoint.`
             );
-            endpoint = DEFAULT_IMDS_ENDPOINT;
+            validatedIdentityEndpoint = DEFAULT_IMDS_ENDPOINT;
         }
 
         return new Imds(
@@ -65,7 +91,7 @@ export class Imds extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
-            endpoint
+            validatedIdentityEndpoint
         );
     }
 
@@ -74,38 +100,28 @@ export class Imds extends BaseManagedIdentitySource {
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =
-            new ManagedIdentityRequestParameters(HttpMethod.GET, this.endpoint);
+            new ManagedIdentityRequestParameters(
+                HttpMethod.GET,
+                this.identityEndpoint
+            );
 
         request.headers[METADATA_HEADER_NAME] = "true";
-        request.queryParameters["api-version"] = IMDS_API_VERSION;
-        request.queryParameters["resource"] = resource;
-        // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
-        switch (managedIdentityId.idType) {
-            case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
-                this.logger.info(
-                    "[Managed Identity] Adding user assigned client id to the request."
-                );
-                request.queryParameters[MANAGED_IDENTITY_CLIENT_ID] =
-                    managedIdentityId.id;
-                break;
+        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+            IMDS_API_VERSION;
+        request.queryParameters[RESOURCE_QUERY_PARAMETER_NAME] = resource;
 
-            case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
-                this.logger.info(
-                    "[Managed Identity] Adding user assigned resource id to the request."
-                );
-                request.queryParameters[MANAGED_IDENTITY_RESOURCE_ID] =
-                    managedIdentityId.id;
-                break;
-
-            case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
-                this.logger.info(
-                    "[Managed Identity] Adding user assigned object id to the request."
-                );
-                request.queryParameters[MANAGED_IDENTITY_OBJECT_ID] =
-                    managedIdentityId.id;
-                break;
+        if (
+            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
+        ) {
+            request.queryParameters[
+                this.getManagedIdentityUserAssignedIdQueryParameterKey(
+                    managedIdentityId.idType
+                )
+            ] = managedIdentityId.id;
         }
+
+        // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
         return request;
     }

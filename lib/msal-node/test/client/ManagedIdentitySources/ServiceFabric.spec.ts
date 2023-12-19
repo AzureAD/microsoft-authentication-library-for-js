@@ -31,6 +31,9 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             "fake_IDENTITY_ENDPOINT";
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
             "fake_IDENTITY_HEADER";
+        process.env[
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_SERVER_THUMBPRINT
+        ] = "fake_IDENTITY_SERVER_THUMBPRINT";
     });
 
     afterAll(() => {
@@ -45,7 +48,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
     });
 
     test("acquires a User Assigned Client Id token", async () => {
-        expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
+        expect(ManagedIdentityTestUtils.isServiceFabric()).toBe(true);
 
         const managedIdentityApplication: ManagedIdentityApplication =
             new ManagedIdentityApplication(userAssignedClientIdConfig);
@@ -69,7 +72,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         });
 
         test("acquires a token", async () => {
-            expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
+            expect(ManagedIdentityTestUtils.isServiceFabric()).toBe(true);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -83,7 +86,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         });
 
         test("returns an already acquired token from the cache", async () => {
-            expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
+            expect(ManagedIdentityTestUtils.isServiceFabric()).toBe(true);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken({

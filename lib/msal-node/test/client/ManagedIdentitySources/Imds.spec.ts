@@ -9,6 +9,7 @@ import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_RESOURCE,
+    MANAGED_IDENTITY_RESOURCE_BASE,
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_RESOURCE_ID_2,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
@@ -24,7 +25,10 @@ import {
     managedIdentityRequestParams,
     systemAssignedConfig,
 } from "../../test_kit/ManagedIdentityTestUtils";
-import { DEFAULT_MANAGED_IDENTITY_ID } from "../../../src/utils/Constants";
+import {
+    DEFAULT_MANAGED_IDENTITY_ID,
+    ManagedIdentityEnvironmentVariableNames,
+} from "../../../src/utils/Constants";
 import {
     AccessTokenEntity,
     AuthenticationResult,
@@ -59,9 +63,18 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         // Delete the following environment variables if they exist;
         // For example: someone could be running these unit tests on an Azure Arc VM, where
         // the IDENTITY_ENDPOINT and IMDS_ENDPOINT environment variables exist
-        delete process.env["IDENTITY_ENDPOINT"];
-        delete process.env["IDENTITY_HEADER"];
-        delete process.env["IMDS_ENDPOINT"];
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+        ];
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
+        ];
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_SERVER_THUMBPRINT
+        ];
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT
+        ];
     });
 
     afterAll(() => {
@@ -282,9 +295,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     "", // homeAccountId
                     "https://login.microsoftonline.com/common/", // environment
                     "thisIs.an.accessT0ken", // accessToken
-                    "system_assigned_managed_identity", // clientId
+                    DEFAULT_MANAGED_IDENTITY_ID, // clientId
                     "managed_identity", // tenantId
-                    ["https://graph.microsoft.com"].toString(), // scopes
+                    [MANAGED_IDENTITY_RESOURCE_BASE].toString(), // scopes
                     nowSeconds + 3600, // expiresOn
                     nowSeconds + 3600, // extExpiresOn
                     mockCrypto.base64Decode, // cryptoUtils

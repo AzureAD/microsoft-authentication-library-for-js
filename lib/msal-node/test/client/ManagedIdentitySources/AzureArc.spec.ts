@@ -30,6 +30,7 @@ import {
 } from "../../../src/error/ManagedIdentityError";
 import { ARC_API_VERSION } from "../../../src/client/ManagedIdentitySources/AzureArc";
 import * as fs from "fs";
+import { ManagedIdentityEnvironmentVariableNames } from "../../../src/utils/Constants";
 
 jest.mock("fs");
 
@@ -40,8 +41,10 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
         // make a copy of old environment
         process.env = { ...OLD_ENVS };
 
-        process.env["IDENTITY_ENDPOINT"] = "fake_IDENTITY_ENDPOINT";
-        process.env["IMDS_ENDPOINT"] = "fake_IMDS_ENDPOINT";
+        process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
+            "fake_IDENTITY_ENDPOINT";
+        process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT] =
+            "fake_IMDS_ENDPOINT";
     });
 
     afterAll(() => {
@@ -147,7 +150,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             expect(sendGetRequestAsyncSpy).nthCalledWith(
                 2,
                 `${process.env[
-                    "IDENTITY_ENDPOINT"
+                    ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
                 ]?.toLowerCase()}?api-version=${ARC_API_VERSION}&resource=${MANAGED_IDENTITY_RESOURCE_BASE}`,
                 {
                     headers: {

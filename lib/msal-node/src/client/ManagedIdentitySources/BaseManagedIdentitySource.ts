@@ -18,14 +18,30 @@ import {
     TimeUtils,
     createClientAuthError,
     AuthenticationResult,
+    UrlString,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest";
-import { HttpMethod } from "../../utils/Constants";
+import { HttpMethod, ManagedIdentityIdType } from "../../utils/Constants";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
 import { NodeStorage } from "../../cache/NodeStorage";
+import {
+    ManagedIdentityErrorCodes,
+    createManagedIdentityError,
+} from "../../error/ManagedIdentityError";
+
+/**
+ * Managed Identity User Assigned Id Query Parameter Names
+ */
+export const ManagedIdentityUserAssignedIdQueryParameterNames = {
+    MANAGED_IDENTITY_CLIENT_ID: "client_id",
+    MANAGED_IDENTITY_OBJECT_ID: "object_id",
+    MANAGED_IDENTITY_RESOURCE_ID: "mi_res_id",
+} as const;
+export type ManagedIdentityUserAssignedIdQueryParameterNames =
+    (typeof ManagedIdentityUserAssignedIdQueryParameterNames)[keyof typeof ManagedIdentityUserAssignedIdQueryParameterNames];
 
 export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
@@ -166,4 +182,54 @@ export abstract class BaseManagedIdentitySource {
             managedIdentityRequest
         );
     }
+
+    public getManagedIdentityUserAssignedIdQueryParameterKey(
+        managedIdentityIdType: ManagedIdentityIdType
+    ): string {
+        switch (managedIdentityIdType) {
+            case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
+                this.logger.info(
+                    "[Managed Identity] Adding user assigned client id to the request."
+                );
+                return ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID;
+
+            case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
+                this.logger.info(
+                    "[Managed Identity] Adding user assigned resource id to the request."
+                );
+                return ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID;
+
+            case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
+                this.logger.info(
+                    "[Managed Identity] Adding user assigned object id to the request."
+                );
+                return ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_OBJECT_ID;
+            default:
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidManagedIdentityIdType
+                );
+        }
+    }
 }
+
+export const getValidatedEnvVariableUrlString = (
+    envVariableStringName: string,
+    envVariable: string,
+    sourceName: string,
+    logger: Logger
+): string => {
+    try {
+        return new UrlString(envVariable).urlString;
+    } catch (error) {
+        logger.info(
+            `[Managed Identity] ${sourceName} managed identity is unavailable because the '${envVariableStringName}' environment variable is malformed.`
+        );
+
+        throw createManagedIdentityError(
+            ManagedIdentityErrorCodes
+                .MsiEnvironmentVariableUrlMalformedErrorCodes[
+                envVariableStringName
+            ]
+        );
+    }
+};

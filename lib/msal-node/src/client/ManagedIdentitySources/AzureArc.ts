@@ -12,22 +12,28 @@ import {
     NetworkResponse,
     NetworkRequestOptions,
     Logger,
-    UrlString,
     ServerAuthorizationTokenResponse,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
-import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
+import {
+    BaseManagedIdentitySource,
+    getValidatedEnvVariableUrlString,
+} from "./BaseManagedIdentitySource";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
 import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError";
 import {
+    API_VERSION_QUERY_PARAMETER_NAME,
     AUTHORIZATION_HEADER_NAME,
     HttpMethod,
     METADATA_HEADER_NAME,
+    ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityIdType,
+    ManagedIdentitySourceNames,
+    RESOURCE_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants";
 import { NodeStorage } from "../../cache/NodeStorage";
 import { readFileSync } from "fs";
@@ -39,18 +45,18 @@ export const ARC_API_VERSION: string = "2019-11-01";
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/AzureArcManagedIdentitySource.cs
  */
 export class AzureArc extends BaseManagedIdentitySource {
-    private endpoint: string;
+    private identityEndpoint: string;
 
     constructor(
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
-        endpoint: string
+        identityEndpoint: string
     ) {
         super(logger, nodeStorage, networkClient, cryptoProvider);
 
-        this.endpoint = endpoint;
+        this.identityEndpoint = identityEndpoint;
     }
 
     public static tryCreate(
@@ -59,13 +65,16 @@ export class AzureArc extends BaseManagedIdentitySource {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): AzureArc | null {
-        const imdsEndpoint: string | undefined = process.env["IMDS_ENDPOINT"];
+        const imdsEndpoint: string | undefined =
+            process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT];
 
-        const [areEnvironmentVariablesValidated, endpoint]: [
+        const [areEnvironmentVariablesValidated, identityEndpoint]: [
             boolean,
             string | undefined
         ] = validateEnvironmentVariables(
-            process.env["IDENTITY_ENDPOINT"] || undefined,
+            process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+            ] || undefined,
             imdsEndpoint,
             logger
         );
@@ -76,7 +85,7 @@ export class AzureArc extends BaseManagedIdentitySource {
                   nodeStorage,
                   networkClient,
                   cryptoProvider,
-                  endpoint as string
+                  identityEndpoint as string
               )
             : null;
     }
@@ -96,12 +105,15 @@ export class AzureArc extends BaseManagedIdentitySource {
         const request: ManagedIdentityRequestParameters =
             new ManagedIdentityRequestParameters(
                 HttpMethod.GET,
-                this.endpoint.replace("localhost", "127.0.0.1")
+                this.identityEndpoint.replace("localhost", "127.0.0.1")
             );
 
         request.headers[METADATA_HEADER_NAME] = "true";
-        request.queryParameters["api-version"] = ARC_API_VERSION;
-        request.queryParameters["resource"] = resource;
+
+        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+            ARC_API_VERSION;
+        request.queryParameters[RESOURCE_QUERY_PARAMETER_NAME] = resource;
+
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
         return request;
@@ -173,36 +185,36 @@ const validateEnvironmentVariables = (
     imdsEndpoint: string | undefined,
     logger: Logger
 ): [boolean, string | undefined] => {
-    let endpointUrlString: string | undefined;
-
     // if either of the identity or imds endpoints are undefined, this MSI provider is unavailable.
     if (!identityEndpoint || !imdsEndpoint) {
         logger.info(
-            "[Managed Identity] Azure Arc managed identity is unavailable because one or both of the 'IDENTITY_ENDPOINT' and 'IMDS_ENDPOINT' environment variables are missing."
+            `[Managed Identity] ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is unavailable because one or both of the '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT}' environment variables are not defined.`
         );
-        return [false, endpointUrlString];
+        return [false, undefined];
     }
 
-    try {
-        endpointUrlString = new UrlString(identityEndpoint).urlString;
-    } catch (error) {
-        logger.info(
-            "[Managed Identity] App service managed identity is unavailable because the 'IDENTITY_ENDPOINT' environment variable is malformed."
-        );
+    const validatedIdentityEndpoint: string = getValidatedEnvVariableUrlString(
+        ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
+        identityEndpoint,
+        ManagedIdentitySourceNames.AZURE_ARC,
+        logger
+    );
 
-        throw createManagedIdentityError(
-            ManagedIdentityErrorCodes.urlParseError
-        );
-    }
+    getValidatedEnvVariableUrlString(
+        ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT,
+        imdsEndpoint,
+        ManagedIdentitySourceNames.AZURE_ARC,
+        logger
+    );
 
     logger.info(
-        `[Managed Identity] Environment variables validation passed for Azure Arc managed identity. Endpoint URI: ${endpointUrlString}. Creating Azure Arc managed identity.`
+        `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.AZURE_ARC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.AZURE_ARC} managed identity.`
     );
     return [
         true,
         // remove trailing slash
-        endpointUrlString.endsWith("/")
-            ? endpointUrlString.slice(0, -1)
-            : endpointUrlString,
+        validatedIdentityEndpoint.endsWith("/")
+            ? validatedIdentityEndpoint.slice(0, -1)
+            : validatedIdentityEndpoint,
     ];
 };
