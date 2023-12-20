@@ -10,6 +10,7 @@ export const invalidResource = "invalid_resource";
 export const missingId = "missing_client_id";
 export const networkUnavailable = "network_unavailable";
 export const unableToCreateAzureArc = "unable_to_create_azure_arc";
+export const unableToCreateCloudShell = "unable_to_create_cloud_shell";
 export const unableToCreateSource = "unable_to_create_source";
 export const unableToReadSecretFile = "unable_to_read_secret_file";
 export const urlParseError = "url_parse_error";
@@ -26,6 +27,8 @@ export const MsiEnvironmentVariableUrlMalformedErrorCodes = {
         "identity_endpoint_url_malformed",
     [ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT]:
         "imds_endpoint_url_malformed",
+    [ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT]:
+        "msi_endpoint_url_malformed",
 } as const;
 export type MsiEnvironmentVariableErrorCodes =
     (typeof MsiEnvironmentVariableUrlMalformedErrorCodes)[keyof typeof MsiEnvironmentVariableUrlMalformedErrorCodes];

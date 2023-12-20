@@ -9,7 +9,7 @@ export const METADATA_HEADER_NAME: string = "Metadata";
 export const APP_SERVICE_SECRET_HEADER_NAME: string = "X-IDENTITY-HEADER";
 export const SERVICE_FABRIC_SECRET_HEADER_NAME: string = "secret";
 export const API_VERSION_QUERY_PARAMETER_NAME: string = "api-version";
-export const RESOURCE_QUERY_PARAMETER_NAME: string = "resource";
+export const RESOURCE_BODY_OR_QUERY_PARAMETER_NAME: string = "resource";
 export const DEFAULT_MANAGED_IDENTITY_ID = "system_assigned_managed_identity";
 export const MANAGED_IDENTITY_DEFAULT_TENANT = "managed_identity";
 export const DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY = `https://login.microsoftonline.com/${MANAGED_IDENTITY_DEFAULT_TENANT}/`;
@@ -23,6 +23,7 @@ export const ManagedIdentityEnvironmentVariableNames = {
     IDENTITY_HEADER: "IDENTITY_HEADER",
     IDENTITY_SERVER_THUMBPRINT: "IDENTITY_SERVER_THUMBPRINT",
     IMDS_ENDPOINT: "IMDS_ENDPOINT",
+    MSI_ENDPOINT: "MSI_ENDPOINT",
 } as const;
 export type ManagedIdentityEnvironmentVariableNames =
     (typeof ManagedIdentityEnvironmentVariableNames)[keyof typeof ManagedIdentityEnvironmentVariableNames];

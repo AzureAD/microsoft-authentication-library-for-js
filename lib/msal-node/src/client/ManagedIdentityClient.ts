@@ -105,11 +105,19 @@ export class ManagedIdentityClient {
                 networkClient,
                 cryptoProvider
             ) ||
+            CloudShell.tryCreate(
+                logger,
+                nodeStorage,
+                networkClient,
+                cryptoProvider,
+                systemAssigned
+            ) ||
             AzureArc.tryCreate(
                 logger,
                 nodeStorage,
                 networkClient,
-                cryptoProvider
+                cryptoProvider,
+                systemAssigned
             ) ||
             Imds.tryCreate(logger, nodeStorage, networkClient, cryptoProvider);
         if (!source) {

@@ -15,7 +15,7 @@ import {
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityIdType,
     ManagedIdentitySourceNames,
-    RESOURCE_QUERY_PARAMETER_NAME,
+    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
     SERVICE_FABRIC_SECRET_HEADER_NAME,
 } from "../../utils/Constants";
 
@@ -105,7 +105,8 @@ export class ServiceFabric extends BaseManagedIdentitySource {
 
         request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
             SERVICE_FABRIC_MSI_API_VERSION;
-        request.queryParameters[RESOURCE_QUERY_PARAMETER_NAME] = resource;
+        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+            resource;
 
         if (
             managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED

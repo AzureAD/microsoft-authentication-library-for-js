@@ -75,6 +75,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         delete process.env[
             ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT
         ];
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT
+        ];
     });
 
     afterAll(() => {

@@ -14,7 +14,6 @@ import {
     Logger,
     ServerAuthorizationTokenResponse,
 } from "@azure/msal-common";
-import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
 import { CryptoProvider } from "../../crypto/CryptoProvider";
@@ -28,9 +27,8 @@ import {
     HttpMethod,
     METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
-    ManagedIdentityIdType,
     ManagedIdentitySourceNames,
-    RESOURCE_QUERY_PARAMETER_NAME,
+    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants";
 import { NodeStorage } from "../../cache/NodeStorage";
 import { readFileSync } from "fs";
@@ -49,18 +47,26 @@ export class AzureArc extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
-        identityEndpoint: string
+        identityEndpoint: string,
+        systemAssigned: boolean
     ) {
         super(logger, nodeStorage, networkClient, cryptoProvider);
 
         this.identityEndpoint = identityEndpoint;
+
+        if (!systemAssigned) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.unableToCreateAzureArc
+            );
+        }
     }
 
     public static tryCreate(
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        systemAssigned: boolean
     ): AzureArc | null {
         const imdsEndpoint: string | undefined =
             process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT];
@@ -82,23 +88,13 @@ export class AzureArc extends BaseManagedIdentitySource {
                   nodeStorage,
                   networkClient,
                   cryptoProvider,
-                  identityEndpoint as string
+                  identityEndpoint as string,
+                  systemAssigned
               )
             : null;
     }
 
-    public createRequest(
-        resource: string,
-        managedIdentityId: ManagedIdentityId
-    ): ManagedIdentityRequestParameters {
-        if (
-            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
-        ) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.unableToCreateAzureArc
-            );
-        }
-
+    public createRequest(resource: string): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =
             new ManagedIdentityRequestParameters(
                 HttpMethod.GET,
@@ -109,7 +105,8 @@ export class AzureArc extends BaseManagedIdentitySource {
 
         request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
             ARC_API_VERSION;
-        request.queryParameters[RESOURCE_QUERY_PARAMETER_NAME] = resource;
+        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+            resource;
 
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
