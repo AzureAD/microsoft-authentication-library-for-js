@@ -71,7 +71,7 @@ export class AzureArc extends BaseManagedIdentitySource {
         ] = validateEnvironmentVariables(
             process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ] || undefined,
+            ],
             imdsEndpoint,
             logger
         );

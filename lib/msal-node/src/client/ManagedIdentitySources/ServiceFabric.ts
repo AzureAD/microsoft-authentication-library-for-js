@@ -68,7 +68,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         ] = validateEnvironmentVariables(
             process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ] || undefined,
+            ],
             identityHeader,
             process.env[
                 ManagedIdentityEnvironmentVariableNames
@@ -149,7 +149,7 @@ const validateEnvironmentVariables = (
         );
 
     logger.info(
-        `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating App Service managed identity.`
+        `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity.`
     );
     return [true, validatedIdentityEndpoint];
 };

@@ -60,7 +60,7 @@ export class AppService extends BaseManagedIdentitySource {
         ] = validateEnvironmentVariables(
             process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ] || undefined,
+            ],
             identityHeader,
             logger
         );
