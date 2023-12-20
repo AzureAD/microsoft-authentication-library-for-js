@@ -1,8 +1,8 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "ENTER_CLIENT_ID_HERE",
-        authority: "https://login.microsoftonline.com/ENTER_TENANT_ID_HERE",
+        clientId: "bc77b0a7-16aa-4af4-884b-41b968c9c71a",
+        authority: "https://login.microsoftonline.com/common",
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
