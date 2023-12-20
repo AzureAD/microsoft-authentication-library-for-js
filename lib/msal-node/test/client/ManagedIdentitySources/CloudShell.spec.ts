@@ -24,19 +24,15 @@ import {
 } from "../../../src/error/ManagedIdentityError";
 
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
-    let OLD_ENVS: NodeJS.ProcessEnv;
-
     beforeAll(() => {
-        // make a copy of old environment
-        OLD_ENVS = process.env;
-
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT] =
             "msi_IDENTITY_ENDPOINT";
     });
 
     afterAll(() => {
-        // restore old environment
-        process.env = OLD_ENVS;
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT
+        ];
     });
 
     afterEach(() => {

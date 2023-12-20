@@ -37,17 +37,6 @@ export class ManagedIdentityRequestParameters {
     }
 
     public computeParametersBodyString(): string {
-        const parameterBuilder = new RequestParameterBuilder();
-
-        if (this.bodyParameters) {
-            parameterBuilder.addExtraQueryParameters(this.bodyParameters);
-        }
-
-        const bodyParametersString = parameterBuilder.createQueryString();
-
-        return UrlString.appendQueryString(
-            this._baseEndpoint,
-            bodyParametersString
-        );
+        return JSON.stringify(this.bodyParameters);
     }
 }

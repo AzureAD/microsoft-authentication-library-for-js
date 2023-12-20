@@ -67,8 +67,7 @@ export class ManagedIdentityClient {
                     this.nodeStorage,
                     this.networkClient,
                     this.cryptoProvider,
-                    managedIdentityId.idType ===
-                        ManagedIdentityIdType.SYSTEM_ASSIGNED
+                    managedIdentityId
                 );
         }
 
@@ -89,7 +88,7 @@ export class ManagedIdentityClient {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
-        systemAssigned: boolean
+        managedIdentityId: ManagedIdentityId
     ): ServiceFabric | AppService | CloudShell | AzureArc | Imds {
         const source =
             ServiceFabric.tryCreate(
@@ -97,7 +96,8 @@ export class ManagedIdentityClient {
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
-                systemAssigned
+                managedIdentityId.idType ===
+                    ManagedIdentityIdType.SYSTEM_ASSIGNED
             ) ||
             AppService.tryCreate(
                 logger,
@@ -110,14 +110,15 @@ export class ManagedIdentityClient {
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
-                systemAssigned
+                managedIdentityId
             ) ||
             AzureArc.tryCreate(
                 logger,
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
-                systemAssigned
+                managedIdentityId.idType ===
+                    ManagedIdentityIdType.SYSTEM_ASSIGNED
             ) ||
             Imds.tryCreate(logger, nodeStorage, networkClient, cryptoProvider);
         if (!source) {

@@ -120,8 +120,10 @@ export abstract class BaseManagedIdentitySource {
 
         const headers: Record<string, string> = networkRequest.headers;
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
+
         const networkRequestOptions: NetworkRequestOptions = { headers };
-        if (managedIdentityRequest.forceRefresh) {
+
+        if (Object.keys(networkRequest.bodyParameters).length) {
             networkRequestOptions.body =
                 networkRequest.computeParametersBodyString();
         }

@@ -12,6 +12,7 @@ import {
     HttpMethod,
     METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentityIdType,
     ManagedIdentitySourceNames,
     RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants";
@@ -19,6 +20,7 @@ import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError";
+import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/CloudShellManagedIdentitySource.cs
@@ -31,18 +33,11 @@ export class CloudShell extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
-        msiEndpoint: string,
-        systemAssigned: boolean
+        msiEndpoint: string
     ) {
         super(logger, nodeStorage, networkClient, cryptoProvider);
 
         this.msiEndpoint = msiEndpoint;
-
-        if (!systemAssigned) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.unableToCreateCloudShell
-            );
-        }
     }
 
     public static tryCreate(
@@ -50,26 +45,46 @@ export class CloudShell extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
-        systemAssigned: boolean
+        managedIdentityId: ManagedIdentityId
     ): CloudShell | null {
-        const [areEnvironmentVariablesValidated, msiEndpoint]: [
-            boolean,
-            string | undefined
-        ] = validateEnvironmentVariables(
-            process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT],
-            logger
+        const msiEndpoint: string | undefined =
+            process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT];
+
+        // if the msi endpoint environment variable is undefined, this MSI provider is unavailable.
+        if (!msiEndpoint) {
+            logger.info(
+                `[Managed Identity] ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity is unavailable because the '${ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT} environment variable is not defined.`
+            );
+            return null;
+        }
+
+        const validatedMsiEndpoint: string =
+            CloudShell.getValidatedEnvVariableUrlString(
+                ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT,
+                msiEndpoint,
+                ManagedIdentitySourceNames.CLOUD_SHELL,
+                logger
+            );
+
+        logger.info(
+            `[Managed Identity] Environment variable validation passed for ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity. Endpoint URI: ${validatedMsiEndpoint}. Creating ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity.`
         );
 
-        return areEnvironmentVariablesValidated
-            ? new CloudShell(
-                  logger,
-                  nodeStorage,
-                  networkClient,
-                  cryptoProvider,
-                  msiEndpoint as string,
-                  systemAssigned
-              )
-            : null;
+        if (
+            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
+        ) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.unableToCreateCloudShell
+            );
+        }
+
+        return new CloudShell(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            msiEndpoint as string
+        );
     }
 
     public createRequest(resource: string): ManagedIdentityRequestParameters {
@@ -87,32 +102,3 @@ export class CloudShell extends BaseManagedIdentitySource {
         return request;
     }
 }
-
-const validateEnvironmentVariables = (
-    msiEndpoint: string | undefined,
-    logger: Logger
-): [boolean, string | undefined] => {
-    /*
-     * if either of the identity endpoint, identity header, or identity server thumbprint
-     * environment variables are undefined, this MSI provider is unavailable.
-     */
-    if (!msiEndpoint) {
-        logger.info(
-            `[Managed Identity] ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity is unavailable because the '${ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT} environment variable is not defined.`
-        );
-        return [false, undefined];
-    }
-
-    const validatedMsiEndpoint: string =
-        CloudShell.getValidatedEnvVariableUrlString(
-            ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT,
-            msiEndpoint,
-            ManagedIdentitySourceNames.CLOUD_SHELL,
-            logger
-        );
-
-    logger.info(
-        `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity. Endpoint URI: ${validatedMsiEndpoint}. Creating ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity.`
-    );
-    return [true, validatedMsiEndpoint];
-};
