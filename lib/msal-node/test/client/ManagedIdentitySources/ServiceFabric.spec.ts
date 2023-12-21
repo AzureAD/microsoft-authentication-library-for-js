@@ -35,11 +35,9 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         delete process.env[
             ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
         ];
-
         delete process.env[
             ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
         ];
-
         delete process.env[
             ManagedIdentityEnvironmentVariableNames.IDENTITY_SERVER_THUMBPRINT
         ];

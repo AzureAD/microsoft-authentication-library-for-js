@@ -46,7 +46,6 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
         delete process.env[
             ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
         ];
-
         delete process.env[
             ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT
         ];
