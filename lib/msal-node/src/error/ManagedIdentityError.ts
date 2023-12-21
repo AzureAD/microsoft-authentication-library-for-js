@@ -24,10 +24,14 @@ export const ManagedIdentityErrorMessages = {
         .IDENTITY_ENDPOINT]: `The Managed Identity's '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' environment variable is malformed.`,
     [ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes
         .IMDS_ENDPOINT]: `The Managed Identity's '${ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT}' environment variable is malformed.`,
+    [ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes
+        .MSI_ENDPOINT]: `The Managed Identity's '${ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT}' environment variable is malformed.`,
     [ManagedIdentityErrorCodes.networkUnavailable]:
         "Authentication unavailable. The request to the managed identity endpoint timed out.",
     [ManagedIdentityErrorCodes.unableToCreateAzureArc]:
         "Azure Arc Managed Identities can only be system assigned.",
+    [ManagedIdentityErrorCodes.unableToCreateCloudShell]:
+        "Cloud Shell Managed Identities can only be system assigned.",
     [ManagedIdentityErrorCodes.unableToCreateSource]:
         "Unable to create a Managed Identity source based on environment variables.",
     [ManagedIdentityErrorCodes.unableToReadSecretFile]:

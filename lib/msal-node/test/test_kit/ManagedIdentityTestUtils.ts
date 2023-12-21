@@ -48,10 +48,18 @@ export class ManagedIdentityTestUtils {
         );
     }
 
+    static isCloudShell(): boolean {
+        return (
+            // !! converts to boolean
+            !!process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT]
+        );
+    }
+
     static isIMDS(): boolean {
         return (
             !ManagedIdentityTestUtils.isAppService() &&
             !ManagedIdentityTestUtils.isAzureArc() &&
+            !ManagedIdentityTestUtils.isCloudShell() &&
             !ManagedIdentityTestUtils.isServiceFabric()
         );
     }

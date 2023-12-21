@@ -15,7 +15,7 @@ import {
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityIdType,
     ManagedIdentitySourceNames,
-    RESOURCE_QUERY_PARAMETER_NAME,
+    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants";
 import { NodeStorage } from "../../cache/NodeStorage";
 
@@ -106,7 +106,8 @@ export class Imds extends BaseManagedIdentitySource {
 
         request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
             IMDS_API_VERSION;
-        request.queryParameters[RESOURCE_QUERY_PARAMETER_NAME] = resource;
+        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+            resource;
 
         if (
             managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED

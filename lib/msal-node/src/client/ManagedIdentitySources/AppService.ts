@@ -9,7 +9,7 @@ import {
     HttpMethod,
     APP_SERVICE_SECRET_HEADER_NAME,
     API_VERSION_QUERY_PARAMETER_NAME,
-    RESOURCE_QUERY_PARAMETER_NAME,
+    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
     ManagedIdentityIdType,
@@ -91,7 +91,8 @@ export class AppService extends BaseManagedIdentitySource {
 
         request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
             APP_SERVICE_MSI_API_VERSION;
-        request.queryParameters[RESOURCE_QUERY_PARAMETER_NAME] = resource;
+        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+            resource;
 
         if (
             managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
