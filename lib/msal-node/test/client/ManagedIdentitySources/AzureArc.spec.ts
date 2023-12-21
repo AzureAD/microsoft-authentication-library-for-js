@@ -148,9 +148,12 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
 
             expect(sendGetRequestAsyncSpy).nthCalledWith(
                 2,
-                `${process.env[
-                    ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-                ]?.toLowerCase()}?api-version=${ARC_API_VERSION}&resource=${MANAGED_IDENTITY_RESOURCE_BASE}`,
+                `${
+                    process.env[
+                        ManagedIdentityEnvironmentVariableNames
+                            .IDENTITY_ENDPOINT
+                    ]
+                }?api-version=${ARC_API_VERSION}&resource=${MANAGED_IDENTITY_RESOURCE_BASE}`,
                 {
                     headers: {
                         Authorization:
