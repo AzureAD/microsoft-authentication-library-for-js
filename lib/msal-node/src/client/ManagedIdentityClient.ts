@@ -22,7 +22,6 @@ import {
 import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { ManagedIdentityId } from "../config/ManagedIdentityId";
 import { NodeStorage } from "../cache/NodeStorage";
-import { ManagedIdentityIdType } from "../utils/Constants";
 
 /*
  * Class to initialize a managed identity and identify the service.
@@ -96,8 +95,7 @@ export class ManagedIdentityClient {
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
-                managedIdentityId.idType ===
-                    ManagedIdentityIdType.SYSTEM_ASSIGNED
+                managedIdentityId
             ) ||
             AppService.tryCreate(
                 logger,
@@ -117,8 +115,7 @@ export class ManagedIdentityClient {
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
-                managedIdentityId.idType ===
-                    ManagedIdentityIdType.SYSTEM_ASSIGNED
+                managedIdentityId
             ) ||
             Imds.tryCreate(logger, nodeStorage, networkClient, cryptoProvider);
         if (!source) {

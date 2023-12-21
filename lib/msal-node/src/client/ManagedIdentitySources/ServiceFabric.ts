@@ -35,19 +35,12 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         identityEndpoint: string,
-        identityHeader: string,
-        systemAssigned: boolean
+        identityHeader: string
     ) {
         super(logger, nodeStorage, networkClient, cryptoProvider);
 
         this.identityEndpoint = identityEndpoint;
         this.identityHeader = identityHeader;
-
-        if (!systemAssigned) {
-            logger.warning(
-                `[Managed Identity] ${ManagedIdentitySourceNames.SERVICE_FABRIC} user assigned managed identity is configured in the cluster, not during runtime. See also: https://learn.microsoft.com/en-us/azure/service-fabric/configure-existing-cluster-enable-managed-identity-token-service.`
-            );
-        }
     }
 
     public static tryCreate(
@@ -55,39 +48,61 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
-        systemAssigned: boolean
+        managedIdentityId: ManagedIdentityId
     ): ServiceFabric | null {
+        const identityEndpoint: string | undefined =
+            process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+            ];
         const identityHeader: string | undefined =
             process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
             ];
-
-        const [areEnvironmentVariablesValidated, identityEndpoint]: [
-            boolean,
-            string | undefined
-        ] = validateEnvironmentVariables(
-            process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ],
-            identityHeader,
+        const identityServerThumbprint: string | undefined =
             process.env[
                 ManagedIdentityEnvironmentVariableNames
                     .IDENTITY_SERVER_THUMBPRINT
-            ] || undefined,
-            logger
+            ];
+
+        /*
+         * if either of the identity endpoint, identity header, or identity server thumbprint
+         * environment variables are undefined, this MSI provider is unavailable.
+         */
+        if (!identityEndpoint || !identityHeader || !identityServerThumbprint) {
+            logger.info(
+                `[Managed Identity] ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity is unavailable because one or all of the '${ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER}', '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' or '${ManagedIdentityEnvironmentVariableNames.IDENTITY_SERVER_THUMBPRINT}' environment variables are not defined.`
+            );
+            return null;
+        }
+
+        const validatedIdentityEndpoint: string =
+            ServiceFabric.getValidatedEnvVariableUrlString(
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
+                identityEndpoint,
+                ManagedIdentitySourceNames.SERVICE_FABRIC,
+                logger
+            );
+
+        logger.info(
+            `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity.`
         );
 
-        return areEnvironmentVariablesValidated
-            ? new ServiceFabric(
-                  logger,
-                  nodeStorage,
-                  networkClient,
-                  cryptoProvider,
-                  identityEndpoint as string,
-                  identityHeader as string,
-                  systemAssigned
-              )
-            : null;
+        if (
+            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
+        ) {
+            logger.warning(
+                `[Managed Identity] ${ManagedIdentitySourceNames.SERVICE_FABRIC} user assigned managed identity is configured in the cluster, not during runtime. See also: https://learn.microsoft.com/en-us/azure/service-fabric/configure-existing-cluster-enable-managed-identity-token-service.`
+            );
+        }
+
+        return new ServiceFabric(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            identityEndpoint,
+            identityHeader
+        );
     }
 
     public createRequest(
@@ -123,34 +138,3 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         return request;
     }
 }
-
-const validateEnvironmentVariables = (
-    identityEndpoint: string | undefined,
-    identityHeader: string | undefined,
-    identityServerThumbprint: string | undefined,
-    logger: Logger
-): [boolean, string | undefined] => {
-    /*
-     * if either of the identity endpoint, identity header, or identity server thumbprint
-     * environment variables are undefined, this MSI provider is unavailable.
-     */
-    if (!identityEndpoint || !identityHeader || !identityServerThumbprint) {
-        logger.info(
-            `[Managed Identity] ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity is unavailable because one or all of the '${ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER}', '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' or '${ManagedIdentityEnvironmentVariableNames.IDENTITY_SERVER_THUMBPRINT}' environment variables are not defined.`
-        );
-        return [false, undefined];
-    }
-
-    const validatedIdentityEndpoint: string =
-        ServiceFabric.getValidatedEnvVariableUrlString(
-            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
-            identityEndpoint,
-            ManagedIdentitySourceNames.SERVICE_FABRIC,
-            logger
-        );
-
-    logger.info(
-        `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity.`
-    );
-    return [true, validatedIdentityEndpoint];
-};

@@ -21,12 +21,7 @@ import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient
 import { ManagedIdentityEnvironmentVariableNames } from "../../../src/utils/Constants";
 
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
-    let OLD_ENVS: NodeJS.ProcessEnv;
-
     beforeAll(() => {
-        // make a copy of old environment
-        OLD_ENVS = process.env;
-
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
             "fake_IDENTITY_ENDPOINT";
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
@@ -34,8 +29,13 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
     });
 
     afterAll(() => {
-        // restore old environment
-        process.env = OLD_ENVS;
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+        ];
+
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
+        ];
     });
 
     afterEach(() => {

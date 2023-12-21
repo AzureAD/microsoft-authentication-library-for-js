@@ -25,10 +25,7 @@ import {
     managedIdentityRequestParams,
     systemAssignedConfig,
 } from "../../test_kit/ManagedIdentityTestUtils";
-import {
-    DEFAULT_MANAGED_IDENTITY_ID,
-    ManagedIdentityEnvironmentVariableNames,
-} from "../../../src/utils/Constants";
+import { DEFAULT_MANAGED_IDENTITY_ID } from "../../../src/utils/Constants";
 import {
     AccessTokenEntity,
     AuthenticationResult,
@@ -53,37 +50,7 @@ import {
 } from "../../../src";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
-    let OLD_ENVS: NodeJS.ProcessEnv;
-
-    beforeAll(() => {
-        // make a copy of old environment
-        OLD_ENVS = process.env;
-
-        // IMDS doesn't need environment variables because there is a default IMDS endpoint
-        // Delete the following environment variables if they exist;
-        // For example: someone could be running these unit tests on an Azure Arc VM, where
-        // the IDENTITY_ENDPOINT and IMDS_ENDPOINT environment variables exist
-        delete process.env[
-            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-        ];
-        delete process.env[
-            ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
-        ];
-        delete process.env[
-            ManagedIdentityEnvironmentVariableNames.IDENTITY_SERVER_THUMBPRINT
-        ];
-        delete process.env[
-            ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT
-        ];
-        delete process.env[
-            ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT
-        ];
-    });
-
-    afterAll(() => {
-        // restore old environment
-        process.env = OLD_ENVS;
-    });
+    // IMDS doesn't need environment variables because there is a default IMDS endpoint
 
     afterEach(() => {
         ManagedIdentityClient.identitySource = undefined;

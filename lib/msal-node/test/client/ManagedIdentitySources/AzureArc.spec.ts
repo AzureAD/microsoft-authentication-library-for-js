@@ -35,12 +35,7 @@ import { ManagedIdentityEnvironmentVariableNames } from "../../../src/utils/Cons
 jest.mock("fs");
 
 describe("Acquires a token successfully via an Azure Arc Managed Identity", () => {
-    let OLD_ENVS: NodeJS.ProcessEnv;
-
     beforeAll(() => {
-        // make a copy of old environment
-        process.env = { ...OLD_ENVS };
-
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
             "fake_IDENTITY_ENDPOINT";
         process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT] =
@@ -48,8 +43,13 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
     });
 
     afterAll(() => {
-        // restore old environment
-        process.env = OLD_ENVS;
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+        ];
+
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT
+        ];
     });
 
     afterEach(() => {

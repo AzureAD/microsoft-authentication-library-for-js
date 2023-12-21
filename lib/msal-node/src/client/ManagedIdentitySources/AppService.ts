@@ -49,32 +49,43 @@ export class AppService extends BaseManagedIdentitySource {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): AppService | null {
+        const identityEndpoint: string | undefined =
+            process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+            ];
         const identityHeader: string | undefined =
             process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
             ];
 
-        const [areEnvironmentVariablesValidated, identityEndpoint]: [
-            boolean,
-            string | undefined
-        ] = validateEnvironmentVariables(
-            process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ],
-            identityHeader,
-            logger
+        // if either of the identity endpoint or identity header variables are undefined, this MSI provider is unavailable.
+        if (!identityEndpoint || !identityHeader) {
+            logger.info(
+                `[Managed Identity] ${ManagedIdentitySourceNames.APP_SERVICE} managed identity is unavailable because one or both of the '${ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER}' and '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' environment variables are not defined.`
+            );
+            return null;
+        }
+
+        const validatedIdentityEndpoint: string =
+            AppService.getValidatedEnvVariableUrlString(
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
+                identityEndpoint,
+                ManagedIdentitySourceNames.APP_SERVICE,
+                logger
+            );
+
+        logger.info(
+            `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.APP_SERVICE} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.APP_SERVICE} managed identity.`
         );
 
-        return areEnvironmentVariablesValidated
-            ? new AppService(
-                  logger,
-                  nodeStorage,
-                  networkClient,
-                  cryptoProvider,
-                  identityEndpoint as string,
-                  identityHeader as string
-              )
-            : null;
+        return new AppService(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            identityEndpoint,
+            identityHeader
+        );
     }
 
     public createRequest(
@@ -109,30 +120,3 @@ export class AppService extends BaseManagedIdentitySource {
         return request;
     }
 }
-
-const validateEnvironmentVariables = (
-    identityEndpoint: string | undefined,
-    secret: string | undefined,
-    logger: Logger
-): [boolean, string | undefined] => {
-    // if either of the identity endpoint or identity header variables are undefined, this MSI provider is unavailable.
-    if (!identityEndpoint || !secret) {
-        logger.info(
-            `[Managed Identity] ${ManagedIdentitySourceNames.APP_SERVICE} managed identity is unavailable because one or both of the '${ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER}' and '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' environment variables are not defined.`
-        );
-        return [false, undefined];
-    }
-
-    const validatedIdentityEndpoint: string =
-        AppService.getValidatedEnvVariableUrlString(
-            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
-            identityEndpoint,
-            ManagedIdentitySourceNames.APP_SERVICE,
-            logger
-        );
-
-    logger.info(
-        `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.APP_SERVICE} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.APP_SERVICE} managed identity.`
-    );
-    return [true, validatedIdentityEndpoint];
-};

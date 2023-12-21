@@ -83,7 +83,7 @@ export class CloudShell extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
-            msiEndpoint as string
+            msiEndpoint
         );
     }
 
