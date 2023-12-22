@@ -1,8 +1,8 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "bc77b0a7-16aa-4af4-884b-41b968c9c71a",
-        authority: "https://login.microsoftonline.com/common",
+        clientId: "ENTER_CLIENT_ID_HERE",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_ID_HERE",
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -45,7 +45,8 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"]
+    scopes: ["User.Read"],
+
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.
