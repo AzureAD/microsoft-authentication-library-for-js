@@ -101,8 +101,7 @@ async function getTokenSilently() {
     const currentAcc = myMSALObj.getActiveAccount();
     if (currentAcc) {
         request.account = currentAcc;
-        console.log("account: ", currentAcc);
-        response = await myMSALObj.acquireTokenSilent({ ...request, loginHint: currentAcc.idTokenClaims.login_hint }).then(handleResponse).catch(error => {
+        response = await myMSALObj.acquireTokenSilent(request).then(handleResponse).catch(error => {
             console.error(error);
         });
     }
