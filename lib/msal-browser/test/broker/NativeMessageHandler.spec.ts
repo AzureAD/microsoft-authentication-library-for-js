@@ -19,18 +19,6 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 
 let performanceClient: IPerformanceClient;
 
-jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
-    return {
-        BrowserPerformanceMeasurement: jest.fn().mockImplementation(() => {
-            return {
-                startMeasurement: () => {},
-                endMeasurement: () => {},
-                flushMeasurement: () => 50,
-            };
-        }),
-    };
-});
-
 describe("NativeMessageHandler Tests", () => {
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;

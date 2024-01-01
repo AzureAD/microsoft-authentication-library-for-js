@@ -3,15 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "./AccountInfo";
-
 export type TokenResponse = {
     access_token: string;
-    account: AccountInfo;
     expires_in: number;
     id_token: string;
     properties: TokenResponseProperties | null;
-    scope: string;
+    scope?: string;
     shr?: string; // token binding enabled at native layer it is the access token, not the signing keys
     extendedLifetimeToken?: boolean;
     authority?: string;

@@ -676,6 +676,23 @@ export const AUTHORIZATION_PENDING_RESPONSE = {
     },
 };
 
+export const BAD_TOKEN_ERROR_RESPONSE = {
+    body: {
+        error: "invalid_grant",
+        suberror: "bad_token",
+        error_description:
+            "AADSTS9002313: Invalid request. Request is malformed or invalid." +
+            "Trace ID: 01707a0c-640b-4049-8cbb-ee2304dc0700" +
+            "Correlation ID: 78b0fdfc-dd0e-4dfb-b13a-d316333783f6" +
+            "Timestamp: 2020-03-26 22:54:14Z",
+        error_codes: [9002313],
+        timestamp: "2020-03-26 22:54:14Z",
+        trace_id: "01707a0c-640b-4049-8cbb-ee2304dc0700",
+        correlation_id: "78b0fdfc-dd0e-4dfb-b13a-d316333783f6",
+        error_uri: "https://login.microsoftonline.com/error?code=9002313",
+    },
+};
+
 export const SERVER_UNEXPECTED_ERROR = {
     status: 503,
     body: {
