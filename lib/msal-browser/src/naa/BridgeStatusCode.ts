@@ -3,13 +3,15 @@
  * Licensed under the MIT License.
  */
 
-export enum BridgeStatusCode {
-    USER_INTERACTION_REQUIRED = "USER_INTERACTION_REQUIRED",
-    USER_CANCEL = "USER_CANCEL",
-    NO_NETWORK = "NO_NETWORK",
-    TRANSIENT_ERROR = "TRANSIENT_ERROR",
-    PERSISTENT_ERROR = "PERSISTENT_ERROR",
-    DISABLED = "DISABLED",
-    ACCOUNT_UNAVAILABLE = "ACCOUNT_UNAVAILABLE",
-    NESTED_APP_AUTH_UNAVAILABLE = "NESTED_APP_AUTH_UNAVAILABLE", // NAA is unavailable in the current context, can retry with standard browser based auth
-}
+export const BridgeStatusCode = {
+    UserInteractionRequired: "USER_INTERACTION_REQUIRED",
+    UserCancel: "USER_CANCEL",
+    NoNetwork: "NO_NETWORK",
+    TransientError: "TRANSIENT_ERROR",
+    PersistentError: "PERSISTENT_ERROR",
+    Disabled: "DISABLED",
+    AccountUnavailable: "ACCOUNT_UNAVAILABLE",
+    NestedAppAuthUnavailable: "NESTED_APP_AUTH_UNAVAILABLE", // NAA is unavailable in the current context, can retry with standard browser based auth
+} as const;
+export type BridgeStatusCode =
+    (typeof BridgeStatusCode)[keyof typeof BridgeStatusCode];

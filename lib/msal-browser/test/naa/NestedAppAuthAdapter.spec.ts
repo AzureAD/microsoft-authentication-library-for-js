@@ -87,7 +87,9 @@ describe("NestedAppAuthAdapter tests", () => {
             expect(result.tenantId).toBe(
                 SILENT_TOKEN_RESPONSE.account.tenantId
             );
-            expect(result.accessToken).toBe(SILENT_TOKEN_RESPONSE.access_token);
+            expect(result.accessToken).toBe(
+                SILENT_TOKEN_RESPONSE.token.access_token
+            );
             expect(result.account?.environment).toBe(
                 SILENT_TOKEN_RESPONSE.account.environment
             );
