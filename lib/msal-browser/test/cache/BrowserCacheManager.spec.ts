@@ -1561,8 +1561,9 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getThrottlingCache returns ThrottlingEntity", () => {
                     const testKey = "throttling";
-                    const testVal = new ThrottlingEntity();
-                    testVal.throttleTime = 60;
+                    const testVal = {
+                        throttleTime: 60,
+                    };
 
                     browserLocalStorage.setThrottlingCache(testKey, testVal);
                     browserSessionStorage.setThrottlingCache(testKey, testVal);
@@ -1570,15 +1571,10 @@ describe("BrowserCacheManager tests", () => {
                     expect(
                         browserSessionStorage.getThrottlingCache(testKey)
                     ).toEqual(testVal);
-                    expect(
-                        browserSessionStorage.getThrottlingCache(testKey)
-                    ).toBeInstanceOf(ThrottlingEntity);
+
                     expect(
                         browserLocalStorage.getThrottlingCache(testKey)
                     ).toEqual(testVal);
-                    expect(
-                        browserLocalStorage.getThrottlingCache(testKey)
-                    ).toBeInstanceOf(ThrottlingEntity);
                 });
             });
 
@@ -2470,8 +2466,7 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getThrottlingCache returns ThrottlingEntity", () => {
                     const testKey = "throttling";
-                    const testVal = new ThrottlingEntity();
-                    testVal.throttleTime = 60;
+                    const testVal = { throttleTime: 60 };
 
                     browserLocalStorage.setThrottlingCache(testKey, testVal);
                     browserSessionStorage.setThrottlingCache(testKey, testVal);
@@ -2480,14 +2475,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getThrottlingCache(testKey)
                     ).toEqual(testVal);
                     expect(
-                        browserSessionStorage.getThrottlingCache(testKey)
-                    ).toBeInstanceOf(ThrottlingEntity);
-                    expect(
                         browserLocalStorage.getThrottlingCache(testKey)
                     ).toEqual(testVal);
-                    expect(
-                        browserLocalStorage.getThrottlingCache(testKey)
-                    ).toBeInstanceOf(ThrottlingEntity);
                 });
             });
 

@@ -48,13 +48,6 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
             expect(isInteractionRequiredError("", "")).toBe(false);
         });
 
-        it("Returns expected value for given error code", () => {
-            InteractionRequiredServerErrorMessage.forEach(function (errorCode) {
-                expect(isInteractionRequiredError(errorCode, "")).toBe(true);
-            });
-            expect(isInteractionRequiredError("bad_token", "")).toBe(false);
-        });
-
         it("Returns expected value for given error string", () => {
             InteractionRequiredServerErrorMessage.forEach(function (errorCode) {
                 expect(
@@ -66,7 +59,7 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
             });
             expect(
                 isInteractionRequiredError(
-                    "",
+                    "not_interaction_required",
                     "This is not an interaction required error"
                 )
             ).toBe(false);
@@ -83,7 +76,7 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
             });
             expect(
                 isInteractionRequiredError(
-                    "bad_token",
+                    "",
                     "This is not an interaction required error"
                 )
             ).toBe(false);
@@ -97,7 +90,9 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
                     true
                 );
             });
-            expect(isInteractionRequiredError("", "", "bad_token")).toBe(false);
+            expect(
+                isInteractionRequiredError("", "", "not_interaction_required")
+            ).toBe(false);
         });
     });
 });

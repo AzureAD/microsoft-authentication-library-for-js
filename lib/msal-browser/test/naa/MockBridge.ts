@@ -5,21 +5,16 @@
 
 import { AccountInfo } from "../../src/naa/AccountInfo";
 import { AuthBridge } from "../../src/naa/AuthBridge";
+import { AuthResult } from "../../src/naa/AuthResult";
 import { BridgeError, isBridgeError } from "../../src/naa/BridgeError";
 import { isBridgeRequestEnvelope } from "../../src/naa/BridgeRequestEnvelope";
-import { InitializeBridgeResponse } from "../../src/naa/InitializeBridgeResponse";
-import { TokenResponse } from "../../src/naa/TokenResponse";
+import { BridgeResponseEnvelope } from "../../src/naa/BridgeResponseEnvelope";
+import { InitContext } from "../../src/naa/InitContext";
 
 export class MockBridge implements AuthBridge {
     private listeners: { [key: string]: ((response: string) => void)[] } = {};
     private responses: {
-        [key: string]: (
-            | TokenResponse
-            | BridgeError
-            | AccountInfo
-            | AccountInfo[]
-            | InitializeBridgeResponse
-        )[];
+        [key: string]: Partial<BridgeResponseEnvelope>[];
     } = {};
 
     public addEventListener(
@@ -39,8 +34,8 @@ export class MockBridge implements AuthBridge {
             const responseEnvelope = {
                 messageType: "NestedAppAuthResponse",
                 requestId: request.requestId,
-                success: !isBridgeError(response), // false if body is error
-                body: response,
+                success: !response?.error,
+                ...response,
             };
             if (response !== undefined) {
                 if (this.listeners["message"] !== undefined) {
@@ -63,14 +58,28 @@ export class MockBridge implements AuthBridge {
         }
     }
 
-    public addResponse(
+    public addErrorResponse(method: string, error: BridgeError): void {
+        this.addResponse(method, { error });
+    }
+
+    public addInitContextResponse(
         method: string,
-        response:
-            | TokenResponse
-            | BridgeError
-            | AccountInfo
-            | AccountInfo[]
-            | InitializeBridgeResponse
+        initContext: InitContext
+    ): void {
+        this.addResponse(method, { initContext });
+    }
+
+    public addAuthResultResponse(method: string, authResult: AuthResult): void {
+        this.addResponse(method, authResult);
+    }
+
+    public addAccountResponse(method: string, account: AccountInfo): void {
+        this.addResponse(method, { account });
+    }
+
+    private addResponse(
+        method: string,
+        response: Partial<BridgeResponseEnvelope>
     ): void {
         if (this.responses[method] === undefined) {
             this.responses[method] = [];
