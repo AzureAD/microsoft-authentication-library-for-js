@@ -97,6 +97,8 @@ export {
 export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";
 export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement";
 
+export { FetchClient } from "./network/FetchClient";
+
 // Common Object Formats
 export {
     AuthenticationScheme,
@@ -133,6 +135,7 @@ export {
     // Server Response
     ExternalTokenResponse,
     // Utils
+    ProtocolUtils,
     StringUtils,
     UrlString,
     JsonWebTokenTypes,
