@@ -17,9 +17,9 @@ Open the `config/customConfig.json` file.
 
 We will change this to add details about our app registration and deployment.
 
-By default, this configuration is set to support all Microsoft accounts. This includes Azure AD accounts used by organizations, and MSA accounts typically used by consumers. 
+By default, this configuration is set to support all Microsoft accounts. This includes Microsoft Entra accounts used by organizations, and MSA accounts typically used by consumers.
 
-Before proceeding, go to the Azure portal, and open the app registration for this app.
+Before proceeding, go to the Microsoft Entra admin center, and open the app registration for this app.
 
 #### **Client ID**
 
@@ -28,7 +28,7 @@ Within the "Overview" you will see a GUID labeled **Application (client) ID**.  
 Click the **Authentication** link in the left nav.
 
 #### **Authority**
-Check that supported account types are: **Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)**
+Check that supported account types are: **Accounts in any organizational directory (Any Microsoft Entra ID directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)**
 
 If so, then set the authority attribute in the JSON configuraiton file to `https://login.microsoftonline.com/common`
 
@@ -36,7 +36,7 @@ For other supported account types, review the other [Authority options](https://
 
 #### **Client Secret**
 
-If your AzureAD app registration is configured as a Confidential Client Application, you'll have to add a `clientSecret` attribute to a `.env` file and change the `PublicClientApplication` object in the sample's `index.js` file into a `ConfidentialClientApplication` object.
+If your Microsoft Entra app registration is configured as a Confidential Client Application, you'll have to add a `clientSecret` attribute to a `.env` file and change the `PublicClientApplication` object in the sample's `index.js` file into a `ConfidentialClientApplication` object.
 
 This secret helps prevent third parties from using your app registration.
 1. Click on `Certificates and Secrets` in the left nav.
@@ -111,7 +111,7 @@ To customize the start script, review the `package.json` file.
 
 ### Import the Configuration Object
 
-If you set up the sample with your app registration, you may be able to copy this object directly into your application.  
+If you set up the sample with your app registration, you may be able to copy this object directly into your application.
 
 
 ```javascript
@@ -163,7 +163,7 @@ const cca = new msal.ConfidentialClientApplication(config);
 Choose the route that requires sign in.  Within that route, set up permissions, and direct the MSAL Node app object to attempt sign in.
 
 In our sample, we immediately sign in the user.  If you want all users to be logged in before they view anything, then you can use the same process.
-We add our sign in code to the default route. 
+We add our sign in code to the default route.
 
 ```js
 app.get('/', (req, res) => {
@@ -218,7 +218,7 @@ app.get('/', (req, res) => {
 The next step occurs after the redirect.
 Your application must first *complete* the sign in flow by processing the code and validating the incoming request.
 
-First, configure the route where you will receive the response.  This must match your application configuration on the Azure portal.
+First, configure the route where you will receive the response.  This must match your application configuration on the Microsoft Entra admin center.
 
 **auth-code/index.js:**
 ```javascript

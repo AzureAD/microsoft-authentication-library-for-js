@@ -1,6 +1,6 @@
 # MSAL Node Standalone Sample: Azure Key Vault Access
 
-This sample demonstrates an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) that lets users authenticate against **Azure AD**.
+This sample demonstrates an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) that lets users authenticate against **Microsoft Entra ID**.
 
 This sample requires an [Azure Key Vault](https://docs.microsoft.com/azure/key-vault/general/basic-concepts). Key Vault and related topics are discussed in [Securing MSAL Node with Azure Key Vault and Azure Managed Identity](../../../lib/msal-node/docs/key-vault-managed-identity.md).
 
@@ -16,7 +16,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 
 ## Register
 
-1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
+1. Navigate to the [Microsoft Entra admin center](https://portal.azure.com) and select the **Microsoft Entra ID** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-webapp`.
