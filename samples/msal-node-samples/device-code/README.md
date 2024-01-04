@@ -17,9 +17,9 @@ Open the `config/customConfig.json` file.
 
 We will change this to add details about our app registration and deployment.
 
-By default, this configuration is set to support all Microsoft accounts. This includes Microsoft Entra accounts used by organizations, and MSA accounts typically used by consumers. 
+By default, this configuration is set to support all Microsoft accounts. This includes Azure AD accounts used by organizations, and MSA accounts typically used by consumers. 
 
-Before proceeding, go to the Microsoft admin center, and open the app registration for this app.
+Before proceeding, go to the Azure portal, and open the app registration for this app.
 
 #### **Client ID**
 Within the "Overview" you will see a GUID labeled **Application (client) ID**.  Copy this GUID to the clientId field in the config.
@@ -27,7 +27,7 @@ Within the "Overview" you will see a GUID labeled **Application (client) ID**.  
 Click the **Authentication** link in the left nav.
 
 #### **Authority**
-Check that supported account types are: **Accounts in any organizational directory (Any Microsoft Entra ID directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)**
+Check that supported account types are: **Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)**
 
 If so, then set the authority attribute in the JSON configuraiton file to `https://login.microsoftonline.com/common`
 

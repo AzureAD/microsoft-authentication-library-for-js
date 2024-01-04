@@ -1,6 +1,6 @@
-# MSAL Node Standalone Sample: Authorization Code Grant on Azure Active Directory B2C
+# MSAL Node Standalone Sample: Authorization Code Grant on Azure AD B2C
 
-This sample demonstrates a [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) registered on Azure Active Directory B2C. It uses:
+This sample demonstrates a [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) registered on Azure AD B2C. It uses:
 
 1. [OIDC Connect protocol](https://docs.microsoft.com/azure/active-directory-b2c/openid-connect) to implement standard B2C [user-flows](https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview) for:
 
@@ -8,7 +8,7 @@ This sample demonstrates a [confidential client application](../../../lib/msal-n
 - reset/recover a user password
 - edit a user profile
 
-2. [Authorization code grant](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow) to acquire an [Access Token](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview) to call a [protected web API](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga) (also on Azure Active Directory B2C).
+2. [Authorization code grant](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow) to acquire an [Access Token](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview) to call a [protected web API](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga) (also on Azure AD B2C).
 
 ## Registration
 
@@ -257,7 +257,7 @@ app.post('/redirect', async (req, res, next) => {
 
 ### Acquire an access token
 
-The `getToken` method below first checks if there is a non-expired access token in the cache for this user via msal-node's `acquireTokenSilent` API; if the access token is expired but the refresh token is not, it exchanges the refresh token for a new access token. If the refresh token is expired as well, it initiates the first leg of authorization code flow to request a new access token from Azure Active Directory B2C:
+The `getToken` method below first checks if there is a non-expired access token in the cache for this user via msal-node's `acquireTokenSilent` API; if the access token is expired but the refresh token is not, it exchanges the refresh token for a new access token. If the refresh token is expired as well, it initiates the first leg of authorization code flow to request a new access token from Azure AD B2C:
 
 ```javascript
 

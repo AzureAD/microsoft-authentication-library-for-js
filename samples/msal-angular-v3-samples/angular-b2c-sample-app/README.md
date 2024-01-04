@@ -1,6 +1,6 @@
 # Angular 16 B2C Sample using MSAL Angular v3
 
-This developer sample is used to demonstrate how to use `@azure/msal-angular` on Azure Active Directory B2C.
+This developer sample is used to demonstrate how to use `@azure/msal-angular` on Azure AD B2C.
 
 ## How to run the sample
 
@@ -10,7 +10,7 @@ This developer sample is used to demonstrate how to use `@azure/msal-angular` on
 
 ### B2C App Registration
 
-This sample comes with a pre-registered application for demo purposes. If you would like to use your own **Azure Active Directory B2C** tenant and application, follow the steps below:
+This sample comes with a pre-registered application for demo purposes. If you would like to use your own **Azure AD B2C** tenant and application, follow the steps below:
 
 1. [Create an Azure Active Directory B2C tenant](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-tenant)
 2. [Register a single-page application in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-register-spa)
@@ -22,7 +22,7 @@ Open `.src/environments/environment.dev.ts` in an editor:
 - Replace `clientId` with the Application (client) ID from the portal registration, or use the currently configured lab registration.
   - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
 - Replace `names`, `authorities` and `authorityDomain` fields in `b2cPolicies` object with the parameters you've obtained after creating your own user-flows.
-  - Optionally, replace the `uri` and `scopes` fields in `apiConfig` object if you would like to call your own web API registered on Azure Active Directory B2C (see: [Register a web API on Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga))
+  - Optionally, replace the `uri` and `scopes` fields in `apiConfig` object if you would like to call your own web API registered on Azure AD B2C (see: [Register a web API on Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga))
 
 These parameters are taken in during runtime to initialize MSAL in `./src/app/app.module.ts`.
 
