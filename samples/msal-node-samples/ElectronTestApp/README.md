@@ -127,9 +127,9 @@ const redirectUri = "com.sampleapp://auth"
 
 #### Registering a custom file protocol URI as a Redirect URI
 
-Whether or not you decide to customize these values, you must register the `redirectUri` in the Microsoft Entra admin center as a Mobile or Desktop Redirect URI.
+Whether or not you decide to customize these values, you must register the `redirectUri` in the Azure Portal as a Mobile or Desktop Redirect URI.
 
-1. Go to the App Registration in the Microsoft Entra admin center.
+1. Go to the App Registration in the Azure Portal.
 2. Click the `Authentication` tab in the side menu.
 3. Under "Platform configurations", click the "Add a platform" link.
 4. Select "Mobile and desktop applications".
