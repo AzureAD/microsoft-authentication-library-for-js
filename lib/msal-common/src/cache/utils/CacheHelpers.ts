@@ -398,22 +398,6 @@ export function isAuthorityMetadataEntity(
     );
 }
 
-/*
- * Validates an entity: checks for all expected params
- * @param entity
- */
-export function isAppMetadataEntity(key: string, entity: object): boolean {
-    if (!entity) {
-        return false;
-    }
-
-    return (
-        key.indexOf(APP_METADATA) === 0 &&
-        entity.hasOwnProperty("clientId") &&
-        entity.hasOwnProperty("environment")
-    );
-}
-
 /**
  * Reset the exiresAt value
  */
