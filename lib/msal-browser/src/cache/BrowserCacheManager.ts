@@ -947,18 +947,12 @@ export class BrowserCacheManager extends CacheManager {
         const parsedMetadata = this.validateAndParseJson(value);
         if (
             parsedMetadata &&
-            AuthorityMetadataEntity.isAuthorityMetadataEntity(
-                key,
-                parsedMetadata
-            )
+            CacheHelpers.isAuthorityMetadataEntity(key, parsedMetadata)
         ) {
             this.logger.trace(
                 "BrowserCacheManager.getAuthorityMetadata: cache hit"
             );
-            return CacheManager.toObject(
-                new AuthorityMetadataEntity(),
-                parsedMetadata
-            );
+            return parsedMetadata as AuthorityMetadataEntity;
         }
         return null;
     }
