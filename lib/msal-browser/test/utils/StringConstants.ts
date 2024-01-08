@@ -66,6 +66,9 @@ export const TEST_CONFIG = {
     SUB: "test-sub",
     RESPONSE_MODE: "fragment",
     TOKEN_EXPIRY: 3600,
+    EXTRA_TOKEN_REQUEST_HEADERS: {
+        "Extra-Header": "ExtraHeaderValue",
+    },
 };
 
 // Test Tokens
