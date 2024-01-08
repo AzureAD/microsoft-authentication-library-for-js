@@ -383,10 +383,7 @@ export class NodeStorage extends CacheManager {
         ) as AuthorityMetadataEntity;
         if (
             authorityMetadataEntity &&
-            AuthorityMetadataEntity.isAuthorityMetadataEntity(
-                key,
-                authorityMetadataEntity
-            )
+            CacheHelpers.isAuthorityMetadataEntity(key, authorityMetadataEntity)
         ) {
             return authorityMetadataEntity;
         }

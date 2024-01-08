@@ -36,7 +36,13 @@ import {
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
 import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
-import { Logger, LogLevel, UrlString } from "../../src";
+import {
+    CacheHelpers,
+    Logger,
+    LogLevel,
+    TimeUtils,
+    UrlString,
+} from "../../src";
 import { RegionDiscovery } from "../../src/authority/RegionDiscovery";
 import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata";
@@ -56,6 +62,25 @@ const loggerOptions = {
     logLevel: LogLevel.Verbose,
 };
 const logger = new Logger(loggerOptions);
+
+const authorityMetadataCacheValue: AuthorityMetadataEntity = {
+    authorization_endpoint:
+        DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint,
+    token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
+    end_session_endpoint:
+        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint,
+    issuer: DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
+    jwks_uri: DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri,
+    endpointsFromNetwork: true,
+    aliases: DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0].aliases,
+    preferred_cache:
+        DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0].preferred_cache,
+    preferred_network:
+        DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0].preferred_network,
+    aliasesFromNetwork: true,
+    canonical_authority: Constants.DEFAULT_AUTHORITY,
+    expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+};
 
 describe("Authority.ts Class Unit Tests", () => {
     beforeEach(() => {
@@ -1216,17 +1241,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("Gets endpoints from cache if not present in configuration or hardcoded metadata", async () => {
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
-                const value = new AuthorityMetadataEntity();
-                value.updateCloudDiscoveryMetadata(
-                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0],
-                    true
+                mockStorage.setAuthorityMetadata(
+                    key,
+                    authorityMetadataCacheValue
                 );
-                value.updateEndpointMetadata(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
-                    true
-                );
-                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
-                mockStorage.setAuthorityMetadata(key, value);
 
                 authority = new Authority(
                     Constants.DEFAULT_AUTHORITY,
@@ -1307,17 +1325,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("Gets endpoints from cache skipping hardcoded metadata if skipAuthorityMetadataCache is set to true", async () => {
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
-                const value = new AuthorityMetadataEntity();
-                value.updateCloudDiscoveryMetadata(
-                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0],
-                    true
+                mockStorage.setAuthorityMetadata(
+                    key,
+                    authorityMetadataCacheValue
                 );
-                value.updateEndpointMetadata(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
-                    true
-                );
-                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
-                mockStorage.setAuthorityMetadata(key, value);
 
                 authority = new Authority(
                     Constants.DEFAULT_AUTHORITY,
@@ -1398,22 +1409,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("Gets endpoints from network if cached metadata is expired and metadata was not included in configuration or hardcoded values", async () => {
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
-                const value = new AuthorityMetadataEntity();
-                value.updateCloudDiscoveryMetadata(
-                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0],
-                    true
-                );
-                value.updateEndpointMetadata(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
-                    true
-                );
-                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
-                mockStorage.setAuthorityMetadata(key, value);
-
-                jest.spyOn(
-                    AuthorityMetadataEntity.prototype,
-                    "isExpired"
-                ).mockReturnValue(true);
+                mockStorage.setAuthorityMetadata(key, {
+                    ...authorityMetadataCacheValue,
+                    expiresAt: TimeUtils.nowSeconds() - 1000,
+                });
 
                 networkInterface.sendGetRequestAsync = (
                     url: string,
@@ -1936,13 +1935,10 @@ describe("Authority.ts Class Unit Tests", () => {
                         expectedCloudDiscoveryMetadata.aliases;
 
                     const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
-                    const value = new AuthorityMetadataEntity();
-                    value.updateCloudDiscoveryMetadata(
-                        expectedCloudDiscoveryMetadata,
-                        true
+                    mockStorage.setAuthorityMetadata(
+                        key,
+                        authorityMetadataCacheValue
                     );
-                    value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
-                    mockStorage.setAuthorityMetadata(key, value);
                     jest.spyOn(
                         Authority.prototype,
                         <any>"updateEndpointMetadata"
@@ -2032,13 +2028,10 @@ describe("Authority.ts Class Unit Tests", () => {
                         expectedCloudDiscoveryMetadata.aliases;
 
                     const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
-                    const value = new AuthorityMetadataEntity();
-                    value.updateCloudDiscoveryMetadata(
-                        expectedCloudDiscoveryMetadata,
-                        true
+                    mockStorage.setAuthorityMetadata(
+                        key,
+                        authorityMetadataCacheValue
                     );
-                    value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
-                    mockStorage.setAuthorityMetadata(key, value);
                     jest.spyOn(
                         Authority.prototype,
                         <any>"updateEndpointMetadata"
@@ -2156,17 +2149,10 @@ describe("Authority.ts Class Unit Tests", () => {
                     };
 
                     const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
-                    const value = new AuthorityMetadataEntity();
-                    value.updateCloudDiscoveryMetadata(
-                        DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0],
-                        true
-                    );
-                    value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
-                    mockStorage.setAuthorityMetadata(key, value);
-                    jest.spyOn(
-                        AuthorityMetadataEntity.prototype,
-                        "isExpired"
-                    ).mockReturnValue(true);
+                    mockStorage.setAuthorityMetadata(key, {
+                        ...authorityMetadataCacheValue,
+                        expiresAt: TimeUtils.nowSeconds() - 1000,
+                    });
                     jest.spyOn(
                         Authority.prototype,
                         <any>"updateEndpointMetadata"

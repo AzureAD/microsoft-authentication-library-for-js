@@ -5,7 +5,6 @@
 
 import {
     AppMetadataEntity,
-    AuthorityMetadataEntity,
     CacheManager,
     ICrypto,
     RefreshTokenEntity,
@@ -248,7 +247,7 @@ export class MockCache {
 
     // create authorityMetadata entries
     createAuthorityMetadataEntries(): void {
-        const authorityMetadata_data = {
+        const authorityMetadata = {
             aliases: [
                 "login.microsoftonline.com",
                 "login.windows.net",
@@ -258,7 +257,7 @@ export class MockCache {
             aliasesFromNetwork: false,
             authorization_endpoint:
                 "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-            canonicalAuthority: "https://login.microsoftonline.com/common",
+            canonical_authority: "https://login.microsoftonline.com/common",
             end_session_endpoint:
                 "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
             endpointsFromNetwork: false,
@@ -267,14 +266,11 @@ export class MockCache {
             jwks_uri:
                 "https://login.microsoftonline.com/common/discovery/v2.0/keys",
             preferred_cache: "login.windows.net",
+            preferred_network: "login.microsoftonline.com",
             token_endpoint:
                 "https://login.microsoftonline.com/common/oauth2/v2.0/token",
         };
 
-        const authorityMetadata = CacheManager.toObject(
-            new AuthorityMetadataEntity(),
-            authorityMetadata_data
-        );
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(
             authorityMetadata.preferred_cache
         );
