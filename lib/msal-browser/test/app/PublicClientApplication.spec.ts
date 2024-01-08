@@ -98,7 +98,6 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { StandardController } from "../../src/controllers/StandardController";
-import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 import {
@@ -129,18 +128,6 @@ let testAppConfig = {
         loggerOptions: void 0,
     },
 };
-
-jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
-    return {
-        BrowserPerformanceMeasurement: jest.fn().mockImplementation(() => {
-            return {
-                startMeasurement: () => {},
-                endMeasurement: () => {},
-                flushMeasurement: () => 50,
-            };
-        }),
-    };
-});
 
 function stubProvider(config: Configuration) {
     const browserEnvironment = typeof window !== "undefined";
@@ -187,10 +174,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         await pca.initialize();
-
-        BrowserPerformanceMeasurement.flushMeasurements = jest
-            .fn()
-            .mockReturnValue(null);
 
         // Navigation not allowed in tests
         jest.spyOn(

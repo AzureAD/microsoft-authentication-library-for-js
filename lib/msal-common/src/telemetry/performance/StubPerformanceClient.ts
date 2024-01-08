@@ -54,7 +54,6 @@ export class StubPerformanceClient implements IPerformanceClient {
     startPerformanceMeasurement(): IPerformanceMeasurement {
         return new StubPerformanceMeasurement();
     }
-
     calculateQueuedTime(): number {
         return 0;
     }
