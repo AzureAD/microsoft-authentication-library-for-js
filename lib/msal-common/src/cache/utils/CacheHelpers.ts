@@ -10,6 +10,7 @@ import {
     createClientAuthError,
 } from "../../error/ClientAuthError";
 import {
+    APP_METADATA,
     AuthenticationScheme,
     CredentialType,
     SERVER_TELEM_CONSTANTS,
@@ -18,6 +19,7 @@ import {
 } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
+import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 import { CredentialEntity } from "../entities/CredentialEntity";
 import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
@@ -349,4 +351,37 @@ export function isThrottlingEntity(key: string, entity?: object): boolean {
     }
 
     return validateKey && validateEntity;
+}
+
+/**
+ * Generate AppMetadata Cache Key as per the schema: appmetadata-<environment>-<client_id>
+ */
+export function generateAppMetadataKey({
+    environment,
+    clientId,
+}: AppMetadataEntity): string {
+    const appMetaDataKeyArray: Array<string> = [
+        APP_METADATA,
+        environment,
+        clientId,
+    ];
+    return appMetaDataKeyArray
+        .join(Separators.CACHE_KEY_SEPARATOR)
+        .toLowerCase();
+}
+
+/**
+ * Validates an entity: checks for all expected params
+ * @param entity
+ */
+export function isAppMetadataEntity(key: string, entity: object): boolean {
+    if (!entity) {
+        return false;
+    }
+
+    return (
+        key.indexOf(APP_METADATA) === 0 &&
+        entity.hasOwnProperty("clientId") &&
+        entity.hasOwnProperty("environment")
+    );
 }

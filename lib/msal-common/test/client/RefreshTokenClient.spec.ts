@@ -71,9 +71,11 @@ testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
 testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
 testAccountEntity.authorityType = "MSSTS";
 
-const testAppMetadata: AppMetadataEntity = new AppMetadataEntity();
-testAppMetadata.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testAppMetadata.familyId = TEST_CONFIG.THE_FAMILY_ID;
+const testAppMetadata: AppMetadataEntity = {
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: TEST_CONFIG.validAuthorityHost,
+    familyId: TEST_CONFIG.THE_FAMILY_ID,
+};
 
 const testRefreshTokenEntity: RefreshTokenEntity = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
