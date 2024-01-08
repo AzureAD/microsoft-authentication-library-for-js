@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1704222129494,
+  "lastUpdate": 1704741244361,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4066,6 +4066,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.03%",
             "unit": "ops/sec",
             "extra": "230 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2c5e457711f5b9ea037ba889bf4f58a31a60ae09",
+          "message": "AuthorityMetadataEntity refactor into Type (#6802)\n\nContinues the work to convert cache entities from Classes into Types for\r\nsize/perf gains",
+          "timestamp": "2024-01-08T11:08:22-08:00",
+          "tree_id": "7254d74c6715751449df182c217b8a592258ac90",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2c5e457711f5b9ea037ba889bf4f58a31a60ae09"
+        },
+        "date": 1704741242580,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 178373,
+            "range": "±1.75%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 173187,
+            "range": "±1.68%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
           }
         ]
       }
