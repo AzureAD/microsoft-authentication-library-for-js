@@ -4,8 +4,6 @@
  */
 
 import {
-    AppMetadataEntity,
-    CacheManager,
     ICrypto,
     RefreshTokenEntity,
     Logger,
@@ -233,15 +231,11 @@ export class MockCache {
 
     // create appMetadata entries
     createAppMetadataEntries(): void {
-        const appMetaData_data = {
+        const appMetaData = {
             environment: "login.microsoftonline.com",
             familyId: "1",
             clientId: "mock_client_id",
         };
-        const appMetaData = CacheManager.toObject(
-            new AppMetadataEntity(),
-            appMetaData_data
-        );
         this.cacheManager.setAppMetadata(appMetaData);
     }
 
