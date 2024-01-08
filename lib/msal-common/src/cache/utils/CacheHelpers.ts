@@ -398,6 +398,10 @@ export function isAuthorityMetadataEntity(
     key: string,
     entity: object
 ): boolean {
+    if (!entity) {
+        return false;
+    }
+
     return (
         key.indexOf(AUTHORITY_METADATA_CONSTANTS.CACHE_KEY) === 0 &&
         entity.hasOwnProperty("aliases") &&
