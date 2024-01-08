@@ -13,7 +13,6 @@ import {
     IdTokenEntity,
     AccessTokenEntity,
     RefreshTokenEntity,
-    AppMetadataEntity,
     CacheManager,
     CredentialType,
     AuthenticationScheme,
@@ -181,14 +180,11 @@ export class Deserializer {
         if (appMetadata) {
             Object.keys(appMetadata).map(function (key) {
                 const serializedAmdt = appMetadata[key];
-                const mappedAmd = {
+                appMetadataObjects[key] = {
                     clientId: serializedAmdt.client_id,
                     environment: serializedAmdt.environment,
                     familyId: serializedAmdt.family_id,
                 };
-                const amd: AppMetadataEntity = new AppMetadataEntity();
-                CacheManager.toObject(amd, mappedAmd);
-                appMetadataObjects[key] = amd;
             });
         }
 

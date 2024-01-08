@@ -118,10 +118,7 @@ export class mockCache {
     }
 
     static createMockAmdt(): AppMetadataEntity {
-        const amdt = new AppMetadataEntity();
-        Object.assign(amdt, mockAppMetaDataEntity);
-
-        return amdt;
+        return mockAppMetaDataEntity;
     }
 }
 
@@ -141,5 +138,5 @@ export const MockCache = {
     acc: mockCache.createMockAcc(),
     accKey: mockCache.createMockAcc().generateAccountKey(),
     amdt: mockCache.createMockAmdt(),
-    amdtKey: mockCache.createMockAmdt().generateAppMetadataKey(),
+    amdtKey: CacheHelpers.generateAppMetadataKey(mockCache.createMockAmdt()),
 };
