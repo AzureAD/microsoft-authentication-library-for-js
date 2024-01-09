@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Refactor appMetadataEntity into Type",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

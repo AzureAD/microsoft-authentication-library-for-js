@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Don't lookup tokens until they are needed",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
