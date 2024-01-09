@@ -47,6 +47,10 @@ export type NodeAuthOptions = {
     protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
+    /**
+     * Headers and values to be added to all requests to the token endpoint. Can be overwritten by request-level headers with the same names.
+     */
+    extraTokenRequestHeaders?: Record<string, string>;
 };
 
 /**
@@ -127,6 +131,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         tenant: Constants.EMPTY_STRING,
     },
     skipAuthorityMetadataCache: false,
+    extraTokenRequestHeaders: {},
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {

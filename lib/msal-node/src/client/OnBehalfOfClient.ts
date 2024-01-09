@@ -258,8 +258,10 @@ export class OnBehalfOfClient extends BaseClient {
             queryParametersString
         );
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> =
-            this.createTokenRequestHeaders();
+        const headers = this.createTokenRequestHeaders(
+            undefined, // ccsCredential
+            request.extraTokenRequestHeaders
+        );
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,

@@ -81,7 +81,10 @@ export class DeviceCodeClient extends BaseClient {
             queryParametersString
         );
         const queryString = this.createQueryString(request);
-        const headers = this.createTokenRequestHeaders();
+        const headers = this.createTokenRequestHeaders(
+            undefined, // ccsCredential
+            request.extraTokenRequestHeaders
+        );
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,

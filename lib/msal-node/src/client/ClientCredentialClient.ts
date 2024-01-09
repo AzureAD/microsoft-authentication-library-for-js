@@ -232,7 +232,10 @@ export class ClientCredentialClient extends BaseClient {
 
             const requestBody = this.createTokenRequestBody(request);
             const headers: Record<string, string> =
-                this.createTokenRequestHeaders();
+                this.createTokenRequestHeaders(
+                    undefined, // ccsCredential
+                    request.extraTokenRequestHeaders
+                );
             const thumbprint: RequestThumbprint = {
                 clientId: this.config.authOptions.clientId,
                 authority: request.authority,

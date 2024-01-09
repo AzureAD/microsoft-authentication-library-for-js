@@ -186,6 +186,9 @@ export const TEST_CONFIG = {
     DEFAULT_TOKEN_RENEWAL_OFFSET: 300,
     TEST_CONFIG_ASSERTION: "DefaultAssertion",
     TEST_REQUEST_ASSERTION: "RequestAssertion",
+    EXTRA_TOKEN_REQUEST_HEADERS: {
+        "Extra-Header": "ExtraHeaderValue",
+    },
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";

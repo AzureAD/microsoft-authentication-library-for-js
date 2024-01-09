@@ -16,6 +16,7 @@ import {
     ConfidentialClientApplication,
 } from "../../src";
 import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
+import { TEST_CONFIG } from "../test_kit/StringConstants";
 
 describe("ClientConfiguration tests", () => {
     test("builds configuration and assigns default functions", () => {
@@ -83,6 +84,7 @@ describe("ClientConfiguration tests", () => {
         );
         expect(config.auth!.azureCloudOptions?.tenant).toEqual("");
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
+        expect(config.auth!.extraTokenRequestHeaders).toStrictEqual({});
 
         // telemetry
         expect(config.telemetry!.application!.appName).toEqual("");
@@ -98,6 +100,8 @@ describe("ClientConfiguration tests", () => {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.AUTHORITY,
+                extraTokenRequestHeaders:
+                    TEST_CONFIG.EXTRA_TOKEN_REQUEST_HEADERS,
             },
             system: {
                 networkClient: {
@@ -168,6 +172,9 @@ describe("ClientConfiguration tests", () => {
         // auth options
         expect(config.auth!.authority).toEqual(TEST_CONSTANTS.AUTHORITY);
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
+        expect(config.auth!.extraTokenRequestHeaders).toStrictEqual(
+            TEST_CONFIG.EXTRA_TOKEN_REQUEST_HEADERS
+        );
 
         // Application telemetry
         expect(config.telemetry!.application!.appName).toEqual(

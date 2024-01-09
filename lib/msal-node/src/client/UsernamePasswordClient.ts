@@ -82,10 +82,13 @@ export class UsernamePasswordClient extends BaseClient {
             queryParametersString
         );
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createTokenRequestHeaders({
-            credential: request.username,
-            type: CcsCredentialType.UPN,
-        });
+        const headers: Record<string, string> = this.createTokenRequestHeaders(
+            {
+                credential: request.username,
+                type: CcsCredentialType.UPN,
+            },
+            request.extraTokenRequestHeaders
+        );
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
