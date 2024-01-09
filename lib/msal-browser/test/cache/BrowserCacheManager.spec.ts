@@ -1302,36 +1302,25 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAppMetadata returns AppMetadataEntity", () => {
-                    const testAppMetadata =
-                        AppMetadataEntity.createAppMetadataEntity(
-                            "clientId",
-                            "environment",
-                            "familyid"
-                        );
+                    const testAppMetadata = {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        environment: "login.microsoftonline.com",
+                        familyId: "1",
+                    };
 
                     browserLocalStorage.setAppMetadata(testAppMetadata);
                     browserSessionStorage.setAppMetadata(testAppMetadata);
 
                     expect(
                         browserSessionStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
-                        )
-                    ).toEqual(testAppMetadata);
-                    expect(
-                        browserSessionStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
-                        )
-                    ).toBeInstanceOf(AppMetadataEntity);
-                    expect(
-                        browserLocalStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
+                            CacheHelpers.generateAppMetadataKey(testAppMetadata)
                         )
                     ).toEqual(testAppMetadata);
                     expect(
                         browserLocalStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
+                            CacheHelpers.generateAppMetadataKey(testAppMetadata)
                         )
-                    ).toBeInstanceOf(AppMetadataEntity);
+                    ).toEqual(testAppMetadata);
                 });
             });
 
@@ -2212,36 +2201,25 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAppMetadata returns AppMetadataEntity", () => {
-                    const testAppMetadata =
-                        AppMetadataEntity.createAppMetadataEntity(
-                            "clientId",
-                            "environment",
-                            "familyid"
-                        );
+                    const testAppMetadata = {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        environment: "login.microsoftonline.com",
+                        familyId: "1",
+                    };
 
                     browserLocalStorage.setAppMetadata(testAppMetadata);
                     browserSessionStorage.setAppMetadata(testAppMetadata);
 
                     expect(
                         browserSessionStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
-                        )
-                    ).toEqual(testAppMetadata);
-                    expect(
-                        browserSessionStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
-                        )
-                    ).toBeInstanceOf(AppMetadataEntity);
-                    expect(
-                        browserLocalStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
+                            CacheHelpers.generateAppMetadataKey(testAppMetadata)
                         )
                     ).toEqual(testAppMetadata);
                     expect(
                         browserLocalStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
+                            CacheHelpers.generateAppMetadataKey(testAppMetadata)
                         )
-                    ).toBeInstanceOf(AppMetadataEntity);
+                    ).toEqual(testAppMetadata);
                 });
             });
 

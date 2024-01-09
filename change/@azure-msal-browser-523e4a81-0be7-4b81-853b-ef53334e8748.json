@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix external account loading #6744",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
