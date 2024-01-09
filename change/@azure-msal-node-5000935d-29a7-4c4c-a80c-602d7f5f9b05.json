@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Convert ThrottlingEntity into a Type",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
