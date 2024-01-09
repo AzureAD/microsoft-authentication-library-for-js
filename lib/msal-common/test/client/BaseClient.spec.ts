@@ -2,7 +2,10 @@ import { BaseClient } from "../../src/client/BaseClient";
 import { HeaderNames, Constants } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../test_kit/StringConstants";
+import {
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+    TEST_CONFIG,
+} from "../test_kit/StringConstants";
 import { Authority } from "../../src/authority/Authority";
 import sinon from "sinon";
 
@@ -31,8 +34,11 @@ class TestClient extends BaseClient {
         return this.authority;
     }
 
-    createTokenRequestHeaders(): Record<string, string> {
-        return super.createTokenRequestHeaders();
+    createTokenRequestHeaders(options?: any): Record<string, string> {
+        return super.createTokenRequestHeaders(
+            options?.ccsCred,
+            options?.extraHeaders
+        );
     }
 }
 
@@ -97,6 +103,31 @@ describe("BaseClient.ts Class Unit Tests", () => {
             expect(headers[HeaderNames.CONTENT_TYPE]).toBe(
                 Constants.URL_FORM_CONTENT_TYPE
             );
+        });
+
+        it("adds extra client app config-level token request headers when present", async () => {
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.authOptions.extraTokenRequestHeaders =
+                TEST_CONFIG.EXTRA_TOKEN_REQUEST_HEADERS;
+            const client = new TestClient(config);
+            const headers = client.createTokenRequestHeaders();
+
+            expect(headers["Extra-Header"]).toBe("ExtraHeaderValue");
+        });
+
+        it("adds request-level extra token request headers when present, overriding client app config headers", async () => {
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.authOptions.extraTokenRequestHeaders =
+                TEST_CONFIG.EXTRA_TOKEN_REQUEST_HEADERS;
+            const client = new TestClient(config);
+            const headers = client.createTokenRequestHeaders({
+                extraHeaders: { "Extra-Header": "NewExtraHeaderValue" },
+            });
+
+            expect(headers["Extra-Header"]).not.toBe("ExtraHeaderValue");
+            expect(headers["Extra-Header"]).toBe("NewExtraHeaderValue");
         });
     });
 });
