@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix external account loading #6744",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

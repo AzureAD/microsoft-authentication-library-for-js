@@ -2,6 +2,83 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 09 Jan 2024 00:03:25 GMT",
+      "version": "3.7.0",
+      "tag": "@azure/msal-browser_v3.7.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Fix token refreshes with relative redirectUri #6761"
+          },
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Change Nested App Auth internal schema (#6737)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Allow overriding log level and PII setting with session storage key-values #6704"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Fix external account loading #6744"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Handle bad_token by removing bad refresh token from cache #6757"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Convert ThrottlingEntity into a Type"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Refactor AuthorityMetadataEntity into type"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Refactor appMetadataEntity into Type"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Dynamically load BrowserPerformanceMeasurement to capture browser perf measurements if session storage flag is set #6748"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Check RT expiration before attempting to redeem it #6703"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.6.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 01 Dec 2023 18:46:06 GMT",
       "version": "3.6.0",
       "tag": "@azure/msal-browser_v3.6.0",
