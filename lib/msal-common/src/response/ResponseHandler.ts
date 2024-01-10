@@ -524,11 +524,11 @@ export class ResponseHandler {
         // appMetadata
         let cachedAppMetadata: AppMetadataEntity | null = null;
         if (serverTokenResponse.foci) {
-            cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(
-                this.clientId,
-                env,
-                serverTokenResponse.foci
-            );
+            cachedAppMetadata = {
+                clientId: this.clientId,
+                environment: env,
+                familyId: serverTokenResponse.foci,
+            };
         }
 
         return new CacheRecord(

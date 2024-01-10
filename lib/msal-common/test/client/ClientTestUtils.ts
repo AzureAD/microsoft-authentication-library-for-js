@@ -142,7 +142,7 @@ export class MockStorageClass extends CacheManager {
         return this.store[key] as AppMetadataEntity;
     }
     setAppMetadata(value: AppMetadataEntity): void {
-        const key = value.generateAppMetadataKey();
+        const key = CacheHelpers.generateAppMetadataKey(value);
         this.store[key] = value;
     }
 
@@ -159,7 +159,7 @@ export class MockStorageClass extends CacheManager {
         return this.store[key] as AuthorityMetadataEntity;
     }
     setAuthorityMetadata(key: string, value: AuthorityMetadataEntity): void {
-        this.store[key] = value;
+        this.store[key] = { ...value };
     }
 
     // Throttling cache

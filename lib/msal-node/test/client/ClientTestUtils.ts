@@ -149,7 +149,7 @@ export class MockStorageClass extends CacheManager {
         return this.store[key] as AppMetadataEntity;
     }
     setAppMetadata(value: AppMetadataEntity): void {
-        const key = value.generateAppMetadataKey();
+        const key = CacheHelpers.generateAppMetadataKey(value);
         this.store[key] = value;
     }
 
