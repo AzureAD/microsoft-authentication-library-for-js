@@ -117,7 +117,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface,
                 mockStorage,
                 authorityOptions,
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             expect(authority.canonicalAuthority).toBe(
                 `${Constants.DEFAULT_AUTHORITY}`
@@ -149,7 +150,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         networkInterface,
                         mockStorage,
                         authorityOptions,
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     )
             ).toThrowError(
                 ClientConfigurationErrorMessage.authorityUriInsecure.desc
@@ -161,7 +163,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         networkInterface,
                         mockStorage,
                         authorityOptions,
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     )
             ).toThrowError(ClientConfigurationErrorMessage.urlParseError.desc);
             expect(
@@ -171,7 +174,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         networkInterface,
                         mockStorage,
                         authorityOptions,
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     )
             ).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
         });
@@ -201,7 +205,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface,
                 mockStorage,
                 authorityOptions,
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
         });
 
@@ -328,7 +333,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 expect(() => authority.authorizationEndpoint).toThrowError(
                     createClientAuthError(
@@ -381,7 +387,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         ...authorityOptions,
                         knownAuthorities: ["msidlabb2c.b2clogin.com"],
                     },
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 await authority.resolveEndpointsAsync();
@@ -393,7 +400,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         ...authorityOptions,
                         knownAuthorities: ["msidlabb2c.b2clogin.com"],
                     },
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 await secondAuthority.resolveEndpointsAsync();
@@ -453,7 +461,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 await authority.resolveEndpointsAsync();
 
@@ -497,7 +506,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         ...authorityOptions,
                         knownAuthorities: ["msidlabb2c.b2clogin.com"],
                     },
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 await customAuthority.resolveEndpointsAsync();
 
@@ -543,7 +553,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 await customAuthority.resolveEndpointsAsync();
 
@@ -622,7 +633,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface,
                 mockStorage,
                 authorityOptions,
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             await authority.resolveEndpointsAsync();
 
@@ -677,7 +689,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         environmentRegion: "centralus",
                     },
                 },
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             await authority.resolveEndpointsAsync();
 
@@ -737,7 +750,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         environmentRegion: "centralus",
                     },
                 },
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             await authority.resolveEndpointsAsync();
 
@@ -794,7 +808,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         environmentRegion: "centralus",
                     },
                 },
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             await authority.resolveEndpointsAsync();
 
@@ -849,7 +864,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         environmentRegion: undefined,
                     },
                 },
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             await authority.resolveEndpointsAsync();
 
@@ -899,7 +915,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface,
                 mockStorage,
                 authorityOptions,
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
         });
 
@@ -977,7 +994,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     options,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 await authority.resolveEndpointsAsync();
 
@@ -1059,7 +1077,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     options,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
@@ -1088,7 +1107,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     options,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 await authority.resolveEndpointsAsync();
 
@@ -1120,7 +1140,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     customAuthorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 await authority.resolveEndpointsAsync();
@@ -1203,7 +1224,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     customAuthorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 await authority.resolveEndpointsAsync();
 
@@ -1251,7 +1273,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 // Force hardcoded metadata to return null
@@ -1335,7 +1358,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     { ...authorityOptions, skipAuthorityMetadataCache: true },
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 // Force hardcoded metadata to return null
@@ -1425,7 +1449,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 // Force hardcoded metadata to return null
@@ -1508,7 +1533,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(null);
 
@@ -1590,7 +1616,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     { ...authorityOptions, skipAuthorityMetadataCache: true },
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientAuthError);
@@ -1621,7 +1648,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 await authority.resolveEndpointsAsync();
                 expect(
@@ -1688,7 +1716,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 await authority.resolveEndpointsAsync();
@@ -1736,7 +1765,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 await authority.resolveEndpointsAsync();
 
@@ -1832,7 +1862,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         networkInterface,
                         mockStorage,
                         authorityOptions,
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     await authority.resolveEndpointsAsync();
@@ -1881,7 +1912,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         networkInterface,
                         mockStorage,
                         authorityOptions,
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     const hardcodedCloudDiscoveryMetadata =
@@ -1951,7 +1983,8 @@ describe("Authority.ts Class Unit Tests", () => {
                             ...authorityOptions,
                             skipAuthorityMetadataCache: true,
                         },
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
@@ -2041,7 +2074,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         networkInterface,
                         mockStorage,
                         authorityOptions,
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
@@ -2123,7 +2157,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         networkInterface,
                         mockStorage,
                         authorityOptions,
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
                         null
@@ -2174,7 +2209,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         networkInterface,
                         mockStorage,
                         authorityOptions,
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
@@ -2257,7 +2293,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         networkInterface,
                         mockStorage,
                         authorityOptions,
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     await authority.resolveEndpointsAsync();
@@ -2321,7 +2358,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         networkInterface,
                         mockStorage,
                         authorityOptions,
-                        logger
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     await authority.resolveEndpointsAsync();
@@ -2374,7 +2412,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
@@ -2405,7 +2444,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 authority.resolveEndpointsAsync().catch((e) => {
@@ -2444,7 +2484,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 authority.resolveEndpointsAsync().catch((e) => {
@@ -2486,7 +2527,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     networkInterface,
                     mockStorage,
                     authorityOptions,
-                    logger
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 await authority.resolveEndpointsAsync();
@@ -2506,25 +2548,18 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("ADFS authority uses v1 well-known endpoint", async () => {
             const authorityUrl = "https://login.microsoftonline.com/adfs/";
-            let endpoint = "";
             authority = new Authority(
                 authorityUrl,
                 networkInterface,
                 mockStorage,
                 authorityOptions,
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
-            jest.spyOn(
-                networkInterface,
-                <any>"sendGetRequestAsync"
-            ).mockImplementation((openIdConfigEndpoint) => {
-                // @ts-ignore
-                endpoint = openIdConfigEndpoint;
-                return DEFAULT_OPENID_CONFIG_RESPONSE;
-            });
 
             await authority.resolveEndpointsAsync();
-            expect(endpoint).toBe(
+            // @ts-ignore
+            expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
                 `${authorityUrl}.well-known/openid-configuration`
             );
         });
@@ -2537,7 +2572,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface,
                 mockStorage,
                 { ...authorityOptions, knownAuthorities: [authorityUrl] },
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             jest.spyOn(
                 networkInterface,
@@ -2557,25 +2593,18 @@ describe("Authority.ts Class Unit Tests", () => {
         it("v2 is not added to authority if already provided", async () => {
             const authorityUrl =
                 "https://login.microsoftonline.com/test-tenant-id/v2.0";
-            let endpoint = "";
             authority = new Authority(
                 authorityUrl,
                 networkInterface,
                 mockStorage,
                 { ...authorityOptions, knownAuthorities: [authorityUrl] },
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
-            jest.spyOn(
-                networkInterface,
-                <any>"sendGetRequestAsync"
-            ).mockImplementation((openIdConfigEndpoint) => {
-                // @ts-ignore
-                endpoint = openIdConfigEndpoint;
-                return DEFAULT_OPENID_CONFIG_RESPONSE;
-            });
 
             await authority.resolveEndpointsAsync();
-            expect(endpoint).toBe(
+            // @ts-ignore
+            expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
                 `${authorityUrl}/.well-known/openid-configuration`
             );
         });
@@ -2583,50 +2612,36 @@ describe("Authority.ts Class Unit Tests", () => {
         it("DSTS authority uses v2 well-known endpoint with common authority", async () => {
             const authorityUrl =
                 "https://login.microsoftonline.com/dstsv2/common/";
-            let endpoint = "";
             authority = new Authority(
                 authorityUrl,
                 networkInterface,
                 mockStorage,
                 authorityOptions,
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
-            jest.spyOn(
-                networkInterface,
-                <any>"sendGetRequestAsync"
-            ).mockImplementation((openIdConfigEndpoint) => {
-                // @ts-ignore
-                endpoint = openIdConfigEndpoint;
-                return DEFAULT_OPENID_CONFIG_RESPONSE;
-            });
 
             await authority.resolveEndpointsAsync();
-            expect(endpoint).toBe(
+            // @ts-ignore
+            expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
                 `${authorityUrl}v2.0/.well-known/openid-configuration`
             );
         });
 
         it("DSTS authority uses v2 well-known  with tenanted authority", async () => {
             const authorityUrl = `https://login.microsoftonline.com/dstsv2/${TEST_CONFIG.TENANT}/`;
-            let endpoint = "";
             authority = new Authority(
                 authorityUrl,
                 networkInterface,
                 mockStorage,
                 authorityOptions,
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
-            jest.spyOn(
-                networkInterface,
-                <any>"sendGetRequestAsync"
-            ).mockImplementation((openIdConfigEndpoint) => {
-                // @ts-ignore
-                endpoint = openIdConfigEndpoint;
-                return DEFAULT_OPENID_CONFIG_RESPONSE;
-            });
 
             await authority.resolveEndpointsAsync();
-            expect(endpoint).toBe(
+            // @ts-ignore
+            expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
                 `${authorityUrl}v2.0/.well-known/openid-configuration`
             );
         });
@@ -2645,7 +2660,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface,
                 mockStorage,
                 options,
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             jest.spyOn(
                 networkInterface,
@@ -2664,7 +2680,6 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("Does append v2 to endpoint when using a known Microsoft authority", async () => {
             const authorityUrl = "https://login.microsoftonline.com/";
-            let endpoint = "";
             const options = {
                 protocolMode: ProtocolMode.OIDC,
                 knownAuthorities: [Constants.DEFAULT_AUTHORITY],
@@ -2676,19 +2691,13 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface,
                 mockStorage,
                 options,
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
-            jest.spyOn(
-                networkInterface,
-                <any>"sendGetRequestAsync"
-            ).mockImplementation((openIdConfigEndpoint) => {
-                // @ts-ignore
-                endpoint = openIdConfigEndpoint;
-                return DEFAULT_OPENID_CONFIG_RESPONSE;
-            });
 
             await authority.resolveEndpointsAsync();
-            expect(endpoint).toBe(
+            // @ts-ignore
+            expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
                 `${authorityUrl}v2.0/.well-known/openid-configuration`
             );
         });

@@ -396,7 +396,7 @@ export abstract class ClientApplication {
      */
     protected async buildOauthClientConfiguration(
         authority: string,
-        requestCorrelationId?: string,
+        requestCorrelationId: string,
         serverTelemetryManager?: ServerTelemetryManager,
         azureRegionConfiguration?: AzureRegionConfiguration,
         azureCloudOptions?: AzureCloudOptions
@@ -414,8 +414,8 @@ export abstract class ClientApplication {
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         const discoveredAuthority = await this.createAuthority(
             authority,
-            azureRegionConfiguration,
             requestCorrelationId,
+            azureRegionConfiguration,
             userAzureCloudOptions
         );
 
@@ -559,8 +559,8 @@ export abstract class ClientApplication {
      */
     private async createAuthority(
         authorityString: string,
+        requestCorrelationId: string,
         azureRegionConfiguration?: AzureRegionConfiguration,
-        requestCorrelationId?: string,
         azureCloudOptions?: AzureCloudOptions
     ): Promise<Authority> {
         this.logger.verbose("createAuthority called", requestCorrelationId);
@@ -586,7 +586,8 @@ export abstract class ClientApplication {
             this.config.system.networkClient,
             this.storage,
             authorityOptions,
-            this.logger
+            this.logger,
+            requestCorrelationId
         );
     }
 
