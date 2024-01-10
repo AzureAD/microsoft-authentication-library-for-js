@@ -845,7 +845,6 @@ export class Authority {
             return AuthorityMetadataSource.NETWORK;
         }
 
-        console.log(this.canonicalAuthority);
         // Metadata could not be obtained from the config, cache, network or hardcoded values
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.untrustedAuthority

@@ -332,7 +332,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             authorityOptions,
             this.logger,
             this.correlationId,
-            this.performanceClient,
+            this.performanceClient
         );
     }
 
