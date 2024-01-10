@@ -1184,6 +1184,65 @@ describe("Authority.ts Class Unit Tests", () => {
                 ).not.toHaveBeenCalled();
             });
 
+            it("Gets endpoints for tenanted Microsoft authority from hardcoded values", async () => {
+                const customAuthorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: "",
+                    skipAuthorityMetadataCache: false,
+                };
+
+                const tenantId = "fake-tenant-id";
+                authority = new Authority(
+                    `https://login.microsoftonline.com/${tenantId}`,
+                    networkInterface,
+                    mockStorage,
+                    customAuthorityOptions,
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).toBe(true);
+                expect(authority.authorizationEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                        "{tenant}",
+                        tenantId
+                    )
+                );
+                expect(authority.tokenEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                        "{tenant}",
+                        tenantId
+                    )
+                );
+                expect(authority.deviceCodeEndpoint).toBe(
+                    authority.tokenEndpoint.replace("/token", "/devicecode")
+                );
+                expect(authority.endSessionEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                        "{tenant}",
+                        tenantId
+                    )
+                );
+                expect(authority.selfSignedJwtAudience).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
+                        "{tenant}",
+                        tenantId
+                    )
+                );
+
+                expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromHarcodedValuesSpy
+                ).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromNetworkSpy
+                ).not.toHaveBeenCalled();
+            });
+
             it("Gets endpoints from hardcoded values with regional information", async () => {
                 const customAuthorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
