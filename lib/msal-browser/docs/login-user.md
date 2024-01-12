@@ -156,10 +156,10 @@ However, be aware that if your application has code paths for multiple users in 
 InteractionRequiredAuthError: interaction_required: AADSTS16000: Either multiple user identities are available for the current request or selected account is not supported for the scenario.
 ```
 
+This indicates that the server could not determine which account to sign into, and will require either one of the parameters above (`account`, `login_hint`, `sid`) or an interactive sign-in to choose the account.
+
 > [!WARNING]
 > When using `ssoSilent`, the service will attempt to load your redirect URI page in an invisible embedded iframe. Content security policies and HTTP header values present in your app's redirect URI page response, such as `X-FRAME-OPTIONS: DENY` and `X-FRAME-OPTIONS: SAMEORIGIN`, can prevent your app from loading in said iframe, effectively blocking silent SSO. If you intend you use `ssoSilent`, please make sure the redirect URI points to a page that does not implement any such policies.
-
-This indicates that the server could not determine which account to sign into, and will require either one of the parameters above (`account`, `login_hint`, `sid`) or an interactive sign-in to choose the account.
 
 ## RedirectUri Considerations
 
