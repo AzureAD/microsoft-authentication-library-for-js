@@ -326,6 +326,9 @@ const msalConfig = {
 };
 ```
 
+> [!IMPORTANT]
+> Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
+
 ### hash_empty_error
 
 **Error Messages**:

@@ -221,6 +221,14 @@ When using `ssoSilent`, the service will attempt to load your redirect URI page 
 
 If you intend you use `ssoSilent`, please make sure the redirect URI points to a page that does not implement any such policies.
 
+### 3. The configured redirecUri is a different origin as the calling page
+
+Because of cross-origin request limitations, in order for MSAL to have access to the hidden iframe's `window.location.href` property, the `redirectUri` configured in the `ssoSilent` request must share the same origin as the calling page. If the page calling `ssoSilent` and the `redirectUri` for the request have different domains, the request is expected to fail with a `monitor_window_timeout` error.
+
+### 4. A service error occurred that prevented the STS from redirecting back to the configured redirectUri
+
+A variety of service errors can occur which prevent the service from redirecting back to the redirectUri configured in the request. These are usually accompanied by an `X-Frame-Options DENY` error and can be troubleshooted by opening the error URL in a new tab to see the full error message and context.
+
 # Accounts
 
 ## In what scenarios will `getAllAccounts` return multiple accounts?
