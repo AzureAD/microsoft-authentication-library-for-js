@@ -1,6 +1,7 @@
 # FAQs
 
-***
+---
+
 **[Compatibility](#Compatibility)**
 
 1. [What browsers are supported by MSAL.js?](#what-browsers-are-supported-by-msaljs)
@@ -19,10 +20,11 @@
 1. [How do I get an authorization code from the library?](#how-do-i-get-an-authorization-code-from-the-library)
 1. [How do I implement self-service sign-up?](#how-do-i-implement-self-service-sign-up)
 
-**[Single-Sign-On](#Single-Sign-On)**
+**[Single Sign-On](#Single-Sign-On)**
 
 1. [How to get single sign-on in my application with MSAL.js?](#how-to-get-single-sign-on-in-my-application-with-msaljs)
 1. [How can my application recognize a user after sign-in? How do I correlate users between applications?](#how-can-my-application-recognize-a-user-after-sign-in-how-do-i-correlate-users-between-applications)
+1. [Troubleshooting single sigon-on](#troubleshooting-single-sign-on)
 
 **[Accounts](#Accounts)**
 
@@ -30,7 +32,7 @@
 1. [Is the result of getAllAccounts sorted in any order?](#is-the-result-of-getallaccounts-sorted-in-any-order)
 1. [If an account is returned by getAllAccounts does that mean the user has an active session on the server?](#if-an-account-is-returned-by-getallaccounts-does-that-mean-the-user-has-an-active-session-on-the-server)
 1. [How can I switch between multiple logged in users?](#how-can-i-switch-between-multiple-logged-in-users)
-1. [How can I avoid prompting users if SSO for one or more accounts is available?](#how-can-i-avoid-prompting-users-if-SSO-for-one-or-more-accounts-is-available) 
+1. [How can I avoid prompting users if SSO for one or more accounts is available?](#how-can-i-avoid-prompting-users-if-SSO-for-one-or-more-accounts-is-available)
 
 **[Configuration](#Configuration)**
 
@@ -69,7 +71,7 @@
 
 1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/errors.md)
 
-***
+---
 
 # Compatibility
 
@@ -77,25 +79,24 @@
 
 MSAL.js has been tested and supports the last 2 stable and supported versions of the following browsers:
 
-- Chrome
-- Edge (Chromium)
-- Firefox
-- Safari
-- Opera
-
+-   Chrome
+-   Edge (Chromium)
+-   Firefox
+-   Safari
+-   Opera
 
 MSAL.js also supports the following environments:
 
-- WebViews
-- Office Add-ins (see the [sample](https://github.com/OfficeDev/PnP-OfficeAddins/tree/main/Samples/auth/Office-Add-in-Microsoft-Graph-React))
-- Chromium Extensions (see the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/ChromiumExtensionSample))
-- Teams Applications (see the [sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs))
+-   WebViews
+-   Office Add-ins (see the [sample](https://github.com/OfficeDev/PnP-OfficeAddins/tree/main/Samples/auth/Office-Add-in-Microsoft-Graph-React))
+-   Chromium Extensions (see the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/ChromiumExtensionSample))
+-   Teams Applications (see the [sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs))
 
 ### Known Issues with Certain Browsers
 
 There are certain known issues and mitigations documented for the following browsers:
 
-- [Browsers that block 3rd Party Cookies (i.e. Safari, Chrome Incognito, Firefox Private)](https://docs.microsoft.com/azure/active-directory/develop/reference-third-party-cookies-spas)
+-   [Browsers that block 3rd Party Cookies (i.e. Safari, Chrome Incognito, Firefox Private)](https://docs.microsoft.com/azure/active-directory/develop/reference-third-party-cookies-spas)
 
 ## Does MSAL support mobile browsers?
 
@@ -104,7 +105,6 @@ In general, MSAL.js does support mobile browsers. However, since MSAL.js isn't t
 For example, while MSAL's `loginPopup` and `acquireTokenPopup` APIs may work on some mobile browsers, using popup APIs is discouraged on mobile devices as not all browsers will support this flow. We recommend using redirect APIs such as `loginRedirect` and `acquireTokenRedirect` when your application is running on a mobile device.
 
 For problems specific to mobile browsers not listed here, please open an issue with clear instructions to reproduce.
-
 
 ## I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?
 
@@ -188,6 +188,7 @@ Simply set your `authority` in your MSAL app configuration to **consumers** tena
 Currently the msal-browser package is designed for Single-Page Applications that are handling all authentication through the browser client. We have not yet optimized this to work with server-side components. As such, requests to retrieve the authorization code from the first leg of the flow can't be met currently. We are currently working on an [implementation of msal that will run in node libraries](https://github.com/AzureAD/microsoft-authentication-library-for-js/projects/4), and as part of that we will explore options to make msal-browser work with server-side components.
 
 ## How do I implement self-service sign-up?
+
 MSAL Browser supports self-service sign-up in the auth code flow. Please see our docs [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) for supported prompt values in the request and their expected outcomes, and [here](http://aka.ms/s3u) for an overview of self-service sign-up and configuration changes that need to be made to your Azure tenant. Please note that that self-service sign-up is not available in B2C and test environments.
 
 # Single Sign-On
@@ -203,8 +204,30 @@ You can use the `homeAccountId` property on the Account in the `AuthenticationRe
 ```js
 loginPopup().then((response) => {
     const uniqueID = response.account.homeAccountId;
-})
+});
 ```
+
+## Troubleshooting Single Sign-On
+
+The following is a list of common causes for SSO failures when using MSAL Browser:
+
+### 1. The user has blocked third-party cookies in their browser
+
+Silent SSO requires third-party cookie access so the authentication service can persist a user's session accross tabs. If third-party cookies are blocked, silent SSO will fail and interaction will be required.
+
+### 2. There is a content security policy or HTTP header blocking the iframe from loading your redirect URI page
+
+When using `ssoSilent`, the service will attempt to load your redirect URI page in an invisible embedded iframe. Content security policies and HTTP header values present in your app's redirect URI page response, such as `X-FRAME-OPTIONS: DENY` and `X-FRAME-OPTIONS: SAMEORIGIN`, can prevent your app from loading in said iframe, effectively blocking silent SSO.
+
+If you intend you use `ssoSilent`, please make sure the redirect URI points to a page that does not implement any such policies.
+
+### 3. The configured redirecUri is a different origin as the calling page
+
+Because of cross-origin request limitations, in order for MSAL to have access to the hidden iframe's `window.location.href` property, the `redirectUri` configured in the `ssoSilent` request must share the same origin as the calling page. If the page calling `ssoSilent` and the `redirectUri` for the request have different domains, the request is expected to fail with a `monitor_window_timeout` error.
+
+### 4. A service error occurred that prevented the STS from redirecting back to the configured redirectUri
+
+A variety of service errors can occur which prevent the service from redirecting back to the redirectUri configured in the request. These are usually accompanied by an `X-Frame-Options DENY` error and can be troubleshooted by opening the error URL in a new tab to see the full error message and context.
 
 # Accounts
 
@@ -233,13 +256,13 @@ You can also find an example implementation of an account switcher using the `@a
 
 The following flow diagram can help you avoid unnecessary authentication prompts when an account (or multiple accounts) is available for SSO.
 
-![MSAL.js boot flow diagram](docs/images/msaljs-boot-flow.png )
+![MSAL.js boot flow diagram](docs/images/msaljs-boot-flow.png)
 
 # Configuration
 
 ## What is the difference between `sessionStorage` and `localStorage`?
 
-We offer two methods of storage for Msal, `localStorage` and `sessionStorage`.  Our recommendation is to use `sessionStorage` because it is more secure in storing tokens that are acquired by your users, but `localStorage` will give you Single Sign On across tabs and user sessions.  We encourage you to explore the options and make the best decision for your application.
+We offer two methods of storage for Msal, `localStorage` and `sessionStorage`. Our recommendation is to use `sessionStorage` because it is more secure in storing tokens that are acquired by your users, but `localStorage` will give you Single Sign On across tabs and user sessions. We encourage you to explore the options and make the best decision for your application.
 
 ## What are the possible configuration options?
 
@@ -267,8 +290,8 @@ When using the redirect APIs you **must** set your `redirectUri` to a page that 
 
 Additional notes:
 
-* If the page that you use as your `redirectUri` requires authentication and automatically invokes a login API, you should ensure that `handleRedirectPromise` has resolved and a user is not signed in **before** invoking the login API.
-* If the page that invokes `loginRedirect` is **different** than your `redirectUri` you will first be redirected to the `redirectUri` then back to the original page. You should invoke `handleRedirectPromise` on both the `redirectUri` **and** the original page. If this is undesired and you would like to stay on the `redirectUri` you can set `navigateToLoginRequestUrl` to `false` in the `PublicClientApplication` config.
+-   If the page that you use as your `redirectUri` requires authentication and automatically invokes a login API, you should ensure that `handleRedirectPromise` has resolved and a user is not signed in **before** invoking the login API.
+-   If the page that invokes `loginRedirect` is **different** than your `redirectUri` you will first be redirected to the `redirectUri` then back to the original page. You should invoke `handleRedirectPromise` on both the `redirectUri` **and** the original page. If this is undesired and you would like to stay on the `redirectUri` you can set `navigateToLoginRequestUrl` to `false` in the `PublicClientApplication` config.
 
 ## Why is `fragment` the only valid field for `responseMode` in `msal-browser`?
 
@@ -286,13 +309,13 @@ const loginRequest = {
     popupWindowAttributes: {
         popupSize: {
             height: 100,
-            width: 100
+            width: 100,
         },
         popupPosition: {
             top: 100,
-            left: 100
-        }
-    }
+            left: 100,
+        },
+    },
 };
 
 try {
@@ -345,6 +368,7 @@ Please see the documentation on [Tenancy in Azure Active Directory](https://docs
 Please see the doc about resources and scopes [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md)
 
 ## Register custom scopes for a web API
+
 [How to register custom scopes for my web API](https://docs.microsoft.com/azure/active-directory/develop/quickstart-configure-app-expose-web-apis).
 
 # B2C
@@ -357,17 +381,19 @@ The policy (a.k.a. user flow) can be appended to the authority url you provide a
 const config = {
     auth: {
         clientId: "your-client-id",
-        authority: "https://yourApp.b2clogin.com/yourApp.onmicrosoft.com/your_policy",
-        knownAuthorities: ["yourApp.b2clogin.com"]
-    }
-}
+        authority:
+            "https://yourApp.b2clogin.com/yourApp.onmicrosoft.com/your_policy",
+        knownAuthorities: ["yourApp.b2clogin.com"],
+    },
+};
 const pca = new PublicClientApplication(config);
 
 // You can also provide the authority as part of the request object
 const request = {
     scopes: ["openid"],
-    authority: "https://yourApp.b2clogin.com/yourApp.onmicrosoft.com/your_policy"
-}
+    authority:
+        "https://yourApp.b2clogin.com/yourApp.onmicrosoft.com/your_policy",
+};
 pca.loginRedirect(request);
 ```
 
@@ -383,7 +409,8 @@ Our recommendation is to move to the new password reset experience since it simp
 pca.loginPopup()
     .then((response) => {
         // do something with auth response
-    }).catch(error => {
+    })
+    .catch((error) => {
         // Error handling
         if (error.errorMessage) {
             // Check for forgot password error
@@ -391,7 +418,8 @@ pca.loginPopup()
             if (error.errorMessage.indexOf("AADB2C90118") > -1) {
                 // For password reset, initiate a login request against tenant-specific authority with user-flow string appended
                 pca.loginPopup({
-                    authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_reset"
+                    authority:
+                        "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_reset",
                 });
             }
         }
@@ -419,5 +447,3 @@ MSAL.js will only process tokens which it originally requested. If your flow req
 ## What should I do if I believe my issue is with the B2C service itself rather than with the library
 
 In that case, please file a support ticket with the B2C team by following the instructions here: [B2C support options](https://docs.microsoft.com/azure/active-directory-b2c/support-options).
-
-
