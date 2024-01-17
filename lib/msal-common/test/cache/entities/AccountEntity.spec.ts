@@ -1,7 +1,6 @@
 import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
 import { mockAccountEntity, mockIdTokenEntity } from "./cacheConstants";
 import * as AuthToken from "../../../src/account/AuthToken";
-import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { CacheAccountType, Constants } from "../../../src/utils/Constants";
 import {
     NetworkRequestOptions,
@@ -18,6 +17,7 @@ import {
     TEST_CRYPTO_VALUES,
     ID_TOKEN_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
+    TEST_CONFIG,
 } from "../../test_kit/StringConstants";
 import sinon from "sinon";
 import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils";
@@ -104,12 +104,13 @@ const loggerOptions = {
 };
 const logger = new Logger(loggerOptions);
 
-const authority = AuthorityFactory.createInstance(
+const authority = new Authority(
     Constants.DEFAULT_AUTHORITY,
     networkInterface,
     new MockStorageClass("client-id", mockCrypto, logger),
     authorityOptions,
-    logger
+    logger,
+    TEST_CONFIG.CORRELATION_ID
 );
 
 describe("AccountEntity.ts Unit Tests", () => {
@@ -254,12 +255,13 @@ describe("AccountEntity.ts Unit Tests", () => {
     });
 
     it("create an Account no preferred_username or emails claim", () => {
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         // Set up stubs
@@ -301,7 +303,7 @@ describe("AccountEntity.ts Unit Tests", () => {
     });
 
     it("creates a generic account", () => {
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
@@ -311,7 +313,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: "",
             },
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         // Set up stubs
@@ -635,12 +638,13 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
         };
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         // Set up stubs
@@ -688,12 +692,13 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
         };
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         // Set up stubs
