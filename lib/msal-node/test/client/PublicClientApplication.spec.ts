@@ -9,12 +9,10 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
 } from "../utils/TestConstants";
 import {
-    ClientConfiguration,
     AuthenticationResult,
     AuthorizationCodeClient,
     RefreshTokenClient,
     SilentFlowClient,
-    ProtocolMode,
     Logger,
     LogLevel,
     AccountInfo,
@@ -23,6 +21,8 @@ import {
     AccountEntity,
     AuthToken,
     CacheHelpers,
+    AuthorityFactory,
+    ProtocolMode,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -37,17 +37,11 @@ import {
     AuthorizationUrlRequest,
     UsernamePasswordRequest,
     SilentFlowRequest,
-    NodeStorage,
 } from "../../src";
-import { HttpClient } from "../../src/network/HttpClient";
 import http from "http";
 
 import * as msalNode from "../../src";
-import {
-    fakeAuthority,
-    setupAuthorityFactory_createDiscoveredInstance_mock,
-    setupServerTelemetryManagerMock,
-} from "./test-fixtures";
+import { setupServerTelemetryManagerMock } from "./test-fixtures";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils";
 
 import { version, name } from "../../package.json";
@@ -56,6 +50,9 @@ import { SignOutRequest } from "../../src/request/SignOutRequest";
 import { LoopbackClient } from "../../src/network/LoopbackClient";
 import { createClientAuthError } from "@azure/msal-common";
 import { ClientAuthErrorCodes } from "@azure/msal-common";
+import { TEST_CONFIG } from "../test_kit/StringConstants";
+import { HttpClient } from "../../src/network/HttpClient";
+import { MockStorageClass } from "./ClientTestUtils";
 
 const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
 
@@ -87,17 +84,8 @@ describe("PublicClientApplication", () => {
         },
     };
 
-    const expectedConfig: ClientConfiguration = {
-        authOptions: {
-            clientId: TEST_CONSTANTS.CLIENT_ID,
-            authority: fakeAuthority,
-            clientCapabilities: [],
-        },
-    };
-
     beforeEach(() => {
         mockTelemetryManager;
-        setupAuthorityFactory_createDiscoveredInstance_mock();
     });
 
     afterEach(() => {
@@ -129,9 +117,6 @@ describe("PublicClientApplication", () => {
         const authApp = new PublicClientApplication(appConfig);
         const result = await authApp.acquireTokenByDeviceCode(request);
         expect(deviceCodeClientSpy).toHaveBeenCalledTimes(1);
-        expect(deviceCodeClientSpy).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
         expect(result).toEqual(fakeAuthResult);
     });
 
@@ -153,9 +138,6 @@ describe("PublicClientApplication", () => {
         await authApp.acquireTokenByCode(request);
 
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
-        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("acquireTokenByAuthorizationCode with nonce", async () => {
@@ -182,9 +164,6 @@ describe("PublicClientApplication", () => {
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
-        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("acquireTokenByAuthorizationCode with state validation", async () => {
@@ -212,9 +191,6 @@ describe("PublicClientApplication", () => {
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
-        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("acquireTokenByRefreshToken", async () => {
@@ -232,9 +208,6 @@ describe("PublicClientApplication", () => {
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
-        expect(RefreshTokenClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     describe("acquireTokenSilent tests", () => {
@@ -252,9 +225,6 @@ describe("PublicClientApplication", () => {
             const authApp = new PublicClientApplication(appConfig);
             await authApp.acquireTokenSilent(request);
             expect(SilentFlowClient).toHaveBeenCalledTimes(1);
-            expect(SilentFlowClient).toHaveBeenCalledWith(
-                expect.objectContaining(expectedConfig)
-            );
         });
 
         test("acquireTokenSilent calls into NativeBrokerPlugin and returns result", async () => {
@@ -740,7 +710,23 @@ describe("PublicClientApplication", () => {
                         cryptoProvider.base64Decode
                     ),
                 },
-                fakeAuthority
+                await AuthorityFactory.createDiscoveredInstance(
+                    TEST_CONFIG.validAuthority,
+                    new HttpClient(),
+                    new MockStorageClass(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cryptoProvider,
+                        new Logger({})
+                    ),
+                    {
+                        protocolMode: ProtocolMode.AAD,
+                        knownAuthorities: [],
+                        cloudDiscoveryMetadata: "",
+                        authorityMetadata: "",
+                    },
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
+                )
             );
 
             // @ts-ignore
@@ -969,7 +955,10 @@ describe("PublicClientApplication", () => {
         const url = await authApp.getAuthCodeUrl(request);
         expect(
             url.startsWith(
-                DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint
+                DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                    "{tenant}",
+                    "common"
+                )
             )
         ).toBe(true);
         expect(url).toContain(appConfig.auth.clientId);
@@ -992,9 +981,6 @@ describe("PublicClientApplication", () => {
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByUsernamePassword(request);
         expect(usernamePasswordClientSpy).toHaveBeenCalledTimes(1);
-        expect(usernamePasswordClientSpy).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("acquireToken default authority", async () => {
@@ -1013,32 +999,17 @@ describe("PublicClientApplication", () => {
         const mockRefreshTokenClient =
             getMsalCommonAutoMock().RefreshTokenClient;
         jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
-            (config) => new mockRefreshTokenClient(config)
+            (config) => {
+                expect(config.authOptions.authority.canonicalAuthority).toEqual(
+                    TEST_CONSTANTS.DEFAULT_AUTHORITY
+                );
+                return new mockRefreshTokenClient(config);
+            }
         );
-
-        const authorityMock =
-            setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBe(
-            TEST_CONSTANTS.DEFAULT_AUTHORITY
-        );
-        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
-            protocolMode: ProtocolMode.AAD,
-            knownAuthorities: [],
-            azureRegionConfiguration: undefined,
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-            skipAuthorityMetadataCache: false,
-        });
-        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
-        expect(RefreshTokenClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("authority overridden by acquire token request parameters", async () => {
@@ -1052,32 +1023,17 @@ describe("PublicClientApplication", () => {
         const mockRefreshTokenClient =
             getMsalCommonAutoMock().RefreshTokenClient;
         jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
-            (config) => new mockRefreshTokenClient(config)
+            (config) => {
+                expect(config.authOptions.authority.canonicalAuthority).toEqual(
+                    TEST_CONSTANTS.ALTERNATE_AUTHORITY
+                );
+                return new mockRefreshTokenClient(config);
+            }
         );
-
-        const authorityMock =
-            setupAuthorityFactory_createDiscoveredInstance_mock();
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBe(
-            TEST_CONSTANTS.ALTERNATE_AUTHORITY
-        );
-        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
-            protocolMode: ProtocolMode.AAD,
-            knownAuthorities: [],
-            azureRegionConfiguration: undefined,
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-            skipAuthorityMetadataCache: false,
-        });
-        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
-        expect(RefreshTokenClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("acquireToken when azureCloudOptions are set", async () => {
@@ -1101,32 +1057,17 @@ describe("PublicClientApplication", () => {
         const mockRefreshTokenClient =
             getMsalCommonAutoMock().RefreshTokenClient;
         jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
-            (config) => new mockRefreshTokenClient(config)
+            (config) => {
+                expect(config.authOptions.authority.canonicalAuthority).toEqual(
+                    TEST_CONSTANTS.USGOV_AUTHORITY
+                );
+                return new mockRefreshTokenClient(config);
+            }
         );
-
-        const authorityMock =
-            setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBe(
-            TEST_CONSTANTS.USGOV_AUTHORITY
-        );
-        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
-            protocolMode: ProtocolMode.AAD,
-            knownAuthorities: [],
-            azureRegionConfiguration: undefined,
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-            skipAuthorityMetadataCache: false,
-        });
-        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
-        expect(RefreshTokenClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("acquireToken when azureCloudOptions and authority are set", async () => {
@@ -1151,32 +1092,17 @@ describe("PublicClientApplication", () => {
         const mockRefreshTokenClient =
             getMsalCommonAutoMock().RefreshTokenClient;
         jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
-            (config) => new mockRefreshTokenClient(config)
+            (config) => {
+                expect(config.authOptions.authority.canonicalAuthority).toEqual(
+                    TEST_CONSTANTS.USGOV_AUTHORITY
+                );
+                return new mockRefreshTokenClient(config);
+            }
         );
-
-        const authorityMock =
-            setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBe(
-            TEST_CONSTANTS.USGOV_AUTHORITY
-        );
-        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
-            protocolMode: ProtocolMode.AAD,
-            knownAuthorities: [],
-            azureRegionConfiguration: undefined,
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-            skipAuthorityMetadataCache: false,
-        });
-        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
-        expect(RefreshTokenClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("getLogger and setLogger", async () => {

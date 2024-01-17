@@ -3308,7 +3308,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
             });
 
-            expect(response).toBe(testTokenResponse);
+            expect(response).toEqual(testTokenResponse);
             expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
             expect(silentSpy.calledOnce).toBeTruthy();
         });
@@ -3395,6 +3395,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3411,6 +3412,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
@@ -3440,6 +3442,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3455,6 +3458,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy.calledOnce).toBe(true);
@@ -3483,6 +3487,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3502,6 +3507,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy.calledOnce).toBe(true);
@@ -3530,6 +3536,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3548,6 +3555,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy.calledOnce).toBe(true);
