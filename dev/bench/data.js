@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705526407555,
+  "lastUpdate": 1705526432461,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4444,6 +4444,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.33%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "96488933+Rablet@users.noreply.github.com",
+            "name": "Robin",
+            "username": "Rablet"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c0a59a93d82d22a7cf142ed1b3dbabfd43aa4c5d",
+          "message": "Fix cachePlugin.js not resolving when cache file doesn't exist (#6713)\n\ncachePlugin.js is used for caching in the msal-node-samples. \r\n\r\nIf the cache file does not currently exist it crates the file, however\r\nin that scenario it currently never resolves the promise so calling\r\nsomething like acquireTokenByCode will not return on the first\r\ninvocation. Calling acquireTokenByCode again will return as in that case\r\nthe cache file has been created and the promise will be resolved\r\n\r\nThis PR fixes this by resolving the promise once the file has been\r\ncreated.\r\n\r\nSigned-off-by: Robin <hi@rablet.dev>\r\nCo-authored-by: Hector Morales <hemoral@microsoft.com>\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-01-17T13:14:47-08:00",
+          "tree_id": "858ccc63e7d1231dccdfd0d218bafc5e6d4c40fb",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c0a59a93d82d22a7cf142ed1b3dbabfd43aa4c5d"
+        },
+        "date": 1705526431420,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 183355,
+            "range": "±1.92%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 202079,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
