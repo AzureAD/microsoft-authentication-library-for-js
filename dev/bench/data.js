@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705519974364,
+  "lastUpdate": 1705520546232,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4254,6 +4254,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.82%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e9df7ce5dfa690aef838d6ba59d91c788c7f87d2",
+          "message": "Support state parameter on silent requests (#6819)\n\nAdds support for `state` parameter on silent requests",
+          "timestamp": "2024-01-17T19:36:37Z",
+          "tree_id": "8c8207c24bd9cac9f1aa164f822924c25c57e673",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e9df7ce5dfa690aef838d6ba59d91c788c7f87d2"
+        },
+        "date": 1705520545162,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 179080,
+            "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 177231,
+            "range": "±1.72%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
           }
         ]
       }
