@@ -331,8 +331,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.browserStorage,
             authorityOptions,
             this.logger,
-            this.performanceClient,
-            this.correlationId
+            this.correlationId,
+            this.performanceClient
         );
     }
 

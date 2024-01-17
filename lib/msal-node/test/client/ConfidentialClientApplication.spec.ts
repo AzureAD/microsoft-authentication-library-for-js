@@ -1,5 +1,4 @@
 import {
-    ClientConfiguration,
     AuthorizationCodeClient,
     RefreshTokenClient,
     AuthenticationResult,
@@ -20,10 +19,6 @@ import {
     ClientCredentialClient,
     RefreshTokenRequest,
 } from "../../src";
-import {
-    fakeAuthority,
-    setupAuthorityFactory_createDiscoveredInstance_mock,
-} from "./test-fixtures";
 
 import * as msalNode from "../../src";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils";
@@ -43,17 +38,6 @@ describe("ConfidentialClientApplication", () => {
         },
     };
 
-    const expectedConfig: ClientConfiguration = {
-        authOptions: {
-            clientId: TEST_CONSTANTS.CLIENT_ID,
-            authority: fakeAuthority,
-            clientCapabilities: [],
-        },
-        clientCredentials: {
-            clientSecret: TEST_CONSTANTS.CLIENT_SECRET,
-        },
-    };
-
     test("exports a class", () => {
         const authApp = new ConfidentialClientApplication(appConfig);
         expect(authApp).toBeInstanceOf(ConfidentialClientApplication);
@@ -66,10 +50,8 @@ describe("ConfidentialClientApplication", () => {
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
         };
 
-        setupAuthorityFactory_createDiscoveredInstance_mock();
         const mockAuthCodeClientInstance = {
             includeRedirectUri: false,
-
             acquireToken: jest.fn(),
         };
         jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
@@ -80,9 +62,6 @@ describe("ConfidentialClientApplication", () => {
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenByCode(request);
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
-        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("acquireTokenByRefreshToken", async () => {
@@ -90,8 +69,6 @@ describe("ConfidentialClientApplication", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
-
-        setupAuthorityFactory_createDiscoveredInstance_mock();
 
         const { RefreshTokenClient: mockRefreshTokenClient } =
             getMsalCommonAutoMock();
@@ -111,9 +88,6 @@ describe("ConfidentialClientApplication", () => {
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
-        expect(RefreshTokenClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("acquireTokenByClientCredential", async () => {
@@ -141,7 +115,6 @@ describe("ConfidentialClientApplication", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: false,
         };
-        setupAuthorityFactory_createDiscoveredInstance_mock();
 
         const authApp = new ConfidentialClientApplication(
             configWithExtensibility
@@ -158,7 +131,6 @@ describe("ConfidentialClientApplication", () => {
             skipCache: false,
             clientAssertion: "testAssertion",
         };
-        setupAuthorityFactory_createDiscoveredInstance_mock();
 
         ClientCredentialClient.prototype.acquireToken = jest.fn(
             (request: CommonClientCredentialRequest) => {
@@ -183,16 +155,11 @@ describe("ConfidentialClientApplication", () => {
             oboAssertion: TEST_CONSTANTS.ACCESS_TOKEN,
         };
 
-        setupAuthorityFactory_createDiscoveredInstance_mock();
-
         const onBehalfOfClientSpy = jest.spyOn(msalNode, "OnBehalfOfClient");
 
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenOnBehalfOf(request);
         expect(onBehalfOfClientSpy).toHaveBeenCalledTimes(1);
-        expect(onBehalfOfClientSpy).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test("acquireTokenByUsernamePassword", async () => {
@@ -202,8 +169,6 @@ describe("ConfidentialClientApplication", () => {
             password: TEST_CONSTANTS.PASSWORD,
         };
 
-        setupAuthorityFactory_createDiscoveredInstance_mock();
-
         const usernamePasswordClientSpy = jest.spyOn(
             msalNode,
             "UsernamePasswordClient"
@@ -212,9 +177,6 @@ describe("ConfidentialClientApplication", () => {
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenByUsernamePassword(request);
         expect(usernamePasswordClientSpy).toHaveBeenCalledTimes(1);
-        expect(usernamePasswordClientSpy).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
     });
 
     test('acquireTokenByClientCredential throws missingTenantIdError if "common", ""organization", or "consumers" was provided as the tenant id', async () => {
@@ -243,8 +205,6 @@ describe("ConfidentialClientApplication", () => {
             skipCache: false,
         };
 
-        setupAuthorityFactory_createDiscoveredInstance_mock();
-
         const authApp = new ConfidentialClientApplication(appConfig);
         authApp.SetAppTokenProvider(testProvider);
 
@@ -260,8 +220,6 @@ describe("ConfidentialClientApplication", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: false,
         };
-
-        setupAuthorityFactory_createDiscoveredInstance_mock();
 
         jest.spyOn(AuthError.prototype, "setCorrelationId");
 
@@ -288,8 +246,6 @@ describe("ConfidentialClientApplication", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: false,
         };
-
-        setupAuthorityFactory_createDiscoveredInstance_mock();
 
         jest.spyOn(
             ClientCredentialClient.prototype,

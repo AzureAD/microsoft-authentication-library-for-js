@@ -2,6 +2,100 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 09 Jan 2024 00:03:25 GMT",
+      "version": "14.6.0",
+      "tag": "@azure/msal-common_v14.6.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Dynamically load BrowserPerformanceMeasurement to capture browser perf measurements if session storage flag is set #6748"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Don't lookup tokens until they are needed"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Handle bad_token by removing bad refresh token from cache #6757"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Convert ThrottlingEntity into a Type"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Refactor AuthorityMetadataEntity into type"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Refactor appMetadataEntity into Type"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Check RT expiration before attempting to redeem it #6703"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Fix external account loading #6744"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Fix token refreshes with relative redirectUri #6761"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 01 Dec 2023 18:46:06 GMT",
+      "version": "14.5.0",
+      "tag": "@azure/msal-common_v14.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Turn on return-await lint rule #6678"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Move AADServerParamKeys to individual exports #6701"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Add support for Multi-tenant accounts and cross-tenant token caching #6466"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Nov 2023 00:01:50 GMT",
       "version": "14.4.0",
       "tag": "@azure/msal-common_v14.4.0",

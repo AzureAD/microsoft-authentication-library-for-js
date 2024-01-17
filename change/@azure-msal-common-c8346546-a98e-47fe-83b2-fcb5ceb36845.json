@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Move AADServerParamKeys to individual exports #6701",
+  "comment": "Fix bug affecting metadata resolution for tenanted authorities",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

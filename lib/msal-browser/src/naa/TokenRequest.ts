@@ -4,12 +4,11 @@
  */
 
 export type TokenRequest = {
-    userObjectId?: string; // Account identifier used by OneAuth
+    platformBrokerId?: string; // Account identifier used by OneAuth
     clientId: string;
     authority?: string;
     scope: string;
     correlationId: string;
-    nonce?: string;
     claims?: string;
     state?: string;
     reqCnf?: string; // Having OneAuth own the keypair is better for hardware token binding support

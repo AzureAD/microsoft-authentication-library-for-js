@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix bug causing temporary cache not to be cleared #6676",
+  "comment": "Fix bug affecting metadata resolution for tenanted authorities",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

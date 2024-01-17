@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Turn on return-await lint rule #6678",
+  "comment": "Fix bug affecting metadata resolution for tenanted authorities",
   "packageName": "@azure/msal-node",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
