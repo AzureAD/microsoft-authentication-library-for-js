@@ -11,7 +11,6 @@ import {
     LogLevel,
     LoggerOptions,
     AccountInfo,
-    AuthorityFactory,
     CommonAuthorizationCodeRequest,
     AuthenticationResult,
     AuthorizationCodeClient,
@@ -82,7 +81,7 @@ class TestInteractionHandler extends InteractionHandler {
 
 const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
     authenticationScheme: AuthenticationScheme.BEARER,
-    authority: "",
+    authority: TEST_CONFIG.validAuthority,
     redirectUri: TEST_URIS.TEST_REDIR_URI,
     scopes: ["scope1", "scope2"],
     code: "",
@@ -171,11 +170,10 @@ let authConfig: ClientConfiguration;
 
 describe("InteractionHandler.ts Unit Tests", () => {
     let authCodeModule: AuthorizationCodeClient;
-    let browserRequestLogger: Logger;
     let browserStorage: BrowserCacheManager;
     const cryptoOpts = new CryptoOps(testBrowserRequestLogger);
 
-    beforeEach(() => {
+    beforeEach(async () => {
         const appConfig: Configuration = {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -193,13 +191,21 @@ describe("InteractionHandler.ts Unit Tests", () => {
             piiLoggingEnabled: true,
         };
         const logger: Logger = new Logger(loggerOptions);
-        authorityInstance = AuthorityFactory.createInstance(
+        browserStorage = new BrowserCacheManager(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            configObj.cache,
+            cryptoOpts,
+            logger
+        );
+        authorityInstance = new Authority(
             configObj.auth.authority,
             networkInterface,
             browserStorage,
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
+        await authorityInstance.resolveEndpointsAsync();
         authConfig = {
             authOptions: {
                 ...configObj.auth,
@@ -232,13 +238,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
             loggerOptions: loggerOptions,
         };
         authCodeModule = new AuthorizationCodeClient(authConfig);
-        browserRequestLogger = new Logger(authConfig.loggerOptions!);
-        browserStorage = new BrowserCacheManager(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            configObj.cache,
-            cryptoOpts,
-            logger
-        );
     });
 
     afterEach(() => {
@@ -272,7 +271,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 code: "authcode",
                 nonce: idTokenClaims.nonce,
                 state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                cloud_instance_host_name: "contoso.com",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -319,29 +317,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 TemporaryCacheKeys.CCS_CREDENTIAL,
                 CcsCredentialType.UPN
             );
-
-            sinon.stub(Authority.prototype, "isAlias").returns(false);
-            const authorityOptions: AuthorityOptions = {
-                protocolMode: ProtocolMode.AAD,
-                knownAuthorities: ["www.contoso.com"],
-                cloudDiscoveryMetadata: "",
-                authorityMetadata: "",
-            };
-            const authority = new Authority(
-                "https://www.contoso.com/common/",
-                networkInterface,
-                browserStorage,
-                authorityOptions,
-                browserRequestLogger
-            );
-            sinon
-                .stub(AuthorityFactory, "createDiscoveredInstance")
-                .resolves(authority);
-            sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
-            const updateAuthoritySpy = sinon.spy(
-                AuthorizationCodeClient.prototype,
-                "updateAuthority"
-            );
             const acquireTokenSpy = sinon
                 .stub(AuthorizationCodeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
@@ -355,7 +330,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 await interactionHandler.handleCodeResponseFromServer(
                     testCodeResponse,
                     {
-                        authority: "https://www.contoso.com/common/",
+                        authority: TEST_CONFIG.validAuthority,
                         scopes: ["User.Read"],
                         correlationId: TEST_CONFIG.CORRELATION_ID,
                         redirectUri: "/",
@@ -365,12 +340,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     }
                 );
 
-            expect(
-                updateAuthoritySpy.calledWith(
-                    "contoso.com",
-                    TEST_CONFIG.CORRELATION_ID
-                )
-            ).toBe(true);
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 acquireTokenSpy.calledWith(
@@ -400,7 +369,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 code: "authcode",
                 nonce: idTokenClaims.nonce,
                 state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                cloud_instance_host_name: "contoso.com",
+                cloud_instance_host_name: "login.windows.net",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -444,24 +413,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     "handleFragmentResponse"
                 )
                 .returns(testCodeResponse);
-            sinon.stub(Authority.prototype, "isAlias").returns(false);
-            const authorityOptions: AuthorityOptions = {
-                protocolMode: ProtocolMode.AAD,
-                knownAuthorities: ["www.contoso.com"],
-                cloudDiscoveryMetadata: "",
-                authorityMetadata: "",
-            };
-            const authority = new Authority(
-                "https://www.contoso.com/common/",
-                networkInterface,
-                browserStorage,
-                authorityOptions,
-                browserRequestLogger
-            );
-            sinon
-                .stub(AuthorityFactory, "createDiscoveredInstance")
-                .resolves(authority);
-            sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
             const updateAuthoritySpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
                 "updateAuthority"
@@ -480,7 +431,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 },
                 {
-                    authority: "https://www.contoso.com/common/",
+                    authority: TEST_CONFIG.validAuthority,
                     scopes: ["User.Read"],
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     redirectUri: "/",
@@ -491,7 +442,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             );
             expect(
                 updateAuthoritySpy.calledWith(
-                    "contoso.com",
+                    testCodeResponse.cloud_instance_host_name,
                     TEST_CONFIG.CORRELATION_ID
                 )
             ).toBe(true);
@@ -521,7 +472,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 code: "authcode",
                 nonce: idTokenClaims.nonce,
                 state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                cloud_instance_host_name: "contoso.com",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -574,28 +524,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     "handleFragmentResponse"
                 )
                 .returns(testCodeResponse);
-            sinon.stub(Authority.prototype, "isAlias").returns(false);
-            const authorityOptions: AuthorityOptions = {
-                protocolMode: ProtocolMode.AAD,
-                knownAuthorities: ["www.contoso.com"],
-                cloudDiscoveryMetadata: "",
-                authorityMetadata: "",
-            };
-            const authority = new Authority(
-                "https://www.contoso.com/common/",
-                networkInterface,
-                browserStorage,
-                authorityOptions,
-                browserRequestLogger
-            );
-            sinon
-                .stub(AuthorityFactory, "createDiscoveredInstance")
-                .resolves(authority);
-            sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
-            const updateAuthoritySpy = sinon.spy(
-                AuthorizationCodeClient.prototype,
-                "updateAuthority"
-            );
             const acquireTokenSpy = sinon
                 .stub(AuthorizationCodeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
@@ -610,7 +538,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 },
                 {
-                    authority: "https://www.contoso.com/common/",
+                    authority: TEST_CONFIG.validAuthority,
                     scopes: ["User.Read"],
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     redirectUri: "/",
@@ -619,12 +547,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 }
             );
-            expect(
-                updateAuthoritySpy.calledWith(
-                    "contoso.com",
-                    TEST_CONFIG.CORRELATION_ID
-                )
-            ).toBe(true);
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 acquireTokenSpy.calledWith(
