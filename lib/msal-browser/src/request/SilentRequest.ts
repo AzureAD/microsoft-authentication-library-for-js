@@ -45,5 +45,6 @@ export type SilentRequest = Omit<
     forceRefresh?: boolean;
     cacheLookupPolicy?: CacheLookupPolicy;
     prompt?: string;
+    state?: string;
     tokenBodyParameters?: StringDict;
 };
