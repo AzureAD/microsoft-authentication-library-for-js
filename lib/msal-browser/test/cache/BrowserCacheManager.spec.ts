@@ -347,7 +347,8 @@ describe("BrowserCacheManager tests", () => {
                     cloudDiscoveryMetadata: "",
                     knownAuthorities: [],
                 },
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             // Pre-populate localstorage with accounts
             const testAccount = AccountEntity.createAccount(
@@ -425,7 +426,8 @@ describe("BrowserCacheManager tests", () => {
                     cloudDiscoveryMetadata: "",
                     knownAuthorities: [],
                 },
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             sinon
                 .stub(Authority.prototype, "getPreferredCache")
@@ -1615,7 +1617,8 @@ describe("BrowserCacheManager tests", () => {
                     cloudDiscoveryMetadata: "",
                     knownAuthorities: [],
                 },
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
             sinon
                 .stub(Authority.prototype, "getPreferredCache")
