@@ -866,10 +866,7 @@ export class BrowserCacheManager extends CacheManager {
         const parsedMetadata = this.validateAndParseJson(value);
         if (
             !parsedMetadata ||
-            !AppMetadataEntity.isAppMetadataEntity(
-                appMetadataKey,
-                parsedMetadata
-            )
+            !CacheHelpers.isAppMetadataEntity(appMetadataKey, parsedMetadata)
         ) {
             this.logger.trace(
                 "BrowserCacheManager.getAppMetadata: called, no cache hit"
@@ -878,7 +875,7 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         this.logger.trace("BrowserCacheManager.getAppMetadata: cache hit");
-        return CacheManager.toObject(new AppMetadataEntity(), parsedMetadata);
+        return parsedMetadata as AppMetadataEntity;
     }
 
     /**
@@ -887,7 +884,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     setAppMetadata(appMetadata: AppMetadataEntity): void {
         this.logger.trace("BrowserCacheManager.setAppMetadata called");
-        const appMetadataKey = appMetadata.generateAppMetadataKey();
+        const appMetadataKey = CacheHelpers.generateAppMetadataKey(appMetadata);
         this.setItem(appMetadataKey, JSON.stringify(appMetadata));
     }
 
@@ -950,18 +947,12 @@ export class BrowserCacheManager extends CacheManager {
         const parsedMetadata = this.validateAndParseJson(value);
         if (
             parsedMetadata &&
-            AuthorityMetadataEntity.isAuthorityMetadataEntity(
-                key,
-                parsedMetadata
-            )
+            CacheHelpers.isAuthorityMetadataEntity(key, parsedMetadata)
         ) {
             this.logger.trace(
                 "BrowserCacheManager.getAuthorityMetadata: cache hit"
             );
-            return CacheManager.toObject(
-                new AuthorityMetadataEntity(),
-                parsedMetadata
-            );
+            return parsedMetadata as AuthorityMetadataEntity;
         }
         return null;
     }
@@ -1119,7 +1110,7 @@ export class BrowserCacheManager extends CacheManager {
         const parsedThrottlingCache = this.validateAndParseJson(value);
         if (
             !parsedThrottlingCache ||
-            !ThrottlingEntity.isThrottlingEntity(
+            !CacheHelpers.isThrottlingEntity(
                 throttlingCacheKey,
                 parsedThrottlingCache
             )
@@ -1131,10 +1122,7 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         this.logger.trace("BrowserCacheManager.getThrottlingCache: cache hit");
-        return CacheManager.toObject(
-            new ThrottlingEntity(),
-            parsedThrottlingCache
-        );
+        return parsedThrottlingCache as ThrottlingEntity;
     }
 
     /**

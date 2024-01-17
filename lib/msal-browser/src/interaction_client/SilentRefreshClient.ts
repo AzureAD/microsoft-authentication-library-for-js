@@ -44,6 +44,14 @@ export class SilentRefreshClient extends StandardInteractionClient {
             ...request,
             ...baseRequest,
         };
+
+        if (request.redirectUri) {
+            // Make sure any passed redirectUri is converted to an absolute URL - redirectUri is not a required parameter for refresh token redemption so only include if explicitly provided
+            silentRequest.redirectUri = this.getRedirectUri(
+                request.redirectUri
+            );
+        }
+
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow
         );

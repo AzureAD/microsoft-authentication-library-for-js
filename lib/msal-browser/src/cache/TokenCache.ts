@@ -31,6 +31,7 @@ import {
 } from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { base64Decode } from "../encode/Base64Decode";
+import * as BrowserCrypto from "../crypto/BrowserCrypto";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -142,7 +143,8 @@ export class TokenCache implements ITokenCache {
                 this.config.system.networkClient,
                 this.storage,
                 authorityOptions,
-                this.logger
+                this.logger,
+                request.correlationId || BrowserCrypto.createNewGuid()
             );
 
             // "clientInfo" from options takes precedence over "clientInfo" in response

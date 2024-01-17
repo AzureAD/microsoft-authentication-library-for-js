@@ -49,7 +49,6 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { Logger } from "../logger/Logger";
 import { name, version } from "../packageMetadata";
 import { StoreInCache } from "../request/StoreInCache";
-import { getTenantFromAuthorityString } from "../authority/Authority";
 import { getAliasesFromStaticSources } from "../authority/AuthorityMetadata";
 import { StaticAuthorityOptions } from "../authority/AuthorityOptions";
 import { TokenClaims } from "../account/TokenClaims";
@@ -1126,59 +1125,6 @@ export abstract class CacheManager implements ICacheManager {
         });
 
         return true;
-    }
-
-    /**
-     * Retrieve the cached credentials into a cacherecord
-     * @param account {AccountInfo}
-     * @param request {BaseAuthRequest}
-     * @param environment {string}
-     * @param performanceClient {?IPerformanceClient}
-     * @param correlationId {?string}
-     */
-    readCacheRecord(
-        account: AccountInfo,
-        request: BaseAuthRequest,
-        environment: string,
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
-    ): CacheRecord {
-        // Use authority tenantId for cache lookup filter if it's defined, otherwise use tenantId from account passed in
-        const requestTenantId =
-            account.tenantId || getTenantFromAuthorityString(request.authority);
-        const tokenKeys = this.getTokenKeys();
-        const cachedAccount = this.readAccountFromCache(account);
-        const cachedIdToken = this.getIdToken(
-            account,
-            tokenKeys,
-            requestTenantId,
-            performanceClient,
-            correlationId
-        );
-        const cachedAccessToken = this.getAccessToken(
-            account,
-            request,
-            tokenKeys,
-            requestTenantId,
-            performanceClient,
-            correlationId
-        );
-        const cachedRefreshToken = this.getRefreshToken(
-            account,
-            false,
-            tokenKeys,
-            performanceClient,
-            correlationId
-        );
-        const cachedAppMetadata = this.readAppMetadataFromCache(environment);
-
-        return {
-            account: cachedAccount,
-            idToken: cachedIdToken,
-            accessToken: cachedAccessToken,
-            refreshToken: cachedRefreshToken,
-            appMetadata: cachedAppMetadata,
-        };
     }
 
     /**

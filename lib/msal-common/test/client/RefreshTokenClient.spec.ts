@@ -19,6 +19,7 @@ import {
     AUTHENTICATION_RESULT_WITH_HEADERS,
     CORS_RESPONSE_HEADERS,
     TEST_SSH_VALUES,
+    BAD_TOKEN_ERROR_RESPONSE,
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import {
@@ -52,6 +53,7 @@ import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
 import {
+    InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     createInteractionRequiredAuthError,
 } from "../../src/error/InteractionRequiredAuthError";
@@ -59,6 +61,7 @@ import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerfo
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -68,9 +71,11 @@ testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
 testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
 testAccountEntity.authorityType = "MSSTS";
 
-const testAppMetadata: AppMetadataEntity = new AppMetadataEntity();
-testAppMetadata.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testAppMetadata.familyId = TEST_CONFIG.THE_FAMILY_ID;
+const testAppMetadata: AppMetadataEntity = {
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: TEST_CONFIG.validAuthorityHost,
+    familyId: TEST_CONFIG.THE_FAMILY_ID,
+};
 
 const testRefreshTokenEntity: RefreshTokenEntity = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -1368,6 +1373,69 @@ describe("RefreshTokenClient unit tests", () => {
                     InteractionRequiredAuthErrorCodes.refreshTokenExpired
                 )
             );
+        });
+
+        it("Removes refresh token if server returns invalid_grant with bad_token suberror", async () => {
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface!.setAccount(testAccountEntity);
+            config.storageInterface!.setRefreshTokenCredential(
+                testRefreshTokenEntity
+            );
+            config.storageInterface!.setAppMetadata(testAppMetadata);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const testAccount: AccountInfo =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
+            sinon
+                .stub(
+                    RefreshTokenClient.prototype,
+                    <any>"executePostToTokenEndpoint"
+                )
+                .resolves(BAD_TOKEN_ERROR_RESPONSE);
+
+            const serverResponse = BAD_TOKEN_ERROR_RESPONSE.body;
+            const invalidGrantAuthError = new InteractionRequiredAuthError(
+                serverResponse.error,
+                serverResponse.error_description,
+                serverResponse.suberror,
+                serverResponse.timestamp || Constants.EMPTY_STRING,
+                serverResponse.trace_id || Constants.EMPTY_STRING,
+                serverResponse.correlation_id || Constants.EMPTY_STRING,
+                // @ts-ignore
+                serverResponse.claims || Constants.EMPTY_STRING
+            );
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+
+            const badRefreshTokenKey = generateCredentialKey(
+                testRefreshTokenEntity
+            );
+
+            expect(
+                config.storageInterface!.getRefreshTokenCredential(
+                    badRefreshTokenKey
+                )
+            ).toBe(testRefreshTokenEntity);
+
+            await expect(
+                client.acquireTokenByRefreshToken(silentFlowRequest)
+            ).rejects.toMatchObject(invalidGrantAuthError);
+
+            expect(
+                config.storageInterface!.getRefreshTokenCredential(
+                    badRefreshTokenKey
+                )
+            ).toBe(null);
         });
     });
     describe("Telemetry protocol mode tests", () => {

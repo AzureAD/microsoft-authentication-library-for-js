@@ -91,7 +91,7 @@ export class NodeStorage extends CacheManager {
                 inMemoryCache.accessTokens[key] = value as AccessTokenEntity;
             } else if (CacheHelpers.isRefreshTokenEntity(value)) {
                 inMemoryCache.refreshTokens[key] = value as RefreshTokenEntity;
-            } else if (value instanceof AppMetadataEntity) {
+            } else if (CacheHelpers.isAppMetadataEntity(key, value)) {
                 inMemoryCache.appMetadata[key] = value as AppMetadataEntity;
             } else {
                 continue;
@@ -322,9 +322,7 @@ export class NodeStorage extends CacheManager {
         const appMetadata: AppMetadataEntity = this.getItem(
             appMetadataKey
         ) as AppMetadataEntity;
-        if (
-            AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)
-        ) {
+        if (CacheHelpers.isAppMetadataEntity(appMetadataKey, appMetadata)) {
             return appMetadata;
         }
         return null;
@@ -335,7 +333,7 @@ export class NodeStorage extends CacheManager {
      * @param appMetadata - cache value to be set of type AppMetadataEntity
      */
     setAppMetadata(appMetadata: AppMetadataEntity): void {
-        const appMetadataKey = appMetadata.generateAppMetadataKey();
+        const appMetadataKey = CacheHelpers.generateAppMetadataKey(appMetadata);
         this.setItem(appMetadataKey, appMetadata);
     }
 
@@ -383,10 +381,7 @@ export class NodeStorage extends CacheManager {
         ) as AuthorityMetadataEntity;
         if (
             authorityMetadataEntity &&
-            AuthorityMetadataEntity.isAuthorityMetadataEntity(
-                key,
-                authorityMetadataEntity
-            )
+            CacheHelpers.isAuthorityMetadataEntity(key, authorityMetadataEntity)
         ) {
             return authorityMetadataEntity;
         }
@@ -421,10 +416,7 @@ export class NodeStorage extends CacheManager {
         ) as ThrottlingEntity;
         if (
             throttlingCache &&
-            ThrottlingEntity.isThrottlingEntity(
-                throttlingCacheKey,
-                throttlingCache
-            )
+            CacheHelpers.isThrottlingEntity(throttlingCacheKey, throttlingCache)
         ) {
             return throttlingCache;
         }
