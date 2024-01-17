@@ -184,6 +184,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             NavigationClient.prototype,
             "navigateInternal"
         ).mockImplementation();
+
+        jest.spyOn(
+            CacheManager.prototype,
+            "getAuthorityMetadataByAlias"
+        ).mockImplementation((host) => {
+            const authorityMetadata: AuthorityMetadataEntity = {
+                aliases: [host],
+                preferred_cache: host,
+                preferred_network: host,
+                aliasesFromNetwork: false,
+                canonical_authority: host,
+                authorization_endpoint: "",
+                token_endpoint: "",
+                end_session_endpoint: "",
+                issuer: "",
+                jwks_uri: "",
+                endpointsFromNetwork: false,
+                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            };
+            return authorityMetadata;
+        });
     });
 
     afterEach(() => {
@@ -3287,7 +3308,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
             });
 
-            expect(response).toBe(testTokenResponse);
+            expect(response).toEqual(testTokenResponse);
             expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
             expect(silentSpy.calledOnce).toBeTruthy();
         });
@@ -3374,6 +3395,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3390,6 +3412,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
@@ -3419,6 +3442,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3434,6 +3458,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy.calledOnce).toBe(true);
@@ -3462,6 +3487,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3481,6 +3507,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy.calledOnce).toBe(true);
@@ -3509,6 +3536,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3527,6 +3555,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy.calledOnce).toBe(true);
@@ -5088,21 +5117,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
             await pca.initialize();
 
-            sinon
-                .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
-                .callsFake((host) => {
-                    const authorityMetadata = new AuthorityMetadataEntity();
-                    authorityMetadata.updateCloudDiscoveryMetadata(
-                        {
-                            aliases: [host],
-                            preferred_cache: host,
-                            preferred_network: host,
-                        },
-                        false
-                    );
-                    return authorityMetadata;
-                });
-
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount);
             // @ts-ignore
@@ -5172,20 +5186,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         beforeEach(async () => {
             pca = (pca as any).controller;
             await pca.initialize();
-            sinon
-                .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
-                .callsFake((host) => {
-                    const authorityMetadata = new AuthorityMetadataEntity();
-                    authorityMetadata.updateCloudDiscoveryMetadata(
-                        {
-                            aliases: [host],
-                            preferred_cache: host,
-                            preferred_network: host,
-                        },
-                        false
-                    );
-                    return authorityMetadata;
-                });
 
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount1);
@@ -5418,21 +5418,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.getBrowserStorage().setIdTokenCredential(idToken1);
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken2);
-
-            sinon
-                .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
-                .callsFake((host) => {
-                    const authorityMetadata = new AuthorityMetadataEntity();
-                    authorityMetadata.updateCloudDiscoveryMetadata(
-                        {
-                            aliases: [host],
-                            preferred_cache: host,
-                            preferred_network: host,
-                        },
-                        false
-                    );
-                    return authorityMetadata;
-                });
         });
 
         afterEach(() => {

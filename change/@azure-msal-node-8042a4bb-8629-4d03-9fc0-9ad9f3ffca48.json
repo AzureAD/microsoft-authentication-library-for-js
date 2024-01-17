@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Convert ThrottlingEntity into a Type",
+  "comment": "Fix bug affecting metadata resolution for tenanted authorities",
   "packageName": "@azure/msal-node",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

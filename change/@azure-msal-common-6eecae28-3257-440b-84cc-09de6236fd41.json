@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Handle bad_token by removing bad refresh token from cache #6757",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

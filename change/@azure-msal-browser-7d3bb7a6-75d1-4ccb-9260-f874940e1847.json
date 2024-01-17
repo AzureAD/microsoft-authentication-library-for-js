@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Convert ThrottlingEntity into a Type",
+  "comment": "Support state on acquireTokenSilent",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

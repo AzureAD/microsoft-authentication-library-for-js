@@ -13,7 +13,6 @@ import {
     AccessTokenEntity,
     RefreshTokenEntity,
     ProtocolMode,
-    AuthorityFactory,
     AuthorityOptions,
     AuthorityMetadataEntity,
     ValidCredentialType,
@@ -24,6 +23,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     CacheHelpers,
+    Authority,
 } from "../../src";
 import {
     RANDOM_TEST_GUID,
@@ -142,7 +142,7 @@ export class MockStorageClass extends CacheManager {
         return this.store[key] as AppMetadataEntity;
     }
     setAppMetadata(value: AppMetadataEntity): void {
-        const key = value.generateAppMetadataKey();
+        const key = CacheHelpers.generateAppMetadataKey(value);
         this.store[key] = value;
     }
 
@@ -159,7 +159,7 @@ export class MockStorageClass extends CacheManager {
         return this.store[key] as AuthorityMetadataEntity;
     }
     setAuthorityMetadata(key: string, value: AuthorityMetadataEntity): void {
-        this.store[key] = value;
+        this.store[key] = { ...value };
     }
 
     // Throttling cache
@@ -285,12 +285,13 @@ export class ClientTestUtils {
         };
         const logger = new Logger(loggerOptions);
 
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             TEST_CONFIG.validAuthority,
             mockHttpClient,
             mockStorage,
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         await authority.resolveEndpointsAsync().catch((error) => {

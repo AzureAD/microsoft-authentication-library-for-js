@@ -1,8 +1,29 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Fri, 01 Dec 2023 18:46:06 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Jan 2024 00:03:25 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.7.0
+
+Tue, 09 Jan 2024 00:03:25 GMT
+
+### Minor changes
+
+- Dynamically load BrowserPerformanceMeasurement to capture browser perf measurements if session storage flag is set #6748 (kshabelko@microsoft.com)
+- Check RT expiration before attempting to redeem it #6703 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.6.0
+
+### Patches
+
+- Fix token refreshes with relative redirectUri #6761 (thomas.norling@microsoft.com)
+- Change Nested App Auth internal schema (#6737) (dasau@microsoft.com)
+- Allow overriding log level and PII setting with session storage key-values #6704 (kshabelko@microsoft.com)
+- Fix external account loading #6744 (hemoral@microsoft.com)
+- Handle bad_token by removing bad refresh token from cache #6757 (hemoral@microsoft.com)
+- Convert ThrottlingEntity into a Type (thomas.norling@microsoft.com)
+- Refactor AuthorityMetadataEntity into type (thomas.norling@microsoft.com)
+- Refactor appMetadataEntity into Type (thomas.norling@microsoft.com)
 
 ## 3.6.0
 
