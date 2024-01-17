@@ -109,3 +109,19 @@ const callbackId: string = msalInstance.addPerformanceCallback((events: Performa
 
 const removed: boolean = msalInstance.removePerformanceCallback(callbackId);
 ```
+
+### Measuring browser performance
+
+Browser performance measurements are disabled by default due to significant performance overhead they impose.
+Applications that want to enable performance measurements reported to the browser's performance timeline should:
+
+1. Open browser developer tools
+    - Edge, Chrome and Firefox browsers: press F12
+    - Safari: go into Safari's preferences (`Safari Menu` > `Preferences`), select the `Advanced Tab` and enable `Show features for web developers`. Once that menu is enabled, you will find the developer console by clicking on `Develop` > `Show Javascript Console`
+2. Navigate to `Session Storage`:
+    - [Edge](https://learn.microsoft.com/en-us/microsoft-edge/devtools-guide-chromium/storage/sessionstorage)
+    - [Chrome](https://developer.chrome.com/docs/devtools/storage/sessionstorage)
+    - [Firefox](https://firefox-source-docs.mozilla.org/devtools-user/storage_inspector/local_storage_session_storage)
+    - Safari: navigate to `Storage` tab and expand `Session Storage`
+3. Select target domain
+4. Add `msal.browser.performance.enabled` key to `Session Storage`, set it's value to `1`, refresh the page and check the browser's performance timeline.

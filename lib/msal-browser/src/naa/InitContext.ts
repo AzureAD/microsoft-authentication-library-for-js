@@ -5,7 +5,7 @@
 
 import { BridgeCapabilities } from "./BridgeCapabilities";
 
-export interface InitializeBridgeResponse {
+export interface InitContext {
     capabilities?: BridgeCapabilities;
     sdkName: string;
     sdkVersion: string;

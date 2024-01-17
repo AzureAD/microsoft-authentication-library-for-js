@@ -239,3 +239,14 @@ export const CacheLookupPolicy = {
 } as const;
 export type CacheLookupPolicy =
     (typeof CacheLookupPolicy)[keyof typeof CacheLookupPolicy];
+
+export const iFrameRenewalPolicies: CacheLookupPolicy[] = [
+    CacheLookupPolicy.Default,
+    CacheLookupPolicy.Skip,
+    CacheLookupPolicy.RefreshTokenAndNetwork,
+];
+
+export const LOG_LEVEL_CACHE_KEY = "msal.browser.log.level";
+export const LOG_PII_CACHE_KEY = "msal.browser.log.pii";
+
+export const BROWSER_PERF_ENABLED_KEY = "msal.browser.performance.enabled";

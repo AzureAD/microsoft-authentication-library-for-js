@@ -1302,36 +1302,25 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAppMetadata returns AppMetadataEntity", () => {
-                    const testAppMetadata =
-                        AppMetadataEntity.createAppMetadataEntity(
-                            "clientId",
-                            "environment",
-                            "familyid"
-                        );
+                    const testAppMetadata = {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        environment: "login.microsoftonline.com",
+                        familyId: "1",
+                    };
 
                     browserLocalStorage.setAppMetadata(testAppMetadata);
                     browserSessionStorage.setAppMetadata(testAppMetadata);
 
                     expect(
                         browserSessionStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
-                        )
-                    ).toEqual(testAppMetadata);
-                    expect(
-                        browserSessionStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
-                        )
-                    ).toBeInstanceOf(AppMetadataEntity);
-                    expect(
-                        browserLocalStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
+                            CacheHelpers.generateAppMetadataKey(testAppMetadata)
                         )
                     ).toEqual(testAppMetadata);
                     expect(
                         browserLocalStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
+                            CacheHelpers.generateAppMetadataKey(testAppMetadata)
                         )
-                    ).toBeInstanceOf(AppMetadataEntity);
+                    ).toEqual(testAppMetadata);
                 });
             });
 
@@ -1404,27 +1393,33 @@ describe("BrowserCacheManager tests", () => {
 
             describe("AuthorityMetadata", () => {
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
-                const testObj: AuthorityMetadataEntity =
-                    new AuthorityMetadataEntity();
-                testObj.aliases = [Constants.DEFAULT_AUTHORITY_HOST];
-                testObj.preferred_cache = Constants.DEFAULT_AUTHORITY_HOST;
-                testObj.preferred_network = Constants.DEFAULT_AUTHORITY_HOST;
-                testObj.canonical_authority = Constants.DEFAULT_AUTHORITY;
-                testObj.authorization_endpoint =
-                    //@ts-ignore
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint;
-                testObj.token_endpoint =
-                    //@ts-ignore
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint;
-                testObj.end_session_endpoint =
-                    //@ts-ignore
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint;
-                //@ts-ignore
-                testObj.issuer = DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer;
-                //@ts-ignore
-                testObj.jwks_uri = DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri;
-                testObj.aliasesFromNetwork = false;
-                testObj.endpointsFromNetwork = false;
+                const testObj: AuthorityMetadataEntity = {
+                    aliases: [Constants.DEFAULT_AUTHORITY_HOST],
+                    preferred_cache: Constants.DEFAULT_AUTHORITY_HOST,
+                    preferred_network: Constants.DEFAULT_AUTHORITY_HOST,
+                    canonical_authority: Constants.DEFAULT_AUTHORITY,
+                    authorization_endpoint:
+                        //@ts-ignore
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body
+                            .authorization_endpoint,
+                    token_endpoint:
+                        //@ts-ignore
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
+                    end_session_endpoint:
+                        //@ts-ignore
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body
+                            .end_session_endpoint,
+                    issuer:
+                        //@ts-ignore
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
+                    jwks_uri:
+                        //@ts-ignore
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri,
+                    aliasesFromNetwork: false,
+                    endpointsFromNetwork: false,
+                    expiresAt:
+                        CacheHelpers.generateAuthorityMetadataExpiresAt(),
+                };
 
                 it("getAuthorityMetadata() returns null if key is not in cache", () => {
                     expect(
@@ -1436,14 +1431,14 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAuthorityMetadata() returns null if isAuthorityMetadataEntity returns false", () => {
-                    sinon
-                        .stub(
-                            AuthorityMetadataEntity,
-                            "isAuthorityMetadataEntity"
-                        )
-                        .returns(false);
-                    browserSessionStorage.setAuthorityMetadata(key, testObj);
-                    browserLocalStorage.setAuthorityMetadata(key, testObj);
+                    browserSessionStorage.setAuthorityMetadata(key, {
+                        // @ts-ignore
+                        invalidKey: "invalidValue",
+                    });
+                    browserLocalStorage.setAuthorityMetadata(key, {
+                        // @ts-ignore
+                        invalidKey: "invalidValue",
+                    });
                     expect(
                         browserSessionStorage.getAuthorityMetadata(key)
                     ).toBeNull();
@@ -1561,8 +1556,9 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getThrottlingCache returns ThrottlingEntity", () => {
                     const testKey = "throttling";
-                    const testVal = new ThrottlingEntity();
-                    testVal.throttleTime = 60;
+                    const testVal = {
+                        throttleTime: 60,
+                    };
 
                     browserLocalStorage.setThrottlingCache(testKey, testVal);
                     browserSessionStorage.setThrottlingCache(testKey, testVal);
@@ -1570,15 +1566,10 @@ describe("BrowserCacheManager tests", () => {
                     expect(
                         browserSessionStorage.getThrottlingCache(testKey)
                     ).toEqual(testVal);
-                    expect(
-                        browserSessionStorage.getThrottlingCache(testKey)
-                    ).toBeInstanceOf(ThrottlingEntity);
+
                     expect(
                         browserLocalStorage.getThrottlingCache(testKey)
                     ).toEqual(testVal);
-                    expect(
-                        browserLocalStorage.getThrottlingCache(testKey)
-                    ).toBeInstanceOf(ThrottlingEntity);
                 });
             });
 
@@ -2210,36 +2201,25 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAppMetadata returns AppMetadataEntity", () => {
-                    const testAppMetadata =
-                        AppMetadataEntity.createAppMetadataEntity(
-                            "clientId",
-                            "environment",
-                            "familyid"
-                        );
+                    const testAppMetadata = {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        environment: "login.microsoftonline.com",
+                        familyId: "1",
+                    };
 
                     browserLocalStorage.setAppMetadata(testAppMetadata);
                     browserSessionStorage.setAppMetadata(testAppMetadata);
 
                     expect(
                         browserSessionStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
-                        )
-                    ).toEqual(testAppMetadata);
-                    expect(
-                        browserSessionStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
-                        )
-                    ).toBeInstanceOf(AppMetadataEntity);
-                    expect(
-                        browserLocalStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
+                            CacheHelpers.generateAppMetadataKey(testAppMetadata)
                         )
                     ).toEqual(testAppMetadata);
                     expect(
                         browserLocalStorage.getAppMetadata(
-                            testAppMetadata.generateAppMetadataKey()
+                            CacheHelpers.generateAppMetadataKey(testAppMetadata)
                         )
-                    ).toBeInstanceOf(AppMetadataEntity);
+                    ).toEqual(testAppMetadata);
                 });
             });
 
@@ -2312,27 +2292,33 @@ describe("BrowserCacheManager tests", () => {
 
             describe("AuthorityMetadata", () => {
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
-                const testObj: AuthorityMetadataEntity =
-                    new AuthorityMetadataEntity();
-                testObj.aliases = [Constants.DEFAULT_AUTHORITY_HOST];
-                testObj.preferred_cache = Constants.DEFAULT_AUTHORITY_HOST;
-                testObj.preferred_network = Constants.DEFAULT_AUTHORITY_HOST;
-                testObj.canonical_authority = Constants.DEFAULT_AUTHORITY;
-                testObj.authorization_endpoint =
-                    // @ts-ignore
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint;
-                testObj.token_endpoint =
-                    // @ts-ignore
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint;
-                testObj.end_session_endpoint =
-                    // @ts-ignore
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint;
-                // @ts-ignore
-                testObj.issuer = DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer;
-                // @ts-ignore
-                testObj.jwks_uri = DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri;
-                testObj.aliasesFromNetwork = false;
-                testObj.endpointsFromNetwork = false;
+                const testObj: AuthorityMetadataEntity = {
+                    aliases: [Constants.DEFAULT_AUTHORITY_HOST],
+                    preferred_cache: Constants.DEFAULT_AUTHORITY_HOST,
+                    preferred_network: Constants.DEFAULT_AUTHORITY_HOST,
+                    canonical_authority: Constants.DEFAULT_AUTHORITY,
+                    authorization_endpoint:
+                        //@ts-ignore
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body
+                            .authorization_endpoint,
+                    token_endpoint:
+                        //@ts-ignore
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
+                    end_session_endpoint:
+                        //@ts-ignore
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body
+                            .end_session_endpoint,
+                    issuer:
+                        //@ts-ignore
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
+                    jwks_uri:
+                        //@ts-ignore
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri,
+                    aliasesFromNetwork: false,
+                    endpointsFromNetwork: false,
+                    expiresAt:
+                        CacheHelpers.generateAuthorityMetadataExpiresAt(),
+                };
 
                 it("getAuthorityMetadata() returns null if key is not in cache", () => {
                     expect(
@@ -2344,14 +2330,14 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAuthorityMetadata() returns null if isAuthorityMetadataEntity returns false", () => {
-                    sinon
-                        .stub(
-                            AuthorityMetadataEntity,
-                            "isAuthorityMetadataEntity"
-                        )
-                        .returns(false);
-                    browserSessionStorage.setAuthorityMetadata(key, testObj);
-                    browserLocalStorage.setAuthorityMetadata(key, testObj);
+                    browserSessionStorage.setAuthorityMetadata(key, {
+                        // @ts-ignore
+                        invalidKey: "invalidValue",
+                    });
+                    browserLocalStorage.setAuthorityMetadata(key, {
+                        // @ts-ignore
+                        invalidKey: "invalidValue",
+                    });
 
                     expect(
                         browserSessionStorage.getAuthorityMetadata(key)
@@ -2470,8 +2456,7 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getThrottlingCache returns ThrottlingEntity", () => {
                     const testKey = "throttling";
-                    const testVal = new ThrottlingEntity();
-                    testVal.throttleTime = 60;
+                    const testVal = { throttleTime: 60 };
 
                     browserLocalStorage.setThrottlingCache(testKey, testVal);
                     browserSessionStorage.setThrottlingCache(testKey, testVal);
@@ -2480,14 +2465,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getThrottlingCache(testKey)
                     ).toEqual(testVal);
                     expect(
-                        browserSessionStorage.getThrottlingCache(testKey)
-                    ).toBeInstanceOf(ThrottlingEntity);
-                    expect(
                         browserLocalStorage.getThrottlingCache(testKey)
                     ).toEqual(testVal);
-                    expect(
-                        browserLocalStorage.getThrottlingCache(testKey)
-                    ).toBeInstanceOf(ThrottlingEntity);
                 });
             });
 

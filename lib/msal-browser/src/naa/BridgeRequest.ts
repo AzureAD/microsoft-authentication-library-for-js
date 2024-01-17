@@ -3,10 +3,14 @@
  * Licensed under the MIT License.
  */
 
-export type BridgeRequest<TResponse> = {
+import { BridgeResponseEnvelope } from "./BridgeResponseEnvelope";
+
+export type BridgeRequest = {
     requestId: string;
     method: string;
-    resolve: (value: TResponse | PromiseLike<TResponse>) => void;
+    resolve: (
+        value: BridgeResponseEnvelope | PromiseLike<BridgeResponseEnvelope>
+    ) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     reject: (reason?: any) => void;
 };
