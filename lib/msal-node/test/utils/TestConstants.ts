@@ -19,7 +19,7 @@ export const TEST_CONSTANTS = {
     CLIENT_ID: "b41a6fbb-c728-4e03-aa59-d25b0fd383b6",
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     AUTHORITY: "https://login.microsoftonline.com/TenantId",
-    ALTERNATE_AUTHORITY: "https://login.microsoftonline.com/alternate",
+    ALTERNATE_AUTHORITY: "https://login.microsoftonline.com/alternate/",
     USGOV_AUTHORITY: "https://login.microsoftonline.us/common/",
     REDIRECT_URI: "http://localhost:8080",
     CLIENT_SECRET: "MOCK_CLIENT_SECRET",
