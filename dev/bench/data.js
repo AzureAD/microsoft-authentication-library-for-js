@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705521825853,
+  "lastUpdate": 1705522617391,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4368,6 +4368,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.70%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e6b89ba6da08052a4ad045c9b4e8620ba604c3d5",
+          "message": "Bump msgpackr from 1.9.7 to 1.10.1 (#6792)\n\nBumps [msgpackr](https://github.com/kriszyp/msgpackr) from 1.9.7 to\r\n1.10.1.\r\n<details>\r\n<summary>Commits</summary>\r\n<ul>\r\n<li><a\r\nhref=\"https://github.com/kriszyp/msgpackr/commit/50bcdb8e312b45d9fcbd911c961d5ad31ef24019\"><code>50bcdb8</code></a>\r\nUpdate version</li>\r\n<li><a\r\nhref=\"https://github.com/kriszyp/msgpackr/commit/4e7657bca114ddf24696f943ace648c96783aa7c\"><code>4e7657b</code></a>\r\nAllow structuredClone to be explicitly turned off for the decoder</li>\r\n<li><a\r\nhref=\"https://github.com/kriszyp/msgpackr/commit/18f44f8800e2261341cdf489d1ba1e35a0133602\"><code>18f44f8</code></a>\r\nEnsure that string conversion doesn't recursively join or execute\r\ncode</li>\r\n<li><a\r\nhref=\"https://github.com/kriszyp/msgpackr/commit/cc6a0f17c2e439f9f194768e33ae8280e3a73fd7\"><code>cc6a0f1</code></a>\r\nUpdate version</li>\r\n<li><a\r\nhref=\"https://github.com/kriszyp/msgpackr/commit/cc8e177d9d7c386512d64aab46bf9b4568fc28d8\"><code>cc8e177</code></a>\r\nDocument useBigIntExtension</li>\r\n<li><a\r\nhref=\"https://github.com/kriszyp/msgpackr/commit/0310e2fedbeb783bd3692b5b12e7036f3de7dfb8\"><code>0310e2f</code></a>\r\nDefer other value types to msgpackr</li>\r\n<li><a\r\nhref=\"https://github.com/kriszyp/msgpackr/commit/6978440105975d71e5ef11257488e1e35eafbb5f\"><code>6978440</code></a>\r\nAdd support for BigInts larger than 64-bit</li>\r\n<li><a\r\nhref=\"https://github.com/kriszyp/msgpackr/commit/0e960cb06675a6884cbcff097f4de66777bb71c8\"><code>0e960cb</code></a>\r\nDon't suppress encoding errors when shared structures are saved</li>\r\n<li><a\r\nhref=\"https://github.com/kriszyp/msgpackr/commit/6b010f54a59824c0270774e4171ae88a402c0838\"><code>6b010f5</code></a>\r\nMaintain correct encode options on repacking</li>\r\n<li><a\r\nhref=\"https://github.com/kriszyp/msgpackr/commit/4b011432f55c8b72135b250f86c9fe85c63c27da\"><code>4b01143</code></a>\r\nAllow struct restarts to properly use start position</li>\r\n<li>Additional commits viewable in <a\r\nhref=\"https://github.com/kriszyp/msgpackr/compare/v1.9.7...v1.10.1\">compare\r\nview</a></li>\r\n</ul>\r\n</details>\r\n<br />\r\n\r\n\r\n[![Dependabot compatibility\r\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=msgpackr&package-manager=npm_and_yarn&previous-version=1.9.7&new-version=1.10.1)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\r\n\r\nDependabot will resolve any conflicts with this PR as long as you don't\r\nalter it yourself. You can also trigger a rebase manually by commenting\r\n`@dependabot rebase`.\r\n\r\n[//]: # (dependabot-automerge-start)\r\n[//]: # (dependabot-automerge-end)\r\n\r\n---\r\n\r\n<details>\r\n<summary>Dependabot commands and options</summary>\r\n<br />\r\n\r\nYou can trigger Dependabot actions by commenting on this PR:\r\n- `@dependabot rebase` will rebase this PR\r\n- `@dependabot recreate` will recreate this PR, overwriting any edits\r\nthat have been made to it\r\n- `@dependabot merge` will merge this PR after your CI passes on it\r\n- `@dependabot squash and merge` will squash and merge this PR after\r\nyour CI passes on it\r\n- `@dependabot cancel merge` will cancel a previously requested merge\r\nand block automerging\r\n- `@dependabot reopen` will reopen this PR if it is closed\r\n- `@dependabot close` will close this PR and stop Dependabot recreating\r\nit. You can achieve the same result by closing it manually\r\n- `@dependabot show <dependency name> ignore conditions` will show all\r\nof the ignore conditions of the specified dependency\r\n- `@dependabot ignore this major version` will close this PR and stop\r\nDependabot creating any more for this major version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this minor version` will close this PR and stop\r\nDependabot creating any more for this minor version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this dependency` will close this PR and stop\r\nDependabot creating any more for this dependency (unless you reopen the\r\nPR or upgrade to it yourself)\r\nYou can disable automated security fix PRs for this repo from the\r\n[Security Alerts\r\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\r\n\r\n</details>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2024-01-17T20:11:26Z",
+          "tree_id": "7cf36a48dce2177a34beea1b0a022d36dabb3121",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e6b89ba6da08052a4ad045c9b4e8620ba604c3d5"
+        },
+        "date": 1705522615744,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 183128,
+            "range": "±1.92%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193845,
+            "range": "±1.78%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
           }
         ]
       }
