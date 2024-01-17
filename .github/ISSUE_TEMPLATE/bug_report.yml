@@ -87,7 +87,7 @@ body:
     - type: markdown
       attributes:
           label: Network Trace (Preferrably Fiddler)
-          description: "Please send a [Fiddler trace](https://learn.microsoft.com/en-us/azure/azure-web-pubsub/howto-troubleshoot-network-trace) (strongly preferred) or .har file containing the relevant network requests and responses to msaljshelp@microsoft.com. Your are reponsible for properly sanitizing any network trace you send. **DO NOT post a network trace**, sanitized or not to this or any GitHub issue."
+          description: "Please send a [Fiddler trace](https://learn.microsoft.com/en-us/azure/azure-web-pubsub/howto-troubleshoot-network-trace) (strongly preferred) or .har file containing the relevant network requests and responses to msaljshelp@microsoft.com. Your are reponsible for properly sanitizing any network trace you send. **DO NOT post a network trace**, sanitized or not to this or any GitHub issue. GitHub issues without a corresponding network trace e-mail may be closed without comment."
 
     - type: textarea
       attributes:
