@@ -1950,7 +1950,10 @@ export class StandardController implements IController {
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
-            return response;
+            return {
+                ...(await response),
+                state: request.state,
+            };
         } else {
             this.logger.verbose(
                 "acquireTokenSilent has been called previously, returning the result from the first call",
@@ -1958,7 +1961,10 @@ export class StandardController implements IController {
             );
             // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
             atsMeasurement.discard();
-            return cachedResponse;
+            return {
+                ...(await cachedResponse),
+                state: request.state,
+            };
         }
     }
 

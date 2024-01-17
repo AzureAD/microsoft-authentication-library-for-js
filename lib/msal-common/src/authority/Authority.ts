@@ -86,7 +86,7 @@ export class Authority {
     // Performance client
     protected performanceClient: IPerformanceClient | undefined;
     // Correlation Id
-    protected correlationId: string | undefined;
+    protected correlationId: string;
     // Reserved tenant domain names that will not be replaced with tenant id
     private static reservedTenantDomains: Set<string> = new Set([
         "{tenant}",
@@ -102,8 +102,8 @@ export class Authority {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
+        correlationId: string,
+        performanceClient?: IPerformanceClient
     ) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
@@ -422,6 +422,13 @@ export class Authority {
         this.updateCachedMetadata(metadataEntity, cloudDiscoverySource, {
             source: endpointSource,
         });
+        this.performanceClient?.addFields(
+            {
+                cloudDiscoverySource: cloudDiscoverySource,
+                authorityEndpointSource: endpointSource,
+            },
+            this.correlationId
+        );
     }
 
     /**
@@ -734,8 +741,8 @@ export class Authority {
      * Get OAuth endpoints for common authorities.
      */
     private getEndpointMetadataFromHardcodedValues(): OpenIdConfigResponse | null {
-        if (this.canonicalAuthority in EndpointMetadata) {
-            return EndpointMetadata[this.canonicalAuthority];
+        if (this.hostnameAndPort in EndpointMetadata) {
+            return EndpointMetadata[this.hostnameAndPort];
         }
 
         return null;

@@ -19,7 +19,6 @@ import {
     AccessTokenEntity,
     RefreshTokenEntity,
     ProtocolMode,
-    AuthorityFactory,
     AuthorityOptions,
     AuthorityMetadataEntity,
     ValidCredentialType,
@@ -29,6 +28,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     CacheHelpers,
+    Authority,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -298,12 +298,13 @@ export class ClientTestUtils {
         };
         const logger = new Logger(loggerOptions);
 
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             TEST_CONFIG.validAuthority,
             mockHttpClient,
             mockStorage,
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         await authority.resolveEndpointsAsync().catch(() => {
