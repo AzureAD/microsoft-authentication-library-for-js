@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705521164113,
+  "lastUpdate": 1705521825853,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4330,6 +4330,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.93%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7035deaaa499ead2c8e1d1d34fa138004cd49531",
+          "message": "Fix bug affecting metadata resolution for tenanted authorities (#6814)\n\nOur hardcoded endpoint metadata is stored in a map keyed on full\r\nauthority urls including the common tenants (common, organizations,\r\nconsumers). This results in authority urls with specific tenants to fail\r\nthe hardcoded lookup and go to the network for metadata which is taking\r\n~700ms at P95.\r\n\r\nThis PR does the following:\r\n- Updates the hardcoded metadata map to key off domain only\r\n(consequently reducing the total number of entries)\r\n- Removes extraneous fields that are not being used\r\n- Adds telemetry data point indicating where we got the metadata from\r\n(hardcoded, config, network, cache)\r\n- Removes unnecessary `createInstance` function",
+          "timestamp": "2024-01-17T19:58:06Z",
+          "tree_id": "1b45c155abefadb014da831d2f87af57bb612459",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/7035deaaa499ead2c8e1d1d34fa138004cd49531"
+        },
+        "date": 1705521824887,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 182602,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 197741,
+            "range": "±1.70%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
