@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705520546232,
+  "lastUpdate": 1705521164113,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4292,6 +4292,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.72%",
             "unit": "ops/sec",
             "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2014e7898f57532b7585a64279bc35cb698847dd",
+          "message": "Update ssoSilent docs with troubleshooting information (#6818)\n\nThis PR:\r\n- Adds a warning about content security policies and HTTP headers that\r\nmay interfere with ssoSilent in the login docs\r\n- Adds a troubleshooting section to the ssoSilent FAQ",
+          "timestamp": "2024-01-17T19:46:59Z",
+          "tree_id": "476d63196d9ba2d457e3d31369922c806e918a89",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2014e7898f57532b7585a64279bc35cb698847dd"
+        },
+        "date": 1705521163034,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 175917,
+            "range": "±1.80%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 180494,
+            "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
