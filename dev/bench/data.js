@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705522617391,
+  "lastUpdate": 1705526407555,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4406,6 +4406,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.78%",
             "unit": "ops/sec",
             "extra": "213 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dzu@energinet.dk",
+            "name": "Dzhavat Ushev",
+            "username": "dzhavat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "35ecaa5775e45955c04d70a38815671534f1fabf",
+          "message": "Format Errors related documentation (#6720)\n\nNoticed a few minor issues with the `errors.md` file and decided to open\r\na PR.\r\n\r\nThe changes include:\r\n- remove link to `native_broker_called_before_initialize` error. Didn't\r\nfind anything in the repo related to this error\r\n- add link to `uninitialized_public_client_application` section\r\n- fix link to `Access to fetch at ...` section\r\n- format file (remove extra spaces, use small letters in links, etc.)\r\n\r\nCo-authored-by: Hector Morales <hemoral@microsoft.com>\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-01-17T13:14:28-08:00",
+          "tree_id": "2fea88f01e3a28229ed5cf8b2b54a7d8326b73df",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/35ecaa5775e45955c04d70a38815671534f1fabf"
+        },
+        "date": 1705526405976,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189998,
+            "range": "±2.19%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 201013,
+            "range": "±1.33%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
