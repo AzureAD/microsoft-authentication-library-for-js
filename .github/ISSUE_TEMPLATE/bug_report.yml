@@ -97,7 +97,7 @@ body:
     - type: textarea
       attributes:
           label: MSAL Configuration
-          description: "Please provide your MSAL configuration. Bug reports without MSAL Configuration will be closed without comment."
+          description: "Please provide your MSAL configuration. Bug reports without MSAL configuration will be closed without comment."
           render: javascript
           placeholder: |
               {
