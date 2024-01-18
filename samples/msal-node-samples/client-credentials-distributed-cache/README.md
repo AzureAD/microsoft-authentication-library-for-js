@@ -14,11 +14,11 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 
 ## Register
 
-1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
+1. Navigate to the [Microsoft Entra admin center](https://entra.microsoft.com) and select the **Microsoft Entra ID** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-daemon`.
-   - Under **Supported account types**, select **Accounts in any organizational directory (Any Azure AD directory - Multitenant)**.
+   - Under **Supported account types**, select **Accounts in any organizational directory (Any Microsoft Entra ID directory - Multitenant)**.
    - In the **Redirect URI (optional)** section, select **Public client/native (mobile & desktop)** in the combo-box and enter the following redirect URI: `http://localhost` (this is required for provisioning the app into other tenants via admin consent).
 1. Select **Register** to create the application.
 1. In the app's registration screen, find and note the **Application (client) ID** and **Directory (Tenant) ID**. You use these values in your app's configuration file(s) later.
@@ -84,6 +84,6 @@ For persisting tokens using a distributed cache, multitenant daemon apps should 
 
 ## More information
 
-- [Tenancy in Azure Active Directory](https://learn.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps)
+- [Tenancy in Microsoft Entra ID](https://learn.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps)
 - [Making your application multi-tenant](https://learn.microsoft.com/azure/active-directory/develop/howto-convert-app-to-be-multi-tenant)
 - [Admin consent on the Microsoft identity platform](https://learn.microsoft.com/azure/active-directory/develop/v2-admin-consent)

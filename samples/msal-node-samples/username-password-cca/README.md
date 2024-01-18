@@ -18,7 +18,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 
 ## Register
 
-1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
+1. Navigate to the [Microsoft Entra admin center](https://entra.microsoft.com) and select the **Microsoft Entra ID** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-app`.
@@ -59,7 +59,7 @@ In the same folder, type:
     npm start
 ```
 
-After that, you should see the response from Azure AD in your terminal.
+After that, you should see the response from Microsoft Entra ID in your terminal.
 
 ## More information
 
