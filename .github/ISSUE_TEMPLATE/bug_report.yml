@@ -143,7 +143,7 @@ body:
       attributes:
           label: Identity Provider
           options:
-              - Azure AD / MSA
+              - Entra ID (formerly Azure AD) / MSA
               - Azure B2C Basic Policy
               - Azure B2C Custom Policy
               - ADFS
