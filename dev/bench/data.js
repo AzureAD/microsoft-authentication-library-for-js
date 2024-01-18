@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705526432461,
+  "lastUpdate": 1705621066350,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4482,6 +4482,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.06%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2d4d0b2cde8e072ba6c64aea9b251984b2dd4021",
+          "message": "Update issue templates (#6475)\n\nThis PR:\r\n- Removes question issue template\r\n- Adds disclaimers about bug issues without logs or network traces\r\ngetting deleted without comment\r\n- Adds a link to a network trace collection guide and a warning about\r\nproperly scrubbing network traces.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>\r\nCo-authored-by: Emily Lauber <emilylauber@microsoft.com>",
+          "timestamp": "2024-01-18T15:31:58-08:00",
+          "tree_id": "3e8f701fcb42364a2677cf71bb2313f56e99bddf",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2d4d0b2cde8e072ba6c64aea9b251984b2dd4021"
+        },
+        "date": 1705621064491,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 179257,
+            "range": "±1.83%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 179755,
+            "range": "±1.86%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
