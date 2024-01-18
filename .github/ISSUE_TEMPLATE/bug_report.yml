@@ -16,7 +16,7 @@ body:
               In the case your question is not answered in the FAQ, please verify your question has not been covered on [Stack Overflow](https://stackoverflow.com/questions/tagged/msal.js).
               If you can't find a similar question on Stack Overflow, please create a new Stack Overflow thread using the tag `msal.js`.
 
-              If you have questions about timelines, please see our [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md). Issues pertaining to timelines may be closed without comment.
+              If you have questions about timelines, please see our [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md). Issues pertaining to timelines without an explicit feature request may be closed without comment.
 
     - type: markdown
       attributes:
