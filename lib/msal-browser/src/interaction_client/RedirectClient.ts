@@ -136,7 +136,8 @@ export class RedirectClient extends StandardInteractionClient {
             )(
                 serverTelemetryManager,
                 validRequest.authority,
-                validRequest.azureCloudOptions
+                validRequest.azureCloudOptions,
+                validRequest.account
             );
 
             // Create redirect interaction handler.
@@ -520,7 +521,12 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 this.correlationId
-            )(serverTelemetryManager, logoutRequest && logoutRequest.authority);
+            )(
+                serverTelemetryManager,
+                logoutRequest && logoutRequest.authority,
+                undefined,
+                (logoutRequest && logoutRequest.account) || undefined
+            );
 
             if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
                 try {

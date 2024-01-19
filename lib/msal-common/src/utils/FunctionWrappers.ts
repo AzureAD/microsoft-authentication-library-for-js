@@ -31,6 +31,14 @@ export const invoke = <T extends Array<any>, U>(
             eventName,
             correlationId
         );
+        if (correlationId) {
+            // Track number of times this API is called in a single request
+            const eventCount = eventName + "CallCount";
+            telemetryClient?.incrementFields(
+                { [eventCount]: 1 },
+                correlationId
+            );
+        }
         try {
             const result = callback(...args);
             inProgressEvent?.end({
@@ -80,6 +88,14 @@ export const invokeAsync = <T extends Array<any>, U>(
             correlationId
         );
         telemetryClient?.setPreQueueTime(eventName, correlationId);
+        if (correlationId) {
+            // Track number of times this API is called in a single request
+            const eventCount = eventName + "CallCount";
+            telemetryClient?.incrementFields(
+                { [eventCount]: 1 },
+                correlationId
+            );
+        }
         return callback(...args)
             .then((response) => {
                 logger.trace(`Returning result from ${eventName}`);
