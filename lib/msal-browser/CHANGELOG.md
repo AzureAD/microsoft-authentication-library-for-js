@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 09 Jan 2024 00:03:25 GMT and should not be manually modified.
+This log was last generated on Mon, 22 Jan 2024 18:35:00 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.7.1
+
+Mon, 22 Jan 2024 18:35:00 GMT
+
+### Patches
+
+- Support state on acquireTokenSilent (thomas.norling@microsoft.com)
+- Fix bug affecting metadata resolution for tenanted authorities (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.6.1
 
 ## 3.7.0
 

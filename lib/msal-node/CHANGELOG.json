@@ -2,6 +2,27 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 22 Jan 2024 18:35:00 GMT",
+      "version": "2.6.2",
+      "tag": "@azure/msal-node_v2.6.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "7035deaaa499ead2c8e1d1d34fa138004cd49531",
+            "comment": "Fix bug affecting metadata resolution for tenanted authorities"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.6.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Jan 2024 00:03:25 GMT",
       "version": "2.6.1",
       "tag": "@azure/msal-node_v2.6.1",

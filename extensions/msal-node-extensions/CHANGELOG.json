@@ -2,6 +2,27 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Mon, 22 Jan 2024 18:35:00 GMT",
+      "version": "1.0.10",
+      "tag": "@azure/msal-node-extensions_v1.0.10",
+      "comments": {
+        "patch": [
+          {
+            "author": "altinokd@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "688e3c1f5657ce8f6c3d0d7c62a80ee954fbe12b",
+            "comment": "Create require when it is not defined in MJS"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.6.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Jan 2024 00:03:25 GMT",
       "version": "1.0.9",
       "tag": "@azure/msal-node-extensions_v1.0.9",

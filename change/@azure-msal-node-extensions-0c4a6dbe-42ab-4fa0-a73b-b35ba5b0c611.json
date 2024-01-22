@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Create require when it is not defined in MJS",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "altinokd@microsoft.com",
-  "dependentChangeType": "patch"
-}
