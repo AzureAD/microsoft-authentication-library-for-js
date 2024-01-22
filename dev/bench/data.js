@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705789996335,
+  "lastUpdate": 1705947311715,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4558,6 +4558,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.65%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "altinok.darici@gmail.com",
+            "name": "Altinok Darici",
+            "username": "altinokdarici"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "688e3c1f5657ce8f6c3d0d7c62a80ee954fbe12b",
+          "message": "Fix: Require is not defined in MJS (#6831)\n\nCurrently, I'm getting the below error when I use msal-node-extension\r\npackage in an ES module.\r\n\r\n```\r\nReferenceError: require is not defined in ES module scope, you can use import instead\r\nThis file is being treated as an ES module because it has a '.js' file extension and 'D:\\git\\my-repo\\node_modules\\my-package\\package.json' contains \"type\": \"module\". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.\r\n    at file:///D:/git/my-repo/node_modules/@azure/msal-node-extensions/dist/Dpapi.mjs:20:5\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:194:25)\r\n ```\r\n\r\nTo fix this issue, I'm creating the `require` when it's not defined. So that this code is safe to run in both msj and cjs\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-01-22T10:09:52-08:00",
+          "tree_id": "309f8c6c691f686df1b7e8e3e8fffbc9b5b8f04a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/688e3c1f5657ce8f6c3d0d7c62a80ee954fbe12b"
+        },
+        "date": 1705947310404,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189843,
+            "range": "±1.96%",
+            "unit": "ops/sec",
+            "extra": "196 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 179511,
+            "range": "±1.83%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
