@@ -87,7 +87,6 @@ export const invokeAsync = <T extends Array<any>, U>(
             eventName,
             correlationId
         );
-        telemetryClient?.setPreQueueTime(eventName, correlationId);
         if (correlationId) {
             // Track number of times this API is called in a single request
             const eventCount = eventName + "CallCount";
@@ -96,6 +95,7 @@ export const invokeAsync = <T extends Array<any>, U>(
                 correlationId
             );
         }
+        telemetryClient?.setPreQueueTime(eventName, correlationId);
         return callback(...args)
             .then((response) => {
                 logger.trace(`Returning result from ${eventName}`);
