@@ -42,7 +42,8 @@ export class SilentCacheClient extends StandardInteractionClient {
         const silentAuthClient = await this.createSilentFlowClient(
             serverTelemetryManager,
             silentRequest.authority,
-            silentRequest.azureCloudOptions
+            silentRequest.azureCloudOptions,
+            silentRequest.account
         );
         this.logger.verbose("Silent auth client created");
 
@@ -94,7 +95,8 @@ export class SilentCacheClient extends StandardInteractionClient {
     protected async createSilentFlowClient(
         serverTelemetryManager: ServerTelemetryManager,
         authorityUrl?: string,
-        azureCloudOptions?: AzureCloudOptions
+        azureCloudOptions?: AzureCloudOptions,
+        account?: AccountInfo
     ): Promise<SilentFlowClient> {
         // Create auth module.
         const clientConfig = await invokeAsync(
@@ -103,7 +105,7 @@ export class SilentCacheClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(serverTelemetryManager, authorityUrl, azureCloudOptions);
+        )(serverTelemetryManager, authorityUrl, azureCloudOptions, account);
         return new SilentFlowClient(clientConfig, this.performanceClient);
     }
 
@@ -122,7 +124,7 @@ export class SilentCacheClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(request, account);
+        )(request);
         return {
             ...request,
             ...baseRequest,
