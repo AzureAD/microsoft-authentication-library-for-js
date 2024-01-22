@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705948786517,
+  "lastUpdate": 1705953711936,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4634,6 +4634,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.61%",
             "unit": "ops/sec",
             "extra": "226 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "18417334+benborra@users.noreply.github.com",
+            "name": "benborra",
+            "username": "benborra"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2c5e4f1c72835d4dc47a72d158094af89964b9b0",
+          "message": "Read me MSAL Angular: Update github issues link. (#6834)\n\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-01-22T11:56:14-08:00",
+          "tree_id": "b29b8fe6ee39a902a6a6a93fc494983b71fef434",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2c5e4f1c72835d4dc47a72d158094af89964b9b0"
+        },
+        "date": 1705953710359,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 182209,
+            "range": "±1.78%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 176595,
+            "range": "±1.60%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
