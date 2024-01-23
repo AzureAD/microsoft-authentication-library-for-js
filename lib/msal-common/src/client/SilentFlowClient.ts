@@ -7,7 +7,7 @@ import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { TimeUtils } from "../utils/TimeUtils";
+import * as TimeUtils from "../utils/TimeUtils";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import {
     ClientAuthError,

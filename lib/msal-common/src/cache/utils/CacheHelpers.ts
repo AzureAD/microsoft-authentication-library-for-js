@@ -20,7 +20,7 @@ import {
     Separators,
     ThrottlingConstants,
 } from "../../utils/Constants";
-import { TimeUtils } from "../../utils/TimeUtils";
+import * as TimeUtils from "../../utils/TimeUtils";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
