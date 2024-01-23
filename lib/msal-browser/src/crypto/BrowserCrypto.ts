@@ -30,6 +30,15 @@ const S256_HASH_ALG = "SHA-256";
 const MODULUS_LENGTH = 2048;
 // Public Exponent
 const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
+// UUID hex digits
+const UUID_CHARS = "0123456789abcdef";
+// UUID max counter
+const UUID_MAX_COUNTER = 0x3ff_ffff_ffff;
+
+const uint32Buffer = new Uint32Array(10);
+let uint32Cursor = 0;
+let uuidCounter = getUuidCounter();
+let uuidTimestamp = 0;
 
 const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
     name: PKCS1_V15_KEYGEN_ALG,
@@ -52,7 +61,9 @@ export function validateCryptoAvailable(logger: Logger): void {
 
 /**
  * Returns a sha-256 hash of the given dataString as an ArrayBuffer.
- * @param dataString
+ * @param dataString {string} data string
+ * @param performanceClient {?IPerformanceClient}
+ * @param correlationId {?string} correlation id
  */
 export async function sha256Digest(
     dataString: string,
@@ -80,11 +91,72 @@ export function getRandomValues(dataBuffer: Uint8Array): Uint8Array {
 }
 
 /**
- * Creates a new random GUID
- * @returns
+ * Get random Uint32 value. Use buffering to increase throughput.
+ * @returns {number}
+ */
+function getBufferedRandomUint32(): number {
+    if (uint32Cursor >= uint32Buffer.length) {
+        window.crypto.getRandomValues(uint32Buffer);
+        uint32Cursor = 0;
+    }
+    return uint32Buffer[uint32Cursor++];
+}
+
+/**
+ * Creates a UUID v7 from the current timestamp.
+ * Implementation relies on the system clock to guarantee increasing order of generated identifiers.
+ * It maintains a previous timestamp to make sure clocks never go backwards (clock skew) to avoid potential collisions.
+ * @returns {number}
  */
 export function createNewGuid(): string {
-    return window.crypto.randomUUID();
+    const currentTimestamp = Date.now();
+
+    // Move clocks only forward
+    if (uuidTimestamp < currentTimestamp) {
+        uuidTimestamp = currentTimestamp;
+        uuidCounter = getUuidCounter();
+    }
+    // Increment timestamp and reset counter at overflow
+    if (++uuidCounter > UUID_MAX_COUNTER) {
+        uuidTimestamp++;
+        uuidCounter = getUuidCounter();
+    }
+
+    // Result byte array
+    const bytes = new Uint8Array(16);
+    // A 12-bit `rand_a` field value
+    const randA = Math.trunc(uuidCounter / 2 ** 30);
+    // The higher 30 bits of 62-bit `rand_b` field value
+    const randBHi = uuidCounter & (2 ** 30 - 1);
+    // The lower 32 bits of 62-bit `rand_b` field value
+    const randBLo = getBufferedRandomUint32();
+
+    bytes[0] = uuidTimestamp / 2 ** 40;
+    bytes[1] = uuidTimestamp / 2 ** 32;
+    bytes[2] = uuidTimestamp / 2 ** 24;
+    bytes[3] = uuidTimestamp / 2 ** 16;
+    bytes[4] = uuidTimestamp / 2 ** 8;
+    bytes[5] = uuidTimestamp;
+    bytes[6] = 0x70 | (randA >>> 8);
+    bytes[7] = randA;
+    bytes[8] = 0x80 | (randBHi >>> 24);
+    bytes[9] = randBHi >>> 16;
+    bytes[10] = randBHi >>> 8;
+    bytes[11] = randBHi;
+    bytes[12] = randBLo >>> 24;
+    bytes[13] = randBLo >>> 16;
+    bytes[14] = randBLo >>> 8;
+    bytes[15] = randBLo;
+
+    let text = "";
+    for (let i = 0; i < bytes.length; i++) {
+        text += UUID_CHARS.charAt(bytes[i] >>> 4);
+        text += UUID_CHARS.charAt(bytes[i] & 0xf);
+        if (i === 3 || i === 5 || i === 7 || i === 9) {
+            text += "-";
+        }
+    }
+    return text;
 }
 
 /**
@@ -148,4 +220,14 @@ export async function sign(
         key,
         data
     ) as Promise<ArrayBuffer>;
+}
+
+/**
+ * Returns a 42-bit random integer as a UUID counter.
+ * @returns {number}
+ */
+function getUuidCounter() {
+    return (
+        getBufferedRandomUint32() * 0x400 + (getBufferedRandomUint32() & 0x3ff)
+    );
 }
