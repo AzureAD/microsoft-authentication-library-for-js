@@ -32,13 +32,8 @@ const MODULUS_LENGTH = 2048;
 const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
 // UUID hex digits
 const UUID_CHARS = "0123456789abcdef";
-// UUID max counter
-const UUID_MAX_COUNTER = 0x3ff_ffff_ffff;
-
-const uint32Buffer = new Uint32Array(10);
-let uint32Cursor = 0;
-let uuidCounter = getUuidCounter();
-let uuidTimestamp = 0;
+// Array to store UINT32 random value
+const UINT32_ARR = new Uint32Array(1);
 
 const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
     name: PKCS1_V15_KEYGEN_ALG,
@@ -91,52 +86,35 @@ export function getRandomValues(dataBuffer: Uint8Array): Uint8Array {
 }
 
 /**
- * Get random Uint32 value. Use buffering to increase throughput.
- * @returns {number}
- */
-function getBufferedRandomUint32(): number {
-    if (uint32Cursor >= uint32Buffer.length) {
-        window.crypto.getRandomValues(uint32Buffer);
-        uint32Cursor = 0;
-    }
-    return uint32Buffer[uint32Cursor++];
-}
-
-/**
  * Creates a UUID v7 from the current timestamp.
  * Implementation relies on the system clock to guarantee increasing order of generated identifiers.
  * It maintains a previous timestamp to make sure clocks never go backwards (clock skew) to avoid potential collisions.
  * @returns {number}
  */
 export function createNewGuid(): string {
-    const currentTimestamp = Date.now();
+    function getRandomUint32(): number {
+        window.crypto.getRandomValues(UINT32_ARR);
+        return UINT32_ARR[0];
+    }
 
-    // Move clocks only forward
-    if (uuidTimestamp < currentTimestamp) {
-        uuidTimestamp = currentTimestamp;
-        uuidCounter = getUuidCounter();
-    }
-    // Increment timestamp and reset counter at overflow
-    if (++uuidCounter > UUID_MAX_COUNTER) {
-        uuidTimestamp++;
-        uuidCounter = getUuidCounter();
-    }
+    const currentTimestamp = Date.now();
+    const baseRand = getRandomUint32() * 0x400 + (getRandomUint32() & 0x3ff);
 
     // Result byte array
     const bytes = new Uint8Array(16);
     // A 12-bit `rand_a` field value
-    const randA = Math.trunc(uuidCounter / 2 ** 30);
+    const randA = Math.trunc(baseRand / 2 ** 30);
     // The higher 30 bits of 62-bit `rand_b` field value
-    const randBHi = uuidCounter & (2 ** 30 - 1);
+    const randBHi = baseRand & (2 ** 30 - 1);
     // The lower 32 bits of 62-bit `rand_b` field value
-    const randBLo = getBufferedRandomUint32();
+    const randBLo = getRandomUint32();
 
-    bytes[0] = uuidTimestamp / 2 ** 40;
-    bytes[1] = uuidTimestamp / 2 ** 32;
-    bytes[2] = uuidTimestamp / 2 ** 24;
-    bytes[3] = uuidTimestamp / 2 ** 16;
-    bytes[4] = uuidTimestamp / 2 ** 8;
-    bytes[5] = uuidTimestamp;
+    bytes[0] = currentTimestamp / 2 ** 40;
+    bytes[1] = currentTimestamp / 2 ** 32;
+    bytes[2] = currentTimestamp / 2 ** 24;
+    bytes[3] = currentTimestamp / 2 ** 16;
+    bytes[4] = currentTimestamp / 2 ** 8;
+    bytes[5] = currentTimestamp;
     bytes[6] = 0x70 | (randA >>> 8);
     bytes[7] = randA;
     bytes[8] = 0x80 | (randBHi >>> 24);
@@ -220,14 +198,4 @@ export async function sign(
         key,
         data
     ) as Promise<ArrayBuffer>;
-}
-
-/**
- * Returns a 42-bit random integer as a UUID counter.
- * @returns {number}
- */
-function getUuidCounter() {
-    return (
-        getBufferedRandomUint32() * 0x400 + (getBufferedRandomUint32() & 0x3ff)
-    );
 }
