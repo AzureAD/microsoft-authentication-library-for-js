@@ -1,8 +1,64 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 30 Oct 2023 21:38:25 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jan 2024 00:06:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.6.1
+
+Tue, 23 Jan 2024 00:06:05 GMT
+
+### Patches
+
+- Fix bug affecting metadata resolution for tenanted authorities (thomas.norling@microsoft.com)
+
+## 14.6.0
+
+Tue, 09 Jan 2024 00:03:25 GMT
+
+### Minor changes
+
+- Dynamically load BrowserPerformanceMeasurement to capture browser perf measurements if session storage flag is set #6748 (kshabelko@microsoft.com)
+
+### Patches
+
+- Don't lookup tokens until they are needed (thomas.norling@microsoft.com)
+- Handle bad_token by removing bad refresh token from cache #6757 (hemoral@microsoft.com)
+- Convert ThrottlingEntity into a Type (thomas.norling@microsoft.com)
+- Refactor AuthorityMetadataEntity into type (thomas.norling@microsoft.com)
+- Refactor appMetadataEntity into Type (thomas.norling@microsoft.com)
+- Check RT expiration before attempting to redeem it #6703 (thomas.norling@microsoft.com)
+- Fix external account loading #6744 (hemoral@microsoft.com)
+- Fix token refreshes with relative redirectUri #6761 (thomas.norling@microsoft.com)
+
+## 14.5.0
+
+Fri, 01 Dec 2023 18:46:06 GMT
+
+### Minor changes
+
+- Add support for Multi-tenant accounts and cross-tenant token caching #6466 (hemoral@microsoft.com)
+
+### Patches
+
+- Turn on return-await lint rule #6678 (thomas.norling@microsoft.com)
+- Move AADServerParamKeys to individual exports #6701 (thomas.norling@microsoft.com)
+
+## 14.4.0
+
+Tue, 07 Nov 2023 00:01:50 GMT
+
+### Minor changes
+
+- Convert ServerTelemetryEntity to Type instead of Class #6651 (thomas.norling@microsoft.com)
+- Make SHR header configurable #6654 (hemoral@microsoft.com)
+- Instrument functions that drop multiple matched tokens #6647 (kshabelko@microsoft.com)
+- Update hash/query parsing to use runtime provided APIs #6646 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Removing allowestsrnonmsi query parameter (trwalke@microsoft.com)
+- Update cache outcome log message #6644 (hemoral@microsoft.com)
 
 ## 14.3.0
 

@@ -1,8 +1,65 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 30 Oct 2023 21:38:25 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jan 2024 00:06:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.6.2
+
+Tue, 23 Jan 2024 00:06:05 GMT
+
+### Patches
+
+- Fix bug affecting metadata resolution for tenanted authorities (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.6.1
+
+## 2.6.1
+
+Tue, 09 Jan 2024 00:03:25 GMT
+
+### Patches
+
+- Refactor AuthorityMetadataEntity into type (thomas.norling@microsoft.com)
+- Convert ThrottlingEntity into a Type (thomas.norling@microsoft.com)
+- Set engines field to >=16 (thomas.norling@microsoft.com)
+- Refactor appMetadataEntity into Type (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.6.0
+
+## 2.6.0
+
+Fri, 01 Dec 2023 18:46:06 GMT
+
+### Minor changes
+
+- Adding logging to make regional scenarios more clear (trwalke@microsoft.com)
+- Add support for Multi-tenant accounts and cross-tenant token caching #6466 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.5.0
+
+### Patches
+
+- Turn on return-await lint rule #6678 (thomas.norling@microsoft.com)
+
+## 2.5.1
+
+Tue, 07 Nov 2023 20:59:07 GMT
+
+### Patches
+
+- Fix success template not rendering (thomas.norling@microsoft.com)
+
+## 2.5.0
+
+Tue, 07 Nov 2023 00:01:50 GMT
+
+### Minor changes
+
+- Extend Node support for 16 (thomas.norling@microsoft.com)
+- Convert ServerTelemetryEntity to Type instead of Class #6651 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.4.0
+
+### Patches
+
+- Use new query string parser in LoopbackClient #6646 (thomas.norling@microsoft.com)
 
 ## 2.4.0
 

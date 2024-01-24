@@ -5,23 +5,19 @@
 
 import { PopupRequest, RedirectRequest } from "../../src";
 import { AccountInfo } from "../../src/naa/AccountInfo";
-import {
-    AccountByHomeIdRequest,
-    AccountByLocalIdRequest,
-    AccountByUsernameRequest,
-} from "../../src/naa/AccountRequests";
+import { AuthResult } from "../../src/naa/AuthResult";
 import { BridgeError } from "../../src/naa/BridgeError";
 import { BridgeStatusCode } from "../../src/naa/BridgeStatusCode";
-import { InitializeBridgeResponse } from "../../src/naa/InitializeBridgeResponse";
+import { InitContext } from "../../src/naa/InitContext";
+
 import { TokenRequest } from "../../src/naa/TokenRequest";
-import { TokenResponse } from "../../src/naa/TokenResponse";
 import { TEST_TOKENS } from "../utils/StringConstants";
 
 export const NAA_CLIENT_ID: string = "clientid";
 export const NAA_SCOPE: string = "User.Read";
 export const NAA_CORRELATION_ID: string = "1234";
 export const NAA_CLIENT_CAPABILITIES: string[] = [];
-export const INIT_BRIDGE_RESPONSE: InitializeBridgeResponse = {
+export const INIT_CONTEXT_RESPONSE: InitContext = {
     sdkName: "test",
     sdkVersion: "1.0.0",
     capabilities: { queryAccount: false },
@@ -39,8 +35,14 @@ export const REDIRECT_REQUEST: RedirectRequest = {
     correlationId: NAA_CORRELATION_ID,
 };
 
-export const SILENT_TOKEN_RESPONSE: TokenResponse = {
-    access_token: "",
+export const SILENT_TOKEN_RESPONSE: AuthResult = {
+    token: {
+        access_token: TEST_TOKENS.ACCESS_TOKEN,
+        expires_in: 4290,
+        id_token: TEST_TOKENS.IDTOKEN_V2,
+        properties: null,
+        scope: "User.Read",
+    },
     account: {
         environment: "login.microsoftonline.com",
         homeAccountId:
@@ -67,12 +69,6 @@ export const SILENT_TOKEN_RESPONSE: TokenResponse = {
         tenantId: "51178b70-16cc-41b5-bef1-ae1808139065",
         username: "AdeleV@vc6w6.onmicrosoft.com",
     },
-    client_info: "",
-    expires_in: 4290,
-    id_token: TEST_TOKENS.IDTOKEN_V2,
-    properties: null,
-    scope: "User.Read",
-    state: "",
 };
 
 export const SILENT_TOKEN_REQUEST: TokenRequest = {
@@ -82,7 +78,7 @@ export const SILENT_TOKEN_REQUEST: TokenRequest = {
 };
 
 export const BRIDGE_ERROR_USER_INTERACTION_REQUIRED: BridgeError = {
-    status: BridgeStatusCode.USER_INTERACTION_REQUIRED,
+    status: BridgeStatusCode.UserInteractionRequired,
     code: "interaction_required",
     subError: "",
     description:
@@ -91,7 +87,7 @@ export const BRIDGE_ERROR_USER_INTERACTION_REQUIRED: BridgeError = {
 };
 
 export const BRIDGE_ERROR_USER_CANCEL: BridgeError = {
-    status: BridgeStatusCode.USER_CANCEL,
+    status: BridgeStatusCode.UserCancel,
     code: "",
     subError: "",
     description: "User cancelled the request",
@@ -99,7 +95,7 @@ export const BRIDGE_ERROR_USER_CANCEL: BridgeError = {
 };
 
 export const BRIDGE_ERROR_NOT_NETWORK: BridgeError = {
-    status: BridgeStatusCode.NO_NETWORK,
+    status: BridgeStatusCode.NoNetwork,
     code: "",
     subError: "",
     description: "Network unavailable",
@@ -107,7 +103,7 @@ export const BRIDGE_ERROR_NOT_NETWORK: BridgeError = {
 };
 
 export const BRIDGE_ERROR_TRANSIENT_ERROR_SERVER: BridgeError = {
-    status: BridgeStatusCode.TRANSIENT_ERROR,
+    status: BridgeStatusCode.TransientError,
     code: "something",
     subError: "",
     description: "A transient server error?",
@@ -115,7 +111,7 @@ export const BRIDGE_ERROR_TRANSIENT_ERROR_SERVER: BridgeError = {
 };
 
 export const BRIDGE_ERROR_TRANSIENT_ERROR_CLIENT: BridgeError = {
-    status: BridgeStatusCode.TRANSIENT_ERROR,
+    status: BridgeStatusCode.TransientError,
     code: "",
     subError: "",
     description: "A transient client error? (Notice nothing in code/subError",
@@ -123,7 +119,7 @@ export const BRIDGE_ERROR_TRANSIENT_ERROR_CLIENT: BridgeError = {
 };
 
 export const BRIDGE_ERROR_PERSISTENT_ERROR_CLIENT: BridgeError = {
-    status: BridgeStatusCode.PERSISTENT_ERROR,
+    status: BridgeStatusCode.PersistentError,
     code: "",
     subError: "",
     description: "A persistent client error? (Notice nothing in code/subError)",
@@ -131,7 +127,7 @@ export const BRIDGE_ERROR_PERSISTENT_ERROR_CLIENT: BridgeError = {
 };
 
 export const BRIDGE_ERROR_PERSISTENT_ERROR_SERVER: BridgeError = {
-    status: BridgeStatusCode.PERSISTENT_ERROR,
+    status: BridgeStatusCode.PersistentError,
     code: "invalid_request",
     subError: "",
     description: "A persistent server error? (Notice nothing in code/subError)",
@@ -140,7 +136,7 @@ export const BRIDGE_ERROR_PERSISTENT_ERROR_SERVER: BridgeError = {
 
 // Not sure when we would get this
 export const BRIDGE_ERROR_DISABLED: BridgeError = {
-    status: BridgeStatusCode.DISABLED,
+    status: BridgeStatusCode.Disabled,
     code: "",
     subError: "",
     description: "Something is disabled",
@@ -152,7 +148,7 @@ export const BRIDGE_ERROR_DISABLED: BridgeError = {
  * Or when we request account Info and it's not found
  */
 export const BRIDGE_ERROR_ACCOUNT_UNAVAILABLE: BridgeError = {
-    status: BridgeStatusCode.ACCOUNT_UNAVAILABLE,
+    status: BridgeStatusCode.AccountUnavailable,
     code: "",
     subError: "",
     description: "Account unavailable",
@@ -161,23 +157,11 @@ export const BRIDGE_ERROR_ACCOUNT_UNAVAILABLE: BridgeError = {
 
 // Not sure when we get this
 export const BRIDGE_ERROR_NAA_UNAVAILABLE: BridgeError = {
-    status: BridgeStatusCode.NESTED_APP_AUTH_UNAVAILABLE,
+    status: BridgeStatusCode.NestedAppAuthUnavailable,
     code: "",
     subError: "",
     description: "Account unavailable",
     properties: {},
-};
-
-export const ACCOUNT_INFO_HOME_ID: AccountByHomeIdRequest = {
-    homeAccountId: "A",
-};
-
-export const ACCOUNT_INFO_LOCAL_ID: AccountByLocalIdRequest = {
-    localAccountId: "B",
-};
-
-export const ACCOUNT_INFO_USERNAME: AccountByUsernameRequest = {
-    username: "C",
 };
 
 export const ACCOUNT_INFO_RESPONSE: AccountInfo = {

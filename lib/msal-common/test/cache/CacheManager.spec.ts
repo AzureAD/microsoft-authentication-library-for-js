@@ -22,6 +22,8 @@ import {
     TEST_CRYPTO_VALUES,
     TEST_ACCOUNT_INFO,
     TEST_TOKEN_LIFETIMES,
+    ID_TOKEN_ALT_CLAIMS,
+    GUEST_ID_TOKEN_CLAIMS,
 } from "../test_kit/StringConstants";
 import {
     ClientAuthErrorCodes,
@@ -29,6 +31,7 @@ import {
 } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 import { mockCrypto } from "../client/ClientTestUtils";
 import { TestError } from "../test_kit/TestErrors";
 import { CacheManager } from "../../src/cache/CacheManager";
@@ -58,15 +61,21 @@ describe("CacheManager.ts test cases", () => {
         authorityMetadataStub = sinon
             .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
             .callsFake((host) => {
-                const authorityMetadata = new AuthorityMetadataEntity();
-                authorityMetadata.updateCloudDiscoveryMetadata(
-                    {
-                        aliases: [host],
-                        preferred_cache: host,
-                        preferred_network: host,
-                    },
-                    false
-                );
+                const authorityMetadata: AuthorityMetadataEntity = {
+                    aliases: [host],
+                    preferred_cache: host,
+                    preferred_network: host,
+                    aliasesFromNetwork: false,
+                    canonical_authority: host,
+                    authorization_endpoint: "",
+                    token_endpoint: "",
+                    end_session_endpoint: "",
+                    issuer: "",
+                    jwks_uri: "",
+                    endpointsFromNetwork: false,
+                    expiresAt:
+                        CacheHelpers.generateAuthorityMetadataExpiresAt(),
+                };
                 return authorityMetadata;
             });
     });
@@ -258,6 +267,7 @@ describe("CacheManager.ts test cases", () => {
                     mockCache.cacheManager.getIdToken(
                         TEST_ACCOUNT_INFO,
                         undefined,
+                        TEST_ACCOUNT_INFO.tenantId,
                         mockPerfClient,
                         correlationId
                     )
@@ -293,12 +303,363 @@ describe("CacheManager.ts test cases", () => {
         });
     });
 
-    it("getAccounts (gets all AccountInfo objects)", async () => {
-        const accounts = mockCache.cacheManager.getAllAccounts();
+    describe("getAllAccounts", () => {
+        const account1 =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        const account2 =
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS).getAccountInfo();
+        it("getAllAccounts returns an empty array if there are no accounts in the cache", () => {
+            mockCache.clearCache();
+            expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(0);
+        });
+        it("getAllAccounts (gets all AccountInfo objects)", async () => {
+            const accounts = mockCache.cacheManager.getAllAccounts();
 
-        expect(accounts).not.toBeNull();
-        expect(accounts[0].idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-        expect(accounts[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(accounts).not.toBeNull();
+            // 2 home accounts + 1 tenant profile
+            expect(accounts.length).toBe(3);
+            expect(accounts[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(accounts[1].idTokenClaims).toEqual(GUEST_ID_TOKEN_CLAIMS);
+            expect(accounts[2].idTokenClaims).toEqual(ID_TOKEN_ALT_CLAIMS);
+        });
+
+        it("getAllAccounts with isHomeTenant filter does not return guest tenant profiles as AccountInfo objects", () => {
+            const homeAccounts = mockCache.cacheManager.getAllAccounts({
+                isHomeTenant: true,
+            });
+            expect(homeAccounts).not.toBeNull();
+            expect(homeAccounts.length).toBe(2);
+            expect(homeAccounts[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(homeAccounts[1].idTokenClaims).toEqual(ID_TOKEN_ALT_CLAIMS);
+        });
+
+        describe("getAllAccounts with loginHint filter", () => {
+            it("loginHint filter matching login_hint ID token claim", () => {
+                // filter by loginHint = login_hint
+                const successFilter: AccountFilter = {
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
+                };
+
+                let accounts =
+                    mockCache.cacheManager.getAllAccounts(successFilter);
+                expect(accounts.length).toEqual(1);
+
+                const wrongFilter: AccountFilter = {
+                    loginHint: "WrongHint",
+                };
+                accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+                expect(accounts.length).toBe(0);
+            });
+
+            it("loginHint filter matching username", () => {
+                // filter by loginHint = preferred_username
+                const successFilter: AccountFilter = {
+                    loginHint: ID_TOKEN_CLAIMS.preferred_username,
+                };
+
+                let accounts =
+                    mockCache.cacheManager.getAllAccounts(successFilter);
+                expect(accounts.length).toEqual(1);
+
+                const wrongFilter: AccountFilter = {
+                    loginHint: "WrongHint",
+                };
+                accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+                expect(accounts.length).toBe(0);
+            });
+
+            it("loginHint filter matching upn ID token claim", () => {
+                // filter by loginHint = upn
+                const successFilter: AccountFilter = {
+                    loginHint: ID_TOKEN_CLAIMS.upn,
+                };
+
+                let accounts =
+                    mockCache.cacheManager.getAllAccounts(successFilter);
+                expect(accounts.length).toEqual(1);
+
+                const wrongFilter: AccountFilter = {
+                    loginHint: "WrongHint",
+                };
+                accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+                expect(accounts.length).toBe(0);
+            });
+        });
+
+        describe("getAllAccounts with filter", () => {
+            it("Matches accounts by username", () => {
+                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                const account1Filter = { username: account1.username };
+                const account2Filter = { username: account2.username };
+                const accounts =
+                    mockCache.cacheManager.getAllAccounts(account1Filter);
+                expect(accounts).toHaveLength(1);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account1Filter)[0]
+                        .username
+                ).toBe(account1.username);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account2Filter)[0]
+                        .username
+                ).toBe(account2.username);
+            });
+
+            it("Matches accounts by homeAccountId", () => {
+                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                const multiTenantAccountFilter = {
+                    homeAccountId: account1.homeAccountId,
+                };
+
+                const multiTenantAccountHomeTenantOnlyFilter = {
+                    ...multiTenantAccountFilter,
+                    isHomeTenant: true,
+                };
+
+                const account2Filter = {
+                    homeAccountId: account2.homeAccountId,
+                };
+                // Multi-tenant account has two tenant profiles which will both match the same homeAccountId
+                const multiTenantAccountProfiles =
+                    mockCache.cacheManager.getAllAccounts(
+                        multiTenantAccountFilter
+                    );
+                expect(multiTenantAccountProfiles).toHaveLength(2);
+                expect(multiTenantAccountProfiles[0].homeAccountId).toBe(
+                    account1.homeAccountId
+                );
+
+                // Set isHomeTenant = true to only get baseAccount
+                const multiTenantAccountHomeTenantOnlyProfiles =
+                    mockCache.cacheManager.getAllAccounts(
+                        multiTenantAccountHomeTenantOnlyFilter
+                    );
+                expect(multiTenantAccountHomeTenantOnlyProfiles).toHaveLength(
+                    1
+                );
+                expect(
+                    multiTenantAccountHomeTenantOnlyProfiles[0].tenantId
+                ).toBe(account1.tenantId);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account2Filter)[0]
+                        .homeAccountId
+                ).toBe(account2.homeAccountId);
+            });
+
+            it("Matches accounts by localAccountId", () => {
+                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                // Local account ID is sourced from ID token claims so for this test we compare against the decoded ID token claims instead of mock account object
+                const account1Filter = {
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                };
+                const account2Filter = {
+                    localAccountId: ID_TOKEN_ALT_CLAIMS.oid,
+                };
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account1Filter)[0]
+                        .localAccountId
+                ).toBe(account1Filter.localAccountId);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account2Filter)[0]
+                        .localAccountId
+                ).toBe(account2Filter.localAccountId);
+            });
+
+            it("Matches accounts by tenantId", () => {
+                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                const firstTenantAccountFilter = {
+                    tenantId: account1.tenantId,
+                };
+                const secondTenantAccountFilter = {
+                    tenantId: account2.tenantId,
+                };
+                expect(
+                    mockCache.cacheManager.getAllAccounts(
+                        firstTenantAccountFilter
+                    )
+                ).toHaveLength(1);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(
+                        firstTenantAccountFilter
+                    )[0].tenantId
+                ).toBe(firstTenantAccountFilter.tenantId);
+                // Guest profile of first user account is from the same tenant as account 2
+                expect(
+                    mockCache.cacheManager.getAllAccounts(
+                        secondTenantAccountFilter
+                    )
+                ).toHaveLength(2);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(
+                        secondTenantAccountFilter
+                    )[0].tenantId
+                ).toBe(secondTenantAccountFilter.tenantId);
+            });
+
+            it("Matches accounts by environment", () => {
+                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                // Add local account ID to further filter because environments are aliases of eachother
+                const firstEnvironmentAccountsFilter = {
+                    homeAccountId: account1.homeAccountId,
+                    environment: account1.environment,
+                };
+                const secondEnvironmentAccountsFilter = {
+                    homeAccountId: account2.homeAccountId,
+                    environment: account2.environment,
+                };
+                expect(
+                    mockCache.cacheManager.getAllAccounts(
+                        firstEnvironmentAccountsFilter
+                    )
+                ).toHaveLength(2);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(
+                        firstEnvironmentAccountsFilter
+                    )[0].environment
+                ).toBe(account1.environment);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(
+                        secondEnvironmentAccountsFilter
+                    )
+                ).toHaveLength(1);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(
+                        secondEnvironmentAccountsFilter
+                    )[0].environment
+                ).toBe(account2.environment);
+            });
+
+            it("Matches accounts by all filters", () => {
+                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                const account1Filter = {
+                    ...account1,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                };
+                const account2Filter = {
+                    ...account2,
+                    localAccountId: ID_TOKEN_ALT_CLAIMS.oid,
+                };
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account1Filter)
+                ).toHaveLength(1);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account1Filter)[0]
+                        .localAccountId
+                ).toBe(account1Filter.localAccountId);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account2Filter)
+                ).toHaveLength(1);
+                expect(
+                    mockCache.cacheManager.getAllAccounts(account2Filter)[0]
+                        .localAccountId
+                ).toBe(account2Filter.localAccountId);
+            });
+        });
+    });
+
+    describe("getAccountInfoFilteredBy", () => {
+        const multiTenantAccount = buildAccountFromIdTokenClaims(
+            ID_TOKEN_CLAIMS,
+            [GUEST_ID_TOKEN_CLAIMS]
+        ).getAccountInfo();
+        it("returns null if no accounts match filter", () => {
+            expect(
+                mockCache.cacheManager.getAccountInfoFilteredBy({
+                    homeAccountId: "inexistent-account-id",
+                })
+            ).toBeNull();
+        });
+
+        it("returns an account matching filter", () => {
+            const resultAccount =
+                mockCache.cacheManager.getAccountInfoFilteredBy({
+                    homeAccountId: multiTenantAccount.homeAccountId,
+                    tenantId: multiTenantAccount.tenantId,
+                });
+            expect(resultAccount).not.toBeNull();
+            expect(resultAccount).toMatchObject(multiTenantAccount);
+        });
+
+        it("prioritizes the tenant profile with a matching ID token in the cache", () => {
+            const mainIdTokenEntity = buildIdToken(
+                ID_TOKEN_CLAIMS,
+                TEST_TOKENS.IDTOKEN_V2,
+                { homeAccountId: multiTenantAccount.homeAccountId }
+            );
+            const mainIdTokenKey =
+                CacheHelpers.generateCredentialKey(mainIdTokenEntity);
+
+            const filter = {
+                homeAccountId: multiTenantAccount.homeAccountId,
+            };
+            // Remove main ID token
+            mockCache.cacheManager.removeIdToken(mainIdTokenKey);
+            const resultAccount =
+                mockCache.cacheManager.getAccountInfoFilteredBy(filter);
+            expect(resultAccount).not.toBeNull();
+            expect(resultAccount?.tenantId).toBe(GUEST_ID_TOKEN_CLAIMS.tid);
+
+            const allAccountsReversed = mockCache.cacheManager
+                .getAllAccounts()
+                .reverse();
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAllAccounts"
+            ).mockReturnValueOnce(allAccountsReversed);
+
+            const reversedResultAccount =
+                mockCache.cacheManager.getAccountInfoFilteredBy(filter);
+            expect(reversedResultAccount).not.toBeNull();
+            expect(reversedResultAccount?.tenantId).toBe(
+                GUEST_ID_TOKEN_CLAIMS.tid
+            );
+        });
+
+        it("returns account matching filter with isHomeTenant = true", () => {
+            const resultAccount =
+                mockCache.cacheManager.getAccountInfoFilteredBy({
+                    homeAccountId: multiTenantAccount.homeAccountId,
+                    tenantId: multiTenantAccount.tenantId,
+                    isHomeTenant: true,
+                });
+            expect(resultAccount).not.toBeNull();
+            expect(resultAccount).toMatchObject(multiTenantAccount);
+        });
+    });
+
+    describe("getBaseAccountInfo", () => {
+        it("returns base account regardless of tenantId", () => {
+            const multiTenantAccount = buildAccountFromIdTokenClaims(
+                ID_TOKEN_CLAIMS,
+                [GUEST_ID_TOKEN_CLAIMS]
+            ).getAccountInfo();
+            const resultAccount = mockCache.cacheManager.getBaseAccountInfo({
+                homeAccountId: multiTenantAccount.homeAccountId,
+                tenantId: GUEST_ID_TOKEN_CLAIMS.tid,
+            });
+
+            expect(resultAccount).toEqual(multiTenantAccount);
+        });
+
+        it("returns null if no account matches filter", () => {
+            expect(
+                mockCache.cacheManager.getBaseAccountInfo({
+                    homeAccountId: "inexistent-homeaccountid",
+                })
+            ).toBeNull();
+        });
     });
 
     it("getAccount (gets one AccountEntity object)", async () => {
@@ -379,11 +740,16 @@ describe("CacheManager.ts test cases", () => {
     });
 
     describe("getAccountsFilteredBy", () => {
+        const matchAccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         it("homeAccountId filter", () => {
             // filter by homeAccountId
-            const successFilter: AccountFilter = { homeAccountId: "uid.utid" };
+            const successFilter: AccountFilter = {
+                homeAccountId: matchAccountEntity.homeAccountId,
+            };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            // getAccountsFilteredBy only gets cached accounts, so don't expect all tenant profiles to be returned as account objects
             expect(Object.keys(accounts).length).toEqual(1);
 
             const wrongFilter: AccountFilter = { homeAccountId: "Wrong Id" };
@@ -395,11 +761,12 @@ describe("CacheManager.ts test cases", () => {
         it("environment filter", () => {
             // filter by environment
             const successFilter: AccountFilter = {
-                environment: "login.microsoftonline.com",
+                environment: matchAccountEntity.environment,
             };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).toEqual(3);
+            // Both cached accounts have environments that are aliases of eachother, expect both to match
+            expect(Object.keys(accounts).length).toEqual(2);
             sinon.restore();
 
             const wrongFilter: AccountFilter = { environment: "Wrong Env" };
@@ -410,10 +777,12 @@ describe("CacheManager.ts test cases", () => {
 
         it("realm filter", () => {
             // filter by realm
-            const successFilter: AccountFilter = { realm: "microsoft" };
+            const successFilter: AccountFilter = {
+                realm: matchAccountEntity.realm,
+            };
             let accounts =
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).toEqual(3);
+            expect(Object.keys(accounts).length).toEqual(1);
 
             const wrongFilter: AccountFilter = { realm: "Wrong Realm" };
             accounts =
@@ -1167,37 +1536,23 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("removeAllAccounts", async () => {
-        const ac = new AccountEntity();
-        ac.homeAccountId = "someUid.someUtid";
-        ac.environment = "login.microsoftonline.com";
-        ac.realm = "microsoft";
-        ac.localAccountId = "object1234";
-        ac.username = "Jane Goodman";
-        ac.authorityType = "MSSTS";
-
-        const cacheRecord = new CacheRecord();
-        cacheRecord.account = ac;
-        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
-
+        const accountsBeforeRemove = mockCache.cacheManager.getAllAccounts();
         await mockCache.cacheManager.removeAllAccounts();
+        const accountsAfterRemove = mockCache.cacheManager.getAllAccounts();
 
-        // Only app metadata remaining
-        expect(mockCache.cacheManager.getAllAccounts().length === 0).toBe(true);
+        expect(accountsBeforeRemove).toHaveLength(3);
+        expect(accountsAfterRemove).toHaveLength(0);
     });
 
     it("removeAccount", async () => {
+        const accountToRemove = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        const accountToRemoveKey = accountToRemove.generateAccountKey();
         expect(
-            mockCache.cacheManager.getAccount(
-                "uid.utid-login.microsoftonline.com-microsoft"
-            )
+            mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).not.toBeNull();
-        await mockCache.cacheManager.removeAccount(
-            "uid.utid-login.microsoftonline.com-microsoft"
-        );
+        await mockCache.cacheManager.removeAccount(accountToRemoveKey);
         expect(
-            mockCache.cacheManager.getAccount(
-                "uid.utid-login.microsoftonline.com-microsoft"
-            )
+            mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).toBeNull();
     });
 
@@ -1403,6 +1758,7 @@ describe("CacheManager.ts test cases", () => {
                 mockCache.cacheManager.getAccessToken(
                     mockedAccountInfo,
                     silentFlowRequest,
+                    undefined,
                     undefined,
                     mockPerfClient,
                     correlationId
@@ -1761,17 +2117,17 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readAccountFromCache", () => {
+        const matchAccountInfo =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
         const account = mockCache.cacheManager.readAccountFromCache(
-            CACHE_MOCKS.MOCK_ACCOUNT_INFO
+            matchAccountInfo
         ) as AccountEntity;
         if (!account) {
             throw TestError.createTestSetupError(
-                "account does not have a value"
+                "Sccount does not have a value"
             );
         }
-        expect(account.homeAccountId).toBe(
-            CACHE_MOCKS.MOCK_ACCOUNT_INFO.homeAccountId
-        );
+        expect(account.homeAccountId).toBe(matchAccountInfo.homeAccountId);
     });
 
     it("getAccountsFilteredBy nativeAccountId", () => {
@@ -1791,15 +2147,29 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getIdToken", () => {
+        const baseAccountInfo =
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS).getAccountInfo();
+        // Get home ID token by default
         const idToken = mockCache.cacheManager.getIdToken(
-            CACHE_MOCKS.MOCK_ACCOUNT_INFO
+            baseAccountInfo
         ) as IdTokenEntity;
         if (!idToken) {
             throw TestError.createTestSetupError(
                 "idToken does not have a value"
             );
         }
-        expect(idToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID);
+        expect(idToken.realm).toBe(baseAccountInfo.tenantId);
+        const guestIdToken = mockCache.cacheManager.getIdToken(
+            baseAccountInfo,
+            undefined,
+            GUEST_ID_TOKEN_CLAIMS.tid
+        ) as IdTokenEntity;
+        if (!guestIdToken) {
+            throw TestError.createTestSetupError(
+                "guest idToken does not have a value"
+            );
+        }
+        expect(guestIdToken.realm).toBe(GUEST_ID_TOKEN_CLAIMS.tid);
     });
 
     it("getRefreshToken", () => {
@@ -1838,16 +2208,20 @@ describe("CacheManager.ts test cases", () => {
 
     it("getRefreshToken with environment aliases", () => {
         authorityMetadataStub.callsFake((host) => {
-            const authorityMetadata = new AuthorityMetadataEntity();
-            authorityMetadata.updateCloudDiscoveryMetadata(
-                {
-                    aliases: ["login.microsoftonline.com", "login.windows.net"],
-                    preferred_network: host,
-                    preferred_cache: host,
-                },
-                false
-            );
-
+            const authorityMetadata: AuthorityMetadataEntity = {
+                aliases: ["login.microsoftonline.com", "login.windows.net"],
+                preferred_cache: host,
+                preferred_network: host,
+                aliasesFromNetwork: false,
+                canonical_authority: host,
+                authorization_endpoint: "",
+                token_endpoint: "",
+                end_session_endpoint: "",
+                issuer: "",
+                jwks_uri: "",
+                endpointsFromNetwork: false,
+                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            };
             return authorityMetadata;
         });
         const mockedAccountInfo: AccountInfo = {

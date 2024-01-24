@@ -28,9 +28,19 @@ export {
 } from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
-export { AccountInfo, ActiveAccountFilters } from "./account/AccountInfo";
+export {
+    AccountInfo,
+    ActiveAccountFilters,
+    TenantProfile,
+    updateAccountTenantProfileData,
+    tenantIdMatchesHomeTenant,
+    buildTenantProfileFromIdTokenClaims,
+} from "./account/AccountInfo";
 export * as AuthToken from "./account/AuthToken";
-export { TokenClaims } from "./account/TokenClaims";
+export {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
 export {
@@ -49,7 +59,7 @@ export {
     AzureCloudInstance,
     StaticAuthorityOptions,
 } from "./authority/AuthorityOptions";
-export { AuthorityFactory } from "./authority/AuthorityFactory";
+export * as AuthorityFactory from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
 export { OIDCOptions } from "./authority/OIDCOptions";
@@ -136,7 +146,10 @@ export {
     DeviceCodeResponse,
     ServerDeviceCodeResponse,
 } from "./response/DeviceCodeResponse";
-export { ResponseHandler } from "./response/ResponseHandler";
+export {
+    ResponseHandler,
+    buildAccountToCache,
+} from "./response/ResponseHandler";
 export { ScopeSet } from "./request/ScopeSet";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser";
 // Logger Callback
@@ -181,12 +194,10 @@ export {
     CacheAccountType,
     AuthenticationScheme,
     CodeChallengeMethodValues,
-    SSOTypes,
     PasswordGrantConstants,
     ThrottlingConstants,
     ClaimsRequestKeys,
     HeaderNames,
-    AADServerParamKeys,
     Errors,
     THE_FAMILY_ID,
     ONE_DAY_IN_MS,
@@ -195,6 +206,7 @@ export {
     HttpStatus,
     JsonWebTokenTypes,
 } from "./utils/Constants";
+export * as AADServerParamKeys from "./constants/AADServerParamKeys";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export {

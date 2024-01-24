@@ -50,6 +50,11 @@ export class Serializer {
                 client_info: accountEntity.clientInfo,
                 last_modification_time: accountEntity.lastModificationTime,
                 last_modification_app: accountEntity.lastModificationApp,
+                tenantProfiles: accountEntity.tenantProfiles?.map(
+                    (tenantProfile) => {
+                        return JSON.stringify(tenantProfile);
+                    }
+                ),
             };
         });
 

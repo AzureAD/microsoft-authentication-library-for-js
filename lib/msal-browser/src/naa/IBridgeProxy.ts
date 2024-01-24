@@ -4,22 +4,13 @@
  */
 
 import { AccountInfo } from "./AccountInfo";
-import {
-    AccountByHomeIdRequest,
-    AccountByLocalIdRequest,
-    AccountByUsernameRequest,
-} from "./AccountRequests";
+import { AuthResult } from "./AuthResult";
+import { BridgeCapabilities } from "./BridgeCapabilities";
 import { TokenRequest } from "./TokenRequest";
-import { TokenResponse } from "./TokenResponse";
 
 export interface IBridgeProxy {
-    getTokenInteractive(request: TokenRequest): Promise<TokenResponse>;
-    getTokenSilent(request: TokenRequest): Promise<TokenResponse>;
-    getAccountInfo(
-        request:
-            | AccountByHomeIdRequest
-            | AccountByLocalIdRequest
-            | AccountByUsernameRequest
-    ): Promise<AccountInfo>;
+    getTokenInteractive(request: TokenRequest): Promise<AuthResult>;
+    getTokenSilent(request: TokenRequest): Promise<AuthResult>;
     getActiveAccount(): Promise<AccountInfo>;
+    getHostCapabilities(): BridgeCapabilities | null;
 }

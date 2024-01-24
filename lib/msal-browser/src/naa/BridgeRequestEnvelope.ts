@@ -4,19 +4,11 @@
  */
 
 import { TokenRequest } from "./TokenRequest";
-import {
-    AccountByHomeIdRequest,
-    AccountByLocalIdRequest,
-    AccountByUsernameRequest,
-} from "./AccountRequests";
 
 export type BridgeMethods =
     | "GetToken"
     | "GetActiveAccount"
     | "GetAllAccounts"
-    | "GetAccountByHomeId"
-    | "GetAccountByLocalId"
-    | "GetAccountByUsername"
     | "GetInitContext"
     | "GetTokenPopup";
 
@@ -27,11 +19,7 @@ export type BridgeRequestEnvelope = {
     clientLibrary?: string;
     clientLibraryVersion?: string;
     requestId: string;
-    body?:
-        | TokenRequest
-        | AccountByHomeIdRequest
-        | AccountByLocalIdRequest
-        | AccountByUsernameRequest;
+    tokenParams?: TokenRequest;
 };
 
 export function isBridgeRequestEnvelope(

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Use new query string parser in LoopbackClient #6646",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

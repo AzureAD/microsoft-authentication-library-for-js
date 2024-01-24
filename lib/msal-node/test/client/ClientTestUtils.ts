@@ -19,7 +19,6 @@ import {
     AccessTokenEntity,
     RefreshTokenEntity,
     ProtocolMode,
-    AuthorityFactory,
     AuthorityOptions,
     AuthorityMetadataEntity,
     ValidCredentialType,
@@ -29,6 +28,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     CacheHelpers,
+    Authority,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -36,6 +36,7 @@ import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_CRYPTO_VALUES,
+    TEST_DATA_CLIENT_INFO,
     TEST_POP_VALUES,
     TEST_TOKENS,
 } from "../test_kit/StringConstants";
@@ -53,6 +54,10 @@ export class MockStorageClass extends CacheManager {
             return account;
         }
         return null;
+    }
+
+    getCachedAccountEntity(accountKey: string): AccountEntity | null {
+        return this.getAccount(accountKey);
     }
 
     setAccount(value: AccountEntity): void {
@@ -74,6 +79,10 @@ export class MockStorageClass extends CacheManager {
             currentAccounts.splice(removalIndex, 1);
             this.store[ACCOUNT_KEYS] = currentAccounts;
         }
+    }
+
+    removeOutdatedAccount(accountKey: string): void {
+        this.removeAccount(accountKey);
     }
 
     getAccountKeys(): string[] {
@@ -140,7 +149,7 @@ export class MockStorageClass extends CacheManager {
         return this.store[key] as AppMetadataEntity;
     }
     setAppMetadata(value: AppMetadataEntity): void {
-        const key = value.generateAppMetadataKey();
+        const key = CacheHelpers.generateAppMetadataKey(value);
         this.store[key] = value;
     }
 
@@ -217,6 +226,8 @@ export const mockCrypto = {
                 return TEST_POP_VALUES.DECODED_REQ_CNF;
             case TEST_TOKENS.POP_TOKEN_PAYLOAD:
                 return TEST_TOKENS.DECODED_POP_TOKEN_PAYLOAD;
+            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             default:
                 return input;
         }
@@ -287,12 +298,13 @@ export class ClientTestUtils {
         };
         const logger = new Logger(loggerOptions);
 
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             TEST_CONFIG.validAuthority,
             mockHttpClient,
             mockStorage,
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         await authority.resolveEndpointsAsync().catch(() => {

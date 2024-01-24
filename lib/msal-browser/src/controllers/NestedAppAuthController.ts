@@ -14,6 +14,7 @@ import {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     PerformanceEvents,
     AccountFilter,
+    TimeUtils,
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -134,13 +135,15 @@ export class NestedAppAuthController implements IController {
         try {
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(request);
+            const reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.bridgeProxy.getTokenInteractive(
                 naaRequest
             );
             const result: AuthenticationResult =
                 this.nestedAppAuthAdapter.fromNaaTokenResponse(
                     naaRequest,
-                    response
+                    response,
+                    reqTimestamp
                 );
 
             this.operatingContext.setActiveAccount(result.account);
@@ -204,13 +207,15 @@ export class NestedAppAuthController implements IController {
 
         try {
             const naaRequest =
-                this.nestedAppAuthAdapter.toNaaSilentTokenRequest(request);
+                this.nestedAppAuthAdapter.toNaaTokenRequest(request);
+            const reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.bridgeProxy.getTokenSilent(naaRequest);
 
             const result: AuthenticationResult =
                 this.nestedAppAuthAdapter.fromNaaTokenResponse(
                     naaRequest,
-                    response
+                    response,
+                    reqTimestamp
                 );
 
             this.operatingContext.setActiveAccount(result.account);

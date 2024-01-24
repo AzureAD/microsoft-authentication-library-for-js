@@ -112,18 +112,26 @@ export class BrowserCacheUtils {
 
     async accessTokenForScopesExists(
         accessTokenKeys: Array<string>,
-        scopes: Array<String>
+        scopes: Array<String>,
+        targetTokenMatchesNumber: number = 1
     ): Promise<boolean> {
         const storage = await this.getWindowStorage();
 
-        return accessTokenKeys.some((key) => {
-            const tokenVal = JSON.parse(storage[key]);
-            const tokenScopes = tokenVal.target.toLowerCase().split(" ");
+        const matches = accessTokenKeys
+            .filter((key) => {
+                // Ignore PoP tokens
+                return key.indexOf("accesstoken_with_authscheme") === -1;
+            })
+            .filter((key) => {
+                const tokenVal = JSON.parse(storage[key]);
+                const tokenScopes = tokenVal.target.toLowerCase().split(" ");
 
-            return scopes.every((scope) => {
-                return tokenScopes.includes(scope.toLowerCase());
+                return scopes.every((scope) => {
+                    return tokenScopes.includes(scope.toLowerCase());
+                });
             });
-        });
+
+        return matches.length === targetTokenMatchesNumber;
     }
 
     async popAccessTokenForScopesExists(
@@ -174,7 +182,7 @@ export class BrowserCacheUtils {
             "-" +
             tokenVal.environment +
             "-" +
-            tokenVal.realm;
+            tokenVal.homeAccountId.split(".")[1];
 
         if (Object.keys(storage).includes(accountKey)) {
             return JSON.parse(storage[accountKey]);
@@ -197,5 +205,49 @@ export class BrowserCacheUtils {
 
     static getTelemetryKey(clientId: string): string {
         return "server-telemetry-" + clientId;
+    }
+
+    async verifyTokenStore(options: {
+        scopes: string[];
+        idTokens?: number;
+        accessTokens?: number;
+        refreshTokens?: number;
+        numberOfTenants?: number;
+    }): Promise<void> {
+        const tokenStore = await this.getTokens();
+        const { scopes, idTokens, accessTokens, refreshTokens } = options;
+        const numberOfTenants = options.numberOfTenants || 1;
+        const totalIdTokens = (idTokens || 1) * numberOfTenants;
+        const totalAccessTokens = (accessTokens || 1) * numberOfTenants;
+        const totalRefreshTokens = refreshTokens || 1;
+        expect(tokenStore.idTokens).toHaveLength(totalIdTokens);
+        expect(tokenStore.accessTokens).toHaveLength(totalAccessTokens);
+        expect(tokenStore.refreshTokens).toHaveLength(refreshTokens || 1);
+
+        const account = await this.getAccountFromCache(tokenStore.idTokens[0]);
+        expect(account).toBeDefined();
+        if (account) {
+            if (account.hasOwnProperty("tenantProfiles")) {
+                // @ts-ignore
+                expect(account["tenantProfiles"]).toHaveLength(numberOfTenants);
+            } else {
+                throw new Error(
+                    "Account does not have a tenantProfiles property"
+                );
+            }
+        } else {
+            throw new Error("Account is null");
+        }
+        expect(
+            await this.accessTokenForScopesExists(
+                tokenStore.accessTokens,
+                scopes,
+                totalAccessTokens
+            )
+        ).toBeTruthy();
+        const storage = await this.getWindowStorage();
+        expect(Object.keys(storage).length).toEqual(
+            totalIdTokens + totalAccessTokens + totalRefreshTokens + 5 // 1 Account + 1 Account Keys + 1 Token Keys + 2 active token filters = 5
+        );
     }
 }

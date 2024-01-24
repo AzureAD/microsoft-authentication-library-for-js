@@ -71,6 +71,6 @@ export class SignedHttpRequest {
      * @returns If keys are properly deleted
      */
     async removeKeys(publicKeyThumbprint: string): Promise<boolean> {
-        return await this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
+        return this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
     }
 }

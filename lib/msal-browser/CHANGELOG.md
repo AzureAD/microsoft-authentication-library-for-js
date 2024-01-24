@@ -1,8 +1,73 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 30 Oct 2023 21:38:24 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jan 2024 00:06:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.7.1
+
+Tue, 23 Jan 2024 00:06:05 GMT
+
+### Patches
+
+- Support state on acquireTokenSilent (thomas.norling@microsoft.com)
+- Fix bug affecting metadata resolution for tenanted authorities (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.6.1
+
+## 3.7.0
+
+Tue, 09 Jan 2024 00:03:25 GMT
+
+### Minor changes
+
+- Dynamically load BrowserPerformanceMeasurement to capture browser perf measurements if session storage flag is set #6748 (kshabelko@microsoft.com)
+- Check RT expiration before attempting to redeem it #6703 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.6.0
+
+### Patches
+
+- Fix token refreshes with relative redirectUri #6761 (thomas.norling@microsoft.com)
+- Change Nested App Auth internal schema (#6737) (dasau@microsoft.com)
+- Allow overriding log level and PII setting with session storage key-values #6704 (kshabelko@microsoft.com)
+- Fix external account loading #6744 (hemoral@microsoft.com)
+- Handle bad_token by removing bad refresh token from cache #6757 (hemoral@microsoft.com)
+- Convert ThrottlingEntity into a Type (thomas.norling@microsoft.com)
+- Refactor AuthorityMetadataEntity into type (thomas.norling@microsoft.com)
+- Refactor appMetadataEntity into Type (thomas.norling@microsoft.com)
+
+## 3.6.0
+
+Fri, 01 Dec 2023 18:46:06 GMT
+
+### Minor changes
+
+- Increase default iframe timout to 10s #6700 (hemoral@microsoft.com)
+- Add support for Multi-tenant accounts and cross-tenant token caching #6466 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.5.0
+
+### Patches
+
+- Nested App Auth minor fixes (#6672) (dasau@microsoft.com)
+- Performance optimization when creating hidden iframe (thomas.norling@microsoft.com)
+- Nested App Auth fix for Android response (#6707) (dasau@microsoft.com)
+- Fix logoutPopup request type (thomas.norling@microsoft.com)
+- Fix bug causing temporary cache not to be cleared #6676 (thomas.norling@microsoft.com)
+
+## 3.5.0
+
+Tue, 07 Nov 2023 00:01:50 GMT
+
+### Minor changes
+
+- Optimize response parsing & address bugs related to query response type #6646 (thomas.norling@microsoft.com)
+- Convert ServerTelemetryEntity to Type instead of Class #6651 (thomas.norling@microsoft.com)
+- Make SHR header configurable #6654 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.4.0
+
+### Patches
+
+- Generate one correlation id across a flow #6650 (sameera.gajjarapu@microsoft.com)
+- Fix race condition which may cause popups not to close #6652 (thomas.norling@microsoft.com)
 
 ## 3.4.0
 

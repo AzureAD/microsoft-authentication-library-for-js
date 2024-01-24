@@ -160,7 +160,8 @@ const testAuthority = new Authority(
     networkInterface,
     testCacheManager,
     authorityOptions,
-    logger
+    logger,
+    TEST_CONFIG.CORRELATION_ID
 );
 
 describe("ResponseHandler.ts", () => {

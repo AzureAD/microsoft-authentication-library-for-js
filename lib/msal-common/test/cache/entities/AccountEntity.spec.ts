@@ -1,7 +1,6 @@
 import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
 import { mockAccountEntity, mockIdTokenEntity } from "./cacheConstants";
 import * as AuthToken from "../../../src/account/AuthToken";
-import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { CacheAccountType, Constants } from "../../../src/utils/Constants";
 import {
     NetworkRequestOptions,
@@ -16,16 +15,20 @@ import {
     TEST_POP_VALUES,
     PREFERRED_CACHE_ALIAS,
     TEST_CRYPTO_VALUES,
+    ID_TOKEN_CLAIMS,
+    GUEST_ID_TOKEN_CLAIMS,
+    TEST_CONFIG,
 } from "../../test_kit/StringConstants";
 import sinon from "sinon";
 import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils";
-import { AccountInfo } from "../../../src/account/AccountInfo";
+import { AccountInfo, TenantProfile } from "../../../src/account/AccountInfo";
 import { AuthorityOptions } from "../../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../../src/authority/ProtocolMode";
 import { LogLevel, Logger } from "../../../src/logger/Logger";
 import { Authority } from "../../../src/authority/Authority";
 import { AuthorityType } from "../../../src/authority/AuthorityType";
 import { TokenClaims } from "../../../src";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 const cryptoInterface: ICrypto = {
     createNewGuid(): string {
@@ -101,12 +104,13 @@ const loggerOptions = {
 };
 const logger = new Logger(loggerOptions);
 
-const authority = AuthorityFactory.createInstance(
+const authority = new Authority(
     Constants.DEFAULT_AUTHORITY,
     networkInterface,
     new MockStorageClass("client-id", mockCrypto, logger),
     authorityOptions,
-    logger
+    logger,
+    TEST_CONFIG.CORRELATION_ID
 );
 
 describe("AccountEntity.ts Unit Tests", () => {
@@ -129,7 +133,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         const ac = new AccountEntity();
         Object.assign(ac, mockAccountEntity);
         expect(ac.generateAccountKey()).toEqual(
-            "uid.utid-login.microsoftonline.com-microsoft"
+            "uid.utid-login.microsoftonline.com-utid"
         );
     });
 
@@ -251,12 +255,13 @@ describe("AccountEntity.ts Unit Tests", () => {
     });
 
     it("create an Account no preferred_username or emails claim", () => {
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         // Set up stubs
@@ -298,7 +303,7 @@ describe("AccountEntity.ts Unit Tests", () => {
     });
 
     it("creates a generic account", () => {
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
@@ -308,7 +313,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: "",
             },
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         // Set up stubs
@@ -355,6 +361,48 @@ describe("AccountEntity.ts Unit Tests", () => {
 
     it("verify if an object is not an account entity", () => {
         expect(AccountEntity.isAccountEntity(mockIdTokenEntity)).toEqual(false);
+    });
+
+    it("getAccountInfo correctly deserializes tenantProfiles in an account entity", () => {
+        const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
+            GUEST_ID_TOKEN_CLAIMS,
+        ]);
+
+        const tenantProfiles = new Map<string, TenantProfile>();
+
+        accountEntity.tenantProfiles?.forEach((tenantProfile) => {
+            tenantProfiles.set(tenantProfile.tenantId, tenantProfile);
+        });
+
+        const accountInfo = accountEntity.getAccountInfo();
+        expect(accountInfo.tenantProfiles).toBeDefined();
+        expect(accountInfo.tenantProfiles?.size).toBe(2);
+        expect(accountInfo.tenantProfiles).toMatchObject(tenantProfiles);
+    });
+
+    it("getAccountInfo creates a new tenantProfiles map if AccountEntity doesn't have a tenantProfiles array", () => {
+        const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        accountEntity.tenantProfiles = undefined;
+
+        const accountInfo = accountEntity.getAccountInfo();
+        expect(accountInfo.tenantProfiles).toBeDefined();
+        expect(accountInfo.tenantProfiles?.size).toBe(0);
+        expect(accountInfo.tenantProfiles).toMatchObject(
+            new Map<string, TenantProfile>()
+        );
+    });
+
+    it("isSingleTenant returns true if AccountEntity doesn't have a tenantProfiles array", () => {
+        const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        accountEntity.tenantProfiles = undefined;
+
+        expect(accountEntity.isSingleTenant()).toBe(true);
+    });
+
+    it("isSingleTenant returns false if AccountEntity has a tenantProfiles array", () => {
+        const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+
+        expect(accountEntity.isSingleTenant()).toBe(false);
     });
 
     describe("accountInfoIsEqual()", () => {
@@ -590,12 +638,13 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
         };
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         // Set up stubs
@@ -643,12 +692,13 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
         };
-        const authority = AuthorityFactory.createInstance(
+        const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         // Set up stubs

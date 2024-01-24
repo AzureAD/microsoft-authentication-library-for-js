@@ -9,6 +9,7 @@ import {
     AuthenticationResult,
     createClientAuthError,
     ClientAuthErrorCodes,
+    TenantProfile,
 } from "@azure/msal-common";
 
 export const TEST_CONSTANTS = {
@@ -18,7 +19,7 @@ export const TEST_CONSTANTS = {
     CLIENT_ID: "b41a6fbb-c728-4e03-aa59-d25b0fd383b6",
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     AUTHORITY: "https://login.microsoftonline.com/TenantId",
-    ALTERNATE_AUTHORITY: "https://login.microsoftonline.com/alternate",
+    ALTERNATE_AUTHORITY: "https://login.microsoftonline.com/alternate/",
     USGOV_AUTHORITY: "https://login.microsoftonline.us/common/",
     REDIRECT_URI: "http://localhost:8080",
     CLIENT_SECRET: "MOCK_CLIENT_SECRET",
@@ -230,9 +231,19 @@ export const mockAccountInfo: AccountInfo = {
     tenantId: ID_TOKEN_CLAIMS.tid,
     username: ID_TOKEN_CLAIMS.preferred_username,
     idTokenClaims: ID_TOKEN_CLAIMS,
-    idToken: TEST_CONSTANTS.ID_TOKEN,
     name: ID_TOKEN_CLAIMS.name,
     nativeAccountId: undefined,
+    tenantProfiles: new Map<string, TenantProfile>([
+        [
+            ID_TOKEN_CLAIMS.tid,
+            {
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+                name: ID_TOKEN_CLAIMS.name,
+                isHomeTenant: true,
+            } as TenantProfile,
+        ],
+    ]),
 };
 
 export const mockNativeAccountInfo: AccountInfo = {

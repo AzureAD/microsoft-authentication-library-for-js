@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix race condition which may cause popups not to close #6652",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

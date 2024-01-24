@@ -112,12 +112,13 @@ describe("RedirectHandler.ts Unit Tests", () => {
             piiLoggingEnabled: true,
         };
         const logger: Logger = new Logger(loggerOptions);
-        authorityInstance = AuthorityFactory.createInstance(
+        authorityInstance = new Authority(
             configObj.auth.authority,
             networkInterface,
             browserStorage,
             authorityOptions,
-            logger
+            logger,
+            TEST_CONFIG.CORRELATION_ID
         );
         browserCrypto = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(

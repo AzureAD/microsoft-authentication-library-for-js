@@ -1,8 +1,44 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Mon, 30 Oct 2023 21:38:25 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jan 2024 00:06:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.10
+
+Tue, 23 Jan 2024 00:06:05 GMT
+
+### Patches
+
+- Create require when it is not defined in MJS (altinokd@microsoft.com)
+- Bump @azure/msal-common to v14.6.1
+
+## 1.0.9
+
+Tue, 09 Jan 2024 00:03:25 GMT
+
+### Patches
+
+- Set engines field to >=16 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.6.0
+
+## 1.0.8
+
+Fri, 01 Dec 2023 18:46:06 GMT
+
+### Patches
+
+- add Node 16 to engines (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.5.0
+
+## 1.0.7
+
+Tue, 07 Nov 2023 00:01:50 GMT
+
+### Patches
+
+- fix: Environment.getUserRootDirectory() only ever executes Windows code path (janusz@corechain.tech)
+- Bump @azure/msal-common to v14.4.0
 
 ## 1.0.6
 

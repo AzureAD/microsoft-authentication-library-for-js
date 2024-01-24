@@ -185,7 +185,7 @@ export abstract class ClientApplication {
                 "Auth code client created",
                 validRequest.correlationId
             );
-            return authorizationCodeClient.acquireToken(
+            return await authorizationCodeClient.acquireToken(
                 validRequest,
                 authCodePayLoad
             );
@@ -238,7 +238,7 @@ export abstract class ClientApplication {
                 "Refresh token client created",
                 validRequest.correlationId
             );
-            return refreshTokenClient.acquireToken(validRequest);
+            return await refreshTokenClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -286,7 +286,7 @@ export abstract class ClientApplication {
                 "Silent flow client created",
                 validRequest.correlationId
             );
-            return silentFlowClient.acquireToken(validRequest);
+            return await silentFlowClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -337,7 +337,7 @@ export abstract class ClientApplication {
                 "Username password client created",
                 validRequest.correlationId
             );
-            return usernamePasswordClient.acquireToken(validRequest);
+            return await usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -396,7 +396,7 @@ export abstract class ClientApplication {
      */
     protected async buildOauthClientConfiguration(
         authority: string,
-        requestCorrelationId?: string,
+        requestCorrelationId: string,
         serverTelemetryManager?: ServerTelemetryManager,
         azureRegionConfiguration?: AzureRegionConfiguration,
         azureCloudOptions?: AzureCloudOptions
@@ -412,15 +412,16 @@ export abstract class ClientApplication {
             : this.config.auth.azureCloudOptions;
 
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
-        this.logger.verbose(
-            `building oauth client configuration with the authority: ${authority}`,
-            requestCorrelationId
-        );
         const discoveredAuthority = await this.createAuthority(
             authority,
-            azureRegionConfiguration,
             requestCorrelationId,
+            azureRegionConfiguration,
             userAzureCloudOptions
+        );
+
+        this.logger.info(
+            `Building oauth client configuration with the following authority: ${discoveredAuthority.tokenEndpoint}.`,
+            requestCorrelationId
         );
 
         serverTelemetryManager?.updateRegionDiscoveryMetadata(
@@ -558,8 +559,8 @@ export abstract class ClientApplication {
      */
     private async createAuthority(
         authorityString: string,
+        requestCorrelationId: string,
         azureRegionConfiguration?: AzureRegionConfiguration,
-        requestCorrelationId?: string,
         azureCloudOptions?: AzureCloudOptions
     ): Promise<Authority> {
         this.logger.verbose("createAuthority called", requestCorrelationId);
@@ -580,12 +581,13 @@ export abstract class ClientApplication {
                 this.config.auth.skipAuthorityMetadataCache,
         };
 
-        return await AuthorityFactory.createDiscoveredInstance(
+        return AuthorityFactory.createDiscoveredInstance(
             authorityUrl,
             this.config.system.networkClient,
             this.storage,
             authorityOptions,
-            this.logger
+            this.logger,
+            requestCorrelationId
         );
     }
 

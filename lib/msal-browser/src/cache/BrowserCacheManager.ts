@@ -394,15 +394,31 @@ export class BrowserCacheManager extends CacheManager {
      * fetch the account entity from the platform cache
      * @param accountKey
      */
-    getAccount(accountKey: string): AccountEntity | null {
+    getAccount(accountKey: string, logger?: Logger): AccountEntity | null {
         this.logger.trace("BrowserCacheManager.getAccount called");
-        const account = this.getItem(accountKey);
-        if (!account) {
+        const accountEntity = this.getCachedAccountEntity(accountKey);
+
+        return this.updateOutdatedCachedAccount(
+            accountKey,
+            accountEntity,
+            logger
+        );
+    }
+
+    /**
+     * Reads account from cache, deserializes it into an account entity and returns it.
+     * If account is not found from the key, returns null and removes key from map.
+     * @param accountKey
+     * @returns
+     */
+    getCachedAccountEntity(accountKey: string): AccountEntity | null {
+        const serializedAccount = this.getItem(accountKey);
+        if (!serializedAccount) {
             this.removeAccountKeyFromMap(accountKey);
             return null;
         }
 
-        const parsedAccount = this.validateAndParseJson(account);
+        const parsedAccount = this.validateAndParseJson(serializedAccount);
         if (!parsedAccount || !AccountEntity.isAccountEntity(parsedAccount)) {
             this.removeAccountKeyFromMap(accountKey);
             return null;
@@ -503,6 +519,15 @@ export class BrowserCacheManager extends CacheManager {
     async removeAccount(key: string): Promise<void> {
         void super.removeAccount(key);
         this.removeAccountKeyFromMap(key);
+    }
+
+    /**
+     * Remove account entity from the platform cache if it's outdated
+     * @param accountKey
+     */
+    removeOutdatedAccount(accountKey: string): void {
+        this.removeItem(accountKey);
+        this.removeAccountKeyFromMap(accountKey);
     }
 
     /**
@@ -841,10 +866,7 @@ export class BrowserCacheManager extends CacheManager {
         const parsedMetadata = this.validateAndParseJson(value);
         if (
             !parsedMetadata ||
-            !AppMetadataEntity.isAppMetadataEntity(
-                appMetadataKey,
-                parsedMetadata
-            )
+            !CacheHelpers.isAppMetadataEntity(appMetadataKey, parsedMetadata)
         ) {
             this.logger.trace(
                 "BrowserCacheManager.getAppMetadata: called, no cache hit"
@@ -853,7 +875,7 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         this.logger.trace("BrowserCacheManager.getAppMetadata: cache hit");
-        return CacheManager.toObject(new AppMetadataEntity(), parsedMetadata);
+        return parsedMetadata as AppMetadataEntity;
     }
 
     /**
@@ -862,7 +884,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     setAppMetadata(appMetadata: AppMetadataEntity): void {
         this.logger.trace("BrowserCacheManager.setAppMetadata called");
-        const appMetadataKey = appMetadata.generateAppMetadataKey();
+        const appMetadataKey = CacheHelpers.generateAppMetadataKey(appMetadata);
         this.setItem(appMetadataKey, JSON.stringify(appMetadata));
     }
 
@@ -925,18 +947,12 @@ export class BrowserCacheManager extends CacheManager {
         const parsedMetadata = this.validateAndParseJson(value);
         if (
             parsedMetadata &&
-            AuthorityMetadataEntity.isAuthorityMetadataEntity(
-                key,
-                parsedMetadata
-            )
+            CacheHelpers.isAuthorityMetadataEntity(key, parsedMetadata)
         ) {
             this.logger.trace(
                 "BrowserCacheManager.getAuthorityMetadata: cache hit"
             );
-            return CacheManager.toObject(
-                new AuthorityMetadataEntity(),
-                parsedMetadata
-            );
+            return parsedMetadata as AuthorityMetadataEntity;
         }
         return null;
     }
@@ -1034,6 +1050,7 @@ export class BrowserCacheManager extends CacheManager {
             return this.getAccountInfoFilteredBy({
                 homeAccountId: activeAccountValueObj.homeAccountId,
                 localAccountId: activeAccountValueObj.localAccountId,
+                tenantId: activeAccountValueObj.tenantId,
             });
         }
         this.logger.trace(
@@ -1058,6 +1075,7 @@ export class BrowserCacheManager extends CacheManager {
             const activeAccountValue: ActiveAccountFilters = {
                 homeAccountId: account.homeAccountId,
                 localAccountId: account.localAccountId,
+                tenantId: account.tenantId,
             };
             this.browserStorage.setItem(
                 activeAccountKey,
@@ -1092,7 +1110,7 @@ export class BrowserCacheManager extends CacheManager {
         const parsedThrottlingCache = this.validateAndParseJson(value);
         if (
             !parsedThrottlingCache ||
-            !ThrottlingEntity.isThrottlingEntity(
+            !CacheHelpers.isThrottlingEntity(
                 throttlingCacheKey,
                 parsedThrottlingCache
             )
@@ -1104,10 +1122,7 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         this.logger.trace("BrowserCacheManager.getThrottlingCache: cache hit");
-        return CacheManager.toObject(
-            new ThrottlingEntity(),
-            parsedThrottlingCache
-        );
+        return parsedThrottlingCache as ThrottlingEntity;
     }
 
     /**

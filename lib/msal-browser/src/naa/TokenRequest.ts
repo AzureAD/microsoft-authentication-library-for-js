@@ -4,13 +4,11 @@
  */
 
 export type TokenRequest = {
-    userObjectId?: string; // Account identifier used by OneAuth
+    platformBrokerId?: string; // Account identifier used by OneAuth
     clientId: string;
     authority?: string;
     scope: string;
     correlationId: string;
-    prompt?: string; // Prompt used to identify interactive request
-    nonce?: string;
     claims?: string;
     state?: string;
     reqCnf?: string; // Having OneAuth own the keypair is better for hardware token binding support
@@ -18,7 +16,6 @@ export type TokenRequest = {
     authenticationScheme?: string;
     shrClaims?: string;
     shrNonce?: string;
-    clientCapabilities?: string[]; // CP1 for CAE support
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;

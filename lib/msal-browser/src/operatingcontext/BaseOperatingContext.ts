@@ -3,13 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-common";
+import { Logger, LogLevel } from "@azure/msal-common";
 import {
     BrowserConfiguration,
     buildConfiguration,
     Configuration,
 } from "../config/Configuration";
 import { version, name } from "../packageMetadata";
+import {
+    BrowserCacheLocation,
+    LOG_LEVEL_CACHE_KEY,
+    LOG_PII_CACHE_KEY,
+} from "../utils/BrowserConstants";
 
 /**
  * Base class for operating context
@@ -24,6 +29,31 @@ export abstract class BaseOperatingContext {
     protected available: boolean;
     protected browserEnvironment: boolean;
 
+    protected static loggerCallback(level: LogLevel, message: string): void {
+        switch (level) {
+            case LogLevel.Error:
+                // eslint-disable-next-line no-console
+                console.error(message);
+                return;
+            case LogLevel.Info:
+                // eslint-disable-next-line no-console
+                console.info(message);
+                return;
+            case LogLevel.Verbose:
+                // eslint-disable-next-line no-console
+                console.debug(message);
+                return;
+            case LogLevel.Warning:
+                // eslint-disable-next-line no-console
+                console.warn(message);
+                return;
+            default:
+                // eslint-disable-next-line no-console
+                console.log(message);
+                return;
+        }
+    }
+
     constructor(config: Configuration) {
         /*
          * If loaded in an environment where window is not available,
@@ -31,13 +61,40 @@ export abstract class BaseOperatingContext {
          * This is to support server-side rendering environments.
          */
         this.browserEnvironment = typeof window !== "undefined";
-
         this.config = buildConfiguration(config, this.browserEnvironment);
-        this.logger = new Logger(
-            this.config.system.loggerOptions,
-            name,
-            version
-        );
+
+        let sessionStorage: Storage | undefined;
+        try {
+            sessionStorage = window[BrowserCacheLocation.SessionStorage];
+            // Mute errors if it's a non-browser environment or cookies are blocked.
+        } catch (e) {}
+
+        const logLevelKey = sessionStorage?.getItem(LOG_LEVEL_CACHE_KEY);
+        const piiLoggingKey = sessionStorage
+            ?.getItem(LOG_PII_CACHE_KEY)
+            ?.toLowerCase();
+
+        const piiLoggingEnabled =
+            piiLoggingKey === "true"
+                ? true
+                : piiLoggingKey === "false"
+                ? false
+                : undefined;
+        const loggerOptions = { ...this.config.system.loggerOptions };
+
+        const logLevel =
+            logLevelKey && Object.keys(LogLevel).includes(logLevelKey)
+                ? LogLevel[logLevelKey]
+                : undefined;
+        if (logLevel) {
+            loggerOptions.loggerCallback = BaseOperatingContext.loggerCallback;
+            loggerOptions.logLevel = logLevel;
+        }
+        if (piiLoggingEnabled !== undefined) {
+            loggerOptions.piiLoggingEnabled = piiLoggingEnabled;
+        }
+
+        this.logger = new Logger(loggerOptions, name, version);
         this.available = false;
     }
 

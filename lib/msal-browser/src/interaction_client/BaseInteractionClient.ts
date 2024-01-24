@@ -279,28 +279,16 @@ export abstract class BaseInteractionClient {
             authorityMetadata: this.config.auth.authorityMetadata,
         };
 
-        if (requestAuthority) {
-            this.logger.verbose(
-                "Creating discovered authority with request authority"
-            );
-            return await AuthorityFactory.createDiscoveredInstance(
-                requestAuthority,
-                this.config.system.networkClient,
-                this.browserStorage,
-                authorityOptions,
-                this.logger
-            );
-        }
-
-        this.logger.verbose(
-            "Creating discovered authority with configured authority"
-        );
-        return await AuthorityFactory.createDiscoveredInstance(
-            this.config.auth.authority,
+        const authority = requestAuthority || this.config.auth.authority;
+        this.logger.verbose(`Creating discovered authority with ${authority}`);
+        return AuthorityFactory.createDiscoveredInstance(
+            authority,
             this.config.system.networkClient,
             this.browserStorage,
             authorityOptions,
-            this.logger
+            this.logger,
+            this.correlationId,
+            this.performanceClient
         );
     }
 }

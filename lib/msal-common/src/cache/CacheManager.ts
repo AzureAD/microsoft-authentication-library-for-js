@@ -10,6 +10,7 @@ import {
     AppMetadataFilter,
     AppMetadataCache,
     TokenKeys,
+    TenantProfileFilter,
 } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
 import {
@@ -32,7 +33,12 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError";
-import { AccountInfo } from "../account/AccountInfo";
+import {
+    AccountInfo,
+    TenantProfile,
+    tenantIdMatchesHomeTenant,
+    updateAccountTenantProfileData,
+} from "../account/AccountInfo";
 import { AppMetadataEntity } from "./entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "./entities/ThrottlingEntity";
@@ -75,13 +81,26 @@ export abstract class CacheManager implements ICacheManager {
      * fetch the account entity from the platform cache
      *  @param accountKey
      */
-    abstract getAccount(accountKey: string): AccountEntity | null;
+    abstract getAccount(
+        accountKey: string,
+        logger?: Logger
+    ): AccountEntity | null;
+
+    /**
+     * Returns deserialized account if found in the cache, otherwiser returns null
+     */
+    abstract getCachedAccountEntity(accountKey: string): AccountEntity | null;
 
     /**
      * set account entity in the platform cache
      * @param account
      */
     abstract setAccount(account: AccountEntity): void;
+
+    /**
+     * remove account entity from the platform cache if it's outdated
+     */
+    abstract removeOutdatedAccount(accountKey: string): void;
 
     /**
      * fetch the idToken entity from the platform cache
@@ -238,31 +257,23 @@ export abstract class CacheManager implements ICacheManager {
      * @returns Array of AccountInfo objects in cache
      */
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
-        const validAccounts: AccountInfo[] = [];
-        this.getAccountsFilteredBy(accountFilter || {}).forEach(
-            (accountEntity: AccountEntity) => {
-                const accountInfo = this.getAccountInfoFromEntity(
-                    accountEntity,
-                    accountFilter
-                );
-                if (accountInfo) {
-                    validAccounts.push(accountInfo);
-                }
-            }
+        return this.buildTenantProfiles(
+            this.getAccountsFilteredBy(accountFilter || {}),
+            accountFilter
         );
-        return validAccounts;
     }
 
     /**
-     * Gets accountInfo object based on provided filters
+     * Gets first tenanted AccountInfo object found based on provided filters
      */
     getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
         const allAccounts = this.getAllAccounts(accountFilter);
         if (allAccounts.length > 1) {
-            // If one or more accounts are found, further filter to the first account that has an ID token
-            return allAccounts.filter((account) => {
-                return !!account.idTokenClaims;
-            })[0];
+            // If one or more accounts are found, prioritize accounts that have an ID token
+            const sortedAccounts = allAccounts.sort((account) => {
+                return account.idTokenClaims ? -1 : 1;
+            });
+            return sortedAccounts[0];
         } else if (allAccounts.length === 1) {
             // If only one account is found, return it regardless of whether a matching ID token was found
             return allAccounts[0];
@@ -285,52 +296,214 @@ export abstract class CacheManager implements ICacheManager {
         }
     }
 
-    private getAccountInfoFromEntity(
+    /**
+     * Matches filtered account entities with cached ID tokens that match the tenant profile-specific account filters
+     * and builds the account info objects from the matching ID token's claims
+     * @param cachedAccounts
+     * @param accountFilter
+     * @returns Array of AccountInfo objects that match account and tenant profile filters
+     */
+    private buildTenantProfiles(
+        cachedAccounts: AccountEntity[],
+        accountFilter?: AccountFilter
+    ): AccountInfo[] {
+        return cachedAccounts.flatMap((accountEntity) => {
+            return this.getAccountInfoForTenantProfiles(
+                accountEntity,
+                accountFilter
+            );
+        });
+    }
+
+    private getAccountInfoForTenantProfiles(
         accountEntity: AccountEntity,
         accountFilter?: AccountFilter
+    ): AccountInfo[] {
+        return this.getTenantProfilesFromAccountEntity(
+            accountEntity,
+            accountFilter?.tenantId,
+            accountFilter
+        );
+    }
+
+    private getTenantedAccountInfoByFilter(
+        accountInfo: AccountInfo,
+        tokenKeys: TokenKeys,
+        tenantProfile: TenantProfile,
+        tenantProfileFilter?: TenantProfileFilter
     ): AccountInfo | null {
-        const accountInfo = accountEntity.getAccountInfo();
-        const idToken = this.getIdToken(accountInfo);
+        let tenantedAccountInfo: AccountInfo | null = null;
+        let idTokenClaims: TokenClaims | undefined;
+
+        if (tenantProfileFilter) {
+            if (
+                !this.tenantProfileMatchesFilter(
+                    tenantProfile,
+                    tenantProfileFilter
+                )
+            ) {
+                return null;
+            }
+        }
+
+        const idToken = this.getIdToken(
+            accountInfo,
+            tokenKeys,
+            tenantProfile.tenantId
+        );
+
         if (idToken) {
-            const idTokenClaims = extractTokenClaims(
+            idTokenClaims = extractTokenClaims(
                 idToken.secret,
                 this.cryptoImpl.base64Decode
             );
 
             if (
-                this.idTokenClaimsMatchAccountFilter(
+                !this.idTokenClaimsMatchTenantProfileFilter(
                     idTokenClaims,
-                    accountFilter
+                    tenantProfileFilter
                 )
             ) {
-                accountInfo.idToken = idToken.secret;
-                accountInfo.idTokenClaims = idTokenClaims;
-                return accountInfo;
+                // ID token sourced claims don't match so this tenant profile is not a match
+                return null;
             }
         }
-        return accountInfo;
+
+        // Expand tenant profile into account info based on matching tenant profile and if available matching ID token claims
+        tenantedAccountInfo = updateAccountTenantProfileData(
+            accountInfo,
+            tenantProfile,
+            idTokenClaims
+        );
+
+        return tenantedAccountInfo;
     }
 
-    private idTokenClaimsMatchAccountFilter(
-        idTokenClaims: TokenClaims,
-        accountFilter?: AccountFilter
+    private getTenantProfilesFromAccountEntity(
+        accountEntity: AccountEntity,
+        targetTenantId?: string,
+        tenantProfileFilter?: TenantProfileFilter
+    ): AccountInfo[] {
+        const accountInfo = accountEntity.getAccountInfo();
+        let searchTenantProfiles: Map<string, TenantProfile> =
+            accountInfo.tenantProfiles || new Map<string, TenantProfile>();
+        const tokenKeys = this.getTokenKeys();
+
+        // If a tenant ID was provided, only return the tenant profile for that tenant ID if it exists
+        if (targetTenantId) {
+            const tenantProfile = searchTenantProfiles.get(targetTenantId);
+            if (tenantProfile) {
+                // Reduce search field to just this tenant profile
+                searchTenantProfiles = new Map<string, TenantProfile>([
+                    [targetTenantId, tenantProfile],
+                ]);
+            } else {
+                // No tenant profile for search tenant ID, return empty array
+                return [];
+            }
+        }
+
+        const matchingTenantProfiles: AccountInfo[] = [];
+        searchTenantProfiles.forEach((tenantProfile: TenantProfile) => {
+            const tenantedAccountInfo = this.getTenantedAccountInfoByFilter(
+                accountInfo,
+                tokenKeys,
+                tenantProfile,
+                tenantProfileFilter
+            );
+            if (tenantedAccountInfo) {
+                matchingTenantProfiles.push(tenantedAccountInfo);
+            }
+        });
+
+        return matchingTenantProfiles;
+    }
+
+    private tenantProfileMatchesFilter(
+        tenantProfile: TenantProfile,
+        tenantProfileFilter: TenantProfileFilter
     ): boolean {
-        if (accountFilter) {
+        if (
+            !!tenantProfileFilter.localAccountId &&
+            !this.matchLocalAccountIdFromTenantProfile(
+                tenantProfile,
+                tenantProfileFilter.localAccountId
+            )
+        ) {
+            return false;
+        }
+
+        if (
+            !!tenantProfileFilter.name &&
+            !(tenantProfile.name === tenantProfileFilter.name)
+        ) {
+            return false;
+        }
+
+        if (
+            tenantProfileFilter.isHomeTenant !== undefined &&
+            !(tenantProfile.isHomeTenant === tenantProfileFilter.isHomeTenant)
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private idTokenClaimsMatchTenantProfileFilter(
+        idTokenClaims: TokenClaims,
+        tenantProfileFilter?: TenantProfileFilter
+    ): boolean {
+        // Tenant Profile filtering
+        if (tenantProfileFilter) {
             if (
-                !!accountFilter.loginHint &&
-                !this.matchLoginHint(idTokenClaims, accountFilter.loginHint)
+                !!tenantProfileFilter.localAccountId &&
+                !this.matchLocalAccountIdFromTokenClaims(
+                    idTokenClaims,
+                    tenantProfileFilter.localAccountId
+                )
             ) {
                 return false;
             }
+
             if (
-                !!accountFilter.sid &&
-                !this.matchSid(idTokenClaims, accountFilter.sid)
+                !!tenantProfileFilter.loginHint &&
+                !this.matchLoginHintFromTokenClaims(
+                    idTokenClaims,
+                    tenantProfileFilter.loginHint
+                )
+            ) {
+                return false;
+            }
+
+            if (
+                !!tenantProfileFilter.username &&
+                !this.matchUsername(
+                    idTokenClaims.preferred_username,
+                    tenantProfileFilter.username
+                )
+            ) {
+                return false;
+            }
+
+            if (
+                !!tenantProfileFilter.name &&
+                !this.matchName(idTokenClaims, tenantProfileFilter.name)
+            ) {
+                return false;
+            }
+
+            if (
+                !!tenantProfileFilter.sid &&
+                !this.matchSid(idTokenClaims, tenantProfileFilter.sid)
             ) {
                 return false;
             }
         }
+
         return true;
     }
+
     /**
      * saves a cache record
      * @param cacheRecord
@@ -414,7 +587,7 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * Retrieve accounts matching all provided filters; if no filter is set, get all accounts
+     * Retrieve account entities matching all provided tenant-agnostic filters; if no filter is set, get all account entities in the cache
      * Not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
      * @param accountFilter - An object containing Account properties to filter by
      */
@@ -422,18 +595,17 @@ export abstract class CacheManager implements ICacheManager {
         const allAccountKeys = this.getAccountKeys();
         const matchingAccounts: AccountEntity[] = [];
         allAccountKeys.forEach((cacheKey) => {
-            if (
-                !this.isAccountKey(
-                    cacheKey,
-                    accountFilter.homeAccountId,
-                    accountFilter.tenantId
-                )
-            ) {
+            if (!this.isAccountKey(cacheKey, accountFilter.homeAccountId)) {
                 // Don't parse value if the key doesn't match the account filters
                 return;
             }
 
-            const entity: AccountEntity | null = this.getAccount(cacheKey);
+            const entity: AccountEntity | null = this.getAccount(
+                cacheKey,
+                this.commonLogger
+            );
+
+            // Match base account fields
 
             if (!entity) {
                 return;
@@ -447,15 +619,8 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             if (
-                !!accountFilter.localAccountId &&
-                !this.matchLocalAccountId(entity, accountFilter.localAccountId)
-            ) {
-                return;
-            }
-
-            if (
                 !!accountFilter.username &&
-                !this.matchUsername(entity, accountFilter.username)
+                !this.matchUsername(entity.username, accountFilter.username)
             ) {
                 return;
             }
@@ -470,14 +635,6 @@ export abstract class CacheManager implements ICacheManager {
             if (
                 !!accountFilter.realm &&
                 !this.matchRealm(entity, accountFilter.realm)
-            ) {
-                return;
-            }
-
-            // tenantId is another name for realm
-            if (
-                !!accountFilter.tenantId &&
-                !this.matchRealm(entity, accountFilter.tenantId)
             ) {
                 return;
             }
@@ -499,10 +656,23 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (
-                !!accountFilter.name &&
-                !this.matchName(entity, accountFilter.name)
-            ) {
+            // If at least one tenant profile matches the tenant profile filter, add the account to the list of matching accounts
+            const tenantProfileFilter: TenantProfileFilter = {
+                localAccountId: accountFilter?.localAccountId,
+                name: accountFilter?.name,
+            };
+
+            const matchingTenantProfiles = entity.tenantProfiles?.filter(
+                (tenantProfile: TenantProfile) => {
+                    return this.tenantProfileMatchesFilter(
+                        tenantProfile,
+                        tenantProfileFilter
+                    );
+                }
+            );
+
+            if (matchingTenantProfiles && matchingTenantProfiles.length === 0) {
+                // No tenant profile for this account matches filter, don't add to list of matching accounts
                 return;
             }
 
@@ -788,7 +958,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param account
      */
     async removeAccount(accountKey: string): Promise<void> {
-        const account = this.getAccount(accountKey);
+        const account = this.getAccount(accountKey, this.commonLogger);
         if (!account) {
             return;
         }
@@ -824,6 +994,88 @@ export abstract class CacheManager implements ICacheManager {
         });
 
         await Promise.all(removedCredentials);
+    }
+
+    /**
+     * Migrates a single-tenant account and all it's associated alternate cross-tenant account objects in the
+     * cache into a condensed multi-tenant account object with tenant profiles.
+     * @param accountKey
+     * @param accountEntity
+     * @param logger
+     * @returns
+     */
+    protected updateOutdatedCachedAccount(
+        accountKey: string,
+        accountEntity: AccountEntity | null,
+        logger?: Logger
+    ): AccountEntity | null {
+        // Only update if account entity is defined and has no tenantProfiles object (is outdated)
+        if (accountEntity && accountEntity.isSingleTenant()) {
+            this.commonLogger?.verbose(
+                "updateOutdatedCachedAccount: Found a single-tenant (outdated) account entity in the cache, migrating to multi-tenant account entity"
+            );
+
+            // Get keys of all accounts belonging to user
+            const matchingAccountKeys = this.getAccountKeys().filter(
+                (key: string) => {
+                    return key.startsWith(accountEntity.homeAccountId);
+                }
+            );
+
+            // Get all account entities belonging to user
+            const accountsToMerge: AccountEntity[] = [];
+            matchingAccountKeys.forEach((key: string) => {
+                const account = this.getCachedAccountEntity(key);
+                if (account) {
+                    accountsToMerge.push(account);
+                }
+            });
+
+            // Set base account to home account if available, any account if not
+            const baseAccount =
+                accountsToMerge.find((account) => {
+                    return tenantIdMatchesHomeTenant(
+                        account.realm,
+                        account.homeAccountId
+                    );
+                }) || accountsToMerge[0];
+
+            // Populate tenant profiles built from each account entity belonging to the user
+            baseAccount.tenantProfiles = accountsToMerge.map(
+                (account: AccountEntity) => {
+                    return {
+                        tenantId: account.realm,
+                        localAccountId: account.localAccountId,
+                        name: account.name,
+                        isHomeTenant: tenantIdMatchesHomeTenant(
+                            account.realm,
+                            account.homeAccountId
+                        ),
+                    };
+                }
+            );
+
+            const updatedAccount = CacheManager.toObject(new AccountEntity(), {
+                ...baseAccount,
+            });
+
+            const newAccountKey = updatedAccount.generateAccountKey();
+
+            // Clear cache of legacy account objects that have been collpsed into tenant profiles
+            matchingAccountKeys.forEach((key: string) => {
+                if (key !== newAccountKey) {
+                    this.removeOutdatedAccount(accountKey);
+                }
+            });
+
+            // Cache updated account object
+            this.setAccount(updatedAccount);
+            logger?.verbose("Updated an outdated account entity in the cache");
+            return updatedAccount;
+        }
+
+        // No update is necessary
+        return accountEntity;
     }
 
     /**
@@ -876,80 +1128,27 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * Retrieve the cached credentials into a cacherecord
-     * @param account {AccountInfo}
-     * @param request {BaseAuthRequest}
-     * @param environment {string}
-     * @param performanceClient {?IPerformanceClient}
-     * @param correlationId {?string}
-     */
-    readCacheRecord(
-        account: AccountInfo,
-        request: BaseAuthRequest,
-        environment: string,
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
-    ): CacheRecord {
-        const tokenKeys = this.getTokenKeys();
-        const cachedAccount = this.readAccountFromCache(account);
-        const cachedIdToken = this.getIdToken(
-            account,
-            tokenKeys,
-            performanceClient,
-            correlationId
-        );
-        const cachedAccessToken = this.getAccessToken(
-            account,
-            request,
-            tokenKeys,
-            performanceClient,
-            correlationId
-        );
-        const cachedRefreshToken = this.getRefreshToken(
-            account,
-            false,
-            tokenKeys,
-            performanceClient,
-            correlationId
-        );
-        const cachedAppMetadata = this.readAppMetadataFromCache(environment);
-
-        if (cachedAccount && cachedIdToken) {
-            cachedAccount.idTokenClaims = extractTokenClaims(
-                cachedIdToken.secret,
-                this.cryptoImpl.base64Decode
-            );
-        }
-
-        return {
-            account: cachedAccount,
-            idToken: cachedIdToken,
-            accessToken: cachedAccessToken,
-            refreshToken: cachedRefreshToken,
-            appMetadata: cachedAppMetadata,
-        };
-    }
-
-    /**
      * Retrieve AccountEntity from cache
      * @param account
      */
     readAccountFromCache(account: AccountInfo): AccountEntity | null {
         const accountKey: string =
             AccountEntity.generateAccountCacheKey(account);
-        return this.getAccount(accountKey);
+        return this.getAccount(accountKey, this.commonLogger);
     }
 
     /**
      * Retrieve IdTokenEntity from cache
      * @param account {AccountInfo}
      * @param tokenKeys {?TokenKeys}
+     * @param targetRealm {?string}
      * @param performanceClient {?IPerformanceClient}
      * @param correlationId {?string}
      */
     getIdToken(
         account: AccountInfo,
         tokenKeys?: TokenKeys,
+        targetRealm?: string,
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ): IdTokenEntity | null {
@@ -959,36 +1158,66 @@ export abstract class CacheManager implements ICacheManager {
             environment: account.environment,
             credentialType: CredentialType.ID_TOKEN,
             clientId: this.clientId,
-            realm: account.tenantId,
+            realm: targetRealm,
         };
 
-        const idTokens: IdTokenEntity[] = this.getIdTokensByFilter(
+        const idTokenMap: Map<string, IdTokenEntity> = this.getIdTokensByFilter(
             idTokenFilter,
             tokenKeys
         );
-        const numIdTokens = idTokens.length;
+
+        const numIdTokens = idTokenMap.size;
 
         if (numIdTokens < 1) {
             this.commonLogger.info("CacheManager:getIdToken - No token found");
             return null;
         } else if (numIdTokens > 1) {
+            let tokensToBeRemoved: Map<string, IdTokenEntity> = idTokenMap;
+            // Multiple tenant profiles and no tenant specified, pick home account
+            if (!targetRealm) {
+                const homeIdTokenMap: Map<string, IdTokenEntity> = new Map<
+                    string,
+                    IdTokenEntity
+                >();
+                idTokenMap.forEach((idToken, key) => {
+                    if (idToken.realm === account.tenantId) {
+                        homeIdTokenMap.set(key, idToken);
+                    }
+                });
+                const numHomeIdTokens = homeIdTokenMap.size;
+                if (numHomeIdTokens < 1) {
+                    this.commonLogger.info(
+                        "CacheManager:getIdToken - Multiple ID tokens found for account but none match account entity tenant id, returning first result"
+                    );
+                    return idTokenMap.values().next().value;
+                } else if (numHomeIdTokens === 1) {
+                    this.commonLogger.info(
+                        "CacheManager:getIdToken - Multiple ID tokens found for account, defaulting to home tenant profile"
+                    );
+                    return homeIdTokenMap.values().next().value;
+                } else {
+                    // Multiple ID tokens for home tenant profile, remove all and return null
+                    tokensToBeRemoved = homeIdTokenMap;
+                }
+            }
+            // Multiple tokens for a single tenant profile, remove all and return null
             this.commonLogger.info(
-                "CacheManager:getIdToken - Multiple id tokens found, clearing them"
+                "CacheManager:getIdToken - Multiple matching ID tokens found, clearing them"
             );
-            idTokens.forEach((idToken) => {
-                this.removeIdToken(generateCredentialKey(idToken));
+            tokensToBeRemoved.forEach((idToken, key) => {
+                this.removeIdToken(key);
             });
             if (performanceClient && correlationId) {
                 performanceClient.addFields(
-                    { multiMatchedID: idTokens.length },
+                    { multiMatchedID: idTokenMap.size },
                     correlationId
                 );
             }
             return null;
         }
 
-        this.commonLogger.info("CacheManager:getIdToken - Returning id token");
-        return idTokens[0];
+        this.commonLogger.info("CacheManager:getIdToken - Returning ID token");
+        return idTokenMap.values().next().value;
     }
 
     /**
@@ -999,11 +1228,14 @@ export abstract class CacheManager implements ICacheManager {
     getIdTokensByFilter(
         filter: CredentialFilter,
         tokenKeys?: TokenKeys
-    ): IdTokenEntity[] {
+    ): Map<string, IdTokenEntity> {
         const idTokenKeys =
             (tokenKeys && tokenKeys.idToken) || this.getTokenKeys().idToken;
 
-        const idTokens: IdTokenEntity[] = [];
+        const idTokens: Map<string, IdTokenEntity> = new Map<
+            string,
+            IdTokenEntity
+        >();
         idTokenKeys.forEach((key) => {
             if (
                 !this.idTokenKeyMatchesFilter(key, {
@@ -1015,7 +1247,7 @@ export abstract class CacheManager implements ICacheManager {
             }
             const idToken = this.getIdTokenCredential(key);
             if (idToken && this.credentialMatchesFilter(idToken, filter)) {
-                idTokens.push(idToken);
+                idTokens.set(key, idToken);
             }
         });
 
@@ -1078,6 +1310,7 @@ export abstract class CacheManager implements ICacheManager {
         account: AccountInfo,
         request: BaseAuthRequest,
         tokenKeys?: TokenKeys,
+        targetRealm?: string,
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ): AccessTokenEntity | null {
@@ -1101,7 +1334,7 @@ export abstract class CacheManager implements ICacheManager {
             environment: account.environment,
             credentialType: credentialType,
             clientId: this.clientId,
-            realm: account.tenantId,
+            realm: targetRealm || account.tenantId,
             target: scopes,
             tokenType: authScheme,
             keyId: request.sshKid,
@@ -1407,27 +1640,19 @@ export abstract class CacheManager implements ICacheManager {
      * @param localAccountId
      * @returns
      */
-    private matchLocalAccountId(
-        entity: AccountEntity,
+    private matchLocalAccountIdFromTokenClaims(
+        tokenClaims: TokenClaims,
         localAccountId: string
     ): boolean {
-        return !!(
-            typeof entity.localAccountId === "string" &&
-            localAccountId === entity.localAccountId
-        );
+        const idTokenLocalAccountId = tokenClaims.oid || tokenClaims.sub;
+        return localAccountId === idTokenLocalAccountId;
     }
 
-    /**
-     * helper to match usernames
-     * @param entity
-     * @param username
-     * @returns
-     */
-    private matchUsername(entity: AccountEntity, username: string): boolean {
-        return !!(
-            typeof entity.username === "string" &&
-            username.toLowerCase() === entity.username.toLowerCase()
-        );
+    private matchLocalAccountIdFromTenantProfile(
+        tenantProfile: TenantProfile,
+        localAccountId: string
+    ): boolean {
+        return tenantProfile.localAccountId === localAccountId;
     }
 
     /**
@@ -1436,8 +1661,25 @@ export abstract class CacheManager implements ICacheManager {
      * @param name
      * @returns true if the downcased name properties are present and match in the filter and the entity
      */
-    private matchName(entity: AccountEntity, name: string): boolean {
-        return !!(name.toLowerCase() === entity.name?.toLowerCase());
+    private matchName(claims: TokenClaims, name: string): boolean {
+        return !!(name.toLowerCase() === claims.name?.toLowerCase());
+    }
+
+    /**
+     * helper to match usernames
+     * @param entity
+     * @param username
+     * @returns
+     */
+    private matchUsername(
+        cachedUsername?: string,
+        filterUsername?: string
+    ): boolean {
+        return !!(
+            cachedUsername &&
+            typeof cachedUsername === "string" &&
+            filterUsername?.toLowerCase() === cachedUsername.toLowerCase()
+        );
     }
 
     /**
@@ -1537,7 +1779,7 @@ export abstract class CacheManager implements ICacheManager {
         entity: AccountEntity | CredentialEntity,
         realm: string
     ): boolean {
-        return !!(entity.realm && realm === entity.realm);
+        return !!(entity.realm?.toLowerCase() === realm.toLowerCase());
     }
 
     /**
@@ -1564,19 +1806,19 @@ export abstract class CacheManager implements ICacheManager {
      * @param loginHint
      * @returns
      */
-    private matchLoginHint(
-        idTokenClaims: TokenClaims,
+    private matchLoginHintFromTokenClaims(
+        tokenClaims: TokenClaims,
         loginHint: string
     ): boolean {
-        if (idTokenClaims?.login_hint === loginHint) {
+        if (tokenClaims.login_hint === loginHint) {
             return true;
         }
 
-        if (idTokenClaims.preferred_username === loginHint) {
+        if (tokenClaims.preferred_username === loginHint) {
             return true;
         }
 
-        if (idTokenClaims?.upn === loginHint) {
+        if (tokenClaims.upn === loginHint) {
             return true;
         }
 
@@ -1585,12 +1827,12 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Helper to match sid
-     * @param idTokenClaims
+     * @param entity
      * @param sid
      * @returns true if the sid claim is present and matches the filter
      */
     private matchSid(idTokenClaims: TokenClaims, sid: string): boolean {
-        return !!(idTokenClaims?.sid && idTokenClaims.sid === sid);
+        return idTokenClaims.sid === sid;
     }
 
     private matchAuthorityType(
@@ -1688,6 +1930,9 @@ export class DefaultStorageClass extends CacheManager {
     getAccount(): AccountEntity {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
+    getCachedAccountEntity(): AccountEntity | null {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    }
     setIdTokenCredential(): void {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
@@ -1752,6 +1997,9 @@ export class DefaultStorageClass extends CacheManager {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     updateCredentialCacheKey(): string {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    }
+    removeOutdatedAccount(): void {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
 }
