@@ -86,16 +86,20 @@ export function getRandomValues(dataBuffer: Uint8Array): Uint8Array {
 }
 
 /**
+ * Returns random Uint32 value.
+ * @returns {number}
+ */
+function getRandomUint32(): number {
+    window.crypto.getRandomValues(UINT32_ARR);
+    return UINT32_ARR[0];
+}
+
+/**
  * Creates a UUID v7 from the current timestamp.
  * Implementation relies on the system clock to guarantee increasing order of generated identifiers.
  * @returns {number}
  */
 export function createNewGuid(): string {
-    function getRandomUint32(): number {
-        window.crypto.getRandomValues(UINT32_ARR);
-        return UINT32_ARR[0];
-    }
-
     const currentTimestamp = Date.now();
     const baseRand = getRandomUint32() * 0x400 + (getRandomUint32() & 0x3ff);
 
