@@ -88,7 +88,6 @@ export function getRandomValues(dataBuffer: Uint8Array): Uint8Array {
 /**
  * Creates a UUID v7 from the current timestamp.
  * Implementation relies on the system clock to guarantee increasing order of generated identifiers.
- * It maintains a previous timestamp to make sure clocks never go backwards (clock skew) to avoid potential collisions.
  * @returns {number}
  */
 export function createNewGuid(): string {
