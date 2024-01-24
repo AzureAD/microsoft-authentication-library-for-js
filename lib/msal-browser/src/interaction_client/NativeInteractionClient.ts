@@ -405,23 +405,32 @@ export class NativeInteractionClient extends BaseInteractionClient {
             "NativeInteractionClient - handleNativeResponse called."
         );
 
-        if (response.account.id !== request.accountId) {
+        // generate identifiers
+        const idTokenClaims = AuthToken.extractTokenClaims(
+            response.id_token,
+            base64Decode
+        );
+
+        const homeAccountIdentifier = this.createHomeAccountIdentifier(
+            response,
+            idTokenClaims
+        );
+
+        const cachedhomeAccountId =
+            this.browserStorage.getAccountInfoFilteredBy({
+                nativeAccountId: request.accountId,
+            })?.homeAccountId;
+
+        if (
+            homeAccountIdentifier != cachedhomeAccountId &&
+            response.account.id !== request.accountId
+        ) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
             throw createNativeAuthError(NativeAuthErrorCodes.userSwitch);
         }
 
         // Get the preferred_cache domain for the given authority
         const authority = await this.getDiscoveredAuthority(request.authority);
-
-        // generate identifiers
-        const idTokenClaims = AuthToken.extractTokenClaims(
-            response.id_token,
-            base64Decode
-        );
-        const homeAccountIdentifier = this.createHomeAccountIdentifier(
-            response,
-            idTokenClaims
-        );
 
         const baseAccount = buildAccountToCache(
             this.browserStorage,
