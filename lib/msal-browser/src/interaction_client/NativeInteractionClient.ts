@@ -809,7 +809,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const authority = request.authority || this.config.auth.authority;
 
         if (request.account) {
-            await this.validateRequestAuthority(authority, request.account);
+            // validate authority
+            await this.getDiscoveredAuthority(
+                authority,
+                request.azureCloudOptions,
+                request.account
+            );
         }
 
         const canonicalAuthority = new UrlString(authority);
