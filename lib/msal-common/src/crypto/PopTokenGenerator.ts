@@ -4,7 +4,7 @@
  */
 
 import { ICrypto, SignedHttpRequestParameters } from "./ICrypto";
-import { TimeUtils } from "../utils/TimeUtils";
+import * as TimeUtils from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";

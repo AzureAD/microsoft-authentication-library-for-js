@@ -35,7 +35,7 @@ import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
-import { TimeUtils } from "../utils/TimeUtils";
+import * as TimeUtils from "../utils/TimeUtils";
 import { AccountInfo } from "../account/AccountInfo";
 import {
     buildClientInfoFromHomeAccountId,
