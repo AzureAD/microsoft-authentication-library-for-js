@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705968716159,
+  "lastUpdate": 1706219992261,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4708,6 +4708,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.78%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "77c4f3d40c71621b03c65e9504ad153f14d7659c",
+          "message": "Fix node-extensions tests (#6849)\n\nJest only has experimental support for ESM and is failing when parsing\r\n`import.meta` (ESM only) as it's assuming CJS. This PR mocks\r\n`import.meta` as suggested\r\n[here](https://github.com/kulshekhar/ts-jest/issues/3888#issuecomment-1722524078)\r\nto address for the time being. If/when jest/ts-jest address this on\r\ntheir end we can remove this.",
+          "timestamp": "2024-01-25T21:54:16Z",
+          "tree_id": "c9d4f7efcd0f5402b8c328361497b16caa915cb1",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/77c4f3d40c71621b03c65e9504ad153f14d7659c"
+        },
+        "date": 1706219990501,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 186416,
+            "range": "±2.01%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 182277,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
           }
         ]
       }
