@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706219992261,
+  "lastUpdate": 1706220759967,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4746,6 +4746,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.97%",
             "unit": "ops/sec",
             "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "813bda7f0529189645231ff394c4e1afdc68edb8",
+          "message": "Reduce calls to resolveEndpointsAsync (#6838)\n\nWe are building an `Authority` object and parsing/validating endpoint\r\nmetadata at least twice in a single request - once to validate it\r\nmatches the account object passed in and again to build the final\r\nrequest object. This PR refactors to do both these steps at the same\r\ntime using a single `Authority` object. Additionally, telemetry is added\r\nto track the number of times an API is invoked over the course of a\r\nrequest to identify redundancies easier.",
+          "timestamp": "2024-01-25T22:07:11Z",
+          "tree_id": "58863de5f38649f65c7c20c4ce6f88bbeb187ff4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/813bda7f0529189645231ff394c4e1afdc68edb8"
+        },
+        "date": 1706220758854,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 182038,
+            "range": "±1.75%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 180440,
+            "range": "±1.65%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
