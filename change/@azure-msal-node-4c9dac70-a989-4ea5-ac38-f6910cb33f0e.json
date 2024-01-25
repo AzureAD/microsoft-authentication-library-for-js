@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add file references to shared config dependencies #6842",
+  "packageName": "@azure/msal-node",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
