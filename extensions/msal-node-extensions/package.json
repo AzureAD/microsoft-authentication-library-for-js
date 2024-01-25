@@ -72,6 +72,7 @@
     "rollup": "^3.20.2",
     "shx": "^0.3.4",
     "ts-jest": "^29.1.0",
+    "ts-jest-mock-import-meta": "^1.1.0",
     "tslib": "^2.0.0",
     "typescript": "^4.9.5"
   }
