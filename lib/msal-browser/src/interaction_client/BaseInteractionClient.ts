@@ -22,6 +22,8 @@ import {
     IPerformanceClient,
     PerformanceEvents,
     StringUtils,
+    AzureCloudOptions,
+    invokeAsync,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -136,18 +138,13 @@ export abstract class BaseInteractionClient {
      * @param request
      */
     protected async initializeBaseRequest(
-        request: Partial<BaseAuthRequest>,
-        account?: AccountInfo
+        request: Partial<BaseAuthRequest>
     ): Promise<BaseAuthRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.InitializeBaseRequest,
             this.correlationId
         );
         const authority = request.authority || this.config.auth.authority;
-
-        if (account) {
-            await this.validateRequestAuthority(authority, account);
-        }
 
         const scopes = [...((request && request.scopes) || [])];
 
@@ -218,25 +215,6 @@ export abstract class BaseInteractionClient {
         );
     }
 
-    /*
-     * If authority provided in the request does not match environment/authority specified
-     * in the account or MSAL config, we throw an error.
-     */
-    async validateRequestAuthority(
-        authority: string,
-        account: AccountInfo
-    ): Promise<void> {
-        const discoveredAuthority = await this.getDiscoveredAuthority(
-            authority
-        );
-
-        if (!discoveredAuthority.isAlias(account.environment)) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.authorityMismatch
-            );
-        }
-    }
-
     /**
      *
      * @param apiId
@@ -266,23 +244,46 @@ export abstract class BaseInteractionClient {
     /**
      * Used to get a discovered version of the default authority.
      * @param requestAuthority
+     * @param requestAzureCloudOptions
+     * @param account
      */
     protected async getDiscoveredAuthority(
-        requestAuthority?: string
+        requestAuthority?: string,
+        requestAzureCloudOptions?: AzureCloudOptions,
+        account?: AccountInfo
     ): Promise<Authority> {
-        this.logger.verbose("getDiscoveredAuthority called");
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            this.correlationId
+        );
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             OIDCOptions: this.config.auth.OIDCOptions,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
+            skipAuthorityMetadataCache:
+                this.config.auth.skipAuthorityMetadataCache,
         };
 
-        const authority = requestAuthority || this.config.auth.authority;
-        this.logger.verbose(`Creating discovered authority with ${authority}`);
-        return AuthorityFactory.createDiscoveredInstance(
-            authority,
+        // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
+        const userAuthority = requestAuthority
+            ? requestAuthority
+            : this.config.auth.authority;
+
+        // fall back to the authority from config
+        const builtAuthority = Authority.generateAuthority(
+            userAuthority,
+            requestAzureCloudOptions || this.config.auth.azureCloudOptions
+        );
+        const discoveredAuthority = await invokeAsync(
+            AuthorityFactory.createDiscoveredInstance,
+            PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
+            builtAuthority,
             this.config.system.networkClient,
             this.browserStorage,
             authorityOptions,
@@ -290,5 +291,13 @@ export abstract class BaseInteractionClient {
             this.correlationId,
             this.performanceClient
         );
+
+        if (account && !discoveredAuthority.isAlias(account.environment)) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.authorityMismatch
+            );
+        }
+
+        return discoveredAuthority;
     }
 }
