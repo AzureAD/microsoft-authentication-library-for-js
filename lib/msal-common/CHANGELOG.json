@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 23 Jan 2024 00:06:05 GMT",
+      "version": "14.6.1",
+      "tag": "@azure/msal-common_v14.6.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "2c5e4f1c72835d4dc47a72d158094af89964b9b0",
+            "comment": "Fix bug affecting metadata resolution for tenanted authorities"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Jan 2024 00:03:25 GMT",
       "version": "14.6.0",
       "tag": "@azure/msal-common_v14.6.0",

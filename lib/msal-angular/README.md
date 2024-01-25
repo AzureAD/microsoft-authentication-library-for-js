@@ -146,7 +146,7 @@ This library controls how users sign-in and access services. We recommend you al
 - [Msal Browser FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md) for access to our frequently asked questions
 - [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using tag "msal".
   We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
-- [GitHub Issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/templates/edit) for reporting a bug or feature requests
+- [GitHub Issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/new/choose) for reporting a bug or feature requests
 - [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
 
 ## Contribute
