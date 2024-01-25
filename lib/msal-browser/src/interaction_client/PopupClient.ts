@@ -410,7 +410,7 @@ export class PopupClient extends StandardInteractionClient {
             )(
                 serverTelemetryManager,
                 requestAuthority,
-                undefined,
+                undefined, // AzureCloudOptions
                 validRequest.account || undefined
             );
 

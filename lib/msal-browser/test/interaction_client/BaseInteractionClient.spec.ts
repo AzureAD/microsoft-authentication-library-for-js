@@ -222,7 +222,7 @@ describe("BaseInteractionClient", () => {
                 // @ts-ignore
                 .getDiscoveredAuthority(
                     "https://login.microsoftonline.com/common",
-                    undefined,
+                    undefined, // AzureCloudOptions
                     testAccount
                 )
                 .then(() => {
@@ -250,7 +250,7 @@ describe("BaseInteractionClient", () => {
                 // @ts-ignore
                 .getDiscoveredAuthority(
                     "https://login.microsoftonline.com/common",
-                    undefined,
+                    undefined, // AzureCloudOptions
                     testAccount
                 )
                 .then(() => {

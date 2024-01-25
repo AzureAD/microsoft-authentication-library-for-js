@@ -244,7 +244,8 @@ export abstract class BaseInteractionClient {
     /**
      * Used to get a discovered version of the default authority.
      * @param requestAuthority
-     * @param requestCorrelationId
+     * @param requestAzureCloudOptions
+     * @param account
      */
     protected async getDiscoveredAuthority(
         requestAuthority?: string,

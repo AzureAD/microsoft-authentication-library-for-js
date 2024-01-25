@@ -524,7 +524,7 @@ export class RedirectClient extends StandardInteractionClient {
             )(
                 serverTelemetryManager,
                 logoutRequest && logoutRequest.authority,
-                undefined,
+                undefined, // AzureCloudOptions
                 (logoutRequest && logoutRequest.account) || undefined
             );
 

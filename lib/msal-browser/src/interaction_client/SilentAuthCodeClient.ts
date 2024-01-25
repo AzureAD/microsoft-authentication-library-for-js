@@ -102,7 +102,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             )(
                 serverTelemetryManager,
                 silentRequest.authority,
-                undefined,
+                silentRequest.azureCloudOptions,
                 silentRequest.account
             );
             const authClient: HybridSpaAuthorizationCodeClient =
