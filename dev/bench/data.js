@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706228179940,
+  "lastUpdate": 1706282256115,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4822,6 +4822,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.04%",
             "unit": "ops/sec",
             "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "90e235f0b3cbef71e4de1b32947bf11ffb02ea6d",
+          "message": "Make BrowserCrypto generate UUID v7 by default (#6841)\n\n- Make BrowserCrypto generate UUID v7 by default.",
+          "timestamp": "2024-01-26T10:12:07-05:00",
+          "tree_id": "f494055368bdd996bf3b55f6edb86fd7ad4e586e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/90e235f0b3cbef71e4de1b32947bf11ffb02ea6d"
+        },
+        "date": 1706282255026,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 203651,
+            "range": "±2.01%",
+            "unit": "ops/sec",
+            "extra": "211 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 181482,
+            "range": "±1.69%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
