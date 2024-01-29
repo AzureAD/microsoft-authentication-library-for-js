@@ -2,6 +2,33 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 23 Jan 2024 00:06:05 GMT",
+      "version": "3.7.1",
+      "tag": "@azure/msal-browser_v3.7.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2c5e4f1c72835d4dc47a72d158094af89964b9b0",
+            "comment": "Support state on acquireTokenSilent"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2c5e4f1c72835d4dc47a72d158094af89964b9b0",
+            "comment": "Fix bug affecting metadata resolution for tenanted authorities"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.6.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Jan 2024 00:03:25 GMT",
       "version": "3.7.0",
       "tag": "@azure/msal-browser_v3.7.0",

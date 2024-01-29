@@ -33,7 +33,7 @@ import * as AuthToken from "../../src/account/AuthToken";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
-import { TimeUtils } from "../../src/utils/TimeUtils";
+import * as TimeUtils from "../../src/utils/TimeUtils";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 import { CommonSilentFlowRequest } from "../../src/request/CommonSilentFlowRequest";
 import { CacheManager } from "../../src/cache/CacheManager";

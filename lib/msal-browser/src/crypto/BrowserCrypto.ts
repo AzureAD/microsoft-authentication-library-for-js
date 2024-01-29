@@ -30,6 +30,10 @@ const S256_HASH_ALG = "SHA-256";
 const MODULUS_LENGTH = 2048;
 // Public Exponent
 const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
+// UUID hex digits
+const UUID_CHARS = "0123456789abcdef";
+// Array to store UINT32 random value
+const UINT32_ARR = new Uint32Array(1);
 
 const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
     name: PKCS1_V15_KEYGEN_ALG,
@@ -52,7 +56,9 @@ export function validateCryptoAvailable(logger: Logger): void {
 
 /**
  * Returns a sha-256 hash of the given dataString as an ArrayBuffer.
- * @param dataString
+ * @param dataString {string} data string
+ * @param performanceClient {?IPerformanceClient}
+ * @param correlationId {?string} correlation id
  */
 export async function sha256Digest(
     dataString: string,
@@ -80,11 +86,58 @@ export function getRandomValues(dataBuffer: Uint8Array): Uint8Array {
 }
 
 /**
- * Creates a new random GUID
- * @returns
+ * Returns random Uint32 value.
+ * @returns {number}
+ */
+function getRandomUint32(): number {
+    window.crypto.getRandomValues(UINT32_ARR);
+    return UINT32_ARR[0];
+}
+
+/**
+ * Creates a UUID v7 from the current timestamp.
+ * Implementation relies on the system clock to guarantee increasing order of generated identifiers.
+ * @returns {number}
  */
 export function createNewGuid(): string {
-    return window.crypto.randomUUID();
+    const currentTimestamp = Date.now();
+    const baseRand = getRandomUint32() * 0x400 + (getRandomUint32() & 0x3ff);
+
+    // Result byte array
+    const bytes = new Uint8Array(16);
+    // A 12-bit `rand_a` field value
+    const randA = Math.trunc(baseRand / 2 ** 30);
+    // The higher 30 bits of 62-bit `rand_b` field value
+    const randBHi = baseRand & (2 ** 30 - 1);
+    // The lower 32 bits of 62-bit `rand_b` field value
+    const randBLo = getRandomUint32();
+
+    bytes[0] = currentTimestamp / 2 ** 40;
+    bytes[1] = currentTimestamp / 2 ** 32;
+    bytes[2] = currentTimestamp / 2 ** 24;
+    bytes[3] = currentTimestamp / 2 ** 16;
+    bytes[4] = currentTimestamp / 2 ** 8;
+    bytes[5] = currentTimestamp;
+    bytes[6] = 0x70 | (randA >>> 8);
+    bytes[7] = randA;
+    bytes[8] = 0x80 | (randBHi >>> 24);
+    bytes[9] = randBHi >>> 16;
+    bytes[10] = randBHi >>> 8;
+    bytes[11] = randBHi;
+    bytes[12] = randBLo >>> 24;
+    bytes[13] = randBLo >>> 16;
+    bytes[14] = randBLo >>> 8;
+    bytes[15] = randBLo;
+
+    let text = "";
+    for (let i = 0; i < bytes.length; i++) {
+        text += UUID_CHARS.charAt(bytes[i] >>> 4);
+        text += UUID_CHARS.charAt(bytes[i] & 0xf);
+        if (i === 3 || i === 5 || i === 7 || i === 9) {
+            text += "-";
+        }
+    }
+    return text;
 }
 
 /**
