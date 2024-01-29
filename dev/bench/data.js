@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706282256115,
+  "lastUpdate": 1706548121326,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4860,6 +4860,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.69%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "36167099+bbush915@users.noreply.github.com",
+            "name": "bbush915",
+            "username": "bbush915"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e491e8f576deec812d930bd91c7f58660f9a0fee",
+          "message": "Fix: Cached AccessToken missing realm property in OIDC scenario (#6689)\n\nIn the case an application is using a separate OIDC-compliant authority\r\nand the tid claim is empty, the cached access token does not contain a\r\nrealm property. One side-effect is that the cached access token will\r\nfail the isAccessTokenEntity check, preventing it from being re-used.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>\r\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>",
+          "timestamp": "2024-01-29T09:03:03-08:00",
+          "tree_id": "d03ecd1b3e60a7af6eedcaaecb3bbe66d0990cfc",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e491e8f576deec812d930bd91c7f58660f9a0fee"
+        },
+        "date": 1706548119715,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 196253,
+            "range": "±1.78%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 203412,
+            "range": "±1.33%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
