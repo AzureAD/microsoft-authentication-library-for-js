@@ -492,7 +492,8 @@ describe("ResponseHandler.ts", () => {
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "",
                 },
-                logger
+                logger,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             const timestamp = TimeUtils.nowSeconds();
