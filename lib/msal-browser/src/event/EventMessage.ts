@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError, AccountInfo } from "@azure/msal-common";
+import { AuthError, AccountInfo, AccountFilter } from "@azure/msal-common";
 import { EventType } from "./EventType";
 import { InteractionStatus, InteractionType } from "../utils/BrowserConstants";
 import {
@@ -27,6 +27,11 @@ export type PopupEvent = {
     popupWindow: Window;
 };
 
+export type ActiveAccountChangeEvent = {
+    previousActiveAccountFilters: AccountFilter | null;
+    newActiveAccountFilters: AccountFilter | null;
+};
+
 export type EventPayload =
     | AccountInfo
     | PopupRequest
@@ -36,6 +41,7 @@ export type EventPayload =
     | EndSessionRequest
     | AuthenticationResult
     | PopupEvent
+    | ActiveAccountChangeEvent
     | null;
 
 export type EventError = AuthError | Error | null;

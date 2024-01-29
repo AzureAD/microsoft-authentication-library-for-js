@@ -8,6 +8,7 @@ export const EventType = {
     INITIALIZE_END: "msal:initializeEnd",
     ACCOUNT_ADDED: "msal:accountAdded",
     ACCOUNT_REMOVED: "msal:accountRemoved",
+    ACTIVE_ACCOUNT_UPDATED: "msal:activeAccountChanged",
     LOGIN_START: "msal:loginStart",
     LOGIN_SUCCESS: "msal:loginSuccess",
     LOGIN_FAILURE: "msal:loginFailure",
