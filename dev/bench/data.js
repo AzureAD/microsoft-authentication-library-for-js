@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706548170371,
+  "lastUpdate": 1706555418633,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4936,6 +4936,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.81%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8412655feba7b30748e2eeca875d2c7940c69e0e",
+          "message": "Fix failing response handler test because of missing correlation ID (#6857)\n\nAdds missing correlation ID to authority initializer in ResponseHandler\r\nspec",
+          "timestamp": "2024-01-29T11:04:49-08:00",
+          "tree_id": "d12d8856c63b6609af273eafe73a54515a337417",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8412655feba7b30748e2eeca875d2c7940c69e0e"
+        },
+        "date": 1706555417482,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 183749,
+            "range": "±1.90%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 184702,
+            "range": "±1.83%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
