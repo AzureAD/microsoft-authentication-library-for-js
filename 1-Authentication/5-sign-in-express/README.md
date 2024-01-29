@@ -48,7 +48,7 @@ This sample demonstrates how to sign users into a sample Node.js & Express web a
 | **Use case**          | This code sample applies to **customer configuration uses case**![Yes button](./ReadmeFiles/yes.png "Title"). If you're looking for a workforce configuration use case, use [Tutorial: Enable a Node.js (Express) application to sign in users by using Microsoft Entra ID](https://github.com/Azure-Samples/ms-identity-node)      |
 | **Scenario**        | Sign in users. You acquire an ID token by using authorization code flow with PKCE. |
 |    **Add sign in to your app**        | Use the instructions in [Sign in users in a Node.js web app](https://learn.microsoft.com/entra/external-id/customers/tutorial-web-app-node-sign-in-prepare-tenant) to learn how to add sign in to your Node web app. |
-|**Product documentation** | Explore [Microsoft Entra ID for customers documentation](https://review.learn.microsoft.com/entra/external-id/customers/) |
+|**Product documentation** | Explore [Microsoft Entra ID for customers documentation](https://learn.microsoft.com/entra/external-id/customers/) |
 
 ## Contents
 
@@ -69,31 +69,34 @@ This sample demonstrates how to sign users into a sample Node.js & Express web a
 
 ## Register the web application in your tenant
 
-You can register an app in your tenant automatically by using Microsoft Graph PowerShell or Manually register your apps in Microsoft Entra Admin center.
+You can register an app in your tenant automatically by using Microsoft Graph PowerShell or via the Microsoft Entra Admin center.
 
-When you use Microsoft Graph PowerShell, you automatically register the applications and related objects app secrets, then modifies your project config files, so you run the app without any further action.
+When you use Microsoft Graph PowerShell, you automatically register the applications and related objects app secrets, then modify your project config files, so you can run the app without any further action:
 
-To register your app manually in the Microsoft Entra admin center use the steps in [Register the web app](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#register-the-web-app).
 
-<details>
-    <summary>Expand this section if you want to use this automation:</summary>
+* To register your app in the Microsoft Entra admin center use the steps in [Register the web app](https://learn.microsoft.com/entra/external-id/customers/sample-web-app-node-sign-in#register-the-web-app).
 
-> :warning: If you have never used **Microsoft Graph PowerShell** before, we recommend you go through the [App Creation Scripts Guide](./AppCreationScripts/AppCreationScripts.md) once to ensure that you've prepared your environment correctly for this step.
+* To register and configure your app automatically, 
 
-1. Ensure that you have PowerShell 7 or later installed.
-1. Run the script to create your Microsoft Entra ID application and configure the code of the sample application accordingly.
-1. For interactive process in PowerShell, run:
-
-    ```PowerShell
-    cd .\AppCreationScripts\
-    .\Configure.ps1 -TenantId "[Optional] - your tenant id" -AzureEnvironmentName "[Optional] - Azure environment, defaults to 'Global'"
-    ```
-
-> Other ways of running the scripts are described in [App Creation Scripts guide](./AppCreationScripts/AppCreationScripts.md). The scripts also provides a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
-
-> :exclamation: NOTE: This sample can make use of client certificates. You can use **AppCreationScripts** to register an Microsoft Entra ID application with certificates. For more information see, [Use client certificate for authentication in your Node.js web app instead of client secrets](https://review.learn.microsoft.com/entra/external-id/customers/how-to-web-app-node-use-certificate).
-
-</details>
+    <details>
+        <summary>Expand this section</summary>
+    
+    > :warning: If you have never used **Microsoft Graph PowerShell** before, we recommend you go through the [App Creation Scripts Guide](./AppCreationScripts/AppCreationScripts.md) once to ensure that you've prepared your environment correctly for this step.
+    
+    1. Ensure that you have PowerShell 7 or later installed.
+    1. Run the script to create your Microsoft Entra ID application and configure the code of the sample application accordingly.
+    1. For interactive process in PowerShell, run:
+    
+        ```PowerShell
+        cd .\AppCreationScripts\
+        .\Configure.ps1 -TenantId "[Optional] - your tenant id" -AzureEnvironmentName "[Optional] - Azure environment, defaults to 'Global'"
+        ```
+    
+    > Other ways of running the scripts are described in [App Creation Scripts guide](./AppCreationScripts/AppCreationScripts.md). The scripts also provides a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
+    
+    > :exclamation: NOTE: This sample can make use of client certificates. You can use **AppCreationScripts** to register an Microsoft Entra ID application with certificates. For more information see, [Use client certificate for authentication in your Node.js web app instead of client secrets](https://review.learn.microsoft.com/entra/external-id/customers/how-to-web-app-node-use-certificate).
+    
+    </details>
 
 ## Add app client secret
 
