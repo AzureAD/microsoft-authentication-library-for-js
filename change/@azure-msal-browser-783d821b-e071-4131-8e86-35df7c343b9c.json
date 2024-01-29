@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Update msal-browser shared config version references to use local files #6855",
+  "comment": "Update shared config version references to use local files #6855",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "none"
