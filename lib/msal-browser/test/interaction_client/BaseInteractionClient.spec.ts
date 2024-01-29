@@ -65,6 +65,8 @@ describe("BaseInteractionClient", () => {
             // @ts-ignore
             pca.eventHandler,
             // @ts-ignore
+            pca.navigationClient,
+            // @ts-ignore
             pca.performanceClient
         );
     });
@@ -202,7 +204,7 @@ describe("BaseInteractionClient", () => {
             expect(pca.getActiveAccount()).toBe(null);
         });
     });
-    describe("validateRequestAuthority()", () => {
+    describe("getDiscoveredAuthority()", () => {
         afterEach(() => {
             window.sessionStorage.clear();
         });
@@ -217,8 +219,10 @@ describe("BaseInteractionClient", () => {
             };
 
             await testClient
-                .validateRequestAuthority(
+                // @ts-ignore
+                .getDiscoveredAuthority(
                     "https://login.microsoftonline.com/common",
+                    undefined, // AzureCloudOptions
                     testAccount
                 )
                 .then(() => {
@@ -243,8 +247,10 @@ describe("BaseInteractionClient", () => {
             };
 
             testClient
-                .validateRequestAuthority(
+                // @ts-ignore
+                .getDiscoveredAuthority(
                     "https://login.microsoftonline.com/common",
+                    undefined, // AzureCloudOptions
                     testAccount
                 )
                 .then(() => {

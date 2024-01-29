@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix bug affecting metadata resolution for tenanted authorities",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

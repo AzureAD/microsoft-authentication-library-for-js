@@ -135,7 +135,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             )(
                 serverTelemetryManager,
                 silentRequest.authority,
-                silentRequest.azureCloudOptions
+                silentRequest.azureCloudOptions,
+                silentRequest.account
             );
 
             return await invokeAsync(

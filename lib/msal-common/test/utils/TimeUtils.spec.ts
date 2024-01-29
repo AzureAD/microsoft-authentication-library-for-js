@@ -1,4 +1,4 @@
-import { TimeUtils } from "../../src/utils/TimeUtils";
+import * as TimeUtils from "../../src/utils/TimeUtils";
 
 describe("TimeUtils.ts Class Unit Tests", () => {
     it("nowSeconds() gets the current Unix time in seconds", () => {

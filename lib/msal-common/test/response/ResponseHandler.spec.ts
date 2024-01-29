@@ -33,7 +33,7 @@ import { LogLevel, Logger } from "../../src/logger/Logger";
 import * as AuthToken from "../../src/account/AuthToken";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
-import { TimeUtils } from "../../src/utils/TimeUtils";
+import * as TimeUtils from "../../src/utils/TimeUtils";
 import { AuthError } from "../../src/error/AuthError";
 import {
     ClientAuthError,
