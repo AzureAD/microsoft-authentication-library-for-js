@@ -459,6 +459,88 @@ describe("ResponseHandler.ts", () => {
             );
             expect(response.code).toEqual(testSpaCode);
         });
+
+        it("should ensure realm property in cached access token if no tenant id is available via claim or authority (OIDC scenario)", (done) => {
+            const { tid, ...tokenClaims } = ID_TOKEN_CLAIMS;
+
+            claimsStub.restore();
+
+            claimsStub = sinon
+                .stub(AuthToken, "extractTokenClaims")
+                .callsFake((_encodedIdToken, _crypto) => {
+                    return tokenClaims as TokenClaims;
+                });
+
+            const testResponse: ServerAuthorizationTokenResponse = {
+                token_type: AuthenticationScheme.BEARER,
+                scope: "openid",
+                expires_in: 3599,
+                ext_expires_in: 3599,
+                access_token: "access-token",
+                refresh_token: "refresh-token",
+                id_token: "id-token",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+            };
+
+            const testAuthority = new Authority(
+                "https://login.live.com",
+                networkInterface,
+                testCacheManager,
+                {
+                    protocolMode: ProtocolMode.OIDC,
+                    knownAuthorities: ["login.live.com"],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: "",
+                },
+                logger
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid"],
+            };
+
+            const responseHandler = new ResponseHandler(
+                "client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            sinon
+                .stub(ResponseHandler, "generateAuthenticationResult")
+                .callsFake(
+                    async (
+                        _cryptoObj,
+                        _authority,
+                        cacheRecord,
+                        _fromTokenCache,
+                        _request,
+                        _idTokenClaims,
+                        _requestState,
+                        _serverTokenResponse,
+                        _requestId
+                    ) => {
+                        expect(cacheRecord.accessToken?.realm).toBeDefined();
+
+                        done();
+
+                        return {} as AuthenticationResult;
+                    }
+                );
+
+            responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest
+            );
+        });
     });
 
     describe("generateAuthenticationResult", () => {
