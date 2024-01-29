@@ -24,7 +24,7 @@ jobs:
         env:
             BEACHBALL: 1
         steps:
-            - uses: dorny/paths-filter@v2
+            - uses: dorny/paths-filter@v3
               id: filter
               with:
                   # Will return true if any file is not markdown and any file is in /lib
