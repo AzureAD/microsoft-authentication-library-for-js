@@ -226,10 +226,10 @@ describe("Event API tests", () => {
             expect(emitEventSpy.getCalls().length).toBe(0);
         });
 
-        it("ACTIVE_ACCOUNT_UPDATED event raised when active account is changed in another tab", (done) => {
+        it("ACTIVE_ACCOUNT_CHANGED event raised when active account is changed in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(
-                    EventType.ACTIVE_ACCOUNT_UPDATED
+                    EventType.ACTIVE_ACCOUNT_CHANGED
                 );
                 expect(message.interactionType).toBeNull();
                 expect(message.payload).toEqual({

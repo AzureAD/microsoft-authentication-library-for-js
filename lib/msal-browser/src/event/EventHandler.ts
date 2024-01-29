@@ -192,7 +192,7 @@ export class EventHandler {
                 : null;
 
             this.emitEvent(
-                EventType.ACTIVE_ACCOUNT_UPDATED,
+                EventType.ACTIVE_ACCOUNT_CHANGED,
                 undefined, // interactionType
                 {
                     previousActiveAccountFilters,
