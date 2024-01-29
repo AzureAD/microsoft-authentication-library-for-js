@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706555418633,
+  "lastUpdate": 1706558676131,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -4974,6 +4974,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.83%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "687fe33fcc6944be84bb8d499d5a122b8bbea68c",
+          "message": "Update shared config version references to use local files (#6855)\n\nThis PR:\r\n- Replaces version numbers with local file paths for\r\n`eslint-config-msal` and `msal-test-utils` local packages",
+          "timestamp": "2024-01-29T11:58:18-08:00",
+          "tree_id": "7f6939f829049c46ccfcc6aaf686de15489733fa",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/687fe33fcc6944be84bb8d499d5a122b8bbea68c"
+        },
+        "date": 1706558674769,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 178731,
+            "range": "±1.85%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 167607,
+            "range": "±2.42%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
