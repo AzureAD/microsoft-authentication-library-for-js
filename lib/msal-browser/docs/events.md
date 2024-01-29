@@ -14,21 +14,7 @@ export type EventMessage = {
 };
 ```
 
-The payload and error in `EventMessage` are defined as follows:
-
-```javascript
-export type EventPayload =
-    | PopupRequest
-    | RedirectRequest
-    | SilentRequest
-    | SsoSilentRequest
-    | EndSessionRequest
-    | AuthenticationResult
-    | PopupEvent
-    | null;
-
-export type EventError = AuthError | Error | null;
-```
+You can consult the [EventPayload](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_browser.EventPayload.html) and [EventError](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_browser.EventError.html) type docs to understand how they are defined in MSAL.
 
 ## How events are emitted in msal-browser
 
