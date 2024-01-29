@@ -79,6 +79,7 @@ export {
     EventCallbackFunction,
     EventMessageUtils,
     PopupEvent,
+    ActiveAccountChangeEvent,
 } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
 

@@ -8,6 +8,7 @@ import {
     Logger,
     AccountEntity,
     CacheManager,
+    PersistentCacheKeys,
 } from "@azure/msal-common";
 import { InteractionType } from "../utils/BrowserConstants";
 import {
@@ -139,6 +140,12 @@ export class EventHandler {
      */
     private handleAccountCacheChange(e: StorageEvent): void {
         try {
+            // Handle active account filter change
+            if (e.key?.includes(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS)) {
+                return this.handleActiveAccountCacheChange(e);
+            }
+
+            // Handle account object change
             const cacheValue = e.newValue || e.oldValue;
             if (!cacheValue) {
                 return;
@@ -170,6 +177,28 @@ export class EventHandler {
                     accountInfo
                 );
             }
+        } catch (e) {
+            return;
+        }
+    }
+
+    private handleActiveAccountCacheChange(e: StorageEvent): void {
+        try {
+            const previousActiveAccountFilters = e.oldValue
+                ? JSON.parse(e.oldValue)
+                : null;
+            const newActiveAccountFilters = e.newValue
+                ? JSON.parse(e.newValue)
+                : null;
+
+            this.emitEvent(
+                EventType.ACTIVE_ACCOUNT_UPDATED,
+                undefined, // interactionType
+                {
+                    previousActiveAccountFilters,
+                    newActiveAccountFilters,
+                }
+            );
         } catch (e) {
             return;
         }
