@@ -8,6 +8,7 @@ import {
     Logger,
     AccountEntity,
     CacheManager,
+    PersistentCacheKeys,
 } from "@azure/msal-common";
 import { InteractionType } from "../utils/BrowserConstants";
 import {
@@ -139,6 +140,13 @@ export class EventHandler {
      */
     private handleAccountCacheChange(e: StorageEvent): void {
         try {
+            // Handle active account filter change
+            if (e.key?.includes(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS)) {
+                // This event has no payload, it only signals cross-tab app instances that the results of calling getActiveAccount() will have changed
+                this.emitEvent(EventType.ACTIVE_ACCOUNT_CHANGED);
+            }
+
+            // Handle account object change
             const cacheValue = e.newValue || e.oldValue;
             if (!cacheValue) {
                 return;
