@@ -489,7 +489,7 @@ export class StandardController implements IController {
                             });
                         } else {
                             rootMeasurement.end({
-                                success: false
+                                success: false,
                             });
                         }
 
