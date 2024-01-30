@@ -581,14 +581,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(event.name).toBe(PerformanceEvents.AcquireTokenRedirect);
                 expect(event.correlationId).toBeDefined();
                 expect(event.success).toBeTruthy();
-                expect(event["handleRedirectPromiseDurationMs"]).toBeGreaterThanOrEqual(0);
+                expect(
+                    event["handleRedirectPromiseDurationMs"]
+                ).toBeGreaterThanOrEqual(0);
                 expect(event["handleRedirectPromiseCallCount"]).toEqual(1);
                 expect(event.success).toBeTruthy();
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
 
-            pca.handleRedirectPromise()
+            pca.handleRedirectPromise();
         });
 
         it("Calls NativeInteractionClient.handleRedirectPromise and returns its response", async () => {
@@ -695,18 +697,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const callbackId = pca.addPerformanceCallback((events) => {
                     expect(events.length).toEqual(1);
                     const event = events[0];
-                    expect(event.name).toBe(PerformanceEvents.AcquireTokenRedirect);
+                    expect(event.name).toBe(
+                        PerformanceEvents.AcquireTokenRedirect
+                    );
                     expect(event.correlationId).toBeDefined();
                     expect(event.success).toBeTruthy();
-                    expect(event["handleNativeRedirectPromiseDurationMs"]).toBeGreaterThanOrEqual(0);
-                    expect(event["handleNativeRedirectPromiseCallCount"]).toEqual(1);
+                    expect(
+                        event["handleNativeRedirectPromiseDurationMs"]
+                    ).toBeGreaterThanOrEqual(0);
+                    expect(
+                        event["handleNativeRedirectPromiseCallCount"]
+                    ).toEqual(1);
                     expect(event.success).toBeTruthy();
                     pca.removePerformanceCallback(callbackId);
                     done();
                 });
                 // Implementation of PCA was moved to controller.
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                pca = (pca as any).controller
+                pca = (pca as any).controller;
 
                 const testAccount: AccountInfo = {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,

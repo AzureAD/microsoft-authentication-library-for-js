@@ -335,7 +335,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 "handleRedirectPromise called but there is no interaction in progress, returning null."
             );
             if (performanceClient && correlationId) {
-                performanceClient?.addFields({ errorCode: "no_interaction_in_progress" }, correlationId);
+                performanceClient?.addFields(
+                    { errorCode: "no_interaction_in_progress" },
+                    correlationId
+                );
             }
             return null;
         }
@@ -347,7 +350,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null."
             );
             if (performanceClient && correlationId) {
-                performanceClient?.addFields({ errorCode: "no_cached_request" }, correlationId);
+                performanceClient?.addFields(
+                    { errorCode: "no_cached_request" },
+                    correlationId
+                );
             }
             return null;
         }

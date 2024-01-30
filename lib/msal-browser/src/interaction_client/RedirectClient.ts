@@ -208,7 +208,10 @@ export class RedirectClient extends StandardInteractionClient {
                     "handleRedirectPromise called but there is no interaction in progress, returning null."
                 );
                 if (performanceClient && correlationId) {
-                    performanceClient?.addFields({ errorCode: "no_interaction_in_progress" }, correlationId);
+                    performanceClient?.addFields(
+                        { errorCode: "no_interaction_in_progress" },
+                        correlationId
+                    );
                 }
                 return null;
             }
@@ -224,7 +227,10 @@ export class RedirectClient extends StandardInteractionClient {
                     InteractionType.Redirect
                 );
                 if (performanceClient && correlationId) {
-                    performanceClient?.addFields({ errorCode: "no_server_response" }, correlationId);
+                    performanceClient?.addFields(
+                        { errorCode: "no_server_response" },
+                        correlationId
+                    );
                 }
                 return null;
             }

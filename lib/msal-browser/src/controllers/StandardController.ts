@@ -347,7 +347,8 @@ export class StandardController implements IController {
             if (typeof response === "undefined") {
                 const request: NativeTokenRequest | null =
                     this.browserStorage.getCachedNativeRequest();
-                const useNative = request &&
+                const useNative =
+                    request &&
                     NativeMessageHandler.isNativeAvailable(
                         this.config,
                         this.logger,
@@ -355,14 +356,15 @@ export class StandardController implements IController {
                     ) &&
                     this.nativeExtensionProvider &&
                     !hash;
-                const correlationId =
-                    useNative ? request?.correlationId :
-                    this.browserStorage.getTemporaryCache(
-                        TemporaryCacheKeys.CORRELATION_ID,
-                        true
-                    ) || "";
+                const correlationId = useNative
+                    ? request?.correlationId
+                    : this.browserStorage.getTemporaryCache(
+                          TemporaryCacheKeys.CORRELATION_ID,
+                          true
+                      ) || "";
                 const rootMeasurement = this.performanceClient.startMeasurement(
-                    "acquireTokenRedirect", correlationId
+                    "acquireTokenRedirect",
+                    correlationId
                 );
                 this.eventHandler.emitEvent(
                     EventType.HANDLE_REDIRECT_START,
@@ -397,7 +399,10 @@ export class StandardController implements IController {
                         this.logger,
                         this.performanceClient,
                         rootMeasurement.event.correlationId
-                    )(this.performanceClient, rootMeasurement.event.correlationId);
+                    )(
+                        this.performanceClient,
+                        rootMeasurement.event.correlationId
+                    );
                 } else {
                     this.logger.trace(
                         "handleRedirectPromise - acquiring token from web flow"
@@ -410,7 +415,11 @@ export class StandardController implements IController {
                         this.logger,
                         this.performanceClient,
                         rootMeasurement.event.correlationId
-                    )(hash, this.performanceClient, rootMeasurement.event.correlationId);
+                    )(
+                        hash,
+                        this.performanceClient,
+                        rootMeasurement.event.correlationId
+                    );
                 }
 
                 response = redirectResponse
@@ -440,13 +449,13 @@ export class StandardController implements IController {
                                     "handleRedirectResponse returned result, acquire token success"
                                 );
                             }
-                            rootMeasurement.end({success: true});
+                            rootMeasurement.end({ success: true });
                         }
                         this.eventHandler.emitEvent(
                             EventType.HANDLE_REDIRECT_END,
                             InteractionType.Redirect
                         );
-                        rootMeasurement.end({success: false});
+                        rootMeasurement.end({ success: false });
 
                         return result;
                     })
@@ -473,9 +482,16 @@ export class StandardController implements IController {
                             InteractionType.Redirect
                         );
                         if (eventError instanceof AuthError) {
-                            rootMeasurement.end({success: false, errorCode: eventError.errorCode, subErrorCode: eventError.subError});
+                            rootMeasurement.end({
+                                success: false,
+                                errorCode: eventError.errorCode,
+                                subErrorCode: eventError.subError,
+                            });
                         } else {
-                            rootMeasurement.end({success: false, errorCode: eventError?.message });
+                            rootMeasurement.end({
+                                success: false,
+                                errorCode: eventError?.message,
+                            });
                         }
 
                         throw e;
