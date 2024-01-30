@@ -489,8 +489,7 @@ export class StandardController implements IController {
                             });
                         } else {
                             rootMeasurement.end({
-                                success: false,
-                                errorCode: eventError?.message,
+                                success: false
                             });
                         }
 
