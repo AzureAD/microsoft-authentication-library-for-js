@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError, AccountInfo } from "@azure/msal-common";
+import { AuthError, AccountInfo, AccountFilter } from "@azure/msal-common";
 import { EventType } from "./EventType";
 import { InteractionStatus, InteractionType } from "../utils/BrowserConstants";
 import {
