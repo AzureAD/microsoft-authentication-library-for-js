@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "reduce number of calls to resolveEndpoints",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

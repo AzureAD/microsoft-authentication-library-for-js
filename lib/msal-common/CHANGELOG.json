@@ -2,6 +2,63 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 30 Jan 2024 22:52:14 GMT",
+      "version": "14.6.2-alpha.0",
+      "tag": "@azure/msal-common_v14.6.2-alpha.0",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "74b5105381e1860340d44b7e6dcd0157c3eda672",
+            "comment": "Bump alpha"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "813bda7f0529189645231ff394c4e1afdc68edb8",
+            "comment": "Track number of times an API is invoked in a single request"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "71d9e45ad28410a0e2f9e5d02aef05338a5331f1",
+            "comment": "Optimize TimeUtils for smaller bundle size #6837"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "687fe33fcc6944be84bb8d499d5a122b8bbea68c",
+            "comment": "Update shared config version references to use local files #6855"
+          }
+        ],
+        "patch": [
+          {
+            "author": "bushb@umich.edu",
+            "package": "@azure/msal-common",
+            "commit": "e491e8f576deec812d930bd91c7f58660f9a0fee",
+            "comment": "Ensure cached access token has a defined realm property in certain OIDC scenarios."
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Jan 2024 00:06:05 GMT",
       "version": "14.6.1",
       "tag": "@azure/msal-common_v14.6.1",

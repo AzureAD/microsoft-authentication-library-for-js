@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Bump alpha",
-  "packageName": "@azure/msal-react",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

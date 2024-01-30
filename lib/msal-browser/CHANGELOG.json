@@ -2,6 +2,63 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 30 Jan 2024 22:52:14 GMT",
+      "version": "3.7.2-alpha.0",
+      "tag": "@azure/msal-browser_v3.7.2-alpha.0",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "74b5105381e1860340d44b7e6dcd0157c3eda672",
+            "comment": "Bump alpha"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "90e235f0b3cbef71e4de1b32947bf11ffb02ea6d",
+            "comment": "Make BrowserCrypto generate UUID v7 by default #6841"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.6.2-alpha.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "687fe33fcc6944be84bb8d499d5a122b8bbea68c",
+            "comment": "Update shared config version references to use local files #6855"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "813bda7f0529189645231ff394c4e1afdc68edb8",
+            "comment": "reduce number of calls to resolveEndpoints"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Jan 2024 00:06:05 GMT",
       "version": "3.7.1",
       "tag": "@azure/msal-browser_v3.7.1",
