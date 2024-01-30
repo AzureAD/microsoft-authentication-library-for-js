@@ -320,8 +320,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * If the previous page called native platform for a token using redirect APIs, send the same request again and return the response
+     * @param performanceClient {IPerformanceClient?}
+     * @param correlationId {string?} correlation identifier
      */
-    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+    async handleRedirectPromise(
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
+    ): Promise<AuthenticationResult | null> {
         this.logger.trace(
             "NativeInteractionClient - handleRedirectPromise called."
         );
@@ -329,6 +334,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.info(
                 "handleRedirectPromise called but there is no interaction in progress, returning null."
             );
+            if (performanceClient && correlationId) {
+                performanceClient?.addFields({ errorCode: "no_interaction_in_progress" }, correlationId);
+            }
             return null;
         }
 
@@ -338,6 +346,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null."
             );
+            if (performanceClient && correlationId) {
+                performanceClient?.addFields({ errorCode: "no_cached_request" }, correlationId);
+            }
             return null;
         }
 
