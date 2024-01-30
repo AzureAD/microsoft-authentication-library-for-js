@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706558676131,
+  "lastUpdate": 1706649450541,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5012,6 +5012,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.42%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "400dc4d2da88b95b6b78baa8895ce91a03150517",
+          "message": "Add active account update event (#6854)\n\nThis PR:\r\n- Adds a new cross-tab account storage event called\r\n`ACTIVE_ACCOUNT_CHANGED` to `EventHandler` API\r\n- Adds logic to emit the `ACTIVE_ACCOUNT_CHANGED` event when the\r\n`active-account-filters` cache entry is modified in a new tab\r\n- Adds docs for event usage\r\n- Adds tests",
+          "timestamp": "2024-01-30T13:11:41-08:00",
+          "tree_id": "62c8c30c2db8cc1c385964ee09d7fa68c0041dad",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/400dc4d2da88b95b6b78baa8895ce91a03150517"
+        },
+        "date": 1706649449621,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 183255,
+            "range": "±1.83%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193609,
+            "range": "±2.10%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
           }
         ]
       }
