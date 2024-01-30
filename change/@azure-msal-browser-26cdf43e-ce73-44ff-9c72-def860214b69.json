@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "Add active account update event #6854",
+  "type": "prerelease",
+  "comment": "Bump alpha",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"

@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Bump alpha",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
