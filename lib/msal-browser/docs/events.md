@@ -4,13 +4,13 @@ Msal-Browser (`@azure/msal-browser`) starting at version 2.4 now provides event 
 
 ## What events look like
 
-```javascript
+```typescript
 export type EventMessage = {
-    eventType: EventType,
-    interactionType: InteractionType | null,
-    payload: EventPayload,
-    error: EventError,
-    timestamp: number,
+    eventType: EventType;
+    interactionType: InteractionType | null;
+    payload: EventPayload;
+    error: EventError;
+    timestamp: number;
 };
 ```
 
@@ -100,6 +100,7 @@ msalInstance.addEventCallback((message: EventMessage) => {
     } else if (message.eventType === EventType.ACCOUNT_REMOVED) {
         // Update UI with account logged out
     } else if (message.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
+        const accountInfo = msalInstance.getActiveAccount();
         // Update UI with new active account info
     }
 });
