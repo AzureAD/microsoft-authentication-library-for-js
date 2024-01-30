@@ -232,10 +232,7 @@ describe("Event API tests", () => {
                     EventType.ACTIVE_ACCOUNT_CHANGED
                 );
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual({
-                    previousActiveAccountFilters,
-                    newActiveAccountFilters,
-                });
+                expect(message.payload).toBeNull();
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();

@@ -27,16 +27,6 @@ export type PopupEvent = {
     popupWindow: Window;
 };
 
-/**
- * Event payload sent to callback after active account changes
- */
-export type ActiveAccountChangeEvent = {
-    // - previousActiveAccount - AccountFilter object that identifies the previously active account
-    previousActiveAccountFilters: AccountFilter | null;
-    // - newActiveAccountFilters - AccountFilter object that identifies the new active account
-    newActiveAccountFilters: AccountFilter | null;
-};
-
 export type EventPayload =
     | AccountInfo
     | PopupRequest
@@ -46,7 +36,6 @@ export type EventPayload =
     | EndSessionRequest
     | AuthenticationResult
     | PopupEvent
-    | ActiveAccountChangeEvent
     | null;
 
 export type EventError = AuthError | Error | null;

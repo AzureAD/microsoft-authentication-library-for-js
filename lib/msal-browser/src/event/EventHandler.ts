@@ -142,7 +142,8 @@ export class EventHandler {
         try {
             // Handle active account filter change
             if (e.key?.includes(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS)) {
-                return this.handleActiveAccountCacheChange(e);
+                // This event has no payload, it only signals cross-tab app instances that the results of calling getActiveAccount() will have changed
+                this.emitEvent(EventType.ACTIVE_ACCOUNT_CHANGED);
             }
 
             // Handle account object change
@@ -177,28 +178,6 @@ export class EventHandler {
                     accountInfo
                 );
             }
-        } catch (e) {
-            return;
-        }
-    }
-
-    private handleActiveAccountCacheChange(e: StorageEvent): void {
-        try {
-            const previousActiveAccountFilters = e.oldValue
-                ? JSON.parse(e.oldValue)
-                : null;
-            const newActiveAccountFilters = e.newValue
-                ? JSON.parse(e.newValue)
-                : null;
-
-            this.emitEvent(
-                EventType.ACTIVE_ACCOUNT_CHANGED,
-                undefined, // interactionType
-                {
-                    previousActiveAccountFilters,
-                    newActiveAccountFilters,
-                }
-            );
         } catch (e) {
             return;
         }
