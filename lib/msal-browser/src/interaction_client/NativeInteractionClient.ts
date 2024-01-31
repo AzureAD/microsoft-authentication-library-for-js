@@ -334,12 +334,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.info(
                 "handleRedirectPromise called but there is no interaction in progress, returning null."
             );
-            if (performanceClient && correlationId) {
-                performanceClient?.addFields(
-                    { errorCode: "no_interaction_in_progress" },
-                    correlationId
-                );
-            }
             return null;
         }
 
