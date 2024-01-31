@@ -410,7 +410,9 @@ export class StandardController implements IController {
                     const redirectClient =
                         this.createRedirectClient(correlationId);
                     redirectResponse = invokeAsync(
-                        redirectClient.handleRedirectPromise.bind(redirectClient),
+                        redirectClient.handleRedirectPromise.bind(
+                            redirectClient
+                        ),
                         PerformanceEvents.HandleRedirectPromiseMeasurement,
                         this.logger,
                         this.performanceClient,
