@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 31 Jan 2024 23:43:01 GMT",
+      "version": "3.7.2-alpha.1",
+      "tag": "@azure/msal-browser_v3.7.2-alpha.1",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ddc1fbf11a54c3376df0893ed4b6e5a3bee077ed",
+            "comment": "Bump alpha versions"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6841787b3140510ed1d9e4a5d454fcc50e0f55ee",
+            "comment": "Bump alpha"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "400dc4d2da88b95b6b78baa8895ce91a03150517",
+            "comment": "Add active account update event #6854"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.6.2-alpha.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 30 Jan 2024 22:52:14 GMT",
       "version": "3.7.2-alpha.0",
       "tag": "@azure/msal-browser_v3.7.2-alpha.0",

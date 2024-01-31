@@ -2,6 +2,39 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 31 Jan 2024 23:43:01 GMT",
+      "version": "3.0.12-alpha.1",
+      "tag": "@azure/msal-angular_v3.0.12-alpha.1",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "ddc1fbf11a54c3376df0893ed4b6e5a3bee077ed",
+            "comment": "Bump alpha versions"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "6841787b3140510ed1d9e4a5d454fcc50e0f55ee",
+            "comment": "Bump alpha"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v3.7.2-alpha.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 30 Jan 2024 22:52:14 GMT",
       "version": "3.0.12-alpha.0",
       "tag": "@azure/msal-angular_v3.0.12-alpha.0",

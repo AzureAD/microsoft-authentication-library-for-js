@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Bump alpha versions",
-  "packageName": "@azure/msal-angular",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

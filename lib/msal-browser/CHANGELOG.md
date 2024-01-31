@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 30 Jan 2024 22:52:14 GMT and should not be manually modified.
+This log was last generated on Wed, 31 Jan 2024 23:43:01 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.7.2-alpha.1
+
+Wed, 31 Jan 2024 23:43:01 GMT
+
+### Minor changes
+
+- Add active account update event #6854 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.6.2-alpha.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Changes
+
+- Bump alpha versions (hemoral@microsoft.com)
+- Bump alpha (hemoral@microsoft.com)
 
 ## 3.7.2-alpha.0
 
