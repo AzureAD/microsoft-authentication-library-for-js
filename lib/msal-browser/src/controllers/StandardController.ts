@@ -394,7 +394,7 @@ export class StandardController implements IController {
                     );
 
                     redirectResponse = invokeAsync(
-                        nativeClient.handleRedirectPromise.bind(this),
+                        nativeClient.handleRedirectPromise.bind(nativeClient),
                         PerformanceEvents.HandleNativeRedirectPromiseMeasurement,
                         this.logger,
                         this.performanceClient,
@@ -410,7 +410,7 @@ export class StandardController implements IController {
                     const redirectClient =
                         this.createRedirectClient(correlationId);
                     redirectResponse = invokeAsync(
-                        redirectClient.handleRedirectPromise.bind(this),
+                        redirectClient.handleRedirectPromise.bind(redirectClient),
                         PerformanceEvents.HandleRedirectPromiseMeasurement,
                         this.logger,
                         this.performanceClient,
