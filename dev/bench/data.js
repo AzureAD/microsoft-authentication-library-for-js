@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706727832802,
+  "lastUpdate": 1706827554405,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5088,6 +5088,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.09%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e7a55511680aec602310f63db0bb5b7d2b07fab3",
+          "message": "Fix electron webpack samples (#6864)\n\nThe electron webpack samples' transforms weren't updated when we changed\r\nto .cjs extensions which breaks native module imports (node extensions).\r\nThis PR addresses by adding .cjs to the list of files to transform",
+          "timestamp": "2024-02-01T14:40:23-08:00",
+          "tree_id": "f52a9b6647fc2a3d908aae83ec2062eff9175110",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e7a55511680aec602310f63db0bb5b7d2b07fab3"
+        },
+        "date": 1706827553448,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 185913,
+            "range": "±1.92%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 177897,
+            "range": "±1.80%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
