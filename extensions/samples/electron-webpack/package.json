@@ -10,7 +10,7 @@
         "make": "electron-forge make",
         "publish": "electron-forge publish",
         "lint": "eslint --ext .ts,.tsx .",
-        "build:package": "cd ../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+        "build:package": "npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=@azure/msal-node-extensions",
         "start:build": "npm run build:package && npm start"
     },
     "keywords": [
