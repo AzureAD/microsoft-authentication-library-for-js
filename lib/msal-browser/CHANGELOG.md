@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 31 Jan 2024 23:43:01 GMT and should not be manually modified.
+This log was last generated on Thu, 01 Feb 2024 23:34:02 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.7.2-alpha.2
+
+Thu, 01 Feb 2024 23:34:02 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.6.2-alpha.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Changes
+
+- 'Mark (release@msaljs.com)
 
 ## 3.7.2-alpha.1
 

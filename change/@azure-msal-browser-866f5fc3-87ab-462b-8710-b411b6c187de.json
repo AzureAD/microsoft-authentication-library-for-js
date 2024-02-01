@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "'Mark",
-  "packageName": "@azure/msal-browser",
-  "email": "release@msaljs.com",
-  "dependentChangeType": "patch"
-}
