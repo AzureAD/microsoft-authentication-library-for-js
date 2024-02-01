@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "'Mark",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "release@msaljs.com",
+  "dependentChangeType": "patch"
+}
