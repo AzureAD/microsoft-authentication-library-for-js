@@ -1,57 +1,8 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 01 Feb 2024 23:34:02 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jan 2024 00:06:05 GMT and should not be manually modified.
 
 <!-- Start content -->
-
-## 3.7.2-alpha.2
-
-Thu, 01 Feb 2024 23:34:02 GMT
-
-### Patches
-
-- Bump @azure/msal-common to v14.6.2-alpha.2
-- Bump eslint-config-msal to v0.0.0
-- Bump msal-test-utils to v0.0.1
-
-### Changes
-
-- 'Mark (release@msaljs.com)
-
-## 3.7.2-alpha.1
-
-Wed, 31 Jan 2024 23:43:01 GMT
-
-### Minor changes
-
-- Add active account update event #6854 (hemoral@microsoft.com)
-- Bump @azure/msal-common to v14.6.2-alpha.1
-- Bump eslint-config-msal to v0.0.0
-- Bump msal-test-utils to v0.0.1
-
-### Changes
-
-- Bump alpha versions (hemoral@microsoft.com)
-- Bump alpha (hemoral@microsoft.com)
-
-## 3.7.2-alpha.0
-
-Tue, 30 Jan 2024 22:52:14 GMT
-
-### Minor changes
-
-- Make BrowserCrypto generate UUID v7 by default #6841 (kshabelko@microsoft.com)
-- Bump @azure/msal-common to v14.6.2-alpha.0
-- Bump eslint-config-msal to v0.0.0
-- Bump msal-test-utils to v0.0.1
-
-### Patches
-
-- reduce number of calls to resolveEndpoints (thomas.norling@microsoft.com)
-
-### Changes
-
-- Bump alpha (hemoral@microsoft.com)
 
 ## 3.7.1
 
