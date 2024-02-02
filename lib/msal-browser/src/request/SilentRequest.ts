@@ -47,4 +47,5 @@ export type SilentRequest = Omit<
     prompt?: string;
     state?: string;
     tokenBodyParameters?: StringDict;
+    nonce?: string;
 };
