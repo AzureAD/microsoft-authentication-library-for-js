@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add nonce to SilentRequest #6867",
+  "packageName": "@azure/msal-browser",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
