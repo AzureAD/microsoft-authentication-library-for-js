@@ -20,6 +20,7 @@ import {
     BROWSER_PERF_ENABLED_KEY,
     BrowserCacheLocation,
 } from "../utils/BrowserConstants";
+import * as BrowserCrypto from "../crypto/BrowserCrypto";
 
 /**
  * Returns browser performance measurement module if session flag is enabled. Returns undefined otherwise.
@@ -88,7 +89,7 @@ export class BrowserPerformanceClient
     }
 
     generateId(): string {
-        return window.crypto.randomUUID();
+        return BrowserCrypto.createNewGuid();
     }
 
     private getPageVisibility(): string | null {
