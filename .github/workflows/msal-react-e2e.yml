@@ -55,6 +55,11 @@ jobs:
     - name: Clean Install
       run: npm ci --workspace=samples/msal-react-samples/${{matrix.sample}}
 
+    # Required because of https://github.com/npm/cli/issues/4828
+    - name: Install optional rollup dependency
+      working-directory: lib/msal-react
+      run: "npm install @rollup/rollup-linux-x64-gnu@^4.9.6 --no-save"
+
     - name: Build packages
       working-directory: lib/msal-react
       run: npm run build:all
