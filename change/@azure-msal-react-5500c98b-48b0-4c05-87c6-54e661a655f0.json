@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add rollup-linux-x64-gnu as optional dependency",
+  "packageName": "@azure/msal-react",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
