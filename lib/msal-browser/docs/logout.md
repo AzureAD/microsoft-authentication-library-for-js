@@ -159,7 +159,7 @@ const msal = new PublicClientApplication({
 })
 
 // Automatically on page load
-msal.logoutRedirect({
+msal.logout({
     onRedirectNavigate: () => {
         // Return false to stop navigation after local logout
         return false;
