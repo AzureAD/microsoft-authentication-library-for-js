@@ -65,7 +65,8 @@ export class ManagedIdentityClient {
                     this.logger,
                     this.nodeStorage,
                     this.networkClient,
-                    this.cryptoProvider
+                    this.cryptoProvider,
+                    managedIdentityId
                 );
         }
 
@@ -85,20 +86,36 @@ export class ManagedIdentityClient {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        managedIdentityId: ManagedIdentityId
     ): ServiceFabric | AppService | CloudShell | AzureArc | Imds {
         const source =
+            ServiceFabric.tryCreate(
+                logger,
+                nodeStorage,
+                networkClient,
+                cryptoProvider,
+                managedIdentityId
+            ) ||
             AppService.tryCreate(
                 logger,
                 nodeStorage,
                 networkClient,
                 cryptoProvider
             ) ||
+            CloudShell.tryCreate(
+                logger,
+                nodeStorage,
+                networkClient,
+                cryptoProvider,
+                managedIdentityId
+            ) ||
             AzureArc.tryCreate(
                 logger,
                 nodeStorage,
                 networkClient,
-                cryptoProvider
+                cryptoProvider,
+                managedIdentityId
             ) ||
             Imds.tryCreate(logger, nodeStorage, networkClient, cryptoProvider);
         if (!source) {

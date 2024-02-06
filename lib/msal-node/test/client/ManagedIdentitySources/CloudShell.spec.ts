@@ -6,7 +6,6 @@
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication";
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
-    DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_RESOURCE,
 } from "../../test_kit/StringConstants";
 
@@ -19,21 +18,20 @@ import {
 import { AuthenticationResult } from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
 import { ManagedIdentityEnvironmentVariableNames } from "../../../src/utils/Constants";
+import {
+    ManagedIdentityErrorCodes,
+    createManagedIdentityError,
+} from "../../../src/error/ManagedIdentityError";
 
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {
-        process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
-            "fake_IDENTITY_ENDPOINT";
-        process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
-            "fake_IDENTITY_HEADER";
+        process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT] =
+            "msi_IDENTITY_ENDPOINT";
     });
 
     afterAll(() => {
         delete process.env[
-            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-        ];
-        delete process.env[
-            ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
+            ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT
         ];
     });
 
@@ -41,22 +39,6 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         // reset static variables after each test
         ManagedIdentityClient.identitySource = undefined;
         ManagedIdentityApplication["nodeStorage"] = undefined;
-    });
-
-    test("acquires a User Assigned Client Id token", async () => {
-        expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
-
-        const managedIdentityApplication: ManagedIdentityApplication =
-            new ManagedIdentityApplication(userAssignedClientIdConfig);
-
-        const networkManagedIdentityResult: AuthenticationResult =
-            await managedIdentityApplication.acquireToken(
-                managedIdentityRequestParams
-            );
-
-        expect(networkManagedIdentityResult.accessToken).toEqual(
-            DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-        );
     });
 
     describe("System Assigned", () => {
@@ -68,7 +50,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         });
 
         test("acquires a token", async () => {
-            expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
+            expect(ManagedIdentityTestUtils.isCloudShell()).toBe(true);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -82,7 +64,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         });
 
         test("returns an already acquired token from the cache", async () => {
-            expect(ManagedIdentityTestUtils.isAppService()).toBe(true);
+            expect(ManagedIdentityTestUtils.isCloudShell()).toBe(true);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken({
@@ -101,6 +83,25 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             expect(cachedManagedIdentityResult.fromCache).toBe(true);
             expect(cachedManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+        });
+    });
+
+    describe("Errors", () => {
+        test("throws an error when a user assigned managed identity is used", async () => {
+            expect(ManagedIdentityTestUtils.isCloudShell()).toBe(true);
+
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedClientIdConfig);
+
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.unableToCreateCloudShell
+                )
             );
         });
     });

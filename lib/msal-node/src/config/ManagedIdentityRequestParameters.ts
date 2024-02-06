@@ -43,11 +43,6 @@ export class ManagedIdentityRequestParameters {
             parameterBuilder.addExtraQueryParameters(this.bodyParameters);
         }
 
-        const bodyParametersString = parameterBuilder.createQueryString();
-
-        return UrlString.appendQueryString(
-            this._baseEndpoint,
-            bodyParametersString
-        );
+        return parameterBuilder.createQueryString();
     }
 }

@@ -30,23 +30,25 @@ import {
 } from "../../../src/error/ManagedIdentityError";
 import { ARC_API_VERSION } from "../../../src/client/ManagedIdentitySources/AzureArc";
 import * as fs from "fs";
+import { ManagedIdentityEnvironmentVariableNames } from "../../../src/utils/Constants";
 
 jest.mock("fs");
 
 describe("Acquires a token successfully via an Azure Arc Managed Identity", () => {
-    let OLD_ENVS: NodeJS.ProcessEnv;
-
     beforeAll(() => {
-        // make a copy of old environment
-        process.env = { ...OLD_ENVS };
-
-        process.env["IDENTITY_ENDPOINT"] = "fake_IDENTITY_ENDPOINT";
-        process.env["IMDS_ENDPOINT"] = "fake_IMDS_ENDPOINT";
+        process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
+            "fake_IDENTITY_ENDPOINT";
+        process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT] =
+            "fake_IMDS_ENDPOINT";
     });
 
     afterAll(() => {
-        // restore old environment
-        process.env = OLD_ENVS;
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+        ];
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT
+        ];
     });
 
     afterEach(() => {
@@ -146,9 +148,12 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
 
             expect(sendGetRequestAsyncSpy).nthCalledWith(
                 2,
-                `${process.env[
-                    "IDENTITY_ENDPOINT"
-                ]?.toLowerCase()}?api-version=${ARC_API_VERSION}&resource=${MANAGED_IDENTITY_RESOURCE_BASE}`,
+                `${
+                    process.env[
+                        ManagedIdentityEnvironmentVariableNames
+                            .IDENTITY_ENDPOINT
+                    ]
+                }?api-version=${ARC_API_VERSION}&resource=${MANAGED_IDENTITY_RESOURCE_BASE}`,
                 {
                     headers: {
                         Authorization:
@@ -161,106 +166,103 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
 
             jest.restoreAllMocks();
         });
+    });
 
-        describe("Errors", () => {
-            test("throws an error when a user assigned managed identity is used", async () => {
-                expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+    describe("Errors", () => {
+        test("throws an error when a user assigned managed identity is used", async () => {
+            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
 
-                const managedIdentityApplication: ManagedIdentityApplication =
-                    new ManagedIdentityApplication(userAssignedClientIdConfig);
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedClientIdConfig);
 
-                await expect(
-                    managedIdentityApplication.acquireToken(
-                        managedIdentityRequestParams
-                    )
-                ).rejects.toMatchObject(
-                    createManagedIdentityError(
-                        ManagedIdentityErrorCodes.unableToCreateAzureArc
-                    )
-                );
-            });
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.unableToCreateAzureArc
+                )
+            );
+        });
 
-            test("throws an error when the www-authenticate header is missing", async () => {
-                expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+        test("throws an error when the www-authenticate header is missing", async () => {
+            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
 
-                const managedIdentityApplication: ManagedIdentityApplication =
-                    new ManagedIdentityApplication({
-                        system: {
-                            networkClient:
-                                new ManagedIdentityNetworkErrorClient(
-                                    undefined,
-                                    HttpStatus.UNAUTHORIZED
-                                ),
-                            // managedIdentityIdParams will be omitted for system assigned
-                        },
-                    });
-
-                await expect(
-                    managedIdentityApplication.acquireToken(
-                        managedIdentityRequestParams
-                    )
-                ).rejects.toMatchObject(
-                    createManagedIdentityError(
-                        ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
-                    )
-                );
-            });
-
-            test("throws an error when the www-authenticate header is in an unsupported format", async () => {
-                expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
-
-                const managedIdentityApplication: ManagedIdentityApplication =
-                    new ManagedIdentityApplication({
-                        system: {
-                            networkClient:
-                                new ManagedIdentityNetworkErrorClient(
-                                    "unsupported_format"
-                                ),
-                            // managedIdentityIdParams will be omitted for system assigned
-                        },
-                    });
-
-                await expect(
-                    managedIdentityApplication.acquireToken(
-                        managedIdentityRequestParams
-                    )
-                ).rejects.toMatchObject(
-                    createManagedIdentityError(
-                        ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
-                    )
-                );
-            });
-
-            test("throws an error when the secret file cannot be found", async () => {
-                expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
-
-                const managedIdentityApplication: ManagedIdentityApplication =
-                    new ManagedIdentityApplication({
-                        system: {
-                            networkClient:
-                                new ManagedIdentityNetworkErrorClient(
-                                    "Basic realm=invalid/secret/file/location.key"
-                                ),
-                            // managedIdentityIdParams will be omitted for system assigned
-                        },
-                    });
-
-                jest.spyOn(fs, "readFileSync").mockImplementationOnce(() => {
-                    throw new Error();
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: {
+                        networkClient: new ManagedIdentityNetworkErrorClient(
+                            undefined,
+                            HttpStatus.UNAUTHORIZED
+                        ),
+                        // managedIdentityIdParams will be omitted for system assigned
+                    },
                 });
 
-                await expect(
-                    managedIdentityApplication.acquireToken(
-                        managedIdentityRequestParams
-                    )
-                ).rejects.toMatchObject(
-                    createManagedIdentityError(
-                        ManagedIdentityErrorCodes.unableToReadSecretFile
-                    )
-                );
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderMissing
+                )
+            );
+        });
 
-                jest.restoreAllMocks();
+        test("throws an error when the www-authenticate header is in an unsupported format", async () => {
+            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: {
+                        networkClient: new ManagedIdentityNetworkErrorClient(
+                            "unsupported_format"
+                        ),
+                        // managedIdentityIdParams will be omitted for system assigned
+                    },
+                });
+
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.wwwAuthenticateHeaderUnsupportedFormat
+                )
+            );
+        });
+
+        test("throws an error when the secret file cannot be found", async () => {
+            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
+
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: {
+                        networkClient: new ManagedIdentityNetworkErrorClient(
+                            "Basic realm=invalid/secret/file/location.key"
+                        ),
+                        // managedIdentityIdParams will be omitted for system assigned
+                    },
+                });
+
+            jest.spyOn(fs, "readFileSync").mockImplementationOnce(() => {
+                throw new Error();
             });
+
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.unableToReadSecretFile
+                )
+            );
+
+            jest.restoreAllMocks();
         });
     });
 });

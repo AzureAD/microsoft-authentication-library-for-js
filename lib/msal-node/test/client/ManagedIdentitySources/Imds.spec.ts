@@ -9,6 +9,7 @@ import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_RESOURCE,
+    MANAGED_IDENTITY_RESOURCE_BASE,
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_RESOURCE_ID_2,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
@@ -49,25 +50,7 @@ import {
 } from "../../../src";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
-    let OLD_ENVS: NodeJS.ProcessEnv;
-
-    beforeAll(() => {
-        // make a copy of old environment
-        OLD_ENVS = process.env;
-
-        // IMDS doesn't need environment variables because there is a default IMDS endpoint
-        // Delete the following environment variables if they exist;
-        // For example: someone could be running these unit tests on an Azure Arc VM, where
-        // the IDENTITY_ENDPOINT and IMDS_ENDPOINT environment variables exist
-        delete process.env["IDENTITY_ENDPOINT"];
-        delete process.env["IDENTITY_HEADER"];
-        delete process.env["IMDS_ENDPOINT"];
-    });
-
-    afterAll(() => {
-        // restore old environment
-        process.env = OLD_ENVS;
-    });
+    // IMDS doesn't need environment variables because there is a default IMDS endpoint
 
     afterEach(() => {
         ManagedIdentityClient.identitySource = undefined;
@@ -282,9 +265,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     "", // homeAccountId
                     "https://login.microsoftonline.com/common/", // environment
                     "thisIs.an.accessT0ken", // accessToken
-                    "system_assigned_managed_identity", // clientId
+                    DEFAULT_MANAGED_IDENTITY_ID, // clientId
                     "managed_identity", // tenantId
-                    ["https://graph.microsoft.com"].toString(), // scopes
+                    [MANAGED_IDENTITY_RESOURCE_BASE].toString(), // scopes
                     nowSeconds + 3600, // expiresOn
                     nowSeconds + 3600, // extExpiresOn
                     mockCrypto.base64Decode, // cryptoUtils
