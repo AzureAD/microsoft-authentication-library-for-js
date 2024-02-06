@@ -68,7 +68,7 @@ jobs:
 
             - name: React Rollup Install
               working-directory: lib/msal-react
-              run: npm install @rollup/rollup-linux-x64-gnu@latest --no-save
+              run: npm install @rollup/rollup-linux-x64-gnu@latest  @parcel/watcher-linux-x64-glibc@latest --no-save
 
             - name: Build packages
               working-directory: lib/msal-react
