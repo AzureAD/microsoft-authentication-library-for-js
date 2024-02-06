@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707257835608,
+  "lastUpdate": 1707261167053,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5202,6 +5202,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.05%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d33c817d7501f8509413d78c3df2ea04355972a5",
+          "message": "Enable 1st party and pre-release publishing in Release Pipeline (#6865)\n\nThis PR:\r\n- Adds `beachball:bump:alpha` and `beachball:bump: beta` scripts to root\r\npackage.json to support pre-publish package bumping in automation\r\n\r\n---------\r\n\r\nCo-authored-by: MSAL.js Release Automation <release@msaljs.com>",
+          "timestamp": "2024-02-06T15:07:20-08:00",
+          "tree_id": "3526ae07ad6acd5def90b73b4e85d00523034a00",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d33c817d7501f8509413d78c3df2ea04355972a5"
+        },
+        "date": 1707261165875,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 198856,
+            "range": "±1.98%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 185385,
+            "range": "±1.96%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
