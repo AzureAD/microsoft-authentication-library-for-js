@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707255484464,
+  "lastUpdate": 1707257835608,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5162,6 +5162,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 178398,
             "range": "±1.57%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bed223d7398e9cfb9cd0c981797d2a05865ed55c",
+          "message": "Bump browser (#6882)\n\nBumping msal-browser manually so release pipeline bumps it to 3.9.0 and\r\nit skips 3.8.0 which was unpublished in msal-browser-1p",
+          "timestamp": "2024-02-06T14:11:46-08:00",
+          "tree_id": "a108522eec4f6ee9ad736c7f394770ac24c16eb7",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/bed223d7398e9cfb9cd0c981797d2a05865ed55c"
+        },
+        "date": 1707257834560,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 181597,
+            "range": "±1.76%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 190141,
+            "range": "±2.05%",
             "unit": "ops/sec",
             "extra": "219 samples"
           }
