@@ -71,6 +71,6 @@
     "typescript": "^4.9.5"
   },
  "overrides": {
-  "rollup": "npm:@rollup/wasm-node"
+  "rollup": "npm:@rollup/wasm-node@4.9.2"
   }
 }
