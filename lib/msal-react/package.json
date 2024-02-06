@@ -65,12 +65,9 @@
     "prettier": "2.8.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rollup": "^4.6.0",
+    "rollup": "^4.9.6",
     "ts-jest": "^29.1.0",
     "tslib": "^2.0.0",
     "typescript": "^4.9.5"
-  },
-  "overrides": {
-    "rollup": "npm:@rollup/wasm-node@4.9.2"
   }
 }
