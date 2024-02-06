@@ -55,6 +55,7 @@ jobs:
             - name: Clean Install
               run: npm ci --workspace=samples/msal-react-samples/${{matrix.sample}}
 
+            # Required because of https://github.com/npm/cli/issues/4828
             - name: React optional dependencies
               run: npm install --workspace=samples/msal-react-samples/${{matrix.sample}} --no-save @rollup/rollup-linux-x64-gnu @parcel/watcher-linux-x64-glibc
 
