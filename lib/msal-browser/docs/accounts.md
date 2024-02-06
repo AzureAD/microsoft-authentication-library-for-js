@@ -1,6 +1,6 @@
 # Accounts in MSAL Browser
 
-> This is the platform-specific Accounts documentation for `@azure/msal-browser`. For the general documentation of the `AccountInfo` object structure, please visit the `@azure/msal-common` [Accounts document](../../msal-common/docs/Accounts.md).
+> This is the platform-specific Accounts documentation for `@azure/msal-browser`. For the general documentation of the `AccountInfo` object structure, please visit the `@azure/msal-common` [Accounts document](../../msal-common/docs/Accounts.md). For documentation relating to multi-tenant accounts, please visit the [Multi-tenant Accounts document](../../msal-common/docs/multi-tenant-accounts.md).
 
 ## Usage
 

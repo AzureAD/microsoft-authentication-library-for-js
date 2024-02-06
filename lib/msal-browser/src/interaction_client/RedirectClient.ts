@@ -136,7 +136,8 @@ export class RedirectClient extends StandardInteractionClient {
             )(
                 serverTelemetryManager,
                 validRequest.authority,
-                validRequest.azureCloudOptions
+                validRequest.azureCloudOptions,
+                validRequest.account
             );
 
             // Create redirect interaction handler.
@@ -189,10 +190,14 @@ export class RedirectClient extends StandardInteractionClient {
      * Checks if navigateToLoginRequestUrl is set, and:
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
-     * @param hash
+     * @param hash {string?} url hash
+     * @param performanceClient {IPerformanceClient?}
+     * @param correlationId {string?} correlation identifier
      */
     async handleRedirectPromise(
-        hash?: string
+        hash?: string,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.handleRedirectPromise
@@ -215,6 +220,12 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.cleanRequestByInteractionType(
                     InteractionType.Redirect
                 );
+                if (performanceClient && correlationId) {
+                    performanceClient?.addFields(
+                        { errorCode: "no_server_response" },
+                        correlationId
+                    );
+                }
                 return null;
             }
 
@@ -520,7 +531,12 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 this.correlationId
-            )(serverTelemetryManager, logoutRequest && logoutRequest.authority);
+            )(
+                serverTelemetryManager,
+                logoutRequest && logoutRequest.authority,
+                undefined, // AzureCloudOptions
+                (logoutRequest && logoutRequest.account) || undefined
+            );
 
             if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
                 try {

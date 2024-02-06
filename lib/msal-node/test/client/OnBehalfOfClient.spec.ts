@@ -354,7 +354,6 @@ describe("OnBehalfOf unit tests", () => {
             sinon
                 .stub(CacheManager.prototype, <any>"readAccountFromCache")
                 .returns(expectedAccountEntity);
-            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
             sinon
                 .stub(CacheManager.prototype, <any>"getAccessTokensByFilter")

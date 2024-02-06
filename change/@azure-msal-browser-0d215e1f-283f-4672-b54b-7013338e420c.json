@@ -1,7 +1,7 @@
 {
   "type": "minor",
-  "comment": "Increase default iframe timout to 10s #6700",
+  "comment": "Instrument handleRedirectPromise() #6861",
   "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
+  "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
 }

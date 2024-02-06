@@ -6,6 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "e2e:sample": "node server.js -s customizable-e2e-test",
     "build:package": "cd ../../../lib/msal-browser && npm run build:all",
     "start:build": "npm run build:package && npm start",
     "test:e2e": "jest --runInBand",

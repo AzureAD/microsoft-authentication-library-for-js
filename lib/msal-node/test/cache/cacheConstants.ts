@@ -17,7 +17,7 @@ export const mockAccessTokenEntity_1: AccessTokenEntity = {
     credentialType: "AccessToken",
     clientId: "mock_client_id",
     secret: "an access token",
-    realm: "microsoft",
+    realm: "utid",
     target: "scope1 scope2 scope3",
     cachedAt: "1000",
     expiresOn: "4600",
@@ -31,7 +31,7 @@ export const mockAccessTokenEntity_2: AccessTokenEntity = {
     credentialType: "AccessToken",
     clientId: "mock_client_id",
     secret: "an access token",
-    realm: "microsoft",
+    realm: "utid",
     target: "scope4 scope5",
     cachedAt: "1000",
     expiresOn: "4600",
@@ -44,7 +44,7 @@ export const mockIdTokenEntity: IdTokenEntity = {
     credentialType: "IdToken",
     clientId: "mock_client_id",
     secret: "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",
-    realm: "microsoft",
+    realm: "utid",
 };
 
 export const mockRefreshTokenEntity: RefreshTokenEntity = {
@@ -67,11 +67,19 @@ export const mockRefreshTokenEntityWithFamilyId: RefreshTokenEntity = {
 export const mockAccountEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
-    realm: "microsoft",
-    localAccountId: "object1234",
-    username: "John Doe",
+    realm: "utid",
+    localAccountId: "uid",
+    username: "johndoe@microsoft.com",
     authorityType: "MSSTS",
     clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+    tenantProfiles: [
+        {
+            tenantId: "utid",
+            localAccountId: "uid",
+            name: "John Doe",
+            isHomeTenant: true,
+        },
+    ],
 };
 
 export const mockAppMetaDataEntity = {
@@ -110,10 +118,7 @@ export class mockCache {
     }
 
     static createMockAmdt(): AppMetadataEntity {
-        const amdt = new AppMetadataEntity();
-        Object.assign(amdt, mockAppMetaDataEntity);
-
-        return amdt;
+        return mockAppMetaDataEntity;
     }
 }
 
@@ -133,5 +138,5 @@ export const MockCache = {
     acc: mockCache.createMockAcc(),
     accKey: mockCache.createMockAcc().generateAccountKey(),
     amdt: mockCache.createMockAmdt(),
-    amdtKey: mockCache.createMockAmdt().generateAppMetadataKey(),
+    amdtKey: CacheHelpers.generateAppMetadataKey(mockCache.createMockAmdt()),
 };

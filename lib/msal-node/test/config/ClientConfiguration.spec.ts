@@ -3,10 +3,12 @@ import {
     Configuration,
 } from "../../src/config/Configuration";
 import { HttpClient } from "../../src/network/HttpClient";
-import { TEST_CONSTANTS, AUTHENTICATION_RESULT } from "../utils/TestConstants";
 import {
-    Authority,
-    AuthorityFactory,
+    TEST_CONSTANTS,
+    AUTHENTICATION_RESULT,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+} from "../utils/TestConstants";
+import {
     LogLevel,
     NetworkRequestOptions,
     AzureCloudInstance,
@@ -179,25 +181,6 @@ describe("ClientConfiguration tests", () => {
     });
 
     test("client capabilities are handled as expected", async () => {
-        const authority: Authority = {
-            regionDiscoveryMetadata: {
-                region_used: undefined,
-                region_source: undefined,
-                region_outcome: undefined,
-            },
-            resolveEndpointsAsync: () => {
-                return new Promise<void>((resolve) => {
-                    resolve();
-                });
-            },
-            discoveryComplete: () => {
-                return true;
-            },
-            getPreferredCache: () => {
-                return TEST_CONSTANTS.PREFERRED_CACHE;
-            },
-        } as Authority;
-
         const appConfig: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
@@ -222,11 +205,6 @@ describe("ClientConfiguration tests", () => {
             skipCache: true,
         };
 
-        jest.spyOn(
-            AuthorityFactory,
-            "createDiscoveredInstance"
-        ).mockReturnValue(Promise.resolve(authority));
-
         await new ConfidentialClientApplication(
             appConfig
         ).acquireTokenByClientCredential(request);
@@ -234,7 +212,10 @@ describe("ClientConfiguration tests", () => {
         expect(
             appConfig.system?.networkClient?.sendPostRequestAsync
         ).toHaveBeenCalledWith(
-            undefined,
+            DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                "{tenant}",
+                "tenantid"
+            ),
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),
             })
@@ -242,25 +223,6 @@ describe("ClientConfiguration tests", () => {
     });
 
     test("client capabilities are handled as expected for OBO flow", async () => {
-        const authority: Authority = {
-            regionDiscoveryMetadata: {
-                region_used: undefined,
-                region_source: undefined,
-                region_outcome: undefined,
-            },
-            resolveEndpointsAsync: () => {
-                return new Promise<void>((resolve) => {
-                    resolve();
-                });
-            },
-            discoveryComplete: () => {
-                return true;
-            },
-            getPreferredCache: () => {
-                return TEST_CONSTANTS.PREFERRED_CACHE;
-            },
-        } as Authority;
-
         const oboRequest: OnBehalfOfRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             oboAssertion: "user_assertion_hash",
@@ -286,11 +248,6 @@ describe("ClientConfiguration tests", () => {
             },
         };
 
-        jest.spyOn(
-            AuthorityFactory,
-            "createDiscoveredInstance"
-        ).mockReturnValue(Promise.resolve(authority));
-
         await new ConfidentialClientApplication(
             appConfig
         ).acquireTokenOnBehalfOf(oboRequest);
@@ -298,7 +255,10 @@ describe("ClientConfiguration tests", () => {
         expect(
             appConfig.system?.networkClient?.sendPostRequestAsync
         ).toHaveBeenCalledWith(
-            undefined,
+            DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                "{tenant}",
+                "tenantid"
+            ),
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),
             })

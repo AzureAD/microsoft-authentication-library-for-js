@@ -76,7 +76,7 @@ jobs:
               run: npm test
 
             - name: Upload E2E Test Screenshots
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               if: failure()
               with:
                   name: e2e-test-screenshots
@@ -130,7 +130,7 @@ jobs:
               run: npm test
 
             - name: Upload E2E Test Screenshots
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               if: failure()
               with:
                   name: e2e-test-screenshots

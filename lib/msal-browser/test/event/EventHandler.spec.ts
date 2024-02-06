@@ -5,6 +5,13 @@ import sinon from "sinon";
 import { EventHandler } from "../../src/event/EventHandler";
 import { Logger, LogLevel, AccountInfo, AccountEntity } from "../../src";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import {
+    ID_TOKEN_ALT_CLAIMS,
+    ID_TOKEN_CLAIMS,
+    TEST_CONFIG,
+} from "../utils/StringConstants";
+import { Constants, PersistentCacheKeys } from "@azure/msal-common";
 
 describe("Event API tests", () => {
     const loggerOptions = {
@@ -117,7 +124,7 @@ describe("Event API tests", () => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.ACCOUNT_ADDED);
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(account);
+                expect(message.payload).toEqual(accountEntity.getAccountInfo());
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
@@ -126,28 +133,10 @@ describe("Event API tests", () => {
             const eventHandler = new EventHandler(logger, browserCrypto);
             eventHandler.addEventCallback(subscriber);
 
-            const accountEntity = {
-                homeAccountId: "test-home-accountId-1",
-                localAccountId: "test-local-accountId-1",
-                username: "user-1@example.com",
-                environment: "test-environment-1",
-                realm: "test-tenantId-1",
-                name: "name-1",
-                idTokenClaims: {},
-                authorityType: "MSSTS",
-            };
+            const accountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
-            const account: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: accountEntity.homeAccountId,
-                localAccountId: accountEntity.localAccountId,
-                username: accountEntity.username,
-                environment: accountEntity.environment,
-                tenantId: accountEntity.realm,
-                name: accountEntity.name,
-                idTokenClaims: accountEntity.idTokenClaims,
-                nativeAccountId: undefined,
-            };
+            const account: AccountInfo = accountEntity.getAccountInfo();
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
 
@@ -172,28 +161,10 @@ describe("Event API tests", () => {
             const eventHandler = new EventHandler(logger, browserCrypto);
             eventHandler.addEventCallback(subscriber);
 
-            const accountEntity = {
-                homeAccountId: "test-home-accountId-1",
-                localAccountId: "test-local-accountId-1",
-                username: "user-1@example.com",
-                environment: "test-environment-1",
-                realm: "test-tenantId-1",
-                name: "name-1",
-                idTokenClaims: {},
-                authorityType: "MSSTS",
-            };
+            const accountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
-            const account: AccountInfo = {
-                authorityType: "MSSTS",
-                homeAccountId: accountEntity.homeAccountId,
-                localAccountId: accountEntity.localAccountId,
-                username: accountEntity.username,
-                environment: accountEntity.environment,
-                tenantId: accountEntity.realm,
-                name: accountEntity.name,
-                idTokenClaims: accountEntity.idTokenClaims,
-                nativeAccountId: undefined,
-            };
+            const account: AccountInfo = accountEntity.getAccountInfo();
 
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
 
@@ -253,6 +224,53 @@ describe("Event API tests", () => {
             });
 
             expect(emitEventSpy.getCalls().length).toBe(0);
+        });
+
+        it("ACTIVE_ACCOUNT_CHANGED event raised when active account is changed in another tab", (done) => {
+            const subscriber = (message: EventMessage) => {
+                expect(message.eventType).toEqual(
+                    EventType.ACTIVE_ACCOUNT_CHANGED
+                );
+                expect(message.interactionType).toBeNull();
+                expect(message.payload).toBeNull();
+                expect(message.error).toBeNull();
+                expect(message.timestamp).not.toBeNull();
+                done();
+            };
+
+            const eventHandler = new EventHandler(logger, browserCrypto);
+            eventHandler.addEventCallback(subscriber);
+
+            const activeAccountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+            const newActiveAccountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
+
+            const activeAccount: AccountInfo =
+                activeAccountEntity.getAccountInfo();
+            const newActiveAccount: AccountInfo =
+                newActiveAccountEntity.getAccountInfo();
+
+            const previousActiveAccountFilters = {
+                homeAccountId: activeAccount.homeAccountId,
+                localAccountId: activeAccount.localAccountId,
+                tenantId: activeAccount.tenantId,
+            };
+
+            const newActiveAccountFilters = {
+                homeAccountId: newActiveAccount.homeAccountId,
+                localAccountId: newActiveAccount.localAccountId,
+                tenantId: newActiveAccount.tenantId,
+            };
+
+            const activeAccountKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS}`;
+
+            // @ts-ignore
+            eventHandler.handleAccountCacheChange({
+                key: activeAccountKey,
+                oldValue: JSON.stringify(previousActiveAccountFilters),
+                newValue: JSON.stringify(newActiveAccountFilters),
+            });
         });
     });
 });

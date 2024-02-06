@@ -8,4 +8,6 @@ import { CredentialEntity } from "./CredentialEntity";
 /**
  * Refresh Token Cache Type
  */
-export type RefreshTokenEntity = CredentialEntity;
+export type RefreshTokenEntity = CredentialEntity & {
+    expiresOn?: string;
+};

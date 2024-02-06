@@ -4,7 +4,7 @@
     "files.eol": "\n",
     "github-pr.targetBranch": "dev",
     "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
+        "source.fixAll.eslint": "explicit"
     },
     "files.associations": {
         "**/build/*.yml": "azure-pipelines",
@@ -19,7 +19,7 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "editor.formatOnSave": true,
-    "jest.autoRun": "off",
+    "jest.runMode": "on-demand",
     "jest.jestCommandLine": "npm test --",
     "jest.virtualFolders": [
         {

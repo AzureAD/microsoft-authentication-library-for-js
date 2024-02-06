@@ -28,9 +28,19 @@ export {
 } from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
-export { AccountInfo, ActiveAccountFilters } from "./account/AccountInfo";
+export {
+    AccountInfo,
+    ActiveAccountFilters,
+    TenantProfile,
+    updateAccountTenantProfileData,
+    tenantIdMatchesHomeTenant,
+    buildTenantProfileFromIdTokenClaims,
+} from "./account/AccountInfo";
 export * as AuthToken from "./account/AuthToken";
-export { TokenClaims } from "./account/TokenClaims";
+export {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
 export {
@@ -49,7 +59,7 @@ export {
     AzureCloudInstance,
     StaticAuthorityOptions,
 } from "./authority/AuthorityOptions";
-export { AuthorityFactory } from "./authority/AuthorityFactory";
+export * as AuthorityFactory from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
 export { OIDCOptions } from "./authority/OIDCOptions";
@@ -136,7 +146,10 @@ export {
     DeviceCodeResponse,
     ServerDeviceCodeResponse,
 } from "./response/DeviceCodeResponse";
-export { ResponseHandler } from "./response/ResponseHandler";
+export {
+    ResponseHandler,
+    buildAccountToCache,
+} from "./response/ResponseHandler";
 export { ScopeSet } from "./request/ScopeSet";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser";
 // Logger Callback
@@ -201,7 +214,7 @@ export {
     RequestStateObject,
     LibraryStateObject,
 } from "./utils/ProtocolUtils";
-export { TimeUtils } from "./utils/TimeUtils";
+export * as TimeUtils from "./utils/TimeUtils";
 export * as UrlUtils from "./utils/UrlUtils";
 export * from "./utils/FunctionWrappers";
 // Server Telemetry

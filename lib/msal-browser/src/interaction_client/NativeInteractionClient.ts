@@ -33,7 +33,9 @@ import {
     invokeAsync,
     createAuthError,
     AuthErrorCodes,
+    updateAccountTenantProfileData,
     CacheHelpers,
+    buildAccountToCache,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -318,8 +320,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * If the previous page called native platform for a token using redirect APIs, send the same request again and return the response
+     * @param performanceClient {IPerformanceClient?}
+     * @param correlationId {string?} correlation identifier
      */
-    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+    async handleRedirectPromise(
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
+    ): Promise<AuthenticationResult | null> {
         this.logger.trace(
             "NativeInteractionClient - handleRedirectPromise called."
         );
@@ -336,6 +343,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null."
             );
+            if (performanceClient && correlationId) {
+                performanceClient?.addFields(
+                    { errorCode: "no_cached_request" },
+                    correlationId
+                );
+            }
             return null;
         }
 
@@ -420,14 +433,19 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             idTokenClaims
         );
-        const accountEntity = AccountEntity.createAccount(
-            {
-                homeAccountId: homeAccountIdentifier,
-                idTokenClaims: idTokenClaims,
-                clientInfo: response.client_info,
-                nativeAccountId: response.account.id,
-            },
-            authority
+
+        const baseAccount = buildAccountToCache(
+            this.browserStorage,
+            authority,
+            homeAccountIdentifier,
+            idTokenClaims,
+            base64Decode,
+            response.client_info,
+            undefined, // environment
+            idTokenClaims.tid,
+            undefined, // auth code payload
+            response.account.id,
+            this.logger
         );
 
         // generate authenticationResult
@@ -435,13 +453,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response,
             request,
             idTokenClaims,
-            accountEntity,
+            baseAccount,
             authority.canonicalAuthority,
             reqTimestamp
         );
 
         // cache accounts and tokens in the appropriate storage
-        this.cacheAccount(accountEntity);
+        this.cacheAccount(baseAccount);
         this.cacheNativeTokens(
             response,
             request,
@@ -580,14 +598,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims.tid ||
             Constants.EMPTY_STRING;
 
-        const fullAccountEntity: AccountEntity = idTokenClaims
-            ? Object.assign(new AccountEntity(), {
-                  ...accountEntity,
-                  idTokenClaims: idTokenClaims,
-              })
-            : accountEntity;
-
-        const accountInfo = fullAccountEntity.getAccountInfo();
+        const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
+            accountEntity.getAccountInfo(),
+            undefined, // tenantProfile optional
+            idTokenClaims
+        );
 
         // generate PoP token as needed
         const responseAccessToken = await this.generatePopAccessToken(
@@ -805,7 +820,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const authority = request.authority || this.config.auth.authority;
 
         if (request.account) {
-            await this.validateRequestAuthority(authority, request.account);
+            // validate authority
+            await this.getDiscoveredAuthority(
+                authority,
+                request.azureCloudOptions,
+                request.account
+            );
         }
 
         const canonicalAuthority = new UrlString(authority);

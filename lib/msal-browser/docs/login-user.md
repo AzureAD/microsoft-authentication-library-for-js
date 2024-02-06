@@ -16,7 +16,8 @@ You must pass a request object to the login APIs. This object allows you to use 
 
 For login requests, all parameters are optional, so you can just send an empty object.
 
-- Popup
+-   Popup
+
 ```javascript
 try {
     const loginResponse = await msalInstance.loginPopup({});
@@ -25,7 +26,8 @@ try {
 }
 ```
 
-- Redirect
+-   Redirect
+
 ```javascript
 try {
     msalInstance.loginRedirect({});
@@ -35,10 +37,12 @@ try {
 ```
 
 Or you can send a set of [scopes](./request-response-object.md#scopes) to pre-consent to:
-- Popup
+
+-   Popup
+
 ```javascript
 var loginRequest = {
-    scopes: ["user.read", "mail.send"] // optional Array<string>
+    scopes: ["user.read", "mail.send"], // optional Array<string>
 };
 
 try {
@@ -48,10 +52,11 @@ try {
 }
 ```
 
-- Redirect
+-   Redirect
+
 ```javascript
 var loginRequest = {
-    scopes: ["user.read", "mail.send"] // optional Array<string>
+    scopes: ["user.read", "mail.send"], // optional Array<string>
 };
 
 try {
@@ -64,11 +69,13 @@ try {
 ## Account APIs
 
 When a login call has succeeded, you can use the `getAllAccounts()` function to retrieve information about currently signed in users.
+
 ```javascript
 const myAccounts: AccountInfo[] = msalInstance.getAllAccounts();
 ```
 
 If you know the account information, you can also retrieve the account information by using the `getAccountByUsername()` or `getAccountByHomeId()` APIs:
+
 ```javascript
 const username = "test@contoso.com";
 const myAccount: AccountInfo = msalInstance.getAccountByUsername(username);
@@ -82,6 +89,7 @@ const myAccount: AccountInfo = msalInstance.getAccountByHomeId(homeAccountId);
 In B2C scenarios your B2C tenant will need to be configured to return the `emails` claim on `idTokens` in order to use the `getAccountByUsername()` API.
 
 These APIs will return an account object or an array of account objects with the following signature:
+
 ```javascript
 {
     // home account identifier for this account object
@@ -92,7 +100,7 @@ These APIs will return an account object or an array of account objects with the
     tenantId: string;
     // preferred_username claim of the id_token that represents this account.
     username: string;
-};
+}
 ```
 
 ## Silent login with ssoSilent()
@@ -101,29 +109,31 @@ If you already have a session that exists with the authentication server, you ca
 
 ### With User Hint
 
-If you already have the user's sign-in information, you can pass this into the API to improve performance and ensure that the authorization server will look for the correct account session. You can pass one of the following into the request object in order to successfully obtain a token silently. 
+If you already have the user's sign-in information, you can pass this into the API to improve performance and ensure that the authorization server will look for the correct account session. You can pass one of the following into the request object in order to successfully obtain a token silently.
 
 It is recommended to leverage the [`login_hint` optional ID token claim](https://docs.microsoft.com/azure/active-directory/develop/active-directory-optional-claims#v10-and-v20-optional-claims-set) (provided to `ssoSilent` as `loginHint`), as it is the most reliable account hint of silent (and interactive) requests.
 
-- `account` (which can be retrieved using on of the [account APIs](./accounts.md))
-- `sid` (which can be retrieved from the `idTokenClaims` of an `account` object)
-- `login_hint` (which can be retrieved from either the account object `login_hint` ID token claim, `username` property, or the `upn` ID token claim)
+-   `account` (which can be retrieved using on of the [account APIs](./accounts.md))
+-   `sid` (which can be retrieved from the `idTokenClaims` of an `account` object)
+-   `login_hint` (which can be retrieved from either the account object `login_hint` ID token claim, `username` property, or the `upn` ID token claim)
 
 Passing an account will look for the `login_hint` optional ID token claim (preferred), then the `sid` optional id token claim, then fall back to `loginHint` (if provided) or account username.
 
 ```javascript
 const silentRequest = {
     scopes: ["User.Read", "Mail.Read"],
-    loginHint: "user@contoso.com"
+    loginHint: "user@contoso.com",
 };
 
 try {
     const loginResponse = await msalInstance.ssoSilent(silentRequest);
 } catch (err) {
     if (err instanceof InteractionRequiredAuthError) {
-        const loginResponse = await msalInstance.loginPopup(silentRequest).catch(error => {
-            // handle error
-        });
+        const loginResponse = await msalInstance
+            .loginPopup(silentRequest)
+            .catch((error) => {
+                // handle error
+            });
     } else {
         // handle error
     }
@@ -136,7 +146,7 @@ If there is not enough information available about the user, you can attempt to 
 
 ```javascript
 const silentRequest = {
-    scopes: ["User.Read", "Mail.Read"]
+    scopes: ["User.Read", "Mail.Read"],
 };
 ```
 
@@ -148,6 +158,9 @@ InteractionRequiredAuthError: interaction_required: AADSTS16000: Either multiple
 
 This indicates that the server could not determine which account to sign into, and will require either one of the parameters above (`account`, `login_hint`, `sid`) or an interactive sign-in to choose the account.
 
+> [!WARNING]
+> When using `ssoSilent`, the service will attempt to load your redirect URI page in an invisible embedded iframe. Content security policies and HTTP header values present in your app's redirect URI page response, such as `X-FRAME-OPTIONS: DENY` and `X-FRAME-OPTIONS: SAMEORIGIN`, can prevent your app from loading in said iframe, effectively blocking silent SSO. If you intend you use `ssoSilent`, please make sure the redirect URI points to a page that does not implement any such policies.
+
 ## RedirectUri Considerations
 
 When using popup and silent APIs we recommend setting the `redirectUri` to a blank page or a page that does not implement MSAL. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis. For more information, see the [React Router](../../../samples/msal-react-samples/react-router-sample) sample:
@@ -156,7 +169,7 @@ Note: This does not apply for `loginRedirect` or `acquireTokenRedirect`. When us
 
 ```javascript
 msalInstance.loginPopup({
-    redirectUri: "http://localhost:3000/blank.html"
+    redirectUri: "http://localhost:3000/blank.html",
 });
 ```
 

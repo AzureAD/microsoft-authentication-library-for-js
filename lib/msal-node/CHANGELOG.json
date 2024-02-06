@@ -2,6 +2,101 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 23 Jan 2024 00:06:05 GMT",
+      "version": "2.6.2",
+      "tag": "@azure/msal-node_v2.6.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "2c5e4f1c72835d4dc47a72d158094af89964b9b0",
+            "comment": "Fix bug affecting metadata resolution for tenanted authorities"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.6.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Jan 2024 00:03:25 GMT",
+      "version": "2.6.1",
+      "tag": "@azure/msal-node_v2.6.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Refactor AuthorityMetadataEntity into type"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Convert ThrottlingEntity into a Type"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Set engines field to >=16"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Refactor appMetadataEntity into Type"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.6.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 01 Dec 2023 18:46:06 GMT",
+      "version": "2.6.0",
+      "tag": "@azure/msal-node_v2.6.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Turn on return-await lint rule #6678"
+          }
+        ],
+        "minor": [
+          {
+            "author": "trwalke@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Adding logging to make regional scenarios more clear"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Add support for Multi-tenant accounts and cross-tenant token caching #6466"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.5.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Nov 2023 20:59:07 GMT",
       "version": "2.5.1",
       "tag": "@azure/msal-node_v2.5.1",

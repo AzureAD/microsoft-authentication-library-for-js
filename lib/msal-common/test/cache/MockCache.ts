@@ -4,10 +4,6 @@
  */
 
 import {
-    AccountEntity,
-    AppMetadataEntity,
-    AuthorityMetadataEntity,
-    CacheManager,
     ICrypto,
     RefreshTokenEntity,
     Logger,
@@ -16,7 +12,14 @@ import {
     AuthenticationScheme,
 } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
-import { TEST_TOKENS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
+import {
+    TEST_TOKENS,
+    TEST_CRYPTO_VALUES,
+    ID_TOKEN_CLAIMS,
+    ID_TOKEN_ALT_CLAIMS,
+    GUEST_ID_TOKEN_CLAIMS,
+} from "../test_kit/StringConstants";
+import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
 export class MockCache {
     cacheManager: MockStorageClass;
@@ -51,84 +54,38 @@ export class MockCache {
 
     // create account entries in the cache
     createAccountEntries(): void {
-        const accountData = {
-            username: "John Doe",
-            localAccountId: "object1234",
-            realm: "microsoft",
-            environment: "login.microsoftonline.com",
-            homeAccountId: "uid.utid",
-            authorityType: "MSSTS",
-            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-        };
-        const account = CacheManager.toObject(new AccountEntity(), accountData);
+        const account = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
+            GUEST_ID_TOKEN_CLAIMS,
+        ]);
         this.cacheManager.setAccount(account);
 
-        const accountDataWithNativeAccountId = {
-            username: "John Doe",
-            localAccountId: "object1234",
-            realm: "microsoft",
-            environment: "login.microsoftonline.com",
-            homeAccountId: "uid.utid",
-            authorityType: "MSSTS",
-            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-            nativeAccountId: "mocked_native_account_id",
-        };
-        const accountWithNativeAccountId = CacheManager.toObject(
-            new AccountEntity(),
-            accountDataWithNativeAccountId
-        );
+        const accountWithNativeAccountId =
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
+        accountWithNativeAccountId.nativeAccountId = "mocked_native_account_id";
+
         this.cacheManager.setAccount(accountWithNativeAccountId);
-
-        // Accounts with ID Token Claims
-
-        const accountDataWithLoginHint = {
-            username: "Jane Doe",
-            localAccountId: "object4321",
-            realm: "microsoft",
-            environment: "login.microsoftonline.com",
-            homeAccountId: "homeAccountId2",
-            authorityType: "MSSTS",
-            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-            idTokenClaims: {
-                login_hint: "testLoginHint",
-            },
-        };
-        const accountWithLoginHint = CacheManager.toObject(
-            new AccountEntity(),
-            accountDataWithLoginHint
-        );
-        this.cacheManager.setAccount(accountWithLoginHint);
-
-        const accountDataWithUpn = {
-            username: "Another Doe",
-            localAccountId: "object4321",
-            realm: "microsoft",
-            environment: "login.microsoftonline.com",
-            homeAccountId: "homeAccountId3",
-            authorityType: "MSSTS",
-            clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-            idTokenClaims: {
-                upn: "testUpn",
-            },
-        };
-        const accountWithUpn = CacheManager.toObject(
-            new AccountEntity(),
-            accountDataWithUpn
-        );
-        this.cacheManager.setAccount(accountWithUpn);
     }
 
     // create id token entries in the cache
     createIdTokenEntries(): void {
-        const idToken = {
-            realm: "microsoft",
-            environment: "login.microsoftonline.com",
-            credentialType: CredentialType.ID_TOKEN,
-            secret: TEST_TOKENS.IDTOKEN_V2,
-            clientId: "mock_client_id",
-            homeAccountId: "uid.utid",
-        };
+        const idToken = buildIdToken(ID_TOKEN_CLAIMS, TEST_TOKENS.IDTOKEN_V2);
+
         this.cacheManager.setIdTokenCredential(idToken);
+
+        const guestIdToken = buildIdToken(
+            GUEST_ID_TOKEN_CLAIMS,
+            TEST_TOKENS.ID_TOKEN_V2_GUEST,
+            { homeAccountId: idToken.homeAccountId }
+        );
+
+        this.cacheManager.setIdTokenCredential(guestIdToken);
+
+        const altIdToken = buildIdToken(
+            ID_TOKEN_ALT_CLAIMS,
+            TEST_TOKENS.IDTOKEN_V2_ALT,
+            { environment: "login.windows.net" }
+        );
+        this.cacheManager.setIdTokenCredential(altIdToken);
     }
 
     // create access token entries in the cache
@@ -274,21 +231,17 @@ export class MockCache {
 
     // create appMetadata entries
     createAppMetadataEntries(): void {
-        const appMetaData_data = {
+        const appMetaData = {
             environment: "login.microsoftonline.com",
             familyId: "1",
             clientId: "mock_client_id",
         };
-        const appMetaData = CacheManager.toObject(
-            new AppMetadataEntity(),
-            appMetaData_data
-        );
         this.cacheManager.setAppMetadata(appMetaData);
     }
 
     // create authorityMetadata entries
     createAuthorityMetadataEntries(): void {
-        const authorityMetadata_data = {
+        const authorityMetadata = {
             aliases: [
                 "login.microsoftonline.com",
                 "login.windows.net",
@@ -298,7 +251,7 @@ export class MockCache {
             aliasesFromNetwork: false,
             authorization_endpoint:
                 "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-            canonicalAuthority: "https://login.microsoftonline.com/common",
+            canonical_authority: "https://login.microsoftonline.com/common",
             end_session_endpoint:
                 "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
             endpointsFromNetwork: false,
@@ -307,14 +260,11 @@ export class MockCache {
             jwks_uri:
                 "https://login.microsoftonline.com/common/discovery/v2.0/keys",
             preferred_cache: "login.windows.net",
+            preferred_network: "login.microsoftonline.com",
             token_endpoint:
                 "https://login.microsoftonline.com/common/oauth2/v2.0/token",
         };
 
-        const authorityMetadata = CacheManager.toObject(
-            new AuthorityMetadataEntity(),
-            authorityMetadata_data
-        );
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(
             authorityMetadata.preferred_cache
         );
