@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove interaction client active account fallback #6878",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
