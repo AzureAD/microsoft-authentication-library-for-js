@@ -56,7 +56,7 @@ jobs:
               run: npm ci --workspace=samples/msal-react-samples/${{matrix.sample}}
 
             - name: React optional dependencies
-              run: npm install --no-save @rollup/rollup-linux-x64-gnu @parcel/watcher-linux-x64-glibc
+              run: npm install --workspace=samples/msal-react-samples/${{matrix.sample}} --no-save @rollup/rollup-linux-x64-gnu @parcel/watcher-linux-x64-glibc
 
             - name: Build packages
               working-directory: lib/msal-react
