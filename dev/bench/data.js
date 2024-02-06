@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706827554405,
+  "lastUpdate": 1707255484464,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5126,6 +5126,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.80%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e7e24e1b5d712c48d6ddc1374eacd7e7599bc18b",
+          "message": "Add optional dependencies to react workflow (#6879)\n\n- Installs optional dependencies on msal-react-e2e workflow since\r\nthey're missing because of an npm bug that ignores optional dependencies",
+          "timestamp": "2024-02-06T21:32:35Z",
+          "tree_id": "810d4ea508f452d07534962a29ee091d331f8ab6",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e7e24e1b5d712c48d6ddc1374eacd7e7599bc18b"
+        },
+        "date": 1707255483503,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190436,
+            "range": "±1.92%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 178398,
+            "range": "±1.57%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
