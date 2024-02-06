@@ -320,8 +320,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * If the previous page called native platform for a token using redirect APIs, send the same request again and return the response
+     * @param performanceClient {IPerformanceClient?}
+     * @param correlationId {string?} correlation identifier
      */
-    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+    async handleRedirectPromise(
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
+    ): Promise<AuthenticationResult | null> {
         this.logger.trace(
             "NativeInteractionClient - handleRedirectPromise called."
         );
@@ -338,6 +343,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null."
             );
+            if (performanceClient && correlationId) {
+                performanceClient?.addFields(
+                    { errorCode: "no_cached_request" },
+                    correlationId
+                );
+            }
             return null;
         }
 
@@ -818,7 +829,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const authority = request.authority || this.config.auth.authority;
 
         if (request.account) {
-            await this.validateRequestAuthority(authority, request.account);
+            // validate authority
+            await this.getDiscoveredAuthority(
+                authority,
+                request.azureCloudOptions,
+                request.account
+            );
         }
 
         const canonicalAuthority = new UrlString(authority);

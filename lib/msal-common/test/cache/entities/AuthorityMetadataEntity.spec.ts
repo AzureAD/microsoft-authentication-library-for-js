@@ -3,7 +3,7 @@ import {
     TEST_CONFIG,
 } from "../../test_kit/StringConstants";
 import { Constants } from "../../../src/utils/Constants";
-import { TimeUtils } from "../../../src/utils/TimeUtils";
+import * as TimeUtils from "../../../src/utils/TimeUtils";
 import { CacheHelpers } from "../../../src";
 
 describe("AuthorityMetadataEntity.ts Unit Tests", () => {
