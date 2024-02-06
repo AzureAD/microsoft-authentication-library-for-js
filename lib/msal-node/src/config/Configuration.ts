@@ -18,6 +18,7 @@ import {
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
 import https from "https";
+import { ManagedIdentityId } from "./ManagedIdentityId.js";
 
 /**
  * - clientId               - Client id of the application.
@@ -107,6 +108,17 @@ export type Configuration = {
     telemetry?: NodeTelemetryOptions;
 };
 
+export type ManagedIdentityIdParams = {
+    userAssignedClientId?: string;
+    userAssignedResourceId?: string;
+    userAssignedObjectId?: string;
+};
+
+export type ManagedIdentityConfiguration = {
+    managedIdentityIdParams?: ManagedIdentityIdParams;
+    system?: NodeSystemOptions;
+};
+
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientId: Constants.EMPTY_STRING,
     authority: Constants.DEFAULT_AUTHORITY,
@@ -186,7 +198,10 @@ export function buildAppConfiguration({
         ...DEFAULT_SYSTEM_OPTIONS,
         networkClient: new HttpClient(
             system?.proxyUrl,
-            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
+            system?.customAgentOptions as
+                | http.AgentOptions
+                | https.AgentOptions,
+            false // Managed Identity
         ),
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };
@@ -197,5 +212,36 @@ export function buildAppConfiguration({
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
+    };
+}
+
+export type ManagedIdentityNodeConfiguration = {
+    managedIdentityId: ManagedIdentityId;
+    system: Required<NodeSystemOptions>;
+};
+
+export function buildManagedIdentityConfiguration({
+    managedIdentityIdParams,
+    system,
+}: ManagedIdentityConfiguration): ManagedIdentityNodeConfiguration {
+    const managedIdentityId: ManagedIdentityId = new ManagedIdentityId(
+        managedIdentityIdParams
+    );
+
+    const systemOptions: Required<NodeSystemOptions> = {
+        ...DEFAULT_SYSTEM_OPTIONS,
+        loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
+        networkClient: new HttpClient(
+            system?.proxyUrl,
+            system?.customAgentOptions as
+                | http.AgentOptions
+                | https.AgentOptions,
+            true // Managed Identity
+        ),
+    };
+
+    return {
+        managedIdentityId: managedIdentityId,
+        system: { ...systemOptions, ...system },
     };
 }

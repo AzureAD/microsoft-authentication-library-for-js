@@ -3,6 +3,56 @@
  * Licensed under the MIT License.
  */
 
+// MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
+export const AUTHORIZATION_HEADER_NAME: string = "Authorization";
+export const METADATA_HEADER_NAME: string = "Metadata";
+export const APP_SERVICE_SECRET_HEADER_NAME: string = "X-IDENTITY-HEADER";
+export const SERVICE_FABRIC_SECRET_HEADER_NAME: string = "secret";
+export const API_VERSION_QUERY_PARAMETER_NAME: string = "api-version";
+export const RESOURCE_BODY_OR_QUERY_PARAMETER_NAME: string = "resource";
+export const DEFAULT_MANAGED_IDENTITY_ID = "system_assigned_managed_identity";
+export const MANAGED_IDENTITY_DEFAULT_TENANT = "managed_identity";
+export const DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY = `https://login.microsoftonline.com/${MANAGED_IDENTITY_DEFAULT_TENANT}/`;
+
+/**
+ * Managed Identity Environment Variable Names
+ */
+export const ManagedIdentityEnvironmentVariableNames = {
+    AZURE_POD_IDENTITY_AUTHORITY_HOST: "AZURE_POD_IDENTITY_AUTHORITY_HOST",
+    IDENTITY_ENDPOINT: "IDENTITY_ENDPOINT",
+    IDENTITY_HEADER: "IDENTITY_HEADER",
+    IDENTITY_SERVER_THUMBPRINT: "IDENTITY_SERVER_THUMBPRINT",
+    IMDS_ENDPOINT: "IMDS_ENDPOINT",
+    MSI_ENDPOINT: "MSI_ENDPOINT",
+} as const;
+export type ManagedIdentityEnvironmentVariableNames =
+    (typeof ManagedIdentityEnvironmentVariableNames)[keyof typeof ManagedIdentityEnvironmentVariableNames];
+
+/**
+ * Managed Identity Source Names
+ */
+export const ManagedIdentitySourceNames = {
+    APP_SERVICE: "App Service",
+    AZURE_ARC: "Azure Arc",
+    CLOUD_SHELL: "Cloud Shell",
+    IMDS: "IMDS",
+    SERVICE_FABRIC: "Service Fabric",
+} as const;
+export type ManagedIdentitySourceNames =
+    (typeof ManagedIdentitySourceNames)[keyof typeof ManagedIdentitySourceNames];
+
+/**
+ * Managed Identity Ids
+ */
+export const ManagedIdentityIdType = {
+    SYSTEM_ASSIGNED: "system-assigned",
+    USER_ASSIGNED_CLIENT_ID: "user-assigned-client-id",
+    USER_ASSIGNED_RESOURCE_ID: "user-assigned-resource-id",
+    USER_ASSIGNED_OBJECT_ID: "user-assigned-object-id",
+} as const;
+export type ManagedIdentityIdType =
+    (typeof ManagedIdentityIdType)[keyof typeof ManagedIdentityIdType];
+
 /**
  * http methods
  */

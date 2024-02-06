@@ -68,6 +68,7 @@ export const HttpStatus = {
     SUCCESS_RANGE_END: 299,
     REDIRECT: 302,
     CLIENT_ERROR_RANGE_START: 400,
+    UNAUTHORIZED: 401,
     CLIENT_ERROR_RANGE_END: 499,
     SERVER_ERROR_RANGE_START: 500,
     SERVER_ERROR_RANGE_END: 599,
@@ -370,3 +371,6 @@ export type JsonWebTokenTypes =
     (typeof JsonWebTokenTypes)[keyof typeof JsonWebTokenTypes];
 
 export const ONE_DAY_IN_MS = 86400000;
+
+// Token renewal offset default in seconds
+export const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
