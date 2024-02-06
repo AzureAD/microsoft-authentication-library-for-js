@@ -613,6 +613,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims
         );
 
+        if (accountInfo.nativeAccountId !== response.account.id) {
+            accountInfo.nativeAccountId = response.account.id;
+        }
+
         // generate PoP token as needed
         const responseAccessToken = await this.generatePopAccessToken(
             response,
