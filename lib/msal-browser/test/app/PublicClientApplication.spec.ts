@@ -184,6 +184,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             NavigationClient.prototype,
             "navigateInternal"
         ).mockImplementation();
+
+        jest.spyOn(
+            CacheManager.prototype,
+            "getAuthorityMetadataByAlias"
+        ).mockImplementation((host) => {
+            const authorityMetadata: AuthorityMetadataEntity = {
+                aliases: [host],
+                preferred_cache: host,
+                preferred_network: host,
+                aliasesFromNetwork: false,
+                canonical_authority: host,
+                authorization_endpoint: "",
+                token_endpoint: "",
+                end_session_endpoint: "",
+                issuer: "",
+                jwks_uri: "",
+                endpointsFromNetwork: false,
+                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            };
+            return authorityMetadata;
+        });
     });
 
     afterEach(() => {
@@ -524,6 +545,54 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(loginSuccessFired).toBe(true);
         });
 
+        it("Calls RedirectClient.handleRedirectPromise and emits telemetry event", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+            sinon
+                .stub(RedirectClient.prototype, "handleRedirectPromise")
+                .callsFake(() => {
+                    return Promise.resolve(testTokenResponse);
+                });
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events.length).toEqual(1);
+                const event = events[0];
+                expect(event.name).toBe(PerformanceEvents.AcquireTokenRedirect);
+                expect(event.correlationId).toBeDefined();
+                expect(event.success).toBeTruthy();
+                expect(
+                    event["handleRedirectPromiseDurationMs"]
+                ).toBeGreaterThanOrEqual(0);
+                expect(event["handleRedirectPromiseCallCount"]).toEqual(1);
+                expect(event.success).toBeTruthy();
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.handleRedirectPromise();
+        });
+
         it("Calls NativeInteractionClient.handleRedirectPromise and returns its response", async () => {
             const config = {
                 auth: {
@@ -603,6 +672,101 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(response).toEqual(testTokenResponse);
             expect(redirectClientSpy.calledOnce).toBe(true);
             expect(loginSuccessFired).toBe(true);
+        });
+
+        it("Calls NativeInteractionClient.handleRedirectPromise and emits telemetry event", (done) => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            };
+            pca = new PublicClientApplication(config);
+            stubProvider(config);
+
+            pca.initialize().then(() => {
+                const callbackId = pca.addPerformanceCallback((events) => {
+                    expect(events.length).toEqual(1);
+                    const event = events[0];
+                    expect(event.name).toBe(
+                        PerformanceEvents.AcquireTokenRedirect
+                    );
+                    expect(event.correlationId).toBeDefined();
+                    expect(event.success).toBeTruthy();
+                    expect(
+                        event["handleNativeRedirectPromiseDurationMs"]
+                    ).toBeGreaterThanOrEqual(0);
+                    expect(
+                        event["handleNativeRedirectPromiseCallCount"]
+                    ).toEqual(1);
+                    expect(event.success).toBeTruthy();
+                    pca.removePerformanceCallback(callbackId);
+                    done();
+                });
+                // Implementation of PCA was moved to controller.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                pca = (pca as any).controller;
+
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "AbeLi@microsoft.com",
+                    nativeAccountId: "test-nativeAccountId",
+                };
+                const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
+                    uniqueId: testAccount.localAccountId,
+                    tenantId: testAccount.tenantId,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    idToken: "test-idToken",
+                    idTokenClaims: {},
+                    accessToken: "test-accessToken",
+                    fromCache: false,
+                    correlationId: RANDOM_TEST_GUID,
+                    expiresOn: new Date(Date.now() + 3600000),
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER,
+                    fromNativeBroker: true,
+                };
+
+                const nativeRequest: NativeTokenRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                    accountId: testAccount.nativeAccountId!,
+                    redirectUri: window.location.href,
+                    correlationId: RANDOM_TEST_GUID,
+                    windowTitleSubstring: "test window",
+                };
+                // @ts-ignore
+                pca.browserStorage.setTemporaryCache(
+                    TemporaryCacheKeys.NATIVE_REQUEST,
+                    JSON.stringify(nativeRequest),
+                    true
+                );
+                sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+                sinon
+                    .stub(
+                        NativeInteractionClient.prototype,
+                        "handleRedirectPromise"
+                    )
+                    .callsFake(() => {
+                        return Promise.resolve(testTokenResponse);
+                    });
+
+                pca.handleRedirectPromise();
+            });
         });
 
         it("Emits acquireToken success event if user was already signed in", async () => {
@@ -3287,7 +3451,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
             });
 
-            expect(response).toBe(testTokenResponse);
+            expect(response).toEqual(testTokenResponse);
             expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
             expect(silentSpy.calledOnce).toBeTruthy();
         });
@@ -3374,6 +3538,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3390,6 +3555,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
@@ -3419,6 +3585,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3434,6 +3601,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy.calledOnce).toBe(true);
@@ -3462,6 +3630,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3481,6 +3650,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy.calledOnce).toBe(true);
@@ -3509,6 +3679,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                state: "test-state",
             };
             const silentCacheSpy = sinon
                 .stub(SilentCacheClient.prototype, "acquireToken")
@@ -3527,6 +3698,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["openid"],
                 account: testAccount,
+                state: "test-state",
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy.calledOnce).toBe(true);
@@ -5088,21 +5260,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
             await pca.initialize();
 
-            sinon
-                .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
-                .callsFake((host) => {
-                    const authorityMetadata = new AuthorityMetadataEntity();
-                    authorityMetadata.updateCloudDiscoveryMetadata(
-                        {
-                            aliases: [host],
-                            preferred_cache: host,
-                            preferred_network: host,
-                        },
-                        false
-                    );
-                    return authorityMetadata;
-                });
-
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount);
             // @ts-ignore
@@ -5172,20 +5329,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         beforeEach(async () => {
             pca = (pca as any).controller;
             await pca.initialize();
-            sinon
-                .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
-                .callsFake((host) => {
-                    const authorityMetadata = new AuthorityMetadataEntity();
-                    authorityMetadata.updateCloudDiscoveryMetadata(
-                        {
-                            aliases: [host],
-                            preferred_cache: host,
-                            preferred_network: host,
-                        },
-                        false
-                    );
-                    return authorityMetadata;
-                });
 
             // @ts-ignore
             pca.getBrowserStorage().setAccount(testAccount1);
@@ -5418,21 +5561,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.getBrowserStorage().setIdTokenCredential(idToken1);
             // @ts-ignore
             pca.getBrowserStorage().setIdTokenCredential(idToken2);
-
-            sinon
-                .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
-                .callsFake((host) => {
-                    const authorityMetadata = new AuthorityMetadataEntity();
-                    authorityMetadata.updateCloudDiscoveryMetadata(
-                        {
-                            aliases: [host],
-                            preferred_cache: host,
-                            preferred_network: host,
-                        },
-                        false
-                    );
-                    return authorityMetadata;
-                });
         });
 
         afterEach(() => {

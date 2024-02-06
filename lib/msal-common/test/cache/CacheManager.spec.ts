@@ -61,15 +61,21 @@ describe("CacheManager.ts test cases", () => {
         authorityMetadataStub = sinon
             .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
             .callsFake((host) => {
-                const authorityMetadata = new AuthorityMetadataEntity();
-                authorityMetadata.updateCloudDiscoveryMetadata(
-                    {
-                        aliases: [host],
-                        preferred_cache: host,
-                        preferred_network: host,
-                    },
-                    false
-                );
+                const authorityMetadata: AuthorityMetadataEntity = {
+                    aliases: [host],
+                    preferred_cache: host,
+                    preferred_network: host,
+                    aliasesFromNetwork: false,
+                    canonical_authority: host,
+                    authorization_endpoint: "",
+                    token_endpoint: "",
+                    end_session_endpoint: "",
+                    issuer: "",
+                    jwks_uri: "",
+                    endpointsFromNetwork: false,
+                    expiresAt:
+                        CacheHelpers.generateAuthorityMetadataExpiresAt(),
+                };
                 return authorityMetadata;
             });
     });
@@ -2202,16 +2208,20 @@ describe("CacheManager.ts test cases", () => {
 
     it("getRefreshToken with environment aliases", () => {
         authorityMetadataStub.callsFake((host) => {
-            const authorityMetadata = new AuthorityMetadataEntity();
-            authorityMetadata.updateCloudDiscoveryMetadata(
-                {
-                    aliases: ["login.microsoftonline.com", "login.windows.net"],
-                    preferred_network: host,
-                    preferred_cache: host,
-                },
-                false
-            );
-
+            const authorityMetadata: AuthorityMetadataEntity = {
+                aliases: ["login.microsoftonline.com", "login.windows.net"],
+                preferred_cache: host,
+                preferred_network: host,
+                aliasesFromNetwork: false,
+                canonical_authority: host,
+                authorization_endpoint: "",
+                token_endpoint: "",
+                end_session_endpoint: "",
+                issuer: "",
+                jwks_uri: "",
+                endpointsFromNetwork: false,
+                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            };
             return authorityMetadata;
         });
         const mockedAccountInfo: AccountInfo = {

@@ -57,6 +57,7 @@ import { AuthError } from "../error/AuthError";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { invokeAsync } from "../utils/FunctionWrappers";
+import * as CacheHelpers from "../cache/utils/CacheHelpers";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -85,7 +86,7 @@ export class Authority {
     // Performance client
     protected performanceClient: IPerformanceClient | undefined;
     // Correlation Id
-    protected correlationId: string | undefined;
+    protected correlationId: string;
     // Indicates if the authority is fake, for the purpose of a Managed Identity Application
     private managedIdentity: boolean;
     // Reserved tenant domain names that will not be replaced with tenant id
@@ -103,8 +104,8 @@ export class Authority {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
+        correlationId: string,
         performanceClient?: IPerformanceClient,
-        correlationId?: string,
         managedIdentity?: boolean
     ) {
         this.canonicalAuthority = authority;
@@ -425,6 +426,13 @@ export class Authority {
         this.updateCachedMetadata(metadataEntity, cloudDiscoverySource, {
             source: endpointSource,
         });
+        this.performanceClient?.addFields(
+            {
+                cloudDiscoverySource: cloudDiscoverySource,
+                authorityEndpointSource: endpointSource,
+            },
+            this.correlationId
+        );
     }
 
     /**
@@ -433,13 +441,24 @@ export class Authority {
      * @returns
      */
     private getCurrentMetadataEntity(): AuthorityMetadataEntity {
-        let metadataEntity = this.cacheManager.getAuthorityMetadataByAlias(
-            this.hostnameAndPort
-        );
+        let metadataEntity: AuthorityMetadataEntity | null =
+            this.cacheManager.getAuthorityMetadataByAlias(this.hostnameAndPort);
 
         if (!metadataEntity) {
-            metadataEntity = new AuthorityMetadataEntity();
-            metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
+            metadataEntity = {
+                aliases: [],
+                preferred_cache: this.hostnameAndPort,
+                preferred_network: this.hostnameAndPort,
+                canonical_authority: this.canonicalAuthority,
+                authorization_endpoint: "",
+                token_endpoint: "",
+                end_session_endpoint: "",
+                issuer: "",
+                aliasesFromNetwork: false,
+                endpointsFromNetwork: false,
+                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+                jwks_uri: "",
+            };
         }
         return metadataEntity;
     }
@@ -464,8 +483,9 @@ export class Authority {
             endpointMetadataResult?.source !== AuthorityMetadataSource.CACHE
         ) {
             // Reset the expiration time unless both values came from a successful cache lookup
-            metadataEntity.resetExpiresAt();
-            metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
+            metadataEntity.expiresAt =
+                CacheHelpers.generateAuthorityMetadataExpiresAt();
+            metadataEntity.canonical_authority = this.canonicalAuthority;
         }
 
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(
@@ -510,10 +530,13 @@ export class Authority {
                             this.performanceClient,
                             this.correlationId
                         )(localMetadata.metadata);
-                        metadataEntity.updateEndpointMetadata(
+                        CacheHelpers.updateAuthorityEndpointMetadata(
+                            metadataEntity,
                             hardcodedMetadata,
                             false
                         );
+                        metadataEntity.canonical_authority =
+                            this.canonicalAuthority;
                     }
                 }
             }
@@ -540,7 +563,11 @@ export class Authority {
                 )(metadata);
             }
 
-            metadataEntity.updateEndpointMetadata(metadata, true);
+            CacheHelpers.updateAuthorityEndpointMetadata(
+                metadataEntity,
+                metadata,
+                true
+            );
             return AuthorityMetadataSource.NETWORK;
         } else {
             // Metadata could not be obtained from the config, cache, network or hardcoded values
@@ -571,7 +598,11 @@ export class Authority {
             this.logger.verbose(
                 "Found endpoint metadata in authority configuration"
             );
-            metadataEntity.updateEndpointMetadata(configMetadata, false);
+            CacheHelpers.updateAuthorityEndpointMetadata(
+                metadataEntity,
+                configMetadata,
+                false
+            );
             return {
                 source: AuthorityMetadataSource.CONFIG,
             };
@@ -590,7 +621,11 @@ export class Authority {
             const hardcodedMetadata =
                 this.getEndpointMetadataFromHardcodedValues();
             if (hardcodedMetadata) {
-                metadataEntity.updateEndpointMetadata(hardcodedMetadata, false);
+                CacheHelpers.updateAuthorityEndpointMetadata(
+                    metadataEntity,
+                    hardcodedMetadata,
+                    false
+                );
                 return {
                     source: AuthorityMetadataSource.HARDCODED_VALUES,
                     metadata: hardcodedMetadata,
@@ -603,7 +638,8 @@ export class Authority {
         }
 
         // Check cached metadata entity expiration status
-        const metadataEntityExpired = metadataEntity.isExpired();
+        const metadataEntityExpired =
+            CacheHelpers.isAuthorityMetadataExpired(metadataEntity);
         if (
             this.isAuthoritySameType(metadataEntity) &&
             metadataEntity.endpointsFromNetwork &&
@@ -709,8 +745,8 @@ export class Authority {
      * Get OAuth endpoints for common authorities.
      */
     private getEndpointMetadataFromHardcodedValues(): OpenIdConfigResponse | null {
-        if (this.canonicalAuthority in EndpointMetadata) {
-            return EndpointMetadata[this.canonicalAuthority];
+        if (this.hostnameAndPort in EndpointMetadata) {
+            return EndpointMetadata[this.hostnameAndPort];
         }
 
         return null;
@@ -805,7 +841,11 @@ export class Authority {
         )();
 
         if (metadata) {
-            metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
+            CacheHelpers.updateCloudDiscoveryMetadata(
+                metadataEntity,
+                metadata,
+                true
+            );
             return AuthorityMetadataSource.NETWORK;
         }
 
@@ -843,7 +883,11 @@ export class Authority {
             this.logger.verbose(
                 "Found cloud discovery metadata in authority configuration"
             );
-            metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
+            CacheHelpers.updateCloudDiscoveryMetadata(
+                metadataEntity,
+                metadata,
+                false
+            );
             return AuthorityMetadataSource.CONFIG;
         }
 
@@ -865,7 +909,8 @@ export class Authority {
                 this.logger.verbose(
                     "Found cloud discovery metadata from hardcoded values."
                 );
-                metadataEntity.updateCloudDiscoveryMetadata(
+                CacheHelpers.updateCloudDiscoveryMetadata(
+                    metadataEntity,
                     hardcodedMetadata,
                     false
                 );
@@ -877,7 +922,8 @@ export class Authority {
             );
         }
 
-        const metadataEntityExpired = metadataEntity.isExpired();
+        const metadataEntityExpired =
+            CacheHelpers.isAuthorityMetadataExpired(metadataEntity);
         if (
             this.isAuthoritySameType(metadataEntity) &&
             metadataEntity.aliasesFromNetwork &&

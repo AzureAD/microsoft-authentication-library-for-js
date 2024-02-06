@@ -42,7 +42,7 @@ let logHttpRequests = true;
 // Set the front-end folder to serve public assets.
 app.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/lib")));
 
-const sampleName = argv.sample;
+let sampleName = argv.sample || "default";
 const isSample = sampleFolders.includes(sampleName);
 if (sampleName && isSample) {
     console.log(`Starting sample ${sampleName}`);
@@ -54,6 +54,7 @@ if (sampleName && isSample) {
     if (sampleName && !isSample) {
         console.warn(`WARNING: Sample ${sampleName} not found.\n`);
     }
+    sampleName = "default";
     console.log("Running default sample.\n");
     app.use(express.static('app/default'));
 }
@@ -67,12 +68,12 @@ if (logHttpRequests) {
 // set up a route for redirect.html. When using popup and silent APIs, 
 // we recommend setting the redirectUri to a blank page or a page that does not implement MSAL.
 app.get("/redirect", function (req, res) {
-    res.sendFile(path.join(__dirname + "/redirect.html"));
+    res.sendFile(path.join(__dirname, "app", sampleName, "/redirect.html"));
 });
 
 // Set up a route for index.html.
 app.get('*', function (req, res) {
-    res.sendFile(path.join(__dirname + '/index.html'));
+    res.sendFile(path.join(__dirname, "app", sampleName, '/index.html'));
 });
 
 // Start the server.

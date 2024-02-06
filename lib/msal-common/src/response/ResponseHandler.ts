@@ -481,7 +481,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.access_token,
                 this.clientId,
-                claimsTenantId || authority.tenant,
+                claimsTenantId || authority.tenant || "",
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
@@ -524,11 +524,11 @@ export class ResponseHandler {
         // appMetadata
         let cachedAppMetadata: AppMetadataEntity | null = null;
         if (serverTokenResponse.foci) {
-            cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(
-                this.clientId,
-                env,
-                serverTokenResponse.foci
-            );
+            cachedAppMetadata = {
+                clientId: this.clientId,
+                environment: env,
+                familyId: serverTokenResponse.foci,
+            };
         }
 
         return new CacheRecord(

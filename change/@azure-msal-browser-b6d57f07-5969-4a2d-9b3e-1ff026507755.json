@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Handle bad_token by removing bad refresh token from cache #6757",
+  "type": "minor",
+  "comment": "Add active account update event #6854",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"

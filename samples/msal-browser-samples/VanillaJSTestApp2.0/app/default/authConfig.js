@@ -1,8 +1,9 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "ENTER_CLIENT_ID_HERE",
-        authority: "https://login.microsoftonline.com/ENTER_TENANT_ID_HERE",
+        clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
+        authority:
+            "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47",
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -45,23 +46,23 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"]
+    scopes: ["User.Read"],
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.
 const graphConfig = {
     graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
-    graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages"
+    graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages",
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.
 const tokenRequest = {
     scopes: ["Mail.Read"],
-    forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
+    forceRefresh: false, // Set this to "true" to skip a cached token and go to the server to get a new token
 };
 
 const silentRequest = {
-    scopes: ["openid", "profile", "User.Read", "Mail.Read"]
+    scopes: ["openid", "profile", "User.Read", "Mail.Read"],
 };
 
-const logoutRequest = {}
+const logoutRequest = {};

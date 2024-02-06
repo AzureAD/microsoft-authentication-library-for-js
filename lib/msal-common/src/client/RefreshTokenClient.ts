@@ -35,7 +35,7 @@ import {
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
-import { TimeUtils } from "../utils/TimeUtils";
+import * as TimeUtils from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";

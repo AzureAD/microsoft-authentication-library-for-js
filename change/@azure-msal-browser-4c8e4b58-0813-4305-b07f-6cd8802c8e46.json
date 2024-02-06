@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Convert ThrottlingEntity into a Type",
-  "packageName": "@azure/msal-node",
+  "comment": "reduce number of calls to resolveEndpoints",
+  "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
 }

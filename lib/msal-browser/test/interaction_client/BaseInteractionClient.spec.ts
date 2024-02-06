@@ -12,7 +12,7 @@ import {
     ClientConfigurationErrorCodes,
     CacheManager,
     IdTokenEntity,
-    AuthorityMetadataEntity,
+    CacheHelpers,
 } from "@azure/msal-common";
 import {
     TEST_DATA_CLIENT_INFO,
@@ -25,6 +25,7 @@ import {
 } from "../utils/StringConstants";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { EndSessionRequest, PublicClientApplication } from "../../src";
+import { OpenIdConfigResponse } from "@azure/msal-common/dist/authority/OpenIdConfigResponse";
 
 class testInteractionClient extends BaseInteractionClient {
     acquireToken(): Promise<void> {
@@ -63,6 +64,8 @@ describe("BaseInteractionClient", () => {
             pca.logger,
             // @ts-ignore
             pca.eventHandler,
+            // @ts-ignore
+            pca.navigationClient,
             // @ts-ignore
             pca.performanceClient
         );
@@ -154,15 +157,24 @@ describe("BaseInteractionClient", () => {
                 const metadata =
                     DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0];
                 const openIdConfigResponse =
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body;
-                const authorityMetadata = new AuthorityMetadataEntity();
-                authorityMetadata.updateCloudDiscoveryMetadata(metadata, true);
-                authorityMetadata.updateEndpointMetadata(
-                    // @ts-ignore
-                    openIdConfigResponse,
-                    true
-                );
-                return authorityMetadata;
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body as OpenIdConfigResponse;
+                return {
+                    aliases: [],
+                    preferred_cache: metadata.preferred_cache,
+                    preferred_network: metadata.preferred_network,
+                    canonical_authority: host,
+                    authorization_endpoint:
+                        openIdConfigResponse.authorization_endpoint,
+                    token_endpoint: openIdConfigResponse.token_endpoint,
+                    end_session_endpoint:
+                        openIdConfigResponse.end_session_endpoint,
+                    issuer: openIdConfigResponse.issuer,
+                    aliasesFromNetwork: true,
+                    endpointsFromNetwork: true,
+                    expiresAt:
+                        CacheHelpers.generateAuthorityMetadataExpiresAt(),
+                    jwks_uri: openIdConfigResponse.jwks_uri,
+                };
             });
         });
 
@@ -192,7 +204,7 @@ describe("BaseInteractionClient", () => {
             expect(pca.getActiveAccount()).toBe(null);
         });
     });
-    describe("validateRequestAuthority()", () => {
+    describe("getDiscoveredAuthority()", () => {
         afterEach(() => {
             window.sessionStorage.clear();
         });
@@ -207,8 +219,10 @@ describe("BaseInteractionClient", () => {
             };
 
             await testClient
-                .validateRequestAuthority(
+                // @ts-ignore
+                .getDiscoveredAuthority(
                     "https://login.microsoftonline.com/common",
+                    undefined, // AzureCloudOptions
                     testAccount
                 )
                 .then(() => {
@@ -233,8 +247,10 @@ describe("BaseInteractionClient", () => {
             };
 
             testClient
-                .validateRequestAuthority(
+                // @ts-ignore
+                .getDiscoveredAuthority(
                     "https://login.microsoftonline.com/common",
+                    undefined, // AzureCloudOptions
                     testAccount
                 )
                 .then(() => {
