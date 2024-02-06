@@ -331,8 +331,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 .serverResponseType as ResponseMode,
         };
 
-        const account =
-            request.account || this.browserStorage.getActiveAccount();
+        const account = request.account;
+
         if (account) {
             this.logger.verbose(
                 "Setting validated request account",
