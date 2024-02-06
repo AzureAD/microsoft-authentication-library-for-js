@@ -66,6 +66,10 @@ jobs:
             - name: Clean Install
               run: npm ci --workspace=samples/msal-react-samples/${{matrix.sample}}
 
+            - name: React Rollup Install
+              working-directory: lib/msal-react
+              run: npm install @rollup/rollup-linux-x64-gnu@latest --no-save
+
             - name: Build packages
               working-directory: lib/msal-react
               run: npm run build:all
