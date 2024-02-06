@@ -24,7 +24,7 @@ import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
-import { AuthorityFactory } from "../authority/AuthorityFactory";
+import { createDiscoveredInstance } from "../authority/AuthorityFactory";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
@@ -191,16 +191,15 @@ export abstract class BaseClient {
             correlationId
         );
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${this.authority.tenant}/`;
-        const cloudInstanceAuthority =
-            await AuthorityFactory.createDiscoveredInstance(
-                cloudInstanceAuthorityUri,
-                this.networkClient,
-                this.cacheManager,
-                this.authority.options,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            );
+        const cloudInstanceAuthority = await createDiscoveredInstance(
+            cloudInstanceAuthorityUri,
+            this.networkClient,
+            this.cacheManager,
+            this.authority.options,
+            this.logger,
+            correlationId,
+            this.performanceClient
+        );
         this.authority = cloudInstanceAuthority;
     }
 

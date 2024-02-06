@@ -59,7 +59,7 @@ export {
     AzureCloudInstance,
     StaticAuthorityOptions,
 } from "./authority/AuthorityOptions";
-export { AuthorityFactory } from "./authority/AuthorityFactory";
+export * as AuthorityFactory from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
 export { OIDCOptions } from "./authority/OIDCOptions";
@@ -214,7 +214,7 @@ export {
     RequestStateObject,
     LibraryStateObject,
 } from "./utils/ProtocolUtils";
-export { TimeUtils } from "./utils/TimeUtils";
+export * as TimeUtils from "./utils/TimeUtils";
 export * as UrlUtils from "./utils/UrlUtils";
 export * from "./utils/FunctionWrappers";
 // Server Telemetry

@@ -137,7 +137,7 @@ export class TestStorageManager extends CacheManager {
     }
 
     setAppMetadata(appMetadata: AppMetadataEntity): void {
-        const appMetadataKey = appMetadata.generateAppMetadataKey();
+        const appMetadataKey = CacheHelpers.generateAppMetadataKey(appMetadata);
         this.store[appMetadataKey] = appMetadata;
     }
 

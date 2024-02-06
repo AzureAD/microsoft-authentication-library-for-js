@@ -33,7 +33,7 @@ import { LogLevel, Logger } from "../../src/logger/Logger";
 import * as AuthToken from "../../src/account/AuthToken";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
-import { TimeUtils } from "../../src/utils/TimeUtils";
+import * as TimeUtils from "../../src/utils/TimeUtils";
 import { AuthError } from "../../src/error/AuthError";
 import {
     ClientAuthError,
@@ -160,7 +160,8 @@ const testAuthority = new Authority(
     networkInterface,
     testCacheManager,
     authorityOptions,
-    logger
+    logger,
+    TEST_CONFIG.CORRELATION_ID
 );
 
 describe("ResponseHandler.ts", () => {
@@ -457,6 +458,89 @@ describe("ResponseHandler.ts", () => {
                 testRequest
             );
             expect(response.code).toEqual(testSpaCode);
+        });
+
+        it("should ensure realm property in cached access token if no tenant id is available via claim or authority (OIDC scenario)", (done) => {
+            const { tid, ...tokenClaims } = ID_TOKEN_CLAIMS;
+
+            claimsStub.restore();
+
+            claimsStub = sinon
+                .stub(AuthToken, "extractTokenClaims")
+                .callsFake((_encodedIdToken, _crypto) => {
+                    return tokenClaims as TokenClaims;
+                });
+
+            const testResponse: ServerAuthorizationTokenResponse = {
+                token_type: AuthenticationScheme.BEARER,
+                scope: "openid",
+                expires_in: 3599,
+                ext_expires_in: 3599,
+                access_token: "access-token",
+                refresh_token: "refresh-token",
+                id_token: "id-token",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+            };
+
+            const testAuthority = new Authority(
+                "https://login.live.com",
+                networkInterface,
+                testCacheManager,
+                {
+                    protocolMode: ProtocolMode.OIDC,
+                    knownAuthorities: ["login.live.com"],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: "",
+                },
+                logger,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid"],
+            };
+
+            const responseHandler = new ResponseHandler(
+                "client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            sinon
+                .stub(ResponseHandler, "generateAuthenticationResult")
+                .callsFake(
+                    async (
+                        _cryptoObj,
+                        _authority,
+                        cacheRecord,
+                        _fromTokenCache,
+                        _request,
+                        _idTokenClaims,
+                        _requestState,
+                        _serverTokenResponse,
+                        _requestId
+                    ) => {
+                        expect(cacheRecord.accessToken?.realm).toBeDefined();
+
+                        done();
+
+                        return {} as AuthenticationResult;
+                    }
+                );
+
+            responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest
+            );
         });
     });
 

@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "2.0.8",
+  "version": "2.0.10",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -47,11 +47,11 @@
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^3.6.0",
+    "@azure/msal-browser": "^3.7.1",
     "react": "^16.8.0 || ^17 || ^18"
   },
   "devDependencies": {
-    "@azure/msal-browser": "^3.6.0",
+    "@azure/msal-browser": "^3.7.1",
     "@rollup/plugin-typescript": "^11.1.5",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^13.4.0",
@@ -59,7 +59,7 @@
     "@types/node": "^20.5.1",
     "@types/react": "^18.2.13",
     "@types/react-dom": "^18.2.6",
-    "eslint-config-msal": "^0.0.0",
+    "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
     "jest": "^29.5.0",
     "jest-environment-jsdom": "^29.5.0",
     "prettier": "2.8.7",

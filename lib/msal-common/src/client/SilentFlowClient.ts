@@ -7,7 +7,7 @@ import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { TimeUtils } from "../utils/TimeUtils";
+import * as TimeUtils from "../utils/TimeUtils";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import {
     ClientAuthError,
@@ -23,6 +23,7 @@ import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { invokeAsync } from "../utils/FunctionWrappers";
+import { getTenantFromAuthorityString } from "../authority/Authority";
 
 /** @internal */
 export class SilentFlowClient extends BaseClient {
@@ -118,18 +119,20 @@ export class SilentFlowClient extends BaseClient {
             );
         }
 
-        const environment =
-            request.authority || this.authority.getPreferredCache();
-
-        const cacheRecord = this.cacheManager.readCacheRecord(
+        const requestTenantId =
+            request.account.tenantId ||
+            getTenantFromAuthorityString(request.authority);
+        const tokenKeys = this.cacheManager.getTokenKeys();
+        const cachedAccessToken = this.cacheManager.getAccessToken(
             request.account,
             request,
-            environment,
+            tokenKeys,
+            requestTenantId,
             this.performanceClient,
             request.correlationId
         );
 
-        if (!cacheRecord.accessToken) {
+        if (!cachedAccessToken) {
             // must refresh due to non-existent access_token
             this.setCacheOutcome(
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN,
@@ -139,9 +142,9 @@ export class SilentFlowClient extends BaseClient {
                 ClientAuthErrorCodes.tokenRefreshRequired
             );
         } else if (
-            TimeUtils.wasClockTurnedBack(cacheRecord.accessToken.cachedAt) ||
+            TimeUtils.wasClockTurnedBack(cachedAccessToken.cachedAt) ||
             TimeUtils.isTokenExpired(
-                cacheRecord.accessToken.expiresOn,
+                cachedAccessToken.expiresOn,
                 this.config.systemOptions.tokenRenewalOffsetSeconds
             )
         ) {
@@ -154,14 +157,31 @@ export class SilentFlowClient extends BaseClient {
                 ClientAuthErrorCodes.tokenRefreshRequired
             );
         } else if (
-            cacheRecord.accessToken.refreshOn &&
-            TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0)
+            cachedAccessToken.refreshOn &&
+            TimeUtils.isTokenExpired(cachedAccessToken.refreshOn, 0)
         ) {
             // must refresh (in the background) due to the refresh_in value
             lastCacheOutcome = CacheOutcome.PROACTIVELY_REFRESHED;
 
             // don't throw ClientAuthError.createRefreshRequiredError(), return cached token instead
         }
+
+        const environment =
+            request.authority || this.authority.getPreferredCache();
+        const cacheRecord: CacheRecord = {
+            account: this.cacheManager.readAccountFromCache(request.account),
+            accessToken: cachedAccessToken,
+            idToken: this.cacheManager.getIdToken(
+                request.account,
+                tokenKeys,
+                requestTenantId,
+                this.performanceClient,
+                request.correlationId
+            ),
+            refreshToken: null,
+            appMetadata:
+                this.cacheManager.readAppMetadataFromCache(environment),
+        };
 
         this.setCacheOutcome(lastCacheOutcome, request.correlationId);
 

@@ -43,6 +43,7 @@ import {
     CacheLookupPolicy,
     DEFAULT_REQUEST,
     BrowserConstants,
+    iFrameRenewalPolicies,
 } from "../utils/BrowserConstants";
 import * as BrowserUtils from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
@@ -344,18 +345,9 @@ export class StandardController implements IController {
             const redirectResponseKey = hash || "";
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
-                this.eventHandler.emitEvent(
-                    EventType.HANDLE_REDIRECT_START,
-                    InteractionType.Redirect
-                );
-                this.logger.verbose(
-                    "handleRedirectPromise has been called for the first time, storing the promise"
-                );
-
                 const request: NativeTokenRequest | null =
                     this.browserStorage.getCachedNativeRequest();
-                let redirectResponse: Promise<AuthenticationResult | null>;
-                if (
+                const useNative =
                     request &&
                     NativeMessageHandler.isNativeAvailable(
                         this.config,
@@ -363,8 +355,26 @@ export class StandardController implements IController {
                         this.nativeExtensionProvider
                     ) &&
                     this.nativeExtensionProvider &&
-                    !hash
-                ) {
+                    !hash;
+                const correlationId = useNative
+                    ? request?.correlationId
+                    : this.browserStorage.getTemporaryCache(
+                          TemporaryCacheKeys.CORRELATION_ID,
+                          true
+                      ) || "";
+                const rootMeasurement = this.performanceClient.startMeasurement(
+                    "acquireTokenRedirect",
+                    correlationId
+                );
+                this.eventHandler.emitEvent(
+                    EventType.HANDLE_REDIRECT_START,
+                    InteractionType.Redirect
+                );
+                this.logger.verbose(
+                    "handleRedirectPromise has been called for the first time, storing the promise"
+                );
+                let redirectResponse: Promise<AuthenticationResult | null>;
+                if (useNative && this.nativeExtensionProvider) {
                     this.logger.trace(
                         "handleRedirectPromise - acquiring token from native platform"
                     );
@@ -382,20 +392,36 @@ export class StandardController implements IController {
                         this.nativeInternalStorage,
                         request.correlationId
                     );
-                    redirectResponse = nativeClient.handleRedirectPromise();
+
+                    redirectResponse = invokeAsync(
+                        nativeClient.handleRedirectPromise.bind(nativeClient),
+                        PerformanceEvents.HandleNativeRedirectPromiseMeasurement,
+                        this.logger,
+                        this.performanceClient,
+                        rootMeasurement.event.correlationId
+                    )(
+                        this.performanceClient,
+                        rootMeasurement.event.correlationId
+                    );
                 } else {
                     this.logger.trace(
                         "handleRedirectPromise - acquiring token from web flow"
                     );
-                    const correlationId =
-                        this.browserStorage.getTemporaryCache(
-                            TemporaryCacheKeys.CORRELATION_ID,
-                            true
-                        ) || Constants.EMPTY_STRING;
                     const redirectClient =
                         this.createRedirectClient(correlationId);
-                    redirectResponse =
-                        redirectClient.handleRedirectPromise(hash);
+                    redirectResponse = invokeAsync(
+                        redirectClient.handleRedirectPromise.bind(
+                            redirectClient
+                        ),
+                        PerformanceEvents.HandleRedirectPromiseMeasurement,
+                        this.logger,
+                        this.performanceClient,
+                        rootMeasurement.event.correlationId
+                    )(
+                        hash,
+                        this.performanceClient,
+                        rootMeasurement.event.correlationId
+                    );
                 }
 
                 response = redirectResponse
@@ -425,35 +451,49 @@ export class StandardController implements IController {
                                     "handleRedirectResponse returned result, acquire token success"
                                 );
                             }
+                            rootMeasurement.end({ success: true });
                         }
                         this.eventHandler.emitEvent(
                             EventType.HANDLE_REDIRECT_END,
                             InteractionType.Redirect
                         );
+                        rootMeasurement.end({ success: false });
 
                         return result;
                     })
                     .catch((e) => {
+                        const eventError = e as EventError;
                         // Emit login event if there is an account
                         if (loggedInAccounts.length > 0) {
                             this.eventHandler.emitEvent(
                                 EventType.ACQUIRE_TOKEN_FAILURE,
                                 InteractionType.Redirect,
                                 null,
-                                e as EventError
+                                eventError
                             );
                         } else {
                             this.eventHandler.emitEvent(
                                 EventType.LOGIN_FAILURE,
                                 InteractionType.Redirect,
                                 null,
-                                e as EventError
+                                eventError
                             );
                         }
                         this.eventHandler.emitEvent(
                             EventType.HANDLE_REDIRECT_END,
                             InteractionType.Redirect
                         );
+                        if (eventError instanceof AuthError) {
+                            rootMeasurement.end({
+                                success: false,
+                                errorCode: eventError.errorCode,
+                                subErrorCode: eventError.subError,
+                            });
+                        } else {
+                            rootMeasurement.end({
+                                success: false,
+                            });
+                        }
 
                         throw e;
                     });
@@ -1949,7 +1989,10 @@ export class StandardController implements IController {
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
-            return response;
+            return {
+                ...(await response),
+                state: request.state,
+            };
         } else {
             this.logger.verbose(
                 "acquireTokenSilent has been called previously, returning the result from the first call",
@@ -1957,7 +2000,10 @@ export class StandardController implements IController {
             );
             // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
             atsMeasurement.discard();
-            return cachedResponse;
+            return {
+                ...(await cachedResponse),
+                state: request.state,
+            };
         }
     }
 
@@ -2078,29 +2124,17 @@ export class StandardController implements IController {
                         silentRequest.correlationId
                     )(silentRequest, cacheLookupPolicy).catch(
                         (refreshTokenError: AuthError) => {
-                            const isSilentlyResolvable =
-                                (!(
-                                    refreshTokenError instanceof
-                                    InteractionRequiredAuthError
-                                ) &&
-                                    (refreshTokenError.errorCode ===
-                                        BrowserConstants.INVALID_GRANT_ERROR ||
-                                        refreshTokenError.errorCode ===
-                                            ClientAuthErrorCodes.tokenRefreshRequired)) ||
-                                refreshTokenError.errorCode ===
-                                    InteractionRequiredAuthErrorCodes.noTokensFound;
+                            const shouldTryToResolveSilently =
+                                checkIfRefreshTokenErrorCanBeResolvedSilently(
+                                    refreshTokenError,
+                                    silentRequest,
+                                    cacheLookupPolicy
+                                );
 
-                            const tryIframeRenewal =
-                                cacheLookupPolicy ===
-                                    CacheLookupPolicy.Default ||
-                                cacheLookupPolicy === CacheLookupPolicy.Skip ||
-                                cacheLookupPolicy ===
-                                    CacheLookupPolicy.RefreshTokenAndNetwork;
-
-                            if (isSilentlyResolvable && tryIframeRenewal) {
+                            if (shouldTryToResolveSilently) {
                                 this.logger.verbose(
                                     "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
-                                    request.correlationId
+                                    silentRequest.correlationId
                                 );
                                 return invokeAsync(
                                     this.acquireTokenBySilentIframe.bind(this),
@@ -2110,6 +2144,7 @@ export class StandardController implements IController {
                                     silentRequest.correlationId
                                 )(silentRequest);
                             } else {
+                                // Error cannot be silently resolved or iframe renewal is not allowed, interaction required
                                 throw refreshTokenError;
                             }
                         }
@@ -2154,4 +2189,43 @@ export class StandardController implements IController {
                 );
             });
     }
+}
+
+/**
+ * Determines whether an error thrown by the refresh token endpoint can be resolved without interaction
+ * @param refreshTokenError
+ * @param silentRequest
+ * @param cacheLookupPolicy
+ * @returns
+ */
+function checkIfRefreshTokenErrorCanBeResolvedSilently(
+    refreshTokenError: AuthError,
+    silentRequest: CommonSilentFlowRequest,
+    cacheLookupPolicy: CacheLookupPolicy
+): boolean {
+    const noInteractionRequired = !(
+        refreshTokenError instanceof InteractionRequiredAuthError &&
+        // For refresh token errors, bad_token does not always require interaction (silently resolvable)
+        refreshTokenError.subError !==
+            InteractionRequiredAuthErrorCodes.badToken
+    );
+
+    // Errors that result when the refresh token needs to be replaced
+    const refreshTokenRefreshRequired =
+        refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR ||
+        refreshTokenError.errorCode ===
+            ClientAuthErrorCodes.tokenRefreshRequired;
+
+    // Errors that may be resolved before falling back to interaction (through iframe renewal)
+    const isSilentlyResolvable =
+        (noInteractionRequired && refreshTokenRefreshRequired) ||
+        refreshTokenError.errorCode ===
+            InteractionRequiredAuthErrorCodes.noTokensFound ||
+        refreshTokenError.errorCode ===
+            InteractionRequiredAuthErrorCodes.refreshTokenExpired;
+
+    // Only these policies allow for an iframe renewal attempt
+    const tryIframeRenewal = iFrameRenewalPolicies.includes(cacheLookupPolicy);
+
+    return isSilentlyResolvable && tryIframeRenewal;
 }

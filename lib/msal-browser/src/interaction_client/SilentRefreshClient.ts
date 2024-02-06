@@ -12,6 +12,7 @@ import {
     AzureCloudOptions,
     PerformanceEvents,
     invokeAsync,
+    AccountInfo,
 } from "@azure/msal-common";
 import { ApiId } from "../utils/BrowserConstants";
 import {
@@ -39,11 +40,19 @@ export class SilentRefreshClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request, request.account);
+        )(request);
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...baseRequest,
         };
+
+        if (request.redirectUri) {
+            // Make sure any passed redirectUri is converted to an absolute URL - redirectUri is not a required parameter for refresh token redemption so only include if explicitly provided
+            silentRequest.redirectUri = this.getRedirectUri(
+                request.redirectUri
+            );
+        }
+
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow
         );
@@ -51,7 +60,8 @@ export class SilentRefreshClient extends StandardInteractionClient {
         const refreshTokenClient = await this.createRefreshTokenClient(
             serverTelemetryManager,
             silentRequest.authority,
-            silentRequest.azureCloudOptions
+            silentRequest.azureCloudOptions,
+            silentRequest.account
         );
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return invokeAsync(
@@ -89,7 +99,8 @@ export class SilentRefreshClient extends StandardInteractionClient {
     protected async createRefreshTokenClient(
         serverTelemetryManager: ServerTelemetryManager,
         authorityUrl?: string,
-        azureCloudOptions?: AzureCloudOptions
+        azureCloudOptions?: AzureCloudOptions,
+        account?: AccountInfo
     ): Promise<RefreshTokenClient> {
         // Create auth module.
         const clientConfig = await invokeAsync(
@@ -98,7 +109,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(serverTelemetryManager, authorityUrl, azureCloudOptions);
+        )(serverTelemetryManager, authorityUrl, azureCloudOptions, account);
         return new RefreshTokenClient(clientConfig, this.performanceClient);
     }
 }

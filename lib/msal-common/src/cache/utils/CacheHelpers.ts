@@ -5,18 +5,25 @@
 
 import { extractTokenClaims } from "../../account/AuthToken";
 import { TokenClaims } from "../../account/TokenClaims";
+import { CloudDiscoveryMetadata } from "../../authority/CloudDiscoveryMetadata";
+import { OpenIdConfigResponse } from "../../authority/OpenIdConfigResponse";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../error/ClientAuthError";
 import {
+    APP_METADATA,
+    AUTHORITY_METADATA_CONSTANTS,
     AuthenticationScheme,
     CredentialType,
     SERVER_TELEM_CONSTANTS,
     Separators,
+    ThrottlingConstants,
 } from "../../utils/Constants";
-import { TimeUtils } from "../../utils/TimeUtils";
+import * as TimeUtils from "../../utils/TimeUtils";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
+import { AppMetadataEntity } from "../entities/AppMetadataEntity";
+import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
 import { CredentialEntity } from "../entities/CredentialEntity";
 import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
@@ -168,7 +175,8 @@ export function createRefreshTokenEntity(
     refreshToken: string,
     clientId: string,
     familyId?: string,
-    userAssertionHash?: string
+    userAssertionHash?: string,
+    expiresOn?: number
 ): RefreshTokenEntity {
     const rtEntity: RefreshTokenEntity = {
         credentialType: CredentialType.REFRESH_TOKEN,
@@ -184,6 +192,10 @@ export function createRefreshTokenEntity(
 
     if (familyId) {
         rtEntity.familyId = familyId;
+    }
+
+    if (expiresOn) {
+        rtEntity.expiresOn = expiresOn.toString();
     }
 
     return rtEntity;
@@ -324,4 +336,128 @@ export function isServerTelemetryEntity(key: string, entity?: object): boolean {
     }
 
     return validateKey && validateEntity;
+}
+
+/**
+ * validates if a given cache entry is "Throttling", parses <key,value>
+ * @param key
+ * @param entity
+ */
+export function isThrottlingEntity(key: string, entity?: object): boolean {
+    let validateKey: boolean = false;
+    if (key) {
+        validateKey = key.indexOf(ThrottlingConstants.THROTTLING_PREFIX) === 0;
+    }
+
+    let validateEntity: boolean = true;
+    if (entity) {
+        validateEntity = entity.hasOwnProperty("throttleTime");
+    }
+
+    return validateKey && validateEntity;
+}
+
+/**
+ * Generate AppMetadata Cache Key as per the schema: appmetadata-<environment>-<client_id>
+ */
+export function generateAppMetadataKey({
+    environment,
+    clientId,
+}: AppMetadataEntity): string {
+    const appMetaDataKeyArray: Array<string> = [
+        APP_METADATA,
+        environment,
+        clientId,
+    ];
+    return appMetaDataKeyArray
+        .join(Separators.CACHE_KEY_SEPARATOR)
+        .toLowerCase();
+}
+
+/*
+ * Validates an entity: checks for all expected params
+ * @param entity
+ */
+export function isAppMetadataEntity(key: string, entity: object): boolean {
+    if (!entity) {
+        return false;
+    }
+
+    return (
+        key.indexOf(APP_METADATA) === 0 &&
+        entity.hasOwnProperty("clientId") &&
+        entity.hasOwnProperty("environment")
+    );
+}
+
+/**
+ * Validates an entity: checks for all expected params
+ * @param entity
+ */
+export function isAuthorityMetadataEntity(
+    key: string,
+    entity: object
+): boolean {
+    if (!entity) {
+        return false;
+    }
+
+    return (
+        key.indexOf(AUTHORITY_METADATA_CONSTANTS.CACHE_KEY) === 0 &&
+        entity.hasOwnProperty("aliases") &&
+        entity.hasOwnProperty("preferred_cache") &&
+        entity.hasOwnProperty("preferred_network") &&
+        entity.hasOwnProperty("canonical_authority") &&
+        entity.hasOwnProperty("authorization_endpoint") &&
+        entity.hasOwnProperty("token_endpoint") &&
+        entity.hasOwnProperty("issuer") &&
+        entity.hasOwnProperty("aliasesFromNetwork") &&
+        entity.hasOwnProperty("endpointsFromNetwork") &&
+        entity.hasOwnProperty("expiresAt") &&
+        entity.hasOwnProperty("jwks_uri")
+    );
+}
+
+/**
+ * Reset the exiresAt value
+ */
+export function generateAuthorityMetadataExpiresAt(): number {
+    return (
+        TimeUtils.nowSeconds() +
+        AUTHORITY_METADATA_CONSTANTS.REFRESH_TIME_SECONDS
+    );
+}
+
+export function updateAuthorityEndpointMetadata(
+    authorityMetadata: AuthorityMetadataEntity,
+    updatedValues: OpenIdConfigResponse,
+    fromNetwork: boolean
+): void {
+    authorityMetadata.authorization_endpoint =
+        updatedValues.authorization_endpoint;
+    authorityMetadata.token_endpoint = updatedValues.token_endpoint;
+    authorityMetadata.end_session_endpoint = updatedValues.end_session_endpoint;
+    authorityMetadata.issuer = updatedValues.issuer;
+    authorityMetadata.endpointsFromNetwork = fromNetwork;
+    authorityMetadata.jwks_uri = updatedValues.jwks_uri;
+}
+
+export function updateCloudDiscoveryMetadata(
+    authorityMetadata: AuthorityMetadataEntity,
+    updatedValues: CloudDiscoveryMetadata,
+    fromNetwork: boolean
+): void {
+    authorityMetadata.aliases = updatedValues.aliases;
+    authorityMetadata.preferred_cache = updatedValues.preferred_cache;
+    authorityMetadata.preferred_network = updatedValues.preferred_network;
+    authorityMetadata.aliasesFromNetwork = fromNetwork;
+}
+
+/**
+ * Returns whether or not the data needs to be refreshed
+ */
+export function isAuthorityMetadataExpired(
+    metadata: AuthorityMetadataEntity
+): boolean {
+    return metadata.expiresAt <= TimeUtils.nowSeconds();
 }

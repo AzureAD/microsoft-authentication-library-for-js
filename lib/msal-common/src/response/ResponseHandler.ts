@@ -435,9 +435,10 @@ export class ResponseHandler {
                 idTokenClaims,
                 this.cryptoObj.base64Decode,
                 serverTokenResponse.client_info,
+                env,
                 claimsTenantId,
                 authCodePayload,
-                undefined,
+                undefined, // nativeAccountId
                 this.logger
             );
         }
@@ -480,7 +481,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.access_token,
                 this.clientId,
-                claimsTenantId || authority.tenant,
+                claimsTenantId || authority.tenant || "",
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
@@ -497,24 +498,37 @@ export class ResponseHandler {
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (serverTokenResponse.refresh_token) {
+            let rtExpiresOn: number | undefined;
+            if (serverTokenResponse.refresh_token_expires_in) {
+                const rtExpiresIn: number =
+                    typeof serverTokenResponse.refresh_token_expires_in ===
+                    "string"
+                        ? parseInt(
+                              serverTokenResponse.refresh_token_expires_in,
+                              10
+                          )
+                        : serverTokenResponse.refresh_token_expires_in;
+                rtExpiresOn = reqTimestamp + rtExpiresIn;
+            }
             cachedRefreshToken = CacheHelpers.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.refresh_token,
                 this.clientId,
                 serverTokenResponse.foci,
-                userAssertionHash
+                userAssertionHash,
+                rtExpiresOn
             );
         }
 
         // appMetadata
         let cachedAppMetadata: AppMetadataEntity | null = null;
         if (serverTokenResponse.foci) {
-            cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(
-                this.clientId,
-                env,
-                serverTokenResponse.foci
-            );
+            cachedAppMetadata = {
+                clientId: this.clientId,
+                environment: env,
+                familyId: serverTokenResponse.foci,
+            };
         }
 
         return new CacheRecord(
@@ -654,6 +668,7 @@ export function buildAccountToCache(
     idTokenClaims: TokenClaims,
     base64Decode: (input: string) => string,
     clientInfo?: string,
+    environment?: string,
     claimsTenantId?: string | null,
     authCodePayload?: AuthorizationCodePayload,
     nativeAccountId?: string,
@@ -676,9 +691,10 @@ export function buildAccountToCache(
         cachedAccount ||
         AccountEntity.createAccount(
             {
-                homeAccountId: homeAccountId,
-                idTokenClaims: idTokenClaims,
-                clientInfo: clientInfo,
+                homeAccountId,
+                idTokenClaims,
+                clientInfo,
+                environment,
                 cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
                 msGraphHost: authCodePayload?.msgraph_host,
                 nativeAccountId: nativeAccountId,

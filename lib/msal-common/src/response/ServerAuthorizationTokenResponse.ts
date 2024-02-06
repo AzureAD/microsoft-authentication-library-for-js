@@ -36,6 +36,7 @@ export type ServerAuthorizationTokenResponse = {
     ext_expires_in?: number;
     access_token?: string;
     refresh_token?: string;
+    refresh_token_expires_in?: number;
     id_token?: string;
     client_info?: string;
     foci?: string;

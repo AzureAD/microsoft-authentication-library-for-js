@@ -35,7 +35,7 @@ import {
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
-import { TimeUtils } from "../utils/TimeUtils";
+import * as TimeUtils from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
@@ -47,6 +47,10 @@ import {
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { invoke, invokeAsync } from "../utils/FunctionWrappers";
+import { generateCredentialKey } from "../cache/utils/CacheHelpers";
+
+const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
+
 /**
  * OAuth2.0 refresh token client
  * @internal
@@ -215,6 +219,19 @@ export class RefreshTokenClient extends BaseClient {
                 InteractionRequiredAuthErrorCodes.noTokensFound
             );
         }
+
+        if (
+            refreshToken.expiresOn &&
+            TimeUtils.isTokenExpired(
+                refreshToken.expiresOn,
+                request.refreshTokenExpirationOffsetSeconds ||
+                    DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
+            )
+        ) {
+            throw createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.refreshTokenExpired
+            );
+        }
         // attach cached RT size to the current measurement
 
         const refreshTokenRequest: CommonRefreshTokenRequest = {
@@ -228,13 +245,29 @@ export class RefreshTokenClient extends BaseClient {
             },
         };
 
-        return invokeAsync(
-            this.acquireToken.bind(this),
-            PerformanceEvents.RefreshTokenClientAcquireToken,
-            this.logger,
-            this.performanceClient,
-            request.correlationId
-        )(refreshTokenRequest);
+        try {
+            return await invokeAsync(
+                this.acquireToken.bind(this),
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(refreshTokenRequest);
+        } catch (e) {
+            if (
+                e instanceof InteractionRequiredAuthError &&
+                e.subError === InteractionRequiredAuthErrorCodes.badToken
+            ) {
+                // Remove bad refresh token from cache
+                this.logger.verbose(
+                    "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+                );
+                const badRefreshTokenKey = generateCredentialKey(refreshToken);
+                this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+            }
+
+            throw e;
+        }
     }
 
     /**
