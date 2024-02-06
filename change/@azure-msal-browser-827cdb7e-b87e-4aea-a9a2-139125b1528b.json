@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Bug fix for user switch error #6846",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
