@@ -53,7 +53,10 @@ jobs:
                   cache: "npm"
 
             - name: Clean Install
-              run: npm ci -f --workspace=samples/msal-react-samples/${{matrix.sample}}
+              run: npm ci --workspace=samples/msal-react-samples/${{matrix.sample}}
+
+            - name: React optional dependencies
+              run: npm install --no-save @rollup/rollup-linux-x64-gnu 
 
             - name: Build packages
               working-directory: lib/msal-react
