@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add optional dependencies to react workflow #6879",
-  "packageName": "@azure/msal-react",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}
