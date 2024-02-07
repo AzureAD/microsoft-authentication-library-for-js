@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Bug fix for user switch error #6846",
+  "comment": "Bug fix for user switch error and broker app's native account id being stored in embedded app cache #6846",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "patch"

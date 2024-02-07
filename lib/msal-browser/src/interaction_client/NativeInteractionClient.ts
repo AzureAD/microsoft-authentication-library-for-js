@@ -433,7 +433,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             })?.homeAccountId;
 
         if (
-            homeAccountIdentifier != cachedhomeAccountId &&
+            homeAccountIdentifier !== cachedhomeAccountId &&
             response.account.id !== request.accountId
         ) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
@@ -613,6 +613,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims
         );
 
+        /**
+         * In case of brokered flows, this check prevents parent's cached native account id
+         * from overriding the brokered app's account id in the account info.
+         */
         if (accountInfo.nativeAccountId !== response.account.id) {
             accountInfo.nativeAccountId = response.account.id;
         }
