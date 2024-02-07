@@ -18,6 +18,7 @@ import {
     RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
     SERVICE_FABRIC_SECRET_HEADER_NAME,
 } from "../../utils/Constants";
+import { RetryTracker } from "../../utils/RetryTracker";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 const SERVICE_FABRIC_MSI_API_VERSION: string = "2019-07-01-preview";
@@ -34,10 +35,11 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker,
         identityEndpoint: string,
         identityHeader: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(logger, nodeStorage, networkClient, cryptoProvider, retryTracker);
 
         this.identityEndpoint = identityEndpoint;
         this.identityHeader = identityHeader;
@@ -48,6 +50,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker,
         managedIdentityId: ManagedIdentityId
     ): ServiceFabric | null {
         const identityEndpoint: string | undefined =
@@ -100,6 +103,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            retryTracker,
             identityEndpoint,
             identityHeader
         );

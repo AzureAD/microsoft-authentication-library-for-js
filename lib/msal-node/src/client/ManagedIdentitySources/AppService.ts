@@ -18,6 +18,7 @@ import { CryptoProvider } from "../../crypto/CryptoProvider";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { NodeStorage } from "../../cache/NodeStorage";
+import { RetryTracker } from "../../utils/RetryTracker";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
@@ -34,10 +35,11 @@ export class AppService extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker,
         identityEndpoint: string,
         identityHeader: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(logger, nodeStorage, networkClient, cryptoProvider, retryTracker);
 
         this.identityEndpoint = identityEndpoint;
         this.identityHeader = identityHeader;
@@ -47,7 +49,8 @@ export class AppService extends BaseManagedIdentitySource {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker
     ): AppService | null {
         const identityEndpoint: string | undefined =
             process.env[
@@ -83,6 +86,7 @@ export class AppService extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            retryTracker,
             identityEndpoint,
             identityHeader
         );

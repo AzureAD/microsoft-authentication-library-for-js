@@ -18,6 +18,7 @@ import {
     RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants";
 import { NodeStorage } from "../../cache/NodeStorage";
+import { RetryTracker } from "../../utils/RetryTracker";
 
 // IMDS constants. Docs for IMDS are available here https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
 const IMDS_TOKEN_PATH: string = "/metadata/identity/oauth2/token";
@@ -34,9 +35,10 @@ export class Imds extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker,
         identityEndpoint: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(logger, nodeStorage, networkClient, cryptoProvider, retryTracker);
 
         this.identityEndpoint = identityEndpoint;
     }
@@ -45,7 +47,8 @@ export class Imds extends BaseManagedIdentitySource {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker
     ): Imds {
         let validatedIdentityEndpoint: string;
 
@@ -88,6 +91,7 @@ export class Imds extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            retryTracker,
             validatedIdentityEndpoint
         );
     }

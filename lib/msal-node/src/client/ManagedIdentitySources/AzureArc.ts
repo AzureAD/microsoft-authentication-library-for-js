@@ -35,6 +35,7 @@ import { NodeStorage } from "../../cache/NodeStorage";
 import { readFileSync } from "fs";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
+import { RetryTracker } from "../../utils/RetryTracker";
 
 export const ARC_API_VERSION: string = "2019-11-01";
 
@@ -49,9 +50,10 @@ export class AzureArc extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker,
         identityEndpoint: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(logger, nodeStorage, networkClient, cryptoProvider, retryTracker);
 
         this.identityEndpoint = identityEndpoint;
     }
@@ -61,6 +63,7 @@ export class AzureArc extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker,
         managedIdentityId: ManagedIdentityId
     ): AzureArc | null {
         const identityEndpoint: string | undefined =
@@ -114,6 +117,7 @@ export class AzureArc extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            retryTracker,
             identityEndpoint
         );
     }

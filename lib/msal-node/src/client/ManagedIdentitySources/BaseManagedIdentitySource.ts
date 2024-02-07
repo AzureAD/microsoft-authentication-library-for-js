@@ -31,6 +31,7 @@ import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError";
+import { RetryTracker } from "../../utils/RetryTracker";
 
 /**
  * Managed Identity User Assigned Id Query Parameter Names
@@ -48,17 +49,20 @@ export abstract class BaseManagedIdentitySource {
     private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
+    private retryTracker: RetryTracker;
 
     constructor(
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker
     ) {
         this.logger = logger;
         this.nodeStorage = nodeStorage;
         this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
+        this.retryTracker = retryTracker;
     }
 
     abstract createRequest(
@@ -106,29 +110,13 @@ export abstract class BaseManagedIdentitySource {
         return serverTokenResponse;
     }
 
-    public async acquireTokenWithManagedIdentity(
-        managedIdentityRequest: ManagedIdentityRequest,
-        managedIdentityId: ManagedIdentityId,
-        fakeAuthority: Authority,
-        refreshAccessToken?: boolean
-    ): Promise<AuthenticationResult> {
-        const networkRequest: ManagedIdentityRequestParameters =
-            this.createRequest(
-                managedIdentityRequest.resource,
-                managedIdentityId
-            );
-
-        const headers: Record<string, string> = networkRequest.headers;
-        headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
-
-        const networkRequestOptions: NetworkRequestOptions = { headers };
-
-        if (Object.keys(networkRequest.bodyParameters).length) {
-            networkRequestOptions.body =
-                networkRequest.computeParametersBodyString();
-        }
-
-        const reqTimestamp = TimeUtils.nowSeconds();
+    private async getServerTokenResponseAndReqTimestamp(
+        networkRequest: ManagedIdentityRequestParameters,
+        networkRequestOptions: NetworkRequestOptions,
+        responseHandler: ResponseHandler,
+        refreshAccessToken: boolean = false
+    ): Promise<[ServerAuthorizationTokenResponse, number]> {
+        let reqTimestamp = TimeUtils.nowSeconds();
         let response: NetworkResponse<ManagedIdentityTokenResponse>;
         try {
             // Sources that send POST requests: Cloud Shell
@@ -154,6 +142,63 @@ export abstract class BaseManagedIdentitySource {
             }
         }
 
+        let serverTokenResponse: ServerAuthorizationTokenResponse =
+            await this.getServerTokenResponseAsync(
+                response,
+                this.networkClient,
+                networkRequest,
+                networkRequestOptions
+            );
+
+        try {
+            responseHandler.validateTokenResponse(
+                serverTokenResponse,
+                refreshAccessToken
+            );
+        } catch (error) {
+            const canRetry = await this.retryTracker.retry(
+                response.status,
+                response.headers[HeaderNames.RETRY_AFTER]
+            );
+
+            if (canRetry) {
+                [serverTokenResponse, reqTimestamp] =
+                    await this.getServerTokenResponseAndReqTimestamp(
+                        networkRequest,
+                        networkRequestOptions,
+                        responseHandler,
+                        refreshAccessToken
+                    );
+            } else {
+                this.retryTracker.resetNumRetried();
+            }
+        }
+
+        return [serverTokenResponse, reqTimestamp];
+    }
+
+    public async acquireTokenWithManagedIdentity(
+        managedIdentityRequest: ManagedIdentityRequest,
+        managedIdentityId: ManagedIdentityId,
+        fakeAuthority: Authority,
+        refreshAccessToken?: boolean
+    ): Promise<AuthenticationResult> {
+        const networkRequest: ManagedIdentityRequestParameters =
+            this.createRequest(
+                managedIdentityRequest.resource,
+                managedIdentityId
+            );
+
+        const headers: Record<string, string> = networkRequest.headers;
+        headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
+
+        const networkRequestOptions: NetworkRequestOptions = { headers };
+
+        if (Object.keys(networkRequest.bodyParameters).length) {
+            networkRequestOptions.body =
+                networkRequest.computeParametersBodyString();
+        }
+
         const responseHandler = new ResponseHandler(
             managedIdentityId.id,
             this.nodeStorage,
@@ -163,16 +208,13 @@ export abstract class BaseManagedIdentitySource {
             null
         );
 
-        const serverTokenResponse: ServerAuthorizationTokenResponse =
-            await this.getServerTokenResponseAsync(
-                response,
-                this.networkClient,
-                networkRequest,
-                networkRequestOptions
-            );
-
-        responseHandler.validateTokenResponse(
-            serverTokenResponse,
+        const [serverTokenResponse, reqTimestamp]: [
+            ServerAuthorizationTokenResponse,
+            number
+        ] = await this.getServerTokenResponseAndReqTimestamp(
+            networkRequest,
+            networkRequestOptions,
+            responseHandler,
             refreshAccessToken
         );
 

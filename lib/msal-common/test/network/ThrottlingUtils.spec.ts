@@ -16,7 +16,7 @@ import {
     TEST_CONFIG,
 } from "../test_kit/StringConstants";
 import { ServerError } from "../../src/error/ServerError";
-import { BaseAuthRequest, Logger } from "../../src";
+import { BaseAuthRequest, HeaderNames, Logger } from "../../src";
 
 describe("ThrottlingUtils", () => {
     describe("generateThrottlingStorageKey", () => {
@@ -180,7 +180,7 @@ describe("ThrottlingUtils", () => {
     describe("checkResponseForRetryAfter", () => {
         it("returns true when Retry-After header exists and when status <= 200", () => {
             const headers: Record<string, string> = {};
-            headers["Retry-After"] = "test";
+            headers[HeaderNames.RETRY_AFTER] = "test";
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers,
                 body: {},
@@ -193,7 +193,7 @@ describe("ThrottlingUtils", () => {
 
         it("returns true when Retry-After header exists and when status > 300", () => {
             const headers: Record<string, string> = {};
-            headers["Retry-After"] = "test";
+            headers[HeaderNames.RETRY_AFTER] = "test";
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers,
                 body: {},

@@ -21,6 +21,7 @@ import {
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
+import { RetryTracker } from "../../utils/RetryTracker";
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/CloudShellManagedIdentitySource.cs
@@ -33,9 +34,10 @@ export class CloudShell extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker,
         msiEndpoint: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(logger, nodeStorage, networkClient, cryptoProvider, retryTracker);
 
         this.msiEndpoint = msiEndpoint;
     }
@@ -45,6 +47,7 @@ export class CloudShell extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker,
         managedIdentityId: ManagedIdentityId
     ): CloudShell | null {
         const msiEndpoint: string | undefined =
@@ -83,6 +86,7 @@ export class CloudShell extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            retryTracker,
             msiEndpoint
         );
     }

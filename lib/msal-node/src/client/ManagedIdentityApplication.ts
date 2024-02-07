@@ -35,6 +35,10 @@ import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../error/ManagedIdentityError";
+import { RetryTracker } from "../utils/RetryTracker";
+
+const RETRY_TRACKER_RETRY_LIMIT = 1;
+const RETRY_TRACKER_WAIT_TIME_IN_MILLISECONDS = 1000;
 
 /**
  * Class to initialize a managed identity and identify the service
@@ -46,6 +50,7 @@ export class ManagedIdentityApplication {
     private static nodeStorage: NodeStorage | undefined;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
+    private retryTracker: RetryTracker;
 
     // authority needs to be faked to re-use existing functionality in msal-common: caching in responseHandler, etc.
     private fakeAuthority: Authority;
@@ -82,6 +87,12 @@ export class ManagedIdentityApplication {
 
         this.cryptoProvider = new CryptoProvider();
 
+        this.retryTracker = new RetryTracker(
+            this.logger,
+            RETRY_TRACKER_RETRY_LIMIT,
+            RETRY_TRACKER_WAIT_TIME_IN_MILLISECONDS
+        );
+
         const fakeAuthorityOptions: AuthorityOptions = {
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY],
@@ -94,7 +105,7 @@ export class ManagedIdentityApplication {
             ManagedIdentityApplication.nodeStorage as NodeStorage,
             fakeAuthorityOptions,
             this.logger,
-            undefined,
+            this.config.managedIdentityId.id,
             undefined,
             true
         );
@@ -110,7 +121,8 @@ export class ManagedIdentityApplication {
             this.logger,
             ManagedIdentityApplication.nodeStorage as NodeStorage,
             this.networkClient,
-            this.cryptoProvider
+            this.cryptoProvider,
+            this.retryTracker
         );
     }
 

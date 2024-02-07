@@ -22,6 +22,7 @@ import {
 import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { ManagedIdentityId } from "../config/ManagedIdentityId";
 import { NodeStorage } from "../cache/NodeStorage";
+import { RetryTracker } from "../utils/RetryTracker";
 
 /*
  * Class to initialize a managed identity and identify the service.
@@ -32,6 +33,7 @@ export class ManagedIdentityClient {
     private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
+    private retryTracker: RetryTracker;
 
     static identitySource:
         | ServiceFabric
@@ -45,12 +47,14 @@ export class ManagedIdentityClient {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker
     ) {
         this.logger = logger;
         this.nodeStorage = nodeStorage;
         this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
+        this.retryTracker = retryTracker;
     }
 
     public async sendManagedIdentityTokenRequest(
@@ -66,6 +70,7 @@ export class ManagedIdentityClient {
                     this.nodeStorage,
                     this.networkClient,
                     this.cryptoProvider,
+                    this.retryTracker,
                     managedIdentityId
                 );
         }
@@ -87,6 +92,7 @@ export class ManagedIdentityClient {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        retryTracker: RetryTracker,
         managedIdentityId: ManagedIdentityId
     ): ServiceFabric | AppService | CloudShell | AzureArc | Imds {
         const source =
@@ -95,19 +101,22 @@ export class ManagedIdentityClient {
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
+                retryTracker,
                 managedIdentityId
             ) ||
             AppService.tryCreate(
                 logger,
                 nodeStorage,
                 networkClient,
-                cryptoProvider
+                cryptoProvider,
+                retryTracker
             ) ||
             CloudShell.tryCreate(
                 logger,
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
+                retryTracker,
                 managedIdentityId
             ) ||
             AzureArc.tryCreate(
@@ -115,9 +124,16 @@ export class ManagedIdentityClient {
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
+                retryTracker,
                 managedIdentityId
             ) ||
-            Imds.tryCreate(logger, nodeStorage, networkClient, cryptoProvider);
+            Imds.tryCreate(
+                logger,
+                nodeStorage,
+                networkClient,
+                cryptoProvider,
+                retryTracker
+            );
         if (!source) {
             throw createManagedIdentityError(
                 ManagedIdentityErrorCodes.unableToCreateSource
