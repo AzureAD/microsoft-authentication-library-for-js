@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Use UUIDv7 in PerformanceClient #6866",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
