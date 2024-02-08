@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707343564891,
+  "lastUpdate": 1707420617308,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5274,6 +5274,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 184406,
             "range": "±1.77%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "98491992+DidunAyodeji@users.noreply.github.com",
+            "name": "DidunAyodeji",
+            "username": "DidunAyodeji"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d51b97d822e3b687f9397ccf241b77505f6a0cff",
+          "message": "Microsoft Entra ID rebrand (#6750)\n\nThis is the attempt to fix all the issues found in the first\r\n[PR.](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/6747)\r\nI have run an updated script based on the feedback I got and now those\r\nissues present in the 1st PR I made have been fixed.\r\n\r\nUpdating all Azure AD terms to the Microsoft Entra ID terms in all md\r\nfiles.\r\n\r\n## Does this introduce a breaking change?\r\n```\r\n[ ] Yes\r\n[x ] No\r\n```\r\n\r\n## Pull Request Type\r\nWhat kind of change does this Pull Request introduce?\r\n```\r\n[ ] Bugfix\r\n[ ] Feature\r\n[ ] Code style update (formatting, local variables)\r\n[ ] Refactoring (no functional changes, no api changes)\r\n[x] Documentation content changes\r\n[ ] Other... Please describe:\r\n```\r\n\r\n## What to Check\r\nThe updated changes to Microsoft Entra ID terminology make sense.\r\n\r\n## Other Information\r\nHere's a link to the Rebrand guidelines. Note that the script doesn't\r\nhave all the entries in the glossary that mine has. Let me know if you'd\r\nlike to see my version of the script.\r\nhttps://review.learn.microsoft.com/en-us/entra/fundamentals/how-to-rename-azure-ad?branch=main\r\n\r\n---------\r\n\r\nCo-authored-by: Hector Morales <hemoral@microsoft.com>",
+          "timestamp": "2024-02-08T14:24:38-05:00",
+          "tree_id": "ca44df22104aab1d1bd9acf949de8bcc04e2c545",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d51b97d822e3b687f9397ccf241b77505f6a0cff"
+        },
+        "date": 1707420616235,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 208677,
+            "range": "±1.45%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 179111,
+            "range": "±1.98%",
             "unit": "ops/sec",
             "extra": "220 samples"
           }
