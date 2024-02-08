@@ -9,6 +9,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { InteractionType, BrowserConstants } from "./BrowserConstants";
+import * as BrowserCrypto from "../crypto/BrowserCrypto";
 
 /**
  * Clears hash from window url.
@@ -161,4 +162,12 @@ export function preconnect(authority: string): void {
             document.head.removeChild(link);
         } catch {}
     }, 10000); // 10s Timeout
+}
+
+/**
+ * Wrapper function that creates a UUID v7 from the current timestamp.
+ * @returns {string}
+ */
+export function createGuid(): string {
+    return BrowserCrypto.createNewGuid();
 }
