@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Fix tests #6849",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

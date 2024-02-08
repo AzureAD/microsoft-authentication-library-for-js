@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Optimize TimeUtils for smaller bundle size #6837",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
