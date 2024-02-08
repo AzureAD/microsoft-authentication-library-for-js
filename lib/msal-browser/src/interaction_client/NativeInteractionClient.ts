@@ -614,8 +614,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
 
         /**
-         * In case of brokered flows, this check prevents parent's cached native account id
-         * from overriding the brokered app's account id in the account info.
+         * In pairwise broker flows, this check prevents the broker's native account id
+         * from being returned over the embedded app's account id.
          */
         if (accountInfo.nativeAccountId !== response.account.id) {
             accountInfo.nativeAccountId = response.account.id;
