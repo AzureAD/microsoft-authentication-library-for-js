@@ -653,8 +653,8 @@ describe("ClientCredentialClient unit tests", () => {
                 config.authOptions.clientId,
                 TEST_CONFIG.TENANT,
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(),
-                4600,
-                4600,
+                Date.now() + 60 * 30 * 1000,
+                Date.now() + 60 * 30 * 1000,
                 mockCrypto.base64Decode,
                 undefined,
                 AuthenticationScheme.BEARER
@@ -666,7 +666,6 @@ describe("ClientCredentialClient unit tests", () => {
                 <any>"readAccessTokenFromCache"
             )
             .returns(expectedAtEntity);
-        sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,

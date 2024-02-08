@@ -2,6 +2,76 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 07 Feb 2024 22:00:37 GMT",
+      "version": "14.7.0",
+      "tag": "@azure/msal-common_v14.7.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "bushb@umich.edu",
+            "package": "@azure/msal-common",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Ensure cached access token has a defined realm property in certain OIDC scenarios."
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Instrument handleRedirectPromise() #6861"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Track number of times an API is invoked in a single request"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Optimize TimeUtils for smaller bundle size #6837"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Update shared config version references to use local files #6855"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 23 Jan 2024 00:06:05 GMT",
+      "version": "14.6.1",
+      "tag": "@azure/msal-common_v14.6.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "2c5e4f1c72835d4dc47a72d158094af89964b9b0",
+            "comment": "Fix bug affecting metadata resolution for tenanted authorities"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Jan 2024 00:03:25 GMT",
       "version": "14.6.0",
       "tag": "@azure/msal-common_v14.6.0",
