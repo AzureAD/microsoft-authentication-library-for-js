@@ -8,10 +8,10 @@ It shows how to use two new APIs, `enableSpaAuthorizationCode` in MSAL Node and 
 
 ## Setup
 
-1. In the Azure Portal, create a new app registration.
+1. In the Microsoft Entra admin center, create a new app registration.
 1. In the root folder for this sample, create a `.env` file and add the client id for this application as `MSAL_CLIENT_ID`.
 1. Add your application authority (e.g. `https://login.microsoftonline.com/common`) to the `.env` file as `MSAL_AUTHORITY`.
-1. In the Azure Portal, under the **Authentication** tab for your application, add the following **Web** redirect URIs:
+1. In the Microsoft Entra admin center, under the **Authentication** tab for your application, add the following **Web** redirect URIs:
     1. `http://localhost:3000/auth/server-redirect`
     1. `http://localhost:3000/auth/implicit-redirect`
 1. Also add the following **Single-page application** redirect URIs:

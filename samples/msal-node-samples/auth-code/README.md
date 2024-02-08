@@ -17,9 +17,9 @@ Open the `config/customConfig.json` file.
 
 We will change this to add details about our app registration and deployment.
 
-By default, this configuration is set to support all Microsoft accounts. This includes Azure AD accounts used by organizations, and MSA accounts typically used by consumers. 
+By default, this configuration is set to support all Microsoft accounts. This includes Microsoft Entra accounts used by organizations, and MSA accounts typically used by consumers. 
 
-Before proceeding, go to the Azure portal, and open the app registration for this app.
+Before proceeding, go to the Microsoft Entra admin center, and open the app registration for this app.
 
 #### **Client ID**
 
@@ -28,7 +28,7 @@ Within the "Overview" you will see a GUID labeled **Application (client) ID**.  
 Click the **Authentication** link in the left nav.
 
 #### **Authority**
-Check that supported account types are: **Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)**
+Check that supported account types are: **Accounts in any organizational directory (Any Microsoft Entra ID directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)**
 
 If so, then set the authority attribute in the JSON configuraiton file to `https://login.microsoftonline.com/common`
 
@@ -218,7 +218,7 @@ app.get('/', (req, res) => {
 The next step occurs after the redirect.
 Your application must first *complete* the sign in flow by processing the code and validating the incoming request.
 
-First, configure the route where you will receive the response.  This must match your application configuration on the Azure portal.
+First, configure the route where you will receive the response.  This must match your application configuration on the Microsoft Entra admin center.
 
 **auth-code/index.js:**
 ```javascript
