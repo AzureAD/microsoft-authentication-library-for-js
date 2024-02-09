@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "test": "jest",
+    "test:ci": "npm run test -- --watchAll=false --reporters=default --reporters=jest-junit",
     "build": "next build",
     "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react",
     "start": "next start"
