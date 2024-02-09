@@ -23,6 +23,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@azure/msal-common": "^14.7.0",
     "@types/jest": "^29.5.2",
     "e2e-test-utils": "file:../../e2eTestUtils",
     "jest": "^29.5.0",

@@ -34,6 +34,7 @@
     ]
   },
   "devDependencies": {
+    "@azure/msal-common": "^14.7.0",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/jest": "^29.5.0",
     "e2e-test-utils": "file:../../e2eTestUtils",
