@@ -17,6 +17,7 @@
   "scripts": {
     "start": "react-scripts start",
     "test": "jest",
+    "test:ci": "npm run test -- --watchAll=false --detectOpenHandles --forceExit --reporters=default --reporters=jest-junit",
     "build": "react-scripts build",
     "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react",
     "eject": "react-scripts eject"
@@ -34,11 +35,13 @@
     ]
   },
   "devDependencies": {
+    "@azure/msal-common": "^14.7.0",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/jest": "^29.5.0",
-    "e2e-test-utils": "^0.0.1",
+    "e2e-test-utils": "file:../../e2eTestUtils",
     "env-cmd": "^10.1.0",
     "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
     "ts-jest": "^29.1.0"
   }
 }
