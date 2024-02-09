@@ -2,6 +2,35 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 07 Feb 2024 22:00:37 GMT",
+      "version": "2.6.3",
+      "tag": "@azure/msal-node_v2.6.3",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Update shared config version references to use local files #6855"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.7.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Jan 2024 00:06:05 GMT",
       "version": "2.6.2",
       "tag": "@azure/msal-node_v2.6.2",

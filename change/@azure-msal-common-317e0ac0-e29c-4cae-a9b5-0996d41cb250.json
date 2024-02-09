@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Ensure cached access token has a defined realm property in certain OIDC scenarios.",
-  "packageName": "@azure/msal-common",
-  "email": "bushb@umich.edu",
-  "dependentChangeType": "patch"
-}

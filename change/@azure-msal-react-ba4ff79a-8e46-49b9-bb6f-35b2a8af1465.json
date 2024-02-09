@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update shared config version references to use local files #6855",
-  "packageName": "@azure/msal-react",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}

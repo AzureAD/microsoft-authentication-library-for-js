@@ -16,7 +16,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 
 ## Register
 
-1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
+1. Navigate to the [Microsoft Entra admin center](https://entra.microsoft.com) and select the **Microsoft Entra ID** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-webapp`.
@@ -68,7 +68,7 @@ After that, you should see the following in your terminal:
 
 Open a browser tab and navigate to `http://localhost:3000`. Then:
 
-1. Sign-in when prompted by Azure AD.
+1. Sign-in when prompted by Microsoft Entra ID.
 1. Select **Acquire a token to call Microsoft Graph** to call Microsoft Graph directly using the auth code flow.
 1. Select **Acquire a token to call a web API that calls Microsoft Graph on your behalf** to call Microsoft Graph indirectly via a web API using the on-behalf-of flow.
 
