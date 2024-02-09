@@ -34,7 +34,7 @@
     "ts-jest": "^29.1.0"
   },
   "jest-junit": {
-    "suiteNameTemplate": "{filepath}",
+    "suiteNameTemplate": "Gatsby Sample Tests",
     "outputDirectory": ".",
     "outputName": "test-results.xml"
   }

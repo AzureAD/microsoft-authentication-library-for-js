@@ -42,5 +42,10 @@
             "last 1 firefox version",
             "last 1 safari version"
         ]
-    }
+    },
+    "jest-junit": {
+        "suiteNameTemplate": "B2C Sample Tests",
+        "outputDirectory": ".",
+        "outputName": "test-results.xml"
+      }
 }
