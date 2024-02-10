@@ -7,7 +7,7 @@ class PuppeteerEnvironment extends NodeEnvironment {
 	}
 
 	async setup() {
-		process.stdout.write("SETUP STARGING");
+		process.stdout.write("SETUP STARTING");
 		await super.setup();
 
 		// connect to puppeteer
@@ -20,10 +20,12 @@ class PuppeteerEnvironment extends NodeEnvironment {
 	}
 
 	async teardown() {
-		process.stdout.write("TEARDOWN STARGING");
+		process.stdout.write("TEARDOWN STARTING");
 		await super.teardown();
 		process.stdout.write(JSON.parse(this.global.__BROWSER__) + "TEARDOWN FINISHED");
-		this.global.__BROWSER__.close();
+		if(this.global.__BROWSER__) {
+			this.global.__BROWSER__.close();
+		}
 	}
 
 	runScript(script) {
