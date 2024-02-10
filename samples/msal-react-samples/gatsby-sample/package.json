@@ -10,7 +10,7 @@
     "start": "gatsby serve -p 3000",
     "serve": "gatsby serve",
     "test": "jest",
-    "test:ci": "npm run test -- --watchAll=false --detectOpenHandles --forceExit --reporters=default --reporters=jest-junit",
+    "test:ci": "npm run test -- --runInBand --forceExit --reporters=default --reporters=jest-junit",
     "clean": "gatsby clean"
   },
   "dependencies": {
@@ -32,10 +32,5 @@
     "jest": "^29.5.0",
     "jest-junit": "^16.0.0",
     "ts-jest": "^29.1.0"
-  },
-  "jest-junit": {
-    "suiteNameTemplate": "Gatsby Sample Tests",
-    "outputDirectory": ".",
-    "outputName": "test-results.xml"
   }
 }
