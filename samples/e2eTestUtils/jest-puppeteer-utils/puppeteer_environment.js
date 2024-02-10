@@ -22,8 +22,8 @@ class PuppeteerEnvironment extends NodeEnvironment {
 	async teardown() {
 		process.stdout.write("TEARDOWN STARTING");
 		await super.teardown();
-		process.stdout.write(JSON.parse(this.global.__BROWSER__) + "TEARDOWN FINISHED");
 		if(this.global.__BROWSER__) {
+		process.stdout.write(JSON.parse(this.global.__BROWSER__) + "TEARDOWN FINISHED");
 			this.global.__BROWSER__.close();
 		}
 	}
