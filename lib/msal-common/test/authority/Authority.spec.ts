@@ -2809,6 +2809,13 @@ describe("Authority.ts Class Unit Tests", () => {
                 getTenantFromAuthorityString(TEST_CONFIG.consumersAuthority)
             ).toBeUndefined();
         });
+
+        it("should not throw if authority has no path segments (certain OIDC scenarios)", () => {
+            const authorityUrl = "https://login.live.com";
+            expect(() =>
+                getTenantFromAuthorityString(authorityUrl)
+            ).not.toThrow();
+        });
     });
 
     describe("formatAuthorityUri", () => {
