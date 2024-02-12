@@ -1,6 +1,6 @@
 # MSAL Node Standalone Sample: Certificate Credentials
 
-This sample demonstrates an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) that lets users authenticate against **Azure AD**.
+This sample demonstrates an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) that lets users authenticate against **Microsoft Entra ID**.
 
 This sample requires a certificate. A set of example certificate (public and private key) is placed in the [certs](./certs) folder. You can use them for testing but we recommend you generate your own certificate. Certificate generation and related topics are discussed in [Using Certificates with MSAL Node](../../../lib/msal-node/docs/certificate-credentials.md).
 
@@ -14,7 +14,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 
 ## Register
 
-1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
+1. Navigate to the [Microsoft Entra admin center](https://entra.microsoft.com) and select the **Microsoft Entra ID** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ms-identity-nodejs-webapp`.

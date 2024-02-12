@@ -5,7 +5,7 @@
 ## About this sample
 
 This sample demonstrates how you can run e2e tests against an application that uses msal-browser to obtain tokens and sign users in.
-Using the [ROPC flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth-ropc) in [msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) you can pre-populate local or session storage with tokens without requiring your test to navigate through the AAD sign-in pages. This allows you to test your application with a real user and real tokens without testing 3rd party sites.
+Using the [ROPC flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth-ropc) in [msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) you can pre-populate local or session storage with tokens without requiring your test to navigate through the Microsoft Entra ID sign-in pages. This allows you to test your application with a real user and real tokens without testing 3rd party sites.
 
 ## Pre-requisites
 
