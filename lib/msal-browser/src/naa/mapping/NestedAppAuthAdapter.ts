@@ -23,12 +23,15 @@ import {
     RequestParameterBuilder,
     StringUtils,
     createClientAuthError,
+    OIDC_DEFAULT_SCOPES,
 } from "@azure/msal-common";
 import { isBridgeError } from "../BridgeError";
 import { BridgeStatusCode } from "../BridgeStatusCode";
 import { AuthenticationResult } from "../../response/AuthenticationResult";
 import {} from "../../error/BrowserAuthErrorCodes";
 import { AuthResult } from "../AuthResult";
+import { SsoSilentRequest } from "../../request/SsoSilentRequest";
+import { SilentRequest } from "../../request/SilentRequest";
 
 export class NestedAppAuthAdapter {
     protected crypto: ICrypto;
@@ -49,7 +52,11 @@ export class NestedAppAuthAdapter {
     }
 
     public toNaaTokenRequest(
-        request: PopupRequest | RedirectRequest
+        request:
+            | PopupRequest
+            | RedirectRequest
+            | SilentRequest
+            | SsoSilentRequest
     ): TokenRequest {
         let extraParams: Map<string, string>;
         if (request.extraQueryParameters === undefined) {
@@ -65,11 +72,12 @@ export class NestedAppAuthAdapter {
             request.claims,
             this.clientCapabilities
         );
+        const scopes = request.scopes || OIDC_DEFAULT_SCOPES;
         const tokenRequest: TokenRequest = {
             platformBrokerId: request.account?.homeAccountId,
             clientId: this.clientId,
             authority: request.authority,
-            scope: request.scopes.join(" "),
+            scope: scopes.join(" "),
             correlationId:
                 request.correlationId !== undefined
                     ? request.correlationId
