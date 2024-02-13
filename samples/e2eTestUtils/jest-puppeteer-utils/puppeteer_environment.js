@@ -18,14 +18,14 @@ class PuppeteerEnvironment extends NodeEnvironment {
 		// connect to puppeteer
 		this.global.__BROWSER__ = await puppeteer.launch(puppeteerConfig);
 
-		process.stdout.write(JSON.parse(this.global.__BROWSER__) + "SETUP FINISHED");
+		process.stdout.write(JSON.stringify(this.global.__BROWSER__) + "SETUP FINISHED");
 	}
 
 	async teardown() {
 		process.stdout.write("TEARDOWN STARTING");
 		await super.teardown();
 		if(this.global.__BROWSER__) {
-		process.stdout.write(JSON.parse(this.global.__BROWSER__) + "TEARDOWN FINISHED");
+		process.stdout.write(JSON.stringify(this.global.__BROWSER__) + "TEARDOWN FINISHED");
 			this.global.__BROWSER__.close();
 		}
 	}
