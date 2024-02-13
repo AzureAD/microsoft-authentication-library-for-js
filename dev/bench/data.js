@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707800639553,
+  "lastUpdate": 1707848223728,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5352,6 +5352,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.00%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "36167099+bbush915@users.noreply.github.com",
+            "name": "bbush915",
+            "username": "bbush915"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d055ad8cb91961dbc0639861c618f11900485853",
+          "message": "Fix: Authority string tenant parsing throws error in certain OIDC scenario (#6889)\n\nThe authority string tenant parsing assumes that the authority URL will\r\nalways have at least one PathSegment. This is not true in the case an\r\napplication is using a separate OIDC-compliant authority. This handles\r\nthis case gracefully, ultimately allowing the cached token to be reused.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-02-13T10:11:24-08:00",
+          "tree_id": "2168f616931c13163d099074cf7a7345d363f06f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d055ad8cb91961dbc0639861c618f11900485853"
+        },
+        "date": 1707848222739,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 184573,
+            "range": "±1.86%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 185639,
+            "range": "±1.90%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
