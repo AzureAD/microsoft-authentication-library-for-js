@@ -122,7 +122,7 @@ export class NestedAppAuthController implements IController {
             | SilentRequest
             | PopupRequest
             | RedirectRequest
-    >(request: T) {
+    >(request: T): T {
         if (request?.correlationId) {
             return request;
         }
