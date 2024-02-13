@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707420617308,
+  "lastUpdate": 1707800639553,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5312,6 +5312,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 179111,
             "range": "±1.98%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c6b5f3d474cdad9b88b415b4ec552d945d9b6062",
+          "message": "MSAL JS should not throw user account switch error when home account ids of the request/response match (#6846)\n\nThis PR fixes 2 issues:\r\n- When the parent app is requesting tokens on behalf of an iframed\r\napplication, it should check request/response based on the native\r\naccount id as well as the homeAccountId.\r\n- When the tokens are brokered, the parent's native account id should\r\nnot be cached in the iframed application. The iframed application should\r\nonly store it's own native account id.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-02-12T20:58:28-08:00",
+          "tree_id": "2daf19be09441dbf302457ea7f86870b6562d67a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c6b5f3d474cdad9b88b415b4ec552d945d9b6062"
+        },
+        "date": 1707800638530,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 191457,
+            "range": "±1.94%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 184117,
+            "range": "±2.00%",
             "unit": "ops/sec",
             "extra": "220 samples"
           }
