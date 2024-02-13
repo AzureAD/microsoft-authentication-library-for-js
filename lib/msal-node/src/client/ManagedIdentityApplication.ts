@@ -94,7 +94,7 @@ export class ManagedIdentityApplication {
             ManagedIdentityApplication.nodeStorage as NodeStorage,
             fakeAuthorityOptions,
             this.logger,
-            undefined,
+            this.config.managedIdentityId.id,
             undefined,
             true
         );

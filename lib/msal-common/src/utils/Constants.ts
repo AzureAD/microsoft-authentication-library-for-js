@@ -69,8 +69,13 @@ export const HttpStatus = {
     REDIRECT: 302,
     CLIENT_ERROR_RANGE_START: 400,
     UNAUTHORIZED: 401,
+    NOT_FOUND: 404,
+    REQUEST_TIMEOUT: 408,
+    TOO_MANY_REQUESTS: 429,
     CLIENT_ERROR_RANGE_END: 499,
-    SERVER_ERROR_RANGE_START: 500,
+    INTERNAL_SERVER_ERROR: 500,
+    SERVICE_UNAVAILABLE: 503,
+    GATEWAY_TIMEOUT: 504,
     SERVER_ERROR_RANGE_END: 599,
 } as const;
 export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
