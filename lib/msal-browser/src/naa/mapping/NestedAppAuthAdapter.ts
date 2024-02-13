@@ -58,7 +58,6 @@ export class NestedAppAuthAdapter {
             | SilentRequest
             | SsoSilentRequest
     ): TokenRequest {
-        request.authority;
         let extraParams: Map<string, string>;
         if (request.extraQueryParameters === undefined) {
             extraParams = new Map<string, string>();
