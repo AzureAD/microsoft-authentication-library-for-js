@@ -386,7 +386,7 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
 
-        it("throws on account switch", (done) => {
+        it("does not throw account switch error when homeaccountid is same", (done) => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
@@ -398,6 +398,56 @@ describe("NativeInteractionClient Tests", () => {
                 },
                 properties: {},
             };
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccountInfoFilteredBy"
+            ).mockReturnValue(TEST_ACCOUNT_INFO);
+
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((): Promise<object> => {
+                    return Promise.resolve(mockWamResponse);
+                });
+            nativeInteractionClient
+                .acquireToken({
+                    scopes: ["User.Read"],
+                })
+                .catch((e) => {
+                    console.error(
+                        "User switch error should not have been thrown."
+                    );
+                    expect(e.errorCode).not.toBe(
+                        NativeAuthErrorCodes.userSwitch
+                    );
+                    expect(e.errorMessage).not.toBe(
+                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
+                    );
+                    done();
+                });
+            done();
+        });
+
+        it("throws error on user switch", (done) => {
+            const raw_client_info =
+                "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwgInV0aWQiOiI3MmY5ODhiZi04NmYxLTQxYWYtOTFhYi0yZDdjZDAxMWRiNDcifQ==";
+
+            const mockWamResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2_ALT,
+                scope: "User.Read",
+                expires_in: 3600,
+                client_info: raw_client_info,
+                account: {
+                    id: "different-nativeAccountId",
+                },
+                properties: {},
+            };
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccountInfoFilteredBy"
+            ).mockReturnValue(TEST_ACCOUNT_INFO);
 
             sinon
                 .stub(NativeMessageHandler.prototype, "sendMessage")
