@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Make BrowserCrypto generate UUID v7 by default #6841",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
