@@ -307,22 +307,22 @@ export async function enterCredentials(
             throw e;
         });
     } catch (e) {
-        return;
-    }
-
-    // keep me signed in MSA
-    try {
-        await page.waitForSelector("#kmsiTitle", { timeout: 1000 });
-        await screenshot.takeScreenshot(page, "keepMeSignedInPage");
-        await Promise.all([
-            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click("#acceptButton"),
-        ]).catch(async (e) => {
-            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-            throw e;
-        });
-    } catch (e) {
-        return;
+        // keep me signed in MSA
+        try {
+            await page.waitForSelector("#kmsiTitle", { timeout: 1000 });
+            await screenshot.takeScreenshot(page, "keepMeSignedInPage");
+            await Promise.all([
+                page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
+                page.click("#acceptButton"),
+            ]).catch(async (e) => {
+                await screenshot
+                    .takeScreenshot(page, "errorPage")
+                    .catch(() => {});
+                throw e;
+            });
+        } catch (e) {
+            return;
+        }
     }
 
     // agce: private tenant sign in page
