@@ -12,10 +12,12 @@ module.exports = {
         "^.+\\.ts?$": "ts-jest"
     },
     reporters: [
-        "jest-junit", {
-            "suiteName": "Customizable E2E Tests",
-            "outputDirectory": ".",
-            "outputName": "junit.xml"
-        }
+        [
+            "jest-junit", {
+                "suiteName": "Customizable E2E Tests",
+                "outputDirectory": ".",
+                "outputName": "junit.xml"
+            }
+        ]
     ]
 };
