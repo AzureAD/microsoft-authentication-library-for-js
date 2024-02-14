@@ -20,7 +20,7 @@ let sampleHomeUrl = "";
 let username = "";
 let accountPwd = "";
 
-describe("Browser tests", function () {
+describe("Browser PoP tests", function () {
     let browser: puppeteer.Browser;
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
