@@ -10,6 +10,7 @@
     "start": "gatsby serve -p 3000",
     "serve": "gatsby serve",
     "test": "jest",
+    "test:ci": "npm run test --runInBand --forceExit --detectOpenHandles --reporters=default --reporters=jest-junit",
     "clean": "gatsby clean"
   },
   "dependencies": {
@@ -25,9 +26,11 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@azure/msal-common": "^14.7.0",
     "@types/jest": "^29.5.0",
-    "e2e-test-utils": "^0.0.1",
+    "e2e-test-utils": "file:../../e2eTestUtils",
     "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
     "ts-jest": "^29.1.0"
   }
 }
