@@ -93,15 +93,16 @@ export class SilentIframeClient extends StandardInteractionClient {
             );
         }
 
-        // Check that prompt is set to none or no_session, throw error if it is set to anything else.
+        // Check the prompt value
         if (
             request.prompt &&
             request.prompt !== PromptValue.NONE &&
             request.prompt !== PromptValue.NO_SESSION
         ) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.silentPromptValueError
+            this.logger.verbose(
+                `SilentIframeClient. Removing invalid prompt ${request.prompt}`
             );
+            delete request.prompt;
         }
 
         // Create silent request
