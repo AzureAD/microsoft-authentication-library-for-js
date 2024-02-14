@@ -113,6 +113,7 @@ describe("B2C user-flow tests (msa account)", () => {
             await editProfileButton.click();
         }
         let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
+        await page.waitForNavigation();
         await page.waitForSelector("#attributeVerification", { visible: true });
         await page.$eval("#displayName", (el: any) => (el.value = "")), // clear the text field
             await page.type("#displayName", `${displayName}`),
