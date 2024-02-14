@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fix: Prevents error thrown when Authority URL contains no path segments.",
+  "packageName": "@azure/msal-common",
+  "email": "bushb@umich.edu",
+  "dependentChangeType": "patch"
+}
