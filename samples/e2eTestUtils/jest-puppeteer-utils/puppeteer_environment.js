@@ -7,18 +7,27 @@ class PuppeteerEnvironment extends NodeEnvironment {
 	}
 
 	async setup() {
+		process.stdout.write("SETUP STARTING");
 		await super.setup();
 
+		const puppeteerConfig = {
+			headless: "new",
+			ignoreDefaultArgs: (process.env.CI) ? [] : ["--no-sandbox", "–disable-setuid-sandbox"],
+		};
+
 		// connect to puppeteer
-		this.global.__BROWSER__ = await puppeteer.launch({
-			headless: true,
-			ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
-		});
+		this.global.__BROWSER__ = await puppeteer.launch(puppeteerConfig);
+
+		process.stdout.write(JSON.stringify(this.global.__BROWSER__) + "SETUP FINISHED");
 	}
 
 	async teardown() {
+		process.stdout.write("TEARDOWN STARTING");
 		await super.teardown();
-		this.global.__BROWSER__.close();
+		if(this.global.__BROWSER__) {
+		process.stdout.write(JSON.stringify(this.global.__BROWSER__) + "TEARDOWN FINISHED");
+			this.global.__BROWSER__.close();
+		}
 	}
 
 	runScript(script) {
