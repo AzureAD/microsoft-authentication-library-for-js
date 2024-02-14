@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707848223728,
+  "lastUpdate": 1707953288443,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5390,6 +5390,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.90%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bbf17fbef9d7b7b8e3e15e41acbe4d3391bfb6e1",
+          "message": "Fix MSA e2e tests (#6896)\n\nThis PR:\r\n- Replaces sign-in button ID with #kmsiTitle ID for KMSI page in MSA\r\nflows",
+          "timestamp": "2024-02-14T15:22:42-08:00",
+          "tree_id": "cf8b82c24660477096201302ad38d45688089bcb",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/bbf17fbef9d7b7b8e3e15e41acbe4d3391bfb6e1"
+        },
+        "date": 1707953287402,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 186594,
+            "range": "±1.83%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 179656,
+            "range": "±1.61%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
