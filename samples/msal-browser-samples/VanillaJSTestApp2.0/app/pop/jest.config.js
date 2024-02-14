@@ -4,18 +4,17 @@ module.exports = {
         __PORT__: 30664,
         __STARTCMD__: "npm start -- --port 30664 --sample pop",
     },
-    testMatch: [
-        "<rootDir>/test/**/*.spec.ts",
-    ],
+    testMatch: ["<rootDir>/test/**/*.spec.ts"],
     preset: "../../../../e2eTestUtils/jest-puppeteer-utils/jest-preset.js",
     transform: {
-        "^.+\\.ts?$": "ts-jest"
+        "^.+\\.ts?$": "ts-jest",
     },
     reporters: [
-        "jest-junit", {
-            "suiteName": "PoP E2E Tests",
-            "outputDirectory": ".",
-            "outputName": "junit.xml"
-        }
-    ]
+        "jest-junit",
+        {
+            suiteName: "PoP E2E Tests",
+            outputDirectory: ".app/pop/",
+            outputName: "junit.xml",
+        },
+    ],
 };
