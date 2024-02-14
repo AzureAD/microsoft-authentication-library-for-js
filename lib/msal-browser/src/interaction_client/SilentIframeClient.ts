@@ -94,15 +94,19 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Check the prompt value
-        if (
-            request.prompt &&
-            request.prompt !== PromptValue.NONE &&
-            request.prompt !== PromptValue.NO_SESSION
-        ) {
-            this.logger.verbose(
-                `SilentIframeClient. Removing invalid prompt ${request.prompt}`
-            );
-            delete request.prompt;
+        const inputRequest = { ...request };
+        if (inputRequest.prompt) {
+            if (
+                inputRequest.prompt !== PromptValue.NONE &&
+                inputRequest.prompt !== PromptValue.NO_SESSION
+            ) {
+                this.logger.warning(
+                    `SilentIframeClient. Replacing invalid prompt ${inputRequest.prompt} with ${PromptValue.NONE}`
+                );
+                inputRequest.prompt = PromptValue.NONE;
+            }
+        } else {
+            inputRequest.prompt = PromptValue.NONE;
         }
 
         // Create silent request
@@ -112,13 +116,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(
-            {
-                ...request,
-                prompt: request.prompt || PromptValue.NONE,
-            },
-            InteractionType.Silent
-        );
+        )(inputRequest, InteractionType.Silent);
         BrowserUtils.preconnect(silentRequest.authority);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
