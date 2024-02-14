@@ -297,11 +297,11 @@ export async function enterCredentials(
 
     // keep me signed in page
     try {
-        await page.waitForSelector("#idSIButton9", { timeout: 1000 });
+        await page.waitForSelector("#kmsiTitle", { timeout: 1000 });
         await screenshot.takeScreenshot(page, "keepMeSignedInPage");
         await Promise.all([
             page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click("#idSIButton9"),
+            page.click("#acceptButton"),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
