@@ -2,6 +2,73 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 07 Feb 2024 22:00:37 GMT",
+      "version": "3.9.0",
+      "tag": "@azure/msal-browser_v3.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Instrument handleRedirectPromise() #6861"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Make BrowserCrypto generate UUID v7 by default #6841"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Add active account update event #6854"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.7.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "reduce number of calls to resolveEndpoints"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Update shared config version references to use local files #6855"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Bump browser #6882"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Jan 2024 00:06:05 GMT",
       "version": "3.7.1",
       "tag": "@azure/msal-browser_v3.7.1",

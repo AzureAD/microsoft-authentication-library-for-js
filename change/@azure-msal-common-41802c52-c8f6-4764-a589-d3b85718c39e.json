@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Instrument handleRedirectPromise() #6861",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

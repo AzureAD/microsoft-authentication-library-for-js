@@ -2,6 +2,41 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Wed, 07 Feb 2024 22:00:37 GMT",
+      "version": "1.0.11",
+      "tag": "@azure/msal-node-extensions_v1.0.11",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Update shared config version references to use local files #6855"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Fix tests #6849"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v14.7.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Jan 2024 00:06:05 GMT",
       "version": "1.0.10",
       "tag": "@azure/msal-node-extensions_v1.0.10",
