@@ -53,7 +53,9 @@ export class HttpClientWithRetries implements INetworkModule {
             await this.httpClientNoRetries.sendPostRequestAsync(url, options);
 
         let currentRetry: number = 0;
-        while (this.retryPolicy.pauseForRetry(response.status, currentRetry)) {
+        while (
+            await this.retryPolicy.pauseForRetry(response.status, currentRetry)
+        ) {
             response = await this.httpClientNoRetries.sendPostRequestAsync(
                 url,
                 options
