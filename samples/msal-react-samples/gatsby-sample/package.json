@@ -10,7 +10,7 @@
     "start": "gatsby serve -p 3000",
     "serve": "gatsby serve",
     "test": "jest",
-    "test:ci": "npm run test -- --watchAll=false --detectOpenHandles --forceExit --reporters=default --reporters=jest-junit",
+    "test:ci": "npm run test --runInBand --forceExit --detectOpenHandles --reporters=default --reporters=jest-junit",
     "clean": "gatsby clean"
   },
   "dependencies": {
