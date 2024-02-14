@@ -96,7 +96,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
-                status: 200,
+                status: HttpStatus.SUCCESS_RANGE_START,
                 body: {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
@@ -117,7 +117,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
-                status: 200,
+                status: HttpStatus.SUCCESS_RANGE_START,
                 body: {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
@@ -176,6 +176,18 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
                     this.status
                 )
             );
+        });
+    }
+
+    sendGetRequestForRetryAsync<T>(): Promise<NetworkResponse<T>> {
+        return new Promise<NetworkResponse<T>>((resolve, _reject) => {
+            resolve({
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                body: {
+                    message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
+                    correlationId: DEFAULT_MANAGED_IDENTITY_ID,
+                } as ManagedIdentityTokenResponse,
+            } as NetworkResponse<T>);
         });
     }
 

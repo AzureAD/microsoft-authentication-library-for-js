@@ -143,10 +143,10 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
 
-            expect(sendGetRequestAsyncSpy).toBeCalledTimes(2);
-            expect(readFileSyncSpy).toBeCalledTimes(1);
+            expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+            expect(readFileSyncSpy).toHaveBeenCalledTimes(1);
 
-            expect(sendGetRequestAsyncSpy).nthCalledWith(
+            expect(sendGetRequestAsyncSpy).toHaveBeenNthCalledWith(
                 2,
                 `${
                     process.env[

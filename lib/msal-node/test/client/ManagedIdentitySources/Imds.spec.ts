@@ -57,6 +57,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         ManagedIdentityApplication["nodeStorage"] = undefined;
     });
 
+    const managedIdentityNetworkErrorClient =
+        new ManagedIdentityNetworkErrorClient();
+
     const userAssignedObjectIdConfig: ManagedIdentityConfiguration = {
         system: {
             networkClient,
@@ -167,6 +170,130 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(cachedManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+        });
+    });
+
+    describe("Linear Retry Policy", () => {
+        describe("User Assigned", () => {
+            let managedIdentityApplication: ManagedIdentityApplication;
+            beforeEach(() => {
+                managedIdentityApplication = new ManagedIdentityApplication(
+                    userAssignedClientIdConfig
+                );
+            });
+
+            test("returns a 500 error response from the network request, just the first time", async () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+                const sendGetRequestAsyncSpy: jest.SpyInstance = jest
+                    .spyOn(networkClient, <any>"sendGetRequestAsync")
+                    // override the networkClient's sendGetRequestAsync method to return a 500.
+                    // after this override, original functionality will be restored
+                    // and the network request will complete successfully
+                    .mockReturnValueOnce(
+                        managedIdentityNetworkErrorClient.sendGetRequestForRetryAsync()
+                    );
+
+                const networkManagedIdentityResult: AuthenticationResult =
+                    await managedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+
+                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+                expect(networkManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
+
+                jest.restoreAllMocks();
+            });
+
+            test("returns a 500 error response from the network request permanently", async () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+                const sendGetRequestAsyncSpy: jest.SpyInstance = jest
+                    .spyOn(networkClient, <any>"sendGetRequestAsync")
+                    // permanently override the networkClient's sendGetRequestAsync method to return a 500.
+                    .mockReturnValue(
+                        managedIdentityNetworkErrorClient.sendGetRequestForRetryAsync()
+                    );
+
+                let serverError: ServerError = new ServerError();
+                try {
+                    await managedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                } catch (e) {
+                    serverError = e as ServerError;
+                }
+
+                expect(serverError.errorCode).toEqual(
+                    MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR
+                );
+                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+
+                jest.restoreAllMocks();
+            });
+        });
+
+        describe("System Assigned", () => {
+            let managedIdentityApplication: ManagedIdentityApplication;
+            beforeEach(() => {
+                managedIdentityApplication = new ManagedIdentityApplication(
+                    systemAssignedConfig
+                );
+            });
+
+            test("returns a 500 error response from the network request, just the first time", async () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+                const sendGetRequestAsyncSpy: jest.SpyInstance = jest
+                    .spyOn(networkClient, <any>"sendGetRequestAsync")
+                    // override the networkClient's sendGetRequestAsync method to return a 500.
+                    // after this override, original functionality will be restored
+                    // and the network request will complete successfully
+                    .mockReturnValueOnce(
+                        managedIdentityNetworkErrorClient.sendGetRequestForRetryAsync()
+                    );
+
+                const networkManagedIdentityResult: AuthenticationResult =
+                    await managedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+
+                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+                expect(networkManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
+
+                jest.restoreAllMocks();
+            });
+
+            test("returns a 500 error response from the network request permanently", async () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+                const sendGetRequestAsyncSpy: jest.SpyInstance = jest
+                    .spyOn(networkClient, <any>"sendGetRequestAsync")
+                    // permanently override the networkClient's sendGetRequestAsync method to return a 500.
+                    .mockReturnValue(
+                        managedIdentityNetworkErrorClient.sendGetRequestForRetryAsync()
+                    );
+
+                let serverError: ServerError = new ServerError();
+                try {
+                    await managedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                } catch (e) {
+                    serverError = e as ServerError;
+                }
+
+                expect(serverError.errorCode).toEqual(
+                    MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR
+                );
+                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+
+                jest.restoreAllMocks();
+            });
         });
     });
 
@@ -528,7 +655,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
-                        networkClient: new ManagedIdentityNetworkErrorClient(),
+                        networkClient: managedIdentityNetworkErrorClient,
                         // managedIdentityIdParams will be omitted for system assigned
                     },
                 });
