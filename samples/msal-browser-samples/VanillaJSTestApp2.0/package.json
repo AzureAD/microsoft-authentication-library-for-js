@@ -10,7 +10,7 @@
     "build:package": "cd ../../../lib/msal-browser && npm run build:all",
     "start:build": "npm run build:package && npm start",
     "test:e2e": "jest --runInBand",
-    "test:ci": "jest -- --watchAll=false --detectOpenHandles --forceExit --reporters=default --reporters=jest-junit",
+    "test:ci": "jest -- --runInBand --detectOpenHandles --forceExit --reporters=default --reporters=jest-junit",
     "generate:certs": "openssl.exe req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7 -nodes -subj /CN=localhost"
   },
   "dependencies": {

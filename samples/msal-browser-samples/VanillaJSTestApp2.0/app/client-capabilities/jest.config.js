@@ -17,7 +17,7 @@ module.exports = {
                 "suiteName": "Client Capabilities E2E Tests",
                 "outputDirectory": ".",
                 "outputName": "junit.xml"
-            }
+                }
         ]
     ]
 };
