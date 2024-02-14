@@ -47,5 +47,5 @@
         "suiteNameTemplate": "B2C Sample Tests",
         "outputDirectory": ".",
         "outputName": "test-results.xml"
-      }
+    }
 }
