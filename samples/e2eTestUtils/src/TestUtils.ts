@@ -297,32 +297,28 @@ export async function enterCredentials(
 
     // keep me signed in page
     try {
-        await page.waitForSelector("#idSIButton9", { timeout: 1000 });
+        let buttonTag;
+        const aadKmsi = page
+            .waitForSelector("#idSIButton9", { timeout: 1000 })
+            .then(() => {
+                buttonTag = "#idSIButton9";
+            });
+        const msaKmsi = page
+            .waitForSelector("#kmsiTitle", { timeout: 1000 })
+            .then(() => {
+                buttonTag = "#acceptButton";
+            });
+        await Promise.race([aadKmsi, msaKmsi]);
         await screenshot.takeScreenshot(page, "keepMeSignedInPage");
         await Promise.all([
             page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click("#idSIButton9"),
+            page.click(buttonTag),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
         });
     } catch (e) {
-        // keep me signed in MSA
-        try {
-            await page.waitForSelector("#kmsiTitle", { timeout: 1000 });
-            await screenshot.takeScreenshot(page, "keepMeSignedInPage");
-            await Promise.all([
-                page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-                page.click("#acceptButton"),
-            ]).catch(async (e) => {
-                await screenshot
-                    .takeScreenshot(page, "errorPage")
-                    .catch(() => {});
-                throw e;
-            });
-        } catch (e) {
-            return;
-        }
+        return;
     }
 
     // agce: private tenant sign in page
