@@ -283,4 +283,4 @@ tsconfig.build.tsbuildinfo
 temp-cache.json
 
 # Jest JUnit reporter
-test-results.xml
+junit.xml
