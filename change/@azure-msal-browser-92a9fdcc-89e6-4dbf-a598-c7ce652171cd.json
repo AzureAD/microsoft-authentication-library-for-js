@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove invalid prompt for silent request instead of throwing an error #6895",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
