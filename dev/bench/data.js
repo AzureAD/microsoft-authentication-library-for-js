@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707953288443,
+  "lastUpdate": 1707958382027,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5428,6 +5428,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.61%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "db17cd032f59811bb9fd8b99f1dce453c225fcd8",
+          "message": "Remove invalid prompt for silent request instead of throwing an error (#6895)\n\n- Remove invalid prompt for silent request instead of throwing an error.",
+          "timestamp": "2024-02-14T19:46:51-05:00",
+          "tree_id": "d147ddfffb48ebc98027eb922091cc3a5b34f3f2",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/db17cd032f59811bb9fd8b99f1dce453c225fcd8"
+        },
+        "date": 1707958380233,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 182518,
+            "range": "±1.86%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 175839,
+            "range": "±1.77%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
