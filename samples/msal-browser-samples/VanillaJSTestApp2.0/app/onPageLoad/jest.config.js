@@ -9,12 +9,4 @@ module.exports = {
     transform: {
         "^.+\\.ts?$": "ts-jest",
     },
-    reporters: [
-        "jest-junit",
-        {
-            suiteName: "onPageLoad Code E2E Tests",
-            outputDirectory: "./app/onPageLoad",
-            outputName: "junit.xml",
-        },
-    ],
 };

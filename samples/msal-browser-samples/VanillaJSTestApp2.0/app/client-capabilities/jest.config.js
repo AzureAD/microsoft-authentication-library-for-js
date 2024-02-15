@@ -4,20 +4,9 @@ module.exports = {
         __PORT__: 30660,
         __STARTCMD__: "npm start -- --port 30660 --sample client-capabilities",
     },
-    testMatch: [
-        "<rootDir>/test/**/*.spec.ts",
-    ],
+    testMatch: ["<rootDir>/test/**/*.spec.ts"],
     preset: "../../../../e2eTestUtils/jest-puppeteer-utils/jest-preset.js",
     transform: {
-        "^.+\\.ts?$": "ts-jest"
+        "^.+\\.ts?$": "ts-jest",
     },
-    reporters: [
-        [
-            "jest-junit", {
-                "suiteName": "Client Capabilities E2E Tests",
-                "outputDirectory": ".",
-                "outputName": "junit.xml"
-                }
-        ]
-    ]
 };

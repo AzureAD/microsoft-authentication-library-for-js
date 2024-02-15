@@ -10,14 +10,4 @@ module.exports = {
     transform: {
         "^.+\\.ts?$": "ts-jest",
     },
-    reporters: [
-        [
-            "jest-junit",
-            {
-                suiteName: "Customizable E2E Tests",
-                outputDirectory: "./app/customizable-e2e-test",
-                outputName: "junit.xml",
-            },
-        ],
-    ],
 };

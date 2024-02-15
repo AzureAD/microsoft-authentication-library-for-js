@@ -5,11 +5,4 @@ module.exports = {
         __STARTCMD__: "env-cmd -f .env.e2e npm start",
     },
     preset: "../../e2eTestUtils/jest-puppeteer-utils/jest-preset.js",
-    reporters: [
-        "jest-junit", {
-            "suiteName": "React Router E2E Tests",
-            "outputDirectory": ".",
-            "outputName": "junit.xml"
-        }
-    ]
 };
