@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707958382027,
+  "lastUpdate": 1707962430683,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5466,6 +5466,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.77%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9dc37a091a26f78dfeba1006e2a739f49d6e3011",
+          "message": "Use UUIDv7 in PerformanceClient (#6866)\n\n- Use UUIDv7 in PerformanceClient.",
+          "timestamp": "2024-02-14T20:54:54-05:00",
+          "tree_id": "ec544e42a74e59cee3ebf283f8b4d353a372f9e8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9dc37a091a26f78dfeba1006e2a739f49d6e3011"
+        },
+        "date": 1707962429426,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 183565,
+            "range": "±1.79%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 181584,
+            "range": "±1.91%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
