@@ -106,7 +106,8 @@ export function buildTenantProfileFromIdTokenClaims(
 export function updateAccountTenantProfileData(
     baseAccountInfo: AccountInfo,
     tenantProfile?: TenantProfile,
-    idTokenClaims?: TokenClaims
+    idTokenClaims?: TokenClaims,
+    idTokenSecret?: string
 ): AccountInfo {
     let updatedAccountInfo = baseAccountInfo;
     // Tenant Profile overrides passed in account info
@@ -130,6 +131,7 @@ export function updateAccountTenantProfileData(
             ...updatedAccountInfo,
             ...claimsSourcedTenantProfile,
             idTokenClaims: idTokenClaims,
+            idToken: idTokenSecret,
         };
 
         return updatedAccountInfo;

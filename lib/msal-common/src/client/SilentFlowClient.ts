@@ -257,7 +257,8 @@ export class SilentFlowClient extends BaseClient {
             cacheRecord,
             true,
             request,
-            idTokenClaims
+            idTokenClaims,
+            cacheRecord.idToken?.secret
         );
     }
 }

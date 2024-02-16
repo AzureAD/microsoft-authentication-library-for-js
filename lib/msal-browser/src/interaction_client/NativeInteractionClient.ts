@@ -262,6 +262,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const fullAccount = {
                 ...account,
                 idTokenClaims: result?.idTokenClaims as TokenClaims,
+                idToken: result?.idToken,
             };
 
             return {

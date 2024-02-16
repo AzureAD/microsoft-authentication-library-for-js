@@ -5231,6 +5231,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const matchAccount: AccountInfo = {
             ...testAccountInfo,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
         };
 
         const testIdToken: IdTokenEntity = buildIdToken(
@@ -5282,6 +5283,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const testAccountInfo1: AccountInfo = testAccount1.getAccountInfo();
         testAccountInfo1.idTokenClaims = ID_TOKEN_CLAIMS;
+        testAccountInfo1.idToken = TEST_TOKENS.IDTOKEN_V2;
 
         testAccount1.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
@@ -5298,6 +5300,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
         const testAccountInfo2: AccountInfo = testAccount2.getAccountInfo();
         testAccountInfo2.idTokenClaims = ID_TOKEN_ALT_CLAIMS;
+        testAccountInfo2.idToken = TEST_TOKENS.IDTOKEN_V2_ALT;
 
         testAccount2.clientInfo =
             TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
@@ -5508,6 +5511,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccountInfo1: AccountInfo = {
             ...testAccount1.getAccountInfo(),
             idTokenClaims: ID_TOKEN_CLAIMS,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
         };
 
         const idToken1: IdTokenEntity = buildIdToken(
@@ -5523,6 +5527,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccountInfo2: AccountInfo = {
             ...testAccount2.getAccountInfo(),
             idTokenClaims: ID_TOKEN_ALT_CLAIMS,
+            idToken: TEST_TOKENS.IDTOKEN_V2_ALT,
         };
 
         const idToken2: IdTokenEntity = buildIdToken(
@@ -5850,6 +5855,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount: AccountInfo = {
             ...buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo(),
             idTokenClaims: ID_TOKEN_CLAIMS,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
         };
 
         const testAuthenticationResult: AuthenticationResult = {
