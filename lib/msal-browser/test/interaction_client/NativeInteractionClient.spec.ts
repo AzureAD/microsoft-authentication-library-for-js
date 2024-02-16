@@ -76,6 +76,7 @@ const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
 const TEST_ACCOUNT_INFO: AccountInfo = {
     ...testAccountEntity.getAccountInfo(),
     idTokenClaims: ID_TOKEN_CLAIMS,
+    idToken: TEST_TOKENS.IDTOKEN_V2,
 };
 
 const TEST_ID_TOKEN: IdTokenEntity = buildIdToken(
