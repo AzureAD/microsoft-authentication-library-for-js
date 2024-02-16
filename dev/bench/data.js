@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708123969714,
+  "lastUpdate": 1708127320641,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5580,6 +5580,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.73%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ee8478695b89e8dc5590d9e4832051bae2684d8a",
+          "message": "Remove bumpDeps false from beachball:bump:ci command (#6905)\n\nThis PR:\r\n- Removes bumpDeps false from package.json so dependent packages get\r\nbumped correctly",
+          "timestamp": "2024-02-16T15:43:03-08:00",
+          "tree_id": "fcb72ed7d6724b1346943a4858fc80a00938cd15",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ee8478695b89e8dc5590d9e4832051bae2684d8a"
+        },
+        "date": 1708127318874,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 183652,
+            "range": "±1.81%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 196916,
+            "range": "±2.16%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
           }
         ]
       }
