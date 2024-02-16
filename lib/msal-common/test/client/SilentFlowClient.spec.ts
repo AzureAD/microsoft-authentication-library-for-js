@@ -11,6 +11,7 @@ import {
     TEST_DATA_CLIENT_INFO,
     ID_TOKEN_CLAIMS,
     TEST_URIS,
+    TEST_TOKENS,
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import {
@@ -63,6 +64,7 @@ const testAccountEntity: AccountEntity =
 const testAccount: AccountInfo = {
     ...testAccountEntity.getAccountInfo(),
     idTokenClaims: ID_TOKEN_CLAIMS,
+    idToken: TEST_TOKENS.IDTOKEN_V2,
 };
 
 const testIdToken: IdTokenEntity = {

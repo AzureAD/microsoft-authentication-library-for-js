@@ -309,6 +309,7 @@ describe("RefreshTokenClient unit tests", () => {
         const testAccount: AccountInfo =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
+        testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
         beforeEach(async () => {
             sinon
@@ -1057,6 +1058,7 @@ describe("RefreshTokenClient unit tests", () => {
         const testAccount: AccountInfo =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
+        testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
         beforeEach(async () => {
             sinon
