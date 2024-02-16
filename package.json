@@ -39,7 +39,7 @@
         "beachball:bump": "beachball bump --branch origin/dev --bumpDeps false && node release-scripts/updateVersion.js",
         "beachball:bump:alpha": "beachball bump --branch origin/dev --bumpDeps false --prerelease-prefix alpha",
         "beachball:bump:beta": "beachball bump --branch origin/dev --bumpDeps false --prerelease-prefix beta",
-        "beachball:bump:official": "beachball bump --branch origin/dev --bumpDeps false",
+        "beachball:bump:official": "beachball bump --branch origin/dev",
         "beachball:release": "node ./.github/create-releases.js"
     },
     "workspaces": [
