@@ -611,7 +611,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
             accountEntity.getAccountInfo(),
             undefined, // tenantProfile optional
-            idTokenClaims
+            idTokenClaims,
+            response.id_token
         );
 
         /**
