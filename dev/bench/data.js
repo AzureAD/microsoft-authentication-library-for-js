@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707963018247,
+  "lastUpdate": 1708123969714,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5542,6 +5542,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.96%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e4c23168adbb1007da281cfa3b1ed997dbb92657",
+          "message": "Add ID Token secret to AccountInfo in all reponses (#6903)\n\nThis PR:\r\n- Adds the ID token to the account info object updated from tenant\r\nprofiles\r\n- Fixes #6900",
+          "timestamp": "2024-02-16T14:47:17-08:00",
+          "tree_id": "4172f1ea2ad7ef5d69906a98515012e2f57b67d1",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e4c23168adbb1007da281cfa3b1ed997dbb92657"
+        },
+        "date": 1708123968765,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 182933,
+            "range": "±1.64%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 183946,
+            "range": "±1.73%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
