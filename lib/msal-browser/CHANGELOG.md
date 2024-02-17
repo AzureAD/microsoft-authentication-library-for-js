@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 07 Feb 2024 22:00:37 GMT and should not be manually modified.
+This log was last generated on Sat, 17 Feb 2024 01:49:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.10.0
+
+Sat, 17 Feb 2024 01:49:05 GMT
+
+### Minor changes
+
+- Export createGuid function #6868 (kshabelko@microsoft.com)
+- Use UUIDv7 in PerformanceClient #6866 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.7.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Add ID Token secret to AccountInfo in all reponses #6903 (hemoral@microsoft.com)
+- Bug fix for user switch error and broker app's native account id being stored in embedded app cache #6846 (lalimasharda@microsoft.com)
+- Remove invalid prompt for silent request instead of throwing an error #6895 (kshabelko@microsoft.com)
 
 ## 3.9.0
 

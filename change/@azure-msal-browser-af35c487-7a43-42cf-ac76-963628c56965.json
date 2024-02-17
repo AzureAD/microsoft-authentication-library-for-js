@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add ID Token secret to AccountInfo in all reponses #6903",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
