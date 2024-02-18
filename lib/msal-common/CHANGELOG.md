@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 07 Feb 2024 22:00:37 GMT and should not be manually modified.
+This log was last generated on Sat, 17 Feb 2024 01:49:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.7.1
+
+Sat, 17 Feb 2024 01:49:05 GMT
+
+### Patches
+
+- Add ID Token secret to AccountInfo in all reponses #6903 (hemoral@microsoft.com)
+- fix: Prevents error thrown when Authority URL contains no path segments. (bushb@umich.edu)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 14.7.0
 

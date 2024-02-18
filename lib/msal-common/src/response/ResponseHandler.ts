@@ -625,7 +625,8 @@ export class ResponseHandler {
             ? updateAccountTenantProfileData(
                   cacheRecord.account.getAccountInfo(),
                   undefined, // tenantProfile optional
-                  idTokenClaims
+                  idTokenClaims,
+                  cacheRecord.idToken?.secret
               )
             : null;
 

@@ -373,7 +373,8 @@ export abstract class CacheManager implements ICacheManager {
         tenantedAccountInfo = updateAccountTenantProfileData(
             accountInfo,
             tenantProfile,
-            idTokenClaims
+            idTokenClaims,
+            idToken?.secret
         );
 
         return tenantedAccountInfo;
