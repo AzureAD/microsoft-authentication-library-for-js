@@ -45,10 +45,9 @@ export class SilentFlowClient extends BaseClient {
         try {
             const [authResponse, cacheOutcome] = await this.acquireCachedToken({
                 ...request,
-                scopes:
-                    request.scopes?.length === 0
-                        ? [...OIDC_DEFAULT_SCOPES]
-                        : request.scopes,
+                scopes: request.scopes?.length
+                    ? request.scopes
+                    : [...OIDC_DEFAULT_SCOPES],
             });
 
             // if the token is not expired but must be refreshed; get a new one in the background
