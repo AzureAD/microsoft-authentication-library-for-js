@@ -70,7 +70,7 @@ export abstract class BaseManagedIdentitySource {
             HttpStatus.TOO_MANY_REQUESTS,
             HttpStatus.INTERNAL_SERVER_ERROR,
             HttpStatus.SERVICE_UNAVAILABLE,
-            HttpStatus.SERVER_ERROR_RANGE_END,
+            HttpStatus.GATEWAY_TIMEOUT,
         ];
         const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
             maxRetries,

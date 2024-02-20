@@ -22,15 +22,18 @@ export class LinearRetryPolicy implements IHttpRetryPolicy {
 
     async pauseForRetry(
         status: number,
-        currentRetry: number
+        currentRetry: number,
+        retryAfterHeader: number
     ): Promise<boolean> {
         if (
             this.httpStatusCodesToRetryOn.includes(status) &&
             currentRetry < this.maxRetries
         ) {
-            await new Promise((resolve) =>
-                setTimeout(resolve, this.retryDelay)
-            );
+            await new Promise((resolve) => {
+                // retryAfterHeader value of 0 evaluates to false, and this.retryDelay will be used
+                return setTimeout(resolve, retryAfterHeader || this.retryDelay);
+            });
+
             return true;
         }
 

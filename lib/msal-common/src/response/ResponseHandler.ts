@@ -192,7 +192,7 @@ export class ResponseHandler {
             if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                serverResponse.status >= HttpStatus.INTERNAL_SERVER_ERROR &&
+                serverResponse.status >= HttpStatus.SERVER_ERROR_RANGE_START &&
                 serverResponse.status <= HttpStatus.SERVER_ERROR_RANGE_END
             ) {
                 this.logger.warning(

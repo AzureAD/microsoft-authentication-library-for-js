@@ -496,3 +496,5 @@ export const CORS_SIMPLE_REQUEST_HEADERS = [
     "content-language",
     "content-type",
 ];
+
+export const THREE_SECONDS_IN_MILLI = 3000;

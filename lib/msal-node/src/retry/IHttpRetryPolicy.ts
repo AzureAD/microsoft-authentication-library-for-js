@@ -8,5 +8,9 @@ export interface IHttpRetryPolicy {
      * if retry conditions occur, pauses and returns true
      * otherwise return false
      */
-    pauseForRetry(status: number, currentRetry: number): Promise<boolean>;
+    pauseForRetry(
+        status: number,
+        currentRetry: number,
+        retryAfterHeader: number
+    ): Promise<boolean>;
 }

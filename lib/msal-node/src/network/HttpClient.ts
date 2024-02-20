@@ -415,7 +415,7 @@ const parseBody = (
             errorType = "client_error";
             errorDescriptionHelper = "A client";
         } else if (
-            statusCode >= HttpStatus.INTERNAL_SERVER_ERROR &&
+            statusCode >= HttpStatus.SERVER_ERROR_RANGE_START &&
             statusCode <= HttpStatus.SERVER_ERROR_RANGE_END
         ) {
             errorType = "server_error";
