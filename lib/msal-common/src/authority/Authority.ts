@@ -1312,9 +1312,11 @@ export function getTenantFromAuthorityString(
      *  AAD Authority - domain/tenantId -> Credentials are cached with realm = tenantId
      *  B2C Authority - domain/{tenantId}?/.../policy -> Credentials are cached with realm = policy
      *  tenantId is downcased because B2C policies can have mixed case but tfp claim is downcased
+     *
+     * Note that we may not have any path segments in certain OIDC scenarios.
      */
     const tenantId =
-        authorityUrlComponents.PathSegments.slice(-1)[0].toLowerCase();
+        authorityUrlComponents.PathSegments.slice(-1)[0]?.toLowerCase();
 
     switch (tenantId) {
         case AADAuthorityConstants.COMMON:

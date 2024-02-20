@@ -38,8 +38,8 @@ For in-depth tutorials, see:
 
 These samples use MSAL Node in a variety of scenarios:
 
-- [React SPA with Express web app using the Backend For Frontend (BFF) Proxy architecture to authenticate users with Azure AD and call Microsoft Graph](https://github.com/Azure-Samples/ms-identity-javascript-nodejs-tutorial/tree/main/5-AdvancedScenarios/1-call-graph-bff): Sample illustrating the BFF pattern to acquire tokens in a secure backend and share authentication state with a React single-page application.
-- [B2C user management sample](https://github.com/Azure-Samples/ms-identity-b2c-javascript-nodejs-management/tree/main/Chapter2): Command line app using OAuth 2.0 client credentials flow for performing user management operations in an Azure AD B2C tenant
+- [React SPA with Express web app using the Backend For Frontend (BFF) Proxy architecture to authenticate users with Microsoft Entra ID and call Microsoft Graph](https://github.com/Azure-Samples/ms-identity-javascript-nodejs-tutorial/tree/main/5-AdvancedScenarios/1-call-graph-bff): Sample illustrating the BFF pattern to acquire tokens in a secure backend and share authentication state with a React single-page application.
+- [B2C user management sample](https://github.com/Azure-Samples/ms-identity-b2c-javascript-nodejs-management/tree/main/Chapter2): Command line app using OAuth 2.0 client credentials flow for performing user management operations in an Azure Active Directory B2C tenant
 - [Function API sample deployed to Azure Static Web Apps](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/4-Deployment/2-deploy-static): Azure Function web API using on-behalf-of flow
 - [Teams Tab SSO sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs): Teams tab app demonstrating how integrate MSAL React and MSAL Node to achieve single sign-on
 
@@ -79,9 +79,9 @@ From the repository's root directory, navigate to a sample application:
 
 ### Configure the application
 
-Each application has an `index.js` file, which is considered the entry point of the application. This file contains the application code demonstrating how to use each authorization flow. You can customize the sample to use your own Azure AD app registration by changing the configuration values to match your app registration. Below you'll find an example of what the main MSAL configuration object looks like. This is the object you'll want to customize to match your app registration.
+Each application has an `index.js` file, which is considered the entry point of the application. This file contains the application code demonstrating how to use each authorization flow. You can customize the sample to use your own Microsoft Entra app registration by changing the configuration values to match your app registration. Below you'll find an example of what the main MSAL configuration object looks like. This is the object you'll want to customize to match your app registration.
 
-Some of the samples, like the `auth-code` sample, have a `config/` directory in which configuration files for different scenarios are included. You can also create your own configuration `.json` file based on the examples in the `config/` directory and just update the `scenario` variable in these sample applications to customize the configuration to match your Azure AD app registration.
+Some of the samples, like the `auth-code` sample, have a `config/` directory in which configuration files for different scenarios are included. You can also create your own configuration `.json` file based on the examples in the `config/` directory and just update the `scenario` variable in these sample applications to customize the configuration to match your Microsoft Entra app registration.
 
 An exception is the client secret, which must be stored in an `.env` file instead of the configuration since secrets should never be hardcoded. The dotenv npm package can be used to store secrets or certificates in a .env file (located in project's root directory) that should be included in .gitignore to prevent accidental uploads of the secrets.
 
@@ -92,7 +92,7 @@ const config = {
     auth: {
         clientId: "YOUR_CLIENT_ID",
         authority: "YOUR_AUTHORITY_URL",
-        knownAuthorities: ["YOUR_KNOWN_AUTHORITY"], // typically applies to apps on Azure AD B2C
+        knownAuthorities: ["YOUR_KNOWN_AUTHORITY"], // typically applies to apps on Azure Active Directory B2C
         clientSecret: process.env.CLIENT_SECRET // only applies to Confidential Client applications, such as backend web applications
     }
 };

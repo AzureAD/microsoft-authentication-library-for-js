@@ -2,7 +2,7 @@
 
 This sample demonstrates how to implement a custom [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.inetworkmodule.html) that makes it simple for developers to debug network errors. There are two ways to run the sample: one is "as-is" in app.ts, the other is via an express server in express.ts. Additionally, instructions are provided on how to use [Fiddler Everywhere](https://www.telerik.com/fiddler/fiddler-everywhere) to perform a network trace of the application.
 
-Fiddler Everywhere is not supported on all operating systems. [Fiddler Classic](https://www.telerik.com/fiddler/fiddler-classic) is a free Windows-only version of Fiddler Everywhere. It's important to note that AAD no longer supports TLS 1.0, which is the default TLS version in Fiddler Classic. The TLS version can be configured via navigating to Tools > Options > HTTPS, then setting TLS to 1.2.
+Fiddler Everywhere is not supported on all operating systems. [Fiddler Classic](https://www.telerik.com/fiddler/fiddler-classic) is a free Windows-only version of Fiddler Everywhere. It's important to note that Microsoft Entra ID no longer supports TLS 1.0, which is the default TLS version in Fiddler Classic. The TLS version can be configured via navigating to Tools > Options > HTTPS, then setting TLS to 1.2.
 
 ## Note
 This sample is written in TypeScript and was developed with Node version 16.14.0.
@@ -17,7 +17,7 @@ In a terminal, navigate to the directory where `package.json` resides. Then type
 
 ## Register
 
-1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
+1. Navigate to the [Microsoft Entra admin center](https://entra.microsoft.com) and select the **Microsoft Entra ID** service.
 2. Select the **App Registrations** blade on the left, then select **New registration**.
 3. In the **Register an application page** that appears, enter registration information:
    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `Confidential Client Application`.
@@ -85,7 +85,7 @@ or
 
 ### If using `npm run start:app`
 
-The token returned from Azure AD should be immediately displayed in the terminal.
+The token returned from Microsoft Entra ID should be immediately displayed in the terminal.
 
 If Fiddler Everywhere was downloaded and installed, HttpClientAxios is not being used as the networkClient, and the proxyUrl line was uncommented: the network requests will be displayed inside of Fiddler Everywhere.
 
@@ -93,6 +93,6 @@ If Fiddler Everywhere was downloaded and installed, HttpClientAxios is not being
 
 http://localhost:3000 must be navigated to in a browser.
 
-The token should then be returned from Azure AD and displayed in the terminal.
+The token should then be returned from Microsoft Entra ID and displayed in the terminal.
 
 If Fiddler Everywhere was downloaded and installed, HttpClientAxios is not being used as the networkClient, and the proxyUrl line was uncommented: the network requests will be displayed inside of Fiddler Everywhere.

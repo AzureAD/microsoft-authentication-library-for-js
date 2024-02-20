@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Bump browser #6882",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}
