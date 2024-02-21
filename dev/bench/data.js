@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708459508560,
+  "lastUpdate": 1708551798010,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5692,6 +5692,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.75%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6546f4669b7d16a312eef40b6bde798e45d25056",
+          "message": "Pre-release validation (#6894)\n\nThis PR:\r\n- Adds jest-junit test reporter to E2E test samples to help visualize\r\ntest results on the release pipeline\r\n- Adds missing dependencies to Angular samples",
+          "timestamp": "2024-02-21T13:37:41-08:00",
+          "tree_id": "3f4aee6626e766d57ed22af19247fef1620cb560",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/6546f4669b7d16a312eef40b6bde798e45d25056"
+        },
+        "date": 1708551797005,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192543,
+            "range": "±2.13%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 181053,
+            "range": "±1.92%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
