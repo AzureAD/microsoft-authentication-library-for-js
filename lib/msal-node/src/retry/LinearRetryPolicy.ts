@@ -4,6 +4,7 @@
  */
 
 import { IHttpRetryPolicy } from "./IHttpRetryPolicy";
+import http from "http";
 
 export class LinearRetryPolicy implements IHttpRetryPolicy {
     maxRetries: number;
@@ -38,5 +39,30 @@ export class LinearRetryPolicy implements IHttpRetryPolicy {
         }
 
         return false;
+    }
+
+    retryAfterMillisecondsToSleep(
+        retryHeader: http.IncomingHttpHeaders["retry-after"]
+    ): number {
+        if (!retryHeader) {
+            return 0;
+        }
+
+        // retry-after header is in seconds
+        let millisToSleep = Math.round(parseFloat(retryHeader) * 1000);
+
+        /*
+         * retry-after header is in HTTP Date format
+         * <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
+         */
+        if (isNaN(millisToSleep)) {
+            millisToSleep = Math.max(
+                0,
+                // .valueOf() is needed to subtract dates in TypeScript
+                new Date(retryHeader).valueOf() - new Date().valueOf()
+            );
+        }
+
+        return millisToSleep;
     }
 }

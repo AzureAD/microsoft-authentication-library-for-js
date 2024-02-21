@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import http from "http";
+
 export interface IHttpRetryPolicy {
     /*
      * if retry conditions occur, pauses and returns true
@@ -13,4 +15,8 @@ export interface IHttpRetryPolicy {
         currentRetry: number,
         retryAfterHeader: number
     ): Promise<boolean>;
+
+    retryAfterMillisecondsToSleep(
+        retryAfterMillisecondsToSleep: http.IncomingHttpHeaders["retry-after"]
+    ): number;
 }

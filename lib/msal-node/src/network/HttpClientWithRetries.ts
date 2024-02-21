@@ -10,7 +10,6 @@ import {
     NetworkResponse,
 } from "@azure/msal-common";
 import { IHttpRetryPolicy } from "../retry/IHttpRetryPolicy";
-import http from "http";
 import { HttpMethod } from "../utils/Constants";
 
 export class HttpClientWithRetries implements INetworkModule {
@@ -23,31 +22,6 @@ export class HttpClientWithRetries implements INetworkModule {
     ) {
         this.httpClientNoRetries = httpClientNoRetries;
         this.retryPolicy = retryPolicy;
-    }
-
-    private retryAfterMillisecondsToSleep(
-        retryHeader: http.IncomingHttpHeaders["retry-after"]
-    ): number {
-        if (!retryHeader) {
-            return 0;
-        }
-
-        // retry-after header is in seconds
-        let millisToSleep = Math.round(parseFloat(retryHeader) * 1000);
-
-        /*
-         * retry-after header is in HTTP Date format
-         * <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
-         */
-        if (isNaN(millisToSleep)) {
-            millisToSleep = Math.max(
-                0,
-                // .valueOf() is needed to subtract dates in TypeScript
-                new Date(retryHeader).valueOf() - new Date().valueOf()
-            );
-        }
-
-        return millisToSleep;
     }
 
     private async sendNetworkRequestAsyncHelper<T>(
@@ -76,7 +50,7 @@ export class HttpClientWithRetries implements INetworkModule {
             await this.retryPolicy.pauseForRetry(
                 response.status,
                 currentRetry,
-                this.retryAfterMillisecondsToSleep(
+                this.retryPolicy.retryAfterMillisecondsToSleep(
                     response.headers[HeaderNames.RETRY_AFTER]
                 )
             )
