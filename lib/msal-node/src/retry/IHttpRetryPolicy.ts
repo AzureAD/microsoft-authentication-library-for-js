@@ -11,12 +11,8 @@ export interface IHttpRetryPolicy {
      * otherwise return false
      */
     pauseForRetry(
-        status: number,
+        httpStatusCode: number,
         currentRetry: number,
-        retryAfterHeader: number
+        retryAfterHeader: http.IncomingHttpHeaders["retry-after"]
     ): Promise<boolean>;
-
-    retryAfterMillisecondsToSleep(
-        retryAfterMillisecondsToSleep: http.IncomingHttpHeaders["retry-after"]
-    ): number;
 }

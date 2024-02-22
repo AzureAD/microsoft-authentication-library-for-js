@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { IHttpRetryPolicy } from "./IHttpRetryPolicy";
 import http from "http";
+import { IHttpRetryPolicy } from "./IHttpRetryPolicy";
 
 export class LinearRetryPolicy implements IHttpRetryPolicy {
     maxRetries: number;
@@ -21,27 +21,7 @@ export class LinearRetryPolicy implements IHttpRetryPolicy {
         this.httpStatusCodesToRetryOn = httpStatusCodesToRetryOn;
     }
 
-    async pauseForRetry(
-        status: number,
-        currentRetry: number,
-        retryAfterHeader: number
-    ): Promise<boolean> {
-        if (
-            this.httpStatusCodesToRetryOn.includes(status) &&
-            currentRetry < this.maxRetries
-        ) {
-            await new Promise((resolve) => {
-                // retryAfterHeader value of 0 evaluates to false, and this.retryDelay will be used
-                return setTimeout(resolve, retryAfterHeader || this.retryDelay);
-            });
-
-            return true;
-        }
-
-        return false;
-    }
-
-    retryAfterMillisecondsToSleep(
+    private retryAfterMillisecondsToSleep(
         retryHeader: http.IncomingHttpHeaders["retry-after"]
     ): number {
         if (!retryHeader) {
@@ -64,5 +44,28 @@ export class LinearRetryPolicy implements IHttpRetryPolicy {
         }
 
         return millisToSleep;
+    }
+
+    async pauseForRetry(
+        httpStatusCode: number,
+        currentRetry: number,
+        retryAfterHeader: http.IncomingHttpHeaders["retry-after"]
+    ): Promise<boolean> {
+        if (
+            this.httpStatusCodesToRetryOn.includes(httpStatusCode) &&
+            currentRetry < this.maxRetries
+        ) {
+            const retryAfterDelay: number =
+                this.retryAfterMillisecondsToSleep(retryAfterHeader);
+
+            await new Promise((resolve) => {
+                // retryAfterHeader value of 0 evaluates to false, and this.retryDelay will be used
+                return setTimeout(resolve, retryAfterDelay || this.retryDelay);
+            });
+
+            return true;
+        }
+
+        return false;
     }
 }

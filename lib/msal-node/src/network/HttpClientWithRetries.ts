@@ -50,9 +50,7 @@ export class HttpClientWithRetries implements INetworkModule {
             await this.retryPolicy.pauseForRetry(
                 response.status,
                 currentRetry,
-                this.retryPolicy.retryAfterMillisecondsToSleep(
-                    response.headers[HeaderNames.RETRY_AFTER]
-                )
+                response.headers[HeaderNames.RETRY_AFTER]
             )
         ) {
             response = await this.sendNetworkRequestAsyncHelper(
