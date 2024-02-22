@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "test": "jest",
+    "test:ci": "npm run test -- --watchAll=false --detectOpenHandles --forceExit --reporters=default --reporters=jest-junit",
     "build": "next build",
     "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react",
     "start": "next start"
@@ -23,9 +24,16 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@azure/msal-common": "^14.7.0",
     "@types/jest": "^29.5.2",
-    "e2e-test-utils": "^0.0.1",
+    "e2e-test-utils": "file:../../e2eTestUtils",
     "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
     "ts-jest": "^29.1.0"
+  },
+  "jest-junit": {
+    "suiteNameTemplate": "Next.js Sample Tests",
+    "outputDirectory": ".",
+    "outputName": "test-results.xml"
   }
 }

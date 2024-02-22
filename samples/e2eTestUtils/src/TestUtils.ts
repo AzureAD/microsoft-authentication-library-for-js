@@ -297,11 +297,21 @@ export async function enterCredentials(
 
     // keep me signed in page
     try {
-        await page.waitForSelector("#idSIButton9", { timeout: 1000 });
+        const aadKmsi = page
+            .waitForSelector("#idSIButton9", { timeout: 1000 })
+            .then(() => {
+                return "#idSIButton9";
+            });
+        const msaKmsi = page
+            .waitForSelector("#kmsiTitle", { timeout: 1000 })
+            .then(() => {
+                return "#acceptButton";
+            });
+        const buttonTag = await Promise.race([aadKmsi, msaKmsi]);
         await screenshot.takeScreenshot(page, "keepMeSignedInPage");
         await Promise.all([
             page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click("#idSIButton9"),
+            page.click(buttonTag),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;

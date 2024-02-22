@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Track number of times an API is invoked in a single request",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

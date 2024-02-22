@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 23 Jan 2024 00:06:05 GMT and should not be manually modified.
+This log was last generated on Sat, 17 Feb 2024 01:49:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.6.4
+
+Sat, 17 Feb 2024 01:49:05 GMT
+
+### Patches
+
+- Add ID Token secret to AccountInfo in all reponses #6903 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.7.1
+- Bump eslint-config-msal to v0.0.0
+
+## 2.6.3
+
+Wed, 07 Feb 2024 22:00:37 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.7.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.6.2
 

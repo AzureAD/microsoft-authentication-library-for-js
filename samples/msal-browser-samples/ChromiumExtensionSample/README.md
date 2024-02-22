@@ -4,7 +4,7 @@ This folder contains a sample Chromium extensions demonstrating how to integrate
 
 ## Setup
 
-1. Create a [new app registration](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) in the Azure Portal.
+1. Create a [new app registration](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) in the Microsoft Entra admin center.
 1. Provide your client ID in the `PublicClientApplication` configuration in `auth.js`.
 1. Under the **Authentication** tab, add a new redirect URI under **Single-page application**.
 1. The url of this redirect URI should be of the format `https://<extension-id>.chromiumapp.org`, e.g. `https://epfnbngoodhmbeepjlcohfacgnbhbhah.chromiumapp.org/`.
@@ -20,7 +20,7 @@ This folder contains a sample Chromium extensions demonstrating how to integrate
 
 ## MSAL Usage
 
-Chromium extensions are unable to perform certain types of navigation, so applications should leverage the [`chrome.identity.launchWebAuthFlow`](https://developer.chrome.com/apps/identity#method-launchWebAuthFlow) API to perform interactive auth requests. This API takes a url to navigate to, and a callback that will be invoked once the auth flow is completed (which is signaled by AAD redirecting back to the `chromiumapp.com` url mentioned earlier). Chromium extensions using MSAL Browser can build working auth flows by composing the MSAL `loginRedirect/acquireTokenRedirect` and `handleRedirectPromise` APIs to generate a url and handle the response:
+Chromium extensions are unable to perform certain types of navigation, so applications should leverage the [`chrome.identity.launchWebAuthFlow`](https://developer.chrome.com/apps/identity#method-launchWebAuthFlow) API to perform interactive auth requests. This API takes a url to navigate to, and a callback that will be invoked once the auth flow is completed (which is signaled by Microsoft Entra ID redirecting back to the `chromiumapp.com` url mentioned earlier). Chromium extensions using MSAL Browser can build working auth flows by composing the MSAL `loginRedirect/acquireTokenRedirect` and `handleRedirectPromise` APIs to generate a url and handle the response:
 
 ```js
 /**
