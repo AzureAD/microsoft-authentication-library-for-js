@@ -55,8 +55,6 @@ export class ManagedIdentityApplication {
 
     private managedIdentityClient: ManagedIdentityClient;
 
-    private correlationId: string;
-
     constructor(configuration?: ManagedIdentityConfiguration) {
         // undefined config means the managed identity is system-assigned
         this.config = buildManagedIdentityConfiguration(configuration || {});
@@ -84,8 +82,6 @@ export class ManagedIdentityApplication {
 
         this.cryptoProvider = new CryptoProvider();
 
-        this.correlationId = this.cryptoProvider.createNewGuid();
-
         const fakeAuthorityOptions: AuthorityOptions = {
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY],
@@ -98,7 +94,7 @@ export class ManagedIdentityApplication {
             ManagedIdentityApplication.nodeStorage as NodeStorage,
             fakeAuthorityOptions,
             this.logger,
-            this.correlationId,
+            this.cryptoProvider.createNewGuid(), // correlationID
             undefined,
             true
         );
@@ -147,7 +143,7 @@ export class ManagedIdentityApplication {
                 managedIdentityRequestParams.resource.replace("/.default", ""),
             ],
             authority: this.fakeAuthority.canonicalAuthority,
-            correlationId: this.correlationId,
+            correlationId: this.cryptoProvider.createNewGuid(),
         };
 
         if (managedIdentityRequest.forceRefresh) {

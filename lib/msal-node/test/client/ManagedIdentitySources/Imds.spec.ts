@@ -34,6 +34,7 @@ import {
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+    HttpStatus,
     ServerError,
     TimeUtils,
 } from "@azure/msal-common";
@@ -387,6 +388,67 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR
                 );
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+
+                jest.restoreAllMocks();
+            });
+
+            test("makes three acquireToken calls on the same managed identity application (which returns a 500 error response from the network request permanently) to ensure that retry policy lifetime is per request", async () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+                const sendGetRequestAsyncSpyApp: jest.SpyInstance = jest
+                    .spyOn(networkClient, <any>"sendGetRequestAsync")
+                    // permanently override the networkClient's sendGetRequestAsync method to return a 500
+                    .mockReturnValue(
+                        managedIdentityNetworkErrorClient.sendGetRequestForRetryAsync()
+                    );
+
+                try {
+                    await managedIdentityApplication.acquireToken({
+                        resource: "https://graph.microsoft1.com",
+                    });
+                } catch (e) {
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(2);
+                }
+
+                try {
+                    await managedIdentityApplication.acquireToken({
+                        resource: "https://graph.microsoft2.com",
+                    });
+                } catch (e) {
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(4); // 4 total, 2 since last acquireToken call
+                }
+
+                try {
+                    await managedIdentityApplication.acquireToken({
+                        resource: "https://graph.microsoft3.com",
+                    });
+                } catch (e) {
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(6); // 6 total, 2 since last acquireToken call
+                }
+
+                jest.restoreAllMocks();
+            });
+
+            test("ensures that a retry does not happen when the http status code from a failed network response is not included in the retry policy", async () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+                const sendGetRequestAsyncSpyApp: jest.SpyInstance = jest
+                    .spyOn(networkClient, <any>"sendGetRequestAsync")
+                    // permanently override the networkClient's sendGetRequestAsync method to return a 400
+                    .mockReturnValue(
+                        managedIdentityNetworkErrorClient.sendGetRequestForRetryAsync(
+                            undefined,
+                            HttpStatus.BAD_REQUEST as number
+                        )
+                    );
+
+                try {
+                    await managedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                } catch (e) {
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(2);
+                }
 
                 jest.restoreAllMocks();
             });
