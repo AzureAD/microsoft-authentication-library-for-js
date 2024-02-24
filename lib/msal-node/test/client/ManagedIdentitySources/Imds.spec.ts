@@ -452,6 +452,41 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 jest.restoreAllMocks();
             });
+
+            test("ensures that a retry does not happen when the http status code from a failed network response is included in the retry policy, but the retry policy has been disabled", async () => {
+                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+                const managedIdentityApplicationNoRetry: ManagedIdentityApplication =
+                    new ManagedIdentityApplication({
+                        system: {
+                            ...systemAssignedConfig.system,
+                            disableInternalRetries: true,
+                        },
+                    });
+
+                const sendGetRequestAsyncSpy: jest.SpyInstance = jest
+                    .spyOn(networkClient, <any>"sendGetRequestAsync")
+                    // permanently override the networkClient's sendGetRequestAsync method to return a 500
+                    .mockReturnValue(
+                        managedIdentityNetworkErrorClient.sendGetRequestForRetryAsync()
+                    );
+
+                let serverError: ServerError = new ServerError();
+                try {
+                    await managedIdentityApplicationNoRetry.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                } catch (e) {
+                    serverError = e as ServerError;
+                }
+
+                expect(serverError.errorCode).toEqual(
+                    MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR
+                );
+                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(1);
+
+                jest.restoreAllMocks();
+            });
         });
     });
 

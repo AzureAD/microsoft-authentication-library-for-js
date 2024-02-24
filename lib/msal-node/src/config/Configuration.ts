@@ -84,6 +84,7 @@ export type NodeSystemOptions = {
     networkClient?: INetworkModule;
     proxyUrl?: string;
     customAgentOptions?: http.AgentOptions | https.AgentOptions;
+    disableInternalRetries?: boolean;
 };
 
 export type NodeTelemetryOptions = {
@@ -158,6 +159,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
+    disableInternalRetries: false,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
@@ -204,6 +206,7 @@ export function buildAppConfiguration({
             false // Managed Identity
         ),
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
+        disableInternalRetries: system?.disableInternalRetries || false,
     };
 
     return {
@@ -238,6 +241,7 @@ export function buildManagedIdentityConfiguration({
                 | https.AgentOptions,
             true // Managed Identity
         ),
+        disableInternalRetries: system?.disableInternalRetries || false,
     };
 
     return {

@@ -50,6 +50,7 @@ export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
     private nodeStorage: NodeStorage;
     private cryptoProvider: CryptoProvider;
+    private networkClient: INetworkModule;
     private networkClientWithRetry: INetworkModule;
 
     constructor(
@@ -60,6 +61,7 @@ export abstract class BaseManagedIdentitySource {
     ) {
         this.logger = logger;
         this.nodeStorage = nodeStorage;
+        this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
 
         const maxRetries = 1;
@@ -150,20 +152,24 @@ export abstract class BaseManagedIdentitySource {
                 networkRequest.computeParametersBodyString();
         }
 
+        const networkClient = managedIdentityRequest.disableInternalRetries
+            ? this.networkClient
+            : this.networkClientWithRetry;
+
         const reqTimestamp = TimeUtils.nowSeconds();
         let response: NetworkResponse<ManagedIdentityTokenResponse>;
         try {
             // Sources that send POST requests: Cloud Shell
             if (networkRequest.httpMethod === HttpMethod.POST) {
                 response =
-                    await this.networkClientWithRetry.sendPostRequestAsync<ManagedIdentityTokenResponse>(
+                    await networkClient.sendPostRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
                 // Sources that send GET requests: App Service, Azure Arc, IMDS, Service Fabric
             } else {
                 response =
-                    await this.networkClientWithRetry.sendGetRequestAsync<ManagedIdentityTokenResponse>(
+                    await networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
@@ -188,7 +194,7 @@ export abstract class BaseManagedIdentitySource {
         const serverTokenResponse: ServerAuthorizationTokenResponse =
             await this.getServerTokenResponseAsync(
                 response,
-                this.networkClientWithRetry,
+                networkClient,
                 networkRequest,
                 networkRequestOptions
             );
