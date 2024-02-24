@@ -184,7 +184,7 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
     sendGetRequestForRetryAsync<T>(
         // optional retry-after header
         headers?: Record<string, string>,
-        httpStatusCode?: number
+        httpStatusCode?: HttpStatus
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({

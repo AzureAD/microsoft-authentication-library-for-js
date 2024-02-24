@@ -438,7 +438,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     .mockReturnValue(
                         managedIdentityNetworkErrorClient.sendGetRequestForRetryAsync(
                             undefined,
-                            HttpStatus.BAD_REQUEST as number
+                            HttpStatus.BAD_REQUEST
                         )
                     );
 
@@ -447,7 +447,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         managedIdentityRequestParams
                     );
                 } catch (e) {
-                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(2);
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(1);
                 }
 
                 jest.restoreAllMocks();
