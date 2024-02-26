@@ -9,7 +9,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { DatabaseStorage } from "./DatabaseStorage";
-import { IAsyncStorage } from "./IAsyncMemoryStorage";
+import { IAsyncStorage } from "./IAsyncStorage";
 import { MemoryStorage } from "./MemoryStorage";
 
 /**
@@ -20,13 +20,11 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     private inMemoryCache: MemoryStorage<T>;
     private indexedDBCache: DatabaseStorage<T>;
     private logger: Logger;
-    private storeName: string;
 
-    constructor(logger: Logger, storeName: string) {
+    constructor(logger: Logger) {
         this.inMemoryCache = new MemoryStorage<T>();
         this.indexedDBCache = new DatabaseStorage<T>();
         this.logger = logger;
-        this.storeName = storeName;
     }
 
     private handleDatabaseAccessError(error: unknown): void {
@@ -132,9 +130,9 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      */
     clearInMemory(): void {
         // InMemory cache is a Map instance, clear is straightforward
-        this.logger.verbose(`Deleting in-memory keystore ${this.storeName}`);
+        this.logger.verbose(`Deleting in-memory keystore`);
         this.inMemoryCache.clear();
-        this.logger.verbose(`In-memory keystore ${this.storeName} deleted`);
+        this.logger.verbose(`In-memory keystore deleted`);
     }
 
     /**
