@@ -175,6 +175,11 @@ export const TEST_CONFIG = {
     SID: "session-id",
     CORRELATION_ID: "7821e1d3-ad52-42t9-8666-399gea483401",
     CLAIMS: '{"access_token":{"example_claim":{"values":["example_value"]}}}',
+    NBF_CLAIMS:
+        '{"access_token":{"nbf":{"essential":true,"value":"1701477303"}}}',
+    XMS_CC_CLAIMS: '{"access_token":{"xms_cc":{"values":["cp1","cp2"]}}}',
+    NBF_AND_XMS_CC_CLAIMS:
+        '{"access_token":{"nbf":{"essential":true,"value":"1701477303"},"xms_cc":{"values":["cp1","cp2"]}}}',
     TEST_SKU: "test.sku",
     TEST_VERSION: "1.1.0",
     TEST_OS: "win32",

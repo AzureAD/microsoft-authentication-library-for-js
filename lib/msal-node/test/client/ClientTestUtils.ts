@@ -264,7 +264,9 @@ export const mockCrypto = {
 };
 
 export class ClientTestUtils {
-    static async createTestClientConfiguration(): Promise<ClientConfiguration> {
+    static async createTestClientConfiguration(
+        clientCapabilities?: Array<string>
+    ): Promise<ClientConfiguration> {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
@@ -313,7 +315,7 @@ export class ClientTestUtils {
             );
         });
 
-        return {
+        const clientConfig: ClientConfiguration = {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: authority,
@@ -344,6 +346,12 @@ export class ClientTestUtils {
                 },
             },
         };
+
+        if (clientCapabilities) {
+            clientConfig.authOptions.clientCapabilities = clientCapabilities;
+        }
+
+        return clientConfig;
     }
 }
 
