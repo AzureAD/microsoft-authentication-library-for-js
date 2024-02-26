@@ -42,10 +42,6 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
-import {
-    ClientConfigurationErrorCodes,
-    createClientConfigurationError,
-} from "../../src/error/ClientConfigurationError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
@@ -243,6 +239,85 @@ describe("SilentFlowClient unit tests", () => {
                 testAccessTokenEntity.secret
             );
             expect(authResult.state).toBe("");
+        });
+
+        it("acquireToken returns token from cache if scopes are undefined in request object", async () => {
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon
+                .stub(CacheManager.prototype, "readAccountFromCache")
+                .returns(testAccountEntity);
+            sinon
+                .stub(CacheManager.prototype, "getIdToken")
+                .returns(testIdToken);
+            sinon
+                .stub(CacheManager.prototype, "getAccessToken")
+                .returns(testAccessTokenEntity);
+            sinon
+                .stub(CacheManager.prototype, "getRefreshToken")
+                .returns(testRefreshTokenEntity);
+            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
+
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config, stubPerformanceClient);
+            const authResult = await client.acquireToken({
+                //@ts-ignore
+                scopes: undefined,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            });
+
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(testIdToken.secret);
+            expect(authResult.accessToken).toEqual(
+                testAccessTokenEntity.secret
+            );
+        });
+
+        it("acquireToken returns token from cache if scopes are empty in request object", async () => {
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon
+                .stub(CacheManager.prototype, "readAccountFromCache")
+                .returns(testAccountEntity);
+            sinon
+                .stub(CacheManager.prototype, "getIdToken")
+                .returns(testIdToken);
+            sinon
+                .stub(CacheManager.prototype, "getAccessToken")
+                .returns(testAccessTokenEntity);
+            sinon
+                .stub(CacheManager.prototype, "getRefreshToken")
+                .returns(testRefreshTokenEntity);
+            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
+
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config, stubPerformanceClient);
+            const authResult = await client.acquireToken({
+                scopes: [],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            });
+
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(testIdToken.secret);
+            expect(authResult.accessToken).toEqual(
+                testAccessTokenEntity.secret
+            );
         });
 
         it("acquireCachedToken throws when given valid claims with default configuration", async () => {
@@ -462,52 +537,6 @@ describe("SilentFlowClient unit tests", () => {
             ).rejects.toMatchObject(
                 createClientAuthError(
                     ClientAuthErrorCodes.noAccountInSilentRequest
-                )
-            );
-        });
-
-        it("Throws error if scopes are not included in request object", async () => {
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new SilentFlowClient(config, stubPerformanceClient);
-            await expect(
-                client.acquireToken({
-                    //@ts-ignore
-                    scopes: undefined,
-                    account: testAccount,
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: TEST_CONFIG.CORRELATION_ID,
-                    forceRefresh: false,
-                })
-            ).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.emptyInputScopesError
-                )
-            );
-        });
-
-        it("Throws error if scopes are empty in request object", async () => {
-            const tokenRequest: CommonSilentFlowRequest = {
-                scopes: [],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new SilentFlowClient(config, stubPerformanceClient);
-            await expect(
-                client.acquireToken(tokenRequest)
-            ).rejects.toMatchObject(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.emptyInputScopesError
                 )
             );
         });
