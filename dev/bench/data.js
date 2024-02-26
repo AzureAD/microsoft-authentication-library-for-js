@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708631475294,
+  "lastUpdate": 1708973887455,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5768,6 +5768,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.77%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d946a36497db5afa2393f5686e07472b65980b43",
+          "message": "Minor cache cleanup (#6917)\n\nIncremental step towards more cache changes, including:\r\n\r\n- Remove unused functions\r\n- Separates `getKeys` function for Persistent and Temporary items to\r\nonly return keys from the relevant location for what we're trying to do\r\n- Separates `removeItem` function for Persistent and Temporary items to\r\ndo only the work relevant to the item being removed",
+          "timestamp": "2024-02-26T10:35:38-08:00",
+          "tree_id": "0c1225ed4d0047f024c225d60d3027b5572f35fe",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d946a36497db5afa2393f5686e07472b65980b43"
+        },
+        "date": 1708973886234,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 196242,
+            "range": "±2.20%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 176646,
+            "range": "±1.84%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
           }
         ]
       }
