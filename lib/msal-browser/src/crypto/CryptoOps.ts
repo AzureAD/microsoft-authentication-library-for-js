@@ -20,7 +20,7 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
-import { CryptoKeyStore } from "../cache/CryptoKeyStore";
+import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey;
@@ -44,13 +44,13 @@ export class CryptoOps implements ICrypto {
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
-    private cache: CryptoKeyStore;
+    private cache: AsyncMemoryStorage<CachedKeyPair>;
 
     constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
         BrowserCrypto.validateCryptoAvailable(logger);
-        this.cache = new CryptoKeyStore(this.logger);
+        this.cache = new AsyncMemoryStorage<CachedKeyPair>(this.logger);
         this.performanceClient = performanceClient;
     }
 
@@ -121,7 +121,7 @@ export class CryptoOps implements ICrypto {
             await BrowserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
-        await this.cache.asymmetricKeys.setItem(publicJwkHash, {
+        await this.cache.setItem(publicJwkHash, {
             privateKey: unextractablePrivateKey,
             publicKey: keyPair.publicKey,
             requestMethod: request.resourceRequestMethod,
@@ -142,8 +142,8 @@ export class CryptoOps implements ICrypto {
      * @param kid
      */
     async removeTokenBindingKey(kid: string): Promise<boolean> {
-        await this.cache.asymmetricKeys.removeItem(kid);
-        const keyFound = await this.cache.asymmetricKeys.containsKey(kid);
+        await this.cache.removeItem(kid);
+        const keyFound = await this.cache.containsKey(kid);
         return !keyFound;
     }
 
@@ -151,7 +151,29 @@ export class CryptoOps implements ICrypto {
      * Removes all cryptographic keys from IndexedDB storage
      */
     async clearKeystore(): Promise<boolean> {
-        return this.cache.clear();
+        // Delete in-memory keystores
+        this.cache.clearInMemory();
+
+        /**
+         * There is only one database, so calling clearPersistent on asymmetric keystore takes care of
+         * every persistent keystore
+         */
+        try {
+            await this.cache.clearPersistent();
+            return true;
+        } catch (e) {
+            if (e instanceof Error) {
+                this.logger.error(
+                    `Clearing keystore failed with error: ${e.message}`
+                );
+            } else {
+                this.logger.error(
+                    "Clearing keystore failed with unknown error"
+                );
+            }
+
+            return false;
+        }
     }
 
     /**
@@ -169,7 +191,7 @@ export class CryptoOps implements ICrypto {
             PerformanceEvents.CryptoOptsSignJwt,
             correlationId
         );
-        const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
+        const cachedKeyPair = await this.cache.getItem(kid);
 
         if (!cachedKeyPair) {
             throw createBrowserAuthError(
