@@ -134,7 +134,6 @@ export class ManagedIdentityApplication {
         }
 
         const managedIdentityRequest: ManagedIdentityRequest = {
-            disableInternalRetries: this.config.system.disableInternalRetries,
             forceRefresh: managedIdentityRequestParams.forceRefresh,
             resource: managedIdentityRequestParams.resource.replace(
                 "/.default",
