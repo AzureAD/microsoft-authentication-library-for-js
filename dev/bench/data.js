@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709063638116,
+  "lastUpdate": 1709070911964,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5844,6 +5844,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.12%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "48416e4ded23785856ad5c7ce918858b373f7bb4",
+          "message": "Async cache cleanup (#6922)\n\nSmall incremental changes to async storage\r\n\r\n- Remove unnecessary abstraction (`CryptoKeyStore`) around\r\n`AsyncMemoryStorage` class\r\n- Rename `IAsyncMemoryStorage.ts` to `IAsyncStorage.ts` to match actual\r\ninterface name\r\n- Add timeout to indexedDb delete operation",
+          "timestamp": "2024-02-27T13:49:38-08:00",
+          "tree_id": "3c06079e1c323cbf335ff9de8ecaaec0a2aa1ed4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/48416e4ded23785856ad5c7ce918858b373f7bb4"
+        },
+        "date": 1709070910602,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 181614,
+            "range": "±1.83%",
+            "unit": "ops/sec",
+            "extra": "211 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 183111,
+            "range": "±1.79%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
