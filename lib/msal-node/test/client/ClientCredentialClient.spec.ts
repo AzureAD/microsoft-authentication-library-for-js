@@ -401,6 +401,85 @@ describe("ClientCredentialClient unit tests", () => {
         checkMockedNetworkRequest(returnVal, checks);
     });
 
+    it("Validates that claims and client capabilities are correctly merged", async () => {
+        sinon
+            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
+            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon
+            .stub(
+                ClientCredentialClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            )
+            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+
+        const createTokenRequestBodySpy = sinon.spy(
+            ClientCredentialClient.prototype,
+            <any>"createTokenRequestBody"
+        );
+
+        const clientCapabilities = ["cp1", "cp2"];
+        const config: ClientConfiguration =
+            await ClientTestUtils.createTestClientConfiguration(
+                clientCapabilities
+            );
+
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        };
+
+        const authResult = (await client.acquireToken(
+            clientCredentialRequest
+        )) as AuthenticationResult;
+        const returnVal = (await createTokenRequestBodySpy
+            .returnValues[0]) as string;
+        expect(authResult.accessToken).toEqual(
+            CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+        );
+        expect(
+            decodeURIComponent(
+                returnVal
+                    .split("&")
+                    .filter((key: string) => key.includes("claims="))[0]
+                    .split("claims=")[1]
+            )
+        ).toEqual(TEST_CONFIG.XMS_CC_CLAIMS);
+
+        const authResult2 = (await client.acquireToken(
+            clientCredentialRequest
+        )) as AuthenticationResult;
+        expect(authResult2.accessToken).toEqual(
+            CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+        );
+        expect(authResult2.fromCache).toBe(true);
+
+        const clientCredentialRequest2: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            skipCache: true,
+            claims: TEST_CONFIG.NBF_CLAIMS,
+        };
+        const authResult3 = (await client.acquireToken(
+            clientCredentialRequest2
+        )) as AuthenticationResult;
+        const returnVal2 = (await createTokenRequestBodySpy
+            .returnValues[1]) as string;
+        expect(authResult3.accessToken).toEqual(
+            CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+        );
+        expect(
+            decodeURIComponent(
+                returnVal2
+                    .split("&")
+                    .filter((key: string) => key.includes("claims="))[0]
+                    .split("claims=")[1]
+            )
+        ).toEqual(TEST_CONFIG.NBF_AND_XMS_CC_CLAIMS);
+    });
+
     it("Does not add claims when empty object provided", async () => {
         sinon
             .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")

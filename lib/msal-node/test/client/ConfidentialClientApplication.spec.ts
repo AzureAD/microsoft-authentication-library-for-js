@@ -7,7 +7,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "@azure/msal-common";
-import { TEST_CONSTANTS } from "../utils/TestConstants";
+import { AUTHENTICATION_RESULT, TEST_CONSTANTS } from "../utils/TestConstants";
 import {
     AuthError,
     ConfidentialClientApplication,
@@ -22,6 +22,11 @@ import {
 
 import * as msalNode from "../../src";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils";
+import {
+    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+    TEST_CONFIG,
+} from "../test_kit/StringConstants";
+import sinon from "sinon";
 
 const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
 
@@ -43,25 +48,104 @@ describe("ConfidentialClientApplication", () => {
         expect(authApp).toBeInstanceOf(ConfidentialClientApplication);
     });
 
-    test("acquireTokenByAuthorizationCode", async () => {
-        const request: AuthorizationCodeRequest = {
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
-            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
-        };
+    describe("auth code flow", () => {
+        test("acquireTokenByAuthorizationCode", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            };
 
-        const mockAuthCodeClientInstance = {
-            includeRedirectUri: false,
-            acquireToken: jest.fn(),
-        };
-        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
-            () =>
-                mockAuthCodeClientInstance as unknown as AuthorizationCodeClient
-        );
+            const mockAuthCodeClientInstance = {
+                includeRedirectUri: false,
+                acquireToken: jest.fn(),
+            };
+            jest.spyOn(
+                msalCommon,
+                "AuthorizationCodeClient"
+            ).mockImplementation(
+                () =>
+                    mockAuthCodeClientInstance as unknown as AuthorizationCodeClient
+            );
 
-        const authApp = new ConfidentialClientApplication(appConfig);
-        await authApp.acquireTokenByCode(request);
-        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+            const authApp = new ConfidentialClientApplication(appConfig);
+            await authApp.acquireTokenByCode(request);
+            expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        });
+
+        test("Validates that claims and client capabilities are correctly merged", async () => {
+            sinon
+                .stub(
+                    AuthorizationCodeClient.prototype,
+                    <any>"executePostToTokenEndpoint"
+                )
+                .resolves(AUTHENTICATION_RESULT);
+
+            const createTokenRequestBodySpy = sinon.spy(
+                AuthorizationCodeClient.prototype,
+                <any>"createTokenRequestBody"
+            );
+
+            const appConfigClientCapabilities: Configuration = {
+                auth: {
+                    clientId: TEST_CONSTANTS.CLIENT_ID,
+                    authority: TEST_CONSTANTS.AUTHORITY,
+                    clientSecret: TEST_CONSTANTS.CLIENT_SECRET,
+                    clientCapabilities: ["cp1", "cp2"],
+                },
+            };
+
+            const client = new ConfidentialClientApplication(
+                appConfigClientCapabilities
+            );
+            const authorizationCodeRequest: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            };
+
+            const authResult = (await client.acquireTokenByCode(
+                authorizationCodeRequest
+            )) as AuthenticationResult;
+            const returnVal = (await createTokenRequestBodySpy
+                .returnValues[0]) as string;
+            expect(authResult.accessToken).toEqual(
+                CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+            );
+            expect(
+                decodeURIComponent(
+                    returnVal
+                        .split("&")
+                        .filter((key: string) => key.includes("claims="))[0]
+                        .split("claims=")[1]
+                )
+            ).toEqual(TEST_CONFIG.XMS_CC_CLAIMS);
+
+            // skip cache lookup verification because acquireTokenByCode does not pull elements from the cache
+
+            const authorizationCodeRequest2: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                claims: TEST_CONFIG.NBF_CLAIMS,
+            };
+            const authResult2 = (await client.acquireTokenByCode(
+                authorizationCodeRequest2
+            )) as AuthenticationResult;
+            const returnVal2 = (await createTokenRequestBodySpy
+                .returnValues[1]) as string;
+            expect(authResult2.accessToken).toEqual(
+                CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+            );
+            expect(
+                decodeURIComponent(
+                    returnVal2
+                        .split("&")
+                        .filter((key: string) => key.includes("claims="))[0]
+                        .split("claims=")[1]
+                )
+            ).toEqual(TEST_CONFIG.NBF_AND_XMS_CC_CLAIMS);
+        });
     });
 
     test("acquireTokenByRefreshToken", async () => {
