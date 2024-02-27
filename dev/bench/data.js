@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708973887455,
+  "lastUpdate": 1709063638116,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5806,6 +5806,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.84%",
             "unit": "ops/sec",
             "extra": "216 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0f8d9aeec7e5d764f1662b3ce8b026f3b1007113",
+          "message": "Bump es5-ext from 0.10.62 to 0.10.64 (#6925)\n\nBumps [es5-ext](https://github.com/medikoo/es5-ext) from 0.10.62 to\r\n0.10.64.\r\n<details>\r\n<summary>Release notes</summary>\r\n<p><em>Sourced from <a\r\nhref=\"https://github.com/medikoo/es5-ext/releases\">es5-ext's\r\nreleases</a>.</em></p>\r\n<blockquote>\r\n<h2>0.10.64 (2024-02-27)</h2>\r\n<h3>Bug Fixes</h3>\r\n<ul>\r\n<li>Revert update to postinstall script meant to fix Powershell issue,\r\nas it's a regression for some Linux terminals (<a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/c2e2bb90c295c4c582445a6f03b2a3ad0b22550a\">c2e2bb9</a>)</li>\r\n</ul>\r\n<hr />\r\n<p><a\r\nhref=\"https://github.com/medikoo/es5-ext/compare/v0.10.63...v0.10.64\">Comparison\r\nsince last release</a></p>\r\n<h2>0.10.63 (2024-02-23)</h2>\r\n<h3>Bug Fixes</h3>\r\n<ul>\r\n<li>Do not rely on problematic regex (<a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/3551cdd7b2db08b1632841f819d008757d28e8e2\">3551cdd</a>),\r\naddresses <a\r\nhref=\"https://redirect.github.com/medikoo/es5-ext/issues/201\">#201</a></li>\r\n<li>Support ES2015+ function definitions in\r\n<code>function#toStringTokens()</code> (<a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/a52e95736690ad1d465ebcd9791d54570e294602\">a52e957</a>),\r\naddresses <a\r\nhref=\"https://redirect.github.com/medikoo/es5-ext/issues/021\">#021</a></li>\r\n<li>Ensure postinstall script does not crash on Windows, fixes <a\r\nhref=\"https://redirect.github.com/medikoo/es5-ext/issues/181\">#181</a>\r\n(<a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/bf8ed799d57df53096da9d908ff577f305e1366f\">bf8ed79</a>)</li>\r\n</ul>\r\n<h3>Maintenance Improvements</h3>\r\n<ul>\r\n<li>Simplify the manifest message (<a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/7855319f41b9736639cf4555bd2c419f17addf55\">7855319</a>)</li>\r\n</ul>\r\n<hr />\r\n<p><a\r\nhref=\"https://github.com/medikoo/es5-ext/compare/v0.10.62...v0.10.63\">Comparison\r\nsince last release</a></p>\r\n</blockquote>\r\n</details>\r\n<details>\r\n<summary>Changelog</summary>\r\n<p><em>Sourced from <a\r\nhref=\"https://github.com/medikoo/es5-ext/blob/main/CHANGELOG.md\">es5-ext's\r\nchangelog</a>.</em></p>\r\n<blockquote>\r\n<h3><a\r\nhref=\"https://github.com/medikoo/es5-ext/compare/v0.10.63...v0.10.64\">0.10.64</a>\r\n(2024-02-27)</h3>\r\n<h3>Bug Fixes</h3>\r\n<ul>\r\n<li>Revert update to postinstall script meant to fix Powershell issue,\r\nas it's a regression for some Linux terminals (<a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/c2e2bb90c295c4c582445a6f03b2a3ad0b22550a\">c2e2bb9</a>)</li>\r\n</ul>\r\n<h3><a\r\nhref=\"https://github.com/medikoo/es5-ext/compare/v0.10.62...v0.10.63\">0.10.63</a>\r\n(2024-02-23)</h3>\r\n<h3>Bug Fixes</h3>\r\n<ul>\r\n<li>Do not rely on problematic regex (<a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/3551cdd7b2db08b1632841f819d008757d28e8e2\">3551cdd</a>),\r\naddresses <a\r\nhref=\"https://redirect.github.com/medikoo/es5-ext/issues/201\">#201</a></li>\r\n<li>Support ES2015+ function definitions in\r\n<code>function#toStringTokens()</code> (<a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/a52e95736690ad1d465ebcd9791d54570e294602\">a52e957</a>),\r\naddresses <a\r\nhref=\"https://redirect.github.com/medikoo/es5-ext/issues/021\">#021</a></li>\r\n<li>Ensure postinstall script does not crash on Windows, fixes <a\r\nhref=\"https://redirect.github.com/medikoo/es5-ext/issues/181\">#181</a>\r\n(<a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/bf8ed799d57df53096da9d908ff577f305e1366f\">bf8ed79</a>)</li>\r\n</ul>\r\n<h3>Maintenance Improvements</h3>\r\n<ul>\r\n<li>Simplify the manifest message (<a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/7855319f41b9736639cf4555bd2c419f17addf55\">7855319</a>)</li>\r\n</ul>\r\n</blockquote>\r\n</details>\r\n<details>\r\n<summary>Commits</summary>\r\n<ul>\r\n<li><a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/f76b03d8c49ce4871f37f428c0e1d3ee6637fcc4\"><code>f76b03d</code></a>\r\nchore: Release v0.10.64</li>\r\n<li><a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/2881acda50de0848b456690769919ed4b86be489\"><code>2881acd</code></a>\r\nchore: Bump dependencies</li>\r\n<li><a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/c2e2bb90c295c4c582445a6f03b2a3ad0b22550a\"><code>c2e2bb9</code></a>\r\nfix: Revert update meant to fix Powershell issue, as it's a\r\nregression</li>\r\n<li><a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/16f2b7253d3d8d499d8cf1d3ca76c585da7f08d3\"><code>16f2b72</code></a>\r\ndocs: Fix date in the changelog</li>\r\n<li><a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/de4e03c4776a303284142f73f3f181a070615817\"><code>de4e03c</code></a>\r\nchore: Release v0.10.63</li>\r\n<li><a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/3fd53b755ec883be8f119c747f0b04130741e456\"><code>3fd53b7</code></a>\r\nchore: Upgrade<code> lint-staged</code> to v13</li>\r\n<li><a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/bf8ed799d57df53096da9d908ff577f305e1366f\"><code>bf8ed79</code></a>\r\nchore: Ensure postinstall script does not crash on Windows</li>\r\n<li><a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/2cbbb0717bd8de6e38fcba1f0d45bc876e7a1951\"><code>2cbbb07</code></a>\r\nchore: Bump dependencies</li>\r\n<li><a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/22d0416ea170000a115609f22a560dfa9193ebb0\"><code>22d0416</code></a>\r\nchore: Bump LICENSE year</li>\r\n<li><a\r\nhref=\"https://github.com/medikoo/es5-ext/commit/a52e95736690ad1d465ebcd9791d54570e294602\"><code>a52e957</code></a>\r\nfix: Support ES2015+ function definitions in\r\n<code>function#toStringTokens()</code></li>\r\n<li>Additional commits viewable in <a\r\nhref=\"https://github.com/medikoo/es5-ext/compare/v0.10.62...v0.10.64\">compare\r\nview</a></li>\r\n</ul>\r\n</details>\r\n<br />\r\n\r\n\r\n[![Dependabot compatibility\r\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=es5-ext&package-manager=npm_and_yarn&previous-version=0.10.62&new-version=0.10.64)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\r\n\r\nDependabot will resolve any conflicts with this PR as long as you don't\r\nalter it yourself. You can also trigger a rebase manually by commenting\r\n`@dependabot rebase`.\r\n\r\n[//]: # (dependabot-automerge-start)\r\n[//]: # (dependabot-automerge-end)\r\n\r\n---\r\n\r\n<details>\r\n<summary>Dependabot commands and options</summary>\r\n<br />\r\n\r\nYou can trigger Dependabot actions by commenting on this PR:\r\n- `@dependabot rebase` will rebase this PR\r\n- `@dependabot recreate` will recreate this PR, overwriting any edits\r\nthat have been made to it\r\n- `@dependabot merge` will merge this PR after your CI passes on it\r\n- `@dependabot squash and merge` will squash and merge this PR after\r\nyour CI passes on it\r\n- `@dependabot cancel merge` will cancel a previously requested merge\r\nand block automerging\r\n- `@dependabot reopen` will reopen this PR if it is closed\r\n- `@dependabot close` will close this PR and stop Dependabot recreating\r\nit. You can achieve the same result by closing it manually\r\n- `@dependabot show <dependency name> ignore conditions` will show all\r\nof the ignore conditions of the specified dependency\r\n- `@dependabot ignore this major version` will close this PR and stop\r\nDependabot creating any more for this major version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this minor version` will close this PR and stop\r\nDependabot creating any more for this minor version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this dependency` will close this PR and stop\r\nDependabot creating any more for this dependency (unless you reopen the\r\nPR or upgrade to it yourself)\r\nYou can disable automated security fix PRs for this repo from the\r\n[Security Alerts\r\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\r\n\r\n</details>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2024-02-27T11:48:21-08:00",
+          "tree_id": "cf32c629f2054cc2c09fc44c47b888f38df1d0d4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/0f8d9aeec7e5d764f1662b3ce8b026f3b1007113"
+        },
+        "date": 1709063637109,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188578,
+            "range": "±2.04%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193996,
+            "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
