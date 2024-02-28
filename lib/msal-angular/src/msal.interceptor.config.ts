@@ -36,6 +36,7 @@ export type MsalInterceptorConfiguration = {
 export type ProtectedResourceScopes = {
   httpMethod: string;
   scopes: Array<string> | null;
+  optional?: boolean;
 };
 
 export type MatchingResources = {

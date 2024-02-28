@@ -75,18 +75,7 @@ export class MsalInterceptor implements HttpInterceptor {
     }
 
     // Sets account as active account or first account
-    let account: AccountInfo;
-    if (!!this.authService.instance.getActiveAccount()) {
-      this.authService
-        .getLogger()
-        .verbose("Interceptor - active account selected");
-      account = this.authService.instance.getActiveAccount();
-    } else {
-      this.authService
-        .getLogger()
-        .verbose("Interceptor - no active account, fallback to first account");
-      account = this.authService.instance.getAllAccounts()[0];
-    }
+    const account = this.getActiveOrFirstAcount();
 
     const authRequest =
       typeof this.msalInterceptorConfig.authRequest === "function"
@@ -334,6 +323,8 @@ export class MsalInterceptor implements HttpInterceptor {
   ): Array<string> | null {
     const allMatchedScopes = [];
 
+    const account = this.getActiveOrFirstAcount();
+
     // Check each matched endpoint for matching HttpMethod and scopes
     endpointArray.forEach((matchedEndpoint) => {
       const scopesForEndpoint = [];
@@ -353,10 +344,14 @@ export class MsalInterceptor implements HttpInterceptor {
           // Ensure methods being compared are normalized
           const normalizedRequestMethod = httpMethod.toLowerCase();
           const normalizedResourceMethod = entry.httpMethod.toLowerCase();
+
           // Method in protectedResourceMap matches request http method
           if (normalizedResourceMethod === normalizedRequestMethod) {
             // Validate if scopes comes null to unprotect the resource in a certain http method
             if (entry.scopes === null) {
+              allMatchedScopes.push(null);
+            } else if (!account && !!entry.optional) {
+              // If there's no account, and the entry is optional we don't need to send a token - no scopes are required
               allMatchedScopes.push(null);
             } else {
               entry.scopes.forEach((scope) => {
@@ -386,5 +381,27 @@ export class MsalInterceptor implements HttpInterceptor {
     }
 
     return null;
+  }
+
+  /**
+   * Gets the active Account.  If there is no active account will return the first account
+   * @returns Active or first account
+   */
+  private getActiveOrFirstAcount(): AccountInfo {
+    let account: AccountInfo;
+
+    if (!!this.authService.instance.getActiveAccount()) {
+      this.authService
+        .getLogger()
+        .verbose("Interceptor - active account selected");
+      account = this.authService.instance.getActiveAccount();
+    } else {
+      this.authService
+        .getLogger()
+        .verbose("Interceptor - no active account, fallback to first account");
+      account = this.authService.instance.getAllAccounts()[0];
+    }
+
+    return account;
   }
 }
