@@ -20,6 +20,7 @@ import {
 import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
+    CAE_CONSTANTS,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     CORS_SIMPLE_REQUEST_HEADERS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -401,83 +402,88 @@ describe("ClientCredentialClient unit tests", () => {
         checkMockedNetworkRequest(returnVal, checks);
     });
 
-    it("Validates that claims and client capabilities are correctly merged", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
+    describe("CAE, claims and client capabilities", () => {
+        let client: ClientCredentialClient;
+        let clientCredentialRequest: CommonClientCredentialRequest;
+        let createTokenRequestBodySpy: jest.SpyInstance;
+        beforeEach(async () => {
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon
+                .stub(
+                    ClientCredentialClient.prototype,
+                    <any>"executePostToTokenEndpoint"
+                )
+                .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+
+            createTokenRequestBodySpy = jest.spyOn(
                 ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            ClientCredentialClient.prototype,
-            <any>"createTokenRequestBody"
-        );
-
-        const clientCapabilities = ["cp1", "cp2"];
-        const config: ClientConfiguration =
-            await ClientTestUtils.createTestClientConfiguration(
-                clientCapabilities
+                <any>"createTokenRequestBody"
             );
 
-        const client = new ClientCredentialClient(config);
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-        };
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration(
+                    CAE_CONSTANTS.CLIENT_CAPABILITIES
+                );
+            client = new ClientCredentialClient(config);
+            clientCredentialRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            };
+        });
 
-        const authResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-        const returnVal = (await createTokenRequestBodySpy
-            .returnValues[0]) as string;
-        expect(authResult.accessToken).toEqual(
-            CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
-        );
-        expect(
-            decodeURIComponent(
-                returnVal
-                    .split("&")
-                    .filter((key: string) => key.includes("claims="))[0]
-                    .split("claims=")[1]
-            )
-        ).toEqual(TEST_CONFIG.XMS_CC_CLAIMS);
+        it.each([
+            [CAE_CONSTANTS.EMPTY_CLAIMS, CAE_CONSTANTS.MERGED_EMPTY_CLAIMS],
+            [
+                CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_CLAIMS,
+                CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS,
+            ],
+            [
+                CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_KEY,
+                CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_KEY,
+            ],
+            [
+                CAE_CONSTANTS.CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY,
+                CAE_CONSTANTS.MERGED_CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY,
+            ],
+        ])(
+            "Validates that claims and client capabilities are correctly merged",
+            async (claims, mergedClaims) => {
+                clientCredentialRequest.claims = claims;
+                const authResult = (await client.acquireToken(
+                    clientCredentialRequest
+                )) as AuthenticationResult;
 
-        const authResult2 = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-        expect(authResult2.accessToken).toEqual(
-            CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
-        );
-        expect(authResult2.fromCache).toBe(true);
+                const returnValues = await createTokenRequestBodySpy.mock
+                    .results;
+                const currentReturnValue = returnValues[returnValues.length - 1]
+                    .value as string;
+                expect(authResult.accessToken).toEqual(
+                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                );
+                expect(
+                    decodeURIComponent(
+                        currentReturnValue
+                            .split("&")
+                            .filter((key: string) => key.includes("claims="))[0]
+                            .split("claims=")[1]
+                    )
+                ).toEqual(mergedClaims);
 
-        const clientCredentialRequest2: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            skipCache: true,
-            claims: TEST_CONFIG.NBF_CLAIMS,
-        };
-        const authResult3 = (await client.acquireToken(
-            clientCredentialRequest2
-        )) as AuthenticationResult;
-        const returnVal2 = (await createTokenRequestBodySpy
-            .returnValues[1]) as string;
-        expect(authResult3.accessToken).toEqual(
-            CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                const cachedAuthResult = (await client.acquireToken(
+                    clientCredentialRequest
+                )) as AuthenticationResult;
+                expect(cachedAuthResult.accessToken).toEqual(
+                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                );
+                expect(cachedAuthResult.fromCache).toBe(true);
+            }
         );
-        expect(
-            decodeURIComponent(
-                returnVal2
-                    .split("&")
-                    .filter((key: string) => key.includes("claims="))[0]
-                    .split("claims=")[1]
-            )
-        ).toEqual(TEST_CONFIG.NBF_AND_XMS_CC_CLAIMS);
     });
 
     it("Does not add claims when empty object provided", async () => {
