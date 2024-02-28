@@ -94,7 +94,7 @@ export class ManagedIdentityApplication {
             ManagedIdentityApplication.nodeStorage as NodeStorage,
             fakeAuthorityOptions,
             this.logger,
-            undefined,
+            this.cryptoProvider.createNewGuid(), // correlationID
             undefined,
             true
         );
@@ -143,7 +143,7 @@ export class ManagedIdentityApplication {
                 managedIdentityRequestParams.resource.replace("/.default", ""),
             ],
             authority: this.fakeAuthority.canonicalAuthority,
-            correlationId: this.config.managedIdentityId.id,
+            correlationId: this.cryptoProvider.createNewGuid(),
         };
 
         if (managedIdentityRequest.forceRefresh) {

@@ -17,13 +17,13 @@ import {
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
 } from "./StringConstants";
-import {
-    DEFAULT_MANAGED_IDENTITY_ID,
-    ManagedIdentityEnvironmentVariableNames,
-} from "../../src/utils/Constants";
+import { ManagedIdentityEnvironmentVariableNames } from "../../src/utils/Constants";
 import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
 import { ManagedIdentityRequestParams } from "../../src";
 import { ManagedIdentityConfiguration } from "../../src/config/Configuration";
+import { mockAuthenticationResult } from "../utils/TestConstants";
+
+const EMPTY_HEADERS: Record<string, string> = {};
 
 export class ManagedIdentityTestUtils {
     static isAppService(): boolean {
@@ -96,7 +96,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
-                status: 200,
+                status: HttpStatus.SUCCESS,
                 body: {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
@@ -107,6 +107,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
                     ),
                     token_type: AuthenticationScheme.BEARER,
                 } as ManagedIdentityTokenResponse,
+                headers: EMPTY_HEADERS,
             } as NetworkResponse<T>);
         });
     }
@@ -117,7 +118,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
-                status: 200,
+                status: HttpStatus.SUCCESS,
                 body: {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
@@ -127,6 +128,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
                     ).replace("/.default", ""),
                     token_type: AuthenticationScheme.BEARER,
                 } as ManagedIdentityTokenResponse,
+                headers: EMPTY_HEADERS,
             } as NetworkResponse<T>);
         });
     }
@@ -155,10 +157,10 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
                 status ||
                 (wwwAuthenticateHeader
                     ? HttpStatus.UNAUTHORIZED
-                    : HttpStatus.CLIENT_ERROR_RANGE_START),
+                    : HttpStatus.BAD_REQUEST),
             body: {
                 message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
-                correlationId: DEFAULT_MANAGED_IDENTITY_ID,
+                correlationId: mockAuthenticationResult.correlationId,
             } as ManagedIdentityTokenResponse,
             headers,
         } as NetworkResponse<T>;
@@ -179,17 +181,35 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
         });
     }
 
+    sendGetRequestForRetryAsync<T>(
+        // optional retry-after header
+        headers?: Record<string, string>,
+        httpStatusCode?: HttpStatus
+    ): Promise<NetworkResponse<T>> {
+        return new Promise<NetworkResponse<T>>((resolve, _reject) => {
+            resolve({
+                status: httpStatusCode || HttpStatus.INTERNAL_SERVER_ERROR,
+                body: {
+                    message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
+                    correlationId: mockAuthenticationResult.correlationId,
+                } as ManagedIdentityTokenResponse,
+                headers: headers || EMPTY_HEADERS,
+            } as NetworkResponse<T>);
+        });
+    }
+
     sendPostRequestAsync<T>(
         _url: string,
         _options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
-                status: HttpStatus.CLIENT_ERROR_RANGE_START,
+                status: HttpStatus.BAD_REQUEST,
                 body: {
                     message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
-                    correlationId: DEFAULT_MANAGED_IDENTITY_ID,
+                    correlationId: mockAuthenticationResult.correlationId,
                 } as ManagedIdentityTokenResponse,
+                headers: EMPTY_HEADERS,
             } as NetworkResponse<T>);
         });
     }
