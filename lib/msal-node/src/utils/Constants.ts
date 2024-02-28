@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { HttpStatus } from "@azure/msal-common";
+
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 export const AUTHORIZATION_HEADER_NAME: string = "Authorization";
 export const METADATA_HEADER_NAME: string = "Metadata";
@@ -151,3 +153,14 @@ export const LOOPBACK_SERVER_CONSTANTS = {
     INTERVAL_MS: 100,
     TIMEOUT_MS: 5000,
 };
+
+export const MANAGED_IDENTITY_MAX_RETRIES = 1;
+export const MANAGED_IDENTITY_RETRY_DELAY = 1000;
+export const MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON = [
+    HttpStatus.NOT_FOUND,
+    HttpStatus.REQUEST_TIMEOUT,
+    HttpStatus.TOO_MANY_REQUESTS,
+    HttpStatus.INTERNAL_SERVER_ERROR,
+    HttpStatus.SERVICE_UNAVAILABLE,
+    HttpStatus.GATEWAY_TIMEOUT,
+];

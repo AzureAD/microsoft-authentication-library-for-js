@@ -19,7 +19,6 @@ import {
     createClientAuthError,
     AuthenticationResult,
     UrlString,
-    HttpStatus,
 } from "@azure/msal-common";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
@@ -32,8 +31,6 @@ import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError";
-import { LinearRetryPolicy } from "../../retry/LinearRetryPolicy";
-import { HttpClientWithRetries } from "../../network/HttpClientWithRetries";
 
 /**
  * Managed Identity User Assigned Id Query Parameter Names
@@ -49,8 +46,8 @@ export type ManagedIdentityUserAssignedIdQueryParameterNames =
 export abstract class BaseManagedIdentitySource {
     protected logger: Logger;
     private nodeStorage: NodeStorage;
+    private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
-    private networkClientWithRetry: INetworkModule;
 
     constructor(
         logger: Logger,
@@ -60,27 +57,8 @@ export abstract class BaseManagedIdentitySource {
     ) {
         this.logger = logger;
         this.nodeStorage = nodeStorage;
+        this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
-
-        const maxRetries = 1;
-        const retryDelay = 1000;
-        const httpStatusCodesToRetryOn = [
-            HttpStatus.NOT_FOUND,
-            HttpStatus.REQUEST_TIMEOUT,
-            HttpStatus.TOO_MANY_REQUESTS,
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            HttpStatus.SERVICE_UNAVAILABLE,
-            HttpStatus.GATEWAY_TIMEOUT,
-        ];
-        const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
-            maxRetries,
-            retryDelay,
-            httpStatusCodesToRetryOn
-        );
-        this.networkClientWithRetry = new HttpClientWithRetries(
-            networkClient,
-            linearRetryPolicy
-        );
     }
 
     abstract createRequest(
@@ -156,14 +134,14 @@ export abstract class BaseManagedIdentitySource {
             // Sources that send POST requests: Cloud Shell
             if (networkRequest.httpMethod === HttpMethod.POST) {
                 response =
-                    await this.networkClientWithRetry.sendPostRequestAsync<ManagedIdentityTokenResponse>(
+                    await this.networkClient.sendPostRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
                 // Sources that send GET requests: App Service, Azure Arc, IMDS, Service Fabric
             } else {
                 response =
-                    await this.networkClientWithRetry.sendGetRequestAsync<ManagedIdentityTokenResponse>(
+                    await this.networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
@@ -188,7 +166,7 @@ export abstract class BaseManagedIdentitySource {
         const serverTokenResponse: ServerAuthorizationTokenResponse =
             await this.getServerTokenResponseAsync(
                 response,
-                this.networkClientWithRetry,
+                this.networkClient,
                 networkRequest,
                 networkRequestOptions
             );
