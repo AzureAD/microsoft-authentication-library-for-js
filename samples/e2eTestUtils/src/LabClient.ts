@@ -9,7 +9,20 @@ import {
 import { LabApiQueryParams } from "./LabApiQueryParams";
 import * as dotenv from "dotenv";
 
-dotenv.config({ path: __dirname + `/../../../.env` });
+// Try 1p repo config first
+dotenv.config({ path: __dirname + `/../../../../.env` });
+// If CLIENT_ID is not set, try the 3p repo for test env config
+if (process.env[ENV_VARIABLES.CLIENT_ID]) {
+    console.log("Found test environment variables in 1p directory");
+} else {
+    console.log(
+        "Test environment variables in 1p directory not found, trying 3p directory"
+    );
+    dotenv.config({ path: __dirname + `/../../../.env` });
+    if (process.env[ENV_VARIABLES.CLIENT_ID]) {
+        console.log("Found test environment variables in 3p directory");
+    }
+}
 
 export class LabClient {
     private credentials: ClientSecretCredential;
