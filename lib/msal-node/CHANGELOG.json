@@ -2,6 +2,33 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Sat, 17 Feb 2024 01:49:05 GMT",
+      "version": "2.6.4",
+      "tag": "@azure/msal-node_v2.6.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ee8478695b89e8dc5590d9e4832051bae2684d8a",
+            "comment": "Add ID Token secret to AccountInfo in all reponses #6903"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.7.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Feb 2024 22:00:37 GMT",
       "version": "2.6.3",
       "tag": "@azure/msal-node_v2.6.3",
