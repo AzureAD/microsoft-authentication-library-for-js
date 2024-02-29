@@ -9,7 +9,12 @@ import {
 import { LabApiQueryParams } from "./LabApiQueryParams";
 import * as dotenv from "dotenv";
 
-dotenv.config({ path: __dirname + `/../../../.env` });
+// Try 1p repo config first
+dotenv.config({ path: __dirname + `/../../../../.env` });
+// If CLIENT_ID is not set, try the 3p repo for test env config
+if (!process.env[ENV_VARIABLES.CLIENT_ID]) {
+    dotenv.config({ path: __dirname + `/../../../.env` });
+}
 
 export class LabClient {
     private credentials: ClientSecretCredential;
