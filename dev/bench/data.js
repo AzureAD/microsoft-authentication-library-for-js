@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709149243698,
+  "lastUpdate": 1709169749550,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5920,6 +5920,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.10%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "776509473cbd53ac0fd469bdb0810d6b1eede413",
+          "message": "Add 1p and 3p fallback logic to test utils environment variable setup (#6927)\n\nCurrently LabClient test utils search for a .env file in the 3p repo\r\nonly. If the .env file is placed in the msal-javascript-1p directory, it\r\nwon't find them for local testing. This PR prioritizes the higher-level\r\n.env and falls back to the 3p .env file if the test env variables aren't\r\nfound there.",
+          "timestamp": "2024-02-28T17:17:16-08:00",
+          "tree_id": "e613751a24464698cdad1438f4724da649ab8196",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/776509473cbd53ac0fd469bdb0810d6b1eede413"
+        },
+        "date": 1709169747848,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 191166,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 211195,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
