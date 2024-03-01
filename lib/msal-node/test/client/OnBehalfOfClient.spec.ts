@@ -25,6 +25,7 @@ import {
 import { AuthenticationResult, OnBehalfOfClient } from "../../src";
 import {
     AUTHENTICATION_RESULT,
+    CAE_CONSTANTS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
@@ -187,6 +188,84 @@ describe("OnBehalfOf unit tests", () => {
                     )}`
                 )
             ).toBe(true);
+        });
+
+        it.skip("Validates that claims and client capabilities are correctly merged", async () => {
+            sinon
+                .stub(
+                    OnBehalfOfClient.prototype,
+                    <any>"executePostToTokenEndpoint"
+                )
+                .resolves(AUTHENTICATION_RESULT);
+
+            const createTokenRequestBodySpy = sinon.spy(
+                OnBehalfOfClient.prototype,
+                <any>"createTokenRequestBody"
+            );
+
+            const clientCapabilities = ["cp1", "cp2"];
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration(
+                    clientCapabilities
+                );
+
+            const client = new OnBehalfOfClient(config);
+            const oboRequest: CommonOnBehalfOfRequest = {
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                oboAssertion: "user_assertion_hash",
+            };
+
+            const authResult = (await client.acquireToken(
+                oboRequest
+            )) as AuthenticationResult;
+            const returnVal = (await createTokenRequestBodySpy
+                .returnValues[0]) as string;
+            expect(authResult.accessToken).toEqual(
+                AUTHENTICATION_RESULT.body.access_token
+            );
+            expect(
+                decodeURIComponent(
+                    returnVal
+                        .split("&")
+                        .filter((key: string) => key.includes("claims="))[0]
+                        .split("claims=")[1]
+                )
+            ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
+
+            const authResult2 = (await client.acquireToken(
+                oboRequest
+            )) as AuthenticationResult;
+            expect(authResult2.accessToken).toEqual(
+                AUTHENTICATION_RESULT.body.access_token
+            );
+            expect(authResult2.fromCache).toBe(true);
+
+            const oboRequest2: CommonOnBehalfOfRequest = {
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                oboAssertion: "user_assertion_hash",
+                skipCache: true,
+                claims: CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_CLAIMS,
+            };
+            const authResult3 = (await client.acquireToken(
+                oboRequest2
+            )) as AuthenticationResult;
+            const returnVal2 = (await createTokenRequestBodySpy
+                .returnValues[0]) as string;
+            expect(authResult3.accessToken).toEqual(
+                AUTHENTICATION_RESULT.body.access_token
+            );
+            expect(
+                decodeURIComponent(
+                    returnVal2
+                        .split("&")
+                        .filter((key: string) => key.includes("claims="))[0]
+                        .split("claims=")[1]
+                )
+            ).toEqual(CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS);
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
