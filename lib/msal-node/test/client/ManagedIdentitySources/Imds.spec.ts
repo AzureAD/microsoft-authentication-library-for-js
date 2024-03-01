@@ -44,13 +44,14 @@ import {
     createManagedIdentityError,
 } from "../../../src/error/ManagedIdentityError";
 import { mockCrypto } from "../ClientTestUtils";
-import sinon from "sinon";
 import {
     CacheKVStore,
     ClientCredentialClient,
     NodeStorage,
 } from "../../../src";
 import { mockAuthenticationResult } from "../../utils/TestConstants";
+// NodeJS 16+ provides a built-in version of setTimeout that is promise-based
+import { setTimeout } from "timers/promises";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     // IMDS doesn't need environment variables because there is a default IMDS endpoint
@@ -593,12 +594,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     mockCrypto.base64Decode, // cryptoUtils
                     expiredRefreshOn // refreshOn
                 );
-            sinon
-                .stub(
-                    ClientCredentialClient.prototype,
-                    <any>"readAccessTokenFromCache"
-                )
-                .returns(fakeAccessTokenEntity);
+            jest.spyOn(
+                ClientCredentialClient.prototype,
+                <any>"readAccessTokenFromCache"
+            ).mockReturnValueOnce(fakeAccessTokenEntity);
 
             let cachedManagedIdentityResult: AuthenticationResult =
                 await systemAssignedManagedIdentityApplication.acquireToken({
@@ -619,22 +618,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 )
             ).toBe(true);
 
-            sinon.restore();
-
-            const waitTwoSecondsForProactiveRefresh =
-                async (): Promise<void> => {
-                    let counter: number = 0;
-                    return await new Promise((resolve) => {
-                        const interval = setInterval(() => {
-                            counter++;
-                            if (counter === 2000) {
-                                resolve();
-                                clearInterval(interval);
-                            }
-                        });
-                    });
-                };
-            await waitTwoSecondsForProactiveRefresh();
+            // wait two seconds
+            await setTimeout(2000);
 
             // get the token from the cache again, but it should be refeshed after waiting two seconds
             cachedManagedIdentityResult =
@@ -655,7 +640,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
                 )
             ).toBe(false);
-        });
+
+            jest.restoreAllMocks();
+        }, 10000); // double the timeout value for this test because it waits two seconds
 
         test("requests three tokens with two different resources while switching between user and system assigned, then requests them again to verify they are retrieved from the cache, then verifies that their cache keys are correct", async () => {
             expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
