@@ -119,10 +119,4 @@ export interface IController {
 
     /** @internal */
     getEventHandler(): EventHandler;
-
-    /** @internal */
-    preflightBrowserEnvironmentCheck(
-        interactionType: InteractionType,
-        isAppEmbedded?: boolean
-    ): void;
 }
