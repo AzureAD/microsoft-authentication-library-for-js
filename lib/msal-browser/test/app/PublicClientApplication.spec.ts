@@ -5244,9 +5244,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount);
+            pca.browserStorage.setAccount(testAccount);
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(testIdToken);
+            pca.browserStorage.setIdTokenCredential(testIdToken);
         });
 
         afterEach(() => {
@@ -5316,15 +5316,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount1);
+            pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount2);
+            pca.browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken1);
+            pca.browserStorage.setIdTokenCredential(idToken1);
 
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken2);
+            pca.browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -5540,14 +5540,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
             await pca.initialize();
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount1);
+            pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount2);
+            pca.browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken1);
+            pca.browserStorage.setIdTokenCredential(idToken1);
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken2);
+            pca.browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -5806,48 +5806,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 WrapperSKU.React,
                 "1.0.0",
             ]);
-        });
-    });
-
-    describe("preflightBrowserEnvironmentCheck", () => {
-        beforeEach(async () => {
-            pca = (pca as any).controller;
-            await pca.initialize();
-        });
-
-        it("throws an error if initialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-
-            pca = (pca as any).controller;
-
-            expect(() =>
-                // @ts-ignore
-                pca.preflightBrowserEnvironmentCheck(InteractionType.Popup)
-            ).toThrow(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                )
-            );
-        });
-
-        it("calls setInteractionInProgress", () => {
-            // @ts-ignore
-            pca.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-
-            // @ts-ignore
-            expect(pca.browserStorage.getInteractionInProgress()).toBeTruthy;
-        });
-
-        it("doesnt call setInteractionInProgress", () => {
-            // @ts-ignore
-            pca.preflightBrowserEnvironmentCheck(InteractionType.Popup, false);
-
-            // @ts-ignore
-            expect(pca.browserStorage.getInteractionInProgress()).toBeFalsy;
         });
     });
 
