@@ -407,18 +407,14 @@ describe("ClientCredentialClient unit tests", () => {
         let clientCredentialRequest: CommonClientCredentialRequest;
         let createTokenRequestBodySpy: jest.SpyInstance;
         beforeEach(async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    ClientCredentialClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockReturnValueOnce(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                ClientCredentialClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockReturnValue(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
 
             createTokenRequestBodySpy = jest.spyOn(
                 ClientCredentialClient.prototype,
@@ -435,6 +431,10 @@ describe("ClientCredentialClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             };
+        });
+
+        afterAll(() => {
+            jest.restoreAllMocks();
         });
 
         it.each([

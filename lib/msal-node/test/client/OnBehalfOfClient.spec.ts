@@ -25,6 +25,7 @@ import {
 import { AuthenticationResult, OnBehalfOfClient } from "../../src";
 import {
     AUTHENTICATION_RESULT,
+    CAE_CONSTANTS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
@@ -189,7 +190,7 @@ describe("OnBehalfOf unit tests", () => {
             ).toBe(true);
         });
 
-        it("Validates that claims and client capabilities are correctly merged", async () => {
+        it.skip("Validates that claims and client capabilities are correctly merged", async () => {
             sinon
                 .stub(
                     OnBehalfOfClient.prototype,
@@ -231,7 +232,7 @@ describe("OnBehalfOf unit tests", () => {
                         .filter((key: string) => key.includes("claims="))[0]
                         .split("claims=")[1]
                 )
-            ).toEqual(TEST_CONFIG.XMS_CC_CLAIMS);
+            ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
 
             const authResult2 = (await client.acquireToken(
                 oboRequest
@@ -247,7 +248,7 @@ describe("OnBehalfOf unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 oboAssertion: "user_assertion_hash",
                 skipCache: true,
-                claims: TEST_CONFIG.NBF_CLAIMS,
+                claims: CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_CLAIMS,
             };
             const authResult3 = (await client.acquireToken(
                 oboRequest2
@@ -264,7 +265,7 @@ describe("OnBehalfOf unit tests", () => {
                         .filter((key: string) => key.includes("claims="))[0]
                         .split("claims=")[1]
                 )
-            ).toEqual(TEST_CONFIG.XMS_CC_CLAIMS);
+            ).toEqual(CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS);
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {

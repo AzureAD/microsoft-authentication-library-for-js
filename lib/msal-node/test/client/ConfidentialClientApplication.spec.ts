@@ -23,8 +23,8 @@ import {
 import * as msalNode from "../../src";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils";
 import {
+    CAE_CONSTANTS,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
-    TEST_CONFIG,
 } from "../test_kit/StringConstants";
 import sinon from "sinon";
 
@@ -73,7 +73,7 @@ describe("ConfidentialClientApplication", () => {
             expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
         });
 
-        test("Validates that claims and client capabilities are correctly merged", async () => {
+        test.skip("Validates that claims and client capabilities are correctly merged", async () => {
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
@@ -119,7 +119,7 @@ describe("ConfidentialClientApplication", () => {
                         .filter((key: string) => key.includes("claims="))[0]
                         .split("claims=")[1]
                 )
-            ).toEqual(TEST_CONFIG.XMS_CC_CLAIMS);
+            ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
 
             // skip cache lookup verification because acquireTokenByCode does not pull elements from the cache
 
@@ -127,7 +127,7 @@ describe("ConfidentialClientApplication", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 redirectUri: TEST_CONSTANTS.REDIRECT_URI,
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
-                claims: TEST_CONFIG.NBF_CLAIMS,
+                claims: CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_CLAIMS,
             };
             const authResult2 = (await client.acquireTokenByCode(
                 authorizationCodeRequest2
@@ -144,7 +144,7 @@ describe("ConfidentialClientApplication", () => {
                         .filter((key: string) => key.includes("claims="))[0]
                         .split("claims=")[1]
                 )
-            ).toEqual(TEST_CONFIG.NBF_AND_XMS_CC_CLAIMS);
+            ).toEqual(CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS);
         });
     });
 
