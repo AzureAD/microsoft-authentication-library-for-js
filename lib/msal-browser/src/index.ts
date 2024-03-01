@@ -147,6 +147,8 @@ export {
     // Telemetry
     InProgressPerformanceEvent,
     TenantProfile,
+    IPerformanceClient,
+    StubPerformanceClient,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
