@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { Route, provideRouter, withDisabledInitialNavigation, withEnabledBlockingInitialNavigation } from '@angular/router';
-import { MsalInterceptor, MSAL_INSTANCE, MsalInterceptorConfiguration, MsalGuardConfiguration, MSAL_GUARD_CONFIG, MSAL_INTERCEPTOR_CONFIG, MsalService, MsalGuard, MsalBroadcastService } from '@azure/msal-angular';
+import { MsalInterceptor, MSAL_INSTANCE, MsalInterceptorConfiguration, MsalGuardConfiguration, MSAL_GUARD_CONFIG, MSAL_INTERCEPTOR_CONFIG, MsalService, MsalGuard, MsalBroadcastService, MsalRedirectComponent } from '@azure/msal-angular';
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation, LogLevel, BrowserUtils } from '@azure/msal-browser';
 import { AppComponent } from './app/app.component';
 import { HomeComponent } from './app/home/home.component';
@@ -113,4 +113,5 @@ bootstrapApplication(AppComponent, {
         MsalBroadcastService
     ]
 })
+  .then(ref => ref.bootstrap(MsalRedirectComponent))
   .catch(err => console.error(err));

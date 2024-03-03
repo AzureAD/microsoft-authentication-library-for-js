@@ -183,6 +183,119 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 ```
 
+## Redirects with standalone components
+
+As Angular applications with strictly satndalone components do not have an app module the bootstrapping of the redirect is done in the `main.ts` file. The `bootstrapApplication` function returns a `Promise<ApplicationRef>`. This promise can be used to then bootstrap the `MsalRedirectComponent`
+
+- The `app-redirect` component is still added to the `index.html` file.
+- Checking for interactions in progress still applies, please see our document on [events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) for more information on checking for interactions. 
+- See our [Angular standalone sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular-standalone-sample) for examples of this approach.
+
+Example of `main.ts` file
+
+```js
+export function loggerCallback(logLevel: LogLevel, message: string) {
+    console.log(message);
+}
+
+export function MSALInstanceFactory(): IPublicClientApplication {
+    return new PublicClientApplication({
+      auth: {
+        clientId: environment.msalConfig.auth.clientId,
+        authority: environment.msalConfig.auth.authority,
+        redirectUri: '/',
+        postLogoutRedirectUri: '/'
+      },
+      cache: {
+        cacheLocation: BrowserCacheLocation.LocalStorage
+      },
+      system: {
+        allowNativeBroker: false, // Disables WAM Broker
+        loggerOptions: {
+          loggerCallback,
+          logLevel: LogLevel.Info,
+          piiLoggingEnabled: false
+        }
+      }
+    });
+}
+
+export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
+    const protectedResourceMap = new Map<string, Array<string>>();
+    protectedResourceMap.set(environment.apiConfig.uri, environment.apiConfig.scopes);
+  
+    return {
+      interactionType: InteractionType.Redirect,
+      protectedResourceMap
+    };
+  }
+  
+  export function MSALGuardConfigFactory(): MsalGuardConfiguration {
+    return { 
+      interactionType: InteractionType.Redirect,
+      authRequest: {
+        scopes: [...environment.apiConfig.scopes]
+      },
+      loginFailedRoute: '/login-failed'
+    };
+}
+
+const initialNavigation = !BrowserUtils.isInIframe() && !BrowserUtils.isInPopup() 
+    ? withEnabledBlockingInitialNavigation() // Set to enabledBlocking to use Angular Universal
+    : withDisabledInitialNavigation(); 
+
+export const Routes: Route[] = [
+    {
+        path: 'profile',
+        component: ProfileComponent,
+        canActivate: [MsalGuard]
+    },
+    {
+        path: '',
+        component: HomeComponent
+    },
+    {
+        path: 'login-failed',
+        component: FailedComponent
+    }
+    ];
+
+if (environment.production) {
+  enableProdMode();
+}
+
+bootstrapApplication(AppComponent, {
+    providers: [
+        importProvidersFrom(BrowserModule, MatButtonModule, MatToolbarModule, MatListModule, MatMenuModule),
+        provideRouter(Routes, initialNavigation),
+        provideNoopAnimations(),
+        provideHttpClient(withInterceptorsFromDi()),
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: MsalInterceptor,
+            multi: true
+        },
+        {
+            provide: MSAL_INSTANCE,
+            useFactory: MSALInstanceFactory
+        },
+        {
+            provide: MSAL_GUARD_CONFIG,
+            useFactory: MSALGuardConfigFactory
+        },
+        {
+            provide: MSAL_INTERCEPTOR_CONFIG,
+            useFactory: MSALInterceptorConfigFactory
+        },
+        MsalService,
+        MsalGuard,
+        MsalBroadcastService
+    ]
+})
+  .then(ref => ref.bootstrap(MsalRedirectComponent)) // Redirect component bootstrapped here
+  .catch(err => console.error(err));
+```
+
 ## Subscribing to `handleRedirectObservable` manually
 
 This is not our recommended approach, but if you are unable to bootstrap the `MsalRedirectComponent`, you **must** handle redirects using the `handleRedirectObservable` as follows:
@@ -216,42 +329,4 @@ export class HomeComponent implements OnInit {
   }
 
 }
-```
-
-## Redirects with standalone components
-
-As many Angular applications using standalone components are unable to bootstrap the `MsalRedirectComponent`, `handleRedirectObservable` must be subscribed to directly. Our recommendation is to subscribe to it in the `app.component.ts` file.
-
-- Depending on your application architecture, you may have to subscribe to `handleRedirectObservable()` in other areas as well.
-- Checking for interactions in progress still applies, please see our document on [events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) for more information on checking for interactions. 
-- See our [Angular standalone sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular-standalone-sample) for examples of this approach.
-
-Example of `app.component.ts` file
-
-```js
-import { Component, OnInit, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule} from '@angular/router';
-import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
-
-@Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css'],
-    standalone: true,
-    imports: [CommonModule, RouterModule]
-})
-export class AppComponent implements OnInit {
-
-  constructor(
-    @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
-    private authService: MsalService,
-    private msalBroadcastService: MsalBroadcastService
-  ) {}
-
-  ngOnInit(): void {
-    this.authService.handleRedirectObservable().subscribe(); // Subscribing to handleRedirectObservable before any other functions both initialize the application and ensures redirects are handled
-  }
-}
-
 ```
