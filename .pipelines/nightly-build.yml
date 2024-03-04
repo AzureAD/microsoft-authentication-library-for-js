@@ -30,8 +30,11 @@ jobs:
                 command: "ci"
 
           # Required because of https://github.com/npm/cli/issues/4828
-          - name: React optional dependencies
-            run: npm install --no-save @rollup/rollup-linux-x64-gnu @parcel/watcher-linux-x64-glibc
+          - task: Npm@1
+            displayName: "Install optional dependencies"
+            inputs:
+                command: "custom"
+                customCommand: "install --no-save @rollup/rollup-linux-x64-gnu @parcel/watcher-linux-x64-glibc"
 
           - task: Npm@1
             displayName: "Build Libraries"
