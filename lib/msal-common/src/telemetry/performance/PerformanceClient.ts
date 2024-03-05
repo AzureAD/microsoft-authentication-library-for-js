@@ -74,13 +74,7 @@ export function compactStackLine(line: string): string {
     let fileNameIx = filePath.lastIndexOf("/");
     fileNameIx = fileNameIx < 0 ? filePath.lastIndexOf("\\") : fileNameIx;
 
-    if (
-        fileNameIx >= 0
-        /*
-         * (filePath.indexOf(".js:", fileNameIx + 1) >= 0 ||
-         *     filePath.indexOf(".ts:", fileNameIx + 1) >= 0)
-         */
-    ) {
+    if (fileNameIx >= 0) {
         return (
             line.substring(0, filePathIx) +
             "(" +
