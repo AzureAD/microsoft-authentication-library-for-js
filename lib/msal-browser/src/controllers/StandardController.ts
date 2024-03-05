@@ -52,10 +52,6 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { EventCallbackFunction, EventError } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
-import {
-    BrowserConfigurationAuthErrorCodes,
-    createBrowserConfigurationAuthError,
-} from "../error/BrowserConfigurationAuthError";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EventHandler } from "../event/EventHandler";
@@ -525,7 +521,8 @@ export class StandardController implements IController {
         // Preflight request
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.verbose("acquireTokenRedirect called", correlationId);
-        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
+        BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
+        this.browserStorage.setInteractionInProgress(true);
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -579,7 +576,7 @@ export class StandardController implements IController {
                             this.createRedirectClient(correlationId);
                         return redirectClient.acquireToken(request);
                     }
-                    this.getBrowserStorage().setInteractionInProgress(false);
+                    this.browserStorage.setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -628,7 +625,8 @@ export class StandardController implements IController {
 
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
-            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            BrowserUtils.preflightCheck(this.initialized);
+            this.browserStorage.setInteractionInProgress(true);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -661,7 +659,7 @@ export class StandardController implements IController {
                 ApiId.acquireTokenPopup
             )
                 .then((response) => {
-                    this.getBrowserStorage().setInteractionInProgress(false);
+                    this.browserStorage.setInteractionInProgress(false);
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
@@ -686,7 +684,7 @@ export class StandardController implements IController {
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request);
                     }
-                    this.getBrowserStorage().setInteractionInProgress(false);
+                    this.browserStorage.setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -795,7 +793,7 @@ export class StandardController implements IController {
             prompt: request.prompt,
             correlationId: correlationId,
         };
-        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        BrowserUtils.preflightCheck(this.initialized);
         this.ssoSilentMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.SsoSilent,
             correlationId
@@ -892,8 +890,8 @@ export class StandardController implements IController {
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
-        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.trace("acquireTokenByCode called", correlationId);
+        BrowserUtils.preflightCheck(this.initialized);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_BY_CODE_START,
             InteractionType.Silent,
@@ -1190,7 +1188,8 @@ export class StandardController implements IController {
      */
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         const correlationId = this.getRequestCorrelationId(logoutRequest);
-        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
+        BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
+        this.browserStorage.setInteractionInProgress(true);
 
         const redirectClient = this.createRedirectClient(correlationId);
         return redirectClient.logout(logoutRequest);
@@ -1203,7 +1202,9 @@ export class StandardController implements IController {
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try {
             const correlationId = this.getRequestCorrelationId(logoutRequest);
-            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            BrowserUtils.preflightCheck(this.initialized);
+            this.browserStorage.setInteractionInProgress(true);
+
             const popupClient = this.createPopupClient(correlationId);
             return popupClient.logout(logoutRequest);
         } catch (e) {
@@ -1423,77 +1424,6 @@ export class StandardController implements IController {
     }
 
     // #region Helpers
-
-    /**
-     * Helper to validate app environment before making an auth request
-     *
-     * @protected
-     * @param {InteractionType} interactionType What kind of interaction is being used
-     * @param {boolean} [isAppEmbedded=false] Whether to set interaction in progress temp cache flag
-     */
-    public preflightBrowserEnvironmentCheck(
-        interactionType: InteractionType,
-        isAppEmbedded: boolean = false
-    ): void {
-        this.logger.verbose("preflightBrowserEnvironmentCheck started");
-        // Block request if not in browser environment
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
-
-        // Block redirects if in an iframe
-        BrowserUtils.blockRedirectInIframe(
-            interactionType,
-            this.config.system.allowRedirectInIframe
-        );
-
-        // Block auth requests inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-
-        // Block redirectUri opened in a popup from calling MSAL APIs
-        BrowserUtils.blockAcquireTokenInPopups();
-
-        // Block token acquisition before initialize has been called
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-
-        // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
-        if (
-            interactionType === InteractionType.Redirect &&
-            this.config.cache.cacheLocation ===
-                BrowserCacheLocation.MemoryStorage &&
-            !this.config.cache.storeAuthStateInCookie
-        ) {
-            throw createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
-            );
-        }
-
-        if (
-            interactionType === InteractionType.Redirect ||
-            interactionType === InteractionType.Popup
-        ) {
-            this.preflightInteractiveRequest(!isAppEmbedded);
-        }
-    }
-
-    /**
-     * Preflight check for interactive requests
-     *
-     * @protected
-     * @param {boolean} setInteractionInProgress Whether to set interaction in progress temp cache flag
-     */
-    protected preflightInteractiveRequest(
-        setInteractionInProgress: boolean
-    ): void {
-        this.logger.verbose(
-            "preflightInteractiveRequest called, validating app environment"
-        );
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-
-        // Set interaction in progress temporary cache or throw if alread set.
-        if (setInteractionInProgress) {
-            this.getBrowserStorage().setInteractionInProgress(true);
-        }
-    }
 
     /**
      * Acquire a token from native device (e.g. WAM)
@@ -1821,13 +1751,6 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the browser storage
-     */
-    public getBrowserStorage(): BrowserCacheManager {
-        return this.browserStorage;
-    }
-
-    /**
      * Returns the browser env indicator
      */
     public isBrowserEnv(): boolean {
@@ -1920,7 +1843,7 @@ export class StandardController implements IController {
             cacheLookupPolicy: request.cacheLookupPolicy,
         });
 
-        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        BrowserUtils.preflightCheck(this.initialized);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
         const account = request.account || this.getActiveAccount();
