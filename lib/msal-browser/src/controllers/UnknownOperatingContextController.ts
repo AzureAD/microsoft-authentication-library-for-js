@@ -29,7 +29,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ApiId, WrapperSKU, InteractionType } from "../utils/BrowserConstants";
+import { ApiId, WrapperSKU } from "../utils/BrowserConstants";
 import { IController } from "./IController";
 import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext";
 import { CryptoOps } from "../crypto/CryptoOps";

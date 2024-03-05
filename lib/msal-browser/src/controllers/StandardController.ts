@@ -52,10 +52,6 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { EventCallbackFunction, EventError } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
-import {
-    BrowserConfigurationAuthErrorCodes,
-    createBrowserConfigurationAuthError,
-} from "../error/BrowserConfigurationAuthError";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EventHandler } from "../event/EventHandler";

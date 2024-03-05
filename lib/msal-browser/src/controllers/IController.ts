@@ -15,7 +15,7 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { EndSessionRequest } from "../request/EndSessionRequest";
-import { ApiId, InteractionType, WrapperSKU } from "../utils/BrowserConstants";
+import { ApiId, WrapperSKU } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
