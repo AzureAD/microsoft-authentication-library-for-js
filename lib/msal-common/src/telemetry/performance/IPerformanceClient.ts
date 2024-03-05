@@ -13,6 +13,7 @@ export type InProgressPerformanceEvent = {
     discard: () => void;
     add: (fields: { [key: string]: {} | undefined }) => void;
     increment: (fields: { [key: string]: number | undefined }) => void;
+    addError: (error: Error, maxStackSize?: number) => void;
     event: PerformanceEvent;
     /**
      * @deprecated This attribute will be removed in the next major version
@@ -31,6 +32,7 @@ export interface IPerformanceClient {
         fields: { [key: string]: {} | undefined },
         correlationId: string
     ): void;
+    addError(error: Error, correlationId: string, maxStackSize: number): void;
     incrementFields(
         fields: { [key: string]: number | undefined },
         correlationId: string

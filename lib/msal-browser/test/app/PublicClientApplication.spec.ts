@@ -43,6 +43,7 @@ import {
     InteractionRequiredAuthErrorCodes,
     Logger,
     LogLevel,
+    PerformanceEvent,
     PerformanceEvents,
     PersistentCacheKeys,
     ProtocolMode,
@@ -89,6 +90,7 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
+import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { AuthorizationCodeRequest, EndSessionRequest } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
@@ -3552,6 +3554,45 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentCacheSpy.calledOnce).toBe(true);
             expect(silentRefreshSpy.called).toBe(false);
             expect(silentIframeSpy.called).toBe(false);
+        });
+
+        it("Calls SilentCacheClient.acquireToken and captures the stack trace for non-auth error", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+
+            sinon
+                // @ts-ignore
+                .stub(BaseInteractionClient.prototype, "initializeBaseRequest")
+                .callsFake(async () => {
+                    throw new Error("Test error message");
+                });
+
+            const callbackId = pca.addPerformanceCallback(
+                (events: PerformanceEvent[]) => {
+                    expect(events.length).toEqual(1);
+                    const event = events[0];
+                    expect(event.name).toBe(
+                        PerformanceEvents.AcquireTokenSilent
+                    );
+                    expect(event.correlationId).toBeDefined();
+                    expect(event.success).toBeFalsy();
+                    expect(event.errorName).toEqual("Error");
+                    expect(event.errorStack?.length).toEqual(5);
+                    pca.removePerformanceCallback(callbackId);
+                    done();
+                }
+            );
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+            }).catch(() => {});
         });
 
         it("Calls SilentRefreshClient.acquireToken and returns its response if cache lookup throws", async () => {
