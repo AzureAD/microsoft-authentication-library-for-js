@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709320788923,
+  "lastUpdate": 1709669948695,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -5996,6 +5996,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.15%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dfda8fa0751a1dc924d081ab359a25860b22483f",
+          "message": "Remove preflightBrowserEnvironmentCheck from Controller (#6932)\n\nRemoves `preflightBrowserEnvironmentCheck` from IController interface\r\nand moves the implementation to BrowserUtils",
+          "timestamp": "2024-03-05T12:13:28-08:00",
+          "tree_id": "a39ea995193881e68e666fbd63bf81260ae1341b",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/dfda8fa0751a1dc924d081ab359a25860b22483f"
+        },
+        "date": 1709669947585,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 196062,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 192121,
+            "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
