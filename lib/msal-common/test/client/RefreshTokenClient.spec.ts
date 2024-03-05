@@ -973,6 +973,7 @@ describe("RefreshTokenClient unit tests", () => {
                 addQueueMeasurement: jest.fn(),
                 setPreQueueTime: jest.fn(),
                 addFields: jest.fn(),
+                addError: jest.fn(),
                 incrementFields: jest.fn(),
             };
             const client = new RefreshTokenClient(config, performanceClient);
@@ -1019,6 +1020,7 @@ describe("RefreshTokenClient unit tests", () => {
                 addQueueMeasurement: jest.fn(),
                 setPreQueueTime: jest.fn(),
                 addFields: jest.fn(),
+                addError: jest.fn(),
                 incrementFields: jest.fn(),
             };
             const client = new RefreshTokenClient(config, performanceClient);

@@ -5,6 +5,7 @@
 
 import { Logger } from "../logger/Logger";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { AuthError } from "../error/AuthError";
 
 /**
  * Wraps a function with a performance measurement.
@@ -52,6 +53,9 @@ export const invoke = <T extends Array<any>, U>(
                 logger.trace(JSON.stringify(e));
             } catch (e) {
                 logger.trace("Unable to print error message.");
+            }
+            if (!(e instanceof AuthError) && e instanceof Error) {
+                inProgressEvent?.addError(e);
             }
             inProgressEvent?.end({
                 success: false,
@@ -111,6 +115,10 @@ export const invokeAsync = <T extends Array<any>, U>(
                 } catch (e) {
                     logger.trace("Unable to print error message.");
                 }
+                if (!(e instanceof AuthError) && e instanceof Error) {
+                    inProgressEvent?.addError(e);
+                }
+
                 inProgressEvent?.end({
                     success: false,
                 });
