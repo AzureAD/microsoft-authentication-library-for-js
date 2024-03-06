@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     AccessTokenEntity,
     AppTokenProviderResult,
@@ -38,7 +43,6 @@ import { mockNetworkClient } from "../utils/MockNetworkClient";
 describe("ClientCredentialClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
     let config: ClientConfiguration;
-
     beforeEach(async () => {
         createTokenRequestBodySpy = jest.spyOn(
             ClientCredentialClient.prototype,
@@ -140,8 +144,11 @@ describe("ClientCredentialClient unit tests", () => {
             client.acquireToken(clientCredentialRequest)
         ).rejects.toThrow();
 
-        const url: string = (badExecutePostToTokenEndpointMock.mock.lastCall ||
-            [])[0] as string;
+        if (!badExecutePostToTokenEndpointMock.mock.lastCall) {
+            fail("executePostToTokenEndpointMock was not called");
+        }
+        const url: string = badExecutePostToTokenEndpointMock.mock
+            .lastCall[0] as string;
         expect(
             url.includes("/token?testParam1=testValue1&testParam3=testValue3")
         ).toBeTruthy();
@@ -620,8 +627,11 @@ describe("ClientCredentialClient unit tests", () => {
 
         await client.acquireToken(clientCredentialRequest);
 
-        const headersObject: Object = (executePostToTokenEndpointMock.mock
-            .lastCall || [])[2] as Object;
+        if (!executePostToTokenEndpointMock.mock.lastCall) {
+            fail("executePostToTokenEndpointMock was not called");
+        }
+        const headersObject: Object = executePostToTokenEndpointMock.mock
+            .lastCall[2] as Object;
         const headers = Object.keys(headersObject);
         headers.forEach((header) => {
             expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(
@@ -674,15 +684,9 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("acquires a token from the cache and its refresh_in value is expired. A new token is successfully requested in the background via a network request.", async () => {
-        const client: ClientCredentialClient = new ClientCredentialClient(
-            config
-        );
-
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-        };
+        if (!config.storageInterface) {
+            fail("config.storageInterface is undefined");
+        }
 
         const expectedAtEntity: AccessTokenEntity =
             CacheHelpers.createAccessTokenEntity(
@@ -704,9 +708,15 @@ describe("ClientCredentialClient unit tests", () => {
             <any>"readAccessTokenFromCache"
         ).mockReturnValueOnce(expectedAtEntity);
 
-        if (!config.storageInterface) {
-            fail("config.storageInterface is undefined");
-        }
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
+        );
+
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        };
 
         // The cached token returned from acquireToken below is mocked, which means it won't exist in the cache at this point
         const accessTokenKey: string | undefined = config.storageInterface
