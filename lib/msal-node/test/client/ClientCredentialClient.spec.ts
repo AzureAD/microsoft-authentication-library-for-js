@@ -1,4 +1,3 @@
-import sinon from "sinon";
 import {
     AccessTokenEntity,
     AppTokenProviderResult,
@@ -20,6 +19,7 @@ import {
 import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
+    CAE_CONSTANTS,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     CORS_SIMPLE_REQUEST_HEADERS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -33,27 +33,36 @@ import {
     ClientTestUtils,
     mockCrypto,
 } from "./ClientTestUtils";
+import { mockNetworkClient } from "../utils/MockNetworkClient";
 
 describe("ClientCredentialClient unit tests", () => {
+    let createTokenRequestBodySpy: jest.SpyInstance;
     let config: ClientConfiguration;
 
     beforeEach(async () => {
-        config = await ClientTestUtils.createTestClientConfiguration();
+        createTokenRequestBodySpy = jest.spyOn(
+            ClientCredentialClient.prototype,
+            <any>"createTokenRequestBody"
+        );
+
+        config = await ClientTestUtils.createTestClientConfiguration(
+            undefined,
+            mockNetworkClient(
+                DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
+            )
+        );
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("Constructor", () => {
         it("creates a ClientCredentialClient", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const client = new ClientCredentialClient(config);
+            const client: ClientCredentialClient = new ClientCredentialClient(
+                config
+            );
             expect(client).not.toBeNull();
             expect(client instanceof ClientCredentialClient).toBe(true);
             expect(client instanceof BaseClient).toBe(true);
@@ -61,22 +70,10 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("acquires a token", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            ClientCredentialClient.prototype,
-            <any>"createTokenRequestBody"
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
         );
 
-        const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -93,12 +90,12 @@ describe("ClientCredentialClient unit tests", () => {
         );
         expect(authResult.state).toHaveLength(0);
 
-        expect(
-            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            clientCredentialRequest
+        );
 
-        const returnVal = (await createTokenRequestBodySpy
-            .returnValues[0]) as string;
+        const returnVal: string =
+            createTokenRequestBodySpy.mock.results[0].value;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -115,25 +112,18 @@ describe("ClientCredentialClient unit tests", () => {
         checkMockedNetworkRequest(returnVal, checks);
     });
 
-    it("Adds tokenQueryParameters to the /token request", (done) => {
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .callsFake((url: string) => {
-                try {
-                    expect(
-                        url.includes(
-                            "/token?testParam1=testValue1&testParam3=testValue3"
-                        )
-                    ).toBeTruthy();
-                    expect(!url.includes("/token?testParam2=")).toBeTruthy();
-                    done();
-                } catch (error) {
-                    done(error);
-                }
-            });
+    it("Adds tokenQueryParameters to the /token request", async () => {
+        const badExecutePostToTokenEndpointMock = jest.spyOn(
+            ClientCredentialClient.prototype,
+            <any>"executePostToTokenEndpoint"
+        );
+        // no implementation has been mocked, the acquireToken call will fail
+
+        const fakeConfig: ClientConfiguration =
+            await ClientTestUtils.createTestClientConfiguration();
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            fakeConfig
+        );
 
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
@@ -146,10 +136,16 @@ describe("ClientCredentialClient unit tests", () => {
             },
         };
 
-        const client = new ClientCredentialClient(config);
-        client.acquireToken(clientCredentialRequest).catch(() => {
-            // Catch errors thrown after the function call this test is testing
-        });
+        await expect(
+            client.acquireToken(clientCredentialRequest)
+        ).rejects.toThrow();
+
+        const url: string = (badExecutePostToTokenEndpointMock.mock.lastCall ||
+            [])[0] as string;
+        expect(
+            url.includes("/token?testParam1=testValue1&testParam3=testValue3")
+        ).toBeTruthy();
+        expect(!url.includes("/token?testParam2=")).toBeTruthy();
     });
 
     it("acquireToken's interactionRequiredAuthError error contains claims", async () => {
@@ -164,28 +160,24 @@ describe("ClientCredentialClient unit tests", () => {
             claims: '{"access_token":{"polids":{"essential":true,"values":["9ab03e19-ed42-4168-b6b7-7001fb3e933a"]}}}',
         };
 
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves({
-                headers: [],
-                body: errorResponse,
-                status: 400,
-            });
+        const interactionRequiredAuthErrorConfig: ClientConfiguration =
+            await ClientTestUtils.createTestClientConfiguration(
+                undefined,
+                mockNetworkClient(DEFAULT_OPENID_CONFIG_RESPONSE.body, {
+                    headers: [],
+                    body: errorResponse,
+                    status: 400,
+                })
+            );
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            interactionRequiredAuthErrorConfig
+        );
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
-        const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
-
         const interactionRequiredAuthError = new InteractionRequiredAuthError(
             "interaction_required",
             "AADSTS50079: Due to a configuration change made by your administrator, or because you moved to a new location, you must enroll in multifactor authentication to access 'bf8d80f9-9098-4972-b203-500f535113b1'.\r\nTrace ID: b72a68c3-0926-4b8e-bc35-3150069c2800\r\nCorrelation ID: 73d656cf-54b1-4eb2-b429-26d8165a52d7\r\nTimestamp: 2017-05-01 22:43:20Z",
@@ -202,34 +194,28 @@ describe("ClientCredentialClient unit tests", () => {
 
     // regression test for https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/5134
     it('Multiple access tokens would match, but one of them has a Home Account ID of ""', async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
+        );
 
-        const authenticationScopes = AUTHENTICATION_RESULT_DEFAULT_SCOPES;
-        authenticationScopes.body.scope =
-            "https://graph.microsoft.com/.default";
-        sinon
-            .stub(
-                UsernamePasswordClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(authenticationScopes);
-
-        const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: "https://login.microsoftonline.com/common",
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: ["https://graph.microsoft.com/.default"],
         };
 
-        const client2 = new UsernamePasswordClient(config);
+        const authenticationScopes = AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+        authenticationScopes.body.scope =
+            "https://graph.microsoft.com/.default";
+        const upcConfig: ClientConfiguration =
+            await ClientTestUtils.createTestClientConfiguration(
+                undefined,
+                mockNetworkClient(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                    authenticationScopes
+                )
+            );
+        const client2 = new UsernamePasswordClient(upcConfig);
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: "https://login.microsoftonline.com/common",
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -242,10 +228,12 @@ describe("ClientCredentialClient unit tests", () => {
             clientCredentialRequest
         )) as AuthenticationResult;
         expect(authResult.fromCache).toBe(false);
+
         const authResult2 = (await client2.acquireToken(
             usernamePasswordRequest
         )) as AuthenticationResult;
         expect(authResult2.fromCache).toBe(false);
+
         await expect(
             client.acquireToken(clientCredentialRequest)
         ).resolves.not.toThrow(
@@ -254,22 +242,18 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("acquires a token from dSTS authority", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DSTS_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            ClientCredentialClient.prototype,
-            <any>"createTokenRequestBody"
+        const dSTSConfig: ClientConfiguration =
+            await ClientTestUtils.createTestClientConfiguration(
+                undefined,
+                mockNetworkClient(
+                    DSTS_OPENID_CONFIG_RESPONSE.body,
+                    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
+                )
+            );
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            dSTSConfig
         );
 
-        const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -286,12 +270,12 @@ describe("ClientCredentialClient unit tests", () => {
         );
         expect(authResult.state).toHaveLength(0);
 
-        expect(
-            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            clientCredentialRequest
+        );
 
-        const returnVal = (await createTokenRequestBodySpy
-            .returnValues[0]) as string;
+        const returnVal: string =
+            createTokenRequestBodySpy.mock.results[0].value;
         const checks = {
             dstsScope: true,
             clientId: true,
@@ -309,17 +293,18 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("acquires a token from cache when using dSTS authority", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DSTS_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+        const dSTSConfig: ClientConfiguration =
+            await ClientTestUtils.createTestClientConfiguration(
+                undefined,
+                mockNetworkClient(
+                    DSTS_OPENID_CONFIG_RESPONSE.body,
+                    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
+                )
+            );
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            dSTSConfig
+        );
 
-        const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -331,6 +316,7 @@ describe("ClientCredentialClient unit tests", () => {
             clientCredentialRequest
         )) as AuthenticationResult;
         expect(networkAuthResult.fromCache).toBe(false);
+
         // Second call should return from cache
         const cachedAuthResult = (await client.acquireToken(
             clientCredentialRequest
@@ -345,22 +331,10 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("Adds claims when provided", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            ClientCredentialClient.prototype,
-            <any>"createTokenRequestBody"
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
         );
 
-        const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -378,12 +352,12 @@ describe("ClientCredentialClient unit tests", () => {
         );
         expect(authResult.state).toBe("");
 
-        expect(
-            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            clientCredentialRequest
+        );
 
-        const returnVal = (await createTokenRequestBodySpy
-            .returnValues[0]) as string;
+        const returnVal: string =
+            createTokenRequestBodySpy.mock.results[0].value;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -401,23 +375,79 @@ describe("ClientCredentialClient unit tests", () => {
         checkMockedNetworkRequest(returnVal, checks);
     });
 
-    it("Does not add claims when empty object provided", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+    describe("CAE, claims and client capabilities", () => {
+        let client: ClientCredentialClient;
+        let clientCredentialRequest: CommonClientCredentialRequest;
+        beforeEach(async () => {
+            const clientCapabilitiesConfig: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration(
+                    CAE_CONSTANTS.CLIENT_CAPABILITIES,
+                    mockNetworkClient(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                        CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
+                    )
+                );
+            client = new ClientCredentialClient(clientCapabilitiesConfig);
 
-        const createTokenRequestBodySpy = sinon.spy(
-            ClientCredentialClient.prototype,
-            <any>"createTokenRequestBody"
+            clientCredentialRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            };
+        });
+
+        it.each([
+            [CAE_CONSTANTS.EMPTY_CLAIMS, CAE_CONSTANTS.MERGED_EMPTY_CLAIMS],
+            [
+                CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_CLAIMS,
+                CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS,
+            ],
+            [
+                CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_KEY,
+                CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_KEY,
+            ],
+            [
+                CAE_CONSTANTS.CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY,
+                CAE_CONSTANTS.MERGED_CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY,
+            ],
+        ])(
+            "Validates that claims and client capabilities are correctly merged",
+            async (claims, mergedClaims) => {
+                clientCredentialRequest.claims = claims;
+                const authResult = (await client.acquireToken(
+                    clientCredentialRequest
+                )) as AuthenticationResult;
+                expect(authResult.accessToken).toEqual(
+                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                );
+
+                const returnVal: string = createTokenRequestBodySpy.mock
+                    .results[0].value as string;
+                expect(
+                    decodeURIComponent(
+                        returnVal
+                            .split("&")
+                            .filter((key: string) => key.includes("claims="))[0]
+                            .split("claims=")[1]
+                    )
+                ).toEqual(mergedClaims);
+
+                const cachedAuthResult = (await client.acquireToken(
+                    clientCredentialRequest
+                )) as AuthenticationResult;
+                expect(cachedAuthResult.accessToken).toEqual(
+                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                );
+                expect(cachedAuthResult.fromCache).toBe(true);
+            }
+        );
+    });
+
+    it("Does not add claims when empty object provided", async () => {
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
         );
 
-        const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -435,12 +465,12 @@ describe("ClientCredentialClient unit tests", () => {
         );
         expect(authResult.state).toBe("");
 
-        expect(
-            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            clientCredentialRequest
+        );
 
-        const returnVal = (await createTokenRequestBodySpy
-            .returnValues[0]) as string;
+        const returnVal: string = createTokenRequestBodySpy.mock.results[0]
+            .value as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -459,21 +489,6 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("Uses clientAssertion from ClientConfiguration when no client assertion is added to request", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            ClientCredentialClient.prototype,
-            <any>"createTokenRequestBody"
-        );
-
         config.clientCredentials = {
             ...config.clientCredentials,
             clientAssertion: {
@@ -481,7 +496,10 @@ describe("ClientCredentialClient unit tests", () => {
                 assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
             },
         };
-        const client = new ClientCredentialClient(config);
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
+        );
+
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -499,12 +517,12 @@ describe("ClientCredentialClient unit tests", () => {
         );
         expect(authResult.state).toBe("");
 
-        expect(
-            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            clientCredentialRequest
+        );
 
-        const returnVal = (await createTokenRequestBodySpy
-            .returnValues[0]) as string;
+        const returnVal: string = createTokenRequestBodySpy.mock.results[0]
+            .value as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -525,21 +543,6 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("Uses the clientAssertion included in the request instead of the one in ClientConfiguration", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            ClientCredentialClient.prototype,
-            <any>"createTokenRequestBody"
-        );
-
         config.clientCredentials = {
             ...config.clientCredentials,
             clientAssertion: {
@@ -547,7 +550,10 @@ describe("ClientCredentialClient unit tests", () => {
                 assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
             },
         };
-        const client = new ClientCredentialClient(config);
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
+        );
+
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -569,12 +575,12 @@ describe("ClientCredentialClient unit tests", () => {
         );
         expect(authResult.state).toBe("");
 
-        expect(
-            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            clientCredentialRequest
+        );
 
-        const returnVal = (await createTokenRequestBodySpy
-            .returnValues[0]) as string;
+        const returnVal: string = createTokenRequestBodySpy.mock.results[0]
+            .value as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -595,40 +601,17 @@ describe("ClientCredentialClient unit tests", () => {
         checkMockedNetworkRequest(returnVal, checks);
     });
 
+    // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     it("Does not add headers that do not qualify for a simple request", async () => {
-        // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-        let stubCalled = false;
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        // @ts-ignore
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .callsFake(
-                // @ts-ignore
-                (
-                    // @ts-ignore
-                    tokenEndpoint: string,
-                    // @ts-ignore
-                    queryString: string,
-                    headers: Record<string, string>
-                ) => {
-                    const headerNames = Object.keys(headers);
-                    headerNames.forEach((name) => {
-                        expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(
-                            expect.arrayContaining([name.toLowerCase()])
-                        );
-                    });
+        const executePostToTokenEndpointMock = jest.spyOn(
+            ClientCredentialClient.prototype,
+            <any>"executePostToTokenEndpoint"
+        );
 
-                    stubCalled = true;
-                    return CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT;
-                }
-            );
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
+        );
 
-        const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -636,15 +619,18 @@ describe("ClientCredentialClient unit tests", () => {
         };
 
         await client.acquireToken(clientCredentialRequest);
-        expect(stubCalled).toBe(true);
+
+        const headersObject: Object = (executePostToTokenEndpointMock.mock
+            .lastCall || [])[2] as Object;
+        const headers = Object.keys(headersObject);
+        headers.forEach((header) => {
+            expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(
+                expect.arrayContaining([header.toLowerCase()])
+            );
+        });
     });
 
     it("acquires a token, returns token from the cache", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        const client = new ClientCredentialClient(config);
-
         const expectedAtEntity: AccessTokenEntity =
             CacheHelpers.createAccessTokenEntity(
                 "",
@@ -660,12 +646,14 @@ describe("ClientCredentialClient unit tests", () => {
                 AuthenticationScheme.BEARER
             );
 
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"readAccessTokenFromCache"
-            )
-            .returns(expectedAtEntity);
+        jest.spyOn(
+            ClientCredentialClient.prototype,
+            <any>"readAccessTokenFromCache"
+        ).mockReturnValueOnce(expectedAtEntity);
+
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
+        );
 
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
@@ -686,21 +674,10 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("acquires a token from the cache and its refresh_in value is expired. A new token is successfully requested in the background via a network request.", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            ClientCredentialClient.prototype,
-            <any>"createTokenRequestBody"
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
         );
-        const client = new ClientCredentialClient(config);
+
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -722,12 +699,10 @@ describe("ClientCredentialClient unit tests", () => {
                 AuthenticationScheme.BEARER
             );
 
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"readAccessTokenFromCache"
-            )
-            .returns(expectedAtEntity);
+        jest.spyOn(
+            ClientCredentialClient.prototype,
+            <any>"readAccessTokenFromCache"
+        ).mockReturnValueOnce(expectedAtEntity);
 
         if (!config.storageInterface) {
             fail("config.storageInterface is undefined");
@@ -801,12 +776,12 @@ describe("ClientCredentialClient unit tests", () => {
         expect(authResult.uniqueId).toHaveLength(0);
         expect(authResult.state).toHaveLength(0);
 
-        expect(
-            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            clientCredentialRequest
+        );
 
-        const returnVal = (await createTokenRequestBodySpy
-            .returnValues[0]) as string;
+        const returnVal: string = createTokenRequestBodySpy.mock.results[0]
+            .value as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -817,22 +792,10 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("acquires a token, skipCache = true", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(
-                ClientCredentialClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            ClientCredentialClient.prototype,
-            <any>"createTokenRequestBody"
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
         );
 
-        const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -850,12 +813,12 @@ describe("ClientCredentialClient unit tests", () => {
         );
         expect(authResult.state).toHaveLength(0);
 
-        expect(
-            createTokenRequestBodySpy.calledWith(clientCredentialRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            clientCredentialRequest
+        );
 
-        const returnVal = (await createTokenRequestBodySpy
-            .returnValues[0]) as string;
+        const returnVal: string = createTokenRequestBodySpy.mock.results[0]
+            .value as string;
         const checks = {
             graphScope: true,
             clientId: true,
@@ -866,10 +829,6 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("Multiple access tokens matched, exception thrown", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-
         // mock access token
         const mockedAtEntity: AccessTokenEntity =
             CacheHelpers.createAccessTokenEntity(
@@ -903,11 +862,15 @@ describe("ClientCredentialClient unit tests", () => {
                 TEST_TOKENS.ACCESS_TOKEN
             );
 
-        sinon
-            .stub(CacheManager.prototype, <any>"getAccessTokensByFilter")
-            .returns([mockedAtEntity, mockedAtEntity2]);
+        jest.spyOn(
+            CacheManager.prototype,
+            <any>"getAccessTokensByFilter"
+        ).mockReturnValueOnce([mockedAtEntity, mockedAtEntity2]);
 
-        const client = new ClientCredentialClient(config);
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            config
+        );
+
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -922,10 +885,11 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("Uses the extensibility AppTokenProvider callback to get a token", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        // no need to stub out the token response, MSAL will use the AppTokenProvider instead
+        jest.spyOn(
+            Authority.prototype,
+            <any>"getEndpointMetadataFromNetwork"
+        ).mockReturnValueOnce(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        // no need to mock out the token response, MSAL will use the AppTokenProvider instead
 
         const accessToken = "some_token";
         const appTokenProviderResult: AppTokenProviderResult = {
@@ -956,9 +920,15 @@ describe("ClientCredentialClient unit tests", () => {
         };
 
         // client credentials not needed
-        config.clientCredentials = undefined;
+        const appTokenProviderConfig: ClientConfiguration = {
+            ...(await ClientTestUtils.createTestClientConfiguration()),
+            clientCredentials: undefined,
+        };
+        const client: ClientCredentialClient = new ClientCredentialClient(
+            appTokenProviderConfig,
+            appTokenProvider
+        );
 
-        const client = new ClientCredentialClient(config, appTokenProvider);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,

@@ -25,6 +25,7 @@ import {
 import { AuthenticationResult, OnBehalfOfClient } from "../../src";
 import {
     AUTHENTICATION_RESULT,
+    CAE_CONSTANTS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
@@ -33,6 +34,7 @@ import {
 import { ID_TOKEN_CLAIMS } from "../utils/TestConstants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { EncodingUtils } from "../../src/utils/EncodingUtils";
+import { mockNetworkClient } from "../utils/MockNetworkClient";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
@@ -187,6 +189,90 @@ describe("OnBehalfOf unit tests", () => {
                     )}`
                 )
             ).toBe(true);
+        });
+
+        describe("CAE, claims and client capabilities", () => {
+            let client: OnBehalfOfClient;
+            let oboRequest: CommonOnBehalfOfRequest;
+            let createTokenRequestBodySpy: jest.SpyInstance;
+            beforeEach(async () => {
+                createTokenRequestBodySpy = jest.spyOn(
+                    OnBehalfOfClient.prototype,
+                    <any>"createTokenRequestBody"
+                );
+
+                const config: ClientConfiguration = {
+                    ...(await ClientTestUtils.createTestClientConfiguration(
+                        CAE_CONSTANTS.CLIENT_CAPABILITIES
+                    )),
+                    networkInterface: mockNetworkClient(
+                        {},
+                        AUTHENTICATION_RESULT
+                    ),
+                };
+                client = new OnBehalfOfClient(config);
+                oboRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    oboAssertion: "user_assertion_hash",
+                    scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+                };
+            });
+
+            afterAll(() => {
+                jest.restoreAllMocks();
+            });
+
+            it.each([
+                [CAE_CONSTANTS.EMPTY_CLAIMS, CAE_CONSTANTS.MERGED_EMPTY_CLAIMS],
+                [
+                    CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_CLAIMS,
+                    CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS,
+                ],
+                [
+                    CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_KEY,
+                    CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_KEY,
+                ],
+                [
+                    CAE_CONSTANTS.CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY,
+                    CAE_CONSTANTS.MERGED_CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY,
+                ],
+            ])(
+                "Validates that claims and client capabilities are correctly merged",
+                async (claims, mergedClaims) => {
+                    oboRequest.claims = claims;
+                    const authResult = (await client.acquireToken(
+                        oboRequest
+                    )) as AuthenticationResult;
+
+                    const returnValues = await createTokenRequestBodySpy.mock
+                        .results;
+                    const currentReturnValue = returnValues[
+                        returnValues.length - 1
+                    ].value as string;
+                    expect(authResult.accessToken).toEqual(
+                        AUTHENTICATION_RESULT.body.access_token
+                    );
+                    expect(
+                        decodeURIComponent(
+                            currentReturnValue
+                                .split("&")
+                                .filter((key: string) =>
+                                    key.includes("claims=")
+                                )[0]
+                                .split("claims=")[1]
+                        )
+                    ).toEqual(mergedClaims);
+
+                    const cachedAuthResult = (await client.acquireToken(
+                        oboRequest
+                    )) as AuthenticationResult;
+                    expect(cachedAuthResult.accessToken).toEqual(
+                        AUTHENTICATION_RESULT.body.access_token
+                    );
+                    expect(cachedAuthResult.fromCache).toBe(true);
+                }
+            );
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
