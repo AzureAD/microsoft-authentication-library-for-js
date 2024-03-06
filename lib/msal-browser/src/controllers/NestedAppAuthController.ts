@@ -502,12 +502,6 @@ export class NestedAppAuthController implements IController {
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
         throw NestedAppAuthError.createUnsupportedError();
     }
-    preflightBrowserEnvironmentCheck(
-        interactionType: InteractionType, // eslint-disable-line @typescript-eslint/no-unused-vars
-        setInteractionInProgress?: boolean | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): void {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
