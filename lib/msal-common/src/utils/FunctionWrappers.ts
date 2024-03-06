@@ -4,7 +4,11 @@
  */
 
 import { Logger } from "../logger/Logger";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import {
+    InProgressPerformanceEvent,
+    IPerformanceClient,
+} from "../telemetry/performance/IPerformanceClient";
+import { AuthError } from "../error/AuthError";
 
 /**
  * Wraps a function with a performance measurement.
@@ -53,9 +57,8 @@ export const invoke = <T extends Array<any>, U>(
             } catch (e) {
                 logger.trace("Unable to print error message.");
             }
-            inProgressEvent?.end({
-                success: false,
-            });
+
+            captureError(e, inProgressEvent);
             throw e;
         }
     };
@@ -111,10 +114,37 @@ export const invokeAsync = <T extends Array<any>, U>(
                 } catch (e) {
                     logger.trace("Unable to print error message.");
                 }
-                inProgressEvent?.end({
-                    success: false,
-                });
+
+                captureError(e, inProgressEvent);
                 throw e;
             });
     };
 };
+
+/**
+ * Captures performance measurement error details
+ * @param error {unknown}
+ * @param event {?InProgressPerformanceEvent}
+ */
+function captureError(error: unknown, event?: InProgressPerformanceEvent) {
+    if (!event) {
+        return;
+    }
+
+    if (error instanceof AuthError) {
+        event.end({
+            success: false,
+            errorCode: error.errorCode,
+            subErrorCode: error.subError,
+        });
+    } else if (error instanceof Error) {
+        event.end(
+            {
+                success: false,
+            },
+            error
+        );
+    } else {
+        event.end({ success: false });
+    }
+}
