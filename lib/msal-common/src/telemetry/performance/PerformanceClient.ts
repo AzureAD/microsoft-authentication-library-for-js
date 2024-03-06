@@ -26,6 +26,39 @@ export interface PreQueueEvent {
 }
 
 /**
+ * Adds error name and stack trace to the telemetry event
+ * @param error {Error}
+ * @param logger {Logger}
+ * @param event {PerformanceEvent}
+ * @param stackMaxSize {number} max error stack size to capture
+ */
+export function addError(
+    error: Error,
+    logger: Logger,
+    event: PerformanceEvent,
+    stackMaxSize: number = 5
+): void {
+    if (event.errorStack?.length) {
+        logger.trace(
+            "PerformanceClient.addErrorStack: Stack already exist",
+            event.correlationId
+        );
+        return;
+    } else if (!error.stack?.length) {
+        logger.trace(
+            "PerformanceClient.addErrorStack: Input stack is empty",
+            event.correlationId
+        );
+        return;
+    }
+
+    if (error.stack) {
+        event.errorStack = compactStack(error.stack, stackMaxSize);
+    }
+    event.errorName = error.name;
+}
+
+/**
  * Compacts error stack into array by fetching N first entries
  * @param stack {string} error stack
  * @param stackMaxSize {number} max error stack size to capture
@@ -357,8 +390,15 @@ export abstract class PerformanceClient implements IPerformanceClient {
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
             end: (
-                event?: Partial<PerformanceEvent>
+                event?: Partial<PerformanceEvent>,
+                error?: Error
             ): PerformanceEvent | null => {
+                const rootEvent = this.eventsByCorrelationId.get(
+                    inProgressEvent.correlationId
+                );
+                if (rootEvent && error) {
+                    addError(error, this.logger, rootEvent);
+                }
                 return this.endMeasurement({
                     // Initial set of event properties
                     ...inProgressEvent,
@@ -376,13 +416,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 return this.incrementFields(
                     fields,
                     inProgressEvent.correlationId
-                );
-            },
-            addError: (error: Error, stackMaxSize: number = 5) => {
-                return this.addError(
-                    error,
-                    inProgressEvent.correlationId,
-                    stackMaxSize
                 );
             },
             event: inProgressEvent,
@@ -486,43 +519,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 correlationId
             );
         }
-    }
-
-    /**
-     * Adds error name and stack trace to the telemetry event
-     * @param error {Error}
-     * @param correlationId {string} correlation id
-     * @param stackMaxSize {number} max error stack size to capture
-     */
-    addError(error: Error, correlationId: string, stackMaxSize: number): void {
-        if (!error.stack?.length) {
-            this.logger.trace(
-                "PerformanceClient.addErrorStack: Input stack is empty",
-                correlationId
-            );
-            return;
-        }
-
-        const event = this.eventsByCorrelationId.get(correlationId);
-        if (!event) {
-            this.logger.trace(
-                "PerformanceClient.addErrorStack: Event not found for",
-                correlationId
-            );
-            return;
-            // Do not overwrite the existing error stack
-        } else if (event.errorStack?.length) {
-            this.logger.trace(
-                "PerformanceClient.addErrorStack: Stack already exist",
-                correlationId
-            );
-            return;
-        }
-
-        if (error.stack) {
-            event.errorStack = compactStack(error.stack, stackMaxSize);
-        }
-        event.errorName = error.name;
     }
 
     /**

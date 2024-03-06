@@ -36,7 +36,6 @@ export class StubPerformanceClient implements IPerformanceClient {
             discard: () => {},
             add: () => {},
             increment: () => {},
-            addError: () => {},
             event: {
                 eventId: this.generateId(),
                 status: PerformanceEventStatus.InProgress,
@@ -88,10 +87,6 @@ export class StubPerformanceClient implements IPerformanceClient {
     }
 
     addFields(): void {
-        return;
-    }
-
-    addError(): void {
         return;
     }
 
