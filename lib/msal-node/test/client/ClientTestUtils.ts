@@ -29,6 +29,7 @@ import {
     ClientAuthErrorCodes,
     CacheHelpers,
     Authority,
+    INetworkModule,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -265,7 +266,8 @@ export const mockCrypto = {
 
 export class ClientTestUtils {
     static async createTestClientConfiguration(
-        clientCapabilities?: Array<string>
+        clientCapabilities?: Array<string>,
+        mockNetworkClient?: INetworkModule
     ): Promise<ClientConfiguration> {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
@@ -277,7 +279,7 @@ export class ClientTestUtils {
             return;
         };
 
-        const mockHttpClient = {
+        const mockHttpClient = mockNetworkClient || {
             sendGetRequestAsync<T>(): T {
                 return {} as T;
             },
