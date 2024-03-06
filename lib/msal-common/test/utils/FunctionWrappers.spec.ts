@@ -55,7 +55,6 @@ describe("FunctionWrappers Unit Tests", () => {
 
         it("failure", () => {
             let end;
-            let addError;
             const start = jest
                 .spyOn(perfClient, "startMeasurement")
                 .mockImplementationOnce(() => {
@@ -64,7 +63,6 @@ describe("FunctionWrappers Unit Tests", () => {
                         "testCorrelationId"
                     );
                     end = jest.spyOn(inProgressMeasurement, "end");
-                    addError = jest.spyOn(inProgressMeasurement, "addError");
                     return inProgressMeasurement;
                 });
             const loggerSpy = jest.spyOn(logger, "trace");
@@ -94,14 +92,16 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testEventName",
                 "testCorrelationId"
             );
-            expect(end).toHaveBeenCalledWith({ success: false });
+            expect(end).toHaveBeenCalledWith({
+                success: false,
+                errorCode: "Failure",
+                subErrorCode: "",
+            });
             expect(loggerSpy).toHaveBeenCalledTimes(3);
-            expect(addError).toHaveBeenCalledTimes(0);
         });
 
         it("non-auth error", () => {
             let end;
-            let addError;
             const start = jest
                 .spyOn(perfClient, "startMeasurement")
                 .mockImplementationOnce(() => {
@@ -110,7 +110,6 @@ describe("FunctionWrappers Unit Tests", () => {
                         "testCorrelationId"
                     );
                     end = jest.spyOn(inProgressMeasurement, "end");
-                    addError = jest.spyOn(inProgressMeasurement, "addError");
                     return inProgressMeasurement;
                 });
             const loggerSpy = jest.spyOn(logger, "trace");
@@ -140,9 +139,8 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testEventName",
                 "testCorrelationId"
             );
-            expect(end).toHaveBeenCalledWith({ success: false });
+            expect(end).toHaveBeenCalledWith({ success: false }, error);
             expect(loggerSpy).toHaveBeenCalledTimes(3);
-            expect(addError).toHaveBeenCalledWith(error);
         });
     });
 
@@ -189,7 +187,6 @@ describe("FunctionWrappers Unit Tests", () => {
 
         it("failure", async () => {
             let end;
-            let addError;
             const start = jest
                 .spyOn(perfClient, "startMeasurement")
                 .mockImplementationOnce(() => {
@@ -198,7 +195,6 @@ describe("FunctionWrappers Unit Tests", () => {
                         "testCorrelationId"
                     );
                     end = jest.spyOn(inProgressMeasurement, "end");
-                    addError = jest.spyOn(inProgressMeasurement, "addError");
                     return inProgressMeasurement;
                 });
             const loggerSpy = jest.spyOn(logger, "trace");
@@ -230,14 +226,16 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testEventName",
                 "testCorrelationId"
             );
-            expect(end).toHaveBeenCalledWith({ success: false });
+            expect(end).toHaveBeenCalledWith({
+                success: false,
+                errorCode: "Failure",
+                subErrorCode: "",
+            });
             expect(loggerSpy).toHaveBeenCalledTimes(3);
-            expect(addError).toHaveBeenCalledTimes(0);
         });
 
         it("non-auth error", async () => {
             let end;
-            let addError;
             const start = jest
                 .spyOn(perfClient, "startMeasurement")
                 .mockImplementationOnce(() => {
@@ -246,7 +244,6 @@ describe("FunctionWrappers Unit Tests", () => {
                         "testCorrelationId"
                     );
                     end = jest.spyOn(inProgressMeasurement, "end");
-                    addError = jest.spyOn(inProgressMeasurement, "addError");
                     return inProgressMeasurement;
                 });
             const loggerSpy = jest.spyOn(logger, "trace");
@@ -270,7 +267,7 @@ describe("FunctionWrappers Unit Tests", () => {
                     perfClient,
                     "testCorrelationId"
                 )("arg1", 20);
-                throw "Unexpected, this call should throw";
+                throw error;
             } catch (e) {
                 expect(e).toBe(error);
             }
@@ -278,9 +275,8 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testEventName",
                 "testCorrelationId"
             );
-            expect(end).toHaveBeenCalledWith({ success: false });
+            expect(end).toHaveBeenCalledWith({ success: false }, error);
             expect(loggerSpy).toHaveBeenCalledTimes(3);
-            expect(addError).toHaveBeenCalledWith(error);
         });
     });
 });

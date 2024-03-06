@@ -8,7 +8,6 @@ import {
     IGuidGenerator,
     IPerformanceClient,
     Logger,
-    PerformanceClient,
     PerformanceEvents,
     PerformanceEventStatus,
 } from "../../src";
@@ -17,6 +16,7 @@ import {
     compactStack,
     compactStackLine,
 } from "../../src/telemetry/performance/PerformanceClient";
+import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient";
 
 const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
@@ -43,7 +43,7 @@ class MockGuidGenerator implements IGuidGenerator {
 
 // @ts-ignore
 export class MockPerformanceClient
-    extends PerformanceClient
+    extends PerformanceClient.PerformanceClient
     implements IPerformanceClient
 {
     private guidGenerator: MockGuidGenerator;
@@ -451,6 +451,7 @@ describe("PerformanceClient.spec.ts", () => {
         it("adds error", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
+            const error = new Error("Non-auth test error");
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
@@ -467,10 +468,12 @@ describe("PerformanceClient.spec.ts", () => {
                 PerformanceEvents.AcquireTokenSilent,
                 correlationId
             );
-            topLevelEvent.addError(new Error("Test error"));
-            topLevelEvent.end({
-                success: false,
-            });
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                error
+            );
         });
 
         it("does not override error stack", (done) => {
@@ -489,13 +492,20 @@ describe("PerformanceClient.spec.ts", () => {
                 PerformanceEvents.AcquireTokenSilent,
                 correlationId
             );
-            topLevelEvent.addError(new Error("Test error"));
+            PerformanceClient.addError(
+                new Error("Test error"),
+                logger,
+                // @ts-ignore
+                mockPerfClient.eventsByCorrelationId.get(correlationId)
+            );
             const newError = new Error("Test error 2");
             newError.stack = "Test message\n at line1 \n at line 2";
-            topLevelEvent.addError(newError);
-            topLevelEvent.end({
-                success: false,
-            });
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                newError
+            );
         });
     });
 
