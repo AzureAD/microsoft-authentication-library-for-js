@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709669948695,
+  "lastUpdate": 1709833107400,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6034,6 +6034,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.93%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "Dan Saunders",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "59f803b11a4498f5f5eea8c1a03b865c4c55e4d0",
+          "message": "Fix compatibility issues with Nested App Auth and msal-react (#6892)\n\nThere were a few bugs that were blocking usage of msal-react in the\r\nNested App Auth code path.\r\n\r\n1. handleRedirectPromise was throwing an error, and msal-react depends\r\non calling this before it sets user authenticated status.\r\n2. The function useMsalAuthentication takes request as an optional\r\nparameter, although Nested App Auth code path was considering it a\r\nrequired parameter. It was throwing exceptions if request was undefined,\r\nand correlation id is not generated until after performance event starts\r\nfor requests.",
+          "timestamp": "2024-03-07T09:32:58-08:00",
+          "tree_id": "0ce6890f6a7ea93028b1a839af8c330f848dfd64",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/59f803b11a4498f5f5eea8c1a03b865c4c55e4d0"
+        },
+        "date": 1709833106334,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 194550,
+            "range": "±1.94%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189984,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
