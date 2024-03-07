@@ -191,11 +191,12 @@ export class NestedAppAuthController implements IController {
                 e as EventError
             );
 
-            atPopupMeasurement.end({
-                errorCode: error.errorCode,
-                subErrorCode: error.subError,
-                success: false,
-            });
+            atPopupMeasurement.end(
+                {
+                    success: false,
+                },
+                e
+            );
 
             throw error;
         }
@@ -260,11 +261,12 @@ export class NestedAppAuthController implements IController {
                 null,
                 e as EventError
             );
-            ssoSilentMeasurement?.end({
-                errorCode: error.errorCode,
-                subErrorCode: error.subError,
-                success: false,
-            });
+            ssoSilentMeasurement?.end(
+                {
+                    success: false,
+                },
+                e
+            );
             throw error;
         }
     }

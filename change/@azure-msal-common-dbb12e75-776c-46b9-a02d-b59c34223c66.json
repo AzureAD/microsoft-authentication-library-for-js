@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Capture non-auth error name and stack in telemetry wrapper functions #6937",
+  "comment": "Instrument non-auth error name and stack #6937",
   "packageName": "@azure/msal-common",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
