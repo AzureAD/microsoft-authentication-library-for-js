@@ -11,7 +11,7 @@ export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 export type InProgressPerformanceEvent = {
     end: (
         event?: Partial<PerformanceEvent>,
-        error?: Error
+        error?: unknown
     ) => PerformanceEvent | null;
     discard: () => void;
     add: (fields: { [key: string]: {} | undefined }) => void;
