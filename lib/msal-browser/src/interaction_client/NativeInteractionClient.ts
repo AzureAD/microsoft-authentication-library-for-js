@@ -22,7 +22,6 @@ import {
     PerformanceEvents,
     IdTokenEntity,
     AccessTokenEntity,
-    AuthError,
     CommonSilentFlowRequest,
     AccountInfo,
     CacheRecord,
