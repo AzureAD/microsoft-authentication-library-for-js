@@ -22,7 +22,6 @@ import {
     PerformanceEvents,
     IdTokenEntity,
     AccessTokenEntity,
-    AuthError,
     CommonSilentFlowRequest,
     AccountInfo,
     CacheRecord,
@@ -194,13 +193,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 });
                 return result;
             })
-            .catch((error: AuthError) => {
-                nativeATMeasurement.end({
-                    success: false,
-                    errorCode: error.errorCode,
-                    subErrorCode: error.subError,
-                    isNativeBroker: true,
-                });
+            .catch((error) => {
+                nativeATMeasurement.end(
+                    {
+                        success: false,
+                        isNativeBroker: true,
+                    },
+                    error
+                );
                 throw error;
             });
     }
