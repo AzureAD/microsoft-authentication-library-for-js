@@ -19,6 +19,7 @@ import {
 } from "./PerformanceEvent";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { StubPerformanceMeasurement } from "./StubPerformanceClient";
+import { AuthError } from "../../error/AuthError";
 
 export interface PreQueueEvent {
     name: PerformanceEvents;
@@ -33,12 +34,22 @@ export interface PreQueueEvent {
  * @param stackMaxSize {number} max error stack size to capture
  */
 export function addError(
-    error: Error,
+    error: unknown,
     logger: Logger,
     event: PerformanceEvent,
     stackMaxSize: number = 5
 ): void {
-    if (event.errorStack?.length) {
+    if (!(error instanceof Error)) {
+        logger.trace(
+            "PerformanceClient.addErrorStack: Input error is not instance of Error",
+            event.correlationId
+        );
+        return;
+    } else if (error instanceof AuthError) {
+        event.errorCode = error.errorCode;
+        event.subErrorCode = error.subError;
+        return;
+    } else if (event.errorStack?.length) {
         logger.trace(
             "PerformanceClient.addErrorStack: Stack already exist",
             event.correlationId
@@ -391,20 +402,17 @@ export abstract class PerformanceClient implements IPerformanceClient {
         return {
             end: (
                 event?: Partial<PerformanceEvent>,
-                error?: Error
+                error?: unknown
             ): PerformanceEvent | null => {
-                const rootEvent = this.eventsByCorrelationId.get(
-                    inProgressEvent.correlationId
+                return this.endMeasurement(
+                    {
+                        // Initial set of event properties
+                        ...inProgressEvent,
+                        // Properties set when event ends
+                        ...event,
+                    },
+                    error
                 );
-                if (rootEvent && error) {
-                    addError(error, this.logger, rootEvent);
-                }
-                return this.endMeasurement({
-                    // Initial set of event properties
-                    ...inProgressEvent,
-                    // Properties set when event ends
-                    ...event,
-                });
             },
             discard: () => {
                 return this.discardMeasurements(inProgressEvent.correlationId);
@@ -430,10 +438,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * otherwise.
      *
      * @param {PerformanceEvent} event
-     * @param {IPerformanceMeasurement} measurement
+     * @param {unknown} error
      * @returns {(PerformanceEvent | null)}
      */
-    endMeasurement(event: PerformanceEvent): PerformanceEvent | null {
+    endMeasurement(
+        event: PerformanceEvent,
+        error?: unknown
+    ): PerformanceEvent | null {
         const rootEvent: PerformanceEvent | undefined =
             this.eventsByCorrelationId.get(event.correlationId);
         if (!rootEvent) {
@@ -468,6 +479,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         if (!isRoot) {
             rootEvent[event.name + "DurationMs"] = Math.floor(durationMs);
             return { ...rootEvent };
+        }
+
+        if (error) {
+            addError(error, this.logger, rootEvent);
         }
 
         let finalEvent: PerformanceEvent = { ...rootEvent, ...event };

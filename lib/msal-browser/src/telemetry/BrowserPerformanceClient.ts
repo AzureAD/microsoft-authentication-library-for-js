@@ -160,7 +160,7 @@ export class BrowserPerformanceClient
             ...inProgressEvent,
             end: (
                 event?: Partial<PerformanceEvent>,
-                error?: Error
+                error?: unknown
             ): PerformanceEvent | null => {
                 const res = inProgressEvent.end(
                     {

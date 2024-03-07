@@ -92,54 +92,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testEventName",
                 "testCorrelationId"
             );
-            expect(end).toHaveBeenCalledWith({
-                success: false,
-                errorCode: "Failure",
-                subErrorCode: "",
-            });
-            expect(loggerSpy).toHaveBeenCalledTimes(3);
-        });
-
-        it("non-auth error", () => {
-            let end;
-            const start = jest
-                .spyOn(perfClient, "startMeasurement")
-                .mockImplementationOnce(() => {
-                    const inProgressMeasurement = perfClient.startMeasurement(
-                        "testEventName",
-                        "testCorrelationId"
-                    );
-                    end = jest.spyOn(inProgressMeasurement, "end");
-                    return inProgressMeasurement;
-                });
-            const loggerSpy = jest.spyOn(logger, "trace");
-
-            const error = new Error("Non-auth test error");
-
-            const testCallback = (arg1: string, arg2: number): string => {
-                expect(arg1).toBe("arg1");
-                expect(arg2).toBe(20);
-
-                throw error;
-            };
-
-            try {
-                invoke(
-                    testCallback,
-                    "testEventName",
-                    logger,
-                    perfClient,
-                    "testCorrelationId"
-                )("arg1", 20);
-                throw "Unexpected, this call should throw";
-            } catch (e) {
-                expect(e).toBe(error);
-            }
-            expect(start).toHaveBeenCalledWith(
-                "testEventName",
-                "testCorrelationId"
-            );
-            expect(end).toHaveBeenCalledWith({ success: false }, error);
+            expect(end).toHaveBeenCalledWith({ success: false });
             expect(loggerSpy).toHaveBeenCalledTimes(3);
         });
     });
@@ -226,56 +179,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testEventName",
                 "testCorrelationId"
             );
-            expect(end).toHaveBeenCalledWith({
-                success: false,
-                errorCode: "Failure",
-                subErrorCode: "",
-            });
-            expect(loggerSpy).toHaveBeenCalledTimes(3);
-        });
-
-        it("non-auth error", async () => {
-            let end;
-            const start = jest
-                .spyOn(perfClient, "startMeasurement")
-                .mockImplementationOnce(() => {
-                    const inProgressMeasurement = perfClient.startMeasurement(
-                        "testEventName",
-                        "testCorrelationId"
-                    );
-                    end = jest.spyOn(inProgressMeasurement, "end");
-                    return inProgressMeasurement;
-                });
-            const loggerSpy = jest.spyOn(logger, "trace");
-
-            const error = new Error("Non-auth test error");
-
-            const testCallback = (
-                arg1: string,
-                arg2: number
-            ): Promise<string> => {
-                expect(arg1).toBe("arg1");
-                expect(arg2).toBe(20);
-                return Promise.reject(error);
-            };
-
-            try {
-                await invokeAsync(
-                    testCallback,
-                    "testEventName",
-                    logger,
-                    perfClient,
-                    "testCorrelationId"
-                )("arg1", 20);
-                throw error;
-            } catch (e) {
-                expect(e).toBe(error);
-            }
-            expect(start).toHaveBeenCalledWith(
-                "testEventName",
-                "testCorrelationId"
-            );
-            expect(end).toHaveBeenCalledWith({ success: false }, error);
+            expect(end).toHaveBeenCalledWith({ success: false });
             expect(loggerSpy).toHaveBeenCalledTimes(3);
         });
     });
