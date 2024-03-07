@@ -8,11 +8,15 @@ import {
     IGuidGenerator,
     IPerformanceClient,
     Logger,
-    PerformanceClient,
     PerformanceEvents,
     PerformanceEventStatus,
 } from "../../src";
 import crypto from "crypto";
+import {
+    compactStack,
+    compactStackLine,
+} from "../../src/telemetry/performance/PerformanceClient";
+import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient";
 
 const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
@@ -39,7 +43,7 @@ class MockGuidGenerator implements IGuidGenerator {
 
 // @ts-ignore
 export class MockPerformanceClient
-    extends PerformanceClient
+    extends PerformanceClient.PerformanceClient
     implements IPerformanceClient
 {
     private guidGenerator: MockGuidGenerator;
@@ -440,6 +444,145 @@ describe("PerformanceClient.spec.ts", () => {
 
         topLevelEvent.end({
             success: true,
+        });
+    });
+
+    describe("addError", () => {
+        it("adds error", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new Error("Non-auth test error");
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.errorStack?.length).toEqual(5);
+                expect(event.errorName).toEqual("Error");
+                expect(
+                    event.errorStack?.some((v) => v.includes("Test error"))
+                ).toBeFalsy();
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                error
+            );
+        });
+
+        it("does not override error stack", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.errorStack?.length).toEqual(5);
+                expect(event.errorName).toEqual("Error");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            PerformanceClient.addError(
+                new Error("Test error"),
+                logger,
+                // @ts-ignore
+                mockPerfClient.eventsByCorrelationId.get(correlationId)
+            );
+            const newError = new Error("Test error 2");
+            newError.stack = "Test message\n at line1 \n at line 2";
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                newError
+            );
+        });
+    });
+
+    describe("compactStackTrace", () => {
+        it("compacts error stack", () => {
+            const error = new Error("test error");
+            error.stack = "";
+            for (let ix = 1; ix <= 20; ix++) {
+                error.stack += `  at testFunction${ix} (microsoft-authentication-library-for-js/lib/msal-browser/testFile${ix}.js:10:1)\n`;
+            }
+
+            const result1 = compactStack(error.stack!, 3);
+            expect(result1.length).toEqual(3);
+            expect(result1).toEqual([
+                "at testFunction18 (testFile18.js:10:1)",
+                "at testFunction19 (testFile19.js:10:1)",
+                "at testFunction20 (testFile20.js:10:1)",
+            ]);
+
+            expect(compactStack(error.stack!, -2)).toEqual([]);
+
+            expect(
+                compactStack(
+                    "Test error message\n   at testFunction (microsoft-authentication-library-for-js/lib/msal-browser/testFile.js:10:1)",
+                    3
+                )
+            ).toEqual(["at testFunction (testFile.js:10:1)"]);
+        });
+
+        it("handles empty error stack", () => {
+            expect(compactStack("", 3)).toEqual([]);
+        });
+
+        it("handles error stack with a single error message", () => {
+            expect(compactStack("Test error message", 3)).toEqual([]);
+        });
+    });
+
+    describe("compactStackLine", () => {
+        it("compacts stack line", () => {
+            expect(
+                compactStackLine(
+                    "testFunction at (/microsoft-authentication-library-for-js/lib/msal-browser/app/PublicClientApplication.spec.ts:1234:56)"
+                )
+            ).toEqual(
+                "testFunction at (PublicClientApplication.spec.ts:1234:56)"
+            );
+
+            expect(
+                compactStackLine(
+                    "testFunction at /microsoft-authentication-library-for-js/lib/msal-browser/app/PublicClientApplication.spec.ts:1234:56"
+                )
+            ).toEqual(
+                "testFunction at (PublicClientApplication.spec.ts:1234:56)"
+            );
+
+            expect(
+                compactStackLine(
+                    "testFunction at (PublicClientApplication.spec.ts:1234:56)"
+                )
+            ).toEqual(
+                "testFunction at (PublicClientApplication.spec.ts:1234:56)"
+            );
+        });
+
+        it("compacts minified bundle stack line", () => {
+            expect(
+                compactStackLine(
+                    "testFunction at (https://localhost/something/testMinified.jsbundle:1234:56)"
+                )
+            ).toEqual("testFunction at (testMinified.jsbundle:1234:56)");
+
+            expect(
+                compactStackLine(
+                    "testFunction at (testMinified.jsbundle:1234:56)"
+                )
+            ).toEqual("testFunction at (testMinified.jsbundle:1234:56)");
         });
     });
 
