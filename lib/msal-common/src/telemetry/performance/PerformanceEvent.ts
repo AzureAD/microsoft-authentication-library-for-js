@@ -573,6 +573,9 @@ export type PerformanceEvent = {
     multiMatchedAT?: number;
     multiMatchedID?: number;
     multiMatchedRT?: number;
+
+    errorName?: string;
+    errorStack?: string[];
 };
 
 export const IntFields: ReadonlySet<string> = new Set([
