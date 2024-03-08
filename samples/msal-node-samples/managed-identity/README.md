@@ -1,6 +1,6 @@
 # Managed Identity for Azure VM Sample
 
-This sample demonstrates how to use [managed identity via the msal-node library](/lib/msal-node/docs/managed-identity.md) to retrieve tokens for a managed identity application running on an Azure VM.
+This sample demonstrates how to use [managed identity via the msal-node library](/lib/msal-node/docs/managed-identity.md) to retrieve tokens for a managed identity application running on an Azure VM, and then use the token to retrieve a secret from a key vault.
 
 ## Note
 
@@ -10,6 +10,10 @@ This sample demonstrates how to use [managed identity via the msal-node library]
 ## Virtual Machine Setup
 
 Follow [this guide](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/qs-configure-portal-windows-vm) to setup an Azure VM, as well as add a system assigned and user assigned managed identity to the Azure VM.
+
+## Key Vault Setup
+
+Follow [this guide](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/tutorial-windows-vm-access-nonaad) to create a key vault, create a secret, and grant key vault access to the virtual machine and two managed identity applications in this sample.
 
 ## Project Setup
 
@@ -25,6 +29,13 @@ Before running the sample, the userAssignedClientId value in the managedIdentity
 const managedIdentityIdParams: ManagedIdentityIdParams = {
     userAssignedClientId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 };
+```
+
+Additionally, the `KEY_VAULT_NAME` and `SECRET_NAME` values need to be updated.
+
+```typescript
+const KEY_VAULT_NAME: string = "KEY_VAULT_NAME";
+const SECRET_NAME: string = "SECRET_NAME";
 ```
 
 ## Run the app on the Azure VM
