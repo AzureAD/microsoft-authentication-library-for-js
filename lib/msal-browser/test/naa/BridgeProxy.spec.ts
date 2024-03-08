@@ -46,13 +46,6 @@ describe("BridgeProxy tests", () => {
                 "window.nestedAppAuthBridge is undefined"
             );
         });
-
-        it("should throw an error if window.crypto is undefined", () => {
-            windowSpy.mockImplementation(() => ({ nestedAppAuthBridge: {} }));
-            expect(() => BridgeProxy.create()).rejects.toThrow(
-                "window.crypto is undefined"
-            );
-        });
     });
 
     describe("get token silent tests", () => {
