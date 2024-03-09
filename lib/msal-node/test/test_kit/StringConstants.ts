@@ -3,11 +3,16 @@
  * Licensed under the MIT License.
  */
 
+import { AuthenticationResult } from "@azure/msal-common";
 import {
     AuthenticationScheme,
     Constants,
     ONE_DAY_IN_MS,
 } from "@azure/msal-common";
+import {
+    DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
+    DEFAULT_MANAGED_IDENTITY_ID,
+} from "../../src/utils/Constants";
 
 // This file contains the string constants used by the test classes.
 
@@ -348,6 +353,66 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     },
 };
 
+export const MANAGED_IDENTITY_AZURE_ARC_WWW_AUTHENTICATE_HEADER: string = `Basic ${TEST_TOKENS.ACCESS_TOKEN}`;
+export const MANAGED_IDENTITY_CONTENT_TYPE_HEADER: string =
+    "application/x-www-form-urlencoded;charset=utf-8";
+
+export const MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR: string =
+    "There was an error retrieving the access token from the managed identity.";
+
+export const MANAGED_IDENTITY_RESOURCE_BASE: string =
+    "https://graph.microsoft.com";
+// scopes
+export const MANAGED_IDENTITY_RESOURCE: string = `${MANAGED_IDENTITY_RESOURCE_BASE}/.default`;
+
+// client ids
+export const MANAGED_IDENTITY_RESOURCE_ID: string =
+    "unique_identifier_generated_by_azure_ad_for_the_azure_resource";
+export const MANAGED_IDENTITY_RESOURCE_ID_2: string =
+    "/subscriptions/someguid/resourcegroups/uami_group/providers/microsoft.managedidentityclient/userassignedidentities/uami";
+
+export const getCacheKey = (resource?: string): string => {
+    const resourceHelper = resource || DEFAULT_MANAGED_IDENTITY_ID;
+    return `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${resourceHelper}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+};
+
+export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
+    AuthenticationResult,
+    "correlationId"
+> = {
+    accessToken: TEST_TOKENS.ACCESS_TOKEN,
+    account: null,
+    authority: DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
+    cloudGraphHostName: "",
+    code: undefined,
+    expiresOn: new Date(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+    extExpiresOn: new Date(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+    familyId: "",
+    fromCache: false,
+    fromNativeBroker: false,
+    idToken: "",
+    idTokenClaims: {},
+    msGraphHost: "",
+    refreshOn: undefined,
+    requestId: "",
+    scopes: [MANAGED_IDENTITY_RESOURCE],
+    state: "",
+    tenantId: "",
+    tokenType: AuthenticationScheme.BEARER,
+    uniqueId: "",
+};
+
+export const DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT: AuthenticationResult =
+    {
+        ...DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+        correlationId: DEFAULT_MANAGED_IDENTITY_ID,
+    };
+export const DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT: AuthenticationResult =
+    {
+        ...DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+        correlationId: MANAGED_IDENTITY_RESOURCE,
+    };
+
 export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
@@ -431,3 +496,5 @@ export const CORS_SIMPLE_REQUEST_HEADERS = [
     "content-language",
     "content-type",
 ];
+
+export const THREE_SECONDS_IN_MILLI = 3000;
