@@ -97,10 +97,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         it("throws when inside an iframe", (done) => {
             jest.spyOn(window, "parent", "get").mockReturnValue({ ...window });
             try {
-                BrowserUtils.blockRedirectInIframe(
-                    InteractionType.Redirect,
-                    false
-                );
+                BrowserUtils.blockRedirectInIframe(false);
             } catch (e) {
                 const browserAuthError = e as BrowserAuthError;
                 expect(browserAuthError.errorCode).toBe(
@@ -112,11 +109,11 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
 
         it("doesnt throw when inside an iframe and redirects are allowed", () => {
             jest.spyOn(window, "parent", "get").mockReturnValue({ ...window });
-            BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, true);
+            BrowserUtils.blockRedirectInIframe(true);
         });
 
         it("doesnt throw when not inside an iframe", () => {
-            BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
+            BrowserUtils.blockRedirectInIframe(false);
         });
     });
 
