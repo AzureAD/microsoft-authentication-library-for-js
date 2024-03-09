@@ -116,25 +116,43 @@ export class NestedAppAuthController implements IController {
         return Promise.resolve();
     }
 
+    private ensureValidRequest<
+        T extends
+            | SsoSilentRequest
+            | SilentRequest
+            | PopupRequest
+            | RedirectRequest
+    >(request: T): T {
+        if (request?.correlationId) {
+            return request;
+        }
+        return {
+            ...request,
+            correlationId: this.browserCrypto.createNewGuid(),
+        };
+    }
+
     private async acquireTokenInteractive(
         request: PopupRequest | RedirectRequest
     ): Promise<AuthenticationResult> {
+        const validRequest = this.ensureValidRequest(request);
+
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             InteractionType.Popup,
-            request
+            validRequest
         );
 
         const atPopupMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.AcquireTokenPopup,
-            request.correlationId
+            validRequest.correlationId
         );
 
         atPopupMeasurement?.add({ nestedAppAuthRequest: true });
 
         try {
             const naaRequest =
-                this.nestedAppAuthAdapter.toNaaTokenRequest(request);
+                this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
             const reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.bridgeProxy.getTokenInteractive(
                 naaRequest
@@ -186,15 +204,16 @@ export class NestedAppAuthController implements IController {
     private async acquireTokenSilentInternal(
         request: SilentRequest
     ): Promise<AuthenticationResult> {
+        const validRequest = this.ensureValidRequest(request);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             InteractionType.Silent,
-            request
+            validRequest
         );
 
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.SsoSilent,
-            request.correlationId
+            validRequest.correlationId
         );
 
         ssoSilentMeasurement?.increment({
@@ -207,7 +226,7 @@ export class NestedAppAuthController implements IController {
 
         try {
             const naaRequest =
-                this.nestedAppAuthAdapter.toNaaTokenRequest(request);
+                this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
             const reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.bridgeProxy.getTokenSilent(naaRequest);
 
@@ -392,7 +411,7 @@ export class NestedAppAuthController implements IController {
     handleRedirectPromise(
         hash?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult | null> {
-        throw NestedAppAuthError.createUnsupportedError();
+        return Promise.resolve(null);
     }
     loginPopup(
         request?: PopupRequest | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -500,12 +519,6 @@ export class NestedAppAuthController implements IController {
     }
 
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    preflightBrowserEnvironmentCheck(
-        interactionType: InteractionType, // eslint-disable-line @typescript-eslint/no-unused-vars
-        setInteractionInProgress?: boolean | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): void {
         throw NestedAppAuthError.createUnsupportedError();
     }
 
