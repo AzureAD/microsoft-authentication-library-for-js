@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709833107400,
+  "lastUpdate": 1709945788783,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6072,6 +6072,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.06%",
             "unit": "ops/sec",
             "extra": "225 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f92fc6a8c21bdb4bbc078d4bb84a04fecf363ad9",
+          "message": "Validate that claims and client capabilities are correctly merged (#6923)\n\nApplied the Boy Scout Rule to the ClientCredentialClient and OBO test\r\nfiles to eliminate use of sinon.",
+          "timestamp": "2024-03-08T19:51:08-05:00",
+          "tree_id": "e7062587ff446b0537e080d0f638a67405faac6a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f92fc6a8c21bdb4bbc078d4bb84a04fecf363ad9"
+        },
+        "date": 1709945787789,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 191304,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 192878,
+            "range": "±1.99%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
