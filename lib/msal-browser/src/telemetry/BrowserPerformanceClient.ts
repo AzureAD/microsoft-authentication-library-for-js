@@ -159,14 +159,18 @@ export class BrowserPerformanceClient
         return {
             ...inProgressEvent,
             end: (
-                event?: Partial<PerformanceEvent>
+                event?: Partial<PerformanceEvent>,
+                error?: unknown
             ): PerformanceEvent | null => {
-                const res = inProgressEvent.end({
-                    ...event,
-                    startPageVisibility,
-                    endPageVisibility: this.getPageVisibility(),
-                    durationMs: getPerfDurationMs(startTime),
-                });
+                const res = inProgressEvent.end(
+                    {
+                        ...event,
+                        startPageVisibility,
+                        endPageVisibility: this.getPageVisibility(),
+                        durationMs: getPerfDurationMs(startTime),
+                    },
+                    error
+                );
                 void browserMeasurement?.then((measurement) =>
                     measurement.endMeasurement()
                 );
