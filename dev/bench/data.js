@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709945788783,
+  "lastUpdate": 1710077732293,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6110,6 +6110,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.99%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b7ae3c3d0e395a63f8d9f39b30cc1a568d4cb90f",
+          "message": "Instrument non-auth error name and stack (#6937)\n\n- Instrument non-auth error name and stack in Controllers.\r\n- Add/update telemetry functions to capture non-auth error name and\r\nstack.",
+          "timestamp": "2024-03-10T09:29:55-04:00",
+          "tree_id": "e077f23a73ed0d4f5d35140af5ef4f93c6e36d3e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b7ae3c3d0e395a63f8d9f39b30cc1a568d4cb90f"
+        },
+        "date": 1710077730535,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193327,
+            "range": "±2.07%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 225081,
+            "range": "±1.56%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
