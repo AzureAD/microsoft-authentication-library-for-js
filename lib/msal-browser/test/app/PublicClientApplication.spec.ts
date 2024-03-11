@@ -3577,6 +3577,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(event.success).toBeFalsy();
                     expect(event.errorName).toEqual("Error");
                     expect(event.errorStack?.length).toEqual(5);
+                    expect(event.incompleteSubsCount).toEqual(0);
                     pca.removePerformanceCallback(callbackId);
                     done();
                 }
