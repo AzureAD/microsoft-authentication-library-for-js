@@ -31,10 +31,13 @@ export { ClientApplication } from "./client/ClientApplication.js";
 export { ClientCredentialClient } from "./client/ClientCredentialClient.js";
 export { DeviceCodeClient } from "./client/DeviceCodeClient.js";
 export { OnBehalfOfClient } from "./client/OnBehalfOfClient.js";
+export { ManagedIdentityApplication } from "./client/ManagedIdentityApplication.js";
 export { UsernamePasswordClient } from "./client/UsernamePasswordClient.js";
 
 export {
     Configuration,
+    ManagedIdentityConfiguration,
+    ManagedIdentityIdParams,
     buildAppConfiguration,
     NodeAuthOptions,
     NodeSystemOptions,
@@ -73,6 +76,7 @@ export type { RefreshTokenRequest } from "./request/RefreshTokenRequest.js";
 export type { SilentFlowRequest } from "./request/SilentFlowRequest.js";
 export type { InteractiveRequest } from "./request/InteractiveRequest.js";
 export type { SignOutRequest } from "./request/SignOutRequest.js";
+export type { ManagedIdentityRequestParams } from "./request/ManagedIdentityRequestParams.js";
 
 // Common Object Formats
 export {
