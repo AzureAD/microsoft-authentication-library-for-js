@@ -1,6 +1,6 @@
 # Managed Identity for Azure VM Sample
 
-This sample demonstrates how to use [managed identity via the msal-node library](/lib/msal-node/docs/managed-identity.md) to retrieve tokens for a managed identity application running on an Azure VM, and then use the token to retrieve a secret from a key vault.
+This sample demonstrates how to use [managed identity via the msal-node library](/lib/msal-node/docs/managed-identity.md) to acquire a token for accessing Azure KeyVault, on behalf of a managed identity configured on an Azure VM. The sample then calls the downstream api - it calls KeyVault and retrieves a secret.
 
 ## Note
 
