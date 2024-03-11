@@ -8,6 +8,10 @@ import {
     ManagedIdentityRequestParams,
     NodeSystemOptions,
 } from "@azure/msal-node";
+import { getSecretFromKeyVault } from "./HttpClient";
+
+const KEY_VAULT_NAME: string = "KEY_VAULT_NAME";
+const SECRET_NAME: string = "SECRET_NAME";
 
 const config: ManagedIdentityConfiguration = {
     system: {
@@ -30,32 +34,58 @@ const userAssignedClientIdManagedIdentityApplication: ManagedIdentityApplication
     });
 
 const managedIdentityRequestParams: ManagedIdentityRequestParams = {
-    resource: "https://management.azure.com",
+    resource: "https://vault.azure.net",
 };
 
 // self executing anonymous function, needed for async/await usage
 (async () => {
     // system assigned
+    let systemAssignedTokenResponse: AuthenticationResult;
     try {
-        const tokenResponse: AuthenticationResult =
+        systemAssignedTokenResponse =
             await systemAssignedManagedIdentityApplication.acquireToken(
                 managedIdentityRequestParams
             );
-        console.log(tokenResponse);
     } catch (error) {
-        console.log(error);
+        throw error;
+    }
+
+    try {
+        const secret = await getSecretFromKeyVault(
+            systemAssignedTokenResponse.accessToken,
+            KEY_VAULT_NAME,
+            SECRET_NAME
+        );
+
+        console.log(
+            `(System Assigned) The secret, ${SECRET_NAME}, has a value of: ${secret}`
+        );
+    } catch (error) {
         throw error;
     }
 
     // user assigned client id
+    let userAssignedTokenResponse: AuthenticationResult;
     try {
-        const tokenResponse: AuthenticationResult =
+        userAssignedTokenResponse =
             await userAssignedClientIdManagedIdentityApplication.acquireToken(
                 managedIdentityRequestParams
             );
-        console.log(tokenResponse);
     } catch (error) {
-        console.log(error);
+        throw error;
+    }
+
+    try {
+        const secret = await getSecretFromKeyVault(
+            userAssignedTokenResponse.accessToken,
+            KEY_VAULT_NAME,
+            SECRET_NAME
+        );
+
+        console.log(
+            `(User Assigned) The secret, ${SECRET_NAME}, has a value of: ${secret}`
+        );
+    } catch (error) {
         throw error;
     }
 })();
