@@ -31,7 +31,7 @@ const managedIdentityIdParams: ManagedIdentityIdParams = {
 };
 ```
 
-Additionally, the `KEY_VAULT_NAME` and `SECRET_NAME` values need to be updated.
+Additionally, the `KEY_VAULT_NAME` and `SECRET_NAME` values in index.ts need to be updated.
 
 ```typescript
 const KEY_VAULT_NAME: string = "KEY_VAULT_NAME";
