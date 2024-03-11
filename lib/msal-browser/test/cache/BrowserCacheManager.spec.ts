@@ -130,7 +130,6 @@ describe("BrowserCacheManager tests", () => {
             expect(browserStorage.setItem).not.toBeNull();
             expect(browserStorage.getItem).not.toBeNull();
             expect(browserStorage.removeItem).not.toBeNull();
-            expect(browserStorage.containsKey).not.toBeNull();
             expect(browserStorage.getKeys).not.toBeNull();
             expect(browserStorage.clear).not.toBeNull();
         });
@@ -492,13 +491,6 @@ describe("BrowserCacheManager tests", () => {
             expect(
                 browserSessionStorage.getTemporaryCache("cacheKey", true)
             ).toBeNull();
-        });
-
-        it("containsKey()", () => {
-            browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            browserLocalStorage.setItem(msalCacheKey, cacheVal);
-            expect(browserSessionStorage.containsKey(msalCacheKey)).toBe(true);
-            expect(browserLocalStorage.containsKey(msalCacheKey)).toBe(true);
         });
 
         it("getKeys()", () => {
@@ -1465,8 +1457,6 @@ describe("BrowserCacheManager tests", () => {
                     expect(
                         browserLocalStorage.getAuthorityMetadata(key)
                     ).toEqual(testObj);
-                    expect(browserSessionStorage.containsKey(key)).toBe(false);
-                    expect(browserLocalStorage.containsKey(key)).toBe(false);
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
@@ -1574,22 +1564,6 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(testVal);
                 });
             });
-
-            describe("RedirectRequestContext", () => {
-                it("Returns redirect request context as null if context not set in browser cache", () => {
-                    expect(
-                        browserSessionStorage.getRedirectRequestContext()
-                    ).toEqual(null);
-                });
-
-                it("Returns redirect request context if context set in browser cache", () => {
-                    const testVal = "testId";
-                    browserSessionStorage.setRedirectRequestContext(testVal);
-                    expect(
-                        browserSessionStorage.getRedirectRequestContext()
-                    ).toEqual(testVal);
-                });
-            });
         });
     });
 
@@ -1678,13 +1652,6 @@ describe("BrowserCacheManager tests", () => {
             expect(
                 browserSessionStorage.getTemporaryCache("cacheKey", true)
             ).toBeNull();
-        });
-
-        it("containsKey()", () => {
-            browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            browserLocalStorage.setItem(msalCacheKey, cacheVal);
-            expect(browserSessionStorage.containsKey(msalCacheKey)).toBe(true);
-            expect(browserLocalStorage.containsKey(msalCacheKey)).toBe(true);
         });
 
         it("clear()", async () => {
@@ -2366,8 +2333,6 @@ describe("BrowserCacheManager tests", () => {
                     expect(
                         browserLocalStorage.getAuthorityMetadata(key)
                     ).toEqual(testObj);
-                    expect(browserSessionStorage.containsKey(key)).toBe(false);
-                    expect(browserLocalStorage.containsKey(key)).toBe(false);
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
@@ -2472,22 +2437,6 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(testVal);
                 });
             });
-
-            describe("RedirectRequestContext", () => {
-                it("Returns redirect request context as null if context not set in browser cache", () => {
-                    expect(
-                        browserSessionStorage.getRedirectRequestContext()
-                    ).toEqual(null);
-                });
-
-                it("Returns redirect request context if context set in browser cache", () => {
-                    const testVal = "testId";
-                    browserSessionStorage.setRedirectRequestContext(testVal);
-                    expect(
-                        browserSessionStorage.getRedirectRequestContext()
-                    ).toEqual(testVal);
-                });
-            });
         });
     });
 
@@ -2578,26 +2527,26 @@ describe("BrowserCacheManager tests", () => {
             expect(getCookieSpy.calledThrice).toBe(true);
         });
 
-        it("removeItem()", () => {
+        it("removeTemporaryItem()", () => {
             const clearCookieSpy = sinon.spy(
                 BrowserCacheManager.prototype,
                 "clearItemCookie"
             );
             // sessionStorage
             browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            browserSessionStorage.removeItem(msalCacheKey);
+            browserSessionStorage.removeTemporaryItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
             expect(clearCookieSpy.calledOnce).toBe(true);
             // localStorage
             browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            browserLocalStorage.removeItem(msalCacheKey);
+            browserLocalStorage.removeTemporaryItem(msalCacheKey);
             expect(window.localStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
             expect(clearCookieSpy.calledTwice).toBe(true);
             // browser memory
             browserMemoryStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            browserMemoryStorage.removeItem(msalCacheKey);
+            browserMemoryStorage.removeTemporaryItem(msalCacheKey);
             expect(browserMemoryStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
             expect(clearCookieSpy.calledThrice).toBe(true);
@@ -2679,7 +2628,7 @@ describe("BrowserCacheManager tests", () => {
             expect(getCookieSpy.calledThrice).toBe(true);
         });
 
-        it("removeItem() with item that contains ==", () => {
+        it("removeTemporaryItem() with item that contains ==", () => {
             msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
             const clearCookieSpy = sinon.spy(
                 BrowserCacheManager.prototype,
@@ -2687,19 +2636,19 @@ describe("BrowserCacheManager tests", () => {
             );
             // sessionStorage
             browserSessionStorage.setTemporaryCache(msalCacheKey, cacheVal);
-            browserSessionStorage.removeItem(msalCacheKey);
+            browserSessionStorage.removeTemporaryItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
             expect(clearCookieSpy.calledOnce).toBe(true);
             // localStorage
             browserLocalStorage.setItem(msalCacheKey, cacheVal);
-            browserLocalStorage.removeItem(msalCacheKey);
+            browserLocalStorage.removeTemporaryItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
             expect(clearCookieSpy.calledTwice).toBe(true);
             // browser memory
             browserMemoryStorage.setTemporaryCache(msalCacheKey, cacheVal);
-            browserMemoryStorage.removeItem(msalCacheKey);
+            browserMemoryStorage.removeTemporaryItem(msalCacheKey);
             expect(browserMemoryStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
             expect(clearCookieSpy.calledThrice).toBe(true);

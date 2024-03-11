@@ -5,5 +5,5 @@
 
 module.exports = {
     displayName: "Client Credentials",
-    preset: "../../e2eTestUtils/jest-puppeteer-utils/jest-preset-no-setup.js"
+    preset: "../../e2eTestUtils/jest-puppeteer-utils/jest-preset-no-setup.js",
 };

@@ -218,12 +218,6 @@ export abstract class CacheManager implements ICacheManager {
     abstract removeItem(key: string): void;
 
     /**
-     * Function which returns boolean whether cache contains a specific key.
-     * @param key
-     */
-    abstract containsKey(key: string, type?: string): boolean;
-
-    /**
      * Function which retrieves all current keys from the cache.
      */
     abstract getKeys(): string[];
@@ -861,21 +855,6 @@ export abstract class CacheManager implements ICacheManager {
      * @param filter
      */
     getAppMetadataFilteredBy(filter: AppMetadataFilter): AppMetadataCache {
-        return this.getAppMetadataFilteredByInternal(
-            filter.environment,
-            filter.clientId
-        );
-    }
-
-    /**
-     * Support function to help match appMetadata
-     * @param environment
-     * @param clientId
-     */
-    private getAppMetadataFilteredByInternal(
-        environment?: string,
-        clientId?: string
-    ): AppMetadataCache {
         const allCacheKeys = this.getKeys();
         const matchingAppMetadata: AppMetadataCache = {};
 
@@ -892,11 +871,17 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (!!environment && !this.matchEnvironment(entity, environment)) {
+            if (
+                !!filter.environment &&
+                !this.matchEnvironment(entity, filter.environment)
+            ) {
                 return;
             }
 
-            if (!!clientId && !this.matchClientId(entity, clientId)) {
+            if (
+                !!filter.clientId &&
+                !this.matchClientId(entity, filter.clientId)
+            ) {
                 return;
             }
 
@@ -1980,9 +1965,6 @@ export class DefaultStorageClass extends CacheManager {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     removeItem(): boolean {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
-    }
-    containsKey(): boolean {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getKeys(): string[] {

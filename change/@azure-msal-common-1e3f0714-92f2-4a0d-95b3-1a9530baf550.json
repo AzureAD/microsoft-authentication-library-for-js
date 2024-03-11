@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Minor cache cleanup",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
