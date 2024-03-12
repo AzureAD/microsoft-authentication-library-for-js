@@ -19,10 +19,115 @@ import {
 } from "./PerformanceEvent";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { StubPerformanceMeasurement } from "./StubPerformanceClient";
+import { AuthError } from "../../error/AuthError";
 
 export interface PreQueueEvent {
     name: PerformanceEvents;
     time: number;
+}
+
+/**
+ * Adds error name and stack trace to the telemetry event
+ * @param error {Error}
+ * @param logger {Logger}
+ * @param event {PerformanceEvent}
+ * @param stackMaxSize {number} max error stack size to capture
+ */
+export function addError(
+    error: unknown,
+    logger: Logger,
+    event: PerformanceEvent,
+    stackMaxSize: number = 5
+): void {
+    if (!(error instanceof Error)) {
+        logger.trace(
+            "PerformanceClient.addErrorStack: Input error is not instance of Error",
+            event.correlationId
+        );
+        return;
+    } else if (error instanceof AuthError) {
+        event.errorCode = error.errorCode;
+        event.subErrorCode = error.subError;
+        return;
+    } else if (event.errorStack?.length) {
+        logger.trace(
+            "PerformanceClient.addErrorStack: Stack already exist",
+            event.correlationId
+        );
+        return;
+    } else if (!error.stack?.length) {
+        logger.trace(
+            "PerformanceClient.addErrorStack: Input stack is empty",
+            event.correlationId
+        );
+        return;
+    }
+
+    if (error.stack) {
+        event.errorStack = compactStack(error.stack, stackMaxSize);
+    }
+    event.errorName = error.name;
+}
+
+/**
+ * Compacts error stack into array by fetching N first entries
+ * @param stack {string} error stack
+ * @param stackMaxSize {number} max error stack size to capture
+ * @returns {string[]}
+ */
+export function compactStack(stack: string, stackMaxSize: number): string[] {
+    if (stackMaxSize < 0) {
+        return [];
+    }
+
+    const stackArr = stack.split("\n") || [];
+    if (stackArr.length < 2) {
+        return [];
+    }
+
+    const res = [];
+    // Get top N stack lines
+    for (
+        // Skip first line as it may contain PII data
+        let ix = Math.max(stackArr.length - stackMaxSize - 1, 1);
+        ix < stackArr.length;
+        ix++
+    ) {
+        const line = stackArr[ix];
+        if (res.length >= stackMaxSize) {
+            break;
+        }
+        res.push(compactStackLine(line));
+    }
+    return res;
+}
+
+/**
+ * Compacts error stack line by shortening file path
+ * Example: https://localhost/msal-common/src/authority/Authority.js:100:1 -> Authority.js:100:1
+ * @param line {string} stack line
+ * @returns {string}
+ */
+export function compactStackLine(line: string): string {
+    const filePathIx = line.lastIndexOf(" ") + 1;
+    if (filePathIx < 1) {
+        return line;
+    }
+    const filePath = line.substring(filePathIx);
+
+    let fileNameIx = filePath.lastIndexOf("/");
+    fileNameIx = fileNameIx < 0 ? filePath.lastIndexOf("\\") : fileNameIx;
+
+    if (fileNameIx >= 0) {
+        return (
+            line.substring(0, filePathIx) +
+            "(" +
+            filePath.substring(fileNameIx + 1) +
+            (filePath.charAt(filePath.length - 1) === ")" ? "" : ")")
+        ).trimStart();
+    }
+
+    return line.trimStart();
 }
 
 export abstract class PerformanceClient implements IPerformanceClient {
@@ -296,14 +401,18 @@ export abstract class PerformanceClient implements IPerformanceClient {
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
             end: (
-                event?: Partial<PerformanceEvent>
+                event?: Partial<PerformanceEvent>,
+                error?: unknown
             ): PerformanceEvent | null => {
-                return this.endMeasurement({
-                    // Initial set of event properties
-                    ...inProgressEvent,
-                    // Properties set when event ends
-                    ...event,
-                });
+                return this.endMeasurement(
+                    {
+                        // Initial set of event properties
+                        ...inProgressEvent,
+                        // Properties set when event ends
+                        ...event,
+                    },
+                    error
+                );
             },
             discard: () => {
                 return this.discardMeasurements(inProgressEvent.correlationId);
@@ -329,10 +438,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * otherwise.
      *
      * @param {PerformanceEvent} event
-     * @param {IPerformanceMeasurement} measurement
+     * @param {unknown} error
      * @returns {(PerformanceEvent | null)}
      */
-    endMeasurement(event: PerformanceEvent): PerformanceEvent | null {
+    endMeasurement(
+        event: PerformanceEvent,
+        error?: unknown
+    ): PerformanceEvent | null {
         const rootEvent: PerformanceEvent | undefined =
             this.eventsByCorrelationId.get(event.correlationId);
         if (!rootEvent) {
@@ -367,6 +479,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         if (!isRoot) {
             rootEvent[event.name + "DurationMs"] = Math.floor(durationMs);
             return { ...rootEvent };
+        }
+
+        if (error) {
+            addError(error, this.logger, rootEvent);
         }
 
         let finalEvent: PerformanceEvent = { ...rootEvent, ...event };
