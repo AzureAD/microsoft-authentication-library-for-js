@@ -2,6 +2,85 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 13 Mar 2024 16:30:46 GMT",
+      "version": "3.10.1-beta.0",
+      "tag": "@azure/msal-browser_v3.10.1-beta.0",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9fe3e5f87feebdd9030e25e79213138f1d142168",
+            "comment": "Mark package for prerelease (beta)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6bd770d16fa11688ad3ea2a42f5ed82c67632553",
+            "comment": "Fix AcquireTokenSilentAsync sub-measurement instrumentation #6947"
+          },
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6bd770d16fa11688ad3ea2a42f5ed82c67632553",
+            "comment": "Fix compatibility issue with Nested App Auth and msal-react (#6892)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6bd770d16fa11688ad3ea2a42f5ed82c67632553",
+            "comment": "Export IPerformanceClient and StubPerformanceClient"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6bd770d16fa11688ad3ea2a42f5ed82c67632553",
+            "comment": "Internal refactor of async storage"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6bd770d16fa11688ad3ea2a42f5ed82c67632553",
+            "comment": "Minor cache cleanup"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6bd770d16fa11688ad3ea2a42f5ed82c67632553",
+            "comment": "Instrument non-auth error name and stack #6937"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6bd770d16fa11688ad3ea2a42f5ed82c67632553",
+            "comment": "Move preflightBrowserEnvironmentCheck to BrowserUtils"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.7.2-beta.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 17 Feb 2024 01:49:05 GMT",
       "version": "3.10.0",
       "tag": "@azure/msal-browser_v3.10.0",

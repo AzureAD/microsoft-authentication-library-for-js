@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Sat, 17 Feb 2024 01:49:05 GMT and should not be manually modified.
+This log was last generated on Wed, 13 Mar 2024 16:30:46 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.6.5-beta.0
+
+Wed, 13 Mar 2024 16:30:46 GMT
+
+### Changes
+
+- Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v14.7.2-beta.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.6.4
 

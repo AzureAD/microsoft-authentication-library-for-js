@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Sat, 17 Feb 2024 01:49:05 GMT and should not be manually modified.
+This log was last generated on Wed, 13 Mar 2024 16:30:46 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.7.2-beta.0
+
+Wed, 13 Mar 2024 16:30:46 GMT
+
+### Minor changes
+
+- Instrument non-auth error name and stack #6937 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Minor cache cleanup (thomas.norling@microsoft.com)
+- Append default scopes for the cache lookup #6909 (kshabelko@microsoft.com)
+
+### Changes
+
+- Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
 
 ## 14.7.1
 

@@ -2,6 +2,41 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 13 Mar 2024 16:30:46 GMT",
+      "version": "2.6.5-beta.0",
+      "tag": "@azure/msal-node_v2.6.5-beta.0",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "9fe3e5f87feebdd9030e25e79213138f1d142168",
+            "comment": "Mark package for prerelease (beta)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.7.2-beta.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "6bd770d16fa11688ad3ea2a42f5ed82c67632553",
+            "comment": "Created unit tests to validate that claims and client capabilities are correctly merged"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 17 Feb 2024 01:49:05 GMT",
       "version": "2.6.4",
       "tag": "@azure/msal-node_v2.6.4",

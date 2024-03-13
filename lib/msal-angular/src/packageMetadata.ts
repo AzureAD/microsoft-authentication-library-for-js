@@ -1,3 +1,3 @@
 /* eslint-disable header/header */
 export const name = "@azure/msal-angular";
-export const version = "3.0.13";
+export const version = "3.0.14-beta.0";

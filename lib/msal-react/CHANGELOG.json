@@ -2,6 +2,33 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Wed, 13 Mar 2024 16:30:46 GMT",
+      "version": "2.0.13-beta.0",
+      "tag": "@azure/msal-react_v2.0.13-beta.0",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "9fe3e5f87feebdd9030e25e79213138f1d142168",
+            "comment": "Mark package for prerelease (beta)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v3.10.1-beta.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 17 Feb 2024 01:49:06 GMT",
       "version": "2.0.12",
       "tag": "@azure/msal-react_v2.0.12",
