@@ -29,7 +29,13 @@ export interface PreQueueEvent {
     time: number;
 }
 
-export function addContext(
+/**
+ * Starts context by adding payload to the stack
+ * @param event {PerformanceEvent}
+ * @param abbreviations {Map<string, string>} event name abbreviations
+ * @param stack {?PerformanceEventStackedContext[]} stack
+ */
+export function startContext(
     event: PerformanceEvent,
     abbreviations: Map<string, string>,
     stack?: PerformanceEventStackedContext[]
@@ -43,6 +49,13 @@ export function addContext(
     });
 }
 
+/**
+ * Ends context by removing payload from the stack and returning parent or self, if stack is empty, payload
+ *
+ * @param event {PerformanceEvent}
+ * @param abbreviations {Map<string, string>} event name abbreviations
+ * @param stack {?PerformanceEventStackedContext[]} stack
+ */
 export function endContext(
     event: PerformanceEvent,
     abbreviations: Map<string, string>,
@@ -485,7 +498,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Store in progress events so they can be discarded if not ended properly
         this.cacheEventByCorrelationId(inProgressEvent);
-        addContext(
+        startContext(
             inProgressEvent,
             this.abbreviations,
             this.eventStack.get(eventCorrelationId)
