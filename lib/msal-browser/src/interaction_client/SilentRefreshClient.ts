@@ -20,6 +20,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { initializeBaseRequest } from "../request/RequestHelpers";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**
@@ -35,12 +36,12 @@ export class SilentRefreshClient extends StandardInteractionClient {
         );
 
         const baseRequest = await invokeAsync(
-            this.initializeBaseRequest.bind(this),
+            initializeBaseRequest,
             PerformanceEvents.InitializeBaseRequest,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request);
+        )(request, this.config, this.performanceClient, this.logger);
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...baseRequest,
