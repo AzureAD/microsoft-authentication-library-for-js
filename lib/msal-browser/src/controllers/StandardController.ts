@@ -331,7 +331,6 @@ export class StandardController implements IController {
         // Block token acquisition before initialize has been called
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
 
-        const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
             /**
              * Store the promise on the PublicClientApplication instance if this is the first invocation of handleRedirectPromise,
@@ -341,155 +340,11 @@ export class StandardController implements IController {
             const redirectResponseKey = hash || "";
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
-                const request: NativeTokenRequest | null =
-                    this.browserStorage.getCachedNativeRequest();
-                const useNative =
-                    request &&
-                    NativeMessageHandler.isNativeAvailable(
-                        this.config,
-                        this.logger,
-                        this.nativeExtensionProvider
-                    ) &&
-                    this.nativeExtensionProvider &&
-                    !hash;
-                const correlationId = useNative
-                    ? request?.correlationId
-                    : this.browserStorage.getTemporaryCache(
-                          TemporaryCacheKeys.CORRELATION_ID,
-                          true
-                      ) || "";
-                const rootMeasurement = this.performanceClient.startMeasurement(
-                    "acquireTokenRedirect",
-                    correlationId
-                );
-                this.eventHandler.emitEvent(
-                    EventType.HANDLE_REDIRECT_START,
-                    InteractionType.Redirect
-                );
+                response = this.handleRedirectPromiseInternal(hash);
+                this.redirectResponse.set(redirectResponseKey, response);
                 this.logger.verbose(
                     "handleRedirectPromise has been called for the first time, storing the promise"
                 );
-                let redirectResponse: Promise<AuthenticationResult | null>;
-                if (useNative && this.nativeExtensionProvider) {
-                    this.logger.trace(
-                        "handleRedirectPromise - acquiring token from native platform"
-                    );
-                    const nativeClient = new NativeInteractionClient(
-                        this.config,
-                        this.browserStorage,
-                        this.browserCrypto,
-                        this.logger,
-                        this.eventHandler,
-                        this.navigationClient,
-                        ApiId.handleRedirectPromise,
-                        this.performanceClient,
-                        this.nativeExtensionProvider,
-                        request.accountId,
-                        this.nativeInternalStorage,
-                        request.correlationId
-                    );
-
-                    redirectResponse = invokeAsync(
-                        nativeClient.handleRedirectPromise.bind(nativeClient),
-                        PerformanceEvents.HandleNativeRedirectPromiseMeasurement,
-                        this.logger,
-                        this.performanceClient,
-                        rootMeasurement.event.correlationId
-                    )(
-                        this.performanceClient,
-                        rootMeasurement.event.correlationId
-                    );
-                } else {
-                    this.logger.trace(
-                        "handleRedirectPromise - acquiring token from web flow"
-                    );
-                    const redirectClient =
-                        this.createRedirectClient(correlationId);
-                    redirectResponse = invokeAsync(
-                        redirectClient.handleRedirectPromise.bind(
-                            redirectClient
-                        ),
-                        PerformanceEvents.HandleRedirectPromiseMeasurement,
-                        this.logger,
-                        this.performanceClient,
-                        rootMeasurement.event.correlationId
-                    )(
-                        hash,
-                        this.performanceClient,
-                        rootMeasurement.event.correlationId
-                    );
-                }
-
-                response = redirectResponse
-                    .then((result: AuthenticationResult | null) => {
-                        if (result) {
-                            // Emit login event if number of accounts change
-
-                            const isLoggingIn =
-                                loggedInAccounts.length <
-                                this.getAllAccounts().length;
-                            if (isLoggingIn) {
-                                this.eventHandler.emitEvent(
-                                    EventType.LOGIN_SUCCESS,
-                                    InteractionType.Redirect,
-                                    result
-                                );
-                                this.logger.verbose(
-                                    "handleRedirectResponse returned result, login success"
-                                );
-                            } else {
-                                this.eventHandler.emitEvent(
-                                    EventType.ACQUIRE_TOKEN_SUCCESS,
-                                    InteractionType.Redirect,
-                                    result
-                                );
-                                this.logger.verbose(
-                                    "handleRedirectResponse returned result, acquire token success"
-                                );
-                            }
-                            rootMeasurement.end({ success: true });
-                        }
-                        this.eventHandler.emitEvent(
-                            EventType.HANDLE_REDIRECT_END,
-                            InteractionType.Redirect
-                        );
-                        rootMeasurement.end({ success: false });
-
-                        return result;
-                    })
-                    .catch((e) => {
-                        const eventError = e as EventError;
-                        // Emit login event if there is an account
-                        if (loggedInAccounts.length > 0) {
-                            this.eventHandler.emitEvent(
-                                EventType.ACQUIRE_TOKEN_FAILURE,
-                                InteractionType.Redirect,
-                                null,
-                                eventError
-                            );
-                        } else {
-                            this.eventHandler.emitEvent(
-                                EventType.LOGIN_FAILURE,
-                                InteractionType.Redirect,
-                                null,
-                                eventError
-                            );
-                        }
-                        this.eventHandler.emitEvent(
-                            EventType.HANDLE_REDIRECT_END,
-                            InteractionType.Redirect
-                        );
-
-                        rootMeasurement.end(
-                            {
-                                success: false,
-                            },
-                            eventError
-                        );
-
-                        throw e;
-                    });
-                this.redirectResponse.set(redirectResponseKey, response);
             } else {
                 this.logger.verbose(
                     "handleRedirectPromise has been called previously, returning the result from the first call"
@@ -502,6 +357,156 @@ export class StandardController implements IController {
             "handleRedirectPromise returns null, not browser environment"
         );
         return null;
+    }
+
+    /**
+     * The internal details of handleRedirectPromise. This is separated out to a helper to allow handleRedirectPromise to memoize requests
+     * @param hash
+     * @returns
+     */
+    private async handleRedirectPromiseInternal(
+        hash?: string
+    ): Promise<AuthenticationResult | null> {
+        const loggedInAccounts = this.getAllAccounts();
+        const request: NativeTokenRequest | null =
+            this.browserStorage.getCachedNativeRequest();
+        const useNative =
+            request &&
+            NativeMessageHandler.isNativeAvailable(
+                this.config,
+                this.logger,
+                this.nativeExtensionProvider
+            ) &&
+            this.nativeExtensionProvider &&
+            !hash;
+        const correlationId = useNative
+            ? request?.correlationId
+            : this.browserStorage.getTemporaryCache(
+                  TemporaryCacheKeys.CORRELATION_ID,
+                  true
+              ) || "";
+        const rootMeasurement = this.performanceClient.startMeasurement(
+            "acquireTokenRedirect",
+            correlationId
+        );
+        this.eventHandler.emitEvent(
+            EventType.HANDLE_REDIRECT_START,
+            InteractionType.Redirect
+        );
+
+        let redirectResponse: Promise<AuthenticationResult | null>;
+        if (useNative && this.nativeExtensionProvider) {
+            this.logger.trace(
+                "handleRedirectPromise - acquiring token from native platform"
+            );
+            const nativeClient = new NativeInteractionClient(
+                this.config,
+                this.browserStorage,
+                this.browserCrypto,
+                this.logger,
+                this.eventHandler,
+                this.navigationClient,
+                ApiId.handleRedirectPromise,
+                this.performanceClient,
+                this.nativeExtensionProvider,
+                request.accountId,
+                this.nativeInternalStorage,
+                request.correlationId
+            );
+
+            redirectResponse = invokeAsync(
+                nativeClient.handleRedirectPromise.bind(nativeClient),
+                PerformanceEvents.HandleNativeRedirectPromiseMeasurement,
+                this.logger,
+                this.performanceClient,
+                rootMeasurement.event.correlationId
+            )(this.performanceClient, rootMeasurement.event.correlationId);
+        } else {
+            this.logger.trace(
+                "handleRedirectPromise - acquiring token from web flow"
+            );
+            const redirectClient = this.createRedirectClient(correlationId);
+            redirectResponse = invokeAsync(
+                redirectClient.handleRedirectPromise.bind(redirectClient),
+                PerformanceEvents.HandleRedirectPromiseMeasurement,
+                this.logger,
+                this.performanceClient,
+                rootMeasurement.event.correlationId
+            )(
+                hash,
+                this.performanceClient,
+                rootMeasurement.event.correlationId
+            );
+        }
+
+        return redirectResponse
+            .then((result: AuthenticationResult | null) => {
+                if (result) {
+                    // Emit login event if number of accounts change
+
+                    const isLoggingIn =
+                        loggedInAccounts.length < this.getAllAccounts().length;
+                    if (isLoggingIn) {
+                        this.eventHandler.emitEvent(
+                            EventType.LOGIN_SUCCESS,
+                            InteractionType.Redirect,
+                            result
+                        );
+                        this.logger.verbose(
+                            "handleRedirectResponse returned result, login success"
+                        );
+                    } else {
+                        this.eventHandler.emitEvent(
+                            EventType.ACQUIRE_TOKEN_SUCCESS,
+                            InteractionType.Redirect,
+                            result
+                        );
+                        this.logger.verbose(
+                            "handleRedirectResponse returned result, acquire token success"
+                        );
+                    }
+                    rootMeasurement.end({ success: true });
+                }
+                this.eventHandler.emitEvent(
+                    EventType.HANDLE_REDIRECT_END,
+                    InteractionType.Redirect
+                );
+                rootMeasurement.end({ success: false });
+
+                return result;
+            })
+            .catch((e) => {
+                const eventError = e as EventError;
+                // Emit login event if there is an account
+                if (loggedInAccounts.length > 0) {
+                    this.eventHandler.emitEvent(
+                        EventType.ACQUIRE_TOKEN_FAILURE,
+                        InteractionType.Redirect,
+                        null,
+                        eventError
+                    );
+                } else {
+                    this.eventHandler.emitEvent(
+                        EventType.LOGIN_FAILURE,
+                        InteractionType.Redirect,
+                        null,
+                        eventError
+                    );
+                }
+                this.eventHandler.emitEvent(
+                    EventType.HANDLE_REDIRECT_END,
+                    InteractionType.Redirect
+                );
+
+                rootMeasurement.end(
+                    {
+                        success: false,
+                    },
+                    eventError
+                );
+
+                throw e;
+            });
     }
 
     /**
