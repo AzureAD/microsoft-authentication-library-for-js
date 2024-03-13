@@ -31,6 +31,7 @@ export interface PreQueueEvent {
 
 export function addContext(
     event: PerformanceEvent,
+    abbreviations: Map<string, string>,
     stack?: PerformanceEventStackedContext[]
 ): void {
     if (!stack) {
@@ -38,12 +39,13 @@ export function addContext(
     }
 
     stack.push({
-        name: performanceEventAbbreviations.get(event.name) || event.name,
+        name: abbreviations.get(event.name) || event.name,
     });
 }
 
 export function endContext(
     event: PerformanceEvent,
+    abbreviations: Map<string, string>,
     stack?: PerformanceEventStackedContext[]
 ): PerformanceEventContext | undefined {
     if (!stack?.length) {
@@ -54,8 +56,7 @@ export function endContext(
         return stack.length ? stack[stack.length - 1] : undefined;
     };
 
-    const eventShortName =
-        performanceEventAbbreviations.get(event.name) || event.name;
+    const eventShortName = abbreviations.get(event.name) || event.name;
     const top = peek(stack);
     if (top?.name !== eventShortName) {
         return;
@@ -229,9 +230,21 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     protected queueMeasurements: Map<string, Array<QueueMeasurement>>;
 
+    protected intFields: Set<string>;
+
+    /**
+     * Map of stacked events by correlation id.
+     *
+     * @protected
+     */
     protected eventStack: Map<string, PerformanceEventStackedContext[]>;
 
-    protected intFields: Set<string>;
+    /**
+     * Event name abbreviations
+     *
+     * @protected
+     */
+    protected abbreviations: Map<string, string>;
 
     /**
      * Creates an instance of PerformanceClient,
@@ -245,6 +258,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} libraryVersion Version of the library
      * @param {ApplicationTelemetry} applicationTelemetry application name and version
      * @param {Set<String>} intFields integer fields to be truncated
+     * @param {Map<string, string>} abbreviations event name abbreviations
      */
     constructor(
         clientId: string,
@@ -253,7 +267,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         libraryName: string,
         libraryVersion: string,
         applicationTelemetry: ApplicationTelemetry,
-        intFields?: Set<string>
+        intFields?: Set<string>,
+        abbreviations?: Map<string, string>
     ) {
         this.authority = authority;
         this.libraryName = libraryName;
@@ -270,6 +285,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
         for (const item of IntFields) {
             this.intFields.add(item);
         }
+        this.abbreviations = abbreviations?.size
+            ? abbreviations
+            : performanceEventAbbreviations;
     }
 
     /**
@@ -467,7 +485,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Store in progress events so they can be discarded if not ended properly
         this.cacheEventByCorrelationId(inProgressEvent);
-        addContext(inProgressEvent, this.eventStack.get(eventCorrelationId));
+        addContext(
+            inProgressEvent,
+            this.abbreviations,
+            this.eventStack.get(eventCorrelationId)
+        );
 
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
@@ -535,6 +557,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         const context = endContext(
             event,
+            this.abbreviations,
             this.eventStack.get(rootEvent.correlationId)
         );
 
