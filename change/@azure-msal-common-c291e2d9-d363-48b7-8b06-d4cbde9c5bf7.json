@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Mark package for prerelease (beta)",
+  "packageName": "@azure/msal-common",
+  "email": "msaljsbuilds@microsoft.com",
+  "dependentChangeType": "patch"
+}
