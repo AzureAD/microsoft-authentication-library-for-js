@@ -309,16 +309,19 @@ export const performanceEventAbbreviations: Map<string, string> = new Map([
     [PerformanceEvents.AcquireTokenRedirect, "ATRedirect"],
     [PerformanceEvents.CryptoOptsGetPublicKeyThumbprint, "CryptoGetPKThumb"],
     [PerformanceEvents.CryptoOptsSignJwt, "CryptoSignJwt"],
-    [PerformanceEvents.SilentCacheClientAcquireToken, "SilCacheClientAT"],
-    [PerformanceEvents.SilentIframeClientAcquireToken, "SilIframeClientAT"],
-    [PerformanceEvents.SilentRefreshClientAcquireToken, "SilRefreshClientAT"],
-    [PerformanceEvents.SsoSilent, "SsoSilent"],
+    [PerformanceEvents.SilentCacheClientAcquireToken, "SltCacheClientAT"],
+    [PerformanceEvents.SilentIframeClientAcquireToken, "SltIframeClientAT"],
+    [PerformanceEvents.SilentRefreshClientAcquireToken, "SltRClientAT"],
+    [PerformanceEvents.SsoSilent, "SsoSlt"],
     [
         PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-        "StIntClientGetDiscAuth",
+        "StdIntClientGetDiscAuth",
     ],
-    [PerformanceEvents.FetchAccountIdWithNativeBroker, "FetchAccIdWithNBroker"],
-    [PerformanceEvents.NativeInteractionClientAcquireToken, "NIntClientAT"],
+    [
+        PerformanceEvents.FetchAccountIdWithNativeBroker,
+        "FetchAccIdWithNtvBroker",
+    ],
+    [PerformanceEvents.NativeInteractionClientAcquireToken, "NtvIntClientAT"],
     [
         PerformanceEvents.BaseClientCreateTokenRequestHeaders,
         "BaseClientCreateTReqHead",
@@ -336,7 +339,7 @@ export const performanceEventAbbreviations: Map<string, string> = new Map([
     [PerformanceEvents.AcquireTokenByBroker, "ATByBroker"],
     [
         PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
-        "RTClientExecTokenReq",
+        "RTClientExecTReq",
     ],
     [PerformanceEvents.RefreshTokenClientAcquireToken, "RTClientAT"],
     [
@@ -364,7 +367,7 @@ export const performanceEventAbbreviations: Map<string, string> = new Map([
     [PerformanceEvents.InitializeBaseRequest, "InitBaseReq"],
     [PerformanceEvents.InitializeSilentRequest, "InitSilReq"],
     [PerformanceEvents.InitializeClientApplication, "InitClientApplication"],
-    [PerformanceEvents.SilentIframeClientTokenHelper, "SIClientTokenHelper"],
+    [PerformanceEvents.SilentIframeClientTokenHelper, "SIClientTHelper"],
     [PerformanceEvents.SilentHandlerInitiateAuthRequest, "SHandlerInitAuthReq"],
     [
         PerformanceEvents.SilentHandlerMonitorIframeForHash,
@@ -375,36 +378,36 @@ export const performanceEventAbbreviations: Map<string, string> = new Map([
 
     [
         PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-        "StIntClientCreateAuthCodeClient",
+        "StdIntClientCreateAuthCodeClient",
     ],
     [
         PerformanceEvents.StandardInteractionClientGetClientConfiguration,
-        "StIntClientGetClientConf",
+        "StdIntClientGetClientConf",
     ],
     [
         PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-        "StIntClientInitAuthReq",
+        "StdIntClientInitAuthReq",
     ],
     [
         PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-        "StIntClientInitAuthCodeReq",
+        "StdIntClientInitAuthCodeReq",
     ],
 
     [PerformanceEvents.GetAuthCodeUrl, "GetAuthCodeUrl"],
 
     [PerformanceEvents.HandleCodeResponseFromServer, "HandleCodeResFromServer"],
     [PerformanceEvents.HandleCodeResponse, "HandleCodeResp"],
-    [PerformanceEvents.UpdateTokenEndpointAuthority, "UpdTokenEndpointAuth"],
+    [PerformanceEvents.UpdateTokenEndpointAuthority, "UpdTEndpointAuth"],
 
     [PerformanceEvents.AuthClientAcquireToken, "AuthClientAT"],
-    [PerformanceEvents.AuthClientExecuteTokenRequest, "AuthClientExecTokenReq"],
+    [PerformanceEvents.AuthClientExecuteTokenRequest, "AuthClientExecTReq"],
     [
         PerformanceEvents.AuthClientCreateTokenRequestBody,
         "AuthClientCreateTReqBody",
     ],
     [PerformanceEvents.AuthClientCreateQueryString, "AuthClientCreateQueryStr"],
-    [PerformanceEvents.PopTokenGenerateCnf, "PopTokenGenerateCnf"],
-    [PerformanceEvents.PopTokenGenerateKid, "PopTokenGenerateKid"],
+    [PerformanceEvents.PopTokenGenerateCnf, "PopTGenCnf"],
+    [PerformanceEvents.PopTokenGenerateKid, "PopTGenKid"],
     [PerformanceEvents.HandleServerTokenResponse, "HandleServerTRes"],
     [PerformanceEvents.DeserializeResponse, "DeserializeRes"],
     [
@@ -457,15 +460,12 @@ export const performanceEventAbbreviations: Map<string, string> = new Map([
     ],
     [
         PerformanceEvents.HandleNativeRedirectPromiseMeasurement,
-        "HandleNRedirectPromise",
+        "HandleNtvRedirectPromise",
     ],
     [PerformanceEvents.UpdateCloudDiscoveryMetadataMeasurement, "UpdateCDMeta"],
     [PerformanceEvents.UsernamePasswordClientAcquireToken, "UserPassClientAT"],
-    [
-        PerformanceEvents.NativeMessageHandlerHandshake,
-        "NativeMsgHandlerHandshake",
-    ],
-    [PerformanceEvents.NativeGenerateAuthResult, "NativeGenAuthRes"],
+    [PerformanceEvents.NativeMessageHandlerHandshake, "NtvMsgHandlerHandshake"],
+    [PerformanceEvents.NativeGenerateAuthResult, "NtvGenAuthRes"],
     [PerformanceEvents.RemoveHiddenIframe, "RemoveHiddenIframe"],
     [PerformanceEvents.ClearTokensAndKeysWithClaims, "ClearTAndKeysWithClaims"],
     [PerformanceEvents.CacheManagerGetRefreshToken, "CacheManagerGetRT"],
@@ -755,12 +755,17 @@ export type PerformanceEvent = {
 
     errorName?: string;
     errorStack?: string[];
+
+    //
     context?: object;
 };
 
 export type PerformanceEventContext = {
-    d?: number;
+    dur?: number;
     err?: number;
+};
+
+export type PerformanceEventStackedContext = PerformanceEventContext & {
     name?: string;
 };
 

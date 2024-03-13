@@ -17,6 +17,7 @@ import {
     performanceEventAbbreviations,
     PerformanceEventContext,
     PerformanceEvents,
+    PerformanceEventStackedContext,
     PerformanceEventStatus,
 } from "./PerformanceEvent";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
@@ -28,14 +29,14 @@ export interface PreQueueEvent {
     time: number;
 }
 
-function peek(stack: object[]): PerformanceEventContext | undefined {
-    return stack.length ? stack[stack.length - 1] : undefined;
-}
-
-export function addContext(event: PerformanceEvent, stack?: object[]): void {
+export function addContext(
+    event: PerformanceEvent,
+    stack?: PerformanceEventStackedContext[]
+): void {
     if (!stack) {
         return;
     }
+
     stack.push({
         name: performanceEventAbbreviations.get(event.name) || event.name,
     });
@@ -43,15 +44,20 @@ export function addContext(event: PerformanceEvent, stack?: object[]): void {
 
 export function endContext(
     event: PerformanceEvent,
-    stack?: PerformanceEventContext[]
+    stack?: PerformanceEventStackedContext[]
 ): PerformanceEventContext | undefined {
     if (!stack?.length) {
         return;
     }
+
+    const peek = (stack: PerformanceEventStackedContext[]) => {
+        return stack.length ? stack[stack.length - 1] : undefined;
+    };
+
     const eventShortName =
         performanceEventAbbreviations.get(event.name) || event.name;
-    const peekContext = peek(stack);
-    if (peekContext?.name !== eventShortName) {
+    const top = peek(stack);
+    if (top?.name !== eventShortName) {
         return;
     }
 
@@ -223,7 +229,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     protected queueMeasurements: Map<string, Array<QueueMeasurement>>;
 
-    protected eventStack: Map<string, object[]>;
+    protected eventStack: Map<string, PerformanceEventStackedContext[]>;
 
     protected intFields: Set<string>;
 
@@ -664,6 +670,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 event.correlationId
             );
             this.eventsByCorrelationId.set(event.correlationId, { ...event });
+            this.eventStack.set(event.correlationId, []);
         }
     }
 
