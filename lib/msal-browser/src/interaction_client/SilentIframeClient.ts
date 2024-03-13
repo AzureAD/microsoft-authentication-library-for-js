@@ -93,15 +93,20 @@ export class SilentIframeClient extends StandardInteractionClient {
             );
         }
 
-        // Check that prompt is set to none or no_session, throw error if it is set to anything else.
-        if (
-            request.prompt &&
-            request.prompt !== PromptValue.NONE &&
-            request.prompt !== PromptValue.NO_SESSION
-        ) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.silentPromptValueError
-            );
+        // Check the prompt value
+        const inputRequest = { ...request };
+        if (inputRequest.prompt) {
+            if (
+                inputRequest.prompt !== PromptValue.NONE &&
+                inputRequest.prompt !== PromptValue.NO_SESSION
+            ) {
+                this.logger.warning(
+                    `SilentIframeClient. Replacing invalid prompt ${inputRequest.prompt} with ${PromptValue.NONE}`
+                );
+                inputRequest.prompt = PromptValue.NONE;
+            }
+        } else {
+            inputRequest.prompt = PromptValue.NONE;
         }
 
         // Create silent request
@@ -111,13 +116,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(
-            {
-                ...request,
-                prompt: request.prompt || PromptValue.NONE,
-            },
-            InteractionType.Silent
-        );
+        )(inputRequest, InteractionType.Silent);
         BrowserUtils.preconnect(silentRequest.authority);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -135,7 +134,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             )(
                 serverTelemetryManager,
                 silentRequest.authority,
-                silentRequest.azureCloudOptions
+                silentRequest.azureCloudOptions,
+                silentRequest.account
             );
 
             return await invokeAsync(

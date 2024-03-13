@@ -41,6 +41,12 @@ export const PerformanceEvents = {
     AcquireTokenPopup: "acquireTokenPopup",
 
     /**
+     * acquireTokenRedirect (msal-browser).
+     * Used to acquire a new access token interactively through redirects
+     */
+    AcquireTokenRedirect: "acquireTokenRedirect",
+
+    /**
      * getPublicKeyThumbprint API in CryptoOpts class (msal-browser).
      * Used to generate a public/private keypair and generate a public key thumbprint for pop requests.
      */
@@ -262,7 +268,8 @@ export const PerformanceEvents = {
     GetCloudDiscoveryMetadataFromNetworkMeasurement:
         "getCloudDiscoveryMetadataFromNetworkMeasurement",
 
-    HandleRedirectPromiseMeasurement: "handleRedirectPromiseMeasurement",
+    HandleRedirectPromiseMeasurement: "handleRedirectPromise",
+    HandleNativeRedirectPromiseMeasurement: "handleNativeRedirectPromise",
 
     UpdateCloudDiscoveryMetadataMeasurement:
         "updateCloudDiscoveryMetadataMeasurement",
@@ -566,6 +573,9 @@ export type PerformanceEvent = {
     multiMatchedAT?: number;
     multiMatchedID?: number;
     multiMatchedRT?: number;
+
+    errorName?: string;
+    errorStack?: string[];
 };
 
 export const IntFields: ReadonlySet<string> = new Set([

@@ -9,9 +9,6 @@ import {
     Constants,
     AuthorizationCodeClient,
     ClientConfiguration,
-    AuthorityOptions,
-    Authority,
-    AuthorityFactory,
     UrlString,
     CommonEndSessionRequest,
     ProtocolUtils,
@@ -207,7 +204,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async createAuthCodeClient(
         serverTelemetryManager: ServerTelemetryManager,
         authorityUrl?: string,
-        requestAzureCloudOptions?: AzureCloudOptions
+        requestAzureCloudOptions?: AzureCloudOptions,
+        account?: AccountInfo
     ): Promise<AuthorizationCodeClient> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
@@ -220,7 +218,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(serverTelemetryManager, authorityUrl, requestAzureCloudOptions);
+        )(
+            serverTelemetryManager,
+            authorityUrl,
+            requestAzureCloudOptions,
+            account
+        );
         return new AuthorizationCodeClient(
             clientConfig,
             this.performanceClient
@@ -236,7 +239,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async getClientConfiguration(
         serverTelemetryManager: ServerTelemetryManager,
         requestAuthority?: string,
-        requestAzureCloudOptions?: AzureCloudOptions
+        requestAzureCloudOptions?: AzureCloudOptions,
+        account?: AccountInfo
     ): Promise<ClientConfiguration> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
@@ -248,7 +252,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(requestAuthority, requestAzureCloudOptions);
+        )(requestAuthority, requestAzureCloudOptions, account);
         const logger = this.config.system.loggerOptions;
 
         return {
@@ -284,56 +288,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             },
             telemetry: this.config.telemetry,
         };
-    }
-
-    /**
-     * Used to get a discovered version of the default authority.
-     * @param requestAuthority
-     * @param requestCorrelationId
-     */
-    protected async getDiscoveredAuthority(
-        requestAuthority?: string,
-        requestAzureCloudOptions?: AzureCloudOptions
-    ): Promise<Authority> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-            this.correlationId
-        );
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: this.config.auth.protocolMode,
-            OIDCOptions: this.config.auth.OIDCOptions,
-            knownAuthorities: this.config.auth.knownAuthorities,
-            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-            authorityMetadata: this.config.auth.authorityMetadata,
-            skipAuthorityMetadataCache:
-                this.config.auth.skipAuthorityMetadataCache,
-        };
-
-        // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
-        const userAuthority = requestAuthority
-            ? requestAuthority
-            : this.config.auth.authority;
-
-        // fall back to the authority from config
-        const builtAuthority = Authority.generateAuthority(
-            userAuthority,
-            requestAzureCloudOptions || this.config.auth.azureCloudOptions
-        );
-        return invokeAsync(
-            AuthorityFactory.createDiscoveredInstance.bind(AuthorityFactory),
-            PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(
-            builtAuthority,
-            this.config.system.networkClient,
-            this.browserStorage,
-            authorityOptions,
-            this.logger,
-            this.correlationId,
-            this.performanceClient
-        );
     }
 
     /**

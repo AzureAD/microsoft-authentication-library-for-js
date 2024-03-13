@@ -3711,6 +3711,7 @@ describe("RedirectClient", () => {
             const testAccountInfo: AccountInfo = {
                 ...testAccountEntity.getAccountInfo(),
                 idTokenClaims: ID_TOKEN_CLAIMS,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
             };
 
             const testIdToken: IdTokenEntity = buildIdToken(

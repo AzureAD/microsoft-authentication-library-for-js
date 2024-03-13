@@ -7,7 +7,7 @@ import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { TimeUtils } from "../utils/TimeUtils";
+import * as TimeUtils from "../utils/TimeUtils";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import {
     ClientAuthError,
@@ -16,7 +16,7 @@ import {
 } from "../error/ClientAuthError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { CacheOutcome } from "../utils/Constants";
+import { CacheOutcome, OIDC_DEFAULT_SCOPES } from "../utils/Constants";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { StringUtils } from "../utils/StringUtils";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
@@ -43,9 +43,12 @@ export class SilentFlowClient extends BaseClient {
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
         try {
-            const [authResponse, cacheOutcome] = await this.acquireCachedToken(
-                request
-            );
+            const [authResponse, cacheOutcome] = await this.acquireCachedToken({
+                ...request,
+                scopes: request.scopes?.length
+                    ? request.scopes
+                    : [...OIDC_DEFAULT_SCOPES],
+            });
 
             // if the token is not expired but must be refreshed; get a new one in the background
             if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {

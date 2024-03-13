@@ -262,6 +262,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const fullAccount = {
                 ...account,
                 idTokenClaims: result?.idTokenClaims as TokenClaims,
+                idToken: result?.idToken,
             };
 
             return {
@@ -320,8 +321,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * If the previous page called native platform for a token using redirect APIs, send the same request again and return the response
+     * @param performanceClient {IPerformanceClient?}
+     * @param correlationId {string?} correlation identifier
      */
-    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+    async handleRedirectPromise(
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
+    ): Promise<AuthenticationResult | null> {
         this.logger.trace(
             "NativeInteractionClient - handleRedirectPromise called."
         );
@@ -338,6 +344,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null."
             );
+            if (performanceClient && correlationId) {
+                performanceClient?.addFields(
+                    { errorCode: "no_cached_request" },
+                    correlationId
+                );
+            }
             return null;
         }
 
@@ -405,23 +417,32 @@ export class NativeInteractionClient extends BaseInteractionClient {
             "NativeInteractionClient - handleNativeResponse called."
         );
 
-        if (response.account.id !== request.accountId) {
+        // generate identifiers
+        const idTokenClaims = AuthToken.extractTokenClaims(
+            response.id_token,
+            base64Decode
+        );
+
+        const homeAccountIdentifier = this.createHomeAccountIdentifier(
+            response,
+            idTokenClaims
+        );
+
+        const cachedhomeAccountId =
+            this.browserStorage.getAccountInfoFilteredBy({
+                nativeAccountId: request.accountId,
+            })?.homeAccountId;
+
+        if (
+            homeAccountIdentifier !== cachedhomeAccountId &&
+            response.account.id !== request.accountId
+        ) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
             throw createNativeAuthError(NativeAuthErrorCodes.userSwitch);
         }
 
         // Get the preferred_cache domain for the given authority
         const authority = await this.getDiscoveredAuthority(request.authority);
-
-        // generate identifiers
-        const idTokenClaims = AuthToken.extractTokenClaims(
-            response.id_token,
-            base64Decode
-        );
-        const homeAccountIdentifier = this.createHomeAccountIdentifier(
-            response,
-            idTokenClaims
-        );
 
         const baseAccount = buildAccountToCache(
             this.browserStorage,
@@ -590,8 +611,17 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
             accountEntity.getAccountInfo(),
             undefined, // tenantProfile optional
-            idTokenClaims
+            idTokenClaims,
+            response.id_token
         );
+
+        /**
+         * In pairwise broker flows, this check prevents the broker's native account id
+         * from being returned over the embedded app's account id.
+         */
+        if (accountInfo.nativeAccountId !== response.account.id) {
+            accountInfo.nativeAccountId = response.account.id;
+        }
 
         // generate PoP token as needed
         const responseAccessToken = await this.generatePopAccessToken(
@@ -809,7 +839,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const authority = request.authority || this.config.auth.authority;
 
         if (request.account) {
-            await this.validateRequestAuthority(authority, request.account);
+            // validate authority
+            await this.getDiscoveredAuthority(
+                authority,
+                request.azureCloudOptions,
+                request.account
+            );
         }
 
         const canonicalAuthority = new UrlString(authority);

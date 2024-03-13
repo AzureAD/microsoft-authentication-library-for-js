@@ -59,7 +59,7 @@ import {
 } from "../../src/error/InteractionRequiredAuthError";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
-import { TimeUtils } from "../../src/utils/TimeUtils";
+import * as TimeUtils from "../../src/utils/TimeUtils";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers";
 
@@ -309,6 +309,7 @@ describe("RefreshTokenClient unit tests", () => {
         const testAccount: AccountInfo =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
+        testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
         beforeEach(async () => {
             sinon
@@ -1057,6 +1058,7 @@ describe("RefreshTokenClient unit tests", () => {
         const testAccount: AccountInfo =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
+        testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
         beforeEach(async () => {
             sinon

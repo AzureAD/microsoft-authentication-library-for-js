@@ -481,7 +481,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.access_token,
                 this.clientId,
-                claimsTenantId || authority.tenant,
+                claimsTenantId || authority.tenant || "",
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
@@ -628,7 +628,8 @@ export class ResponseHandler {
             ? updateAccountTenantProfileData(
                   cacheRecord.account.getAccountInfo(),
                   undefined, // tenantProfile optional
-                  idTokenClaims
+                  idTokenClaims,
+                  cacheRecord.idToken?.secret
               )
             : null;
 

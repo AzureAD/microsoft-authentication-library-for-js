@@ -34,6 +34,7 @@ const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
 const testAccount: AccountInfo = {
     ...testAccountEntity.getAccountInfo(),
     idTokenClaims: ID_TOKEN_CLAIMS,
+    idToken: TEST_TOKENS.IDTOKEN_V2,
 };
 
 const testIdToken: IdTokenEntity = buildIdToken(
@@ -135,7 +136,6 @@ describe("SilentCacheClient", () => {
             sinon
                 .stub(CacheManager.prototype, "getRefreshToken")
                 .returns(testRefreshTokenEntity);
-
             await expect(
                 silentCacheClient.acquireToken({
                     authority: TEST_CONFIG.validAuthority,

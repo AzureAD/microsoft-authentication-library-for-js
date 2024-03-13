@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix compatibility issue with Nested App Auth and msal-react (#6892)",
+  "packageName": "@azure/msal-browser",
+  "email": "dasau@microsoft.com",
+  "dependentChangeType": "patch"
+}

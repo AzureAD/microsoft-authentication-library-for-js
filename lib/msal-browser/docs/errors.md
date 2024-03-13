@@ -256,7 +256,7 @@ This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquir
 
 1. The page you use as your `redirectUri` is removing or manipulating the hash
 1. The page you use as your `redirectUri` is automatically navigating to a different page
-1. You are being throttled by your identity provider
+1. You are being throttled by your identity provider. The identity provider may throttle clients that make too many similar requests in a short period of time. Never implement an endless retry mechanism or retry more than once. Attempts to retry non-network errors typically yield the same result.  See [throttling guide](#Throttling) for more details.
 1. Your identity provider did not redirect back to your `redirectUri`.
 
 **Important**: If your application uses a router library (e.g. React Router, Angular Router), please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. If possible, it is best if your `redirectUri` page does not invoke the router at all.

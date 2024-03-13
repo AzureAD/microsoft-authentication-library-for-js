@@ -47,10 +47,10 @@ This sample demonstrates how you can integrate `@azure/msal-browser` into your V
 
 You'll find the MSAL configuration and `PublicClientApplication` instantiation in `authConfig.ts`. It's very important that `PublicClientApplication` is initialized only once per pageload and as such should not be initialized inside any Vue components, but rather outside the context of Vue and passed in.
 
-- The `clientId` is the most important, and only required parameter, as it maps to your app registration in the Azure Portal.
-- The `authority` represents the Azure AD instance and tenant that MSAL.js will use the sign users in. This parameter controls the audience of your app.
-    > :information_source: If you need to sign users in with Azure AD B2C, this parameter should be set to the [B2C tenanted authority](../../../lib/msal-common/docs/authority.md#azure-ad-b2c) with the default user-flow/custom policy that will be used for sign-ins and token acquisitions. To learn more about how to handle B2C user-flows and/or custom policies with MSAL.js, please refer to [react-b2c-sample](../../msal-react-samples/b2c-sample/) and/or [angular-b2c-sample](../../msal-angular-v2-samples/angular-b2c-sample-app/).
-- The `redirectUri` and `postLogoutRedirectUri` represent where AAD will redirect you back to after logging in and must be registered on your app registration as type "SPA". If you do not provide these, MSAL.js will use the current page by default.
+- The `clientId` is the most important, and only required parameter, as it maps to your app registration in the Microsoft Entra admin center.
+- The `authority` represents the Microsoft Entra ID instance and tenant that MSAL.js will use the sign users in. This parameter controls the audience of your app.
+    > :information_source: If you need to sign users in with Azure Active Directory B2C, this parameter should be set to the [B2C tenanted authority](../../../lib/msal-common/docs/authority.md#azure-ad-b2c) with the default user-flow/custom policy that will be used for sign-ins and token acquisitions. To learn more about how to handle B2C user-flows and/or custom policies with MSAL.js, please refer to [react-b2c-sample](../../msal-react-samples/b2c-sample/) and/or [angular-b2c-sample](../../msal-angular-v2-samples/angular-b2c-sample-app/).
+- The `redirectUri` and `postLogoutRedirectUri` represent where Microsoft Entra ID will redirect you back to after logging in and must be registered on your app registration as type "SPA". If you do not provide these, MSAL.js will use the current page by default.
 
 The `cacheLocation` configures where you want your tokens to be stored. SessionStorage is the default, if this option is not provided.
 
