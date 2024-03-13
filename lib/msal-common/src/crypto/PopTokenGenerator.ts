@@ -26,7 +26,6 @@ type ReqCnf = {
 export type ReqCnfData = {
     kid: string;
     reqCnfString: string;
-    reqCnfHash: string;
 };
 
 const KeyLocation = {
@@ -74,7 +73,6 @@ export class PopTokenGenerator {
         return {
             kid: reqCnf.kid,
             reqCnfString,
-            reqCnfHash: await this.cryptoUtils.hashString(reqCnfString),
         };
     }
 

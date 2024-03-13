@@ -623,6 +623,56 @@ describe("ResponseHandler.ts", () => {
             expect(result.accessToken).toBe(signedJwt);
         });
 
+        it("Does not sign access token when reqCnf is set and PoP scheme enabled", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                reqCnf: {
+                    kid: TEST_POP_VALUES.KID,
+                    reqCnfString: "Some String",
+                },
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...POP_AUTHENTICATION_RESULT.body,
+            };
+            claimsStub.callsFake(
+                (encodedToken: string, crypto: ICrypto): TokenClaims | null => {
+                    switch (encodedToken) {
+                        case testResponse.id_token:
+                            return ID_TOKEN_CLAIMS as TokenClaims;
+                        case testResponse.access_token:
+                            return {
+                                cnf: {
+                                    kid: TEST_POP_VALUES.KID,
+                                },
+                            };
+                        default:
+                            return null;
+                    }
+                }
+            );
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+            const timestamp = TimeUtils.nowSeconds();
+            const result = await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest
+            );
+
+            expect(result.tokenType).toBe(AuthenticationScheme.POP);
+            expect(result.accessToken).toBe(testResponse.access_token);
+        });
+
         it("sets default value if requestId not provided", async () => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
