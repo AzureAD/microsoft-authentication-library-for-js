@@ -41,7 +41,7 @@ If your AzureAD app registration is configured as a Confidential Client Applicat
 This secret helps prevent third parties from using your app registration.
 1. Click on `Certificates and Secrets` in the left nav.
 1. Click `New Client Secret` and pick an expiry.
-1. Click the `Copy to Clipboard` icon, add this client secret to the `.env` file as `CLIENT_SECRET`.
+1. Click the `Copy to Clipboard` icon, add this client secret to the `.env` file as `AZURE_CLIENT_SECRET`.
 
 **auth-code/config/customConfig.json**
 ```json
@@ -72,7 +72,7 @@ This secret helps prevent third parties from using your app registration.
 **.env file**
 
 ```
-CLIENT_SECRET=<your client secret here>
+AZURE_CLIENT_SECRET=<your client secret here>
 ```
 
 **auth-code/index.js**
