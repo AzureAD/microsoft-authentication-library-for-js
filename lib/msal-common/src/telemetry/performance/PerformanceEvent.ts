@@ -762,11 +762,14 @@ export type PerformanceEvent = {
 
 export type PerformanceEventContext = {
     dur?: number;
-    err?: number;
+    err?: string;
+    subErr?: string;
+    fail?: number;
 };
 
 export type PerformanceEventStackedContext = PerformanceEventContext & {
     name?: string;
+    childErr?: string;
 };
 
 export const IntFields: ReadonlySet<string> = new Set([
