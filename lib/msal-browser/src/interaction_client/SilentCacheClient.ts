@@ -7,13 +7,9 @@ import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
     CommonSilentFlowRequest,
     SilentFlowClient,
-    ServerTelemetryManager,
-    AccountInfo,
-    AzureCloudOptions,
     PerformanceEvents,
     invokeAsync,
 } from "@azure/msal-common";
-import { SilentRequest } from "../request/SilentRequest";
 import { ApiId } from "../utils/BrowserConstants";
 import {
     BrowserAuthError,
@@ -39,11 +35,21 @@ export class SilentCacheClient extends StandardInteractionClient {
             ApiId.acquireTokenSilent_silentFlow
         );
 
-        const silentAuthClient = await this.createSilentFlowClient(
+        const clientConfig = await invokeAsync(
+            this.getClientConfiguration.bind(this),
+            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
             serverTelemetryManager,
             silentRequest.authority,
             silentRequest.azureCloudOptions,
             silentRequest.account
+        );
+        const silentAuthClient = new SilentFlowClient(
+            clientConfig,
+            this.performanceClient
         );
         this.logger.verbose("Silent auth client created");
 
@@ -85,51 +91,5 @@ export class SilentCacheClient extends StandardInteractionClient {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         return this.clearCacheOnLogout(validLogoutRequest?.account);
-    }
-
-    /**
-     * Creates an Silent Flow Client with the given authority, or the default authority.
-     * @param serverTelemetryManager
-     * @param authorityUrl
-     */
-    protected async createSilentFlowClient(
-        serverTelemetryManager: ServerTelemetryManager,
-        authorityUrl?: string,
-        azureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
-    ): Promise<SilentFlowClient> {
-        // Create auth module.
-        const clientConfig = await invokeAsync(
-            this.getClientConfiguration.bind(this),
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(serverTelemetryManager, authorityUrl, azureCloudOptions, account);
-        return new SilentFlowClient(clientConfig, this.performanceClient);
-    }
-
-    async initializeSilentRequest(
-        request: SilentRequest,
-        account: AccountInfo
-    ): Promise<CommonSilentFlowRequest> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.InitializeSilentRequest,
-            this.correlationId
-        );
-
-        const baseRequest = await invokeAsync(
-            this.initializeBaseRequest.bind(this),
-            PerformanceEvents.InitializeBaseRequest,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(request);
-        return {
-            ...request,
-            ...baseRequest,
-            account: account,
-            forceRefresh: request.forceRefresh || false,
-        };
     }
 }

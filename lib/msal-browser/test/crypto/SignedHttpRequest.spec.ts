@@ -1,7 +1,6 @@
 import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
-import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
-import { AuthToken, Logger } from "@azure/msal-common";
+import { AuthToken } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { base64Decode } from "../../src/encode/Base64Decode";
 
@@ -13,7 +12,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
     jest.setTimeout(30000);
 
     beforeEach(() => {
-        jest.spyOn(BrowserCrypto, "sha256Digest").mockImplementation(
+        jest.spyOn(window.crypto.subtle, "digest").mockImplementation(
             (): Promise<ArrayBuffer> => {
                 return Promise.resolve(
                     createHash("SHA256")
