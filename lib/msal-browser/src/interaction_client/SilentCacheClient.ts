@@ -7,9 +7,6 @@ import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
     CommonSilentFlowRequest,
     SilentFlowClient,
-    ServerTelemetryManager,
-    AccountInfo,
-    AzureCloudOptions,
     PerformanceEvents,
     invokeAsync,
 } from "@azure/msal-common";
