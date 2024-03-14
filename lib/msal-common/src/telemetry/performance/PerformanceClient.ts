@@ -55,11 +55,13 @@ export function startContext(
  * @param event {PerformanceEvent}
  * @param abbreviations {Map<string, string>} event name abbreviations
  * @param stack {?PerformanceEventStackedContext[]} stack
+ * @param error {?unknown} error
  */
 export function endContext(
     event: PerformanceEvent,
     abbreviations: Map<string, string>,
-    stack?: PerformanceEventStackedContext[]
+    stack?: PerformanceEventStackedContext[],
+    error?: unknown
 ): PerformanceEventContext | undefined {
     if (!stack?.length) {
         return;
@@ -79,19 +81,41 @@ export function endContext(
     if (!current) {
         return;
     }
-    delete current["name"];
+
+    const errorCode =
+        error instanceof AuthError
+            ? error.errorCode
+            : error instanceof Error
+            ? error.name
+            : undefined;
+    const subErr = error instanceof AuthError ? error.subError : undefined;
+
+    if (errorCode && current.childErr !== errorCode) {
+        current.err = errorCode;
+        if (subErr) {
+            current.subErr = subErr;
+        }
+    }
+
+    delete current.name;
+    delete current.childErr;
 
     const context: PerformanceEventContext = {
         ...current,
         dur: event.durationMs,
     };
+
     if (!event.success) {
-        context.err = 1;
+        context.fail = 1;
     }
 
     const parent = peek(stack);
     if (!parent) {
         return { [eventShortName]: context };
+    }
+
+    if (errorCode) {
+        parent.childErr = errorCode;
     }
 
     let childName: string;
@@ -571,7 +595,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const context = endContext(
             event,
             this.abbreviations,
-            this.eventStack.get(rootEvent.correlationId)
+            this.eventStack.get(rootEvent.correlationId),
+            error
         );
 
         if (isRoot) {
