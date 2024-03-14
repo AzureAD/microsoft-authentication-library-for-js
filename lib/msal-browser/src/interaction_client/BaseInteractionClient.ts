@@ -9,8 +9,6 @@ import {
     Logger,
     AccountInfo,
     AccountEntity,
-    BaseAuthRequest,
-    AuthenticationScheme,
     UrlString,
     ServerTelemetryManager,
     ServerTelemetryRequest,
@@ -21,7 +19,6 @@ import {
     AuthorityFactory,
     IPerformanceClient,
     PerformanceEvents,
-    StringUtils,
     AzureCloudOptions,
     invokeAsync,
 } from "@azure/msal-common";
@@ -131,69 +128,6 @@ export abstract class BaseInteractionClient {
                 );
             }
         }
-    }
-
-    /**
-     * Initializer function for all request APIs
-     * @param request
-     */
-    protected async initializeBaseRequest(
-        request: Partial<BaseAuthRequest>
-    ): Promise<BaseAuthRequest> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.InitializeBaseRequest,
-            this.correlationId
-        );
-        const authority = request.authority || this.config.auth.authority;
-
-        const scopes = [...((request && request.scopes) || [])];
-
-        const validatedRequest: BaseAuthRequest = {
-            ...request,
-            correlationId: this.correlationId,
-            authority,
-            scopes,
-        };
-
-        // Set authenticationScheme to BEARER if not explicitly set in the request
-        if (!validatedRequest.authenticationScheme) {
-            validatedRequest.authenticationScheme = AuthenticationScheme.BEARER;
-            this.logger.verbose(
-                'Authentication Scheme wasn\'t explicitly set in request, defaulting to "Bearer" request'
-            );
-        } else {
-            if (
-                validatedRequest.authenticationScheme ===
-                AuthenticationScheme.SSH
-            ) {
-                if (!request.sshJwk) {
-                    throw createClientConfigurationError(
-                        ClientConfigurationErrorCodes.missingSshJwk
-                    );
-                }
-                if (!request.sshKid) {
-                    throw createClientConfigurationError(
-                        ClientConfigurationErrorCodes.missingSshKid
-                    );
-                }
-            }
-            this.logger.verbose(
-                `Authentication Scheme set to "${validatedRequest.authenticationScheme}" as configured in Auth request`
-            );
-        }
-
-        // Set requested claims hash if claims-based caching is enabled and claims were requested
-        if (
-            this.config.cache.claimsBasedCachingEnabled &&
-            request.claims &&
-            // Checks for empty stringified object "{}" which doesn't qualify as requested claims
-            !StringUtils.isEmptyObj(request.claims)
-        ) {
-            validatedRequest.requestedClaimsHash =
-                await this.browserCrypto.hashString(request.claims);
-        }
-
-        return validatedRequest;
     }
 
     /**
