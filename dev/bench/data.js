@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1710361380541,
+  "lastUpdate": 1710527181940,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6224,6 +6224,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.81%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "69df8f629eb149b86479afcbf076b91c76946152",
+          "message": "Move build request functions (#6951)\n\n- Move initializeBaseRequest and initializeSilentRequest out of the\r\nInteractionClient classes\r\n- Move implementation for hashString from CryptoOps to BrowserCrypto\r\n\r\nThese changes pave the way for better handling of concurrent iframe\r\nrequests",
+          "timestamp": "2024-03-15T11:20:52-07:00",
+          "tree_id": "69883ec4cbabd9b5697a9082f78e6a2c9dc7acf6",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/69df8f629eb149b86479afcbf076b91c76946152"
+        },
+        "date": 1710527180199,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 195257,
+            "range": "±1.99%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191383,
+            "range": "±2.18%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
