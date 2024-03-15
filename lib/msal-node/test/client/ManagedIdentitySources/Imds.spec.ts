@@ -177,7 +177,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
     });
 
-    describe("Linear Retry Policy", () => {
+    describe("Managed Identity Retry Policy", () => {
         describe("User Assigned", () => {
             let managedIdentityApplication: ManagedIdentityApplication;
             beforeEach(() => {
@@ -233,7 +233,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 expect(serverError.errorCode).toEqual(
                     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR
                 );
-                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(4); // request + 3 retries
 
                 jest.restoreAllMocks();
             });
@@ -388,7 +388,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 expect(serverError.errorCode).toEqual(
                     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR
                 );
-                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(4); // request + 3 retries
 
                 jest.restoreAllMocks();
             });
@@ -408,7 +408,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft1.com",
                     });
                 } catch (e) {
-                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(2);
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(4); // request + 3 retries
                 }
 
                 try {
@@ -416,7 +416,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft2.com",
                     });
                 } catch (e) {
-                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(4); // 4 total, 2 since last acquireToken call
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(8); // 8 total, 2 x (request + 3 retries)
                 }
 
                 try {
@@ -424,11 +424,11 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft3.com",
                     });
                 } catch (e) {
-                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(6); // 6 total, 2 since last acquireToken call
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(12); // 12 total, 3 x (request + 3 retries)
                 }
 
                 jest.restoreAllMocks();
-            });
+            }, 15000); // triple the timeout value for this test because there are 3 acquireToken calls (3 x 1 second in between retries)
 
             test("ensures that a retry does not happen when the http status code from a failed network response is not included in the retry policy", async () => {
                 expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
@@ -642,7 +642,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             ).toBe(false);
 
             jest.restoreAllMocks();
-        }, 10000); // double the timeout value for this test because it waits two seconds
+        }, 10000); // double the timeout value for this test because it waits two seconds in between the acquireToken call and the cache lookup
 
         test("requests three tokens with two different resources while switching between user and system assigned, then requests them again to verify they are retrieved from the cache, then verifies that their cache keys are correct", async () => {
             expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
