@@ -119,7 +119,7 @@ const config = {
     auth: {
         clientId: "YOUR_CLIENT_ID",
         authority: "YOUR_AUTHORITY",
-        clientSecret: process.env.CLIENT_SECRET // Only for Confidential Client Applications
+        clientSecret: process.env.AZURE_CLIENT_SECRET // Only for Confidential Client Applications
     },
     system: {
         loggerOptions: {
