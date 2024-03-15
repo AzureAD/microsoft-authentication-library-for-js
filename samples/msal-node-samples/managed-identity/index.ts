@@ -53,28 +53,22 @@ const getSecret = async (
 };
 
 const main = async () => {
-    // optional, comment this out for a system assigned managed identity
     const managedIdentityIdParams: ManagedIdentityIdParams = {
+        // comment this out for a system assigned managed identity
         userAssignedClientId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
         // userAssignedObjectId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
         // userAssignedResourceId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     };
 
     if (process.env.MANAGED_IDENTITY_TYPE_USER_ASSIGNED === "true") {
-        if (
-            !managedIdentityIdParams ||
-            !Object.keys(managedIdentityIdParams).length
-        ) {
+        if (!Object.keys(managedIdentityIdParams).length) {
             throw new Error(
                 "The Managed Identity type is User Assigned, but client/object/resource id is missing."
             );
         }
         config.managedIdentityIdParams = managedIdentityIdParams;
     } else {
-        if (
-            managedIdentityIdParams ||
-            Object.keys(managedIdentityIdParams).length
-        ) {
+        if (Object.keys(managedIdentityIdParams).length) {
             throw new Error(
                 "The Managed Identity type is System Assigned, but client/object/resource id has been provided."
             );
