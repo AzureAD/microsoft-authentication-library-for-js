@@ -53,9 +53,12 @@ export const invoke = <T extends Array<any>, U>(
             } catch (e) {
                 logger.trace("Unable to print error message.");
             }
-            inProgressEvent?.end({
-                success: false,
-            });
+            inProgressEvent?.end(
+                {
+                    success: false,
+                },
+                e
+            );
             throw e;
         }
     };
@@ -111,9 +114,12 @@ export const invokeAsync = <T extends Array<any>, U>(
                 } catch (e) {
                     logger.trace("Unable to print error message.");
                 }
-                inProgressEvent?.end({
-                    success: false,
-                });
+                inProgressEvent?.end(
+                    {
+                        success: false,
+                    },
+                    e
+                );
                 throw e;
             });
     };
