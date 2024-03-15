@@ -2,7 +2,7 @@ import https from "https";
 
 export const getSecretFromKeyVault = (
     accessToken: string,
-    keyVaultName: string,
+    keyVaultUri: string,
     secretName: string
 ): Promise<string> => {
     const customOptions: https.RequestOptions = {
@@ -14,7 +14,7 @@ export const getSecretFromKeyVault = (
     return new Promise<string>((resolve, reject) => {
         https
             .get(
-                `https://${keyVaultName}.vault.azure.net/secrets/${secretName}?api-version=7.2`,
+                `${keyVaultUri}secrets/${secretName}?api-version=7.2`,
                 customOptions,
                 (response) => {
                     const data: Buffer[] = [];
