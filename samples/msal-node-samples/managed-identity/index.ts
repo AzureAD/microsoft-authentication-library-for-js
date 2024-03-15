@@ -62,9 +62,8 @@ const main = async () => {
 
     if (process.env.MANAGED_IDENTITY_TYPE_USER_ASSIGNED === "true") {
         if (
-            !managedIdentityIdParams.userAssignedClientId &&
-            !managedIdentityIdParams.userAssignedObjectId &&
-            !managedIdentityIdParams.userAssignedResourceId
+            !managedIdentityIdParams ||
+            !Object.keys(managedIdentityIdParams).length
         ) {
             throw new Error(
                 "The Managed Identity type is User Assigned, but client/object/resource id is missing."
@@ -73,9 +72,8 @@ const main = async () => {
         config.managedIdentityIdParams = managedIdentityIdParams;
     } else {
         if (
-            managedIdentityIdParams.userAssignedClientId ||
-            managedIdentityIdParams.userAssignedObjectId ||
-            managedIdentityIdParams.userAssignedResourceId
+            managedIdentityIdParams ||
+            Object.keys(managedIdentityIdParams).length
         ) {
             throw new Error(
                 "The Managed Identity type is System Assigned, but client/object/resource id has been provided."
