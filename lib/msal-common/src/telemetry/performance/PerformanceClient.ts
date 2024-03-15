@@ -71,9 +71,9 @@ export function endContext(
         return stack.length ? stack[stack.length - 1] : undefined;
     };
 
-    const eventShortName = abbreviations.get(event.name) || event.name;
+    const abbrEventName = abbreviations.get(event.name) || event.name;
     const top = peek(stack);
-    if (top?.name !== eventShortName) {
+    if (top?.name !== abbrEventName) {
         return;
     }
 
@@ -111,7 +111,7 @@ export function endContext(
 
     const parent = peek(stack);
     if (!parent) {
-        return { [eventShortName]: context };
+        return { [abbrEventName]: context };
     }
 
     if (errorCode) {
@@ -119,13 +119,13 @@ export function endContext(
     }
 
     let childName: string;
-    if (!parent[eventShortName]) {
-        childName = eventShortName;
+    if (!parent[abbrEventName]) {
+        childName = abbrEventName;
     } else {
         const siblings = Object.keys(parent).filter((key) =>
-            key.startsWith(eventShortName)
+            key.startsWith(abbrEventName)
         ).length;
-        childName = `${eventShortName}_${siblings + 1}`;
+        childName = `${abbrEventName}_${siblings + 1}`;
     }
     parent[childName] = context;
     return parent;
@@ -592,6 +592,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
             manuallyCompletedCount: 0,
         };
 
+        event.durationMs = Math.round(
+            event.durationMs || this.getDurationMs(event.startTimeMs)
+        );
+
         const context = endContext(
             event,
             this.abbreviations,
@@ -606,16 +610,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
             rootEvent.incompleteSubMeasurements?.delete(event.eventId);
         }
 
-        const durationMs =
-            event.durationMs || this.getDurationMs(event.startTimeMs);
         this.logger.trace(
-            `PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`,
+            `PerformanceClient: Performance measurement ended for ${event.name}: ${event.durationMs} ms`,
             event.correlationId
         );
 
         // Add sub-measurement attribute to root event.
         if (!isRoot) {
-            rootEvent[event.name + "DurationMs"] = Math.floor(durationMs);
+            rootEvent[event.name + "DurationMs"] = Math.floor(event.durationMs);
             return { ...rootEvent };
         }
 
@@ -637,7 +639,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         finalEvent = {
             ...finalEvent,
-            durationMs: Math.round(durationMs),
             queuedTimeMs: queueInfo.totalQueueTime,
             queuedCount: queueInfo.totalQueueCount,
             queuedManuallyCompletedCount: queueInfo.manuallyCompletedCount,
