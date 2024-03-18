@@ -13,6 +13,7 @@ import {
     PerformanceEvents,
 } from "@azure/msal-common";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { urlEncodeArr } from "../encode/Base64Encode";
 
 /**
  * This file defines functions used by the browser library to perform cryptography operations such as
@@ -201,4 +202,14 @@ export async function sign(
         key,
         data
     ) as Promise<ArrayBuffer>;
+}
+
+/**
+ * Returns the SHA-256 hash of an input string
+ * @param plainText
+ */
+export async function hashString(plainText: string): Promise<string> {
+    const hashBuffer: ArrayBuffer = await sha256Digest(plainText);
+    const hashBytes = new Uint8Array(hashBuffer);
+    return urlEncodeArr(hashBytes);
 }

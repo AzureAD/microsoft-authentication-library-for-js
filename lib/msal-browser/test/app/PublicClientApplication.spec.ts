@@ -43,6 +43,7 @@ import {
     InteractionRequiredAuthErrorCodes,
     Logger,
     LogLevel,
+    PerformanceEvent,
     PerformanceEvents,
     PersistentCacheKeys,
     ProtocolMode,
@@ -89,6 +90,7 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
+import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { AuthorizationCodeRequest, EndSessionRequest } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
@@ -2810,10 +2812,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
-                .rejects({
-                    errorCode: "abc",
-                    subError: "defg",
-                });
+                .rejects(new AuthError("abc", "error message", "defg"));
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(false);
@@ -3269,10 +3268,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const silentClientSpy = sinon
                 .stub(SilentAuthCodeClient.prototype, "acquireToken")
-                .rejects({
-                    errorCode: "abc",
-                    subError: "defg",
-                });
+                .rejects(new AuthError("abc", "error message", "defg"));
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(false);
@@ -3552,6 +3548,49 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentCacheSpy.calledOnce).toBe(true);
             expect(silentRefreshSpy.called).toBe(false);
             expect(silentIframeSpy.called).toBe(false);
+        });
+
+        it("Calls SilentCacheClient.acquireToken and captures the stack trace for non-auth error", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockRejectedValue(new Error("Test error message"));
+
+            const callbackId = pca.addPerformanceCallback(
+                (events: PerformanceEvent[]) => {
+                    try {
+                        expect(events.length).toEqual(1);
+                        const event = events[0];
+                        expect(event.name).toBe(
+                            PerformanceEvents.AcquireTokenSilent
+                        );
+                        expect(event.correlationId).toBeDefined();
+                        expect(event.success).toBeFalsy();
+                        expect(event.errorName).toEqual("Error");
+                        expect(event.errorStack?.length).toBeGreaterThan(1);
+                        expect(event.incompleteSubsCount).toEqual(0);
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                }
+            );
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+            }).catch(() => {});
         });
 
         it("Calls SilentRefreshClient.acquireToken and returns its response if cache lookup throws", async () => {
@@ -4163,7 +4202,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 RANDOM_TEST_GUID
             );
             sinon
-                .stub(CryptoOps.prototype, "hashString")
+                .stub(BrowserCrypto, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             const silentATStub = sinon
                 .stub(
@@ -4829,10 +4868,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     StandardController.prototype,
                     <any>"acquireTokenSilentAsync"
                 )
-                .rejects({
-                    errorCode: "abc",
-                    subError: "defg",
-                });
+                .rejects(new AuthError("abc", "error message", "defg"));
 
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
@@ -5244,9 +5280,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount);
+            pca.browserStorage.setAccount(testAccount);
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(testIdToken);
+            pca.browserStorage.setIdTokenCredential(testIdToken);
         });
 
         afterEach(() => {
@@ -5316,15 +5352,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount1);
+            pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount2);
+            pca.browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken1);
+            pca.browserStorage.setIdTokenCredential(idToken1);
 
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken2);
+            pca.browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -5540,14 +5576,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
             await pca.initialize();
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount1);
+            pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.getBrowserStorage().setAccount(testAccount2);
+            pca.browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken1);
+            pca.browserStorage.setIdTokenCredential(idToken1);
             // @ts-ignore
-            pca.getBrowserStorage().setIdTokenCredential(idToken2);
+            pca.browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -5806,48 +5842,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 WrapperSKU.React,
                 "1.0.0",
             ]);
-        });
-    });
-
-    describe("preflightBrowserEnvironmentCheck", () => {
-        beforeEach(async () => {
-            pca = (pca as any).controller;
-            await pca.initialize();
-        });
-
-        it("throws an error if initialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-
-            pca = (pca as any).controller;
-
-            expect(() =>
-                // @ts-ignore
-                pca.preflightBrowserEnvironmentCheck(InteractionType.Popup)
-            ).toThrow(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                )
-            );
-        });
-
-        it("calls setInteractionInProgress", () => {
-            // @ts-ignore
-            pca.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-
-            // @ts-ignore
-            expect(pca.browserStorage.getInteractionInProgress()).toBeTruthy;
-        });
-
-        it("doesnt call setInteractionInProgress", () => {
-            // @ts-ignore
-            pca.preflightBrowserEnvironmentCheck(InteractionType.Popup, false);
-
-            // @ts-ignore
-            expect(pca.browserStorage.getInteractionInProgress()).toBeFalsy;
         });
     });
 

@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Created unit tests to validate that claims and client capabilities are correctly merged",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "none"
+}
