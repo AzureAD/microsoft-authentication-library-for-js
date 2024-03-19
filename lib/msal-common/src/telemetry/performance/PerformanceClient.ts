@@ -14,7 +14,7 @@ import {
 import {
     IntFields,
     PerformanceEvent,
-    performanceEventAbbreviations,
+    PerformanceEventAbbreviations,
     PerformanceEventContext,
     PerformanceEvents,
     PerformanceEventStackedContext,
@@ -322,9 +322,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         for (const item of IntFields) {
             this.intFields.add(item);
         }
-        this.abbreviations = abbreviations?.size
-            ? abbreviations
-            : performanceEventAbbreviations;
+        this.abbreviations = abbreviations || new Map();
+        for (const [key, value] of PerformanceEventAbbreviations) {
+            this.abbreviations.set(key, value);
+        }
     }
 
     /**

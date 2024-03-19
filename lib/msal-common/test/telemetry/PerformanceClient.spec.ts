@@ -18,7 +18,7 @@ import {
     compactStackLine,
 } from "../../src/telemetry/performance/PerformanceClient";
 import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient";
-import { performanceEventAbbreviations } from "../../src/telemetry/performance/PerformanceEvent";
+import { PerformanceEventAbbreviations } from "../../src/telemetry/performance/PerformanceEvent";
 import { afterEach } from "node:test";
 
 const sampleClientId = "test-client-id";
@@ -618,7 +618,7 @@ describe("PerformanceClient.spec.ts", () => {
     describe("context", () => {
         const perfDuration = Math.round(samplePerfDuration);
         const abbrEventName = (name: string) => {
-            return performanceEventAbbreviations.get(name) || name;
+            return PerformanceEventAbbreviations.get(name) || name;
         };
         const correlationId = "test-correlation-id";
 
