@@ -269,7 +269,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             // @ts-ignore
             const authFrame = silentHandler.createHiddenIframe();
             expect(authFrame instanceof HTMLIFrameElement).toBe(true);
-            expect(authFrame.className).toEqual("silentTokenRenewalIframe");
+            expect(authFrame.className).toEqual("msalSilentIframe");
         });
     })
 });

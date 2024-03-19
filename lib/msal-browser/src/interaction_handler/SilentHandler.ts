@@ -148,7 +148,7 @@ export class SilentHandler extends InteractionHandler {
     private createHiddenIframe(): HTMLIFrameElement {
         const authFrame = document.createElement("iframe");
 
-        authFrame.className = "silentTokenRenewalIframe";
+        authFrame.className = "msalSilentIframe";
         authFrame.style.visibility = "hidden";
         authFrame.style.position = "absolute";
         authFrame.style.width = authFrame.style.height = "0";
