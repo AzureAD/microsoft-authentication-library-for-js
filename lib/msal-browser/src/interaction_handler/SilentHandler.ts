@@ -134,8 +134,9 @@ export class SilentHandler extends InteractionHandler {
      */
     private loadFrameSync(urlNavigate: string): HTMLIFrameElement{
         const frameHandle = this.createHiddenIframe();
- 
+
         frameHandle.src = urlNavigate;
+
         return frameHandle;
     }
 
