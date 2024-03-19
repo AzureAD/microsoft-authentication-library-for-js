@@ -1966,121 +1966,44 @@ export class StandardController implements IController {
         document.addEventListener("visibilitychange", () =>
             this.trackPageVisibility(request.correlationId)
         );
-        let result: Promise<AuthenticationResult>;
-        if (
-            NativeMessageHandler.isNativeAvailable(
-                this.config,
-                this.logger,
-                this.nativeExtensionProvider,
-                request.authenticationScheme
-            ) &&
-            account.nativeAccountId
-        ) {
-            this.logger.verbose(
-                "acquireTokenSilent - attempting to acquire token from native platform"
-            );
-            const silentRequest: SilentRequest = {
-                ...request,
-                account,
-            };
-            result = this.acquireTokenNative(
-                silentRequest,
-                ApiId.acquireTokenSilent_silentFlow
-            ).catch(async (e: AuthError) => {
-                // If native token acquisition fails for availability reasons fallback to web flow
-                if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
-                    this.logger.verbose(
-                        "acquireTokenSilent - native platform unavailable, falling back to web flow"
-                    );
-                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
 
-                    // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
-                    const silentIframeClient = this.createSilentIframeClient(
-                        request.correlationId
-                    );
-                    return silentIframeClient.acquireToken(request);
-                }
-                throw e;
-            });
-        } else {
-            this.logger.verbose(
-                "acquireTokenSilent - attempting to acquire token from web flow"
-            );
+        const silentRequest = await invokeAsync(
+            initializeSilentRequest,
+            PerformanceEvents.InitializeSilentRequest,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(request, account, this.config, this.performanceClient, this.logger);
+        const cacheLookupPolicy =
+            request.cacheLookupPolicy || CacheLookupPolicy.Default;
 
-            const silentRequest = await invokeAsync(
-                initializeSilentRequest,
-                PerformanceEvents.InitializeSilentRequest,
-                this.logger,
-                this.performanceClient,
-                request.correlationId
-            )(
-                request,
-                account,
-                this.config,
-                this.performanceClient,
-                this.logger
-            );
+        const result = this.acquireTokenSilentNoIframe(
+            silentRequest,
+            cacheLookupPolicy
+        ).catch((refreshTokenError: AuthError) => {
+            const shouldTryToResolveSilently =
+                checkIfRefreshTokenErrorCanBeResolvedSilently(
+                    refreshTokenError,
+                    cacheLookupPolicy
+                );
 
-            const cacheLookupPolicy =
-                request.cacheLookupPolicy || CacheLookupPolicy.Default;
-
-            result = invokeAsync(
-                this.acquireTokenFromCache.bind(this),
-                PerformanceEvents.AcquireTokenFromCache,
-                this.logger,
-                this.performanceClient,
-                silentRequest.correlationId
-            )(silentRequest, cacheLookupPolicy).catch(
-                (cacheError: AuthError) => {
-                    if (
-                        request.cacheLookupPolicy ===
-                        CacheLookupPolicy.AccessToken
-                    ) {
-                        throw cacheError;
-                    }
-
-                    this.eventHandler.emitEvent(
-                        EventType.ACQUIRE_TOKEN_NETWORK_START,
-                        InteractionType.Silent,
-                        silentRequest
-                    );
-
-                    return invokeAsync(
-                        this.acquireTokenByRefreshToken.bind(this),
-                        PerformanceEvents.AcquireTokenByRefreshToken,
-                        this.logger,
-                        this.performanceClient,
-                        silentRequest.correlationId
-                    )(silentRequest, cacheLookupPolicy).catch(
-                        (refreshTokenError: AuthError) => {
-                            const shouldTryToResolveSilently =
-                                checkIfRefreshTokenErrorCanBeResolvedSilently(
-                                    refreshTokenError,
-                                    silentRequest,
-                                    cacheLookupPolicy
-                                );
-
-                            if (shouldTryToResolveSilently) {
-                                this.logger.verbose(
-                                    "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
-                                    silentRequest.correlationId
-                                );
-                                return invokeAsync(
-                                    this.acquireTokenBySilentIframe.bind(this),
-                                    PerformanceEvents.AcquireTokenBySilentIframe,
-                                    this.logger,
-                                    this.performanceClient,
-                                    silentRequest.correlationId
-                                )(silentRequest);
-                            } else {
-                                // Error cannot be silently resolved or iframe renewal is not allowed, interaction required
-                                throw refreshTokenError;
-                            }
-                        }
-                    );
-                }
-            );
-        }
+            if (shouldTryToResolveSilently) {
+                this.logger.verbose(
+                    "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
+                    silentRequest.correlationId
+                );
+                return invokeAsync(
+                    this.acquireTokenBySilentIframe.bind(this),
+                    PerformanceEvents.AcquireTokenBySilentIframe,
+                    this.logger,
+                    this.performanceClient,
+                    silentRequest.correlationId
+                )(silentRequest);
+            } else {
+                // Error cannot be silently resolved or iframe renewal is not allowed, interaction required
+                throw refreshTokenError;
+            }
+        });
 
         return result
             .then((response) => {
@@ -2117,6 +2040,80 @@ export class StandardController implements IController {
                 );
             });
     }
+
+    /**
+     * AcquireTokenSilent without the iframe fallback. This is used to enable the correct fallbacks in cases where there's a potential for multiple silent requests to be made in parallel and prevent those requests from making concurrent iframe requests.
+     * @param silentRequest
+     * @param cacheLookupPolicy
+     * @returns
+     */
+    private async acquireTokenSilentNoIframe(
+        silentRequest: CommonSilentFlowRequest,
+        cacheLookupPolicy: CacheLookupPolicy
+    ): Promise<AuthenticationResult> {
+        if (
+            NativeMessageHandler.isNativeAvailable(
+                this.config,
+                this.logger,
+                this.nativeExtensionProvider,
+                silentRequest.authenticationScheme
+            ) &&
+            silentRequest.account.nativeAccountId
+        ) {
+            this.logger.verbose(
+                "acquireTokenSilent - attempting to acquire token from native platform"
+            );
+            return this.acquireTokenNative(
+                silentRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            ).catch(async (e: AuthError) => {
+                // If native token acquisition fails for availability reasons fallback to web flow
+                if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
+                    this.logger.verbose(
+                        "acquireTokenSilent - native platform unavailable, falling back to web flow"
+                    );
+                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
+
+                    // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.tokenRefreshRequired
+                    );
+                }
+                throw e;
+            });
+        } else {
+            this.logger.verbose(
+                "acquireTokenSilent - attempting to acquire token from web flow"
+            );
+            return invokeAsync(
+                this.acquireTokenFromCache.bind(this),
+                PerformanceEvents.AcquireTokenFromCache,
+                this.logger,
+                this.performanceClient,
+                silentRequest.correlationId
+            )(silentRequest, cacheLookupPolicy).catch(
+                (cacheError: AuthError) => {
+                    if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                        throw cacheError;
+                    }
+
+                    this.eventHandler.emitEvent(
+                        EventType.ACQUIRE_TOKEN_NETWORK_START,
+                        InteractionType.Silent,
+                        silentRequest
+                    );
+
+                    return invokeAsync(
+                        this.acquireTokenByRefreshToken.bind(this),
+                        PerformanceEvents.AcquireTokenByRefreshToken,
+                        this.logger,
+                        this.performanceClient,
+                        silentRequest.correlationId
+                    )(silentRequest, cacheLookupPolicy);
+                }
+            );
+        }
+    }
 }
 
 /**
@@ -2128,7 +2125,6 @@ export class StandardController implements IController {
  */
 function checkIfRefreshTokenErrorCanBeResolvedSilently(
     refreshTokenError: AuthError,
-    silentRequest: CommonSilentFlowRequest,
     cacheLookupPolicy: CacheLookupPolicy
 ): boolean {
     const noInteractionRequired = !(
