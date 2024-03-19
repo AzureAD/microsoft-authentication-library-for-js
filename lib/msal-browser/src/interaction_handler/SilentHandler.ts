@@ -110,16 +110,16 @@ export class SilentHandler extends InteractionHandler {
          */
 
         return new Promise((resolve, reject) => {
-            const frameHandle = this.createHiddenIframe(urlNavigate);
+            const frameHandle = this.createHiddenIframe();
 
             setTimeout(() => {
                 if (!frameHandle) {
                     reject("Unable to load iframe");
                     return;
                 }
-                
+
                 frameHandle.src = urlNavigate;
-                
+
                 resolve(frameHandle);
             }, this.navigateFrameWait);
         });
@@ -133,8 +133,8 @@ export class SilentHandler extends InteractionHandler {
      * @param logger
      */
     private loadFrameSync(urlNavigate: string): HTMLIFrameElement{
-        const frameHandle = this.createHiddenIframe(urlNavigate);
-        
+        const frameHandle = this.createHiddenIframe();
+ 
         frameHandle.src = urlNavigate;
         return frameHandle;
     }
@@ -144,7 +144,7 @@ export class SilentHandler extends InteractionHandler {
      * Creates a new hidden iframe or gets an existing one for silent token renewal.
      * @ignore
      */
-    private createHiddenIframe(urlNavigate: string): HTMLIFrameElement {
+    private createHiddenIframe(): HTMLIFrameElement {
         const authFrame = document.createElement("iframe");
 
         authFrame.className = "silentTokenRenewalIframe";
