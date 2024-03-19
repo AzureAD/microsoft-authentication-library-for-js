@@ -10,7 +10,10 @@ import {
 } from "@azure/msal-node";
 import { getSecretFromKeyVault } from "./HttpClient";
 
-const KEY_VAULT_NAME: string = "KEY_VAULT_NAME";
+import dotenv from "dotenv";
+dotenv.config();
+
+const KEY_VAULT_URI: string = "KEY_VAULT_URI";
 const SECRET_NAME: string = "SECRET_NAME";
 
 const config: ManagedIdentityConfiguration = {
@@ -21,71 +24,60 @@ const config: ManagedIdentityConfiguration = {
     } as NodeSystemOptions,
 };
 
-const systemAssignedManagedIdentityApplication: ManagedIdentityApplication =
-    new ManagedIdentityApplication(config);
-
-const managedIdentityIdParams: ManagedIdentityIdParams = {
-    userAssignedClientId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-};
-const userAssignedClientIdManagedIdentityApplication: ManagedIdentityApplication =
-    new ManagedIdentityApplication({
-        ...config,
-        managedIdentityIdParams,
-    });
-
-const managedIdentityRequestParams: ManagedIdentityRequestParams = {
-    resource: "https://vault.azure.net",
-};
-
-// self executing anonymous function, needed for async/await usage
-(async () => {
-    // system assigned
-    let systemAssignedTokenResponse: AuthenticationResult;
+const getSecret = async (
+    managedIdentityApplication: ManagedIdentityApplication
+) => {
+    let tokenResponse: AuthenticationResult;
     try {
-        systemAssignedTokenResponse =
-            await systemAssignedManagedIdentityApplication.acquireToken(
-                managedIdentityRequestParams
-            );
+        const managedIdentityRequestParams: ManagedIdentityRequestParams = {
+            resource: "https://vault.azure.net",
+        };
+        tokenResponse = await managedIdentityApplication.acquireToken(
+            managedIdentityRequestParams
+        );
     } catch (error) {
         throw error;
     }
 
     try {
         const secret = await getSecretFromKeyVault(
-            systemAssignedTokenResponse.accessToken,
-            KEY_VAULT_NAME,
+            tokenResponse.accessToken,
+            KEY_VAULT_URI,
             SECRET_NAME
         );
 
-        console.log(
-            `(System Assigned) The secret, ${SECRET_NAME}, has a value of: ${secret}`
-        );
+        console.log(`The secret, ${SECRET_NAME}, has a value of: ${secret}`);
     } catch (error) {
         throw error;
     }
+};
 
-    // user assigned client id
-    let userAssignedTokenResponse: AuthenticationResult;
-    try {
-        userAssignedTokenResponse =
-            await userAssignedClientIdManagedIdentityApplication.acquireToken(
-                managedIdentityRequestParams
+const main = async () => {
+    const managedIdentityIdParams: ManagedIdentityIdParams = {
+        // comment this out for a system assigned managed identity
+        userAssignedClientId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        // userAssignedObjectId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        // userAssignedResourceId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    };
+
+    if (process.env.MANAGED_IDENTITY_TYPE_USER_ASSIGNED === "true") {
+        if (!Object.keys(managedIdentityIdParams).length) {
+            throw new Error(
+                "The Managed Identity type is User Assigned, but client/object/resource id is missing."
             );
-    } catch (error) {
-        throw error;
+        }
+        config.managedIdentityIdParams = managedIdentityIdParams;
+    } else {
+        if (Object.keys(managedIdentityIdParams).length) {
+            throw new Error(
+                "The Managed Identity type is System Assigned, but client/object/resource id has been provided."
+            );
+        }
     }
 
-    try {
-        const secret = await getSecretFromKeyVault(
-            userAssignedTokenResponse.accessToken,
-            KEY_VAULT_NAME,
-            SECRET_NAME
-        );
+    const managedIdentityApplication: ManagedIdentityApplication =
+        new ManagedIdentityApplication(config);
 
-        console.log(
-            `(User Assigned) The secret, ${SECRET_NAME}, has a value of: ${secret}`
-        );
-    } catch (error) {
-        throw error;
-    }
-})();
+    await getSecret(managedIdentityApplication);
+};
+main();

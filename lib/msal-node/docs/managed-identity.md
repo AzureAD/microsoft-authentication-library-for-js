@@ -2,15 +2,15 @@
 
 ### Note
 
-> This feature is in preview and feedback is welcome. See the [preview package](https://www.npmjs.com/package/@azure/msal-node/v/2.7.0-alpha.0) that has been upload to npm.
+> This feature is in preview and feedback is welcome. See the [preview package](https://www.npmjs.com/package/@azure/msal-node/v/2.6.5-alpha.0) that has been upload to npm.
 
 A common challenge for developers is the management of secrets, credentials, certificates, and keys used to secure communication between services. [Managed identities](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview) in Azure eliminate the need for developers to handle these credentials manually. MSALJS's msal-node library supports acquiring tokens through the managed identity service when used with applications running inside Azure infrastructure, such as:
 
 -   [Azure App Service](https://azure.microsoft.com/products/app-service/) (API version `2019-08-01` and above)
 -   [Azure VMs](https://azure.microsoft.com/free/virtual-machines/)
 -   [Azure Arc](https://learn.microsoft.com/en-us/azure/azure-arc/overview)
--   [Azure Cloud Shell](https://learn.microsoft.com/en-us/azure/cloud-shell/overview) (not yet supported)
--   [Azure Service Fabric](https://learn.microsoft.com/en-us/azure/service-fabric/service-fabric-overview) (not yet supported)
+-   [Azure Cloud Shell](https://learn.microsoft.com/en-us/azure/cloud-shell/overview)
+-   [Azure Service Fabric](https://learn.microsoft.com/en-us/azure/service-fabric/service-fabric-overview)
 
 For a complete list, refer to [Azure services that can use managed identities to access other services](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identities-status).
 
@@ -26,11 +26,7 @@ If your application already uses one of the SDKs, continue using the same SDK. U
 
 ## Quick start
 
-To quickly get started and see Azure Managed Identity in action, you can use one of the samples the team built for this purpose.
-
-### Note
-
-> The sample does not exist yet
+To quickly get started and see Azure Managed Identity in action, you can use [the sample](../../../samples/msal-node-samples/managed-identity) the team has built for this purpose.
 
 ## How to use managed identities
 

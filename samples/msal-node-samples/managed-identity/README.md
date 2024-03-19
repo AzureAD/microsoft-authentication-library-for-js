@@ -1,6 +1,6 @@
 # Managed Identity for Azure VM Sample
 
-This sample demonstrates how to use [managed identity via the msal-node library](/lib/msal-node/docs/managed-identity.md) to acquire a token for accessing Azure KeyVault, on behalf of a managed identity configured on an Azure VM. The sample then calls the downstream api - it calls KeyVault and retrieves a secret.
+This sample demonstrates how to use [managed identity via the msal-node library](/lib/msal-node/docs/managed-identity.md) to acquire a token for accessing Azure Key Vault, on behalf of a managed identity configured on an Azure virtual machine (VM). The sample then calls the downstream API, which calls Azure Key Vault and retrieves a secret.
 
 ## Note
 
@@ -13,7 +13,7 @@ Follow [this guide](https://learn.microsoft.com/en-us/entra/identity/managed-ide
 
 ## Key Vault Setup
 
-Follow [this guide](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/tutorial-windows-vm-access-nonaad) to create a key vault, create a secret, and grant key vault access to the virtual machine and two managed identity applications in this sample.
+Follow the tutorial to provision the resources necessary for this sample: [Tutorial: Use a Windows VM system-assigned managed identity to access Azure Key Vault](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/tutorial-windows-vm-access-nonaad).
 
 ## Project Setup
 
@@ -23,24 +23,32 @@ In a terminal on the Azure VM, navigate to the directory where `package.json` re
     npm install
 ```
 
-Before running the sample, the userAssignedClientId value in the managedIdentityIdParams object in index.ts needs to be replaced by the client id of the user assigned managed identity that was created in the previous step:
+In this sample, the default Managed Identity type is System Assigned. In order to create a User Assigned Managed Identity, a .env file must be created with the following value:
+
+```
+MANAGED_IDENTITY_TYPE_USER_ASSIGNED=true
+```
+
+If this environment variable has been created and set to `true`, The userAssignedClientId, userAssignedObjectId, or userAssignedResourceId value in the managedIdentityIdParams object in `index.ts` needs to be replaced by the client, object, or resource id of the user assigned managed identity that was created in the previous step:
 
 ```typescript
 const managedIdentityIdParams: ManagedIdentityIdParams = {
     userAssignedClientId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    // userAssignedObjectId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    // userAssignedResourceId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 };
 ```
 
-Additionally, the `KEY_VAULT_NAME` and `SECRET_NAME` values in index.ts need to be updated.
+Additionally, the `KEY_VAULT_URI` and `SECRET_NAME` values in `index.ts` need to be updated.
 
 ```typescript
-const KEY_VAULT_NAME: string = "KEY_VAULT_NAME";
+const KEY_VAULT_URI: string = "KEY_VAULT_URI";
 const SECRET_NAME: string = "SECRET_NAME";
 ```
 
 ## Run the app on the Azure VM
 
-Before running the sample (and everytime changes are made to the sample), the TypeScript will need to be compiled. In the same folder, type:
+Before running the sample (and everytime changes are made to the sample), the TypeScript code will need to be compiled. In the same folder, type:
 
 ```console
     npx tsc
