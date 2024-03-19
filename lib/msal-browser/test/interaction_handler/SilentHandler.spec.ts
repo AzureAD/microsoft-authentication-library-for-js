@@ -262,4 +262,16 @@ describe("SilentHandler.ts Unit Tests", () => {
             }, 500);
         });
     });
+
+    describe("createHiddenIframe()", () => {
+        it("creates iframe HTML element with classname and src properties", () => {
+            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, { navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS, pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS }, performanceClient);
+            // @ts-ignore
+            const authFrame = silentHandler.createHiddenIframe(testNavUrl);
+            expect(authFrame instanceof HTMLIFrameElement).toBe(true);
+            expect(authFrame.className).toEqual("silentTokenRenewalIframe");
+            expect(authFrame.src).not.toBeFalsy();
+            expect(authFrame.src).toEqual(testNavUrl);
+        });
+    })
 });
