@@ -141,6 +141,9 @@ export class StandardController implements IController {
         Promise<AuthenticationResult>
     >;
 
+    // Active Iframe request
+    private activeIframeRequest: Promise<void> | undefined;
+
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
     /**
@@ -1987,7 +1990,13 @@ export class StandardController implements IController {
                     cacheLookupPolicy
                 );
 
-            if (shouldTryToResolveSilently) {
+            if (shouldTryToResolveSilently && !this.activeIframeRequest) {
+                let _resolve: () => void,
+                    _reject: (reason?: AuthError | Error) => void;
+                this.activeIframeRequest = new Promise((resolve, reject) => {
+                    _resolve = resolve;
+                    _reject = reject;
+                });
                 this.logger.verbose(
                     "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
                     silentRequest.correlationId
@@ -1998,7 +2007,18 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     silentRequest.correlationId
-                )(silentRequest);
+                )(silentRequest)
+                    .then((iframeResult) => {
+                        _resolve();
+                        return iframeResult;
+                    })
+                    .catch((e) => {
+                        _reject(e);
+                        throw e;
+                    })
+                    .finally(() => {
+                        this.activeIframeRequest = undefined;
+                    });
             } else {
                 // Error cannot be silently resolved or iframe renewal is not allowed, interaction required
                 throw refreshTokenError;
