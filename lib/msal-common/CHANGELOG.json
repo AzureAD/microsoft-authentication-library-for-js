@@ -2,6 +2,47 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 19 Mar 2024 18:51:54 GMT",
+      "version": "14.8.0",
+      "tag": "@azure/msal-common_v14.8.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c1221e8452e60fec37b2c7fc1dd1d8fbc80b1d3d",
+            "comment": "Instrument non-auth error name and stack #6937"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c1221e8452e60fec37b2c7fc1dd1d8fbc80b1d3d",
+            "comment": "Minor cache cleanup"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c1221e8452e60fec37b2c7fc1dd1d8fbc80b1d3d",
+            "comment": "Append default scopes for the cache lookup #6909"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 17 Feb 2024 01:49:05 GMT",
       "version": "14.7.1",
       "tag": "@azure/msal-common_v14.7.1",
