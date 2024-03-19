@@ -117,6 +117,9 @@ export class SilentHandler extends InteractionHandler {
                     reject("Unable to load iframe");
                     return;
                 }
+                
+                frameHandle.src = urlNavigate;
+                
                 resolve(frameHandle);
             }, this.navigateFrameWait);
         });
@@ -131,6 +134,8 @@ export class SilentHandler extends InteractionHandler {
      */
     private loadFrameSync(urlNavigate: string): HTMLIFrameElement{
         const frameHandle = this.createHiddenIframe(urlNavigate);
+        
+        frameHandle.src = urlNavigate;
         return frameHandle;
     }
 
@@ -143,7 +148,6 @@ export class SilentHandler extends InteractionHandler {
         const authFrame = document.createElement("iframe");
 
         authFrame.className = "silentTokenRenewalIframe";
-        authFrame.src = urlNavigate;
         authFrame.style.visibility = "hidden";
         authFrame.style.position = "absolute";
         authFrame.style.width = authFrame.style.height = "0";
