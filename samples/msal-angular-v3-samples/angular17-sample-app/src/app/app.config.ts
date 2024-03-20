@@ -1,6 +1,6 @@
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { routes, initialNavigation } from './app.routes';
+import { routes } from './app.routes';
 import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
@@ -61,7 +61,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
 export const appConfig: ApplicationConfig = {
   // providers: [provideRouter(routes), provideClientHydration()]
   providers: [
-    provideRouter(routes, initialNavigation), 
+    provideRouter(routes), 
     provideClientHydration(),
     importProvidersFrom(BrowserModule, MatButtonModule, MatToolbarModule, MatListModule, MatMenuModule),
     // provideRouter(Routes, initialNavigation),
