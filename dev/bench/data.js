@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1710939843737,
+  "lastUpdate": 1710963792823,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6410,6 +6410,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 188223,
             "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+          "message": "Revert version bump (#6961)\n\nThis PR manually reverts the last version bump from an incomplete\r\nrelease",
+          "timestamp": "2024-03-20T12:37:23-07:00",
+          "tree_id": "9e5912289578d8110893b25e5f0c2730799d8b65",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/cba97b5f7a87dc8e55f2cad384ff471931b67f2a"
+        },
+        "date": 1710963791074,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 212477,
+            "range": "±1.83%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 184569,
+            "range": "±1.80%",
             "unit": "ops/sec",
             "extra": "223 samples"
           }
