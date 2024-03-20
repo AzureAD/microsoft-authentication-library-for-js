@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix AcquireTokenSilentAsync sub-measurement instrumentation #6947",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
