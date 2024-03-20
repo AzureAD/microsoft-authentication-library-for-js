@@ -142,7 +142,7 @@ export class StandardController implements IController {
     >;
 
     // Active Iframe request
-    private activeIframeRequest: Promise<void> | undefined;
+    private activeIframeRequest: [Promise<void>, string] | undefined;
 
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
@@ -1983,42 +1983,101 @@ export class StandardController implements IController {
         const result = this.acquireTokenSilentNoIframe(
             silentRequest,
             cacheLookupPolicy
-        ).catch((refreshTokenError: AuthError) => {
+        ).catch(async (refreshTokenError: AuthError) => {
             const shouldTryToResolveSilently =
                 checkIfRefreshTokenErrorCanBeResolvedSilently(
                     refreshTokenError,
                     cacheLookupPolicy
                 );
 
-            if (shouldTryToResolveSilently && !this.activeIframeRequest) {
-                let _resolve: () => void,
-                    _reject: (reason?: AuthError | Error) => void;
-                this.activeIframeRequest = new Promise((resolve, reject) => {
-                    _resolve = resolve;
-                    _reject = reject;
-                });
-                this.logger.verbose(
-                    "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
-                    silentRequest.correlationId
-                );
-                return invokeAsync(
-                    this.acquireTokenBySilentIframe.bind(this),
-                    PerformanceEvents.AcquireTokenBySilentIframe,
-                    this.logger,
-                    this.performanceClient,
-                    silentRequest.correlationId
-                )(silentRequest)
-                    .then((iframeResult) => {
-                        _resolve();
-                        return iframeResult;
-                    })
-                    .catch((e) => {
-                        _reject(e);
-                        throw e;
-                    })
-                    .finally(() => {
-                        this.activeIframeRequest = undefined;
+            if (shouldTryToResolveSilently) {
+                if (!this.activeIframeRequest) {
+                    let _resolve: () => void,
+                        _reject: (reason?: AuthError | Error) => void;
+                    // Always set the active request tracker immediately after checking it to prevent races
+                    this.activeIframeRequest = [
+                        new Promise((resolve, reject) => {
+                            _resolve = resolve;
+                            _reject = reject;
+                        }),
+                        silentRequest.correlationId,
+                    ];
+                    this.logger.verbose(
+                        "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
+                        silentRequest.correlationId
+                    );
+                    return invokeAsync(
+                        this.acquireTokenBySilentIframe.bind(this),
+                        PerformanceEvents.AcquireTokenBySilentIframe,
+                        this.logger,
+                        this.performanceClient,
+                        silentRequest.correlationId
+                    )(silentRequest)
+                        .then((iframeResult) => {
+                            _resolve();
+                            return iframeResult;
+                        })
+                        .catch((e) => {
+                            _reject(e);
+                            throw e;
+                        })
+                        .finally(() => {
+                            this.activeIframeRequest = undefined;
+                        });
+                } else if (cacheLookupPolicy !== CacheLookupPolicy.Skip) {
+                    const [activePromise, activeCorrelationId] =
+                        this.activeIframeRequest;
+                    this.logger.verbose(
+                        `Iframe request is already in progress, awaiting resolution for request with correlationId: ${activeCorrelationId}`,
+                        silentRequest.correlationId
+                    );
+                    const awaitConcurrentIframeMeasure =
+                        this.performanceClient.startMeasurement(
+                            PerformanceEvents.AwaitConcurrentIframe,
+                            silentRequest.correlationId
+                        );
+                    awaitConcurrentIframeMeasure.add({
+                        awaitIframeCorrelationId: activeCorrelationId,
                     });
+
+                    // Await for errors first so we can distinguish errors thrown by activePromise versus errors thrown by .then below
+                    await activePromise.catch(() => {
+                        awaitConcurrentIframeMeasure.end({
+                            success: false,
+                        });
+                        this.logger.info(
+                            `Iframe request with correlationId: ${activeCorrelationId} failed. Interaction is required.`
+                        );
+                        // If previous iframe request failed, it's unlikely to succeed this time. Throw original error.
+                        throw refreshTokenError;
+                    });
+
+                    return activePromise.then(() => {
+                        awaitConcurrentIframeMeasure.end({ success: true });
+                        this.logger.verbose(
+                            `Parallel iframe request with correlationId: ${activeCorrelationId} succeeded. Retrying cache and/or RT redemption`,
+                            silentRequest.correlationId
+                        );
+                        // Retry cache lookup and/or RT exchange after iframe completes
+                        return this.acquireTokenSilentNoIframe(
+                            silentRequest,
+                            cacheLookupPolicy
+                        );
+                    });
+                } else {
+                    // Cache policy set to skip and another iframe request is already in progress
+                    this.logger.warning(
+                        "Another iframe request is currently in progress and CacheLookupPolicy is set to Skip. This may result in degraded performance and/or reliability for both calls. Please consider changing the CacheLookupPolicy to take advantage of request queuing and token cache.",
+                        silentRequest.correlationId
+                    );
+                    return invokeAsync(
+                        this.acquireTokenBySilentIframe.bind(this),
+                        PerformanceEvents.AcquireTokenBySilentIframe,
+                        this.logger,
+                        this.performanceClient,
+                        silentRequest.correlationId
+                    )(silentRequest);
+                }
             } else {
                 // Error cannot be silently resolved or iframe renewal is not allowed, interaction required
                 throw refreshTokenError;
