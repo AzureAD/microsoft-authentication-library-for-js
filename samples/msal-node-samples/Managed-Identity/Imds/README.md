@@ -67,5 +67,3 @@ An npm script has been configured in package.json, which will run both of the ab
 ```console
     npm run start:app
 ```
-
-A token will be returned from the system assigned managed identity application as well as the user assigned managed identity application, and they will both be immediately displayed in the terminal.
