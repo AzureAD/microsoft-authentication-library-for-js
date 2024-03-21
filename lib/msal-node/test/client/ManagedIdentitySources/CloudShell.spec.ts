@@ -37,8 +37,8 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
     afterEach(() => {
         // reset static variables after each test
-        ManagedIdentityClient.identitySource = undefined;
-        ManagedIdentityApplication["nodeStorage"] = undefined;
+        delete ManagedIdentityClient["identitySource"];
+        delete ManagedIdentityApplication["nodeStorage"];
     });
 
     describe("System Assigned", () => {

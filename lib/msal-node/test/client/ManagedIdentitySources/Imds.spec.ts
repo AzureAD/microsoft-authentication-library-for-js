@@ -57,8 +57,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     // IMDS doesn't need environment variables because there is a default IMDS endpoint
 
     afterEach(() => {
-        ManagedIdentityClient.identitySource = undefined;
-        ManagedIdentityApplication["nodeStorage"] = undefined;
+        delete ManagedIdentityClient["identitySource"];
+        delete ManagedIdentityApplication["nodeStorage"];
     });
 
     const managedIdentityNetworkErrorClient =
@@ -682,7 +682,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             // not needed in production, but this resets the network client for the next application
             // since the network client is mocked for each application
-            ManagedIdentityClient.identitySource = undefined;
+            delete ManagedIdentityClient["identitySource"];
 
             // resource R2 for system assigned - returned from a network request
             networkManagedIdentityResult =
@@ -693,7 +693,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             // not needed in production, but this resets the network client for the next application
             // since the network client is mocked for each application
-            ManagedIdentityClient.identitySource = undefined;
+            delete ManagedIdentityClient["identitySource"];
 
             // resource R2 for user assigned - returned from a network request
             networkManagedIdentityResult =

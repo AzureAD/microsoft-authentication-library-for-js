@@ -26,7 +26,7 @@ import { mockAuthenticationResult } from "../utils/TestConstants";
 const EMPTY_HEADERS: Record<string, string> = {};
 
 export class ManagedIdentityTestUtils {
-    static isAppService(): boolean {
+    public static isAppService(): boolean {
         return (
             // !! converts to boolean
             !!process.env[
@@ -38,7 +38,7 @@ export class ManagedIdentityTestUtils {
         );
     }
 
-    static isAzureArc(): boolean {
+    public static isAzureArc(): boolean {
         return (
             // !! converts to boolean
             !!process.env[
@@ -48,14 +48,14 @@ export class ManagedIdentityTestUtils {
         );
     }
 
-    static isCloudShell(): boolean {
+    public static isCloudShell(): boolean {
         return (
             // !! converts to boolean
             !!process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT]
         );
     }
 
-    static isIMDS(): boolean {
+    public static isIMDS(): boolean {
         return (
             !ManagedIdentityTestUtils.isAppService() &&
             !ManagedIdentityTestUtils.isAzureArc() &&
@@ -64,7 +64,7 @@ export class ManagedIdentityTestUtils {
         );
     }
 
-    static isServiceFabric(): boolean {
+    public static isServiceFabric(): boolean {
         return (
             // !! converts to boolean
             !!process.env[
