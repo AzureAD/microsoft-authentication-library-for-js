@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Capture telemetry event tree #6948",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
