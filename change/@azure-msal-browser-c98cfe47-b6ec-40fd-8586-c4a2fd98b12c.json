@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Internal refactor of async storage",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
