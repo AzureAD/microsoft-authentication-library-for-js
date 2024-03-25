@@ -26,7 +26,7 @@ If your application already uses one of the SDKs, continue using the same SDK. U
 
 ## Quick start
 
-To quickly get started and see Azure Managed Identity in action, you can use [the sample](../../../samples/msal-node-samples/managed-identity) the team has built for this purpose.
+To quickly get started and see Azure Managed Identity in action, you can use one of [the samples](../../../samples/msal-node-samples/Managed-Identity) the team has built for this purpose.
 
 ## How to use managed identities
 
