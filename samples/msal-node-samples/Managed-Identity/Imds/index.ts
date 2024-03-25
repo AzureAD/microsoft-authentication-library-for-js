@@ -8,7 +8,7 @@ import {
     ManagedIdentityRequestParams,
     NodeSystemOptions,
 } from "@azure/msal-node";
-import { getSecretFromKeyVault } from "./HttpClient";
+import { getSecretFromKeyVault } from "./DownstreamApi";
 
 import dotenv from "dotenv";
 dotenv.config();
