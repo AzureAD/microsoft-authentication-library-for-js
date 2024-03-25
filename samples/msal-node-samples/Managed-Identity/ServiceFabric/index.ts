@@ -10,7 +10,7 @@ import {
     NetworkResponse,
     NodeSystemOptions,
 } from "@azure/msal-node";
-import { getSecretFromKeyVault } from "./HttpClient";
+import { getSecretFromKeyVault } from "./DownstreamApi";
 
 import express from "express";
 const app: express.Application = express();

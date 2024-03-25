@@ -26,7 +26,7 @@ Follow the tutorial to provision the resources necessary for this sample: [Tutor
 
 ### Note
 
-The above guide was created for Azure VMs, but is applicable for Service Fabric clusters too. In the "Select Principle" field, choose the name of the Virtual machine scale set associated with the Service Fabric cluster.
+The above guide was created for Azure VMs, but is applicable for Service Fabric clusters too. In the "Select Principal" field, choose the name of the Virtual machine scale set associated with the Service Fabric cluster.
 
 ## Project Setup
 
