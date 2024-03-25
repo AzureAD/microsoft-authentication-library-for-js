@@ -207,10 +207,7 @@ export function buildAppConfiguration({
         ...DEFAULT_SYSTEM_OPTIONS,
         networkClient: new HttpClient(
             system?.proxyUrl,
-            system?.customAgentOptions as
-                | http.AgentOptions
-                | https.AgentOptions,
-            false // Managed Identity
+            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
         ),
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
         disableInternalRetries: system?.disableInternalRetries || false,
@@ -251,10 +248,7 @@ export function buildManagedIdentityConfiguration({
     } else {
         networkClient = new HttpClient(
             system?.proxyUrl,
-            system?.customAgentOptions as
-                | http.AgentOptions
-                | https.AgentOptions,
-            true // Managed Identity
+            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
         );
     }
 

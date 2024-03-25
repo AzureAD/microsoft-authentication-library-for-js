@@ -20,16 +20,13 @@ import https from "https";
 export class HttpClient implements INetworkModule {
     private proxyUrl: string;
     private customAgentOptions: http.AgentOptions | https.AgentOptions;
-    private managedIdentity: boolean;
 
     constructor(
         proxyUrl?: string,
-        customAgentOptions?: http.AgentOptions | https.AgentOptions,
-        managedIdentity?: boolean
+        customAgentOptions?: http.AgentOptions | https.AgentOptions
     ) {
         this.proxyUrl = proxyUrl || "";
         this.customAgentOptions = customAgentOptions || {};
-        this.managedIdentity = managedIdentity || false;
     }
 
     /**
@@ -55,8 +52,7 @@ export class HttpClient implements INetworkModule {
                 HttpMethod.GET,
                 options,
                 this.customAgentOptions as https.AgentOptions,
-                undefined,
-                this.managedIdentity
+                undefined
             );
         }
     }
@@ -86,8 +82,7 @@ export class HttpClient implements INetworkModule {
                 HttpMethod.POST,
                 options,
                 this.customAgentOptions as https.AgentOptions,
-                cancellationToken,
-                this.managedIdentity
+                cancellationToken
             );
         }
     }
@@ -283,8 +278,7 @@ const networkRequestViaHttps = <T>(
     httpMethod: string,
     options?: NetworkRequestOptions,
     agentOptions?: https.AgentOptions,
-    timeout?: number,
-    managedIdentity?: boolean
+    timeout?: number
 ): Promise<NetworkResponse<T>> => {
     const isPostRequest = httpMethod === HttpMethod.POST;
     const body: string = options?.body || "";
@@ -315,7 +309,8 @@ const networkRequestViaHttps = <T>(
 
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
         let request: http.ClientRequest;
-        if (managedIdentity) {
+        // managed identity sources use http instead of https
+        if (customOptions.protocol === "http:") {
             request = http.request(customOptions);
         } else {
             request = https.request(customOptions);

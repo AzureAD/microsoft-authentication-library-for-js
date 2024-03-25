@@ -53,8 +53,8 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
 
     afterEach(() => {
         // reset static variables after each test
-        ManagedIdentityClient.identitySource = undefined;
-        ManagedIdentityApplication["nodeStorage"] = undefined;
+        delete ManagedIdentityClient["identitySource"];
+        delete ManagedIdentityApplication["nodeStorage"];
     });
 
     // Azure Arc Managed Identities can only be system assigned
