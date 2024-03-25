@@ -559,7 +559,6 @@ export class PopupClient extends StandardInteractionClient {
     /**
      * Monitors a window until it loads a url with the same origin.
      * @param popupWindow - window that is being monitored
-     * @param timeout - timeout for processing hash once popup is redirected back to application
      */
     monitorPopupForHash(popupWindow: Window): Promise<string> {
         return new Promise<string>((resolve, reject) => {
@@ -574,6 +573,10 @@ export class PopupClient extends StandardInteractionClient {
                         "PopupHandler.monitorPopupForHash - window closed"
                     );
                     clearInterval(intervalId);
+                    this.performanceClient.addFields(
+                        { userCancelled: true },
+                        this.correlationId
+                    );
                     reject(
                         createBrowserAuthError(
                             BrowserAuthErrorCodes.userCancelled

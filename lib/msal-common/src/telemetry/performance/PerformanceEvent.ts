@@ -796,8 +796,10 @@ export type PerformanceEvent = {
     errorName?: string;
     errorStack?: string[];
 
-    //
+    // Event context in the form of the measurement tree
     context?: object;
+
+    userCancelled?: boolean;
 };
 
 export type PerformanceEventContext = {

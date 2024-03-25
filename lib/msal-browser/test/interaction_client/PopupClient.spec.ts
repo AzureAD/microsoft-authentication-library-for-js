@@ -60,6 +60,7 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserAuthErrorCodes } from "../../src";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -1611,6 +1612,55 @@ describe("PopupClient", () => {
                 expect(error.errorCode).toEqual("user_cancelled");
                 done();
             });
+
+            setTimeout(() => {
+                //@ts-ignore
+                popup.closed = true;
+            }, 50);
+        });
+
+        it("instruments cancelled popup", (done) => {
+            const perfClient = new BrowserPerformanceClient({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+
+            // @ts-ignore
+            popupClient.performanceClient = perfClient;
+
+            const popup: Window = {
+                //@ts-ignore
+                location: {
+                    href: "about:blank",
+                    hash: "",
+                },
+                close: () => {},
+                closed: false,
+            };
+
+            const callbackId = perfClient.addPerformanceCallback((events) => {
+                expect(events.length).toEqual(1);
+                const event = events[0];
+                expect(event.userCancelled).toEqual(true);
+                perfClient.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            const measurement = perfClient.startMeasurement(
+                "test measurement",
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            popupClient
+                .monitorPopupForHash(popup)
+                .then(() => {
+                    throw Error("Unexpected error");
+                })
+                .catch((error) => {
+                    expect(error.errorCode).toEqual("user_cancelled");
+                    measurement.end({});
+                });
 
             setTimeout(() => {
                 //@ts-ignore

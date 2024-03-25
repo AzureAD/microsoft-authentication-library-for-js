@@ -24,6 +24,7 @@ import {
     CcsCredential,
     CcsCredentialType,
     IPerformanceClient,
+    ServerError,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -54,6 +55,7 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -595,6 +597,114 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH)
                 )
             ).toBe(null);
+        });
+
+        it("instruments cancelled flow", (done) => {
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: "1536361411",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testCcsCred: CcsCredential = {
+                credential: idTokenClaims.preferred_username || "",
+                type: CcsCredentialType.UPN,
+            };
+            const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.BEARER,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope1", "scope2"],
+                code: "",
+                authority: authorityInstance.canonicalAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                ccsCredential: testCcsCred,
+            };
+
+            browserStorage.setTemporaryCache(
+                browserStorage.generateStateKey(
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                ),
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            browserStorage.setTemporaryCache(
+                browserStorage.generateCacheKey(
+                    TemporaryCacheKeys.REQUEST_PARAMS
+                ),
+                browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest))
+            );
+            browserStorage.setTemporaryCache(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            browserStorage.setTemporaryCache(
+                browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH),
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.CCS_CREDENTIAL,
+                JSON.stringify(testCcsCred)
+            );
+
+            sinon
+                .stub(
+                    AuthorizationCodeClient.prototype,
+                    "handleFragmentResponse"
+                )
+                .throws(
+                    new ServerError(
+                        BrowserAuthErrorCodes.userCancelled,
+                        "user cancelled",
+                        BrowserAuthErrorCodes.userCancelled
+                    )
+                );
+
+            const perfClient = new BrowserPerformanceClient({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+
+            const callbackId = perfClient.addPerformanceCallback((events) => {
+                expect(events.length).toEqual(1);
+                const event = events[0];
+                expect(event.userCancelled).toEqual(true);
+                perfClient.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            const redirectHandler = new RedirectHandler(
+                authCodeModule,
+                browserStorage,
+                testAuthCodeRequest,
+                browserRequestLogger,
+                perfClient
+            );
+
+            const measurement = perfClient.startMeasurement(
+                "test measurement",
+                RANDOM_TEST_GUID
+            );
+
+            redirectHandler
+                .handleCodeResponse(
+                    {
+                        code: "thisIsATestCode",
+                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    },
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                )
+                .then(() => {
+                    throw Error("Unexpected error");
+                })
+                .catch((error) => {
+                    expect(error.errorCode).toEqual("user_cancelled");
+                    measurement.end();
+                });
         });
     });
 });

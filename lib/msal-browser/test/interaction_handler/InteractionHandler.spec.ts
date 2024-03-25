@@ -22,6 +22,8 @@ import {
     AuthorityOptions,
     CcsCredential,
     CcsCredentialType,
+    ServerError,
+    IPerformanceClient,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -51,18 +53,20 @@ import {
     TemporaryCacheKeys,
     BrowserConstants,
 } from "../../src/utils/BrowserConstants";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
         authCodeModule: AuthorizationCodeClient,
-        storageImpl: BrowserCacheManager
+        storageImpl: BrowserCacheManager,
+        performanceClient?: IPerformanceClient
     ) {
         super(
             authCodeModule,
             storageImpl,
             testAuthCodeRequest,
             testBrowserRequestLogger,
-            performanceClient
+            performanceClient || mockPerformanceClient
         );
     }
 
@@ -149,7 +153,7 @@ const cryptoInterface = {
     },
 };
 
-const performanceClient = {
+const mockPerformanceClient = {
     startMeasurement: jest.fn(),
     endMeasurement: jest.fn(),
     discardMeasurements: jest.fn(),
@@ -555,6 +559,70 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 )
             ).toBe(true);
             expect(acquireTokenSpy.threw()).toBe(false);
+        });
+
+        it("instruments cancelled flow", (done) => {
+            sinon
+                .stub(
+                    AuthorizationCodeClient.prototype,
+                    "handleFragmentResponse"
+                )
+                .throws(
+                    new ServerError(
+                        BrowserAuthErrorCodes.userCancelled,
+                        "user cancelled",
+                        BrowserAuthErrorCodes.userCancelled
+                    )
+                );
+
+            const perfClient = new BrowserPerformanceClient({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+
+            const callbackId = perfClient.addPerformanceCallback((events) => {
+                expect(events.length).toEqual(1);
+                const event = events[0];
+                expect(event.userCancelled).toEqual(true);
+                perfClient.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            const interactionHandler = new TestInteractionHandler(
+                authCodeModule,
+                browserStorage,
+                perfClient
+            );
+
+            const measurement = perfClient.startMeasurement(
+                "test measurement",
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            interactionHandler
+                .handleCodeResponse(
+                    {
+                        code: "authCode",
+                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    },
+                    {
+                        authority: TEST_CONFIG.validAuthority,
+                        scopes: ["User.Read"],
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        redirectUri: "/",
+                        responseMode: "fragment",
+                        nonce: TEST_CONFIG.CORRELATION_ID,
+                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    }
+                )
+                .then(() => {
+                    throw Error("Unexpected error");
+                })
+                .catch((error) => {
+                    expect(error.errorCode).toEqual("user_cancelled");
+                    measurement.end();
+                });
         });
     });
 });

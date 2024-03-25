@@ -73,6 +73,10 @@ export class InteractionHandler {
                 e instanceof ServerError &&
                 e.subError === BrowserAuthErrorCodes.userCancelled
             ) {
+                this.performanceClient.addFields(
+                    { userCancelled: true },
+                    request.correlationId
+                );
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
                 throw createBrowserAuthError(
                     BrowserAuthErrorCodes.userCancelled
