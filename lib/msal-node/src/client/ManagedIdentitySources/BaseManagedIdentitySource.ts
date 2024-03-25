@@ -213,7 +213,7 @@ export abstract class BaseManagedIdentitySource {
         }
     }
 
-    static getValidatedEnvVariableUrlString = (
+    public static getValidatedEnvVariableUrlString = (
         envVariableStringName: string,
         envVariable: string,
         sourceName: string,

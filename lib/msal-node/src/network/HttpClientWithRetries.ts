@@ -64,14 +64,14 @@ export class HttpClientWithRetries implements INetworkModule {
         return response;
     }
 
-    async sendGetRequestAsync<T>(
+    public async sendGetRequestAsync<T>(
         url: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
         return this.sendNetworkRequestAsync(HttpMethod.GET, url, options);
     }
 
-    async sendPostRequestAsync<T>(
+    public async sendPostRequestAsync<T>(
         url: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {

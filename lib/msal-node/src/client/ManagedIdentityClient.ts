@@ -22,6 +22,7 @@ import {
 import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { ManagedIdentityId } from "../config/ManagedIdentityId";
 import { NodeStorage } from "../cache/NodeStorage";
+import { BaseManagedIdentitySource } from "./ManagedIdentitySources/BaseManagedIdentitySource";
 
 /*
  * Class to initialize a managed identity and identify the service.
@@ -33,13 +34,7 @@ export class ManagedIdentityClient {
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
 
-    static identitySource:
-        | ServiceFabric
-        | AppService
-        | CloudShell
-        | AzureArc
-        | Imds
-        | undefined;
+    private static identitySource?: BaseManagedIdentitySource;
 
     constructor(
         logger: Logger,
@@ -88,7 +83,7 @@ export class ManagedIdentityClient {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         managedIdentityId: ManagedIdentityId
-    ): ServiceFabric | AppService | CloudShell | AzureArc | Imds {
+    ): BaseManagedIdentitySource {
         const source =
             ServiceFabric.tryCreate(
                 logger,
