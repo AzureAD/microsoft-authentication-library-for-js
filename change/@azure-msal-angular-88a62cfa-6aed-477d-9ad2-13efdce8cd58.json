@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Bump msal-browser",
-  "packageName": "@azure/msal-angular",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
