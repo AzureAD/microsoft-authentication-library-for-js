@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 26 Mar 2024 20:58:39 GMT",
+      "version": "2.38.4",
+      "tag": "@azure/msal-browser_v2.38.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "72f5cc46f1388e01a8ef3d8f17af9dc4e6301b9a",
+            "comment": "Add classname to silent token renewal iframe HTML element #6960"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 26 Oct 2023 20:13:24 GMT",
       "tag": "@azure/msal-browser_v2.38.3",
       "version": "2.38.3",
