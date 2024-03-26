@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Bump package versions",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
