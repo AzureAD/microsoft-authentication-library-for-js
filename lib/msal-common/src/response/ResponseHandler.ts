@@ -569,8 +569,11 @@ export class ResponseHandler {
         let familyId: string = Constants.EMPTY_STRING;
 
         if (cacheRecord.accessToken) {
+            // if the request object has `reqCnf` property, the token will be returned unsigned
             if (
-                cacheRecord.accessToken.tokenType === AuthenticationScheme.POP
+                cacheRecord.accessToken.tokenType ===
+                    AuthenticationScheme.POP &&
+                !request.reqCnf
             ) {
                 const popTokenGenerator: PopTokenGenerator =
                     new PopTokenGenerator(cryptoObj);

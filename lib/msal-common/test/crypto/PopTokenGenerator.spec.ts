@@ -86,9 +86,6 @@ describe("PopTokenGenerator Unit Tests", () => {
                 TEST_POP_VALUES.ENCODED_REQ_CNF
             );
             expect(reqCnfData.kid).toBe(TEST_POP_VALUES.KID);
-            expect(reqCnfData.reqCnfHash).toBe(
-                TEST_CRYPTO_VALUES.TEST_SHA256_HASH
-            );
         });
     });
 

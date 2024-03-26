@@ -55,6 +55,10 @@ const silentRequest = {
     scopes: ["openid", "profile", "User.Read"],
 };
 
+const bearerTokenRequest = {
+    scopes: ["openid", "profile", "User.Read"]
+}
+
 const popTokenRequest = {
     scopes: ["openid", "profile", "User.Read"],
     authenticationScheme: msal.AuthenticationScheme.POP,
@@ -62,6 +66,11 @@ const popTokenRequest = {
     resourceRequestUri: popConfig.endpoint
 }
 
-const bearerTokenRequest = {
-    scopes: ["openid", "profile", "User.Read"]
-}
+const popTokenWithCnfRequest = {
+    scopes: ["openid", "profile", "User.Read"],
+    authenticationScheme: msal.AuthenticationScheme.POP,
+    reqCnf: {
+        kid: "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+        reqCnfHash: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE"
+    }
+};

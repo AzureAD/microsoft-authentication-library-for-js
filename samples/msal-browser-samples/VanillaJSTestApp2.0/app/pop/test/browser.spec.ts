@@ -111,4 +111,46 @@ describe("Browser PoP tests", function () {
         const storage = await BrowserCache.getWindowStorage();
         expect(Object.keys(storage).length).toEqual(7);
     });
+
+    it("Performs loginRedirect, acquires and verifies a PoP token is unsigned if reqCnf is provided in request", async () => {
+        const testName = "redirectBaseCaseWithCnf";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+        // Home Page
+        await page.waitForSelector("#SignIn");
+        await screenshot.takeScreenshot(page, "samplePageInit");
+        // Click Sign In
+        await page.click("#SignIn");
+        await page.waitForSelector("#loginRedirect");
+        await screenshot.takeScreenshot(page, "signInClicked");
+        // Click Sign In With Redirect
+        await page.click("#loginRedirect");
+        // Enter credentials
+        await enterCredentials(page, screenshot, username, accountPwd);
+        await page.waitForSelector("#popCnfToken", { visible: true });
+        await screenshot.takeScreenshot(page, "samplePageLoggedIn");
+        await page.click("#popCnfToken");
+        await page.waitForSelector("#PopTokenWithCnfAcquired");
+        await screenshot.takeScreenshot(page, "popTokenWithCnfClicked");
+        console.log("Waiting for pop token to be generated");
+        const tokenStore = await BrowserCache.getTokens();
+        expect(tokenStore.idTokens).toHaveLength(1);
+        // One Bearer Token and one PoP token
+        expect(tokenStore.accessTokens).toHaveLength(1);
+        expect(tokenStore.refreshTokens).toHaveLength(1);
+        const cachedAccount = await BrowserCache.getAccountFromCache(
+            tokenStore.idTokens[0]
+        );
+        const defaultCachedToken =
+            await BrowserCache.accessTokenForScopesExists(
+                tokenStore.accessTokens,
+                ["openid", "profile", "user.read"]
+            );
+        expect(cachedAccount).toBeDefined();
+        expect(defaultCachedToken).toBeTruthy();
+
+        const storage = await BrowserCache.getWindowStorage();
+        expect(Object.keys(storage).length).toEqual(6);
+    });
 });

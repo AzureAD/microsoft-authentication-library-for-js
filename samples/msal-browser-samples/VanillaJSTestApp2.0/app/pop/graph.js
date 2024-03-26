@@ -70,6 +70,20 @@ async function fetchPopToken() {
     }
 }
 
+async function fetchPopTokenWithCnf() {
+    const currentAcc = myMSALObj.getAccountByUsername(username);
+    if (currentAcc) {
+        return getTokenPopup(popTokenWithCnfRequest, currentAcc).then(response => {
+            if (response.accessToken) {
+                showPopTokenWithCnfAcquired(response.accessToken);
+                return response.accessToken;
+            }
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+}
+
 async function seeProfile() {
     const currentAcc = myMSALObj.getAccountByUsername(username);
     if (currentAcc) {

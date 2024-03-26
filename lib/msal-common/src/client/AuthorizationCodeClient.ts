@@ -381,13 +381,17 @@ export class AuthorizationCodeClient extends BaseClient {
                 this.performanceClient
             );
 
-            const reqCnfData = await invokeAsync(
-                popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                PerformanceEvents.PopTokenGenerateCnf,
-                this.logger,
-                this.performanceClient,
-                request.correlationId
-            )(request, this.logger);
+            let reqCnfData = request.reqCnf;
+            if (!reqCnfData) {
+                reqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(request, this.logger);
+            }
+
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
@@ -665,15 +669,19 @@ export class AuthorizationCodeClient extends BaseClient {
                 const popTokenGenerator = new PopTokenGenerator(
                     this.cryptoUtils
                 );
-                // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-                const reqCnfData = await invokeAsync(
-                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                    PerformanceEvents.PopTokenGenerateCnf,
-                    this.logger,
-                    this.performanceClient,
-                    request.correlationId
-                )(request, this.logger);
-                parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
+
+                // req_cnf is always sent as a string for SPAs
+                let reqCnfData = request.reqCnf;
+                if (!reqCnfData) {
+                    reqCnfData = await invokeAsync(
+                        popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                        PerformanceEvents.PopTokenGenerateCnf,
+                        this.logger,
+                        this.performanceClient,
+                        request.correlationId
+                    )(request, this.logger);
+                }
+                parameterBuilder.addPopToken(reqCnfData.reqCnfString);
             }
         }
 

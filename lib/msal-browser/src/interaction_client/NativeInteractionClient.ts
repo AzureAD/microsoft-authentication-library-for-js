@@ -911,6 +911,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 ...request.tokenQueryParameters,
             },
             extendedExpiryToken: false, // Make this configurable?
+            reqCnf: "",
         };
 
         this.handleExtraBrokerParams(validatedRequest);
@@ -929,16 +930,21 @@ export class NativeInteractionClient extends BaseInteractionClient {
             };
 
             const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-            const reqCnfData = await invokeAsync(
-                popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                PerformanceEvents.PopTokenGenerateCnf,
-                this.logger,
-                this.performanceClient,
-                this.correlationId
-            )(shrParameters, this.logger);
 
-            // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-            validatedRequest.reqCnf = reqCnfData.reqCnfHash;
+            // generate reqCnf if not provided in the request
+            let reqCnfData = request.reqCnf;
+            if (!reqCnfData) {
+                reqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(shrParameters, this.logger);
+            }
+
+            // SPAs require whole string to be passed to broker
+            validatedRequest.reqCnf = reqCnfData.reqCnfString;
             validatedRequest.keyId = reqCnfData.kid;
         }
 
