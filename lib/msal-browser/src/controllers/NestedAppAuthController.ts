@@ -15,6 +15,8 @@ import {
     PerformanceEvents,
     AccountFilter,
     TimeUtils,
+    Authority,
+    AccountEntity,
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -37,7 +39,10 @@ import { EventHandler } from "../event/EventHandler";
 import { EventType } from "../event/EventType";
 import { EventCallbackFunction, EventError } from "../event/EventMessage";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import {
+    BrowserCacheManager,
+    DEFAULT_BROWSER_CACHE_MANAGER,
+} from "../cache/BrowserCacheManager";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export class NestedAppAuthController implements IController {
@@ -53,6 +58,9 @@ export class NestedAppAuthController implements IController {
     // Input configuration by developer/user
     protected readonly config: BrowserConfiguration;
 
+    // Storage interface implementation
+    protected readonly browserStorage!: BrowserCacheManager;
+
     // Logger
     protected logger: Logger;
 
@@ -65,7 +73,17 @@ export class NestedAppAuthController implements IController {
     // NestedAppAuthAdapter
     protected readonly nestedAppAuthAdapter: NestedAppAuthAdapter;
 
-    constructor(operatingContext: TeamsAppOperatingContext) {
+    constructor(
+        operatingContext: TeamsAppOperatingContext,
+        hydrateCache: (
+            result: AuthenticationResult,
+            request:
+                | SilentRequest
+                | SsoSilentRequest
+                | RedirectRequest
+                | PopupRequest
+        ) => Promise<void>
+    ) {
         this.operatingContext = operatingContext;
         const proxy = this.operatingContext.getBridgeProxy();
         if (proxy !== undefined) {
@@ -87,6 +105,20 @@ export class NestedAppAuthController implements IController {
             ? new CryptoOps(this.logger, this.performanceClient)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
+        // Initialize the browser storage class.
+        this.browserStorage = this.operatingContext.isBrowserEnvironment()
+            ? new BrowserCacheManager(
+                  this.config.auth.clientId,
+                  this.config.cache,
+                  this.browserCrypto,
+                  this.logger,
+                  Authority.buildStaticAuthorityOptions(this.config.auth)
+              )
+            : DEFAULT_BROWSER_CACHE_MANAGER(
+                  this.config.auth.clientId,
+                  this.logger
+              );
+
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
@@ -95,6 +127,8 @@ export class NestedAppAuthController implements IController {
             this.browserCrypto,
             this.logger
         );
+
+        this.hydrateCache = hydrateCache;
     }
     getBrowserStorage(): BrowserCacheManager {
         throw NestedAppAuthError.createUnsupportedError();
@@ -163,6 +197,9 @@ export class NestedAppAuthController implements IController {
                     response,
                     reqTimestamp
                 );
+
+            // cache the tokens in the response
+            await this.hydrateCache(result, request);
 
             this.operatingContext.setActiveAccount(result.account);
             this.eventHandler.emitEvent(
@@ -237,6 +274,9 @@ export class NestedAppAuthController implements IController {
                     response,
                     reqTimestamp
                 );
+
+            // cache the tokens in the response
+            await this.hydrateCache(result, request);
 
             this.operatingContext.setActiveAccount(result.account);
             this.eventHandler.emitEvent(
@@ -540,6 +580,15 @@ export class NestedAppAuthController implements IController {
             | RedirectRequest
             | PopupRequest
     ): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
+        this.logger.verbose("hydrateCache called");
+
+        // Account gets saved to browser storage regardless of native or not
+        const accountEntity = AccountEntity.createFromAccountInfo(
+            result.account,
+            result.cloudGraphHostName,
+            result.msGraphHost
+        );
+        this.browserStorage.setAccount(accountEntity);
+        return this.browserStorage.hydrateCache(result, request);
     }
 }
