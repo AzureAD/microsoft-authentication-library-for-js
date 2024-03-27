@@ -103,8 +103,6 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `customAgent`        | A http(s) proxy agent                                 | Object - [NodeJS documentation on proxy agents](https://nodejs.org/docs/latest-v16.x/api/http.html#class-httpagent)        | Proxy Agent `new http.Agent();` or a proxy agent created by a third-party proxy agent library                                        |
 | `customAgentOptions` | Set of configurable options to set on a http(s) agent | Object - [NodeJS documentation on alloweable options](https://nodejs.org/docs/latest-v16.x/api/http.html#new-agentoptions) | Empty Object `{}`                                                                                                                    |
 
-| `disableInternalRetries` | A flag that disables MSALJS's built-in retry policies, allowing the app developer to specify their own retry policy. Currently, only Managed Identity flows have a retry policy. | boolean | boolean `false` |
-
 #### Logger Config Options
 
 | Option              | Description                                                             | Format                                                                                      | Default Value        |
