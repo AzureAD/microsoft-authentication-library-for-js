@@ -1,5 +1,4 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -14,11 +13,10 @@ import { filter, takeUntil } from 'rxjs/operators';
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
     standalone: true,
-    imports: [CommonModule, RouterModule, MatToolbarModule, MatButtonModule, MatMenuModule]
+    imports: [RouterModule, MatToolbarModule, MatButtonModule, MatMenuModule]
 })
 export class AppComponent implements OnInit, OnDestroy {
   title = 'Angular 17 Sample - MSAL Angular v3';
-  // isIframe = false;
   loginDisplay = false;
   private readonly _destroying$ = new Subject<void>();
 
@@ -31,7 +29,6 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.authService.handleRedirectObservable().subscribe();
 
-    // this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
     this.setLoginDisplay();
 
     this.authService.instance.enableAccountStorageEvents(); // Optional - This will enable ACCOUNT_ADDED and ACCOUNT_REMOVED events emitted when a user logs in or out of another tab or window

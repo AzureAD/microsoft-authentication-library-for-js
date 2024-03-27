@@ -22,7 +22,9 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.getProfile(environment.apiConfig.uri);
+    if (typeof window !== "undefined") { // Browser check for server-side rendering
+      this.getProfile(environment.apiConfig.uri);
+    }
   }
 
   getProfile(url: string) {
