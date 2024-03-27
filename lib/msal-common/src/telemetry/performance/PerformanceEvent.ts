@@ -69,6 +69,7 @@ export const PerformanceEvents = {
      * Used to acquire a new set of tokens from the authorize endpoint in a hidden iframe.
      */
     SilentIframeClientAcquireToken: "silentIframeClientAcquireToken",
+    AwaitConcurrentIframe: "awaitConcurrentIframe", // Time spent waiting for a concurrent iframe to complete
 
     /**
      * acquireToken API in SilentRereshClient (msal-browser).
