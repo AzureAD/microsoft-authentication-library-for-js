@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Append default scopes for the cache lookup #6909",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

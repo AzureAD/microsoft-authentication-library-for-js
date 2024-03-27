@@ -14,7 +14,10 @@ import {
 import {
     IntFields,
     PerformanceEvent,
+    PerformanceEventAbbreviations,
+    PerformanceEventContext,
     PerformanceEvents,
+    PerformanceEventStackedContext,
     PerformanceEventStatus,
 } from "./PerformanceEvent";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
@@ -24,6 +27,108 @@ import { AuthError } from "../../error/AuthError";
 export interface PreQueueEvent {
     name: PerformanceEvents;
     time: number;
+}
+
+/**
+ * Starts context by adding payload to the stack
+ * @param event {PerformanceEvent}
+ * @param abbreviations {Map<string, string>} event name abbreviations
+ * @param stack {?PerformanceEventStackedContext[]} stack
+ */
+export function startContext(
+    event: PerformanceEvent,
+    abbreviations: Map<string, string>,
+    stack?: PerformanceEventStackedContext[]
+): void {
+    if (!stack) {
+        return;
+    }
+
+    stack.push({
+        name: abbreviations.get(event.name) || event.name,
+    });
+}
+
+/**
+ * Ends context by removing payload from the stack and returning parent or self, if stack is empty, payload
+ *
+ * @param event {PerformanceEvent}
+ * @param abbreviations {Map<string, string>} event name abbreviations
+ * @param stack {?PerformanceEventStackedContext[]} stack
+ * @param error {?unknown} error
+ */
+export function endContext(
+    event: PerformanceEvent,
+    abbreviations: Map<string, string>,
+    stack?: PerformanceEventStackedContext[],
+    error?: unknown
+): PerformanceEventContext | undefined {
+    if (!stack?.length) {
+        return;
+    }
+
+    const peek = (stack: PerformanceEventStackedContext[]) => {
+        return stack.length ? stack[stack.length - 1] : undefined;
+    };
+
+    const abbrEventName = abbreviations.get(event.name) || event.name;
+    const top = peek(stack);
+    if (top?.name !== abbrEventName) {
+        return;
+    }
+
+    const current = stack?.pop();
+    if (!current) {
+        return;
+    }
+
+    const errorCode =
+        error instanceof AuthError
+            ? error.errorCode
+            : error instanceof Error
+            ? error.name
+            : undefined;
+    const subErr = error instanceof AuthError ? error.subError : undefined;
+
+    if (errorCode && current.childErr !== errorCode) {
+        current.err = errorCode;
+        if (subErr) {
+            current.subErr = subErr;
+        }
+    }
+
+    delete current.name;
+    delete current.childErr;
+
+    const context: PerformanceEventContext = {
+        ...current,
+        dur: event.durationMs,
+    };
+
+    if (!event.success) {
+        context.fail = 1;
+    }
+
+    const parent = peek(stack);
+    if (!parent) {
+        return { [abbrEventName]: context };
+    }
+
+    if (errorCode) {
+        parent.childErr = errorCode;
+    }
+
+    let childName: string;
+    if (!parent[abbrEventName]) {
+        childName = abbrEventName;
+    } else {
+        const siblings = Object.keys(parent).filter((key) =>
+            key.startsWith(abbrEventName)
+        ).length;
+        childName = `${abbrEventName}_${siblings + 1}`;
+    }
+    parent[childName] = context;
+    return parent;
 }
 
 /**
@@ -165,6 +270,20 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected intFields: Set<string>;
 
     /**
+     * Map of stacked events by correlation id.
+     *
+     * @protected
+     */
+    protected eventStack: Map<string, PerformanceEventStackedContext[]>;
+
+    /**
+     * Event name abbreviations
+     *
+     * @protected
+     */
+    protected abbreviations: Map<string, string>;
+
+    /**
      * Creates an instance of PerformanceClient,
      * an abstract class containing core performance telemetry logic.
      *
@@ -176,6 +295,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} libraryVersion Version of the library
      * @param {ApplicationTelemetry} applicationTelemetry application name and version
      * @param {Set<String>} intFields integer fields to be truncated
+     * @param {Map<string, string>} abbreviations event name abbreviations
      */
     constructor(
         clientId: string,
@@ -184,7 +304,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         libraryName: string,
         libraryVersion: string,
         applicationTelemetry: ApplicationTelemetry,
-        intFields?: Set<string>
+        intFields?: Set<string>,
+        abbreviations?: Map<string, string>
     ) {
         this.authority = authority;
         this.libraryName = libraryName;
@@ -194,11 +315,16 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.logger = logger;
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
+        this.eventStack = new Map();
         this.queueMeasurements = new Map();
         this.preQueueTimeByCorrelationId = new Map();
         this.intFields = intFields || new Set();
         for (const item of IntFields) {
             this.intFields.add(item);
+        }
+        this.abbreviations = abbreviations || new Map();
+        for (const [key, value] of PerformanceEventAbbreviations) {
+            this.abbreviations.set(key, value);
         }
     }
 
@@ -397,6 +523,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Store in progress events so they can be discarded if not ended properly
         this.cacheEventByCorrelationId(inProgressEvent);
+        startContext(
+            inProgressEvent,
+            this.abbreviations,
+            this.eventStack.get(eventCorrelationId)
+        );
 
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
@@ -461,6 +592,20 @@ export abstract class PerformanceClient implements IPerformanceClient {
             totalQueueCount: 0,
             manuallyCompletedCount: 0,
         };
+
+        event.durationMs = Math.round(
+            event.durationMs || this.getDurationMs(event.startTimeMs)
+        );
+
+        const context = JSON.stringify(
+            endContext(
+                event,
+                this.abbreviations,
+                this.eventStack.get(rootEvent.correlationId),
+                error
+            )
+        );
+
         if (isRoot) {
             queueInfo = this.getQueueInfo(event.correlationId);
             this.discardCache(rootEvent.correlationId);
@@ -468,16 +613,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
             rootEvent.incompleteSubMeasurements?.delete(event.eventId);
         }
 
-        const durationMs =
-            event.durationMs || this.getDurationMs(event.startTimeMs);
         this.logger.trace(
-            `PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`,
+            `PerformanceClient: Performance measurement ended for ${event.name}: ${event.durationMs} ms`,
             event.correlationId
         );
 
         // Add sub-measurement attribute to root event.
         if (!isRoot) {
-            rootEvent[event.name + "DurationMs"] = Math.floor(durationMs);
+            rootEvent[event.name + "DurationMs"] = Math.floor(event.durationMs);
             return { ...rootEvent };
         }
 
@@ -499,12 +642,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         finalEvent = {
             ...finalEvent,
-            durationMs: Math.round(durationMs),
             queuedTimeMs: queueInfo.totalQueueTime,
             queuedCount: queueInfo.totalQueueCount,
             queuedManuallyCompletedCount: queueInfo.manuallyCompletedCount,
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount,
+            context,
         };
         this.truncateIntegralFields(finalEvent);
         this.emitEvents([finalEvent], event.correlationId);
@@ -592,6 +735,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 event.correlationId
             );
             this.eventsByCorrelationId.set(event.correlationId, { ...event });
+            this.eventStack.set(event.correlationId, []);
         }
     }
 
@@ -656,6 +800,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
             correlationId
         );
         this.preQueueTimeByCorrelationId.delete(correlationId);
+
+        this.logger.trace(
+            "PerformanceClient: Event stack discarded",
+            correlationId
+        );
+        this.eventStack.delete(correlationId);
     }
 
     /**
@@ -722,7 +872,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     /**
      * Enforce truncation of integral fields in performance event.
      * @param {PerformanceEvent} event performance event to update.
-     * @param {Set<string>} intFields integral fields.
      */
     private truncateIntegralFields(event: PerformanceEvent): void {
         this.intFields.forEach((key) => {
