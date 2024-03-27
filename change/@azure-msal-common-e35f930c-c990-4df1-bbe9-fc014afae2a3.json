@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Stringify telemetry context #6984",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
