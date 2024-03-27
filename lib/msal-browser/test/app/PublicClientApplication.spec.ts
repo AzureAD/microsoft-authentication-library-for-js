@@ -43,6 +43,7 @@ import {
     InteractionRequiredAuthErrorCodes,
     Logger,
     LogLevel,
+    PerformanceEvent,
     PerformanceEvents,
     PersistentCacheKeys,
     ProtocolMode,
@@ -89,6 +90,7 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
+import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { AuthorizationCodeRequest, EndSessionRequest } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
@@ -2810,10 +2812,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
-                .rejects({
-                    errorCode: "abc",
-                    subError: "defg",
-                });
+                .rejects(new AuthError("abc", "error message", "defg"));
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(false);
@@ -3269,10 +3268,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const silentClientSpy = sinon
                 .stub(SilentAuthCodeClient.prototype, "acquireToken")
-                .rejects({
-                    errorCode: "abc",
-                    subError: "defg",
-                });
+                .rejects(new AuthError("abc", "error message", "defg"));
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(false);
@@ -3552,6 +3548,49 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentCacheSpy.calledOnce).toBe(true);
             expect(silentRefreshSpy.called).toBe(false);
             expect(silentIframeSpy.called).toBe(false);
+        });
+
+        it("Calls SilentCacheClient.acquireToken and captures the stack trace for non-auth error", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockRejectedValue(new Error("Test error message"));
+
+            const callbackId = pca.addPerformanceCallback(
+                (events: PerformanceEvent[]) => {
+                    try {
+                        expect(events.length).toEqual(1);
+                        const event = events[0];
+                        expect(event.name).toBe(
+                            PerformanceEvents.AcquireTokenSilent
+                        );
+                        expect(event.correlationId).toBeDefined();
+                        expect(event.success).toBeFalsy();
+                        expect(event.errorName).toEqual("Error");
+                        expect(event.errorStack?.length).toBeGreaterThan(1);
+                        expect(event.incompleteSubsCount).toEqual(0);
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                }
+            );
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+            }).catch(() => {});
         });
 
         it("Calls SilentRefreshClient.acquireToken and returns its response if cache lookup throws", async () => {
@@ -4163,7 +4202,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 RANDOM_TEST_GUID
             );
             sinon
-                .stub(CryptoOps.prototype, "hashString")
+                .stub(BrowserCrypto, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             const silentATStub = sinon
                 .stub(
@@ -4829,10 +4868,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     StandardController.prototype,
                     <any>"acquireTokenSilentAsync"
                 )
-                .rejects({
-                    errorCode: "abc",
-                    subError: "defg",
-                });
+                .rejects(new AuthError("abc", "error message", "defg"));
 
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);

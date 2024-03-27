@@ -300,6 +300,225 @@ export const PerformanceEvents = {
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
 
+export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
+    new Map([
+        [PerformanceEvents.AcquireTokenByCode, "ATByCode"],
+        [PerformanceEvents.AcquireTokenByRefreshToken, "ATByRT"],
+        [PerformanceEvents.AcquireTokenSilent, "ATS"],
+        [PerformanceEvents.AcquireTokenSilentAsync, "ATSAsync"],
+        [PerformanceEvents.AcquireTokenPopup, "ATPopup"],
+        [PerformanceEvents.AcquireTokenRedirect, "ATRedirect"],
+        [
+            PerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
+            "CryptoGetPKThumb",
+        ],
+        [PerformanceEvents.CryptoOptsSignJwt, "CryptoSignJwt"],
+        [PerformanceEvents.SilentCacheClientAcquireToken, "SltCacheClientAT"],
+        [PerformanceEvents.SilentIframeClientAcquireToken, "SltIframeClientAT"],
+        [PerformanceEvents.SilentRefreshClientAcquireToken, "SltRClientAT"],
+        [PerformanceEvents.SsoSilent, "SsoSlt"],
+        [
+            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            "StdIntClientGetDiscAuth",
+        ],
+        [
+            PerformanceEvents.FetchAccountIdWithNativeBroker,
+            "FetchAccIdWithNtvBroker",
+        ],
+        [
+            PerformanceEvents.NativeInteractionClientAcquireToken,
+            "NtvIntClientAT",
+        ],
+        [
+            PerformanceEvents.BaseClientCreateTokenRequestHeaders,
+            "BaseClientCreateTReqHead",
+        ],
+        [
+            PerformanceEvents.RefreshTokenClientExecutePostToTokenEndpoint,
+            "RTClientExecPost",
+        ],
+        [
+            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
+            "AuthCodeClientExecPost",
+        ],
+        [PerformanceEvents.BrokerHandhshake, "BrokerHandshake"],
+        [
+            PerformanceEvents.AcquireTokenByRefreshTokenInBroker,
+            "ATByRTInBroker",
+        ],
+        [PerformanceEvents.AcquireTokenByBroker, "ATByBroker"],
+        [
+            PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
+            "RTClientExecTReq",
+        ],
+        [PerformanceEvents.RefreshTokenClientAcquireToken, "RTClientAT"],
+        [
+            PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
+            "RTClientATWithCachedRT",
+        ],
+        [
+            PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken,
+            "RTClientATByRT",
+        ],
+        [
+            PerformanceEvents.RefreshTokenClientCreateTokenRequestBody,
+            "RTClientCreateTReqBody",
+        ],
+        [PerformanceEvents.AcquireTokenFromCache, "ATFromCache"],
+        [
+            PerformanceEvents.SilentFlowClientAcquireCachedToken,
+            "SltFlowClientATCached",
+        ],
+        [
+            PerformanceEvents.SilentFlowClientGenerateResultFromCacheRecord,
+            "SltFlowClientGenResFromCache",
+        ],
+        [PerformanceEvents.AcquireTokenBySilentIframe, "ATBySltIframe"],
+        [PerformanceEvents.InitializeBaseRequest, "InitBaseReq"],
+        [PerformanceEvents.InitializeSilentRequest, "InitSltReq"],
+        [
+            PerformanceEvents.InitializeClientApplication,
+            "InitClientApplication",
+        ],
+        [PerformanceEvents.SilentIframeClientTokenHelper, "SIClientTHelper"],
+        [
+            PerformanceEvents.SilentHandlerInitiateAuthRequest,
+            "SHandlerInitAuthReq",
+        ],
+        [
+            PerformanceEvents.SilentHandlerMonitorIframeForHash,
+            "SltHandlerMonitorIframeForHash",
+        ],
+        [PerformanceEvents.SilentHandlerLoadFrame, "SHandlerLoadFrame"],
+        [PerformanceEvents.SilentHandlerLoadFrameSync, "SHandlerLoadFrameSync"],
+
+        [
+            PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+            "StdIntClientCreateAuthCodeClient",
+        ],
+        [
+            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            "StdIntClientGetClientConf",
+        ],
+        [
+            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            "StdIntClientInitAuthReq",
+        ],
+        [
+            PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
+            "StdIntClientInitAuthCodeReq",
+        ],
+
+        [PerformanceEvents.GetAuthCodeUrl, "GetAuthCodeUrl"],
+
+        [
+            PerformanceEvents.HandleCodeResponseFromServer,
+            "HandleCodeResFromServer",
+        ],
+        [PerformanceEvents.HandleCodeResponse, "HandleCodeResp"],
+        [PerformanceEvents.UpdateTokenEndpointAuthority, "UpdTEndpointAuth"],
+
+        [PerformanceEvents.AuthClientAcquireToken, "AuthClientAT"],
+        [PerformanceEvents.AuthClientExecuteTokenRequest, "AuthClientExecTReq"],
+        [
+            PerformanceEvents.AuthClientCreateTokenRequestBody,
+            "AuthClientCreateTReqBody",
+        ],
+        [
+            PerformanceEvents.AuthClientCreateQueryString,
+            "AuthClientCreateQueryStr",
+        ],
+        [PerformanceEvents.PopTokenGenerateCnf, "PopTGenCnf"],
+        [PerformanceEvents.PopTokenGenerateKid, "PopTGenKid"],
+        [PerformanceEvents.HandleServerTokenResponse, "HandleServerTRes"],
+        [PerformanceEvents.DeserializeResponse, "DeserializeRes"],
+        [
+            PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
+            "AuthFactCreateDiscInst",
+        ],
+        [
+            PerformanceEvents.AuthorityResolveEndpointsAsync,
+            "AuthResolveEndpointsAsync",
+        ],
+        [
+            PerformanceEvents.AuthorityResolveEndpointsFromLocalSources,
+            "AuthResolveEndpointsFromLocal",
+        ],
+        [
+            PerformanceEvents.AuthorityGetCloudDiscoveryMetadataFromNetwork,
+            "AuthGetCDMetaFromNet",
+        ],
+        [
+            PerformanceEvents.AuthorityUpdateCloudDiscoveryMetadata,
+            "AuthUpdCDMeta",
+        ],
+        [
+            PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork,
+            "AuthUpdCDMetaFromNet",
+        ],
+        [
+            PerformanceEvents.AuthorityUpdateEndpointMetadata,
+            "AuthUpdEndpointMeta",
+        ],
+        [
+            PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
+            "AuthUpdMetaWithRegInfo",
+        ],
+        [PerformanceEvents.RegionDiscoveryDetectRegion, "RegDiscDetectReg"],
+        [
+            PerformanceEvents.RegionDiscoveryGetRegionFromIMDS,
+            "RegDiscGetRegFromIMDS",
+        ],
+        [
+            PerformanceEvents.RegionDiscoveryGetCurrentVersion,
+            "RegDiscGetCurrentVer",
+        ],
+        [PerformanceEvents.AcquireTokenByCodeAsync, "ATByCodeAsync"],
+        [
+            PerformanceEvents.GetEndpointMetadataFromNetwork,
+            "GetEndpointMetaFromNet",
+        ],
+        [
+            PerformanceEvents.GetCloudDiscoveryMetadataFromNetworkMeasurement,
+            "GetCDMetaFromNet",
+        ],
+        [
+            PerformanceEvents.HandleRedirectPromiseMeasurement,
+            "HandleRedirectPromise",
+        ],
+        [
+            PerformanceEvents.HandleNativeRedirectPromiseMeasurement,
+            "HandleNtvRedirectPromise",
+        ],
+        [
+            PerformanceEvents.UpdateCloudDiscoveryMetadataMeasurement,
+            "UpdateCDMeta",
+        ],
+        [
+            PerformanceEvents.UsernamePasswordClientAcquireToken,
+            "UserPassClientAT",
+        ],
+        [
+            PerformanceEvents.NativeMessageHandlerHandshake,
+            "NtvMsgHandlerHandshake",
+        ],
+        [PerformanceEvents.NativeGenerateAuthResult, "NtvGenAuthRes"],
+        [PerformanceEvents.RemoveHiddenIframe, "RemoveHiddenIframe"],
+        [
+            PerformanceEvents.ClearTokensAndKeysWithClaims,
+            "ClearTAndKeysWithClaims",
+        ],
+        [PerformanceEvents.CacheManagerGetRefreshToken, "CacheManagerGetRT"],
+        [PerformanceEvents.GeneratePkceCodes, "GenPkceCodes"],
+        [PerformanceEvents.GenerateCodeVerifier, "GenCodeVerifier"],
+        [
+            PerformanceEvents.GenerateCodeChallengeFromVerifier,
+            "GenCodeChallengeFromVerifier",
+        ],
+        [PerformanceEvents.Sha256Digest, "Sha256Digest"],
+        [PerformanceEvents.GetRandomValues, "GetRandomValues"],
+    ]);
+
 /**
  * State of the performance event.
  *
@@ -573,6 +792,24 @@ export type PerformanceEvent = {
     multiMatchedAT?: number;
     multiMatchedID?: number;
     multiMatchedRT?: number;
+
+    errorName?: string;
+    errorStack?: string[];
+
+    //
+    context?: object;
+};
+
+export type PerformanceEventContext = {
+    dur?: number;
+    err?: string;
+    subErr?: string;
+    fail?: number;
+};
+
+export type PerformanceEventStackedContext = PerformanceEventContext & {
+    name?: string;
+    childErr?: string;
 };
 
 export const IntFields: ReadonlySet<string> = new Set([

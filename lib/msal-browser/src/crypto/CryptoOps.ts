@@ -249,11 +249,7 @@ export class CryptoOps implements ICrypto {
      * @param plainText
      */
     async hashString(plainText: string): Promise<string> {
-        const hashBuffer: ArrayBuffer = await BrowserCrypto.sha256Digest(
-            plainText
-        );
-        const hashBytes = new Uint8Array(hashBuffer);
-        return urlEncodeArr(hashBytes);
+        return BrowserCrypto.hashString(plainText);
     }
 }
 

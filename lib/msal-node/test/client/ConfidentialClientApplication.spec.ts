@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     AuthorizationCodeClient,
     RefreshTokenClient,
@@ -22,6 +27,11 @@ import {
 
 import * as msalNode from "../../src";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils";
+import {
+    CAE_CONSTANTS,
+    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+} from "../test_kit/StringConstants";
+import { mockNetworkClient } from "../utils/MockNetworkClient";
 
 const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
 
@@ -38,30 +48,116 @@ describe("ConfidentialClientApplication", () => {
         },
     };
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     test("exports a class", () => {
         const authApp = new ConfidentialClientApplication(appConfig);
         expect(authApp).toBeInstanceOf(ConfidentialClientApplication);
     });
 
-    test("acquireTokenByAuthorizationCode", async () => {
-        const request: AuthorizationCodeRequest = {
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
-            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
-        };
+    describe("auth code flow", () => {
+        test("acquireTokenByAuthorizationCode", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            };
 
-        const mockAuthCodeClientInstance = {
-            includeRedirectUri: false,
-            acquireToken: jest.fn(),
-        };
-        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
-            () =>
-                mockAuthCodeClientInstance as unknown as AuthorizationCodeClient
-        );
+            const mockAuthCodeClientInstance = {
+                includeRedirectUri: false,
+                acquireToken: jest.fn(),
+            };
+            jest.spyOn(
+                msalCommon,
+                "AuthorizationCodeClient"
+            ).mockImplementation(
+                () =>
+                    mockAuthCodeClientInstance as unknown as AuthorizationCodeClient
+            );
 
-        const authApp = new ConfidentialClientApplication(appConfig);
-        await authApp.acquireTokenByCode(request);
-        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+            const authApp = new ConfidentialClientApplication(appConfig);
+            await authApp.acquireTokenByCode(request);
+            expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        });
+
+        describe("CAE, claims and client capabilities", () => {
+            let createTokenRequestBodySpy: jest.SpyInstance;
+            let client: ConfidentialClientApplication;
+            let authorizationCodeRequest: AuthorizationCodeRequest;
+            beforeEach(() => {
+                createTokenRequestBodySpy = jest.spyOn(
+                    AuthorizationCodeClient.prototype,
+                    <any>"createTokenRequestBody"
+                );
+
+                const config: Configuration = {
+                    auth: {
+                        clientId: TEST_CONSTANTS.CLIENT_ID,
+                        authority: TEST_CONSTANTS.AUTHORITY,
+                        clientSecret: TEST_CONSTANTS.CLIENT_SECRET,
+                        clientCapabilities: ["cp1", "cp2"],
+                    },
+                    system: {
+                        networkClient: mockNetworkClient(
+                            {}, // not needed
+                            CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
+                        ),
+                    },
+                };
+                client = new ConfidentialClientApplication(config);
+
+                authorizationCodeRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                };
+            });
+
+            it.each([
+                [CAE_CONSTANTS.EMPTY_CLAIMS, CAE_CONSTANTS.MERGED_EMPTY_CLAIMS],
+                [
+                    CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_CLAIMS,
+                    CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_CLAIMS,
+                ],
+                [
+                    CAE_CONSTANTS.CLAIMS_WITH_ADDITIONAL_KEY,
+                    CAE_CONSTANTS.MERGED_CLAIMS_WITH_ADDITIONAL_KEY,
+                ],
+                [
+                    CAE_CONSTANTS.CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY,
+                    CAE_CONSTANTS.MERGED_CLAIM_WITH_ADDITIONAL_KEY_AND_ACCESS_KEY,
+                ],
+            ])(
+                "Validates that claims and client capabilities are correctly merged",
+                async (claims, mergedClaims) => {
+                    authorizationCodeRequest.claims = claims;
+                    const authResult = (await client.acquireTokenByCode(
+                        authorizationCodeRequest
+                    )) as AuthenticationResult;
+                    expect(authResult.accessToken).toEqual(
+                        CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body
+                            .access_token
+                    );
+
+                    const returnVal: string = (await createTokenRequestBodySpy
+                        .mock.results[0].value) as string;
+                    expect(
+                        decodeURIComponent(
+                            returnVal
+                                .split("&")
+                                .filter((key: string) =>
+                                    key.includes("claims=")
+                                )[0]
+                                .split("claims=")[1]
+                        )
+                    ).toEqual(mergedClaims);
+
+                    // skip cache lookup verification because acquireTokenByCode does not pull elements from the cache
+                }
+            );
+        });
     });
 
     test("acquireTokenByRefreshToken", async () => {

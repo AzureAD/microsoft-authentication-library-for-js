@@ -14,15 +14,225 @@ import {
 import {
     IntFields,
     PerformanceEvent,
+    PerformanceEventAbbreviations,
+    PerformanceEventContext,
     PerformanceEvents,
+    PerformanceEventStackedContext,
     PerformanceEventStatus,
 } from "./PerformanceEvent";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { StubPerformanceMeasurement } from "./StubPerformanceClient";
+import { AuthError } from "../../error/AuthError";
 
 export interface PreQueueEvent {
     name: PerformanceEvents;
     time: number;
+}
+
+/**
+ * Starts context by adding payload to the stack
+ * @param event {PerformanceEvent}
+ * @param abbreviations {Map<string, string>} event name abbreviations
+ * @param stack {?PerformanceEventStackedContext[]} stack
+ */
+export function startContext(
+    event: PerformanceEvent,
+    abbreviations: Map<string, string>,
+    stack?: PerformanceEventStackedContext[]
+): void {
+    if (!stack) {
+        return;
+    }
+
+    stack.push({
+        name: abbreviations.get(event.name) || event.name,
+    });
+}
+
+/**
+ * Ends context by removing payload from the stack and returning parent or self, if stack is empty, payload
+ *
+ * @param event {PerformanceEvent}
+ * @param abbreviations {Map<string, string>} event name abbreviations
+ * @param stack {?PerformanceEventStackedContext[]} stack
+ * @param error {?unknown} error
+ */
+export function endContext(
+    event: PerformanceEvent,
+    abbreviations: Map<string, string>,
+    stack?: PerformanceEventStackedContext[],
+    error?: unknown
+): PerformanceEventContext | undefined {
+    if (!stack?.length) {
+        return;
+    }
+
+    const peek = (stack: PerformanceEventStackedContext[]) => {
+        return stack.length ? stack[stack.length - 1] : undefined;
+    };
+
+    const abbrEventName = abbreviations.get(event.name) || event.name;
+    const top = peek(stack);
+    if (top?.name !== abbrEventName) {
+        return;
+    }
+
+    const current = stack?.pop();
+    if (!current) {
+        return;
+    }
+
+    const errorCode =
+        error instanceof AuthError
+            ? error.errorCode
+            : error instanceof Error
+            ? error.name
+            : undefined;
+    const subErr = error instanceof AuthError ? error.subError : undefined;
+
+    if (errorCode && current.childErr !== errorCode) {
+        current.err = errorCode;
+        if (subErr) {
+            current.subErr = subErr;
+        }
+    }
+
+    delete current.name;
+    delete current.childErr;
+
+    const context: PerformanceEventContext = {
+        ...current,
+        dur: event.durationMs,
+    };
+
+    if (!event.success) {
+        context.fail = 1;
+    }
+
+    const parent = peek(stack);
+    if (!parent) {
+        return { [abbrEventName]: context };
+    }
+
+    if (errorCode) {
+        parent.childErr = errorCode;
+    }
+
+    let childName: string;
+    if (!parent[abbrEventName]) {
+        childName = abbrEventName;
+    } else {
+        const siblings = Object.keys(parent).filter((key) =>
+            key.startsWith(abbrEventName)
+        ).length;
+        childName = `${abbrEventName}_${siblings + 1}`;
+    }
+    parent[childName] = context;
+    return parent;
+}
+
+/**
+ * Adds error name and stack trace to the telemetry event
+ * @param error {Error}
+ * @param logger {Logger}
+ * @param event {PerformanceEvent}
+ * @param stackMaxSize {number} max error stack size to capture
+ */
+export function addError(
+    error: unknown,
+    logger: Logger,
+    event: PerformanceEvent,
+    stackMaxSize: number = 5
+): void {
+    if (!(error instanceof Error)) {
+        logger.trace(
+            "PerformanceClient.addErrorStack: Input error is not instance of Error",
+            event.correlationId
+        );
+        return;
+    } else if (error instanceof AuthError) {
+        event.errorCode = error.errorCode;
+        event.subErrorCode = error.subError;
+        return;
+    } else if (event.errorStack?.length) {
+        logger.trace(
+            "PerformanceClient.addErrorStack: Stack already exist",
+            event.correlationId
+        );
+        return;
+    } else if (!error.stack?.length) {
+        logger.trace(
+            "PerformanceClient.addErrorStack: Input stack is empty",
+            event.correlationId
+        );
+        return;
+    }
+
+    if (error.stack) {
+        event.errorStack = compactStack(error.stack, stackMaxSize);
+    }
+    event.errorName = error.name;
+}
+
+/**
+ * Compacts error stack into array by fetching N first entries
+ * @param stack {string} error stack
+ * @param stackMaxSize {number} max error stack size to capture
+ * @returns {string[]}
+ */
+export function compactStack(stack: string, stackMaxSize: number): string[] {
+    if (stackMaxSize < 0) {
+        return [];
+    }
+
+    const stackArr = stack.split("\n") || [];
+    if (stackArr.length < 2) {
+        return [];
+    }
+
+    const res = [];
+    // Get top N stack lines
+    for (
+        // Skip first line as it may contain PII data
+        let ix = Math.max(stackArr.length - stackMaxSize - 1, 1);
+        ix < stackArr.length;
+        ix++
+    ) {
+        const line = stackArr[ix];
+        if (res.length >= stackMaxSize) {
+            break;
+        }
+        res.push(compactStackLine(line));
+    }
+    return res;
+}
+
+/**
+ * Compacts error stack line by shortening file path
+ * Example: https://localhost/msal-common/src/authority/Authority.js:100:1 -> Authority.js:100:1
+ * @param line {string} stack line
+ * @returns {string}
+ */
+export function compactStackLine(line: string): string {
+    const filePathIx = line.lastIndexOf(" ") + 1;
+    if (filePathIx < 1) {
+        return line;
+    }
+    const filePath = line.substring(filePathIx);
+
+    let fileNameIx = filePath.lastIndexOf("/");
+    fileNameIx = fileNameIx < 0 ? filePath.lastIndexOf("\\") : fileNameIx;
+
+    if (fileNameIx >= 0) {
+        return (
+            line.substring(0, filePathIx) +
+            "(" +
+            filePath.substring(fileNameIx + 1) +
+            (filePath.charAt(filePath.length - 1) === ")" ? "" : ")")
+        ).trimStart();
+    }
+
+    return line.trimStart();
 }
 
 export abstract class PerformanceClient implements IPerformanceClient {
@@ -60,6 +270,20 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected intFields: Set<string>;
 
     /**
+     * Map of stacked events by correlation id.
+     *
+     * @protected
+     */
+    protected eventStack: Map<string, PerformanceEventStackedContext[]>;
+
+    /**
+     * Event name abbreviations
+     *
+     * @protected
+     */
+    protected abbreviations: Map<string, string>;
+
+    /**
      * Creates an instance of PerformanceClient,
      * an abstract class containing core performance telemetry logic.
      *
@@ -71,6 +295,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} libraryVersion Version of the library
      * @param {ApplicationTelemetry} applicationTelemetry application name and version
      * @param {Set<String>} intFields integer fields to be truncated
+     * @param {Map<string, string>} abbreviations event name abbreviations
      */
     constructor(
         clientId: string,
@@ -79,7 +304,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         libraryName: string,
         libraryVersion: string,
         applicationTelemetry: ApplicationTelemetry,
-        intFields?: Set<string>
+        intFields?: Set<string>,
+        abbreviations?: Map<string, string>
     ) {
         this.authority = authority;
         this.libraryName = libraryName;
@@ -89,11 +315,16 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.logger = logger;
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
+        this.eventStack = new Map();
         this.queueMeasurements = new Map();
         this.preQueueTimeByCorrelationId = new Map();
         this.intFields = intFields || new Set();
         for (const item of IntFields) {
             this.intFields.add(item);
+        }
+        this.abbreviations = abbreviations || new Map();
+        for (const [key, value] of PerformanceEventAbbreviations) {
+            this.abbreviations.set(key, value);
         }
     }
 
@@ -292,18 +523,27 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Store in progress events so they can be discarded if not ended properly
         this.cacheEventByCorrelationId(inProgressEvent);
+        startContext(
+            inProgressEvent,
+            this.abbreviations,
+            this.eventStack.get(eventCorrelationId)
+        );
 
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
             end: (
-                event?: Partial<PerformanceEvent>
+                event?: Partial<PerformanceEvent>,
+                error?: unknown
             ): PerformanceEvent | null => {
-                return this.endMeasurement({
-                    // Initial set of event properties
-                    ...inProgressEvent,
-                    // Properties set when event ends
-                    ...event,
-                });
+                return this.endMeasurement(
+                    {
+                        // Initial set of event properties
+                        ...inProgressEvent,
+                        // Properties set when event ends
+                        ...event,
+                    },
+                    error
+                );
             },
             discard: () => {
                 return this.discardMeasurements(inProgressEvent.correlationId);
@@ -329,10 +569,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * otherwise.
      *
      * @param {PerformanceEvent} event
-     * @param {IPerformanceMeasurement} measurement
+     * @param {unknown} error
      * @returns {(PerformanceEvent | null)}
      */
-    endMeasurement(event: PerformanceEvent): PerformanceEvent | null {
+    endMeasurement(
+        event: PerformanceEvent,
+        error?: unknown
+    ): PerformanceEvent | null {
         const rootEvent: PerformanceEvent | undefined =
             this.eventsByCorrelationId.get(event.correlationId);
         if (!rootEvent) {
@@ -349,6 +592,18 @@ export abstract class PerformanceClient implements IPerformanceClient {
             totalQueueCount: 0,
             manuallyCompletedCount: 0,
         };
+
+        event.durationMs = Math.round(
+            event.durationMs || this.getDurationMs(event.startTimeMs)
+        );
+
+        const context = endContext(
+            event,
+            this.abbreviations,
+            this.eventStack.get(rootEvent.correlationId),
+            error
+        );
+
         if (isRoot) {
             queueInfo = this.getQueueInfo(event.correlationId);
             this.discardCache(rootEvent.correlationId);
@@ -356,17 +611,19 @@ export abstract class PerformanceClient implements IPerformanceClient {
             rootEvent.incompleteSubMeasurements?.delete(event.eventId);
         }
 
-        const durationMs =
-            event.durationMs || this.getDurationMs(event.startTimeMs);
         this.logger.trace(
-            `PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`,
+            `PerformanceClient: Performance measurement ended for ${event.name}: ${event.durationMs} ms`,
             event.correlationId
         );
 
         // Add sub-measurement attribute to root event.
         if (!isRoot) {
-            rootEvent[event.name + "DurationMs"] = Math.floor(durationMs);
+            rootEvent[event.name + "DurationMs"] = Math.floor(event.durationMs);
             return { ...rootEvent };
+        }
+
+        if (error) {
+            addError(error, this.logger, rootEvent);
         }
 
         let finalEvent: PerformanceEvent = { ...rootEvent, ...event };
@@ -383,12 +640,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         finalEvent = {
             ...finalEvent,
-            durationMs: Math.round(durationMs),
             queuedTimeMs: queueInfo.totalQueueTime,
             queuedCount: queueInfo.totalQueueCount,
             queuedManuallyCompletedCount: queueInfo.manuallyCompletedCount,
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount,
+            context,
         };
         this.truncateIntegralFields(finalEvent);
         this.emitEvents([finalEvent], event.correlationId);
@@ -476,6 +733,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 event.correlationId
             );
             this.eventsByCorrelationId.set(event.correlationId, { ...event });
+            this.eventStack.set(event.correlationId, []);
         }
     }
 
@@ -540,6 +798,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
             correlationId
         );
         this.preQueueTimeByCorrelationId.delete(correlationId);
+
+        this.logger.trace(
+            "PerformanceClient: Event stack discarded",
+            correlationId
+        );
+        this.eventStack.delete(correlationId);
     }
 
     /**
@@ -606,7 +870,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     /**
      * Enforce truncation of integral fields in performance event.
      * @param {PerformanceEvent} event performance event to update.
-     * @param {Set<string>} intFields integral fields.
      */
     private truncateIntegralFields(event: PerformanceEvent): void {
         this.intFields.forEach((key) => {
