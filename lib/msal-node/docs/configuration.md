@@ -57,7 +57,7 @@ const msalConfig = {
             logLevel: msal.LogLevel.Verbose,
         },
         proxyUrl: "",
-        customAgent: new https.Agent(), // or an agent created by a third-party proxy agent library
+        customAgent: new http.Agent(), // or new https.Agent(), or an agent created by a third-party proxy agent library
         customAgentOptions: {},
     }
 }
