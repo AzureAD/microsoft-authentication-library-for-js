@@ -796,8 +796,8 @@ export type PerformanceEvent = {
     errorName?: string;
     errorStack?: string[];
 
-    //
-    context?: object;
+    // Event context as JSON string
+    context?: string;
 };
 
 export type PerformanceEventContext = {
