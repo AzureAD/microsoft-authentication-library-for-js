@@ -25,7 +25,7 @@
   "dependencies": {
     "@azure/msal-browser": "^3.1.0",
     "@babel/runtime": "^7.10.4",
-    "express": "^4.17.1",
+    "express": "^4.19.2",
     "fs": "0.0.1-security",
     "morgan": "^1.10.0",
     "path": "^0.12.7",
