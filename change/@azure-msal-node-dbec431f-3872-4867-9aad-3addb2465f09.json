@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "MSAL Node - HttpClient Proxy Improvements",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
