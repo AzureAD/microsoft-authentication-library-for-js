@@ -18,15 +18,18 @@ import https from "https";
  * This class implements the API for network requests.
  */
 export class HttpClient implements INetworkModule {
-    private proxyUrl: string;
-    private customAgentOptions: http.AgentOptions | https.AgentOptions;
+    private proxyUrl?: string;
+    private customAgent?: http.Agent | https.Agent;
+    private customAgentOptions?: http.AgentOptions | https.AgentOptions;
 
     constructor(
         proxyUrl?: string,
+        customAgent?: http.Agent | https.Agent,
         customAgentOptions?: http.AgentOptions | https.AgentOptions
     ) {
-        this.proxyUrl = proxyUrl || "";
-        this.customAgentOptions = customAgentOptions || {};
+        this.proxyUrl = proxyUrl;
+        this.customAgent = customAgent;
+        this.customAgentOptions = customAgentOptions;
     }
 
     /**
@@ -44,6 +47,7 @@ export class HttpClient implements INetworkModule {
                 this.proxyUrl,
                 HttpMethod.GET,
                 options,
+                this.customAgent as http.Agent,
                 this.customAgentOptions as http.AgentOptions
             );
         } else {
@@ -51,7 +55,9 @@ export class HttpClient implements INetworkModule {
                 url,
                 HttpMethod.GET,
                 options,
-                this.customAgentOptions as https.AgentOptions
+                this.customAgent as https.Agent,
+                this.customAgentOptions as https.AgentOptions,
+                undefined
             );
         }
     }
@@ -72,6 +78,7 @@ export class HttpClient implements INetworkModule {
                 this.proxyUrl,
                 HttpMethod.POST,
                 options,
+                this.customAgent as http.Agent,
                 this.customAgentOptions as http.AgentOptions,
                 cancellationToken
             );
@@ -80,6 +87,7 @@ export class HttpClient implements INetworkModule {
                 url,
                 HttpMethod.POST,
                 options,
+                this.customAgent as https.Agent,
                 this.customAgentOptions as https.AgentOptions,
                 cancellationToken
             );
@@ -92,6 +100,7 @@ const networkRequestViaProxy = <T>(
     proxyUrlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
+    agent?: http.Agent,
     agentOptions?: http.AgentOptions,
     timeout?: number
 ): Promise<NetworkResponse<T>> => {
@@ -108,11 +117,17 @@ const networkRequestViaProxy = <T>(
         headers: headers,
     };
 
+    if (proxyUrl.username.length && proxyUrl.password.length) {
+        tunnelRequestOptions.auth = `${proxyUrl.username}:${proxyUrl.password}`;
+    }
+
     if (timeout) {
         tunnelRequestOptions.timeout = timeout;
     }
 
-    if (agentOptions && Object.keys(agentOptions).length) {
+    if (agent) {
+        tunnelRequestOptions.agent = agent;
+    } else if (agentOptions) {
         tunnelRequestOptions.agent = new http.Agent(agentOptions);
     }
 
@@ -276,6 +291,7 @@ const networkRequestViaHttps = <T>(
     urlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
+    agent?: https.Agent,
     agentOptions?: https.AgentOptions,
     timeout?: number
 ): Promise<NetworkResponse<T>> => {
@@ -294,7 +310,9 @@ const networkRequestViaHttps = <T>(
         customOptions.timeout = timeout;
     }
 
-    if (agentOptions && Object.keys(agentOptions).length) {
+    if (agent) {
+        customOptions.agent = agent;
+    } else if (agentOptions) {
         customOptions.agent = new https.Agent(agentOptions);
     }
 

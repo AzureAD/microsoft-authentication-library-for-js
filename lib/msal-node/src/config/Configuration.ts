@@ -82,6 +82,7 @@ export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
     proxyUrl?: string;
+    customAgent?: http.Agent | https.Agent;
     customAgentOptions?: http.AgentOptions | https.AgentOptions;
 };
 
@@ -145,6 +146,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
+    customAgent: new http.Agent() || new https.Agent(),
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
 };
 
@@ -186,7 +188,8 @@ export function buildAppConfiguration({
         ...DEFAULT_SYSTEM_OPTIONS,
         networkClient: new HttpClient(
             system?.proxyUrl,
-            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
+            system?.customAgent,
+            system?.customAgentOptions
         ),
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };

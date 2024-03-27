@@ -57,6 +57,7 @@ const msalConfig = {
             logLevel: msal.LogLevel.Verbose,
         },
         proxyUrl: "",
+        customAgent: new https.Agent(), // or an agent created by a third-party proxy agent library
         customAgentOptions: {},
     }
 }
@@ -99,7 +100,10 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `loggerOptions`      | Config object for logger.                             | See [below](#logger-config-options).                                                                                       | See [below](#logger-config-options).                                                                                                 |
 | `NetworkClient`      | Custom HTTP implementation                            | INetworkModule                                                                                                             | [HttpClient.ts](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/src/network/HttpClient.ts) |
 | `proxyUrl`           | The URL of the proxy the app is running behind        | string                                                                                                                     | Empty string `""`                                                                                                                    |
+| `customAgent`        | A http(s) proxy agent                                 | Object - [NodeJS documentation on proxy agents](https://nodejs.org/docs/latest-v16.x/api/http.html#class-httpagent)        | Proxy Agent `new http.Agent();` or a proxy agent created by a third-party proxy agent library                                        |
 | `customAgentOptions` | Set of configurable options to set on a http(s) agent | Object - [NodeJS documentation on alloweable options](https://nodejs.org/docs/latest-v16.x/api/http.html#new-agentoptions) | Empty Object `{}`                                                                                                                    |
+
+| `disableInternalRetries` | A flag that disables MSALJS's built-in retry policies, allowing the app developer to specify their own retry policy. Currently, only Managed Identity flows have a retry policy. | boolean | boolean `false` |
 
 #### Logger Config Options
 
