@@ -627,7 +627,7 @@ describe("PerformanceClient.spec.ts", () => {
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
-                expect(event.context).toEqual({
+                expect(JSON.parse(event.context || "")).toEqual({
                     [abbrEventName(rootEvent.event.name)]: {
                         dur: perfDuration,
                     },
@@ -647,7 +647,7 @@ describe("PerformanceClient.spec.ts", () => {
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
-                expect(event.context).toEqual({
+                expect(JSON.parse(event.context || "")).toEqual({
                     [abbrEventName(rootEvent.event.name)]: {
                         dur: perfDuration,
                         [abbrEventName(
@@ -711,7 +711,7 @@ describe("PerformanceClient.spec.ts", () => {
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
-                expect(event.context).toEqual({
+                expect(JSON.parse(event.context || "")).toEqual({
                     [abbrEventName(rootEvent.event.name)]: {
                         dur: perfDuration,
                         [abbrEventName(firstLevelFirstChildEvent.event.name)]: {
@@ -779,7 +779,7 @@ describe("PerformanceClient.spec.ts", () => {
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
-                expect(event.context).toEqual({
+                expect(JSON.parse(event.context || "")).toEqual({
                     [abbrEventName(rootEvent.event.name)]: {
                         dur: perfDuration,
                         [abbrEventName(firstLevelFirstChildEvent.event.name)]: {
@@ -856,7 +856,7 @@ describe("PerformanceClient.spec.ts", () => {
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
-                expect(event.context).toEqual({
+                expect(JSON.parse(event.context || "")).toEqual({
                     [abbrEventName(rootEvent.event.name)]: {
                         dur: perfDuration,
                         [abbrEventName(firstLevelFirstChildEvent.event.name)]: {
@@ -931,7 +931,7 @@ describe("PerformanceClient.spec.ts", () => {
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
-                expect(event.context).toEqual({
+                expect(JSON.parse(event.context || "")).toEqual({
                     [abbrEventName(rootEvent.event.name)]: {
                         dur: perfDuration,
                         [abbrEventName(firstLevelFirstChildEvent.event.name)]: {
@@ -1000,7 +1000,7 @@ describe("PerformanceClient.spec.ts", () => {
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
-                expect(event.context).toEqual({
+                expect(JSON.parse(event.context || "")).toEqual({
                     [abbrEventName(rootEvent.event.name)]: {
                         dur: perfDuration,
                         [abbrEventName(firstLevelFirstChildEvent.event.name)]: {

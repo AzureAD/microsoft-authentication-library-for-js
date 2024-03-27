@@ -597,11 +597,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
             event.durationMs || this.getDurationMs(event.startTimeMs)
         );
 
-        const context = endContext(
-            event,
-            this.abbreviations,
-            this.eventStack.get(rootEvent.correlationId),
-            error
+        const context = JSON.stringify(
+            endContext(
+                event,
+                this.abbreviations,
+                this.eventStack.get(rootEvent.correlationId),
+                error
+            )
         );
 
         if (isRoot) {
