@@ -72,7 +72,7 @@ Developers can provide a `proxyUrl` string in the system config options as detai
 
 ### How do I implement a custom http(s) agent in MSAL Node?
 
-Developers can use a custom http(s) agent by providing a `customAgent` http(s).Agent or `customAgentOptions` object in the system config options as detailed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md#system-config-options). Agent's created by a third-party proxy agent library can be used. Developers can also implement their own NetworkManager by instantiating an [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.inetworkmodule.html) and building custom http(s) agent support in it.
+Developers can use a custom http(s) agent by providing a `customAgent` http(s).Agent or `customAgentOptions` object in the system config options as detailed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md#system-config-options). Agents created by a third-party proxy agent library can be used. Developers can also implement their own NetworkManager by instantiating an [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.inetworkmodule.html) and building custom http(s) agent support in it.
 
 ## B2C
 
