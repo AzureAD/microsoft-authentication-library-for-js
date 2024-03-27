@@ -51,7 +51,8 @@ export class HttpClient implements INetworkModule {
                 url,
                 HttpMethod.GET,
                 options,
-                this.customAgentOptions as https.AgentOptions
+                this.customAgentOptions as https.AgentOptions,
+                undefined
             );
         }
     }
@@ -307,7 +308,13 @@ const networkRequestViaHttps = <T>(
     }
 
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
-        const request = https.request(customOptions);
+        let request: http.ClientRequest;
+        // managed identity sources use http instead of https
+        if (customOptions.protocol === "http:") {
+            request = http.request(customOptions);
+        } else {
+            request = https.request(customOptions);
+        }
 
         if (timeout) {
             request.on("timeout", () => {

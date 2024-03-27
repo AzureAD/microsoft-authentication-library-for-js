@@ -9,6 +9,7 @@ import {
     AuthenticationScheme,
     Authority,
     BaseClient,
+    CacheManager,
     CacheOutcome,
     ClientAuthErrorCodes,
     ClientConfiguration,
@@ -16,25 +17,31 @@ import {
     Constants,
     CredentialFilter,
     CredentialType,
+    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     GrantType,
     IAppTokenProvider,
+    ICrypto,
     RequestParameterBuilder,
     RequestThumbprint,
     ResponseHandler,
     ScopeSet,
     ServerAuthorizationTokenResponse,
+    ServerTelemetryManager,
     StringUtils,
     TimeUtils,
     TokenCacheContext,
     UrlString,
     createClientAuthError,
 } from "@azure/msal-common";
+import {
+    ManagedIdentityConfiguration,
+    ManagedIdentityNodeConfiguration,
+} from "../config/Configuration";
 
 /**
  * OAuth2.0 client credential grant
  */
 export class ClientCredentialClient extends BaseClient {
-    private scopeSet: ScopeSet;
     private readonly appTokenProvider?: IAppTokenProvider;
 
     constructor(
@@ -52,14 +59,19 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
-        this.scopeSet = new ScopeSet(request.scopes || []);
-
         if (request.skipCache) {
             return this.executeTokenRequest(request, this.authority);
         }
 
         const [cachedAuthenticationResult, lastCacheOutcome] =
-            await this.getCachedAuthenticationResult(request);
+            await this.getCachedAuthenticationResult(
+                request,
+                this.config,
+                this.cryptoUtils,
+                this.authority,
+                this.cacheManager,
+                this.serverTelemetryManager
+            );
 
         if (cachedAuthenticationResult) {
             // if the token is not expired but must be refreshed; get a new one in the background
@@ -87,34 +99,56 @@ export class ClientCredentialClient extends BaseClient {
     /**
      * looks up cache if the tokens are cached already
      */
-    private async getCachedAuthenticationResult(
-        request: CommonClientCredentialRequest
+    public async getCachedAuthenticationResult(
+        request: CommonClientCredentialRequest,
+        config: ClientConfiguration | ManagedIdentityConfiguration,
+        cryptoUtils: ICrypto,
+        authority: Authority,
+        cacheManager: CacheManager,
+        serverTelemetryManager?: ServerTelemetryManager | null
     ): Promise<[AuthenticationResult | null, CacheOutcome]> {
+        const clientConfiguration = config as ClientConfiguration;
+        const managedIdentityConfiguration =
+            config as ManagedIdentityNodeConfiguration;
+
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
 
         // read the user-supplied cache into memory, if applicable
         let cacheContext;
-        if (this.config.serializableCache && this.config.persistencePlugin) {
+        if (
+            clientConfiguration.serializableCache &&
+            clientConfiguration.persistencePlugin
+        ) {
             cacheContext = new TokenCacheContext(
-                this.config.serializableCache,
+                clientConfiguration.serializableCache,
                 false
             );
-            await this.config.persistencePlugin.beforeCacheAccess(cacheContext);
+            await clientConfiguration.persistencePlugin.beforeCacheAccess(
+                cacheContext
+            );
         }
 
-        const cachedAccessToken = this.readAccessTokenFromCache();
+        const cachedAccessToken = this.readAccessTokenFromCache(
+            authority,
+            managedIdentityConfiguration.managedIdentityId?.id ||
+                clientConfiguration.authOptions.clientId,
+            new ScopeSet(request.scopes || []),
+            cacheManager
+        );
 
         if (
-            this.config.serializableCache &&
-            this.config.persistencePlugin &&
+            clientConfiguration.serializableCache &&
+            clientConfiguration.persistencePlugin &&
             cacheContext
         ) {
-            await this.config.persistencePlugin.afterCacheAccess(cacheContext);
+            await clientConfiguration.persistencePlugin.afterCacheAccess(
+                cacheContext
+            );
         }
 
         // must refresh due to non-existent access_token
         if (!cachedAccessToken) {
-            this.serverTelemetryManager?.setCacheOutcome(
+            serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
             return [null, CacheOutcome.NO_CACHED_ACCESS_TOKEN];
@@ -124,10 +158,11 @@ export class ClientCredentialClient extends BaseClient {
         if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
-                this.config.systemOptions.tokenRenewalOffsetSeconds
+                clientConfiguration.systemOptions?.tokenRenewalOffsetSeconds ||
+                    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
             )
         ) {
-            this.serverTelemetryManager?.setCacheOutcome(
+            serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
             return [null, CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED];
@@ -139,15 +174,15 @@ export class ClientCredentialClient extends BaseClient {
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn.toString(), 0)
         ) {
             lastCacheOutcome = CacheOutcome.PROACTIVELY_REFRESHED;
-            this.serverTelemetryManager?.setCacheOutcome(
+            serverTelemetryManager?.setCacheOutcome(
                 CacheOutcome.PROACTIVELY_REFRESHED
             );
         }
 
         return [
             await ResponseHandler.generateAuthenticationResult(
-                this.cryptoUtils,
-                this.authority,
+                cryptoUtils,
+                authority,
                 {
                     account: null,
                     idToken: null,
@@ -165,19 +200,24 @@ export class ClientCredentialClient extends BaseClient {
     /**
      * Reads access token from the cache
      */
-    private readAccessTokenFromCache(): AccessTokenEntity | null {
+    private readAccessTokenFromCache(
+        authority: Authority,
+        id: string,
+        scopeSet: ScopeSet,
+        cacheManager: CacheManager
+    ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: Constants.EMPTY_STRING,
             environment:
-                this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+                authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,
-            clientId: this.config.authOptions.clientId,
-            realm: this.authority.tenant,
-            target: ScopeSet.createSearchScopes(this.scopeSet.asArray()),
+            clientId: id,
+            realm: authority.tenant,
+            target: ScopeSet.createSearchScopes(scopeSet.asArray()),
         };
 
         const accessTokens =
-            this.cacheManager.getAccessTokensByFilter(accessTokenFilter);
+            cacheManager.getAccessTokensByFilter(accessTokenFilter);
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {

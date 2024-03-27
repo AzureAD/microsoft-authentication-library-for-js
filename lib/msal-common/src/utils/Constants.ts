@@ -65,11 +65,20 @@ export const Constants = {
 
 export const HttpStatus = {
     SUCCESS_RANGE_START: 200,
+    SUCCESS: 200,
     SUCCESS_RANGE_END: 299,
     REDIRECT: 302,
     CLIENT_ERROR_RANGE_START: 400,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    NOT_FOUND: 404,
+    REQUEST_TIMEOUT: 408,
+    TOO_MANY_REQUESTS: 429,
     CLIENT_ERROR_RANGE_END: 499,
     SERVER_ERROR_RANGE_START: 500,
+    INTERNAL_SERVER_ERROR: 500,
+    SERVICE_UNAVAILABLE: 503,
+    GATEWAY_TIMEOUT: 504,
     SERVER_ERROR_RANGE_END: 599,
 } as const;
 export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
@@ -370,3 +379,6 @@ export type JsonWebTokenTypes =
     (typeof JsonWebTokenTypes)[keyof typeof JsonWebTokenTypes];
 
 export const ONE_DAY_IN_MS = 86400000;
+
+// Token renewal offset default in seconds
+export const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
