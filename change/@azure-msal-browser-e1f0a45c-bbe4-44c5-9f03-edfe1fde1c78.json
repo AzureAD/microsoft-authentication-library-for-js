@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Move preflightBrowserEnvironmentCheck to BrowserUtils",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
