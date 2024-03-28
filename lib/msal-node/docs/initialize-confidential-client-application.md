@@ -3,12 +3,13 @@
 Before you get started, please ensure you have completed all the [prerequisites](../README.md#prerequisites).
 
 In this document:
-- [Initialization of MSAL](#initialization-of-msal)
-  - [Initializing the ConfidentialClientApplication object](#initializing-the-confidentialclientapplication-object)
-  - [Configuration Basics](#configuration-basics)
-  - [Configure Authority](#configure-authority)
-  - [Advanced Configuration](#advanced-configuration)
-  - [Next Steps](#next-steps)
+
+-   [Initialization of MSAL](#initialization-of-msal)
+    -   [Initializing the ConfidentialClientApplication object](#initializing-the-confidentialclientapplication-object)
+    -   [Configuration Basics](#configuration-basics)
+    -   [Configure Authority](#configure-authority)
+    -   [Advanced Configuration](#advanced-configuration)
+    -   [Next Steps](#next-steps)
 
 ## Initializing the ConfidentialClientApplication object
 
@@ -35,10 +36,10 @@ const clientConfig = {
         clientSecret: process.env.clientSecret, // OR
         clientCertificate: {
             thumbprint: process.env.thumbprint,
-            privateKey: process.env.privateKey
+            privateKey: process.env.privateKey,
         }, // OR
-        clientAssertion: "assertion"
-    }
+        clientAssertion: "assertion",
+    },
 };
 const pca = new msal.ConfidentialClientApplication(clientConfig);
 ```
@@ -47,24 +48,25 @@ const pca = new msal.ConfidentialClientApplication(clientConfig);
 
 [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) options for node have `common` parameters and `specific` paremeters per authentication flow.
 
-- `clientId` is mandatory to initialize a public client application
-- `authority` defaults to `https://login.microsoftonline.com/common/` if the user does not set it during configuration
-- A Client credential is mandatory for confidential clients. Client credential can be a:
-    - `clientSecret` is secret string generated set on the app registration.
-    - `clientCertificate` is a certificate set on the app registration. The `thumbprint` is a X.509 SHA-1 thumbprint of the certificate, and the `privateKey` is the PEM encoded private key. `x5c` is the optional X.509 certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
-    - `clientAssertion` is string that the application uses when requesting a token. The certificate used to sign the assertion should be set on the app registration. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
-
+-   `clientId` is mandatory to initialize a public client application
+-   `authority` defaults to `https://login.microsoftonline.com/common/` if the user does not set it during configuration
+-   A Client credential is mandatory for confidential clients. Client credential can be a:
+    -   `clientSecret` is secret string generated set on the app registration.
+    -   `clientCertificate` is a certificate set on the app registration. The `thumbprint` is a X.509 SHA-1 thumbprint of the certificate, and the `privateKey` is the PEM encoded private key. `x5c` is the optional X.509 certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
+    -   `clientAssertion` is string that the application uses when requesting a token. The certificate used to sign the assertion should be set on the app registration. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
 
 ## Configure Authority
 
 By default, MSAL is configured with the `common` tenant, which is used for multi-tenant applications and applications allowing personal accounts (not B2C).
+
 ```javascript
-    authority: 'https://login.microsoftonline.com/common/'
+authority: "https://login.microsoftonline.com/common/";
 ```
 
 If your application audience is a single tenant, you must provide an authority with your tenant id like below:
+
 ```javascript
-    authority: 'https://login.microsoftonline.com/{your_tenant_id}'
+authority: "https://login.microsoftonline.com/{your_tenant_id}";
 ```
 
 For more information on authority, please refer to: [Authority in MSAL](../../msal-common/docs/authority.md).
