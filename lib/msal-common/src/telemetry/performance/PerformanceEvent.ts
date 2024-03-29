@@ -702,6 +702,11 @@ export type PerformanceEvent = {
 
     visibilityChangeCount?: number;
     incompleteSubsCount?: number;
+
+    /**
+     * CorrelationId of the in progress iframe request that was awaited
+     */
+    awaitIframeCorrelationId?: string;
     /**
      * Amount of times queued in the JS event queue.
      *
