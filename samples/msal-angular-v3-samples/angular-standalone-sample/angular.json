@@ -85,13 +85,13 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "angular-standalone-sample:build:production"
+              "buildTarget": "angular-standalone-sample:build:production"
             },
             "e2e": {
-              "browserTarget": "angular-standalone-sample:build:e2e"
+              "buildTarget": "angular-standalone-sample:build:e2e"
             },
             "dev": {
-              "browserTarget": "angular-standalone-sample:build:dev"
+              "buildTarget": "angular-standalone-sample:build:dev"
             }
           },
           "defaultConfiguration": "dev"
@@ -99,7 +99,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "angular-standalone-sample:build"
+            "buildTarget": "angular-standalone-sample:build"
           }
         },
         "test": {
