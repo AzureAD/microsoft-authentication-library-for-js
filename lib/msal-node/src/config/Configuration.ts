@@ -86,6 +86,11 @@ export type NodeSystemOptions = {
     customAgentOptions?: http.AgentOptions | https.AgentOptions;
 };
 
+export type NodeSystemOptionsMinimumRequired = Required<
+    Pick<NodeSystemOptions, "loggerOptions" | "networkClient">
+> &
+    NodeSystemOptions;
+
 export type NodeTelemetryOptions = {
     application?: ApplicationTelemetry;
 };
@@ -142,12 +147,10 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     logLevel: LogLevel.Info,
 };
 
-const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
+const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptionsMinimumRequired = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: new HttpClient(),
-    proxyUrl: Constants.EMPTY_STRING,
-    customAgent: new http.Agent() || new https.Agent(),
-    customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
+    // optional: proxyUrl, customAgent, customAgentOptions
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
@@ -162,7 +165,7 @@ export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
     broker: BrokerOptions;
     cache: CacheOptions;
-    system: Required<NodeSystemOptions>;
+    system: NodeSystemOptionsMinimumRequired;
     telemetry: Required<NodeTelemetryOptions>;
 };
 
@@ -184,7 +187,7 @@ export function buildAppConfiguration({
     system,
     telemetry,
 }: Configuration): NodeConfiguration {
-    const systemOptions: Required<NodeSystemOptions> = {
+    const systemOptions: NodeSystemOptionsMinimumRequired = {
         ...DEFAULT_SYSTEM_OPTIONS,
         networkClient: new HttpClient(
             system?.proxyUrl,

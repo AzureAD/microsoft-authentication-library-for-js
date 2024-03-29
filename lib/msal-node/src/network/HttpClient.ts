@@ -47,7 +47,7 @@ export class HttpClient implements INetworkModule {
                 this.proxyUrl,
                 HttpMethod.GET,
                 options,
-                this.customAgent as http.Agent,
+                this.customAgent,
                 this.customAgentOptions as http.AgentOptions
             );
         } else {
@@ -55,7 +55,7 @@ export class HttpClient implements INetworkModule {
                 url,
                 HttpMethod.GET,
                 options,
-                this.customAgent as https.Agent,
+                this.customAgent,
                 this.customAgentOptions as https.AgentOptions,
                 undefined
             );
@@ -78,7 +78,7 @@ export class HttpClient implements INetworkModule {
                 this.proxyUrl,
                 HttpMethod.POST,
                 options,
-                this.customAgent as http.Agent,
+                this.customAgent,
                 this.customAgentOptions as http.AgentOptions,
                 cancellationToken
             );
@@ -87,7 +87,7 @@ export class HttpClient implements INetworkModule {
                 url,
                 HttpMethod.POST,
                 options,
-                this.customAgent as https.Agent,
+                this.customAgent,
                 this.customAgentOptions as https.AgentOptions,
                 cancellationToken
             );
@@ -100,7 +100,7 @@ const networkRequestViaProxy = <T>(
     proxyUrlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
-    agent?: http.Agent,
+    agent?: http.Agent | https.Agent,
     agentOptions?: http.AgentOptions,
     timeout?: number
 ): Promise<NetworkResponse<T>> => {
@@ -291,7 +291,7 @@ const networkRequestViaHttps = <T>(
     urlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
-    agent?: https.Agent,
+    agent?: http.Agent | https.Agent,
     agentOptions?: https.AgentOptions,
     timeout?: number
 ): Promise<NetworkResponse<T>> => {
