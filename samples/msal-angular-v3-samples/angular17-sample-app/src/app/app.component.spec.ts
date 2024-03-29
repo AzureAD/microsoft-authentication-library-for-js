@@ -1,17 +1,16 @@
 import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 import { MSAL_GUARD_CONFIG, MSAL_INSTANCE, MsalBroadcastService, MsalGuard, MsalService } from '@azure/msal-angular';
 import { AppComponent } from './app.component';
-import { MSALGuardConfigFactory, MSALInstanceFactory } from 'src/main';
+import { MSALInstanceFactory, MSALGuardConfigFactory } from './app.config';
+import { routes } from './app.routes';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [
-        RouterTestingModule,
-        AppComponent
-    ],
-    providers: [
+      imports: [AppComponent],
+      providers: [
+        provideRouter(routes),
         MsalService,
         MsalGuard,
         MsalBroadcastService,
@@ -33,7 +32,7 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'Angular 17 Sample - MSAL Angular v3'`, () => {
+  it(`should have the 'Angular 17 Sample - MSAL Angular v3' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app.title).toEqual('Angular 17 Sample - MSAL Angular v3');
