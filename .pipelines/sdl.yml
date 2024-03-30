@@ -32,4 +32,4 @@ extends:
                         ob_git_fetchDepth: -1
                         ob_git_persistCredentials: true
                     steps:
-                        - template: build/sdl-tasks.yml
+                        - template: .pipelines/templates/sdl-tasks.yml@1P
