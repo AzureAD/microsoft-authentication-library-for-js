@@ -1,0 +1,46 @@
+trigger: none
+pr:
+    - dev
+
+variables:
+    CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
+    LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+    DEBIAN_FRONTEND: noninteractive
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
+        sourceBranchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
+        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') }}
+
+resources:
+    repositories:
+        - repository: templates
+          type: git
+          name: OneBranch.Pipelines/GovernedTemplates
+          ref: refs/heads/main
+        - repository: 1P
+          type: git
+          name: IDDP/msal-javascript-1p
+          ref: master
+
+extends:
+    template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
+    parameters:
+        globalSdl:
+            policheck:
+                break: true
+
+        stages:
+            - stage: e2e_test
+              displayName: "E2E Tests"
+              jobs:
+                  - template: .pipelines/templates/msal-browser-1p-e2e.yml@1p
+                    parameters:
+                        jobName: "msal_browser_1p_3p_e2e_tests"
+                        poolType: "linux"
+                        sourceBranchName: ${{ variables.sourceBranchName }}
+                        thirdPartyReleaseBranch: ${{ variables.sourceBranchName }}
+                        stage: "pr-check"
+                        override: true
+                        samples:
+                            - "Broker_WAMTestApp"
+                            - "PerformanceTelemetrySample"
