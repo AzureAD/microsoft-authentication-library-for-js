@@ -1,6 +1,6 @@
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
-    LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+    WindowsContainerImage: "onebranch.azurecr.io/windows/ltsc2019/vse2022:latest" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
     DEBIAN_FRONTEND: noninteractive
 resources:
     repositories:
@@ -26,7 +26,7 @@ extends:
                   - job: SDL
                     displayName: "SDL Job for JS"
                     pool:
-                        type: linux
+                        type: windows
                     variables:
                         ob_outputDirectory: "./out"
                         ob_git_fetchDepth: -1
