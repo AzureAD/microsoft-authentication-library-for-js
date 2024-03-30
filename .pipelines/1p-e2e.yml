@@ -33,7 +33,7 @@ extends:
             - stage: e2e_test
               displayName: "E2E Tests"
               jobs:
-                  - template: .pipelines/templates/msal-browser-1p-e2e.yml@1p
+                  - template: .pipelines/templates/msal-browser-1p-e2e.yml@1P
                     parameters:
                         jobName: "msal_browser_1p_3p_e2e_tests"
                         poolType: "linux"
