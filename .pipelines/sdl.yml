@@ -23,13 +23,13 @@ extends:
             - stage: sdl
               displayName: "Run SDL Checks"
               jobs:
-                - job: SDL
-                  displayName: "SDL Job for JS"
-                  pool:
+                  - job: SDL
+                    displayName: "SDL Job for JS"
+                    pool:
                         type: linux
                     variables:
                         ob_outputDirectory: "./out"
                         ob_git_fetchDepth: -1
                         ob_git_persistCredentials: true
                     steps:
-                    - template: build/sdl-tasks.yml
+                        - template: build/sdl-tasks.yml
