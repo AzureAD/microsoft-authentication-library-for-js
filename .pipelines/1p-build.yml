@@ -24,26 +24,26 @@ extends:
         globalSdl:
             policheck:
                 break: true
-    jobs:
-        - template: .pipelines/templates/ci-template.yml@1P
-          parameters:
-              libName: msal-common
-        - template: .pipelines/templates/ci-template.yml@1P
-          parameters:
-              libName: msal-browser
-        - template: .pipelines/templates/ci-template.yml@1P
-          parameters:
-              libName: msal-browser-1p
-        - template: .pipelines/templates/ci-template.yml@1P
-          parameters:
-              libName: msal-node
-        - template: .pipelines/templates/ci-template.yml@1P
-          parameters:
-              libName: msal-react
-        - template: .pipelines/templates/ci-template.yml@1P
-          parameters:
-              libName: msal-angular
-        - template: .pipelines/templates/ci-template.yml@1P
-          parameters:
-              libName: msal-node-extensions
-              os: ["ubuntu", "windows", "macOs"]
+        jobs:
+            - template: .pipelines/templates/ci-template.yml@1P
+              parameters:
+                  libName: msal-common
+            - template: .pipelines/templates/ci-template.yml@1P
+              parameters:
+                  libName: msal-browser
+            - template: .pipelines/templates/ci-template.yml@1P
+              parameters:
+                  libName: msal-browser-1p
+            - template: .pipelines/templates/ci-template.yml@1P
+              parameters:
+                  libName: msal-node
+            - template: .pipelines/templates/ci-template.yml@1P
+              parameters:
+                  libName: msal-react
+            - template: .pipelines/templates/ci-template.yml@1P
+              parameters:
+                  libName: msal-angular
+            - template: .pipelines/templates/ci-template.yml@1P
+              parameters:
+                  libName: msal-node-extensions
+                  os: ["ubuntu", "windows", "macOs"]
