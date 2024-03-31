@@ -27,7 +27,7 @@ extends:
                 break: true
         stages:
             - stage: build_and_test
-              displayName: "MSAL JS CI"
+              displayName: "MSAL JS Build and Test"
               variables:
                   Codeql.Enabled: true
               jobs:
