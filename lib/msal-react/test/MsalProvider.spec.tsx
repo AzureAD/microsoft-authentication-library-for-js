@@ -74,7 +74,7 @@ describe("MsalProvider tests", () => {
             });
 
         jest.spyOn(pca, "getAllAccounts").mockImplementation(
-            () => cachedAccounts
+            () => cachedAccounts,
         );
     });
 
@@ -106,11 +106,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -146,7 +146,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -166,11 +166,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -186,11 +186,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             cachedAccounts = [];
@@ -211,7 +211,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -227,11 +227,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             cachedAccounts = [testAccount];
@@ -252,7 +252,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -276,11 +276,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -316,7 +316,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -332,11 +332,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -386,11 +386,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -424,7 +424,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Login In Progress")
+                await screen.findByText("Login In Progress"),
             ).toBeInTheDocument();
 
             eventMessage = {
@@ -442,7 +442,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Login In Progress")
+                await screen.findByText("Login In Progress"),
             ).toBeInTheDocument();
         });
 
@@ -466,11 +466,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -506,7 +506,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -530,11 +530,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -570,7 +570,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -594,11 +594,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -634,7 +634,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -658,11 +658,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -698,7 +698,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -722,11 +722,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -762,7 +762,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -786,11 +786,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -826,7 +826,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -834,8 +834,8 @@ describe("MsalProvider tests", () => {
             jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
                 return Promise.reject(
                     new Error(
-                        "TEST ERROR: This should not break application flow"
-                    )
+                        "TEST ERROR: This should not break application flow",
+                    ),
                 );
             });
 
@@ -858,11 +858,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -898,7 +898,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -922,11 +922,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -962,7 +962,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -986,11 +986,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -1026,7 +1026,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -1054,11 +1054,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -1078,8 +1078,8 @@ describe("MsalProvider tests", () => {
 
             expect(
                 await screen.findByText(
-                    "AcquireTokenSilent does not update inProgress value"
-                )
+                    "AcquireTokenSilent does not update inProgress value",
+                ),
             ).toBeInTheDocument();
 
             eventMessage = {
@@ -1098,7 +1098,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -1126,11 +1126,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             let eventMessage: EventMessage = {
@@ -1150,8 +1150,8 @@ describe("MsalProvider tests", () => {
 
             expect(
                 await screen.findByText(
-                    "AcquireTokenSilent does not update inProgress value"
-                )
+                    "AcquireTokenSilent does not update inProgress value",
+                ),
             ).toBeInTheDocument();
 
             eventMessage = {
@@ -1170,7 +1170,7 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
+                await screen.findByText("Test Success!"),
             ).toBeInTheDocument();
         });
 
@@ -1188,11 +1188,11 @@ describe("MsalProvider tests", () => {
             render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
-                </MsalProvider>
+                </MsalProvider>,
             );
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(1),
             );
 
             const eventMessage = {

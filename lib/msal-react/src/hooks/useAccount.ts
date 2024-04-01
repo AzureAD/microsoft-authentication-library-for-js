@@ -15,7 +15,7 @@ import { getAccountByIdentifiers } from "../utils/utilities";
 
 function getAccount(
     instance: IPublicClientApplication,
-    accountIdentifiers?: AccountIdentifiers
+    accountIdentifiers?: AccountIdentifiers,
 ): AccountInfo | null {
     if (
         !accountIdentifiers ||
@@ -29,7 +29,7 @@ function getAccount(
 
     return getAccountByIdentifiers(
         instance.getAllAccounts(),
-        accountIdentifiers
+        accountIdentifiers,
     );
 }
 
@@ -38,12 +38,12 @@ function getAccount(
  * @param accountIdentifiers
  */
 export function useAccount(
-    accountIdentifiers?: AccountIdentifiers
+    accountIdentifiers?: AccountIdentifiers,
 ): AccountInfo | null {
     const { instance, inProgress, logger } = useMsal();
 
     const [account, setAccount] = useState<AccountInfo | null>(() =>
-        getAccount(instance, accountIdentifiers)
+        getAccount(instance, accountIdentifiers),
     );
 
     useEffect(() => {
@@ -53,7 +53,7 @@ export function useAccount(
                 !AccountEntity.accountInfoIsEqual(
                     currentAccount,
                     nextAccount,
-                    true
+                    true,
                 )
             ) {
                 logger.info("useAccount - Updating account");

@@ -54,7 +54,7 @@ type MsalProviderReducerAction = {
  */
 const reducer = (
     previousState: MsalState,
-    action: MsalProviderReducerAction
+    action: MsalProviderReducerAction,
 ): MsalState => {
     const { type, payload } = action;
     let newInProgress = previousState.inProgress;
@@ -64,7 +64,7 @@ const reducer = (
             if (previousState.inProgress === InteractionStatus.Startup) {
                 newInProgress = InteractionStatus.None;
                 payload.logger.info(
-                    "MsalProvider - handleRedirectPromise resolved, setting inProgress to 'none'"
+                    "MsalProvider - handleRedirectPromise resolved, setting inProgress to 'none'",
                 );
             }
             break;
@@ -72,11 +72,11 @@ const reducer = (
             const message = payload.message as EventMessage;
             const status = EventMessageUtils.getInteractionStatusFromEvent(
                 message,
-                previousState.inProgress
+                previousState.inProgress,
             );
             if (status) {
                 payload.logger.info(
-                    `MsalProvider - ${message.eventType} results in setting inProgress from ${previousState.inProgress} to ${status}`
+                    `MsalProvider - ${message.eventType} results in setting inProgress from ${previousState.inProgress} to ${status}`,
                 );
                 newInProgress = status;
             }
@@ -150,10 +150,10 @@ export function MsalProvider({
                     },
                     type: MsalProviderActionType.EVENT,
                 });
-            }
+            },
         );
         logger.verbose(
-            `MsalProvider - Registered event callback with id: ${callbackId}`
+            `MsalProvider - Registered event callback with id: ${callbackId}`,
         );
 
         instance
@@ -188,7 +188,7 @@ export function MsalProvider({
             // Remove callback when component unmounts or accounts change
             if (callbackId) {
                 logger.verbose(
-                    `MsalProvider - Removing event callback ${callbackId}`
+                    `MsalProvider - Removing event callback ${callbackId}`,
                 );
                 instance.removeEventCallback(callbackId);
             }

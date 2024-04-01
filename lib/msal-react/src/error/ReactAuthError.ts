@@ -27,14 +27,14 @@ export class ReactAuthError extends AuthError {
     static createInvalidInteractionTypeError(): ReactAuthError {
         return new ReactAuthError(
             ReactAuthErrorMessage.invalidInteractionType.code,
-            ReactAuthErrorMessage.invalidInteractionType.desc
+            ReactAuthErrorMessage.invalidInteractionType.desc,
         );
     }
 
     static createUnableToFallbackToInteractionError(): ReactAuthError {
         return new ReactAuthError(
             ReactAuthErrorMessage.unableToFallbackToInteraction.code,
-            ReactAuthErrorMessage.unableToFallbackToInteraction.desc
+            ReactAuthErrorMessage.unableToFallbackToInteraction.desc,
         );
     }
 }

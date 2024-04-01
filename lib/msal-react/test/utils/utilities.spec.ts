@@ -36,8 +36,8 @@ describe("utilities tests", () => {
             expect(
                 accountArraysAreEqual(
                     [testAccount1, testAccount2],
-                    [testAccount1, testAccount2]
-                )
+                    [testAccount1, testAccount2],
+                ),
             ).toBe(true);
         });
 
@@ -45,8 +45,8 @@ describe("utilities tests", () => {
             expect(
                 accountArraysAreEqual(
                     [testAccount1, testAccount2],
-                    [testAccount1, testAccount3]
-                )
+                    [testAccount1, testAccount3],
+                ),
             ).toBe(false);
         });
 
@@ -54,8 +54,8 @@ describe("utilities tests", () => {
             expect(
                 accountArraysAreEqual(
                     [testAccount1, testAccount2],
-                    [testAccount2, testAccount1]
-                )
+                    [testAccount2, testAccount1],
+                ),
             ).toBe(false);
         });
 
@@ -63,14 +63,14 @@ describe("utilities tests", () => {
             expect(
                 accountArraysAreEqual(
                     [testAccount1, testAccount2],
-                    [testAccount1]
-                )
+                    [testAccount1],
+                ),
             ).toBe(false);
             expect(
                 accountArraysAreEqual(
                     [testAccount1],
-                    [testAccount1, testAccount2]
-                )
+                    [testAccount1, testAccount2],
+                ),
             ).toBe(false);
         });
 
@@ -80,32 +80,32 @@ describe("utilities tests", () => {
                 accountArraysAreEqual(
                     // @ts-ignore
                     [testAccount1, null],
-                    [testAccount1, testAccount2]
-                )
+                    [testAccount1, testAccount2],
+                ),
             ).toBe(false);
             // @ts-ignore
             expect(
                 accountArraysAreEqual(
                     [testAccount1, testAccount2],
                     // @ts-ignore
-                    [null, testAccount2]
-                )
+                    [null, testAccount2],
+                ),
             ).toBe(false);
             // @ts-ignore
             expect(
                 accountArraysAreEqual(
                     // @ts-ignore
                     [testAccount1, undefined],
-                    [testAccount1, testAccount2]
-                )
+                    [testAccount1, testAccount2],
+                ),
             ).toBe(false);
             // @ts-ignore
             expect(
                 accountArraysAreEqual(
                     [testAccount1, testAccount2],
                     // @ts-ignore
-                    [undefined, testAccount2]
-                )
+                    [undefined, testAccount2],
+                ),
             ).toBe(false);
         });
     });

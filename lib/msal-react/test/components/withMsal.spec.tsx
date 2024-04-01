@@ -78,21 +78,21 @@ describe("withMsal tests", () => {
         render(
             <MsalProvider instance={pca}>
                 <WrappedComponent></WrappedComponent>
-            </MsalProvider>
+            </MsalProvider>,
         );
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
-            await screen.findByText("This component has been wrapped by msal")
+            await screen.findByText("This component has been wrapped by msal"),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("Msal instance passed as prop!")
+            screen.queryByText("Msal instance passed as prop!"),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("Accounts passed as prop!")
+            screen.queryByText("Accounts passed as prop!"),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("inProgress passed as prop!")
+            screen.queryByText("inProgress passed as prop!"),
         ).toBeInTheDocument();
     });
 });

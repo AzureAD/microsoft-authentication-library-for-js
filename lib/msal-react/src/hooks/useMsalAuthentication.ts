@@ -27,11 +27,11 @@ import { ReactAuthError } from "../error/ReactAuthError";
 export type MsalAuthenticationResult = {
     login: (
         callbackInteractionType?: InteractionType | undefined,
-        callbackRequest?: PopupRequest | RedirectRequest | SilentRequest
+        callbackRequest?: PopupRequest | RedirectRequest | SilentRequest,
     ) => Promise<AuthenticationResult | null>;
     acquireToken: (
         callbackInteractionType?: InteractionType | undefined,
-        callbackRequest?: SilentRequest | undefined
+        callbackRequest?: SilentRequest | undefined,
     ) => Promise<AuthenticationResult | null>;
     result: AuthenticationResult | null;
     error: AuthError | null;
@@ -49,7 +49,7 @@ export type MsalAuthenticationResult = {
 export function useMsalAuthentication(
     interactionType: InteractionType,
     authenticationRequest?: PopupRequest | RedirectRequest | SsoSilentRequest,
-    accountIdentifiers?: AccountIdentifiers
+    accountIdentifiers?: AccountIdentifiers,
 ): MsalAuthenticationResult {
     const { instance, inProgress, logger } = useMsal();
     const isAuthenticated = useIsAuthenticated(accountIdentifiers);
@@ -91,20 +91,20 @@ export function useMsalAuthentication(
     const login = useCallback(
         async (
             callbackInteractionType?: InteractionType,
-            callbackRequest?: PopupRequest | RedirectRequest | SsoSilentRequest
+            callbackRequest?: PopupRequest | RedirectRequest | SsoSilentRequest,
         ): Promise<AuthenticationResult | null> => {
             const loginType = callbackInteractionType || interactionType;
             const loginRequest = callbackRequest || authenticationRequest;
             switch (loginType) {
                 case InteractionType.Popup:
                     logger.verbose(
-                        "useMsalAuthentication - Calling loginPopup"
+                        "useMsalAuthentication - Calling loginPopup",
                     );
                     return instance.loginPopup(loginRequest as PopupRequest);
                 case InteractionType.Redirect:
                     // This promise is not expected to resolve due to full frame redirect
                     logger.verbose(
-                        "useMsalAuthentication - Calling loginRedirect"
+                        "useMsalAuthentication - Calling loginRedirect",
                     );
                     return instance
                         .loginRedirect(loginRequest as RedirectRequest)
@@ -116,13 +116,13 @@ export function useMsalAuthentication(
                     throw ReactAuthError.createInvalidInteractionTypeError();
             }
         },
-        [instance, interactionType, authenticationRequest, logger]
+        [instance, interactionType, authenticationRequest, logger],
     );
 
     const acquireToken = useCallback(
         async (
             callbackInteractionType?: InteractionType,
-            callbackRequest?: SilentRequest
+            callbackRequest?: SilentRequest,
         ): Promise<AuthenticationResult | null> => {
             const fallbackInteractionType =
                 callbackInteractionType || interactionType;
@@ -131,14 +131,14 @@ export function useMsalAuthentication(
 
             if (callbackRequest) {
                 logger.trace(
-                    "useMsalAuthentication - acquireToken - Using request provided in the callback"
+                    "useMsalAuthentication - acquireToken - Using request provided in the callback",
                 );
                 tokenRequest = {
                     ...callbackRequest,
                 };
             } else if (authenticationRequest) {
                 logger.trace(
-                    "useMsalAuthentication - acquireToken - Using request provided in the hook"
+                    "useMsalAuthentication - acquireToken - Using request provided in the hook",
                 );
                 tokenRequest = {
                     ...authenticationRequest,
@@ -146,7 +146,7 @@ export function useMsalAuthentication(
                 };
             } else {
                 logger.trace(
-                    "useMsalAuthentication - acquireToken - No request object provided, using default request."
+                    "useMsalAuthentication - acquireToken - No request object provided, using default request.",
                 );
                 tokenRequest = {
                     scopes: OIDC_DEFAULT_SCOPES,
@@ -155,14 +155,14 @@ export function useMsalAuthentication(
 
             if (!tokenRequest.account && account) {
                 logger.trace(
-                    "useMsalAuthentication - acquireToken - Attaching account to request"
+                    "useMsalAuthentication - acquireToken - Attaching account to request",
                 );
                 tokenRequest.account = account;
             }
 
             const getToken = async (): Promise<AuthenticationResult | null> => {
                 logger.verbose(
-                    "useMsalAuthentication - Calling acquireTokenSilent"
+                    "useMsalAuthentication - Calling acquireTokenSilent",
                 );
                 return instance
                     .acquireTokenSilent(tokenRequest)
@@ -170,15 +170,15 @@ export function useMsalAuthentication(
                         if (e instanceof InteractionRequiredAuthError) {
                             if (!interactionInProgress.current) {
                                 logger.error(
-                                    "useMsalAuthentication - Interaction required, falling back to interaction"
+                                    "useMsalAuthentication - Interaction required, falling back to interaction",
                                 );
                                 return login(
                                     fallbackInteractionType,
-                                    tokenRequest
+                                    tokenRequest,
                                 );
                             } else {
                                 logger.error(
-                                    "useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes."
+                                    "useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes.",
                                 );
                                 throw ReactAuthError.createUnableToFallbackToInteractionError();
                             }
@@ -209,7 +209,7 @@ export function useMsalAuthentication(
             logger,
             account,
             login,
-        ]
+        ],
     );
 
     useEffect(() => {
@@ -232,16 +232,16 @@ export function useMsalAuthentication(
                         }
                         break;
                 }
-            }
+            },
         );
         logger.verbose(
-            `useMsalAuthentication - Registered event callback with id: ${callbackId}`
+            `useMsalAuthentication - Registered event callback with id: ${callbackId}`,
         );
 
         return () => {
             if (callbackId) {
                 logger.verbose(
-                    `useMsalAuthentication - Removing event callback ${callbackId}`
+                    `useMsalAuthentication - Removing event callback ${callbackId}`,
                 );
                 instance.removeEventCallback(callbackId);
             }
@@ -256,7 +256,7 @@ export function useMsalAuthentication(
             shouldAcquireToken.current = false;
             if (!isAuthenticated) {
                 logger.info(
-                    "useMsalAuthentication - No user is authenticated, attempting to login"
+                    "useMsalAuthentication - No user is authenticated, attempting to login",
                 );
                 login().catch(() => {
                     // Errors are saved in state above
@@ -264,7 +264,7 @@ export function useMsalAuthentication(
                 });
             } else if (account) {
                 logger.info(
-                    "useMsalAuthentication - User is authenticated, attempting to acquire token"
+                    "useMsalAuthentication - User is authenticated, attempting to acquire token",
                 );
                 acquireToken().catch(() => {
                     // Errors are saved in state above

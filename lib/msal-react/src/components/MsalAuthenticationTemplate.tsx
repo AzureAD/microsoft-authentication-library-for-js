@@ -58,7 +58,7 @@ export function MsalAuthenticationTemplate({
     const msalAuthResult = useMsalAuthentication(
         interactionType,
         authenticationRequest,
-        accountIdentifier
+        accountIdentifier,
     );
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 

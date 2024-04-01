@@ -44,15 +44,15 @@ describe("AuthenticatedTemplate tests", () => {
                 <AuthenticatedTemplate>
                     <span> A user is authenticated!</span>
                 </AuthenticatedTemplate>
-            </MsalProvider>
+            </MsalProvider>,
         );
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
-            screen.queryByText("This text will always display.")
+            screen.queryByText("This text will always display."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("A user is authenticated!")
+            screen.queryByText("A user is authenticated!"),
         ).not.toBeInTheDocument();
     });
 
@@ -66,15 +66,15 @@ describe("AuthenticatedTemplate tests", () => {
                 <AuthenticatedTemplate>
                     <span> A user is authenticated!</span>
                 </AuthenticatedTemplate>
-            </MsalProvider>
+            </MsalProvider>,
         );
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
-            screen.queryByText("This text will always display.")
+            screen.queryByText("This text will always display."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("A user is authenticated!")
+            screen.queryByText("A user is authenticated!"),
         ).toBeInTheDocument();
     });
 
@@ -88,15 +88,15 @@ describe("AuthenticatedTemplate tests", () => {
                 <AuthenticatedTemplate username={testAccount.username}>
                     <span> A user is authenticated!</span>
                 </AuthenticatedTemplate>
-            </MsalProvider>
+            </MsalProvider>,
         );
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
-            screen.queryByText("This text will always display.")
+            screen.queryByText("This text will always display."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("A user is authenticated!")
+            screen.queryByText("A user is authenticated!"),
         ).toBeInTheDocument();
     });
 
@@ -112,15 +112,15 @@ describe("AuthenticatedTemplate tests", () => {
                 >
                     <span> A user is authenticated!</span>
                 </AuthenticatedTemplate>
-            </MsalProvider>
+            </MsalProvider>,
         );
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
-            screen.queryByText("This text will always display.")
+            screen.queryByText("This text will always display."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("A user is authenticated!")
+            screen.queryByText("A user is authenticated!"),
         ).toBeInTheDocument();
     });
 
@@ -136,15 +136,15 @@ describe("AuthenticatedTemplate tests", () => {
                 >
                     <span> A user is authenticated!</span>
                 </AuthenticatedTemplate>
-            </MsalProvider>
+            </MsalProvider>,
         );
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
-            screen.queryByText("This text will always display.")
+            screen.queryByText("This text will always display."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("A user is authenticated!")
+            screen.queryByText("A user is authenticated!"),
         ).toBeInTheDocument();
     });
 
@@ -158,15 +158,15 @@ describe("AuthenticatedTemplate tests", () => {
                 <AuthenticatedTemplate username={"test@example.com"}>
                     <span> A user is authenticated!</span>
                 </AuthenticatedTemplate>
-            </MsalProvider>
+            </MsalProvider>,
         );
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
-            screen.queryByText("This text will always display.")
+            screen.queryByText("This text will always display."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("A user is authenticated!")
+            screen.queryByText("A user is authenticated!"),
         ).not.toBeInTheDocument();
     });
 
@@ -182,15 +182,15 @@ describe("AuthenticatedTemplate tests", () => {
                 >
                     <span> A user is authenticated!</span>
                 </AuthenticatedTemplate>
-            </MsalProvider>
+            </MsalProvider>,
         );
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
-            screen.queryByText("This text will always display.")
+            screen.queryByText("This text will always display."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("A user is authenticated!")
+            screen.queryByText("A user is authenticated!"),
         ).not.toBeInTheDocument();
     });
 
@@ -206,15 +206,15 @@ describe("AuthenticatedTemplate tests", () => {
                 >
                     <span> A user is authenticated!</span>
                 </AuthenticatedTemplate>
-            </MsalProvider>
+            </MsalProvider>,
         );
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
-            screen.queryByText("This text will always display.")
+            screen.queryByText("This text will always display."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("A user is authenticated!")
+            screen.queryByText("A user is authenticated!"),
         ).not.toBeInTheDocument();
     });
 
@@ -223,7 +223,7 @@ describe("AuthenticatedTemplate tests", () => {
             value?:
                 | AuthenticationResult
                 | PromiseLike<AuthenticationResult | null>
-                | null
+                | null,
         ): void => {
             console.log(value);
         };
@@ -236,7 +236,7 @@ describe("AuthenticatedTemplate tests", () => {
                         value?:
                             | AuthenticationResult
                             | PromiseLike<AuthenticationResult | null>
-                            | null
+                            | null,
                     ) => void;
                 });
             });
@@ -248,22 +248,22 @@ describe("AuthenticatedTemplate tests", () => {
                 <AuthenticatedTemplate>
                     <span> A user is authenticated!</span>
                 </AuthenticatedTemplate>
-            </MsalProvider>
+            </MsalProvider>,
         );
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
-            screen.queryByText("This text will always display.")
+            screen.queryByText("This text will always display."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("A user is authenticated!")
+            screen.queryByText("A user is authenticated!"),
         ).not.toBeInTheDocument();
 
         handleRedirectPromiseResolve();
         await waitFor(() =>
             expect(
-                screen.queryByText("A user is authenticated!")
-            ).toBeInTheDocument()
+                screen.queryByText("A user is authenticated!"),
+            ).toBeInTheDocument(),
         );
     });
 });

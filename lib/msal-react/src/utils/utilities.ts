@@ -10,7 +10,7 @@ type FaaCFunction = <T>(args: T) => React.ReactNode;
 
 export function getChildrenOrFunction<T>(
     children: React.ReactNode | FaaCFunction,
-    args: T
+    args: T,
 ): React.ReactNode {
     if (typeof children === "function") {
         return children(args);
@@ -37,7 +37,7 @@ export type Subtract<T extends T1, T1 extends object> = Pick<
  */
 export function accountArraysAreEqual(
     arrayA: Array<AccountIdentifiers>,
-    arrayB: Array<AccountIdentifiers>
+    arrayB: Array<AccountIdentifiers>,
 ): boolean {
     if (arrayA.length !== arrayB.length) {
         return false;
@@ -61,7 +61,7 @@ export function accountArraysAreEqual(
 
 export function getAccountByIdentifiers(
     allAccounts: AccountInfo[],
-    accountIdentifiers: AccountIdentifiers
+    accountIdentifiers: AccountIdentifiers,
 ): AccountInfo | null {
     if (
         allAccounts.length > 0 &&

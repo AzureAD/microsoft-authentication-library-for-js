@@ -11,7 +11,7 @@ import { getAccountByIdentifiers } from "../utils/utilities";
 
 function isAuthenticated(
     allAccounts: AccountInfo[],
-    matchAccount?: AccountIdentifiers
+    matchAccount?: AccountIdentifiers,
 ): boolean {
     if (
         matchAccount &&
