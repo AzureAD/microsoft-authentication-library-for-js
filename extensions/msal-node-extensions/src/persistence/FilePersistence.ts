@@ -26,18 +26,18 @@ export class FilePersistence extends BasePersistence implements IPersistence {
     private constructor(fileLocation: string, loggerOptions?: LoggerOptions) {
         super();
         this.logger = new Logger(
-            loggerOptions || FilePersistence.createDefaultLoggerOptions()
+            loggerOptions || FilePersistence.createDefaultLoggerOptions(),
         );
         this.filePath = fileLocation;
     }
 
     public static async create(
         fileLocation: string,
-        loggerOptions?: LoggerOptions
+        loggerOptions?: LoggerOptions,
     ): Promise<FilePersistence> {
         const filePersistence = new FilePersistence(
             fileLocation,
-            loggerOptions
+            loggerOptions,
         );
         await filePersistence.createCacheFile();
         return filePersistence;
@@ -50,7 +50,7 @@ export class FilePersistence extends BasePersistence implements IPersistence {
             if (isNodeError(err)) {
                 throw PersistenceError.createFileSystemError(
                     err.code || ErrorCodes.UNKNOWN,
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -65,7 +65,7 @@ export class FilePersistence extends BasePersistence implements IPersistence {
             if (isNodeError(err)) {
                 throw PersistenceError.createFileSystemError(
                     err.code || ErrorCodes.UNKNOWN,
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -80,7 +80,7 @@ export class FilePersistence extends BasePersistence implements IPersistence {
             if (isNodeError(err)) {
                 throw PersistenceError.createFileSystemError(
                     err.code || ErrorCodes.UNKNOWN,
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -95,7 +95,7 @@ export class FilePersistence extends BasePersistence implements IPersistence {
             if (isNodeError(err)) {
                 throw PersistenceError.createFileSystemError(
                     err.code || ErrorCodes.UNKNOWN,
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -112,13 +112,13 @@ export class FilePersistence extends BasePersistence implements IPersistence {
                 if (err.code === Constants.ENOENT_ERROR) {
                     // file does not exist, so it was not deleted
                     this.logger.warning(
-                        "Cache file does not exist, so it could not be deleted"
+                        "Cache file does not exist, so it could not be deleted",
                     );
                     return false;
                 }
                 throw PersistenceError.createFileSystemError(
                     err.code || ErrorCodes.UNKNOWN,
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -166,7 +166,7 @@ export class FilePersistence extends BasePersistence implements IPersistence {
                 }
                 throw PersistenceError.createFileSystemError(
                     err.code || ErrorCodes.UNKNOWN,
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -189,12 +189,12 @@ export class FilePersistence extends BasePersistence implements IPersistence {
             if (isNodeError(err)) {
                 if (err.code === Constants.EEXIST_ERROR) {
                     this.logger.info(
-                        `Directory ${dirname(this.filePath)}  already exists`
+                        `Directory ${dirname(this.filePath)}  already exists`,
                     );
                 } else {
                     throw PersistenceError.createFileSystemError(
                         err.code || ErrorCodes.UNKNOWN,
-                        err.message
+                        err.message,
                     );
                 }
             } else {

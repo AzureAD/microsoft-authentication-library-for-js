@@ -25,16 +25,16 @@ describe("Test cache lock performance", () => {
             numProcesses,
             cacheFilePath,
             retryNumber,
-            retryDelay
+            retryDelay,
         );
         const correctlyFormatted = await fileCorrectlyFormatted(
             cacheFilePath,
-            numProcesses * 2
+            numProcesses * 2,
         );
         if (!correctlyFormatted) {
             console.log("File not correctly formatted");
             console.log(
-                JSON.stringify(await fs.readFile(cacheFilePath, "utf-8"))
+                JSON.stringify(await fs.readFile(cacheFilePath, "utf-8")),
             );
         }
         expect(correctlyFormatted).toBe(true);
@@ -45,7 +45,7 @@ async function runMultipleProcesses(
     numProcesses: number,
     cacheLocation: string,
     retryNumber: number,
-    retryDelay: number
+    retryDelay: number,
 ): Promise<void> {
     const options = [
         cacheLocation,
@@ -56,7 +56,7 @@ async function runMultipleProcesses(
     for (let i = 0; i < numProcesses; i++) {
         const proc = fork(
             "./test/performance-test/LockAndWriteToStorageScript.js",
-            options
+            options,
         );
         proc.on("exit", (code) => {
             count++;
@@ -70,7 +70,7 @@ async function runMultipleProcesses(
 
 async function fileCorrectlyFormatted(
     filePath: string,
-    expectedCount: number
+    expectedCount: number,
 ): Promise<boolean> {
     const fd = await fs.readFile(filePath);
 

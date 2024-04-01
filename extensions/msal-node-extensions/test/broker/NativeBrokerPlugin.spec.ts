@@ -41,7 +41,7 @@ if (process.platform === "win32") {
             ErrorStatus[msalRuntimeExampleError.errorStatus],
             msalRuntimeExampleError.errorContext,
             msalRuntimeExampleError.errorCode,
-            msalRuntimeExampleError.errorTag
+            msalRuntimeExampleError.errorTag,
         );
 
         const generateCorrelationId = () => {
@@ -61,7 +61,7 @@ if (process.platform === "win32") {
                 jest.replaceProperty(
                     msalNodeRuntime,
                     "StartupError",
-                    undefined
+                    undefined,
                 );
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
                 expect(nativeBrokerPlugin.isBrokerAvailable).toBe(true);
@@ -84,12 +84,12 @@ if (process.platform === "win32") {
                 const testCorrelationId = generateCorrelationId();
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -97,19 +97,19 @@ if (process.platform === "win32") {
                             telemetryData: "",
                         };
                         expect(accountId).toEqual(
-                            testMsalRuntimeAccount.accountId
+                            testMsalRuntimeAccount.accountId,
                         );
                         expect(correlationId).toEqual(testCorrelationId);
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
                 const account = await nativeBrokerPlugin.getAccountById(
                     testMsalRuntimeAccount.accountId,
-                    testCorrelationId
+                    testCorrelationId,
                 );
                 expect(account).toStrictEqual<AccountInfo>(testAccountInfo);
             });
@@ -118,7 +118,7 @@ if (process.platform === "win32") {
                 const testCorrelationId = generateCorrelationId();
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(() => {
                     throw msalRuntimeExampleError;
                 });
@@ -127,11 +127,11 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .getAccountById(
                         testMsalRuntimeAccount.accountId,
-                        testCorrelationId
+                        testCorrelationId,
                     )
                     .catch((error) => {
                         expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                            testNativeAuthError,
                         );
                         done();
                     });
@@ -141,12 +141,12 @@ if (process.platform === "win32") {
                 const testCorrelationId = generateCorrelationId();
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -156,24 +156,24 @@ if (process.platform === "win32") {
                             telemetryData: "",
                         };
                         expect(accountId).toEqual(
-                            testMsalRuntimeAccount.accountId
+                            testMsalRuntimeAccount.accountId,
                         );
                         expect(correlationId).toEqual(testCorrelationId);
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
                 nativeBrokerPlugin
                     .getAccountById(
                         testMsalRuntimeAccount.accountId,
-                        testCorrelationId
+                        testCorrelationId,
                     )
                     .catch((error) => {
                         expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                            testNativeAuthError,
                         );
                         done();
                     });
@@ -185,12 +185,12 @@ if (process.platform === "win32") {
                 const testCorrelationId = generateCorrelationId();
                 jest.spyOn(
                     msalNodeRuntime,
-                    "DiscoverAccountsAsync"
+                    "DiscoverAccountsAsync",
                 ).mockImplementation(
                     (
                         clientId: string,
                         correlationId: string,
-                        callback: (result: DiscoverAccountsResult) => void
+                        callback: (result: DiscoverAccountsResult) => void,
                     ) => {
                         const result: DiscoverAccountsResult = {
                             accounts: [testMsalRuntimeAccount],
@@ -202,13 +202,13 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
                 const accounts = await nativeBrokerPlugin.getAllAccounts(
                     TEST_CLIENT_ID,
-                    testCorrelationId
+                    testCorrelationId,
                 );
                 expect(accounts).toStrictEqual<AccountInfo[]>([
                     testAccountInfo,
@@ -219,7 +219,7 @@ if (process.platform === "win32") {
                 const testCorrelationId = generateCorrelationId();
                 jest.spyOn(
                     msalNodeRuntime,
-                    "DiscoverAccountsAsync"
+                    "DiscoverAccountsAsync",
                 ).mockImplementation(() => {
                     throw msalRuntimeExampleError;
                 });
@@ -229,7 +229,7 @@ if (process.platform === "win32") {
                     .getAllAccounts(TEST_CLIENT_ID, testCorrelationId)
                     .catch((error) => {
                         expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                            testNativeAuthError,
                         );
                         done();
                     });
@@ -239,12 +239,12 @@ if (process.platform === "win32") {
                 const testCorrelationId = generateCorrelationId();
                 jest.spyOn(
                     msalNodeRuntime,
-                    "DiscoverAccountsAsync"
+                    "DiscoverAccountsAsync",
                 ).mockImplementation(
                     (
                         clientId: string,
                         correlationId: string,
-                        callback: (result: DiscoverAccountsResult) => void
+                        callback: (result: DiscoverAccountsResult) => void,
                     ) => {
                         const result: DiscoverAccountsResult = {
                             accounts: [testMsalRuntimeAccount],
@@ -258,7 +258,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -266,7 +266,7 @@ if (process.platform === "win32") {
                     .getAllAccounts(TEST_CLIENT_ID, testCorrelationId)
                     .catch((error) => {
                         expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                            testNativeAuthError,
                         );
                         done();
                     });
@@ -280,16 +280,16 @@ if (process.platform === "win32") {
                     getTestAuthenticationResult(testCorrelationId);
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
+                                testAuthenticationResult.idTokenClaims,
                             ),
                             accessToken: testAuthenticationResult.accessToken,
                             rawIdToken: testAuthenticationResult.idToken,
@@ -306,7 +306,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -317,11 +317,10 @@ if (process.platform === "win32") {
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
                 };
-                const response = await nativeBrokerPlugin.acquireTokenSilent(
-                    request
-                );
+                const response =
+                    await nativeBrokerPlugin.acquireTokenSilent(request);
                 expect(response).toStrictEqual<AuthenticationResult>(
-                    testAuthenticationResult
+                    testAuthenticationResult,
                 );
             });
 
@@ -332,12 +331,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -347,22 +346,22 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "AcquireTokenSilentlyAsync"
+                    "AcquireTokenSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
                         account: Account,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
+                                testAuthenticationResult.idTokenClaims,
                             ),
                             accessToken: testAuthenticationResult.accessToken,
                             rawIdToken: testAuthenticationResult.idToken,
@@ -377,12 +376,12 @@ if (process.platform === "win32") {
                         };
                         expect(correlationId).toEqual(testCorrelationId);
                         expect(account).toStrictEqual<Account>(
-                            testMsalRuntimeAccount
+                            testMsalRuntimeAccount,
                         );
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -394,11 +393,10 @@ if (process.platform === "win32") {
                     redirectUri: TEST_REDIRECTURI,
                     accountId: testMsalRuntimeAccount.accountId,
                 };
-                const response = await nativeBrokerPlugin.acquireTokenSilent(
-                    request
-                );
+                const response =
+                    await nativeBrokerPlugin.acquireTokenSilent(request);
                 expect(response).toStrictEqual<AuthenticationResult>(
-                    testAuthenticationResult
+                    testAuthenticationResult,
                 );
             });
 
@@ -407,12 +405,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -422,12 +420,12 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "AcquireTokenSilentlyAsync"
+                    "AcquireTokenSilentlyAsync",
                 ).mockImplementation(() => {
                     throw msalRuntimeExampleError;
                 });
@@ -445,7 +443,7 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                            testNativeAuthError,
                         );
                         done();
                     });
@@ -456,7 +454,7 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(() => {
                     throw msalRuntimeExampleError;
                 });
@@ -473,7 +471,7 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                            testNativeAuthError,
                         );
                         done();
                     });
@@ -484,12 +482,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -508,7 +506,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -523,7 +521,7 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                            testNativeAuthError,
                         );
                         done();
                     });
@@ -542,11 +540,11 @@ if (process.platform === "win32") {
                         authParams: AuthParameters,
                         correlationId: string,
                         accountHint: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
+                                testAuthenticationResult.idTokenClaims,
                             ),
                             accessToken: testAuthenticationResult.accessToken,
                             rawIdToken: testAuthenticationResult.idToken,
@@ -563,7 +561,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -577,7 +575,7 @@ if (process.platform === "win32") {
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
                 expect(response).toStrictEqual<AuthenticationResult>(
-                    testAuthenticationResult
+                    testAuthenticationResult,
                 );
             });
 
@@ -588,12 +586,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -603,23 +601,23 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "AcquireTokenInteractivelyAsync"
+                    "AcquireTokenInteractivelyAsync",
                 ).mockImplementation(
                     (
                         windowHandle: Buffer,
                         authParams: AuthParameters,
                         correlationId: string,
                         account: Account,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
+                                testAuthenticationResult.idTokenClaims,
                             ),
                             accessToken: testAuthenticationResult.accessToken,
                             rawIdToken: testAuthenticationResult.idToken,
@@ -637,7 +635,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -652,7 +650,7 @@ if (process.platform === "win32") {
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
                 expect(response).toStrictEqual<AuthenticationResult>(
-                    testAuthenticationResult
+                    testAuthenticationResult,
                 );
             });
 
@@ -663,12 +661,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -678,22 +676,22 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "AcquireTokenSilentlyAsync"
+                    "AcquireTokenSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
                         account: Account,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
+                                testAuthenticationResult.idTokenClaims,
                             ),
                             accessToken: testAuthenticationResult.accessToken,
                             rawIdToken: testAuthenticationResult.idToken,
@@ -711,7 +709,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -727,7 +725,7 @@ if (process.platform === "win32") {
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
                 expect(response).toStrictEqual<AuthenticationResult>(
-                    testAuthenticationResult
+                    testAuthenticationResult,
                 );
             });
 
@@ -738,16 +736,16 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
+                                testAuthenticationResult.idTokenClaims,
                             ),
                             accessToken: testAuthenticationResult.accessToken,
                             rawIdToken: testAuthenticationResult.idToken,
@@ -764,7 +762,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -779,7 +777,7 @@ if (process.platform === "win32") {
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
                 expect(response).toStrictEqual<AuthenticationResult>(
-                    testAuthenticationResult
+                    testAuthenticationResult,
                 );
             });
 
@@ -790,18 +788,18 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInInteractivelyAsync"
+                    "SignInInteractivelyAsync",
                 ).mockImplementation(
                     (
                         windowHandle: Buffer,
                         authParams: AuthParameters,
                         correlationId: string,
                         accountHint: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
+                                testAuthenticationResult.idTokenClaims,
                             ),
                             accessToken: testAuthenticationResult.accessToken,
                             rawIdToken: testAuthenticationResult.idToken,
@@ -818,7 +816,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -833,7 +831,7 @@ if (process.platform === "win32") {
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
                 expect(response).toStrictEqual<AuthenticationResult>(
-                    testAuthenticationResult
+                    testAuthenticationResult,
                 );
             });
 
@@ -844,18 +842,18 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInInteractivelyAsync"
+                    "SignInInteractivelyAsync",
                 ).mockImplementation(
                     (
                         windowHandle: Buffer,
                         authParams: AuthParameters,
                         correlationId: string,
                         accountHint: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
+                                testAuthenticationResult.idTokenClaims,
                             ),
                             accessToken: testAuthenticationResult.accessToken,
                             rawIdToken: testAuthenticationResult.idToken,
@@ -872,7 +870,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -887,7 +885,7 @@ if (process.platform === "win32") {
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
                 expect(response).toStrictEqual<AuthenticationResult>(
-                    testAuthenticationResult
+                    testAuthenticationResult,
                 );
             });
 
@@ -898,18 +896,18 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInInteractivelyAsync"
+                    "SignInInteractivelyAsync",
                 ).mockImplementation(
                     (
                         windowHandle: Buffer,
                         authParams: AuthParameters,
                         correlationId: string,
                         accountHint: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
+                                testAuthenticationResult.idTokenClaims,
                             ),
                             accessToken: testAuthenticationResult.accessToken,
                             rawIdToken: testAuthenticationResult.idToken,
@@ -926,7 +924,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -941,7 +939,7 @@ if (process.platform === "win32") {
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
                 expect(response).toStrictEqual<AuthenticationResult>(
-                    testAuthenticationResult
+                    testAuthenticationResult,
                 );
             });
 
@@ -950,14 +948,14 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInInteractivelyAsync"
+                    "SignInInteractivelyAsync",
                 ).mockImplementation(
                     (
                         windowHandle: Buffer,
                         authParams: AuthParameters,
                         correlationId: string,
                         accountHint: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -976,7 +974,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -989,7 +987,7 @@ if (process.platform === "win32") {
                     prompt: PromptValue.CREATE,
                 };
                 await expect(
-                    nativeBrokerPlugin.acquireTokenInteractive(request)
+                    nativeBrokerPlugin.acquireTokenInteractive(request),
                 ).rejects.toThrowError(testNativeAuthError);
             });
 
@@ -998,12 +996,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -1013,19 +1011,19 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "AcquireTokenInteractivelyAsync"
+                    "AcquireTokenInteractivelyAsync",
                 ).mockImplementation(
                     (
                         windowHandle: Buffer,
                         authParams: AuthParameters,
                         correlationId: string,
                         account: Account,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1045,7 +1043,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1058,7 +1056,7 @@ if (process.platform === "win32") {
                     accountId: testAccountInfo.nativeAccountId,
                 };
                 await expect(
-                    nativeBrokerPlugin.acquireTokenInteractive(request)
+                    nativeBrokerPlugin.acquireTokenInteractive(request),
                 ).rejects.toThrowError(testNativeAuthError);
             });
 
@@ -1071,7 +1069,7 @@ if (process.platform === "win32") {
                         authParams: AuthParameters,
                         correlationId: string,
                         accountHint: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1090,7 +1088,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1102,7 +1100,7 @@ if (process.platform === "win32") {
                     redirectUri: TEST_REDIRECTURI,
                 };
                 await expect(
-                    nativeBrokerPlugin.acquireTokenInteractive(request)
+                    nativeBrokerPlugin.acquireTokenInteractive(request),
                 ).rejects.toThrowError(testNativeAuthError);
             });
 
@@ -1111,12 +1109,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -1126,18 +1124,18 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "AcquireTokenSilentlyAsync"
+                    "AcquireTokenSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
                         account: Account,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1156,7 +1154,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1170,7 +1168,7 @@ if (process.platform === "win32") {
                     accountId: testAccountInfo.nativeAccountId,
                 };
                 await expect(
-                    nativeBrokerPlugin.acquireTokenInteractive(request)
+                    nativeBrokerPlugin.acquireTokenInteractive(request),
                 ).rejects.toThrowError(testNativeAuthError);
             });
 
@@ -1179,12 +1177,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1203,7 +1201,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1216,7 +1214,7 @@ if (process.platform === "win32") {
                     prompt: PromptValue.NONE,
                 };
                 await expect(
-                    nativeBrokerPlugin.acquireTokenInteractive(request)
+                    nativeBrokerPlugin.acquireTokenInteractive(request),
                 ).rejects.toThrowError(testNativeAuthError);
             });
 
@@ -1226,7 +1224,7 @@ if (process.platform === "win32") {
                 jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
                     () => {
                         throw msalRuntimeExampleError;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1238,7 +1236,7 @@ if (process.platform === "win32") {
                     redirectUri: TEST_REDIRECTURI,
                 };
                 await expect(
-                    nativeBrokerPlugin.acquireTokenInteractive(request)
+                    nativeBrokerPlugin.acquireTokenInteractive(request),
                 ).rejects.toThrowError(testNativeAuthError);
             });
         });
@@ -1249,12 +1247,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -1264,18 +1262,18 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignOutSilentlyAsync"
+                    "SignOutSilentlyAsync",
                 ).mockImplementation(
                     (
                         clientId: string,
                         correlationId: string,
                         account: Account,
-                        callback: (result: SignOutResult) => void
+                        callback: (result: SignOutResult) => void,
                     ) => {
                         const result: SignOutResult = {
                             CheckError: () => {},
@@ -1286,7 +1284,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1303,12 +1301,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             // @ts-ignore
@@ -1319,7 +1317,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1330,9 +1328,9 @@ if (process.platform === "win32") {
                 };
 
                 await expect(
-                    nativeBrokerPlugin.signOut(request)
+                    nativeBrokerPlugin.signOut(request),
                 ).rejects.toThrowError(
-                    createClientAuthError(ClientAuthErrorCodes.noAccountFound)
+                    createClientAuthError(ClientAuthErrorCodes.noAccountFound),
                 );
             });
 
@@ -1341,12 +1339,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -1356,18 +1354,18 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignOutSilentlyAsync"
+                    "SignOutSilentlyAsync",
                 ).mockImplementation(
                     (
                         clientId: string,
                         correlationId: string,
                         account: Account,
-                        callback: (result: SignOutResult) => void
+                        callback: (result: SignOutResult) => void,
                     ) => {
                         const result: SignOutResult = {
                             CheckError: () => {
@@ -1378,7 +1376,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1388,7 +1386,7 @@ if (process.platform === "win32") {
                     accountId: testAccountInfo.nativeAccountId!,
                 };
                 await expect(
-                    nativeBrokerPlugin.signOut(request)
+                    nativeBrokerPlugin.signOut(request),
                 ).rejects.toThrowError(testNativeAuthError);
             });
 
@@ -1397,12 +1395,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "ReadAccountByIdAsync"
+                    "ReadAccountByIdAsync",
                 ).mockImplementation(
                     (
                         accountId: string,
                         correlationId: string,
-                        callback: (result: ReadAccountResult) => void
+                        callback: (result: ReadAccountResult) => void,
                     ) => {
                         const result: ReadAccountResult = {
                             account: testMsalRuntimeAccount,
@@ -1412,12 +1410,12 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignOutSilentlyAsync"
+                    "SignOutSilentlyAsync",
                 ).mockImplementation(() => {
                     throw msalRuntimeExampleError;
                 });
@@ -1429,7 +1427,7 @@ if (process.platform === "win32") {
                     accountId: testAccountInfo.nativeAccountId!,
                 };
                 await expect(
-                    nativeBrokerPlugin.signOut(request)
+                    nativeBrokerPlugin.signOut(request),
                 ).rejects.toThrowError(testNativeAuthError);
             });
         });
@@ -1440,12 +1438,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1471,7 +1469,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1486,7 +1484,7 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toBeInstanceOf(
-                            InteractionRequiredAuthError
+                            InteractionRequiredAuthError,
                         );
                         done();
                     });
@@ -1497,12 +1495,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1527,7 +1525,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1542,7 +1540,7 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .catch((error) => {
                         expect(error).toBeInstanceOf(
-                            InteractionRequiredAuthError
+                            InteractionRequiredAuthError,
                         );
                         done();
                     });
@@ -1553,12 +1551,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1583,7 +1581,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1599,8 +1597,8 @@ if (process.platform === "win32") {
                     .catch((error) => {
                         expect(error).toStrictEqual(
                             createClientAuthError(
-                                ClientAuthErrorCodes.noNetworkConnectivity
-                            )
+                                ClientAuthErrorCodes.noNetworkConnectivity,
+                            ),
                         );
                         done();
                     });
@@ -1611,12 +1609,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1642,7 +1640,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1658,8 +1656,8 @@ if (process.platform === "win32") {
                     .catch((error) => {
                         expect(error).toStrictEqual(
                             createClientAuthError(
-                                ClientAuthErrorCodes.noNetworkConnectivity
-                            )
+                                ClientAuthErrorCodes.noNetworkConnectivity,
+                            ),
                         );
                         done();
                     });
@@ -1670,12 +1668,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1701,7 +1699,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1725,12 +1723,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1755,7 +1753,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1771,8 +1769,8 @@ if (process.platform === "win32") {
                     .catch((error) => {
                         expect(error).toStrictEqual(
                             createClientAuthError(
-                                ClientAuthErrorCodes.userCanceled
-                            )
+                                ClientAuthErrorCodes.userCanceled,
+                            ),
                         );
                         done();
                     });
@@ -1783,12 +1781,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1813,7 +1811,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1829,8 +1827,8 @@ if (process.platform === "win32") {
                     .catch((error) => {
                         expect(error).toStrictEqual(
                             createClientConfigurationError(
-                                ClientConfigurationErrorCodes.untrustedAuthority
-                            )
+                                ClientConfigurationErrorCodes.untrustedAuthority,
+                            ),
                         );
                         done();
                     });
@@ -1843,16 +1841,16 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
+                                testAuthenticationResult.idTokenClaims,
                             ),
                             accessToken: testAuthenticationResult.accessToken,
                             rawIdToken: testAuthenticationResult.idToken,
@@ -1877,7 +1875,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1892,7 +1890,7 @@ if (process.platform === "win32") {
                     .acquireTokenSilent(request)
                     .then((response) => {
                         expect(response).toStrictEqual(
-                            testAuthenticationResult
+                            testAuthenticationResult,
                         );
                         done();
                     });
@@ -1903,12 +1901,12 @@ if (process.platform === "win32") {
 
                 jest.spyOn(
                     msalNodeRuntime,
-                    "SignInSilentlyAsync"
+                    "SignInSilentlyAsync",
                 ).mockImplementation(
                     (
                         authParams: AuthParameters,
                         correlationId: string,
-                        callback: (result: AuthResult) => void
+                        callback: (result: AuthResult) => void,
                     ) => {
                         const result: AuthResult = {
                             idToken: "",
@@ -1933,7 +1931,7 @@ if (process.platform === "win32") {
                         callback(result);
 
                         return asyncHandle;
-                    }
+                    },
                 );
 
                 const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -1949,8 +1947,8 @@ if (process.platform === "win32") {
                     .catch((error) => {
                         expect(error).toStrictEqual(
                             createClientAuthError(
-                                ClientAuthErrorCodes.noAccountFound
-                            )
+                                ClientAuthErrorCodes.noAccountFound,
+                            ),
                         );
                         done();
                     });

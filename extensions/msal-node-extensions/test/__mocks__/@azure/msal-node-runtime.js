@@ -18,7 +18,7 @@ if (process.platform === "win32") {
             authParams,
             correlationId,
             accountHint,
-            callback
+            callback,
         ) => asyncHandle,
         SignInSilentlyAsync: (authParams, correlationId, callback) =>
             asyncHandle,
@@ -27,20 +27,20 @@ if (process.platform === "win32") {
             authParams,
             correlationId,
             accountHint,
-            callback
+            callback,
         ) => asyncHandle,
         AcquireTokenSilentlyAsync: (
             authParams,
             correlationId,
             account,
-            callback
+            callback,
         ) => asyncHandle,
         AcquireTokenInteractivelyAsync: (
             windowHandle,
             authParams,
             correlationId,
             account,
-            callback
+            callback,
         ) => asyncHandle,
         SignOutSilentlyAsync: (clientId, correlationId, account, callback) =>
             asyncHandle,

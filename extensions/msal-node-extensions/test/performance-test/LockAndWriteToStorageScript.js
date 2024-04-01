@@ -41,7 +41,7 @@ async function writeToCache(fileName, retryNumber, retryDelay) {
     };
     const persistence = await extensions.FilePersistence.create(
         fileName,
-        loggerOptions
+        loggerOptions,
     );
 
     const lockOptions = {
@@ -50,7 +50,7 @@ async function writeToCache(fileName, retryNumber, retryDelay) {
     };
     const plugin = new extensions.PersistenceCachePlugin(
         persistence,
-        lockOptions
+        lockOptions,
     );
     const context = new msalCommon.TokenCacheContext(serializableCache, true);
     try {
@@ -88,7 +88,7 @@ function sleep(ms) {
 writeToCache(
     process.argv[2],
     Number(process.argv[3]),
-    Number(process.argv[4])
+    Number(process.argv[4]),
 ).then(() => {
     process.exit(0);
 });

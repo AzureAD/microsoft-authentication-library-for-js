@@ -15,7 +15,7 @@ import { IPersistenceConfiguration } from "./IPersistenceConfiguration";
 
 export class PersistenceCreator {
     static async createPersistence(
-        config: IPersistenceConfiguration
+        config: IPersistenceConfiguration,
     ): Promise<IPersistence> {
         let peristence: IPersistence;
 
@@ -23,7 +23,7 @@ export class PersistenceCreator {
         if (Environment.isWindowsPlatform()) {
             if (!config.cachePath || !config.dataProtectionScope) {
                 throw PersistenceError.createPersistenceNotValidatedError(
-                    "Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection cache plugin"
+                    "Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection cache plugin",
                 );
             }
 
@@ -31,7 +31,7 @@ export class PersistenceCreator {
                 config.cachePath,
                 DataProtectionScope.CurrentUser,
                 undefined,
-                config.loggerOptions
+                config.loggerOptions,
             );
         }
 
@@ -43,7 +43,7 @@ export class PersistenceCreator {
                 !config.accountName
             ) {
                 throw PersistenceError.createPersistenceNotValidatedError(
-                    "Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin"
+                    "Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin",
                 );
             }
 
@@ -51,7 +51,7 @@ export class PersistenceCreator {
                 config.cachePath,
                 config.serviceName,
                 config.accountName,
-                config.loggerOptions
+                config.loggerOptions,
             );
         }
 
@@ -63,7 +63,7 @@ export class PersistenceCreator {
                 !config.accountName
             ) {
                 throw PersistenceError.createPersistenceNotValidatedError(
-                    "Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin"
+                    "Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin",
                 );
             }
 
@@ -71,11 +71,11 @@ export class PersistenceCreator {
                 config.cachePath,
                 config.serviceName,
                 config.accountName,
-                config.loggerOptions
+                config.loggerOptions,
             );
         } else {
             throw PersistenceError.createNotSupportedError(
-                "The current environment is not supported by msal-node-extensions yet."
+                "The current environment is not supported by msal-node-extensions yet.",
             );
         }
 
@@ -86,13 +86,13 @@ export class PersistenceCreator {
             ) {
                 if (!config.cachePath) {
                     throw PersistenceError.createPersistenceNotValidatedError(
-                        "Cache path not provided for the FilePersistence cache plugin"
+                        "Cache path not provided for the FilePersistence cache plugin",
                     );
                 }
 
                 peristence = await FilePersistence.create(
                     config.cachePath,
-                    config.loggerOptions
+                    config.loggerOptions,
                 );
 
                 const isFilePersistenceVerified =
@@ -102,7 +102,7 @@ export class PersistenceCreator {
                 }
 
                 throw PersistenceError.createPersistenceNotVerifiedError(
-                    "Persistence could not be verified"
+                    "Persistence could not be verified",
                 );
             } else {
                 throw e;

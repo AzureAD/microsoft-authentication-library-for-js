@@ -81,7 +81,7 @@ describe("Test PersistenceCachePlugin", () => {
         const cacheSpy = jest.spyOn(mockCache, "deserialize");
         const reloadNecessarySpy = jest.spyOn(
             mockPersistence,
-            "reloadNecessary"
+            "reloadNecessary",
         );
         const plugin = new PersistenceCachePlugin(mockPersistence);
         const context = new TokenCacheContext(mockCache, false);

@@ -25,7 +25,7 @@ if (process.platform === "win32") {
         test("exports a class", async () => {
             const file = await FilePersistenceWithDataProtection.create(
                 filePath,
-                dpapiScope
+                dpapiScope,
             );
             expect(file).toBeInstanceOf(FilePersistenceWithDataProtection);
         });
@@ -33,7 +33,7 @@ if (process.platform === "win32") {
         test("creates a cache file if doesnt exist", async () => {
             await FilePersistenceWithDataProtection.create(
                 filePath,
-                dpapiScope
+                dpapiScope,
             );
             expect(await FileSystemUtils.doesFileExist(filePath)).toBe(true);
         });
@@ -41,22 +41,22 @@ if (process.platform === "win32") {
         test("Returns correct file path", async () => {
             const file = await FilePersistenceWithDataProtection.create(
                 filePath,
-                dpapiScope
+                dpapiScope,
             );
             expect(file.getFilePath()).toEqual(filePath);
         });
 
         test("Saves and loads contents", async () => {
             jest.spyOn(Dpapi, "unprotectData").mockReturnValueOnce(
-                Buffer.from("data")
+                Buffer.from("data"),
             );
             jest.spyOn(Dpapi, "protectData").mockReturnValueOnce(
-                Buffer.from("encryptedData")
+                Buffer.from("encryptedData"),
             );
 
             const persistence = await FilePersistenceWithDataProtection.create(
                 filePath,
-                dpapiScope
+                dpapiScope,
             );
             const contents = "test";
 
@@ -69,7 +69,7 @@ if (process.platform === "win32") {
         test("deletes file", async () => {
             const file = await FilePersistenceWithDataProtection.create(
                 filePath,
-                dpapiScope
+                dpapiScope,
             );
             await file.delete();
             expect(await FileSystemUtils.doesFileExist(filePath)).toBe(false);
@@ -78,7 +78,7 @@ if (process.platform === "win32") {
         test("File modified, reload necessary", async () => {
             const file = await FilePersistenceWithDataProtection.create(
                 filePath,
-                dpapiScope
+                dpapiScope,
             );
             expect(await file.reloadNecessary(0)).toBe(true);
         });
@@ -86,7 +86,7 @@ if (process.platform === "win32") {
         test("File no modified, reload not necessary", async () => {
             const file = await FilePersistenceWithDataProtection.create(
                 filePath,
-                dpapiScope
+                dpapiScope,
             );
             setTimeout(async () => {
                 expect(await file.reloadNecessary(Date.now())).toBe(false);
@@ -108,7 +108,7 @@ if (process.platform === "win32") {
                         .catch((err: Error) => {
                             try {
                                 expect(err.message).toEqual(
-                                    "Dpapi is not supported on this platform"
+                                    "Dpapi is not supported on this platform",
                                 );
                                 done();
                             } catch (e) {
@@ -122,7 +122,7 @@ if (process.platform === "win32") {
         it("load throws", (done) => {
             jest.spyOn(
                 FilePersistence.prototype,
-                "loadBuffer"
+                "loadBuffer",
             ).mockResolvedValueOnce(Buffer.from("encryptedData"));
             FilePersistenceWithDataProtection.create(filePath, dpapiScope)
                 .then((persistence) => {
@@ -132,7 +132,7 @@ if (process.platform === "win32") {
                         .catch((err: Error) => {
                             try {
                                 expect(err.message).toEqual(
-                                    "Dpapi is not supported on this platform"
+                                    "Dpapi is not supported on this platform",
                                 );
                                 done();
                             } catch (e) {

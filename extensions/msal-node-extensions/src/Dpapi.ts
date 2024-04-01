@@ -9,12 +9,12 @@ export interface DpapiBindings {
     protectData(
         dataToEncrypt: Uint8Array,
         optionalEntropy: Uint8Array | null,
-        scope: string
+        scope: string,
     ): Uint8Array;
     unprotectData(
         encryptData: Uint8Array,
         optionalEntropy: Uint8Array | null,
-        scope: string
+        scope: string,
     ): Uint8Array;
 }
 

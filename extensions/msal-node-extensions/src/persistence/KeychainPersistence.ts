@@ -29,7 +29,7 @@ export class KeychainPersistence
     private constructor(
         filePersistence: FilePersistence,
         serviceName: string,
-        accountName: string
+        accountName: string,
     ) {
         super();
         this.filePersistence = filePersistence;
@@ -41,16 +41,16 @@ export class KeychainPersistence
         fileLocation: string,
         serviceName: string,
         accountName: string,
-        loggerOptions?: LoggerOptions
+        loggerOptions?: LoggerOptions,
     ): Promise<KeychainPersistence> {
         const filePersistence = await FilePersistence.create(
             fileLocation,
-            loggerOptions
+            loggerOptions,
         );
         const persistence = new KeychainPersistence(
             filePersistence,
             serviceName,
-            accountName
+            accountName,
         );
         return persistence;
     }
@@ -60,12 +60,12 @@ export class KeychainPersistence
             await keytar.setPassword(
                 this.serviceName,
                 this.accountName,
-                contents
+                contents,
             );
         } catch (err) {
             if (isNodeError(err)) {
                 throw PersistenceError.createKeychainPersistenceError(
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -81,7 +81,7 @@ export class KeychainPersistence
         } catch (err) {
             if (isNodeError(err)) {
                 throw PersistenceError.createKeychainPersistenceError(
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -94,12 +94,12 @@ export class KeychainPersistence
             await this.filePersistence.delete();
             return await keytar.deletePassword(
                 this.serviceName,
-                this.accountName
+                this.accountName,
             );
         } catch (err) {
             if (isNodeError(err)) {
                 throw PersistenceError.createKeychainPersistenceError(
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -121,12 +121,12 @@ export class KeychainPersistence
 
     public createForPersistenceValidation(): Promise<KeychainPersistence> {
         const testCacheFileLocation = `${dirname(
-            this.filePersistence.getFilePath()
+            this.filePersistence.getFilePath(),
         )}/test.cache`;
         return KeychainPersistence.create(
             testCacheFileLocation,
             "persistenceValidationServiceName",
-            "persistencValidationAccountName"
+            "persistencValidationAccountName",
         );
     }
 }

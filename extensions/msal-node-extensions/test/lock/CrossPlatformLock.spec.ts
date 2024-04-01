@@ -39,7 +39,7 @@ describe("Test cross platform lock", () => {
             await fs.access(lockFilePath);
         } catch (error) {
             expect((error as NodeJS.ErrnoException).code).toEqual(
-                Constants.ENOENT_ERROR.toString()
+                Constants.ENOENT_ERROR.toString(),
             );
             return;
         }
@@ -60,7 +60,7 @@ describe("Test cross platform lock", () => {
             await lock.lock();
         } catch (error) {
             expect((error as AuthError).errorCode).toEqual(
-                "CrossPlatformLockError"
+                "CrossPlatformLockError",
             );
             return;
         } finally {

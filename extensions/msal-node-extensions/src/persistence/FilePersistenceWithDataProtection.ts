@@ -30,7 +30,7 @@ export class FilePersistenceWithDataProtection
     private constructor(
         filePersistence: FilePersistence,
         scope: DataProtectionScope,
-        optionalEntropy?: string
+        optionalEntropy?: string,
     ) {
         super();
         this.scope = scope;
@@ -44,16 +44,16 @@ export class FilePersistenceWithDataProtection
         fileLocation: string,
         scope: DataProtectionScope,
         optionalEntropy?: string,
-        loggerOptions?: LoggerOptions
+        loggerOptions?: LoggerOptions,
     ): Promise<FilePersistenceWithDataProtection> {
         const filePersistence = await FilePersistence.create(
             fileLocation,
-            loggerOptions
+            loggerOptions,
         );
         const persistence = new FilePersistenceWithDataProtection(
             filePersistence,
             scope,
-            optionalEntropy
+            optionalEntropy,
         );
         return persistence;
     }
@@ -63,13 +63,13 @@ export class FilePersistenceWithDataProtection
             const encryptedContents = Dpapi.protectData(
                 Buffer.from(contents, "utf-8"),
                 this.optionalEntropy,
-                this.scope.toString()
+                this.scope.toString(),
             );
             await this.filePersistence.saveBuffer(encryptedContents);
         } catch (err) {
             if (isNodeError(err)) {
                 throw PersistenceError.createFilePersistenceWithDPAPIError(
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -88,19 +88,19 @@ export class FilePersistenceWithDataProtection
                 this.filePersistence
                     .getLogger()
                     .info(
-                        "Encrypted contents loaded from file were null or empty"
+                        "Encrypted contents loaded from file were null or empty",
                     );
                 return null;
             }
             return Dpapi.unprotectData(
                 encryptedContents,
                 this.optionalEntropy,
-                this.scope.toString()
+                this.scope.toString(),
             ).toString();
         } catch (err) {
             if (isNodeError(err)) {
                 throw PersistenceError.createFilePersistenceWithDPAPIError(
-                    err.message
+                    err.message,
                 );
             } else {
                 throw err;
@@ -126,11 +126,11 @@ export class FilePersistenceWithDataProtection
 
     public createForPersistenceValidation(): Promise<FilePersistenceWithDataProtection> {
         const testCacheFileLocation = `${dirname(
-            this.filePersistence.getFilePath()
+            this.filePersistence.getFilePath(),
         )}/test.cache`;
         return FilePersistenceWithDataProtection.create(
             testCacheFileLocation,
-            DataProtectionScope.CurrentUser
+            DataProtectionScope.CurrentUser,
         );
     }
 }

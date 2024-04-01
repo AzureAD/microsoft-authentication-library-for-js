@@ -34,7 +34,7 @@ export class PersistenceCachePlugin implements ICachePlugin {
 
     constructor(
         persistence: IPersistence,
-        lockOptions?: CrossPlatformLockOptions
+        lockOptions?: CrossPlatformLockOptions,
     ) {
         this.persistence = persistence;
 
@@ -46,7 +46,7 @@ export class PersistenceCachePlugin implements ICachePlugin {
         this.crossPlatformLock = new CrossPlatformLock(
             this.lockFilePath,
             this.logger,
-            lockOptions
+            lockOptions,
         );
 
         // initialize default values
@@ -63,11 +63,11 @@ export class PersistenceCachePlugin implements ICachePlugin {
      * beforeCacheAccess() and afterCacheAccess().
      */
     public async beforeCacheAccess(
-        cacheContext: TokenCacheContext
+        cacheContext: TokenCacheContext,
     ): Promise<void> {
         this.logger.info("Executing before cache access");
         const reloadNecessary = await this.persistence.reloadNecessary(
-            this.lastSync
+            this.lastSync,
         );
         if (!reloadNecessary && this.currentCache !== null) {
             if (cacheContext.cacheHasChanged) {
@@ -78,7 +78,7 @@ export class PersistenceCachePlugin implements ICachePlugin {
         }
         try {
             this.logger.info(
-                `Reload necessary. Last sync time: ${this.lastSync}`
+                `Reload necessary. Last sync time: ${this.lastSync}`,
             );
             await this.crossPlatformLock.lock();
 
@@ -97,7 +97,7 @@ export class PersistenceCachePlugin implements ICachePlugin {
                 this.logger.info(`Pid ${pid} released lock`);
             } else {
                 this.logger.info(
-                    `Pid ${pid} beforeCacheAccess did not release lock`
+                    `Pid ${pid} beforeCacheAccess did not release lock`,
                 );
             }
         }
@@ -107,19 +107,19 @@ export class PersistenceCachePlugin implements ICachePlugin {
      * Writes to storage if MSAL in memory copy of cache has been changed.
      */
     public async afterCacheAccess(
-        cacheContext: TokenCacheContext
+        cacheContext: TokenCacheContext,
     ): Promise<void> {
         this.logger.info("Executing after cache access");
         try {
             if (cacheContext.cacheHasChanged) {
                 this.logger.info(
-                    "Msal in-memory cache has changed. Writing changes to persistence"
+                    "Msal in-memory cache has changed. Writing changes to persistence",
                 );
                 this.currentCache = cacheContext.tokenCache.serialize();
                 await this.persistence.save(this.currentCache);
             } else {
                 this.logger.info(
-                    "Msal in-memory cache has not changed. Did not write to persistence"
+                    "Msal in-memory cache has not changed. Did not write to persistence",
                 );
             }
         } finally {

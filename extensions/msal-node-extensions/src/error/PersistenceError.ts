@@ -29,7 +29,7 @@ export class PersistenceError extends Error {
      */
     static createFileSystemError(
         errorCode: string,
-        errorMessage: string
+        errorMessage: string,
     ): PersistenceError {
         return new PersistenceError(errorCode, errorMessage);
     }
@@ -46,7 +46,7 @@ export class PersistenceError extends Error {
      * Error thrown when trying to write, load, or delete data from keychain on macOs.
      */
     static createKeychainPersistenceError(
-        errorMessage: string
+        errorMessage: string,
     ): PersistenceError {
         return new PersistenceError("KeychainError", errorMessage);
     }
@@ -55,7 +55,7 @@ export class PersistenceError extends Error {
      * Error thrown when trying to encrypt or decrypt data using DPAPI on Windows.
      */
     static createFilePersistenceWithDPAPIError(
-        errorMessage: string
+        errorMessage: string,
     ): PersistenceError {
         return new PersistenceError("DPAPIEncryptedFileError", errorMessage);
     }
@@ -64,7 +64,7 @@ export class PersistenceError extends Error {
      * Error thrown when using the cross platform lock.
      */
     static createCrossPlatformLockError(
-        errorMessage: string
+        errorMessage: string,
     ): PersistenceError {
         return new PersistenceError("CrossPlatformLockError", errorMessage);
     }
@@ -96,11 +96,11 @@ export class PersistenceError extends Error {
      * @returns PersistenceError
      */
     static createPersistenceNotVerifiedError(
-        errorMessage: string
+        errorMessage: string,
     ): PersistenceError {
         return new PersistenceError(
             "PersistenceNotVerifiedError",
-            errorMessage
+            errorMessage,
         );
     }
 
@@ -111,11 +111,11 @@ export class PersistenceError extends Error {
      * @returns PersistenceError
      */
     static createPersistenceNotValidatedError(
-        errorMessage: string
+        errorMessage: string,
     ): PersistenceError {
         return new PersistenceError(
             "PersistenceNotValidatedError",
-            errorMessage
+            errorMessage,
         );
     }
 }

@@ -30,7 +30,7 @@ export class LibSecretPersistence
     private constructor(
         filePersistence: FilePersistence,
         serviceName: string,
-        accountName: string
+        accountName: string,
     ) {
         super();
         this.filePersistence = filePersistence;
@@ -42,16 +42,16 @@ export class LibSecretPersistence
         fileLocation: string,
         serviceName: string,
         accountName: string,
-        loggerOptions?: LoggerOptions
+        loggerOptions?: LoggerOptions,
     ): Promise<LibSecretPersistence> {
         const filePersistence = await FilePersistence.create(
             fileLocation,
-            loggerOptions
+            loggerOptions,
         );
         const persistence = new LibSecretPersistence(
             filePersistence,
             serviceName,
-            accountName
+            accountName,
         );
         return persistence;
     }
@@ -61,7 +61,7 @@ export class LibSecretPersistence
             await keytar.setPassword(
                 this.serviceName,
                 this.accountName,
-                contents
+                contents,
             );
         } catch (err) {
             if (isNodeError(err)) {
@@ -91,7 +91,7 @@ export class LibSecretPersistence
             await this.filePersistence.delete();
             return await keytar.deletePassword(
                 this.serviceName,
-                this.accountName
+                this.accountName,
             );
         } catch (err) {
             if (isNodeError(err)) {
@@ -116,12 +116,12 @@ export class LibSecretPersistence
 
     public createForPersistenceValidation(): Promise<LibSecretPersistence> {
         const testCacheFileLocation = `${dirname(
-            this.filePersistence.getFilePath()
+            this.filePersistence.getFilePath(),
         )}/test.cache`;
         return LibSecretPersistence.create(
             testCacheFileLocation,
             "persistenceValidationServiceName",
-            "persistencValidationAccountName"
+            "persistencValidationAccountName",
         );
     }
 }

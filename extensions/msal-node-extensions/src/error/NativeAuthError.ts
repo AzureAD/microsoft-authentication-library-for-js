@@ -13,7 +13,7 @@ export class NativeAuthError extends AuthError {
         errorStatus: string,
         errorContext: string,
         errorCode: number,
-        errorTag: number
+        errorTag: number,
     ) {
         super(errorStatus, errorContext);
         this.name = "NativeAuthError";

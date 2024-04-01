@@ -68,7 +68,7 @@ export const TEST_ID_TOKEN_CLAIMS = {
 export const TEST_ACCESS_TOKEN = "this.is.an.accesstoken";
 
 export const getTestAuthenticationResult = (
-    correlationId: string
+    correlationId: string,
 ): AuthenticationResult => {
     return {
         authority: "https://login.microsoftonline.com/common",

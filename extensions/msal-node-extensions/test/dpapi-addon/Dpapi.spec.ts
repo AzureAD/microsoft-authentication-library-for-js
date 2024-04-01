@@ -16,12 +16,12 @@ if (platform === "win32") {
             const encryptedData = Dpapi.protectData(
                 data,
                 null,
-                DataProtectionScope.CurrentUser
+                DataProtectionScope.CurrentUser,
             );
             const decryptedData = Dpapi.unprotectData(
                 encryptedData,
                 null,
-                DataProtectionScope.CurrentUser
+                DataProtectionScope.CurrentUser,
             );
             expect(decryptedData).toEqual(data);
         });
@@ -33,12 +33,12 @@ if (platform === "win32") {
             const encryptedData = Dpapi.protectData(
                 data,
                 entropy,
-                DataProtectionScope.CurrentUser
+                DataProtectionScope.CurrentUser,
             );
             const decryptedData = Dpapi.unprotectData(
                 encryptedData,
                 entropy,
-                DataProtectionScope.CurrentUser
+                DataProtectionScope.CurrentUser,
             );
             expect(decryptedData).toEqual(data);
         });
@@ -49,12 +49,12 @@ if (platform === "win32") {
             const encryptedData = Dpapi.protectData(
                 data,
                 null,
-                DataProtectionScope.LocalMachine
+                DataProtectionScope.LocalMachine,
             );
             const decryptedData = Dpapi.unprotectData(
                 encryptedData,
                 null,
-                DataProtectionScope.LocalMachine
+                DataProtectionScope.LocalMachine,
             );
             expect(decryptedData).toEqual(data);
         });

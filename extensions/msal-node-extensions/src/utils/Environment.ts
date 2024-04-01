@@ -64,14 +64,14 @@ export class Environment {
 
     static getUserHomeDirOnWindows(): string {
         return this.getEnvironmentVariable(
-            Constants.ENVIRONMENT.LOCAL_APPLICATION_DATA
+            Constants.ENVIRONMENT.LOCAL_APPLICATION_DATA,
         );
     }
 
     static getUserHomeDirOnUnix(): string | null {
         if (this.isWindowsPlatform()) {
             throw PersistenceError.createNotSupportedError(
-                "Getting the user home directory for unix is not supported in windows"
+                "Getting the user home directory for unix is not supported in windows",
             );
         }
 
@@ -100,7 +100,7 @@ export class Environment {
             }
         } else {
             throw PersistenceError.createNotSupportedError(
-                "Getting the user home directory for unix is not supported in windows"
+                "Getting the user home directory for unix is not supported in windows",
             );
         }
     }

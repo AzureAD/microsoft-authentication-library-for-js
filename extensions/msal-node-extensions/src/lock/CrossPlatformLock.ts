@@ -25,7 +25,7 @@ export class CrossPlatformLock {
     constructor(
         lockFilePath: string,
         logger: Logger,
-        lockOptions?: CrossPlatformLockOptions
+        lockOptions?: CrossPlatformLockOptions,
     ) {
         this.lockFilePath = lockFilePath;
         this.retryNumber = lockOptions ? lockOptions.retryNumber : 500;
@@ -57,10 +57,10 @@ export class CrossPlatformLock {
                         await this.sleep(this.retryDelay);
                     } else {
                         this.logger.error(
-                            `${pid} was not able to acquire lock. Ran into error: ${err.message}`
+                            `${pid} was not able to acquire lock. Ran into error: ${err.message}`,
                         );
                         throw PersistenceError.createCrossPlatformLockError(
-                            err.message
+                            err.message,
                         );
                     }
                 } else {
@@ -69,10 +69,10 @@ export class CrossPlatformLock {
             }
         }
         this.logger.error(
-            `${pid} was not able to acquire lock. Exceeded amount of retries set in the options`
+            `${pid} was not able to acquire lock. Exceeded amount of retries set in the options`,
         );
         throw PersistenceError.createCrossPlatformLockError(
-            "Not able to acquire lock. Exceeded amount of retries set in options"
+            "Not able to acquire lock. Exceeded amount of retries set in options",
         );
     }
 
@@ -88,21 +88,21 @@ export class CrossPlatformLock {
                 this.logger.info("lockfile deleted");
             } else {
                 this.logger.warning(
-                    "lockfile handle does not exist, so lockfile could not be deleted"
+                    "lockfile handle does not exist, so lockfile could not be deleted",
                 );
             }
         } catch (err) {
             if (isNodeError(err)) {
                 if (err.code === Constants.ENOENT_ERROR) {
                     this.logger.info(
-                        "Tried to unlock but lockfile does not exist"
+                        "Tried to unlock but lockfile does not exist",
                     );
                 } else {
                     this.logger.error(
-                        `${pid} was not able to release lock. Ran into error: ${err.message}`
+                        `${pid} was not able to release lock. Ran into error: ${err.message}`,
                     );
                     throw PersistenceError.createCrossPlatformLockError(
-                        err.message
+                        err.message,
                     );
                 }
             } else {

@@ -58,7 +58,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         const logCallback = (
             message: string,
             logLevel: MsalRuntimeLogLevel,
-            containsPii: boolean
+            containsPii: boolean,
         ) => {
             switch (logLevel) {
                 case MsalRuntimeLogLevel.Trace:
@@ -115,7 +115,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         try {
             msalNodeRuntime.RegisterLogger(
                 logCallback,
-                loggerOptions.piiLoggingEnabled || false
+                loggerOptions.piiLoggingEnabled || false,
             );
         } catch (e) {
             const wrappedError = this.wrapError(e);
@@ -127,26 +127,26 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
     async getAccountById(
         accountId: string,
-        correlationId: string
+        correlationId: string,
     ): Promise<AccountInfo> {
         this.logger.trace(
             "NativeBrokerPlugin - getAccountById called",
-            correlationId
+            correlationId,
         );
         const readAccountResult = await this.readAccountById(
             accountId,
-            correlationId
+            correlationId,
         );
         return this.generateAccountInfo(readAccountResult.account);
     }
 
     async getAllAccounts(
         clientId: string,
-        correlationId: string
+        correlationId: string,
     ): Promise<AccountInfo[]> {
         this.logger.trace(
             "NativeBrokerPlugin - getAllAccounts called",
-            correlationId
+            correlationId,
         );
         return new Promise((resolve, reject) => {
             const resultCallback = (result: DiscoverAccountsResult) => {
@@ -171,7 +171,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 msalNodeRuntime.DiscoverAccountsAsync(
                     clientId,
                     correlationId,
-                    resultCallback
+                    resultCallback,
                 );
             } catch (e) {
                 const wrappedError = this.wrapError(e);
@@ -183,11 +183,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     }
 
     async acquireTokenSilent(
-        request: NativeRequest
+        request: NativeRequest,
     ): Promise<AuthenticationResult> {
         this.logger.trace(
             "NativeBrokerPlugin - acquireTokenSilent called",
-            request.correlationId
+            request.correlationId,
         );
         const authParams = this.generateRequestParameters(request);
         const account = await this.getAccount(request);
@@ -206,7 +206,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     }
                     const authenticationResult = this.getAuthenticationResult(
                         request,
-                        result
+                        result,
                     );
                     resolve(authenticationResult);
                 };
@@ -217,13 +217,13 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                             authParams,
                             request.correlationId,
                             account,
-                            resultCallback
+                            resultCallback,
                         );
                     } else {
                         msalNodeRuntime.SignInSilentlyAsync(
                             authParams,
                             request.correlationId,
-                            resultCallback
+                            resultCallback,
                         );
                     }
                 } catch (e) {
@@ -232,17 +232,17 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                         reject(wrappedError);
                     }
                 }
-            }
+            },
         );
     }
 
     async acquireTokenInteractive(
         request: NativeRequest,
-        providedWindowHandle?: Buffer
+        providedWindowHandle?: Buffer,
     ): Promise<AuthenticationResult> {
         this.logger.trace(
             "NativeBrokerPlugin - acquireTokenInteractive called",
-            request.correlationId
+            request.correlationId,
         );
         const authParams = this.generateRequestParameters(request);
         const account = await this.getAccount(request);
@@ -262,7 +262,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     }
                     const authenticationResult = this.getAuthenticationResult(
                         request,
-                        result
+                        result,
                     );
                     resolve(authenticationResult);
                 };
@@ -274,7 +274,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                         case PromptValue.CREATE:
                             this.logger.info(
                                 "Calling native interop SignInInteractively API",
-                                request.correlationId
+                                request.correlationId,
                             );
                             const loginHint =
                                 request.loginHint || Constants.EMPTY_STRING;
@@ -283,30 +283,30 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                 authParams,
                                 request.correlationId,
                                 loginHint,
-                                resultCallback
+                                resultCallback,
                             );
                             break;
                         case PromptValue.NONE:
                             if (account) {
                                 this.logger.info(
                                     "Calling native interop AcquireTokenSilently API",
-                                    request.correlationId
+                                    request.correlationId,
                                 );
                                 msalNodeRuntime.AcquireTokenSilentlyAsync(
                                     authParams,
                                     request.correlationId,
                                     account,
-                                    resultCallback
+                                    resultCallback,
                                 );
                             } else {
                                 this.logger.info(
                                     "Calling native interop SignInSilently API",
-                                    request.correlationId
+                                    request.correlationId,
                                 );
                                 msalNodeRuntime.SignInSilentlyAsync(
                                     authParams,
                                     request.correlationId,
-                                    resultCallback
+                                    resultCallback,
                                 );
                             }
                             break;
@@ -314,19 +314,19 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                             if (account) {
                                 this.logger.info(
                                     "Calling native interop AcquireTokenInteractively API",
-                                    request.correlationId
+                                    request.correlationId,
                                 );
                                 msalNodeRuntime.AcquireTokenInteractivelyAsync(
                                     windowHandle,
                                     authParams,
                                     request.correlationId,
                                     account,
-                                    resultCallback
+                                    resultCallback,
                                 );
                             } else {
                                 this.logger.info(
                                     "Calling native interop SignIn API",
-                                    request.correlationId
+                                    request.correlationId,
                                 );
                                 const loginHint =
                                     request.loginHint || Constants.EMPTY_STRING;
@@ -335,7 +335,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                     authParams,
                                     request.correlationId,
                                     loginHint,
-                                    resultCallback
+                                    resultCallback,
                                 );
                             }
                             break;
@@ -346,14 +346,14 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                         reject(wrappedError);
                     }
                 }
-            }
+            },
         );
     }
 
     async signOut(request: NativeSignOutRequest): Promise<void> {
         this.logger.trace(
             "NativeBrokerPlugin - signOut called",
-            request.correlationId
+            request.correlationId,
         );
 
         const account = await this.getAccount(request);
@@ -380,7 +380,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     request.clientId,
                     request.correlationId,
                     account,
-                    resultCallback
+                    resultCallback,
                 );
             } catch (e) {
                 const wrappedError = this.wrapError(e);
@@ -392,12 +392,12 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     }
 
     private async getAccount(
-        request: NativeRequest | NativeSignOutRequest
+        request: NativeRequest | NativeSignOutRequest,
     ): Promise<Account | null> {
         if (request.accountId) {
             const readAccountResult = await this.readAccountById(
                 request.accountId,
-                request.correlationId
+                request.correlationId,
             );
             return readAccountResult.account;
         }
@@ -406,11 +406,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
     private async readAccountById(
         accountId: string,
-        correlationId: string
+        correlationId: string,
     ): Promise<ReadAccountResult> {
         this.logger.trace(
             "NativeBrokerPlugin - readAccountById called",
-            correlationId
+            correlationId,
         );
 
         return new Promise((resolve, reject) => {
@@ -431,7 +431,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 msalNodeRuntime.ReadAccountByIdAsync(
                     accountId,
                     correlationId,
-                    resultCallback
+                    resultCallback,
                 );
             } catch (e) {
                 const wrappedError = this.wrapError(e);
@@ -445,14 +445,14 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     private generateRequestParameters(request: NativeRequest): AuthParameters {
         this.logger.trace(
             "NativeBrokerPlugin - generateRequestParameters called",
-            request.correlationId
+            request.correlationId,
         );
         const authParams = new msalNodeRuntime.AuthParameters();
 
         try {
             authParams.CreateAuthParameters(
                 request.clientId,
-                request.authority
+                request.authority,
             );
             authParams.SetRedirectUri(request.redirectUri);
             authParams.SetRequestedScopes(request.scopes.join(" "));
@@ -468,7 +468,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     !request.shrNonce
                 ) {
                     throw new Error(
-                        "Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri, shrNonce"
+                        "Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri, shrNonce",
                     );
                 }
                 const resourceUrl = new URL(request.resourceRequestUri);
@@ -476,7 +476,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     request.resourceRequestMethod,
                     resourceUrl.host,
                     resourceUrl.pathname,
-                    request.shrNonce
+                    request.shrNonce,
                 );
             }
 
@@ -484,7 +484,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 Object.entries(request.extraParameters).forEach(
                     ([key, value]) => {
                         authParams.SetAdditionalParameter(key, value);
-                    }
+                    },
                 );
             }
         } catch (e) {
@@ -499,11 +499,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
     private getAuthenticationResult(
         request: NativeRequest,
-        authResult: AuthResult
+        authResult: AuthResult,
     ): AuthenticationResult {
         this.logger.trace(
             "NativeBrokerPlugin - getAuthenticationResult called",
-            request.correlationId
+            request.correlationId,
         );
 
         let fromCache: boolean = false;
@@ -513,7 +513,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         } catch (e) {
             this.logger.error(
                 "NativeBrokerPlugin: getAuthenticationResult - Error parsing telemetry data. Could not determine if response came from cache.",
-                request.correlationId
+                request.correlationId,
             );
         }
 
@@ -526,7 +526,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
         const accountInfo = this.generateAccountInfo(
             authResult.account,
-            idTokenClaims
+            idTokenClaims,
         );
 
         const result: AuthenticationResult = {
@@ -551,7 +551,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
     private generateAccountInfo(
         account: Account,
-        idTokenClaims?: IdTokenClaims
+        idTokenClaims?: IdTokenClaims,
     ): AccountInfo {
         this.logger.trace("NativeBrokerPlugin - generateAccountInfo called");
 
@@ -590,39 +590,39 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 case ErrorStatus.AccountUnusable:
                     return new InteractionRequiredAuthError(
                         ErrorCodes.INTERATION_REQUIRED_ERROR_CODE,
-                        errorContext
+                        errorContext,
                     );
                 case ErrorStatus.NoNetwork:
                 case ErrorStatus.NetworkTemporarilyUnavailable:
                     return createClientAuthError(
-                        ClientAuthErrorCodes.noNetworkConnectivity
+                        ClientAuthErrorCodes.noNetworkConnectivity,
                     );
                 case ErrorStatus.ServerTemporarilyUnavailable:
                     return new ServerError(
                         ErrorCodes.SERVER_UNAVAILABLE,
-                        errorContext
+                        errorContext,
                     );
                 case ErrorStatus.UserCanceled:
                     return createClientAuthError(
-                        ClientAuthErrorCodes.userCanceled
+                        ClientAuthErrorCodes.userCanceled,
                     );
                 case ErrorStatus.AuthorityUntrusted:
                     return createClientConfigurationError(
-                        ClientConfigurationErrorCodes.untrustedAuthority
+                        ClientConfigurationErrorCodes.untrustedAuthority,
                     );
                 case ErrorStatus.UserSwitched:
                     // Not an error case, if there's customer demand we can surface this as a response property
                     return null;
                 case ErrorStatus.AccountNotFound:
                     return createClientAuthError(
-                        ClientAuthErrorCodes.noAccountFound
+                        ClientAuthErrorCodes.noAccountFound,
                     );
                 default:
                     return new NativeAuthError(
                         ErrorStatus[errorStatus],
                         errorContext,
                         errorCode,
-                        errorTag
+                        errorTag,
                     );
             }
         }

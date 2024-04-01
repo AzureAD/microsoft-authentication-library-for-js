@@ -22,7 +22,7 @@ describe("Test KeyChainPersistence", () => {
         const persistence = await KeychainPersistence.create(
             filePath,
             serviceName,
-            accountName
+            accountName,
         );
         expect(persistence).toBeInstanceOf(KeychainPersistence);
     });
@@ -36,7 +36,7 @@ describe("Test KeyChainPersistence", () => {
         const persistence = await KeychainPersistence.create(
             filePath,
             serviceName,
-            accountName
+            accountName,
         );
         expect(persistence.getFilePath()).toEqual(filePath);
     });
@@ -45,7 +45,7 @@ describe("Test KeyChainPersistence", () => {
         const persistence = await KeychainPersistence.create(
             filePath,
             serviceName,
-            accountName
+            accountName,
         );
         const contents = "test";
         await persistence.load();
@@ -55,7 +55,7 @@ describe("Test KeyChainPersistence", () => {
         expect(setPassword).toHaveBeenCalledWith(
             serviceName,
             accountName,
-            contents
+            contents,
         );
         expect(getPassword).toHaveBeenCalledTimes(1);
     });
@@ -64,7 +64,7 @@ describe("Test KeyChainPersistence", () => {
         const persistence = await KeychainPersistence.create(
             filePath,
             serviceName,
-            accountName
+            accountName,
         );
         await persistence.delete();
 
@@ -76,7 +76,7 @@ describe("Test KeyChainPersistence", () => {
         const persistence = await KeychainPersistence.create(
             filePath,
             serviceName,
-            accountName
+            accountName,
         );
         expect(await persistence.reloadNecessary(0)).toBe(true);
     });
@@ -85,7 +85,7 @@ describe("Test KeyChainPersistence", () => {
         const persistence = await KeychainPersistence.create(
             filePath,
             serviceName,
-            accountName
+            accountName,
         );
         setTimeout(async () => {
             expect(await persistence.reloadNecessary(Date.now())).toBe(false);
