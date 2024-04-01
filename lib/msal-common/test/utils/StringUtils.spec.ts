@@ -54,7 +54,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
             param3: "value3",
         };
         expect(StringUtils.queryStringToObject(serializedObj)).toEqual(
-            deserializedObj
+            deserializedObj,
         );
     });
 
@@ -71,7 +71,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
             param1: "test%25u00f1",
         };
         expect(StringUtils.queryStringToObject(serializedObj)).toEqual(
-            deserializedObj
+            deserializedObj,
         );
     });
 
@@ -96,7 +96,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         it("no wildcard", () => {
             const matches = StringUtils.matchPattern(
                 "https://myapplication.com/user/1",
-                "https://myapplication.com/user/1"
+                "https://myapplication.com/user/1",
             );
 
             expect(matches).toBe(true);
@@ -105,7 +105,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         it("single wildcard", () => {
             const matches = StringUtils.matchPattern(
                 "https://myapplication.com/user/*",
-                "https://myapplication.com/user/1"
+                "https://myapplication.com/user/1",
             );
 
             expect(matches).toBe(true);
@@ -114,7 +114,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         it("multiple wildcards", () => {
             const matches = StringUtils.matchPattern(
                 "https://*.myapplication.com/user/*",
-                "https://test.myapplication.com/user/1"
+                "https://test.myapplication.com/user/1",
             );
 
             expect(matches).toBe(true);

@@ -37,7 +37,7 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addScopes(TEST_CONFIG.DEFAULT_SCOPES);
         requestParameterBuilder.addClientId(TEST_CONFIG.MSAL_CLIENT_ID);
         requestParameterBuilder.addRedirectUri(
-            TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
+            TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
         );
         requestParameterBuilder.addDomainHint(TEST_CONFIG.DOMAIN_HINT);
         requestParameterBuilder.addLoginHint(TEST_CONFIG.LOGIN_HINT);
@@ -48,10 +48,10 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addNonce(TEST_CONFIG.NONCE);
         requestParameterBuilder.addCodeChallengeParams(
             TEST_CONFIG.TEST_CHALLENGE,
-            TEST_CONFIG.CODE_CHALLENGE_METHOD
+            TEST_CONFIG.CODE_CHALLENGE_METHOD,
         );
         requestParameterBuilder.addAuthorizationCode(
-            TEST_TOKENS.AUTHORIZATION_CODE
+            TEST_TOKENS.AUTHORIZATION_CODE,
         );
         requestParameterBuilder.addDeviceCode(DEVICE_CODE_RESPONSE.deviceCode);
         requestParameterBuilder.addCodeVerifier(TEST_CONFIG.TEST_VERIFIER);
@@ -62,128 +62,128 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`
-            )
+                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(
-                    ResponseMode.FORM_POST
-                )}`
-            )
+                    ResponseMode.FORM_POST,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-            )
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-            )
+                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                    TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
-                )}`
-            )
+                    TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.DOMAIN_HINT}=${encodeURIComponent(
-                    TEST_CONFIG.DOMAIN_HINT
-                )}`
-            )
+                    TEST_CONFIG.DOMAIN_HINT,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                    TEST_CONFIG.LOGIN_HINT
-                )}`
-            )
+                    TEST_CONFIG.LOGIN_HINT,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                    TEST_CONFIG.CLAIMS
-                )}`
-            )
+                    TEST_CONFIG.CLAIMS,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(
-                    TEST_CONFIG.CORRELATION_ID
-                )}`
-            )
+                    TEST_CONFIG.CORRELATION_ID,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.PROMPT}=${PromptValue.SELECT_ACCOUNT}`
-            )
+                `${AADServerParamKeys.PROMPT}=${PromptValue.SELECT_ACCOUNT}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.STATE}=${encodeURIComponent(
-                    TEST_CONFIG.STATE
-                )}`
-            )
+                    TEST_CONFIG.STATE,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.NONCE}=${encodeURIComponent(
-                    TEST_CONFIG.NONCE
-                )}`
-            )
+                    TEST_CONFIG.NONCE,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(
-                    TEST_CONFIG.TEST_CHALLENGE
-                )}`
-            )
+                    TEST_CONFIG.TEST_CHALLENGE,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${
                     AADServerParamKeys.CODE_CHALLENGE_METHOD
-                }=${encodeURIComponent(TEST_CONFIG.CODE_CHALLENGE_METHOD)}`
-            )
+                }=${encodeURIComponent(TEST_CONFIG.CODE_CHALLENGE_METHOD)}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.CODE}=${encodeURIComponent(
-                    TEST_TOKENS.AUTHORIZATION_CODE
-                )}`
-            )
+                    TEST_TOKENS.AUTHORIZATION_CODE,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(
-                    DEVICE_CODE_RESPONSE.deviceCode
-                )}`
-            )
+                    DEVICE_CODE_RESPONSE.deviceCode,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(
-                    TEST_CONFIG.TEST_VERIFIER
-                )}`
-            )
+                    TEST_CONFIG.TEST_VERIFIER,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.SID}=${encodeURIComponent(
-                    TEST_CONFIG.SID
-                )}`
-            )
+                    TEST_CONFIG.SID,
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.LOGOUT_HINT}=${encodeURIComponent(
-                    TEST_CONFIG.LOGIN_HINT
-                )}`
-            )
+                    TEST_CONFIG.LOGIN_HINT,
+                )}`,
+            ),
         ).toBe(true);
     });
 
@@ -193,15 +193,15 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`
-            )
+                `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(
-                    TEST_POP_VALUES.ENCODED_REQ_CNF
-                )}`
-            )
+                    TEST_POP_VALUES.ENCODED_REQ_CNF,
+                )}`,
+            ),
         ).toBe(true);
     });
 
@@ -225,13 +225,13 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`
-            )
+                `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.REQ_CNF}=${TEST_SSH_VALUES.ENCODED_SSH_JWK}`
-            )
+                `${AADServerParamKeys.REQ_CNF}=${TEST_SSH_VALUES.ENCODED_SSH_JWK}`,
+            ),
         ).toBe(true);
     });
 
@@ -255,8 +255,8 @@ describe("RequestParameterBuilder unit tests", () => {
         let requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=testScope%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-            )
+                `${AADServerParamKeys.SCOPE}=testScope%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+            ),
         ).toBe(true);
 
         requestParameterBuilder = new RequestParameterBuilder();
@@ -264,8 +264,8 @@ describe("RequestParameterBuilder unit tests", () => {
         requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-            )
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+            ),
         ).toBe(true);
 
         requestParameterBuilder = new RequestParameterBuilder();
@@ -274,8 +274,8 @@ describe("RequestParameterBuilder unit tests", () => {
         requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-            )
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+            ),
         ).toBe(true);
 
         requestParameterBuilder = new RequestParameterBuilder();
@@ -284,8 +284,8 @@ describe("RequestParameterBuilder unit tests", () => {
         requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-            )
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+            ),
         ).toBe(true);
     });
 
@@ -294,7 +294,9 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addScopes(["testScope"], false);
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
-            requestQueryString.includes(`${AADServerParamKeys.SCOPE}=testScope`)
+            requestQueryString.includes(
+                `${AADServerParamKeys.SCOPE}=testScope`,
+            ),
         ).toBe(true);
     });
 
@@ -304,11 +306,11 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`
-            )
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`,
+            ),
         ).toBe(true);
         expect(
-            requestQueryString.includes(`${Constants.OFFLINE_ACCESS_SCOPE}`)
+            requestQueryString.includes(`${Constants.OFFLINE_ACCESS_SCOPE}`),
         ).toBe(false);
     });
 
@@ -318,8 +320,8 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}`
-            )
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}`,
+            ),
         ).toBe(true);
     });
 
@@ -328,12 +330,12 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(() =>
             requestParameterBuilder.addCodeChallengeParams(
                 TEST_CONFIG.TEST_CHALLENGE,
-                ""
-            )
+                "",
+            ),
         ).toThrowError(
             createClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
-            )
+                ClientConfigurationErrorCodes.pkceParamsMissing,
+            ),
         );
     });
 
@@ -342,12 +344,12 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(() =>
             requestParameterBuilder.addCodeChallengeParams(
                 "",
-                AADServerParamKeys.CODE_CHALLENGE_METHOD
-            )
+                AADServerParamKeys.CODE_CHALLENGE_METHOD,
+            ),
         ).toThrowError(
             createClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
-            )
+                ClientConfigurationErrorCodes.pkceParamsMissing,
+            ),
         );
     });
 
@@ -357,8 +359,8 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`
-            )
+                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`,
+            ),
         ).toBe(true);
     });
 
@@ -367,14 +369,14 @@ describe("RequestParameterBuilder unit tests", () => {
         sinon
             .stub(
                 RequestParameterBuilder.prototype,
-                "addClientCapabilitiesToClaims"
+                "addClientCapabilitiesToClaims",
             )
             .returns(claims);
         const requestParameterBuilder = new RequestParameterBuilder();
         expect(() =>
-            requestParameterBuilder.addClaims(claims, [])
+            requestParameterBuilder.addClaims(claims, []),
         ).toThrowError(
-            ClientConfigurationErrorMessage.invalidClaimsRequest.desc
+            ClientConfigurationErrorMessage.invalidClaimsRequest.desc,
         );
         sinon.restore();
     });
@@ -388,22 +390,22 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addClientAssertion(clientAssertion.assertion);
         requestParameterBuilder.addClientAssertionType(
-            clientAssertion.assertionType
+            clientAssertion.assertionType,
         );
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent(
-                    "testAssertion"
-                )}`
-            )
+                    "testAssertion",
+                )}`,
+            ),
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${
                     AADServerParamKeys.CLIENT_ASSERTION_TYPE
-                }=${encodeURIComponent("jwt-bearer")}`
-            )
+                }=${encodeURIComponent("jwt-bearer")}`,
+            ),
         ).toBe(true);
     });
 
@@ -416,16 +418,16 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addClientAssertion(clientAssertion.assertion);
         requestParameterBuilder.addClientAssertionType(
-            clientAssertion.assertionType
+            clientAssertion.assertionType,
         );
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(
-            requestQueryString.includes(AADServerParamKeys.CLIENT_ASSERTION)
+            requestQueryString.includes(AADServerParamKeys.CLIENT_ASSERTION),
         ).toBe(false);
         expect(
             requestQueryString.includes(
-                AADServerParamKeys.CLIENT_ASSERTION_TYPE
-            )
+                AADServerParamKeys.CLIENT_ASSERTION_TYPE,
+            ),
         ).toBe(false);
     });
 
@@ -441,9 +443,9 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(
                 requestQueryString.includes(
                     `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
-                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
-                    )}`
-                )
+                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+                    )}`,
+                ),
             ).toBeTruthy();
         });
 
@@ -456,9 +458,9 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(
                 requestQueryString.includes(
                     `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
-                        `UPN:${testUpn}`
-                    )}`
-                )
+                        `UPN:${testUpn}`,
+                    )}`,
+                ),
             ).toBeTruthy();
         });
     });
@@ -470,8 +472,8 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(
                 requestParameterBuilder.addClientCapabilitiesToClaims(
                     testClaims,
-                    []
-                )
+                    [],
+                ),
             ).toBe(testClaims);
         });
 
@@ -483,8 +485,8 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(
                 requestParameterBuilder.addClientCapabilitiesToClaims(
                     undefined,
-                    clientCapabilities
-                )
+                    clientCapabilities,
+                ),
             ).toBe(expectedString);
         });
 
@@ -498,8 +500,8 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(
                 requestParameterBuilder.addClientCapabilitiesToClaims(
                     claimsRequest,
-                    clientCapabilities
-                )
+                    clientCapabilities,
+                ),
             ).toBe(expectedString);
         });
 
@@ -513,8 +515,8 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(
                 requestParameterBuilder.addClientCapabilitiesToClaims(
                     claimsRequest,
-                    clientCapabilities
-                )
+                    clientCapabilities,
+                ),
             ).toBe(expectedString);
         });
 
@@ -524,10 +526,10 @@ describe("RequestParameterBuilder unit tests", () => {
             expect(() =>
                 requestParameterBuilder.addClientCapabilitiesToClaims(
                     testClaims,
-                    []
-                )
+                    [],
+                ),
             ).toThrowError(
-                ClientConfigurationErrorMessage.invalidClaimsRequest.desc
+                ClientConfigurationErrorMessage.invalidClaimsRequest.desc,
             );
         });
     });

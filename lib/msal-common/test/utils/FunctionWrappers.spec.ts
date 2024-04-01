@@ -23,7 +23,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 .mockImplementationOnce(() => {
                     const inProgressMeasurement = perfClient.startMeasurement(
                         "testEventName",
-                        "testCorrelationId"
+                        "testCorrelationId",
                     );
                     end = jest.spyOn(inProgressMeasurement, "end");
                     return inProgressMeasurement;
@@ -42,12 +42,12 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testEventName",
                 logger,
                 perfClient,
-                "testCorrelationId"
+                "testCorrelationId",
             )("arg1", 20);
             expect(result).toBe("Success");
             expect(start).toHaveBeenCalledWith(
                 "testEventName",
-                "testCorrelationId"
+                "testCorrelationId",
             );
             expect(end).toHaveBeenCalledWith({ success: true });
             expect(loggerSpy).toHaveBeenCalledTimes(2);
@@ -60,7 +60,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 .mockImplementationOnce(() => {
                     const inProgressMeasurement = perfClient.startMeasurement(
                         "testEventName",
-                        "testCorrelationId"
+                        "testCorrelationId",
                     );
                     end = jest.spyOn(inProgressMeasurement, "end");
                     return inProgressMeasurement;
@@ -82,7 +82,7 @@ describe("FunctionWrappers Unit Tests", () => {
                     "testEventName",
                     logger,
                     perfClient,
-                    "testCorrelationId"
+                    "testCorrelationId",
                 )("arg1", 20);
                 throw "Unexpected, this call should throw";
             } catch (e) {
@@ -90,7 +90,7 @@ describe("FunctionWrappers Unit Tests", () => {
             }
             expect(start).toHaveBeenCalledWith(
                 "testEventName",
-                "testCorrelationId"
+                "testCorrelationId",
             );
             expect(end).toHaveBeenCalledWith({ success: false }, error);
             expect(loggerSpy).toHaveBeenCalledTimes(3);
@@ -105,7 +105,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 .mockImplementationOnce(() => {
                     const inProgressMeasurement = perfClient.startMeasurement(
                         "testEventName",
-                        "testCorrelationId"
+                        "testCorrelationId",
                     );
                     end = jest.spyOn(inProgressMeasurement, "end");
                     return inProgressMeasurement;
@@ -114,7 +114,7 @@ describe("FunctionWrappers Unit Tests", () => {
 
             const testCallback = (
                 arg1: string,
-                arg2: number
+                arg2: number,
             ): Promise<string> => {
                 expect(arg1).toBe("arg1");
                 expect(arg2).toBe(20);
@@ -127,12 +127,12 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testEventName",
                 logger,
                 perfClient,
-                "testCorrelationId"
+                "testCorrelationId",
             )("arg1", 20);
             expect(result).toBe("Success");
             expect(start).toHaveBeenCalledWith(
                 "testEventName",
-                "testCorrelationId"
+                "testCorrelationId",
             );
             expect(end).toHaveBeenCalledWith({ success: true });
             expect(loggerSpy).toHaveBeenCalledTimes(2);
@@ -145,7 +145,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 .mockImplementationOnce(() => {
                     const inProgressMeasurement = perfClient.startMeasurement(
                         "testEventName",
-                        "testCorrelationId"
+                        "testCorrelationId",
                     );
                     end = jest.spyOn(inProgressMeasurement, "end");
                     return inProgressMeasurement;
@@ -156,7 +156,7 @@ describe("FunctionWrappers Unit Tests", () => {
 
             const testCallback = (
                 arg1: string,
-                arg2: number
+                arg2: number,
             ): Promise<string> => {
                 expect(arg1).toBe("arg1");
                 expect(arg2).toBe(20);
@@ -169,7 +169,7 @@ describe("FunctionWrappers Unit Tests", () => {
                     "testEventName",
                     logger,
                     perfClient,
-                    "testCorrelationId"
+                    "testCorrelationId",
                 )("arg1", 20);
                 throw "Unexpected, this call should throw";
             } catch (e) {
@@ -177,7 +177,7 @@ describe("FunctionWrappers Unit Tests", () => {
             }
             expect(start).toHaveBeenCalledWith(
                 "testEventName",
-                "testCorrelationId"
+                "testCorrelationId",
             );
             expect(end).toHaveBeenCalledWith({ success: false }, error);
             expect(loggerSpy).toHaveBeenCalledTimes(3);

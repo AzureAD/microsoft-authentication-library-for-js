@@ -39,7 +39,7 @@ export interface ICacheManager {
     isAccountKey(
         key: string,
         homeAccountId?: string,
-        tenantId?: string
+        tenantId?: string,
     ): boolean;
 
     /**
@@ -71,7 +71,7 @@ export interface ICacheManager {
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(
-        refreshTokenKey: string
+        refreshTokenKey: string,
     ): RefreshTokenEntity | null;
 
     /**
@@ -97,7 +97,7 @@ export interface ICacheManager {
      * @param serverTelemetryKey
      */
     getServerTelemetry(
-        serverTelemetryKey: string
+        serverTelemetryKey: string,
     ): ServerTelemetryEntity | null;
 
     /**
@@ -107,7 +107,7 @@ export interface ICacheManager {
      */
     setServerTelemetry(
         serverTelemetryKey: string,
-        serverTelemetry: ServerTelemetryEntity
+        serverTelemetry: ServerTelemetryEntity,
     ): void;
 
     /**
@@ -153,7 +153,7 @@ export interface ICacheManager {
      */
     setThrottlingCache(
         throttlingCacheKey: string,
-        throttlingCache: ThrottlingEntity
+        throttlingCache: ThrottlingEntity,
     ): void;
 
     /**
@@ -167,7 +167,7 @@ export interface ICacheManager {
      */
     saveCacheRecord(
         cacheRecord: CacheRecord,
-        storeInCache?: StoreInCache
+        storeInCache?: StoreInCache,
     ): Promise<void>;
 
     /**

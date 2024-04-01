@@ -248,7 +248,7 @@ export function buildClientConfiguration({
             new DefaultStorageClass(
                 userAuthOptions.clientId,
                 DEFAULT_CRYPTO_IMPLEMENTATION,
-                new Logger(loggerOptions)
+                new Logger(loggerOptions),
             ),
         networkInterface:
             networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,

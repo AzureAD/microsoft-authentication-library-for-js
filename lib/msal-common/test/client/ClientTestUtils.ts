@@ -200,7 +200,7 @@ export class MockStorageClass extends CacheManager {
     }
     updateCredentialCacheKey(
         currentCacheKey: string,
-        credential: ValidCredentialType
+        credential: ValidCredentialType,
     ): string {
         const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 
@@ -247,7 +247,7 @@ export const mockCrypto = {
 export class ClientTestUtils {
     static async createTestClientConfiguration(
         telem: boolean = false,
-        protocolMode: ProtocolMode = ProtocolMode.AAD
+        protocolMode: ProtocolMode = ProtocolMode.AAD,
     ): Promise<ClientConfiguration> {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
@@ -255,7 +255,7 @@ export class ClientTestUtils {
             new Logger({}),
             {
                 canonicalAuthority: TEST_CONFIG.validAuthority,
-            }
+            },
         );
 
         const testLoggerCallback = (): void => {
@@ -291,12 +291,12 @@ export class ClientTestUtils {
             mockStorage,
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
         );
 
         await authority.resolveEndpointsAsync().catch((error) => {
             throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
             );
         });
 
@@ -309,7 +309,7 @@ export class ClientTestUtils {
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     apiId: 866,
                 },
-                mockStorage
+                mockStorage,
             );
         }
 

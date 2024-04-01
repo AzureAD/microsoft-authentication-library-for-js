@@ -46,7 +46,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
@@ -60,7 +60,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
@@ -79,7 +79,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         });
@@ -95,7 +95,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const headers = client.createTokenRequestHeaders();
 
             expect(headers[HeaderNames.CONTENT_TYPE]).toBe(
-                Constants.URL_FORM_CONTENT_TYPE
+                Constants.URL_FORM_CONTENT_TYPE,
             );
         });
     });

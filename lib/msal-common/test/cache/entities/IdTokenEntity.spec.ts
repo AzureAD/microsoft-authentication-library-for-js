@@ -4,7 +4,7 @@ import { CacheHelpers } from "../../../src";
 describe("IdTokenEntity.ts Unit Tests", () => {
     it("Create an IdTokenEntity", () => {
         expect(CacheHelpers.generateCredentialKey(mockIdTokenEntity)).toEqual(
-            "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft---"
+            "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft---",
         );
     });
 
@@ -14,7 +14,7 @@ describe("IdTokenEntity.ts Unit Tests", () => {
 
     it("verify if an object is not an id token entity", () => {
         expect(CacheHelpers.isIdTokenEntity(mockAccessTokenEntity_1)).toEqual(
-            false
+            false,
         );
     });
 });

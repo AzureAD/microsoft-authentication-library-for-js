@@ -29,7 +29,7 @@ import { getTenantFromAuthorityString } from "../authority/Authority";
 export class SilentFlowClient extends BaseClient {
     constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient
+        performanceClient?: IPerformanceClient,
     ) {
         super(configuration, performanceClient);
     }
@@ -40,7 +40,7 @@ export class SilentFlowClient extends BaseClient {
      * @param request
      */
     async acquireToken(
-        request: CommonSilentFlowRequest
+        request: CommonSilentFlowRequest,
     ): Promise<AuthenticationResult> {
         try {
             const [authResponse, cacheOutcome] = await this.acquireCachedToken({
@@ -53,13 +53,13 @@ export class SilentFlowClient extends BaseClient {
             // if the token is not expired but must be refreshed; get a new one in the background
             if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
                 this.logger.info(
-                    "SilentFlowClient:acquireCachedToken - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+                    "SilentFlowClient:acquireCachedToken - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed.",
                 );
 
                 // refresh the access token in the background
                 const refreshTokenClient = new RefreshTokenClient(
                     this.config,
-                    this.performanceClient
+                    this.performanceClient,
                 );
 
                 refreshTokenClient
@@ -78,7 +78,7 @@ export class SilentFlowClient extends BaseClient {
             ) {
                 const refreshTokenClient = new RefreshTokenClient(
                     this.config,
-                    this.performanceClient
+                    this.performanceClient,
                 );
                 return refreshTokenClient.acquireTokenByRefreshToken(request);
             } else {
@@ -92,11 +92,11 @@ export class SilentFlowClient extends BaseClient {
      * @param request
      */
     async acquireCachedToken(
-        request: CommonSilentFlowRequest
+        request: CommonSilentFlowRequest,
     ): Promise<[AuthenticationResult, CacheOutcome]> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.SilentFlowClientAcquireCachedToken,
-            request.correlationId
+            request.correlationId,
         );
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
 
@@ -108,17 +108,17 @@ export class SilentFlowClient extends BaseClient {
             // Must refresh due to present force_refresh flag.
             this.setCacheOutcome(
                 CacheOutcome.FORCE_REFRESH_OR_CLAIMS,
-                request.correlationId
+                request.correlationId,
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
             );
         }
 
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.noAccountInSilentRequest
+                ClientAuthErrorCodes.noAccountInSilentRequest,
             );
         }
 
@@ -132,32 +132,32 @@ export class SilentFlowClient extends BaseClient {
             tokenKeys,
             requestTenantId,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         );
 
         if (!cachedAccessToken) {
             // must refresh due to non-existent access_token
             this.setCacheOutcome(
                 CacheOutcome.NO_CACHED_ACCESS_TOKEN,
-                request.correlationId
+                request.correlationId,
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
             );
         } else if (
             TimeUtils.wasClockTurnedBack(cachedAccessToken.cachedAt) ||
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
-                this.config.systemOptions.tokenRenewalOffsetSeconds
+                this.config.systemOptions.tokenRenewalOffsetSeconds,
             )
         ) {
             // must refresh due to the expires_in value
             this.setCacheOutcome(
                 CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED,
-                request.correlationId
+                request.correlationId,
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
             );
         } else if (
             cachedAccessToken.refreshOn &&
@@ -179,7 +179,7 @@ export class SilentFlowClient extends BaseClient {
                 tokenKeys,
                 requestTenantId,
                 this.performanceClient,
-                request.correlationId
+                request.correlationId,
             ),
             refreshToken: null,
             appMetadata:
@@ -198,7 +198,7 @@ export class SilentFlowClient extends BaseClient {
                 PerformanceEvents.SilentFlowClientGenerateResultFromCacheRecord,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                request.correlationId,
             )(cacheRecord, request),
             lastCacheOutcome,
         ];
@@ -206,18 +206,18 @@ export class SilentFlowClient extends BaseClient {
 
     private setCacheOutcome(
         cacheOutcome: CacheOutcome,
-        correlationId: string
+        correlationId: string,
     ): void {
         this.serverTelemetryManager?.setCacheOutcome(cacheOutcome);
         this.performanceClient?.addFields(
             {
                 cacheOutcome: cacheOutcome,
             },
-            correlationId
+            correlationId,
         );
         if (cacheOutcome !== CacheOutcome.NOT_APPLICABLE) {
             this.logger.info(
-                `Token refresh is required due to cache outcome: ${cacheOutcome}`
+                `Token refresh is required due to cache outcome: ${cacheOutcome}`,
             );
         }
     }
@@ -228,17 +228,17 @@ export class SilentFlowClient extends BaseClient {
      */
     private async generateResultFromCacheRecord(
         cacheRecord: CacheRecord,
-        request: CommonSilentFlowRequest
+        request: CommonSilentFlowRequest,
     ): Promise<AuthenticationResult> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.SilentFlowClientGenerateResultFromCacheRecord,
-            request.correlationId
+            request.correlationId,
         );
         let idTokenClaims: TokenClaims | undefined;
         if (cacheRecord.idToken) {
             idTokenClaims = extractTokenClaims(
                 cacheRecord.idToken.secret,
-                this.config.cryptoInterface.base64Decode
+                this.config.cryptoInterface.base64Decode,
             );
         }
 
@@ -247,7 +247,7 @@ export class SilentFlowClient extends BaseClient {
             const authTime = idTokenClaims?.auth_time;
             if (!authTime) {
                 throw createClientAuthError(
-                    ClientAuthErrorCodes.authTimeNotFound
+                    ClientAuthErrorCodes.authTimeNotFound,
                 );
             }
 
@@ -260,7 +260,7 @@ export class SilentFlowClient extends BaseClient {
             cacheRecord,
             true,
             request,
-            idTokenClaims
+            idTokenClaims,
         );
     }
 }

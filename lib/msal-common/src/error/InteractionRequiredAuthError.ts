@@ -95,7 +95,7 @@ export class InteractionRequiredAuthError extends AuthError {
         timestamp?: string,
         traceId?: string,
         correlationId?: string,
-        claims?: string
+        claims?: string,
     ) {
         super(errorCode, errorMessage, subError);
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
@@ -117,7 +117,7 @@ export class InteractionRequiredAuthError extends AuthError {
 export function isInteractionRequiredError(
     errorCode?: string,
     errorString?: string,
-    subError?: string
+    subError?: string,
 ): boolean {
     const isInteractionRequiredErrorCode =
         !!errorCode &&
@@ -142,10 +142,10 @@ export function isInteractionRequiredError(
  * Creates an InteractionRequiredAuthError
  */
 export function createInteractionRequiredAuthError(
-    errorCode: string
+    errorCode: string,
 ): InteractionRequiredAuthError {
     return new InteractionRequiredAuthError(
         errorCode,
-        InteractionRequiredAuthErrorMessages[errorCode]
+        InteractionRequiredAuthErrorMessages[errorCode],
     );
 }

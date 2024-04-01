@@ -31,7 +31,7 @@ export interface INetworkModule {
     sendGetRequestAsync<T>(
         url: string,
         options?: NetworkRequestOptions,
-        cancellationToken?: number
+        cancellationToken?: number,
     ): Promise<NetworkResponse<T>>;
 
     /**
@@ -42,19 +42,19 @@ export interface INetworkModule {
      */
     sendPostRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
     ): Promise<NetworkResponse<T>>;
 }
 
 export const StubbedNetworkModule: INetworkModule = {
     sendGetRequestAsync: () => {
         return Promise.reject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented),
         );
     },
     sendPostRequestAsync: () => {
         return Promise.reject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented),
         );
     },
 };

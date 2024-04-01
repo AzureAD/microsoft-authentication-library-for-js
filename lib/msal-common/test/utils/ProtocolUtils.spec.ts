@@ -69,7 +69,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     it("setRequestState() appends library state to given state", () => {
         const requestState = ProtocolUtils.setRequestState(
             cryptoInterface,
-            userState
+            userState,
         );
         expect(requestState).toBe(testState);
     });
@@ -82,37 +82,37 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     it("setRequestState throws error if no crypto object is passed to it", () => {
         expect(() =>
             // @ts-ignore
-            ProtocolUtils.setRequestState(null, userState)
+            ProtocolUtils.setRequestState(null, userState),
         ).toThrowError(ClientAuthError);
         expect(() =>
             // @ts-ignore
-            ProtocolUtils.setRequestState(null, userState)
+            ProtocolUtils.setRequestState(null, userState),
         ).toThrowError(ClientAuthErrorMessage.noCryptoObj.desc);
     });
 
     it("parseRequestState() throws error if given state is null or empty", () => {
         expect(() =>
-            ProtocolUtils.parseRequestState(cryptoInterface, "")
+            ProtocolUtils.parseRequestState(cryptoInterface, ""),
         ).toThrowError(ClientAuthError);
         expect(() =>
-            ProtocolUtils.parseRequestState(cryptoInterface, "")
+            ProtocolUtils.parseRequestState(cryptoInterface, ""),
         ).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
 
         expect(() =>
             // @ts-ignore
-            ProtocolUtils.parseRequestState(cryptoInterface, null)
+            ProtocolUtils.parseRequestState(cryptoInterface, null),
         ).toThrowError(ClientAuthError);
 
         expect(() =>
             // @ts-ignore
-            ProtocolUtils.parseRequestState(cryptoInterface, null)
+            ProtocolUtils.parseRequestState(cryptoInterface, null),
         ).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
     });
 
     it("parseRequestState() returns empty userRequestState if no resource delimiter found in state string", () => {
         const requestState = ProtocolUtils.parseRequestState(
             cryptoInterface,
-            decodedLibState
+            decodedLibState,
         );
         expect(requestState.userRequestState).toHaveLength(0);
     });
@@ -120,7 +120,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     it("parseRequestState() correctly splits the state by the resource delimiter", () => {
         const requestState = ProtocolUtils.parseRequestState(
             cryptoInterface,
-            testState
+            testState,
         );
         expect(requestState.userRequestState).toBe(userState);
     });
@@ -128,7 +128,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     it("parseRequestState returns user state without decoding", () => {
         const requestState = ProtocolUtils.parseRequestState(
             cryptoInterface,
-            `${encodedLibState}${Constants.RESOURCE_DELIM}${"test%25u00f1"}`
+            `${encodedLibState}${Constants.RESOURCE_DELIM}${"test%25u00f1"}`,
         );
         expect(requestState.userRequestState).toBe(`${"test%25u00f1"}`);
     });

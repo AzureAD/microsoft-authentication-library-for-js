@@ -39,7 +39,7 @@ describe("NetworkManager", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
@@ -61,7 +61,7 @@ describe("NetworkManager", () => {
                 await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
                     thumbprint,
                     "tokenEndpoint",
-                    options
+                    options,
                 );
 
             sinon.assert.callCount(networkStub, 1);
@@ -76,7 +76,7 @@ describe("NetworkManager", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
@@ -84,7 +84,7 @@ describe("NetworkManager", () => {
             const mockThrottlingEntity = THROTTLING_ENTITY;
             const networkStub = sinon.stub(
                 networkInterface,
-                "sendPostRequestAsync"
+                "sendPostRequestAsync",
             );
             const getThrottlingStub = sinon
                 .stub(cache, "getThrottlingCache")
@@ -97,7 +97,7 @@ describe("NetworkManager", () => {
                 await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
                     thumbprint,
                     "tokenEndpoint",
-                    options
+                    options,
                 );
             } catch {}
 
@@ -106,7 +106,7 @@ describe("NetworkManager", () => {
             sinon.assert.callCount(setThrottlingStub, 0);
             sinon.assert.callCount(removeItemStub, 0);
             expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint)
+                ThrottlingUtils.preProcess(cache, thumbprint),
             ).toThrowError(ServerError);
         });
 
@@ -115,7 +115,7 @@ describe("NetworkManager", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
@@ -140,7 +140,7 @@ describe("NetworkManager", () => {
                 await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
                     thumbprint,
                     "tokenEndpoint",
-                    options
+                    options,
                 );
 
             sinon.assert.callCount(networkStub, 1);
@@ -155,7 +155,7 @@ describe("NetworkManager", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
@@ -177,7 +177,7 @@ describe("NetworkManager", () => {
                 await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
                     thumbprint,
                     "tokenEndpoint",
-                    options
+                    options,
                 );
 
             sinon.assert.callCount(networkStub, 1);
@@ -192,7 +192,7 @@ describe("NetworkManager", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
@@ -206,7 +206,7 @@ describe("NetworkManager", () => {
                 .sendPostRequest<ServerAuthorizationTokenResponse>(
                     thumbprint,
                     "tokenEndpoint",
-                    options
+                    options,
                 )
                 .catch((e) => {
                     expect(e).toBeInstanceOf(ClientAuthError);

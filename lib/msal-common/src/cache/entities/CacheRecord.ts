@@ -22,7 +22,7 @@ export class CacheRecord {
         idTokenEntity?: IdTokenEntity | null,
         accessTokenEntity?: AccessTokenEntity | null,
         refreshTokenEntity?: RefreshTokenEntity | null,
-        appMetadataEntity?: AppMetadataEntity | null
+        appMetadataEntity?: AppMetadataEntity | null,
     ) {
         this.account = accountEntity || null;
         this.idToken = idTokenEntity || null;

@@ -32,7 +32,7 @@ export class ServerTelemetryManager {
 
     constructor(
         telemetryRequest: ServerTelemetryRequest,
-        cacheManager: CacheManager
+        cacheManager: CacheManager,
     ) {
         this.cacheManager = cacheManager;
         this.apiId = telemetryRequest.apiId;
@@ -52,7 +52,7 @@ export class ServerTelemetryManager {
     generateCurrentRequestHeaderValue(): string {
         const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${this.cacheOutcome}`;
         const platformFields = [this.wrapperSKU, this.wrapperVer].join(
-            SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR
+            SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR,
         );
         const regionDiscoveryFields = this.getRegionDiscoveryFields();
         const requestWithRegionDiscoveryFields = [
@@ -88,7 +88,7 @@ export class ServerTelemetryManager {
                 ? SERVER_TELEM_CONSTANTS.OVERFLOW_TRUE
                 : SERVER_TELEM_CONSTANTS.OVERFLOW_FALSE;
         const platformFields = [errorCount, overflow].join(
-            SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR
+            SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR,
         );
 
         return [
@@ -136,7 +136,7 @@ export class ServerTelemetryManager {
 
         this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
-            lastRequests
+            lastRequests,
         );
 
         return;
@@ -151,7 +151,7 @@ export class ServerTelemetryManager {
 
         this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
-            lastRequests
+            lastRequests,
         );
         return lastRequests.cacheHits;
     }
@@ -166,7 +166,7 @@ export class ServerTelemetryManager {
             cacheHits: 0,
         };
         const lastRequests = this.cacheManager.getServerTelemetry(
-            this.telemetryCacheKey
+            this.telemetryCacheKey,
         ) as ServerTelemetryEntity;
 
         return lastRequests || initialValue;
@@ -187,7 +187,7 @@ export class ServerTelemetryManager {
             // Partial data was flushed to server, construct a new telemetry cache item with errors that were not flushed
             const serverTelemEntity: ServerTelemetryEntity = {
                 failedRequests: lastRequests.failedRequests.slice(
-                    numErrorsFlushed * 2
+                    numErrorsFlushed * 2,
                 ), // failedRequests contains 2 items for each error
                 errors: lastRequests.errors.slice(numErrorsFlushed),
                 cacheHits: 0,
@@ -195,7 +195,7 @@ export class ServerTelemetryManager {
 
             this.cacheManager.setServerTelemetry(
                 this.telemetryCacheKey,
-                serverTelemEntity
+                serverTelemEntity,
             );
         }
     }
@@ -205,7 +205,7 @@ export class ServerTelemetryManager {
      * @param serverTelemetryEntity
      */
     static maxErrorsToSend(
-        serverTelemetryEntity: ServerTelemetryEntity
+        serverTelemetryEntity: ServerTelemetryEntity,
     ): number {
         let i;
         let maxErrors = 0;
@@ -251,7 +251,7 @@ export class ServerTelemetryManager {
         regionDiscoveryFields.push(this.regionUsed || Constants.EMPTY_STRING);
         regionDiscoveryFields.push(this.regionSource || Constants.EMPTY_STRING);
         regionDiscoveryFields.push(
-            this.regionOutcome || Constants.EMPTY_STRING
+            this.regionOutcome || Constants.EMPTY_STRING,
         );
 
         return regionDiscoveryFields.join(",");
@@ -264,7 +264,7 @@ export class ServerTelemetryManager {
      * @returns void
      */
     updateRegionDiscoveryMetadata(
-        regionDiscoveryMetadata: RegionDiscoveryMetadata
+        regionDiscoveryMetadata: RegionDiscoveryMetadata,
     ): void {
         this.regionUsed = regionDiscoveryMetadata.region_used;
         this.regionSource = regionDiscoveryMetadata.region_source;

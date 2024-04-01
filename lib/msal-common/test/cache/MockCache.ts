@@ -27,13 +27,13 @@ export class MockCache {
     constructor(
         clientId: string,
         cryptoImpl: ICrypto,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
     ) {
         this.cacheManager = new MockStorageClass(
             clientId,
             cryptoImpl,
             new Logger({}),
-            staticAuthorityOptions
+            staticAuthorityOptions,
         );
     }
 
@@ -75,7 +75,7 @@ export class MockCache {
         const guestIdToken = buildIdToken(
             GUEST_ID_TOKEN_CLAIMS,
             TEST_TOKENS.ID_TOKEN_V2_GUEST,
-            { homeAccountId: idToken.homeAccountId }
+            { homeAccountId: idToken.homeAccountId },
         );
 
         this.cacheManager.setIdTokenCredential(guestIdToken);
@@ -83,7 +83,7 @@ export class MockCache {
         const altIdToken = buildIdToken(
             ID_TOKEN_ALT_CLAIMS,
             TEST_TOKENS.IDTOKEN_V2_ALT,
-            { environment: "login.windows.net" }
+            { environment: "login.windows.net" },
         );
         this.cacheManager.setIdTokenCredential(altIdToken);
     }
@@ -266,7 +266,7 @@ export class MockCache {
         };
 
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(
-            authorityMetadata.preferred_cache
+            authorityMetadata.preferred_cache,
         );
 
         this.cacheManager.setAuthorityMetadata(cacheKey, authorityMetadata);

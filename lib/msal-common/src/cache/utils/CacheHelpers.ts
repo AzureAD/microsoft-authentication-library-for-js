@@ -37,7 +37,7 @@ import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
  * @returns
  */
 export function generateCredentialKey(
-    credentialEntity: CredentialEntity
+    credentialEntity: CredentialEntity,
 ): string {
     const credentialKey = [
         generateAccountId(credentialEntity),
@@ -62,7 +62,7 @@ export function createIdTokenEntity(
     environment: string,
     idToken: string,
     clientId: string,
-    tenantId: string
+    tenantId: string,
 ): IdTokenEntity {
     const idTokenEntity: IdTokenEntity = {
         credentialType: CredentialType.ID_TOKEN,
@@ -102,7 +102,7 @@ export function createAccessTokenEntity(
     userAssertionHash?: string,
     keyId?: string,
     requestedClaims?: string,
-    requestedClaimsHash?: string
+    requestedClaimsHash?: string,
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -145,11 +145,11 @@ export function createAccessTokenEntity(
                 // Make sure keyId is present and add it to credential
                 const tokenClaims: TokenClaims | null = extractTokenClaims(
                     accessToken,
-                    base64Decode
+                    base64Decode,
                 );
                 if (!tokenClaims?.cnf?.kid) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt
+                        ClientAuthErrorCodes.tokenClaimsCnfRequiredForSignedJwt,
                     );
                 }
                 atEntity.keyId = tokenClaims.cnf.kid;
@@ -176,7 +176,7 @@ export function createRefreshTokenEntity(
     clientId: string,
     familyId?: string,
     userAssertionHash?: string,
-    expiresOn?: number
+    expiresOn?: number,
 ): RefreshTokenEntity {
     const rtEntity: RefreshTokenEntity = {
         credentialType: CredentialType.REFRESH_TOKEN,
@@ -396,7 +396,7 @@ export function isAppMetadataEntity(key: string, entity: object): boolean {
  */
 export function isAuthorityMetadataEntity(
     key: string,
-    entity: object
+    entity: object,
 ): boolean {
     if (!entity) {
         return false;
@@ -431,7 +431,7 @@ export function generateAuthorityMetadataExpiresAt(): number {
 export function updateAuthorityEndpointMetadata(
     authorityMetadata: AuthorityMetadataEntity,
     updatedValues: OpenIdConfigResponse,
-    fromNetwork: boolean
+    fromNetwork: boolean,
 ): void {
     authorityMetadata.authorization_endpoint =
         updatedValues.authorization_endpoint;
@@ -445,7 +445,7 @@ export function updateAuthorityEndpointMetadata(
 export function updateCloudDiscoveryMetadata(
     authorityMetadata: AuthorityMetadataEntity,
     updatedValues: CloudDiscoveryMetadata,
-    fromNetwork: boolean
+    fromNetwork: boolean,
 ): void {
     authorityMetadata.aliases = updatedValues.aliases;
     authorityMetadata.preferred_cache = updatedValues.preferred_cache;
@@ -457,7 +457,7 @@ export function updateCloudDiscoveryMetadata(
  * Returns whether or not the data needs to be refreshed
  */
 export function isAuthorityMetadataExpired(
-    metadata: AuthorityMetadataEntity
+    metadata: AuthorityMetadataEntity,
 ): boolean {
     return metadata.expiresAt <= TimeUtils.nowSeconds();
 }

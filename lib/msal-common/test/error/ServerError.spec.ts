@@ -7,7 +7,7 @@ describe("ServerError.ts Class Unit Tests", () => {
         const TEST_ERROR_MSG: string = "This is a test error";
         const err: ServerError = new ServerError(
             TEST_ERROR_CODE,
-            TEST_ERROR_MSG
+            TEST_ERROR_MSG,
         );
 
         expect(err instanceof ServerError).toBe(true);

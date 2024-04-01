@@ -27,7 +27,7 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             expect(err.message).toBe(`${code}: ${message}`);
             expect(err.name).toBe("ClientConfigurationError");
             expect(
-                err.stack?.includes("ClientConfigurationError.spec.ts")
+                err.stack?.includes("ClientConfigurationError.spec.ts"),
             ).toBe(true);
         });
     }

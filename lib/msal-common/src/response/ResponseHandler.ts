@@ -74,7 +74,7 @@ export class ResponseHandler {
         logger: Logger,
         serializableCache: ISerializableTokenCache | null,
         persistencePlugin: ICachePlugin | null,
-        performanceClient?: IPerformanceClient
+        performanceClient?: IPerformanceClient,
     ) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
@@ -93,17 +93,17 @@ export class ResponseHandler {
      */
     validateServerAuthorizationCodeResponse(
         serverResponse: ServerAuthorizationCodeResponse,
-        requestState: string
+        requestState: string,
     ): void {
         if (!serverResponse.state || !requestState) {
             throw serverResponse.state
                 ? createClientAuthError(
                       ClientAuthErrorCodes.stateNotFound,
-                      "Cached State"
+                      "Cached State",
                   )
                 : createClientAuthError(
                       ClientAuthErrorCodes.stateNotFound,
-                      "Server State"
+                      "Server State",
                   );
         }
 
@@ -112,12 +112,12 @@ export class ResponseHandler {
 
         try {
             decodedServerResponseState = decodeURIComponent(
-                serverResponse.state
+                serverResponse.state,
             );
         } catch (e) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.invalidState,
-                serverResponse.state
+                serverResponse.state,
             );
         }
 
@@ -126,7 +126,7 @@ export class ResponseHandler {
         } catch (e) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.invalidState,
-                serverResponse.state
+                serverResponse.state,
             );
         }
 
@@ -144,7 +144,7 @@ export class ResponseHandler {
                 isInteractionRequiredError(
                     serverResponse.error,
                     serverResponse.error_description,
-                    serverResponse.suberror
+                    serverResponse.suberror,
                 )
             ) {
                 throw new InteractionRequiredAuthError(
@@ -154,14 +154,14 @@ export class ResponseHandler {
                     serverResponse.timestamp || "",
                     serverResponse.trace_id || "",
                     serverResponse.correlation_id || "",
-                    serverResponse.claims || ""
+                    serverResponse.claims || "",
                 );
             }
 
             throw new ServerError(
                 serverResponse.error || "",
                 serverResponse.error_description,
-                serverResponse.suberror
+                serverResponse.suberror,
             );
         }
     }
@@ -173,7 +173,7 @@ export class ResponseHandler {
      */
     validateTokenResponse(
         serverResponse: ServerAuthorizationTokenResponse,
-        refreshAccessToken?: boolean
+        refreshAccessToken?: boolean,
     ): void {
         // Check for error
         if (
@@ -185,7 +185,7 @@ export class ResponseHandler {
             const serverError = new ServerError(
                 serverResponse.error,
                 errString,
-                serverResponse.suberror
+                serverResponse.suberror,
             );
 
             // check if 500 error
@@ -196,7 +196,7 @@ export class ResponseHandler {
                 serverResponse.status <= HttpStatus.SERVER_ERROR_RANGE_END
             ) {
                 this.logger.warning(
-                    `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`
+                    `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`,
                 );
 
                 // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
@@ -209,7 +209,7 @@ export class ResponseHandler {
                 serverResponse.status <= HttpStatus.CLIENT_ERROR_RANGE_END
             ) {
                 this.logger.warning(
-                    `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`
+                    `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`,
                 );
 
                 // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
@@ -220,7 +220,7 @@ export class ResponseHandler {
                 isInteractionRequiredError(
                     serverResponse.error,
                     serverResponse.error_description,
-                    serverResponse.suberror
+                    serverResponse.suberror,
                 )
             ) {
                 throw new InteractionRequiredAuthError(
@@ -230,7 +230,7 @@ export class ResponseHandler {
                     serverResponse.timestamp || Constants.EMPTY_STRING,
                     serverResponse.trace_id || Constants.EMPTY_STRING,
                     serverResponse.correlation_id || Constants.EMPTY_STRING,
-                    serverResponse.claims || Constants.EMPTY_STRING
+                    serverResponse.claims || Constants.EMPTY_STRING,
                 );
             }
 
@@ -252,11 +252,11 @@ export class ResponseHandler {
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
-        serverRequestId?: string
+        serverRequestId?: string,
     ): Promise<AuthenticationResult> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.HandleServerTokenResponse,
-            serverTokenResponse.correlation_id
+            serverTokenResponse.correlation_id,
         );
 
         // create an idToken object (not entity)
@@ -264,14 +264,14 @@ export class ResponseHandler {
         if (serverTokenResponse.id_token) {
             idTokenClaims = extractTokenClaims(
                 serverTokenResponse.id_token || Constants.EMPTY_STRING,
-                this.cryptoObj.base64Decode
+                this.cryptoObj.base64Decode,
             );
 
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && authCodePayload.nonce) {
                 if (idTokenClaims.nonce !== authCodePayload.nonce) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.nonceMismatch
+                        ClientAuthErrorCodes.nonceMismatch,
                     );
                 }
             }
@@ -281,7 +281,7 @@ export class ResponseHandler {
                 const authTime = idTokenClaims.auth_time;
                 if (!authTime) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.authTimeNotFound
+                        ClientAuthErrorCodes.authTimeNotFound,
                     );
                 }
 
@@ -295,7 +295,7 @@ export class ResponseHandler {
             authority.authorityType,
             this.logger,
             this.cryptoObj,
-            idTokenClaims
+            idTokenClaims,
         );
 
         // save the response tokens
@@ -303,7 +303,7 @@ export class ResponseHandler {
         if (!!authCodePayload && !!authCodePayload.state) {
             requestStateObj = ProtocolUtils.parseRequestState(
                 this.cryptoObj,
-                authCodePayload.state
+                authCodePayload.state,
             );
         }
 
@@ -318,17 +318,17 @@ export class ResponseHandler {
             request,
             idTokenClaims,
             userAssertionHash,
-            authCodePayload
+            authCodePayload,
         );
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
                 this.logger.verbose(
-                    "Persistence enabled, calling beforeCacheAccess"
+                    "Persistence enabled, calling beforeCacheAccess",
                 );
                 cacheContext = new TokenCacheContext(
                     this.serializableCache,
-                    true
+                    true,
                 );
                 await this.persistencePlugin.beforeCacheAccess(cacheContext);
             }
@@ -347,7 +347,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key, this.logger);
                 if (!account) {
                     this.logger.warning(
-                        "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
+                        "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache",
                     );
                     return await ResponseHandler.generateAuthenticationResult(
                         this.cryptoObj,
@@ -358,13 +358,13 @@ export class ResponseHandler {
                         idTokenClaims,
                         requestStateObj,
                         undefined,
-                        serverRequestId
+                        serverRequestId,
                     );
                 }
             }
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
-                request.storeInCache
+                request.storeInCache,
             );
         } finally {
             if (
@@ -373,7 +373,7 @@ export class ResponseHandler {
                 cacheContext
             ) {
                 this.logger.verbose(
-                    "Persistence enabled, calling afterCacheAccess"
+                    "Persistence enabled, calling afterCacheAccess",
                 );
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
@@ -388,7 +388,7 @@ export class ResponseHandler {
             idTokenClaims,
             requestStateObj,
             serverTokenResponse,
-            serverRequestId
+            serverRequestId,
         );
     }
 
@@ -405,12 +405,12 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         idTokenClaims?: TokenClaims,
         userAssertionHash?: string,
-        authCodePayload?: AuthorizationCodePayload
+        authCodePayload?: AuthorizationCodePayload,
     ): CacheRecord {
         const env = authority.getPreferredCache();
         if (!env) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidCacheEnvironment
+                ClientAuthErrorCodes.invalidCacheEnvironment,
             );
         }
 
@@ -425,7 +425,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.id_token,
                 this.clientId,
-                claimsTenantId || ""
+                claimsTenantId || "",
             );
 
             cachedAccount = buildAccountToCache(
@@ -439,7 +439,7 @@ export class ResponseHandler {
                 claimsTenantId,
                 authCodePayload,
                 undefined, // nativeAccountId
-                this.logger
+                this.logger,
             );
         }
 
@@ -491,7 +491,7 @@ export class ResponseHandler {
                 userAssertionHash,
                 serverTokenResponse.key_id,
                 request.claims,
-                request.requestedClaimsHash
+                request.requestedClaimsHash,
             );
         }
 
@@ -505,7 +505,7 @@ export class ResponseHandler {
                     "string"
                         ? parseInt(
                               serverTokenResponse.refresh_token_expires_in,
-                              10
+                              10,
                           )
                         : serverTokenResponse.refresh_token_expires_in;
                 rtExpiresOn = reqTimestamp + rtExpiresIn;
@@ -517,7 +517,7 @@ export class ResponseHandler {
                 this.clientId,
                 serverTokenResponse.foci,
                 userAssertionHash,
-                rtExpiresOn
+                rtExpiresOn,
             );
         }
 
@@ -536,7 +536,7 @@ export class ResponseHandler {
             cachedIdToken,
             cachedAccessToken,
             cachedRefreshToken,
-            cachedAppMetadata
+            cachedAppMetadata,
         );
     }
 
@@ -559,7 +559,7 @@ export class ResponseHandler {
         idTokenClaims?: TokenClaims,
         requestState?: RequestStateObject,
         serverTokenResponse?: ServerAuthorizationTokenResponse,
-        requestId?: string
+        requestId?: string,
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
@@ -578,30 +578,30 @@ export class ResponseHandler {
 
                 if (!keyId) {
                     throw createClientAuthError(
-                        ClientAuthErrorCodes.keyIdMissing
+                        ClientAuthErrorCodes.keyIdMissing,
                     );
                 }
 
                 accessToken = await popTokenGenerator.signPopToken(
                     secret,
                     keyId,
-                    request
+                    request,
                 );
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }
             responseScopes = ScopeSet.fromString(
-                cacheRecord.accessToken.target
+                cacheRecord.accessToken.target,
             ).asArray();
             expiresOn = new Date(
-                Number(cacheRecord.accessToken.expiresOn) * 1000
+                Number(cacheRecord.accessToken.expiresOn) * 1000,
             );
             extExpiresOn = new Date(
-                Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
+                Number(cacheRecord.accessToken.extendedExpiresOn) * 1000,
             );
             if (cacheRecord.accessToken.refreshOn) {
                 refreshOn = new Date(
-                    Number(cacheRecord.accessToken.refreshOn) * 1000
+                    Number(cacheRecord.accessToken.refreshOn) * 1000,
                 );
             }
         }
@@ -626,7 +626,7 @@ export class ResponseHandler {
                   cacheRecord.account.getAccountInfo(),
                   undefined, // tenantProfile optional
                   idTokenClaims,
-                  cacheRecord.idToken?.secret
+                  cacheRecord.idToken?.secret,
               )
             : null;
 
@@ -673,7 +673,7 @@ export function buildAccountToCache(
     claimsTenantId?: string | null,
     authCodePayload?: AuthorizationCodePayload,
     nativeAccountId?: string,
-    logger?: Logger
+    logger?: Logger,
 ): AccountEntity {
     logger?.verbose("setCachedAccount called");
 
@@ -701,7 +701,7 @@ export function buildAccountToCache(
                 nativeAccountId: nativeAccountId,
             },
             authority,
-            base64Decode
+            base64Decode,
         );
 
     const tenantProfiles = baseAccount.tenantProfiles || [];
@@ -714,7 +714,7 @@ export function buildAccountToCache(
     ) {
         const newTenantProfile = buildTenantProfileFromIdTokenClaims(
             homeAccountId,
-            idTokenClaims
+            idTokenClaims,
         );
         tenantProfiles.push(newTenantProfile);
     }

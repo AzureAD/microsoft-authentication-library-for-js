@@ -58,16 +58,16 @@ const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 export class RefreshTokenClient extends BaseClient {
     constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient
+        performanceClient?: IPerformanceClient,
     ) {
         super(configuration, performanceClient);
     }
     public async acquireToken(
-        request: CommonRefreshTokenRequest
+        request: CommonRefreshTokenRequest,
     ): Promise<AuthenticationResult> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.RefreshTokenClientAcquireToken,
-            request.correlationId
+            request.correlationId,
         );
 
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -76,7 +76,7 @@ export class RefreshTokenClient extends BaseClient {
             PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(request, this.authority);
 
         // Retrieve requestId from response headers
@@ -87,7 +87,7 @@ export class RefreshTokenClient extends BaseClient {
             this.cryptoUtils,
             this.logger,
             this.config.serializableCache,
-            this.config.persistencePlugin
+            this.config.persistencePlugin,
         );
         responseHandler.validateTokenResponse(response.body);
 
@@ -96,7 +96,7 @@ export class RefreshTokenClient extends BaseClient {
             PerformanceEvents.HandleServerTokenResponse,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(
             response.body,
             this.authority,
@@ -106,7 +106,7 @@ export class RefreshTokenClient extends BaseClient {
             undefined,
             true,
             request.forceCache,
-            requestId
+            requestId,
         );
     }
 
@@ -115,30 +115,30 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     public async acquireTokenByRefreshToken(
-        request: CommonSilentFlowRequest
+        request: CommonSilentFlowRequest,
     ): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.tokenRequestEmpty
+                ClientConfigurationErrorCodes.tokenRequestEmpty,
             );
         }
 
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken,
-            request.correlationId
+            request.correlationId,
         );
 
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.noAccountInSilentRequest
+                ClientAuthErrorCodes.noAccountInSilentRequest,
             );
         }
 
         // try checking if FOCI is enabled for the given application
         const isFOCI = this.cacheManager.isAppMetadataFOCI(
-            request.account.environment
+            request.account.environment,
         );
 
         // if the app is part of the family, retrive a Family refresh token if present and make a refreshTokenRequest
@@ -149,7 +149,7 @@ export class RefreshTokenClient extends BaseClient {
                     PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
                     this.logger,
                     this.performanceClient,
-                    request.correlationId
+                    request.correlationId,
                 )(request, true);
             } catch (e) {
                 const noFamilyRTInCache =
@@ -168,7 +168,7 @@ export class RefreshTokenClient extends BaseClient {
                         PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
                         this.logger,
                         this.performanceClient,
-                        request.correlationId
+                        request.correlationId,
                     )(request, false);
                     // throw in all other cases
                 } else {
@@ -182,7 +182,7 @@ export class RefreshTokenClient extends BaseClient {
             PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(request, false);
     }
 
@@ -192,11 +192,11 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async acquireTokenWithCachedRefreshToken(
         request: CommonSilentFlowRequest,
-        foci: boolean
+        foci: boolean,
     ) {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
-            request.correlationId
+            request.correlationId,
         );
 
         // fetches family RT or application RT based on FOCI value
@@ -205,18 +205,18 @@ export class RefreshTokenClient extends BaseClient {
             PerformanceEvents.CacheManagerGetRefreshToken,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(
             request.account,
             foci,
             undefined,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         );
 
         if (!refreshToken) {
             throw createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.noTokensFound
+                InteractionRequiredAuthErrorCodes.noTokensFound,
             );
         }
 
@@ -225,11 +225,11 @@ export class RefreshTokenClient extends BaseClient {
             TimeUtils.isTokenExpired(
                 refreshToken.expiresOn,
                 request.refreshTokenExpirationOffsetSeconds ||
-                    DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
+                    DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS,
             )
         ) {
             throw createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                InteractionRequiredAuthErrorCodes.refreshTokenExpired,
             );
         }
         // attach cached RT size to the current measurement
@@ -251,7 +251,7 @@ export class RefreshTokenClient extends BaseClient {
                 PerformanceEvents.RefreshTokenClientAcquireToken,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                request.correlationId,
             )(refreshTokenRequest);
         } catch (e) {
             if (
@@ -260,7 +260,7 @@ export class RefreshTokenClient extends BaseClient {
             ) {
                 // Remove bad refresh token from cache
                 this.logger.verbose(
-                    "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+                    "acquireTokenWithRefreshToken: bad refresh token, removing from cache",
                 );
                 const badRefreshTokenKey = generateCredentialKey(refreshToken);
                 this.cacheManager.removeRefreshToken(badRefreshTokenKey);
@@ -277,17 +277,17 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(
         request: CommonRefreshTokenRequest,
-        authority: Authority
+        authority: Authority,
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
-            request.correlationId
+            request.correlationId,
         );
 
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
-            queryParametersString
+            queryParametersString,
         );
 
         const requestBody = await invokeAsync(
@@ -295,10 +295,10 @@ export class RefreshTokenClient extends BaseClient {
             PerformanceEvents.RefreshTokenClientCreateTokenRequestBody,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(
-            request.ccsCredential
+            request.ccsCredential,
         );
         const thumbprint: RequestThumbprint = {
             clientId:
@@ -319,14 +319,14 @@ export class RefreshTokenClient extends BaseClient {
             PerformanceEvents.RefreshTokenClientExecutePostToTokenEndpoint,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(
             endpoint,
             requestBody,
             headers,
             thumbprint,
             request.correlationId,
-            PerformanceEvents.RefreshTokenClientExecutePostToTokenEndpoint
+            PerformanceEvents.RefreshTokenClientExecutePostToTokenEndpoint,
         );
     }
 
@@ -335,11 +335,11 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     private async createTokenRequestBody(
-        request: CommonRefreshTokenRequest
+        request: CommonRefreshTokenRequest,
     ): Promise<string> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.RefreshTokenClientCreateTokenRequestBody,
-            request.correlationId
+            request.correlationId,
         );
 
         const correlationId = request.correlationId;
@@ -347,7 +347,7 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addClientId(
             request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
-                this.config.authOptions.clientId
+                this.config.authOptions.clientId,
         );
 
         if (request.redirectUri) {
@@ -357,7 +357,8 @@ export class RefreshTokenClient extends BaseClient {
         parameterBuilder.addScopes(
             request.scopes,
             true,
-            this.config.authOptions.authority.options.OIDCOptions?.defaultScopes
+            this.config.authOptions.authority.options.OIDCOptions
+                ?.defaultScopes,
         );
 
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
@@ -366,7 +367,7 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
         parameterBuilder.addApplicationTelemetry(
-            this.config.telemetry.application
+            this.config.telemetry.application,
         );
         parameterBuilder.addThrottling();
 
@@ -380,7 +381,7 @@ export class RefreshTokenClient extends BaseClient {
 
         if (this.config.clientCredentials.clientSecret) {
             parameterBuilder.addClientSecret(
-                this.config.clientCredentials.clientSecret
+                this.config.clientCredentials.clientSecret,
             );
         }
 
@@ -389,21 +390,21 @@ export class RefreshTokenClient extends BaseClient {
                 this.config.clientCredentials.clientAssertion;
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(
-                clientAssertion.assertionType
+                clientAssertion.assertionType,
             );
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(
                 this.cryptoUtils,
-                this.performanceClient
+                this.performanceClient,
             );
             const reqCnfData = await invokeAsync(
                 popTokenGenerator.generateCnf.bind(popTokenGenerator),
                 PerformanceEvents.PopTokenGenerateCnf,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                request.correlationId,
             )(request, this.logger);
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
@@ -412,7 +413,7 @@ export class RefreshTokenClient extends BaseClient {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
                 );
             }
         }
@@ -424,7 +425,7 @@ export class RefreshTokenClient extends BaseClient {
         ) {
             parameterBuilder.addClaims(
                 request.claims,
-                this.config.authOptions.clientCapabilities
+                this.config.authOptions.clientCapabilities,
             );
         }
 
@@ -436,19 +437,19 @@ export class RefreshTokenClient extends BaseClient {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(
-                            request.ccsCredential.credential
+                            request.ccsCredential.credential,
                         );
                         parameterBuilder.addCcsOid(clientInfo);
                     } catch (e) {
                         this.logger.verbose(
                             "Could not parse home account ID for CCS Header: " +
-                                e
+                                e,
                         );
                     }
                     break;
                 case CcsCredentialType.UPN:
                     parameterBuilder.addCcsUpn(
-                        request.ccsCredential.credential
+                        request.ccsCredential.credential,
                     );
                     break;
             }
@@ -456,7 +457,7 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.tokenBodyParameters) {
             parameterBuilder.addExtraQueryParameters(
-                request.tokenBodyParameters
+                request.tokenBodyParameters,
             );
         }
 

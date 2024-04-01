@@ -38,7 +38,7 @@ export class RegionDiscovery {
         networkInterface: INetworkModule,
         logger: Logger,
         performanceClient?: IPerformanceClient,
-        correlationId?: string
+        correlationId?: string,
     ) {
         this.networkInterface = networkInterface;
         this.logger = logger;
@@ -53,11 +53,11 @@ export class RegionDiscovery {
      */
     public async detectRegion(
         environmentRegion: string | undefined,
-        regionDiscoveryMetadata: RegionDiscoveryMetadata
+        regionDiscoveryMetadata: RegionDiscoveryMetadata,
     ): Promise<string | null> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.RegionDiscoveryDetectRegion,
-            this.correlationId
+            this.correlationId,
         );
 
         // Initialize auto detected region with the region from the envrionment
@@ -73,7 +73,7 @@ export class RegionDiscovery {
                     PerformanceEvents.RegionDiscoveryGetRegionFromIMDS,
                     this.logger,
                     this.performanceClient,
-                    this.correlationId
+                    this.correlationId,
                 )(Constants.IMDS_VERSION, options);
                 if (
                     localIMDSVersionResponse.status ===
@@ -94,7 +94,7 @@ export class RegionDiscovery {
                         PerformanceEvents.RegionDiscoveryGetCurrentVersion,
                         this.logger,
                         this.performanceClient,
-                        this.correlationId
+                        this.correlationId,
                     )(options);
                     if (!currentIMDSVersion) {
                         regionDiscoveryMetadata.region_source =
@@ -107,7 +107,7 @@ export class RegionDiscovery {
                         PerformanceEvents.RegionDiscoveryGetRegionFromIMDS,
                         this.logger,
                         this.performanceClient,
-                        this.correlationId
+                        this.correlationId,
                     )(currentIMDSVersion, options);
                     if (
                         currentIMDSVersionResponse.status ===
@@ -146,16 +146,16 @@ export class RegionDiscovery {
      */
     private async getRegionFromIMDS(
         version: string,
-        options: ImdsOptions
+        options: ImdsOptions,
     ): Promise<NetworkResponse<string>> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.RegionDiscoveryGetRegionFromIMDS,
-            this.correlationId
+            this.correlationId,
         );
         return this.networkInterface.sendGetRequestAsync<string>(
             `${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`,
             options,
-            Constants.IMDS_TIMEOUT
+            Constants.IMDS_TIMEOUT,
         );
     }
 
@@ -165,17 +165,17 @@ export class RegionDiscovery {
      * @returns Promise<string | null>
      */
     private async getCurrentVersion(
-        options: ImdsOptions
+        options: ImdsOptions,
     ): Promise<string | null> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.RegionDiscoveryGetCurrentVersion,
-            this.correlationId
+            this.correlationId,
         );
         try {
             const response =
                 await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(
                     `${Constants.IMDS_ENDPOINT}?format=json`,
-                    options
+                    options,
                 );
 
             // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.

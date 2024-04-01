@@ -61,7 +61,7 @@ export abstract class BaseClient {
 
     protected constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient
+        performanceClient?: IPerformanceClient,
     ) {
         // Set the configuration
         this.config = buildClientConfiguration(configuration);
@@ -81,7 +81,7 @@ export abstract class BaseClient {
         // Set the NetworkManager
         this.networkManager = new NetworkManager(
             this.networkClient,
-            this.cacheManager
+            this.cacheManager,
         );
 
         // Set TelemetryManager
@@ -98,7 +98,7 @@ export abstract class BaseClient {
      * Creates default headers for requests to token endpoint
      */
     protected createTokenRequestHeaders(
-        ccsCred?: CcsCredential
+        ccsCred?: CcsCredential,
     ): Record<string, string> {
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
@@ -107,22 +107,20 @@ export abstract class BaseClient {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(
-                            ccsCred.credential
+                            ccsCred.credential,
                         );
-                        headers[
-                            HeaderNames.CCS_HEADER
-                        ] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
+                        headers[HeaderNames.CCS_HEADER] =
+                            `Oid:${clientInfo.uid}@${clientInfo.utid}`;
                     } catch (e) {
                         this.logger.verbose(
                             "Could not parse home account ID for CCS Header: " +
-                                e
+                                e,
                         );
                     }
                     break;
                 case CcsCredentialType.UPN:
-                    headers[
-                        HeaderNames.CCS_HEADER
-                    ] = `UPN: ${ccsCred.credential}`;
+                    headers[HeaderNames.CCS_HEADER] =
+                        `UPN: ${ccsCred.credential}`;
                     break;
             }
         }
@@ -142,12 +140,12 @@ export abstract class BaseClient {
         headers: Record<string, string>,
         thumbprint: RequestThumbprint,
         correlationId: string,
-        queuedEvent?: string
+        queuedEvent?: string,
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         if (queuedEvent) {
             this.performanceClient?.addQueueMeasurement(
                 queuedEvent,
-                correlationId
+                correlationId,
             );
         }
 
@@ -155,7 +153,7 @@ export abstract class BaseClient {
             await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
                 thumbprint,
                 tokenEndpoint,
-                { body: queryString, headers: headers }
+                { body: queryString, headers: headers },
             );
         this.performanceClient?.addFields(
             {
@@ -163,7 +161,7 @@ export abstract class BaseClient {
                 httpVerToken:
                     response.headers?.[HeaderNames.X_MS_HTTP_VERSION] || "",
             },
-            correlationId
+            correlationId,
         );
 
         if (
@@ -184,11 +182,11 @@ export abstract class BaseClient {
      */
     async updateAuthority(
         cloudInstanceHostname: string,
-        correlationId: string
+        correlationId: string,
     ): Promise<void> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.UpdateTokenEndpointAuthority,
-            correlationId
+            correlationId,
         );
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${this.authority.tenant}/`;
         const cloudInstanceAuthority = await createDiscoveredInstance(
@@ -198,7 +196,7 @@ export abstract class BaseClient {
             this.authority.options,
             this.logger,
             correlationId,
-            this.performanceClient
+            this.performanceClient,
         );
         this.authority = cloudInstanceAuthority;
     }
@@ -212,7 +210,7 @@ export abstract class BaseClient {
 
         if (request.tokenQueryParameters) {
             parameterBuilder.addExtraQueryParameters(
-                request.tokenQueryParameters
+                request.tokenQueryParameters,
             );
         }
 

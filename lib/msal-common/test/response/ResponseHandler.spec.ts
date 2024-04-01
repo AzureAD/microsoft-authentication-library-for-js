@@ -138,7 +138,7 @@ const authorityOptions: AuthorityOptions = {
 const testLoggerCallback = (
     level: LogLevel,
     message: string,
-    containsPii: boolean
+    containsPii: boolean,
 ): void => {
     if (containsPii) {
         console.log(`Log level: ${level} Message: ${message}`);
@@ -152,7 +152,7 @@ const logger = new Logger(loggerOptions);
 const testCacheManager = new MockStorageClass(
     TEST_CONFIG.MSAL_CLIENT_ID,
     cryptoInterface,
-    logger
+    logger,
 );
 
 const testAuthority = new Authority(
@@ -161,7 +161,7 @@ const testAuthority = new Authority(
     testCacheManager,
     authorityOptions,
     logger,
-    TEST_CONFIG.CORRELATION_ID
+    TEST_CONFIG.CORRELATION_ID,
 );
 
 describe("ResponseHandler.ts", () => {
@@ -206,7 +206,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             try {
                 const timestamp = TimeUtils.nowSeconds();
@@ -215,14 +215,14 @@ describe("ResponseHandler.ts", () => {
                         testResponse,
                         testAuthority,
                         timestamp,
-                        testRequest
+                        testRequest,
                     );
                 expect(tokenResp).toBeUndefined();
             } catch (e) {
                 if (e instanceof AuthError) {
                     expect(e).toBeInstanceOf(ClientAuthError);
                     expect(e.errorCode).toBe(
-                        ClientAuthErrorCodes.invalidCacheEnvironment
+                        ClientAuthErrorCodes.invalidCacheEnvironment,
                     );
                 } else {
                     throw e;
@@ -252,7 +252,7 @@ describe("ResponseHandler.ts", () => {
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                    Date.now() + testServerTokenResponse.body.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -264,7 +264,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
 
             sinon
@@ -277,7 +277,7 @@ describe("ResponseHandler.ts", () => {
                         request,
                         idTokenObj,
                         fromTokenCache,
-                        stateString
+                        stateString,
                     ) => {
                         expect(authority).toBe(testAuthority);
                         expect(cacheRecord.idToken).not.toBeNull();
@@ -285,14 +285,14 @@ describe("ResponseHandler.ts", () => {
                         expect(cacheRecord.refreshToken).not.toBeNull();
                         done();
                         return testTokenResponse;
-                    }
+                    },
                 );
             const timestamp = TimeUtils.nowSeconds();
             responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
             );
         });
 
@@ -318,7 +318,7 @@ describe("ResponseHandler.ts", () => {
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                    Date.now() + testServerTokenResponse.body.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -330,7 +330,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
 
             sinon
@@ -343,7 +343,7 @@ describe("ResponseHandler.ts", () => {
                         request,
                         idTokenObj,
                         fromTokenCache,
-                        stateString
+                        stateString,
                     ) => {
                         expect(authority).toBe(testAuthority);
                         expect(cacheRecord.idToken).not.toBeNull();
@@ -351,7 +351,7 @@ describe("ResponseHandler.ts", () => {
                         expect(cacheRecord.refreshToken).toBeNull();
                         done();
                         return testTokenResponse;
-                    }
+                    },
                 );
 
             const timestamp = TimeUtils.nowSeconds();
@@ -359,7 +359,7 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
             );
         });
 
@@ -383,7 +383,7 @@ describe("ResponseHandler.ts", () => {
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                    Date.now() + testServerTokenResponse.body.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -395,7 +395,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
 
             sinon
@@ -408,7 +408,7 @@ describe("ResponseHandler.ts", () => {
                         request,
                         idTokenObj,
                         fromTokenCache,
-                        stateString
+                        stateString,
                     ) => {
                         expect(authority).toBe(testAuthority);
                         expect(cacheRecord.idToken).not.toBeNull();
@@ -416,7 +416,7 @@ describe("ResponseHandler.ts", () => {
                         expect(cacheRecord.refreshToken).not.toBeNull();
                         done();
                         return testTokenResponse;
-                    }
+                    },
                 );
 
             const timestamp = TimeUtils.nowSeconds();
@@ -424,7 +424,7 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
             );
         });
 
@@ -447,7 +447,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
 
             const timestamp = TimeUtils.nowSeconds();
@@ -455,7 +455,7 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
             );
             expect(response.code).toEqual(testSpaCode);
         });
@@ -493,7 +493,7 @@ describe("ResponseHandler.ts", () => {
                     authorityMetadata: "",
                 },
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
 
             const timestamp = TimeUtils.nowSeconds();
@@ -510,7 +510,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
 
             sinon
@@ -525,21 +525,21 @@ describe("ResponseHandler.ts", () => {
                         _idTokenClaims,
                         _requestState,
                         _serverTokenResponse,
-                        _requestId
+                        _requestId,
                     ) => {
                         expect(cacheRecord.accessToken?.realm).toBeDefined();
 
                         done();
 
                         return {} as AuthenticationResult;
-                    }
+                    },
                 );
 
             responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
             );
         });
     });
@@ -562,14 +562,14 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
             );
 
             expect(result.familyId).toBe("");
@@ -600,7 +600,7 @@ describe("ResponseHandler.ts", () => {
                         default:
                             return null;
                     }
-                }
+                },
             );
 
             const responseHandler = new ResponseHandler(
@@ -609,14 +609,14 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -640,14 +640,14 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
             );
 
             expect(result.requestId).toBe("");
@@ -672,13 +672,13 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
 
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    "differentState"
+                    "differentState",
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
@@ -701,11 +701,11 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             responseHandler.validateServerAuthorizationCodeResponse(
                 testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
             );
         });
 
@@ -724,11 +724,11 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             responseHandler.validateServerAuthorizationCodeResponse(
                 testServerCodeResponse,
-                testAltState
+                testAltState,
             );
         });
 
@@ -746,12 +746,12 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(InteractionRequiredAuthError);
@@ -773,12 +773,12 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -800,12 +800,12 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -827,12 +827,12 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -848,7 +848,7 @@ describe("ResponseHandler.ts", () => {
             // Can't spy on buildClientInfo, spy on one of its function calls instead
             const buildClientInfoSpy = sinon.spy(
                 cryptoInterface,
-                "base64Decode"
+                "base64Decode",
             );
 
             const responseHandler = new ResponseHandler(
@@ -857,11 +857,11 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
             responseHandler.validateServerAuthorizationCodeResponse(
                 testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
             );
             expect(buildClientInfoSpy.notCalled).toBe(true);
         });
@@ -879,13 +879,13 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null
+                null,
             );
 
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(
                     testServerCodeResponse,
-                    "dummy-state-%20%%%30%%%%%40"
+                    "dummy-state-%20%%%30%%%%%40",
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);

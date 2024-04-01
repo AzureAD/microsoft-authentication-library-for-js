@@ -10,7 +10,7 @@ describe("Logger.ts Class Unit Tests", () => {
             loggerCallback: (
                 level: LogLevel,
                 message: string,
-                containsPii: boolean
+                containsPii: boolean,
             ): void => {
                 logStore[level] = message;
             },
@@ -110,7 +110,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 loggerCallback: (
                     level: LogLevel,
                     message: string,
-                    containsPii: boolean
+                    containsPii: boolean,
                 ): void => {
                     logStore[level] = message;
                 },
@@ -134,7 +134,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 loggerCallback: (
                     level: LogLevel,
                     message: string,
-                    containsPii: boolean
+                    containsPii: boolean,
                 ): void => {
                     logStore[level] = message;
                 },
@@ -160,7 +160,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 loggerCallback: (
                     level: LogLevel,
                     message: string,
-                    containsPii: boolean
+                    containsPii: boolean,
                 ): void => {
                     logStore[level] = message;
                 },
@@ -186,7 +186,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 loggerCallback: (
                     level: LogLevel,
                     message: string,
-                    containsPii: boolean
+                    containsPii: boolean,
                 ): void => {
                     logStore[level] = message;
                 },
@@ -213,7 +213,7 @@ describe("Logger.ts Class Unit Tests", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "1.0.0");
             expect(loggerClone.isPiiLoggingEnabled()).toBe(
-                logger.isPiiLoggingEnabled()
+                logger.isPiiLoggingEnabled(),
             );
         });
 
@@ -224,7 +224,7 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(logStore[LogLevel.Info].includes("msal-common")).toBe(true);
             expect(logStore[LogLevel.Info].includes("2.0.0")).toBe(true);
             expect(logStore[LogLevel.Info].includes("msal-common@2.0.0")).toBe(
-                true
+                true,
             );
         });
     });
@@ -234,7 +234,7 @@ describe("Logger.ts Class Unit Tests", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "1.0.0");
             expect(loggerClone.isPiiLoggingEnabled()).toBe(
-                logger.isPiiLoggingEnabled()
+                logger.isPiiLoggingEnabled(),
             );
         });
 
@@ -245,7 +245,7 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(logStore[LogLevel.Info].includes("msal-common")).toBe(true);
             expect(logStore[LogLevel.Info].includes("2.0.0")).toBe(true);
             expect(logStore[LogLevel.Info].includes("msal-common@2.0.0")).toBe(
-                true
+                true,
             );
         });
     });
@@ -376,7 +376,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             logger.verbose("Message");
             expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(
-                true
+                true,
             );
         });
 
@@ -386,7 +386,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             logger.verbose("Message", testCorrelationId);
             expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(
-                true
+                true,
             );
         });
 
@@ -400,10 +400,10 @@ describe("Logger.ts Class Unit Tests", () => {
 
             logger.verbose("Message", testCorrelationId);
             expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(
-                true
+                true,
             );
             expect(
-                logStore[LogLevel.Verbose].includes(optionsCorrelationId)
+                logStore[LogLevel.Verbose].includes(optionsCorrelationId),
             ).toBe(false);
         });
 
@@ -413,7 +413,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             logger.verbose("Message", "");
             expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(
-                true
+                true,
             );
         });
     });

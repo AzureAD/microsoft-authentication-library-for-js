@@ -53,11 +53,11 @@ export class PopTokenGenerator {
      */
     async generateCnf(
         request: SignedHttpRequestParameters,
-        logger: Logger
+        logger: Logger,
     ): Promise<ReqCnfData> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.PopTokenGenerateCnf,
-            request.correlationId
+            request.correlationId,
         );
 
         const reqCnf = await invokeAsync(
@@ -65,10 +65,10 @@ export class PopTokenGenerator {
             PerformanceEvents.PopTokenGenerateCnf,
             logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(request);
         const reqCnfString: string = this.cryptoUtils.base64Encode(
-            JSON.stringify(reqCnf)
+            JSON.stringify(reqCnf),
         );
 
         return {
@@ -86,12 +86,11 @@ export class PopTokenGenerator {
     async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.PopTokenGenerateKid,
-            request.correlationId
+            request.correlationId,
         );
 
-        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(
-            request
-        );
+        const kidThumbprint =
+            await this.cryptoUtils.getPublicKeyThumbprint(request);
 
         return {
             kid: kidThumbprint,
@@ -108,7 +107,7 @@ export class PopTokenGenerator {
     async signPopToken(
         accessToken: string,
         keyId: string,
-        request: SignedHttpRequestParameters
+        request: SignedHttpRequestParameters,
     ): Promise<string> {
         return this.signPayload(accessToken, keyId, request);
     }
@@ -125,7 +124,7 @@ export class PopTokenGenerator {
         payload: string,
         keyId: string,
         request: SignedHttpRequestParameters,
-        claims?: object
+        claims?: object,
     ): Promise<string> {
         // Deconstruct request to extract SHR parameters
         const {
@@ -156,7 +155,7 @@ export class PopTokenGenerator {
             },
             keyId,
             shrOptions,
-            request.correlationId
+            request.correlationId,
         );
     }
 }

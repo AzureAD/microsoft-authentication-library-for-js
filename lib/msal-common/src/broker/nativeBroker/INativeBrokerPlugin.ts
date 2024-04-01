@@ -14,16 +14,16 @@ export interface INativeBrokerPlugin {
     setLogger(loggerOptions: LoggerOptions): void;
     getAccountById(
         accountId: string,
-        correlationId: string
+        correlationId: string,
     ): Promise<AccountInfo>;
     getAllAccounts(
         clientId: string,
-        correlationId: string
+        correlationId: string,
     ): Promise<AccountInfo[]>;
     acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult>;
     acquireTokenInteractive(
         request: NativeRequest,
-        windowHandle?: Buffer
+        windowHandle?: Buffer,
     ): Promise<AuthenticationResult>;
     signOut(request: NativeSignOutRequest): Promise<void>;
 }

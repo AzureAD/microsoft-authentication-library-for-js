@@ -59,7 +59,7 @@ export class Logger {
     constructor(
         loggerOptions: LoggerOptions,
         packageName?: string,
-        packageVersion?: string
+        packageVersion?: string,
     ) {
         const defaultLoggerCallback = () => {
             return;
@@ -95,7 +95,7 @@ export class Logger {
     public clone(
         packageName: string,
         packageVersion: string,
-        correlationId?: string
+        correlationId?: string,
     ): Logger {
         return new Logger(
             {
@@ -105,7 +105,7 @@ export class Logger {
                 correlationId: correlationId || this.correlationId,
             },
             packageName,
-            packageVersion
+            packageVersion,
         );
     }
 
@@ -114,7 +114,7 @@ export class Logger {
      */
     private logMessage(
         logMessage: string,
-        options: LoggerMessageOptions
+        options: LoggerMessageOptions,
     ): void {
         if (
             options.logLevel > this.level ||
@@ -136,7 +136,7 @@ export class Logger {
         this.executeCallback(
             options.logLevel,
             log,
-            options.containsPii || false
+            options.containsPii || false,
         );
     }
 
@@ -146,7 +146,7 @@ export class Logger {
     executeCallback(
         level: LogLevel,
         message: string,
-        containsPii: boolean
+        containsPii: boolean,
     ): void {
         if (this.localCallback) {
             this.localCallback(level, message, containsPii);

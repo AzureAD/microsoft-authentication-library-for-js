@@ -16,7 +16,7 @@ import {
  */
 export function extractTokenClaims(
     encodedToken: string,
-    base64Decode: (input: string) => string
+    base64Decode: (input: string) => string,
 ): TokenClaims {
     const jswPayload = getJWSPayload(encodedToken);
 

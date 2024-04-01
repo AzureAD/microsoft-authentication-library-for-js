@@ -60,7 +60,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
@@ -77,7 +77,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
@@ -100,64 +100,64 @@ describe("AuthorizationCodeClient unit tests", () => {
                 loginUrl.includes(
                     DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
                         "{tenant}",
-                        "common"
-                    )
-                )
+                        "common",
+                    ),
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-                )
+                    `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`
-                )
+                    `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
-                    )}`
-                )
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(
-                        ResponseMode.QUERY
-                    )}`
-                )
+                        ResponseMode.QUERY,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(
-                        TEST_CONFIG.TEST_CHALLENGE
-                    )}`
-                )
+                        TEST_CONFIG.TEST_CHALLENGE,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${
                         AADServerParamKeys.CODE_CHALLENGE_METHOD
                     }=${encodeURIComponent(
-                        Constants.S256_CODE_CHALLENGE_METHOD
-                    )}`
-                )
+                        Constants.S256_CODE_CHALLENGE_METHOD,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-                )
+                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-                )
+                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`,
+                ),
             ).toBe(true);
         });
 
@@ -166,7 +166,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
@@ -199,102 +199,102 @@ describe("AuthorizationCodeClient unit tests", () => {
                 loginUrl.includes(
                     DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
                         "{tenant}",
-                        "common"
-                    )
-                )
+                        "common",
+                    ),
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-                )
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`
-                )
+                    `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
-                    )}`
-                )
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(
-                        ResponseMode.FORM_POST
-                    )}`
-                )
+                        ResponseMode.FORM_POST,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.STATE}=${encodeURIComponent(
-                        TEST_CONFIG.STATE
-                    )}`
-                )
+                        TEST_CONFIG.STATE,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.PROMPT}=${PromptValue.LOGIN}`
-                )
+                    `${AADServerParamKeys.PROMPT}=${PromptValue.LOGIN}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.NONCE}=${encodeURIComponent(
-                        TEST_CONFIG.NONCE
-                    )}`
-                )
+                        TEST_CONFIG.NONCE,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(
-                        TEST_CONFIG.TEST_CHALLENGE
-                    )}`
-                )
+                        TEST_CONFIG.TEST_CHALLENGE,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${
                         AADServerParamKeys.CODE_CHALLENGE_METHOD
-                    }=${encodeURIComponent(TEST_CONFIG.CODE_CHALLENGE_METHOD)}`
-                )
+                    }=${encodeURIComponent(TEST_CONFIG.CODE_CHALLENGE_METHOD)}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT
-                    )}`
-                )
+                        TEST_CONFIG.LOGIN_HINT,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.DOMAIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.DOMAIN_HINT
-                    )}`
-                )
+                        TEST_CONFIG.DOMAIN_HINT,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-                )
+                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-                )
+                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`,
+                ),
             ).toBe(true);
         });
 
@@ -303,7 +303,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -328,16 +328,16 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT
-                    )}`
-                )
+                        TEST_CONFIG.LOGIN_HINT,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
-                        `UPN:${TEST_CONFIG.LOGIN_HINT}`
-                    )}`
-                )
+                        `UPN:${TEST_CONFIG.LOGIN_HINT}`,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
@@ -346,7 +346,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -398,16 +398,16 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SID}=${encodeURIComponent(
-                        testTokenClaims.sid
-                    )}`
-                )
+                        testTokenClaims.sid,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
-                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
-                    )}`
-                )
+                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
@@ -415,7 +415,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -467,23 +467,23 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SID}=${encodeURIComponent(
-                        testTokenClaims.sid
-                    )}`
-                )
+                        testTokenClaims.sid,
+                    )}`,
+                ),
             ).toBe(false);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        testTokenClaims.login_hint
-                    )}`
-                )
+                        testTokenClaims.login_hint,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
-                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
-                    )}`
-                )
+                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
@@ -492,7 +492,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -518,14 +518,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).toEqual(
                 expect.not.arrayContaining([
                     `${AADServerParamKeys.LOGIN_HINT}=`,
-                ])
+                ]),
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SID}=${encodeURIComponent(
-                        TEST_CONFIG.SID
-                    )}`
-                )
+                        TEST_CONFIG.SID,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
@@ -534,7 +534,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -560,9 +560,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT
-                    )}`
-                )
+                        TEST_CONFIG.LOGIN_HINT,
+                    )}`,
+                ),
             ).toBe(true);
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -572,7 +572,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -595,7 +595,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
-                false
+                false,
             );
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -605,7 +605,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -630,16 +630,16 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT
-                    )}`
-                )
+                        TEST_CONFIG.LOGIN_HINT,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_ACCOUNT_INFO.username
-                    )}`
-                )
+                        TEST_ACCOUNT_INFO.username,
+                    )}`,
+                ),
             ).toBe(false);
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -649,7 +649,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -701,12 +701,12 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SID}=${encodeURIComponent(
-                        testTokenClaims.sid
-                    )}`
-                )
+                        testTokenClaims.sid,
+                    )}`,
+                ),
             ).toBe(true);
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
-                false
+                false,
             );
         });
 
@@ -715,7 +715,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -785,9 +785,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT
-                    )}`
-                )
+                        TEST_CONFIG.LOGIN_HINT,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
@@ -796,7 +796,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -864,9 +864,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT
-                    )}`
-                )
+                        TEST_CONFIG.LOGIN_HINT,
+                    )}`,
+                ),
             ).toBe(true);
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -876,7 +876,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -900,9 +900,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_ACCOUNT_INFO.username
-                    )}`
-                )
+                        TEST_ACCOUNT_INFO.username,
+                    )}`,
+                ),
             ).toBe(true);
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -912,7 +912,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -935,7 +935,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
-                false
+                false,
             );
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -945,7 +945,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -968,7 +968,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
-                false
+                false,
             );
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -978,7 +978,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -1001,7 +1001,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
-                false
+                false,
             );
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -1011,7 +1011,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -1036,9 +1036,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SCOPE}=${encodeURIComponent(
-                        `${testScope1} ${testScope2}`
-                    )}`
-                )
+                        `${testScope1} ${testScope2}`,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
@@ -1047,7 +1047,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromHardcodedValues"
+                    <any>"getEndpointMetadataFromHardcodedValues",
                 )
                 .returns({
                     token_endpoint:
@@ -1082,54 +1082,54 @@ describe("AuthorizationCodeClient unit tests", () => {
                 loginUrl.includes(
                     ALTERNATE_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
                         "{tenant}",
-                        "common"
-                    )
-                )
+                        "common",
+                    ),
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-                )
+                    `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`
-                )
+                    `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
-                    )}`
-                )
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(
-                        ResponseMode.QUERY
-                    )}`
-                )
+                        ResponseMode.QUERY,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(
-                        TEST_CONFIG.TEST_CHALLENGE
-                    )}`
-                )
+                        TEST_CONFIG.TEST_CHALLENGE,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${
                         AADServerParamKeys.CODE_CHALLENGE_METHOD
                     }=${encodeURIComponent(
-                        Constants.S256_CODE_CHALLENGE_METHOD
-                    )}`
-                )
+                        Constants.S256_CODE_CHALLENGE_METHOD,
+                    )}`,
+                ),
             ).toBe(true);
         });
     });
@@ -1140,7 +1140,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
 
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(
-                config
+                config,
             );
             const authCodePayload = client.handleFragmentResponse(
                 {
@@ -1148,11 +1148,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                     state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
                     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 },
-                TEST_STATE_VALUES.ENCODED_LIB_STATE
+                TEST_STATE_VALUES.ENCODED_LIB_STATE,
             );
             expect(authCodePayload.code).toBe("thisIsATestCode");
             expect(authCodePayload.state).toBe(
-                TEST_STATE_VALUES.ENCODED_LIB_STATE
+                TEST_STATE_VALUES.ENCODED_LIB_STATE,
             );
         });
 
@@ -1160,13 +1160,13 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(
-                config
+                config,
             );
             const cacheStorageMock =
                 config.storageInterface as MockStorageClass;
@@ -1179,7 +1179,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         error_description: "msal error description",
                         state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
                     },
-                    TEST_STATE_VALUES.ENCODED_LIB_STATE
+                    TEST_STATE_VALUES.ENCODED_LIB_STATE,
                 );
             } catch (e) {
                 error = e as AuthError;
@@ -1202,7 +1202,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
@@ -1210,16 +1210,16 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             await expect(
                 // @ts-ignore
-                client.acquireToken({ code: null }, null)
+                client.acquireToken({ code: null }, null),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
+                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade),
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
 
             expect(
                 // @ts-ignore
-                config.storageInterface.getAuthorityMetadataKeys().length
+                config.storageInterface.getAuthorityMetadataKeys().length,
             ).toBe(1);
         });
 
@@ -1227,13 +1227,13 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
             if (!config.storageInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration storageInterface not initialized correctly."
+                    "configuration storageInterface not initialized correctly.",
                 );
             }
             const client = new AuthorizationCodeClient(config);
@@ -1249,15 +1249,15 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             await expect(
                 // @ts-ignore
-                client.acquireToken(codeRequest, null)
+                client.acquireToken(codeRequest, null),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
+                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade),
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
             // @ts-ignore
             expect(
-                config.storageInterface.getAuthorityMetadataKeys().length
+                config.storageInterface.getAuthorityMetadataKeys().length,
             ).toBe(1);
         });
 
@@ -1267,35 +1267,35 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake(
                     (
                         tokenEndpoint: string,
                         queryString: string,
-                        headers: Record<string, string>
+                        headers: Record<string, string>,
                     ) => {
                         const headerNames = Object.keys(headers);
                         headerNames.forEach((name) => {
                             expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(
-                                expect.arrayContaining([name.toLowerCase()])
+                                expect.arrayContaining([name.toLowerCase()]),
                             );
                         });
 
                         stubCalled = true;
                         return Promise.resolve(AUTHENTICATION_RESULT);
-                    }
+                    },
                 );
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface or systemOptions not initialized correctly."
+                    "configuration cryptoInterface or systemOptions not initialized correctly.",
                 );
             }
             config.systemOptions.preventCorsPreflight = true;
@@ -1383,7 +1383,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const reqHeaders = [
@@ -1393,29 +1393,29 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake(
                     (
                         tokenEndpoint: string,
                         queryString: string,
-                        headers: Record<string, string>
+                        headers: Record<string, string>,
                     ) => {
                         const headerNames = Object.keys(headers);
                         headerNames.forEach((name) => {
                             expect(reqHeaders).toEqual(
-                                expect.arrayContaining([name.toLowerCase()])
+                                expect.arrayContaining([name.toLowerCase()]),
                             );
                         });
 
                         stubCalled = true;
                         return Promise.resolve(AUTHENTICATION_RESULT);
-                    }
+                    },
                 );
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface or systemOptions not initialized correctly."
+                    "configuration cryptoInterface or systemOptions not initialized correctly.",
                 );
             }
             config.systemOptions.preventCorsPreflight = false;
@@ -1503,35 +1503,35 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake(
                     (
                         tokenEndpoint: string,
                         queryString: string,
-                        headers: Record<string, string>
+                        headers: Record<string, string>,
                     ) => {
                         const headerNames = Object.keys(headers);
                         headerNames.forEach((name) => {
                             expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(
-                                expect.arrayContaining([name.toLowerCase()])
+                                expect.arrayContaining([name.toLowerCase()]),
                             );
                         });
 
                         stubCalled = true;
                         return Promise.resolve(AUTHENTICATION_RESULT);
-                    }
+                    },
                 );
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
 
@@ -1612,19 +1612,19 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
 
@@ -1699,9 +1699,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                })
+                }),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired)
+                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired),
             );
         });
 
@@ -1709,19 +1709,19 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
 
@@ -1796,9 +1796,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                })
+                }),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound)
+                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound),
             );
         });
 
@@ -1806,23 +1806,23 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
 
@@ -1896,89 +1896,89 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                }
+                },
             );
             if (!authenticationResult.expiresOn) {
                 throw TestError.createTestSetupError(
-                    "mockedAccountInfo does not have a value"
+                    "mockedAccountInfo does not have a value",
                 );
             }
 
             expect(authenticationResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token
+                AUTHENTICATION_RESULT.body.access_token,
             );
             // @ts-ignore
             expect(
                 Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
-                    authenticationResult.expiresOn.getMilliseconds()
+                    authenticationResult.expiresOn.getMilliseconds(),
             ).toBe(true);
             expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
+                createTokenRequestBodySpy.calledWith(authCodeRequest),
             ).toBeTruthy();
 
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-                )
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
-                    )}`
-                )
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`
-                )
+                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`
-                )
+                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-                )
+                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`,
+                ),
             ).toBe(true);
         });
 
@@ -1986,23 +1986,23 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
 
@@ -2078,89 +2078,89 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                }
+                },
             );
             if (!authenticationResult.expiresOn) {
                 throw TestError.createTestSetupError(
-                    "mockedAccountInfo does not have a value"
+                    "mockedAccountInfo does not have a value",
                 );
             }
 
             expect(authenticationResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token
+                AUTHENTICATION_RESULT.body.access_token,
             );
             // @ts-ignore
             expect(
                 Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
-                    authenticationResult.expiresOn.getMilliseconds()
+                    authenticationResult.expiresOn.getMilliseconds(),
             ).toBe(true);
             expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
+                createTokenRequestBodySpy.calledWith(authCodeRequest),
             ).toBeTruthy();
 
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-                )
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
-                    )}`
-                )
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`
-                )
+                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`
-                )
+                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-                )
+                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`,
+                ),
             ).toBe(true);
         });
 
@@ -2168,23 +2168,23 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake((url: string) => {
                     try {
                         expect(
                             url.includes(
-                                "/token?testParam1=testValue1&testParam3=testValue3"
-                            )
+                                "/token?testParam1=testValue1&testParam3=testValue3",
+                            ),
                         ).toBeTruthy();
                         expect(
-                            !url.includes("/token?testParam2=")
+                            !url.includes("/token?testParam2="),
                         ).toBeTruthy();
                         done();
                     } catch (error) {
@@ -2221,13 +2221,13 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake((url: string, body: string) => {
                     expect(body).toContain("extra_body_parameter=true");
@@ -2236,7 +2236,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface or systemOptions not initialized correctly."
+                    "configuration cryptoInterface or systemOptions not initialized correctly.",
                 );
             }
             const client = new AuthorizationCodeClient(config);
@@ -2267,13 +2267,13 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake((url: string, body: string) => {
                     expect(body).toContain("return_spa_code=1");
@@ -2282,7 +2282,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface or systemOptions not initialized correctly."
+                    "configuration cryptoInterface or systemOptions not initialized correctly.",
                 );
             }
             const client = new AuthorizationCodeClient(config);
@@ -2317,13 +2317,13 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     TestAuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake((url: string, body: string) => {
                     expect(body).not.toContain("redirect_uri=");
@@ -2332,7 +2332,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface or systemOptions not initialized correctly."
+                    "configuration cryptoInterface or systemOptions not initialized correctly.",
                 );
             }
             const client = new TestAuthorizationCodeClient(config);
@@ -2363,23 +2363,23 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(POP_AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
 
@@ -2424,10 +2424,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             config.cryptoInterface.signJwt = async (
                 // @ts-ignore
                 payload: SignedHttpRequest,
-                kid: string
+                kid: string,
             ): Promise<string> => {
                 expect(payload.at).toBe(
-                    POP_AUTHENTICATION_RESULT.body.access_token
+                    POP_AUTHENTICATION_RESULT.body.access_token,
                 );
                 return signedJwt;
             };
@@ -2448,7 +2448,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .callsFake(
                     (
                         encodedToken: string,
-                        base64Decode: (val: string) => string
+                        base64Decode: (val: string) => string,
                     ): TokenClaims => {
                         switch (encodedToken) {
                             case POP_AUTHENTICATION_RESULT.body.id_token:
@@ -2462,7 +2462,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                             default:
                                 return {};
                         }
-                    }
+                    },
                 );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -2487,7 +2487,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                }
+                },
             );
 
             expect(authenticationResult.accessToken).toBe(signedJwt);
@@ -2495,68 +2495,68 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 Date.now() + POP_AUTHENTICATION_RESULT.body.expires_in * 1000 >=
                     // @ts-ignore
-                    authenticationResult.expiresOn.getMilliseconds()
+                    authenticationResult.expiresOn.getMilliseconds(),
             ).toBe(true);
             expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
+                createTokenRequestBodySpy.calledWith(authCodeRequest),
             ).toBeTruthy();
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-                )
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
-                    )}`
-                )
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`
-                )
+                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`
-                )
+                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`
-                )
+                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(
-                        TEST_POP_VALUES.ENCODED_REQ_CNF
-                    )}`
-                )
+                        TEST_POP_VALUES.ENCODED_REQ_CNF,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
@@ -2564,23 +2564,23 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(POP_AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
 
@@ -2621,10 +2621,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             config.cryptoInterface.signJwt = async (
                 // @ts-ignore
                 payload: SignedHttpRequest,
-                kid: string
+                kid: string,
             ): Promise<string> => {
                 expect(payload.at).toBe(
-                    POP_AUTHENTICATION_RESULT.body.access_token
+                    POP_AUTHENTICATION_RESULT.body.access_token,
                 );
                 return signedJwt;
             };
@@ -2645,7 +2645,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .callsFake(
                     (
                         encodedToken: string,
-                        base64Decode: (val: string) => string
+                        base64Decode: (val: string) => string,
                     ): TokenClaims => {
                         switch (encodedToken) {
                             case POP_AUTHENTICATION_RESULT.body.id_token:
@@ -2659,7 +2659,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                             default:
                                 return {};
                         }
-                    }
+                    },
                 );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -2684,73 +2684,73 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                }
+                },
             );
 
             expect(authenticationResult.accessToken).toBe(signedJwt);
             expect(
                 Date.now() + POP_AUTHENTICATION_RESULT.body.expires_in * 1000 >=
                     // @ts-ignore
-                    authenticationResult.expiresOn.getMilliseconds()
+                    authenticationResult.expiresOn.getMilliseconds(),
             ).toBe(true);
             expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
+                createTokenRequestBodySpy.calledWith(authCodeRequest),
             ).toBeTruthy();
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-                )
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
-                    )}`
-                )
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`
-                )
+                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`
-                )
+                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`
-                )
+                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.REQ_CNF}=${TEST_SSH_VALUES.ENCODED_SSH_JWK}`
-                )
+                    `${AADServerParamKeys.REQ_CNF}=${TEST_SSH_VALUES.ENCODED_SSH_JWK}`,
+                ),
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
@@ -2758,19 +2758,19 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(POP_AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
 
@@ -2811,10 +2811,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             config.cryptoInterface.signJwt = async (
                 // @ts-ignore
                 payload: SignedHttpRequest,
-                kid: string
+                kid: string,
             ): Promise<string> => {
                 expect(payload.at).toBe(
-                    POP_AUTHENTICATION_RESULT.body.access_token
+                    POP_AUTHENTICATION_RESULT.body.access_token,
                 );
                 return signedJwt;
             };
@@ -2835,7 +2835,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .callsFake(
                     (
                         encodedToken: string,
-                        base64Decode: (val: string) => string
+                        base64Decode: (val: string) => string,
                     ): TokenClaims => {
                         switch (encodedToken) {
                             case POP_AUTHENTICATION_RESULT.body.id_token:
@@ -2849,7 +2849,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                             default:
                                 return {};
                         }
-                    }
+                    },
                 );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -2871,11 +2871,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                })
+                }),
             ).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
-                )
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                ),
             );
         });
 
@@ -2883,13 +2883,13 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves({
                     ...AUTHENTICATION_RESULT,
@@ -2901,12 +2901,12 @@ describe("AuthorizationCodeClient unit tests", () => {
                 });
             sinon.spy(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
             // Set up required objects and mocked return values
@@ -2979,11 +2979,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                }
+                },
             );
 
             expect(authenticationResult.expiresOn?.toString()).not.toBe(
-                "Invalid Date"
+                "Invalid Date",
             );
         });
 
@@ -2991,7 +2991,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const authResult = {
@@ -3004,17 +3004,17 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(authResult);
             const createTokenRequestBodySpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
             // Set up required objects and mocked return values
@@ -3087,34 +3087,34 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                }
+                },
             );
             const accessTokenKey = config.storageInterface
                 ?.getKeys()
                 .find((value) => value.indexOf("accesstoken") >= 0);
             const accessTokenCacheItem = accessTokenKey
                 ? config.storageInterface?.getAccessTokenCredential(
-                      accessTokenKey
+                      accessTokenKey,
                   )
                 : null;
 
             expect(authenticationResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token
+                AUTHENTICATION_RESULT.body.access_token,
             );
             expect(
                 authenticationResult.expiresOn &&
                     Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
-                        authenticationResult.expiresOn.getMilliseconds()
+                        authenticationResult.expiresOn.getMilliseconds(),
             ).toBe(true);
             expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
+                createTokenRequestBodySpy.calledWith(authCodeRequest),
             ).toBeTruthy();
             expect(
                 accessTokenCacheItem &&
                     accessTokenCacheItem.refreshOn &&
                     accessTokenCacheItem.refreshOn ===
                         accessTokenCacheItem.cachedAt +
-                            authResult.body.refresh_in
+                            authResult.body.refresh_in,
             );
         });
 
@@ -3122,19 +3122,19 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
 
@@ -3171,17 +3171,17 @@ describe("AuthorizationCodeClient unit tests", () => {
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
-                }
+                },
             );
             if (!authenticationResult.expiresOn) {
                 throw TestError.createTestSetupError(
-                    "mockedAccountInfo does not have a value"
+                    "mockedAccountInfo does not have a value",
                 );
             }
 
             expect(authenticationResult.requestId).toBeTruthy;
             expect(authenticationResult.requestId).toEqual(
-                CORS_RESPONSE_HEADERS.xMsRequestId
+                CORS_RESPONSE_HEADERS.xMsRequestId,
             );
         });
 
@@ -3189,19 +3189,19 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
             // Set up stubs
@@ -3237,11 +3237,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
-                }
+                },
             );
             if (!authenticationResult.expiresOn) {
                 throw TestError.createTestSetupError(
-                    "mockedAccountInfo does not have a value"
+                    "mockedAccountInfo does not have a value",
                 );
             }
 
@@ -3268,25 +3268,25 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const client = new AuthorizationCodeClient(
                 config,
-                performanceClient
+                performanceClient,
             );
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     // @ts-ignore
                     client.networkManager,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 )
                 .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
             // Set up stubs
@@ -3328,7 +3328,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token
                             ?.length,
                 },
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
         });
 
@@ -3350,25 +3350,25 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const client = new AuthorizationCodeClient(
                 config,
-                performanceClient
+                performanceClient,
             );
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
                 .stub(
                     // @ts-ignore
                     client.networkManager,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 )
                 .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
             // Set up stubs
@@ -3409,29 +3409,28 @@ describe("AuthorizationCodeClient unit tests", () => {
                     refreshTokenSize:
                         AUTHENTICATION_RESULT.body.refresh_token?.length,
                 },
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
         });
     });
 
     describe("Telemetry protocol mode tests", () => {
         it("Adds telemetry headers to token request in AAD protocol mode", async () => {
-            let config = await ClientTestUtils.createTestClientConfiguration(
-                true
-            );
+            let config =
+                await ClientTestUtils.createTestClientConfiguration(true);
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const createTokenRequestBodySpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
             // Set up stubs
@@ -3467,7 +3466,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     add: (fields: { [key: string]: {} | undefined }) =>
                         performanceClient.addFields(
                             fields,
-                            TEST_CONFIG.CORRELATION_ID
+                            TEST_CONFIG.CORRELATION_ID,
                         ),
                     increment: jest.fn(),
                     end: jest.fn(),
@@ -3475,7 +3474,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
             const client = new AuthorizationCodeClient(
                 config,
-                performanceClient
+                performanceClient,
             );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -3497,36 +3496,36 @@ describe("AuthorizationCodeClient unit tests", () => {
                 });
             } catch {}
             expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
+                createTokenRequestBodySpy.calledWith(authCodeRequest),
             ).toBeTruthy();
 
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`),
             ).toBe(true);
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`),
             ).toBe(true);
         });
         it("Does not add telemetry headers to token request in OIDC protocol mode", async () => {
             let config = await ClientTestUtils.createTestClientConfiguration(
                 true,
-                ProtocolMode.OIDC
+                ProtocolMode.OIDC,
             );
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const createTokenRequestBodySpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                    "configuration cryptoInterface not initialized correctly.",
                 );
             }
             // Set up stubs
@@ -3562,7 +3561,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     add: (fields: { [key: string]: {} | undefined }) =>
                         performanceClient.addFields(
                             fields,
-                            TEST_CONFIG.CORRELATION_ID
+                            TEST_CONFIG.CORRELATION_ID,
                         ),
                     increment: jest.fn(),
                     end: jest.fn(),
@@ -3570,7 +3569,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
             const client = new AuthorizationCodeClient(
                 config,
-                performanceClient
+                performanceClient,
             );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -3592,16 +3591,16 @@ describe("AuthorizationCodeClient unit tests", () => {
                 });
             } catch {}
             expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
+                createTokenRequestBodySpy.calledWith(authCodeRequest),
             ).toBeTruthy();
 
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`),
             ).toBe(false);
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`),
             ).toBe(false);
         });
     });
@@ -3611,7 +3610,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
@@ -3626,8 +3625,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(logoutUri).toBe(
                 `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
                     "{tenant}",
-                    "common"
-                )}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`
+                    "common",
+                )}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`,
             );
         });
 
@@ -3635,7 +3634,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
@@ -3651,11 +3650,11 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
                 "{tenant}",
-                "common"
+                "common",
             )}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(
-                TEST_URIS.TEST_LOGOUT_URI
+                TEST_URIS.TEST_LOGOUT_URI,
             )}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             )}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${
                 AADServerParamKeys.STATE
             }=test_state`;
@@ -3666,7 +3665,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromHardcodedValues"
+                    <any>"getEndpointMetadataFromHardcodedValues",
                 )
                 .returns({
                     token_endpoint:
@@ -3721,7 +3720,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 });
 
             expect(queryString).toContain(
-                `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`
+                `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`,
             );
         });
 
@@ -3759,7 +3758,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 });
 
             expect(queryString).toContain(
-                `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`
+                `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`,
             );
         });
 

@@ -41,7 +41,7 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon
@@ -55,7 +55,7 @@ describe("ThrottlingUtils", () => {
             sinon.assert.callCount(removeItemStub, 0);
 
             expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint)
+                ThrottlingUtils.preProcess(cache, thumbprint),
             ).toThrowError(ServerError);
         });
 
@@ -65,7 +65,7 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon
@@ -77,7 +77,7 @@ describe("ThrottlingUtils", () => {
             sinon.assert.callCount(removeItemStub, 1);
 
             expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint)
+                ThrottlingUtils.preProcess(cache, thumbprint),
             ).not.toThrow();
         });
 
@@ -86,7 +86,7 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getThrottlingCache").callsFake(() => null);
@@ -95,7 +95,7 @@ describe("ThrottlingUtils", () => {
             sinon.assert.callCount(removeItemStub, 0);
 
             expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint)
+                ThrottlingUtils.preProcess(cache, thumbprint),
             ).not.toThrow();
         });
     });
@@ -115,7 +115,7 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const setItemStub = sinon.stub(cache, "setThrottlingCache");
 
@@ -133,7 +133,7 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const setItemStub = sinon.stub(cache, "setThrottlingCache");
 
@@ -272,7 +272,7 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
             );
             const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
             const removeItemStub = jest.spyOn(cache, "removeItem");

@@ -21,7 +21,7 @@ export class RequestValidator {
     static validateRedirectUri(redirectUri: string): void {
         if (!redirectUri) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.redirectUriEmpty
+                ClientConfigurationErrorCodes.redirectUriEmpty,
             );
         }
     }
@@ -39,7 +39,7 @@ export class RequestValidator {
 
         if (promptValues.indexOf(prompt) < 0) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidPromptValue
+                ClientConfigurationErrorCodes.invalidPromptValue,
             );
         }
     }
@@ -49,7 +49,7 @@ export class RequestValidator {
             JSON.parse(claims);
         } catch (e) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims
+                ClientConfigurationErrorCodes.invalidClaims,
             );
         }
     }
@@ -61,11 +61,11 @@ export class RequestValidator {
      */
     static validateCodeChallengeParams(
         codeChallenge: string,
-        codeChallengeMethod: string
+        codeChallengeMethod: string,
     ): void {
         if (!codeChallenge || !codeChallengeMethod) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.pkceParamsMissing
+                ClientConfigurationErrorCodes.pkceParamsMissing,
             );
         } else {
             this.validateCodeChallengeMethod(codeChallengeMethod);
@@ -84,7 +84,7 @@ export class RequestValidator {
             ].indexOf(codeChallengeMethod) < 0
         ) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidCodeChallengeMethod
+                ClientConfigurationErrorCodes.invalidCodeChallengeMethod,
             );
         }
     }
@@ -95,7 +95,7 @@ export class RequestValidator {
      */
     static sanitizeEQParams(
         eQParams: StringDict,
-        queryParams: Map<string, string>
+        queryParams: Map<string, string>,
     ): StringDict {
         if (!eQParams) {
             return {};
@@ -110,7 +110,7 @@ export class RequestValidator {
 
         // remove empty string parameters
         return Object.fromEntries(
-            Object.entries(eQParams).filter((kv) => kv[1] !== "")
+            Object.entries(eQParams).filter((kv) => kv[1] !== ""),
         );
     }
 }

@@ -51,7 +51,7 @@ export class NetworkManager {
     async sendPostRequest<T extends ServerAuthorizationTokenResponse>(
         thumbprint: RequestThumbprint,
         tokenEndpoint: string,
-        options: NetworkRequestOptions
+        options: NetworkRequestOptions,
     ): Promise<NetworkResponse<T>> {
         ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
 
@@ -59,7 +59,7 @@ export class NetworkManager {
         try {
             response = await this.networkClient.sendPostRequestAsync<T>(
                 tokenEndpoint,
-                options
+                options,
             );
         } catch (e) {
             if (e instanceof AuthError) {

@@ -12,7 +12,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
 
         it("strips leading #/ if present", () => {
             expect(UrlUtils.stripLeadingHashOrQuery("#/value")).toEqual(
-                "value"
+                "value",
             );
         });
 
@@ -33,7 +33,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
                 error: "value",
             });
             expect(
-                UrlUtils.getDeserializedResponse("#error_description=value")
+                UrlUtils.getDeserializedResponse("#error_description=value"),
             ).toEqual({ error_description: "value" });
         });
 
@@ -48,7 +48,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
                 error: "value",
             });
             expect(
-                UrlUtils.getDeserializedResponse("?error_description=value")
+                UrlUtils.getDeserializedResponse("?error_description=value"),
             ).toEqual({ error_description: "value" });
         });
 
@@ -62,7 +62,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
             };
 
             expect(UrlUtils.getDeserializedResponse(serializedHash)).toEqual(
-                deserializedHash
+                deserializedHash,
             );
         });
 
@@ -76,7 +76,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
             };
 
             expect(UrlUtils.getDeserializedResponse(serializedHash)).toEqual(
-                deserializedHash
+                deserializedHash,
             );
         });
 

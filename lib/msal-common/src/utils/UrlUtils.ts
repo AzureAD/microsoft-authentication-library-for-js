@@ -30,7 +30,7 @@ export function stripLeadingHashOrQuery(responseString: string): string {
  * Returns URL hash as server auth code response object.
  */
 export function getDeserializedResponse(
-    responseString: string
+    responseString: string,
 ): ServerAuthorizationCodeResponse | null {
     // Check if given hash is empty
     if (!responseString || responseString.indexOf("=") < 0) {

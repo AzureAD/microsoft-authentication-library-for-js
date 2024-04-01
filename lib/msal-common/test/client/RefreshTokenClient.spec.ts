@@ -111,14 +111,14 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             expect(client).not.toBeNull();
             expect(client instanceof RefreshTokenClient).toBe(true);
@@ -143,7 +143,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             config = await ClientTestUtils.createTestClientConfiguration();
@@ -157,18 +157,18 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake(async (url: string) => {
                     expect(url.includes("/token?testParam=testValue")).toBe(
-                        true
+                        true,
                     );
                     done();
                 });
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -192,7 +192,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake(async (url: string, body: string) => {
                     expect(body).toContain("testParam=testValue");
@@ -224,12 +224,12 @@ describe("RefreshTokenClient unit tests", () => {
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
 
@@ -242,13 +242,13 @@ describe("RefreshTokenClient unit tests", () => {
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             sinon
                 .stub(
                     //@ts-ignore
                     client.networkManager,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 )
                 .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
 
@@ -272,13 +272,13 @@ describe("RefreshTokenClient unit tests", () => {
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             sinon
                 .stub(
                     // @ts-ignore
                     client.networkManager,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 )
                 // @ts-ignore
                 .resolves({
@@ -315,7 +315,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -330,10 +330,10 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
             config.storageInterface!.setAccount(testAccountEntity);
             config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+                testRefreshTokenEntity,
             );
             config.storageInterface!.setRefreshTokenCredential(
-                testFamilyRefreshTokenEntity
+                testFamilyRefreshTokenEntity,
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config, stubPerformanceClient);
@@ -348,31 +348,31 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake(
                     async (
                         tokenEndpoint: string,
                         queryString: string,
-                        headers: Record<string, string>
+                        headers: Record<string, string>,
                     ) => {
                         const headerNames = Object.keys(headers);
                         headerNames.forEach((name) => {
                             expect(
                                 CORS_SIMPLE_REQUEST_HEADERS.includes(
-                                    name.toLowerCase()
-                                )
+                                    name.toLowerCase(),
+                                ),
                             ).toBe(true);
                         });
 
                         done();
                         return AUTHENTICATION_RESULT;
-                    }
+                    },
                 );
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -391,16 +391,16 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -412,9 +412,8 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -427,83 +426,83 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.scopes).toEqual(expectedScopes);
             expect(authResult.account).toMatchObject(testAccount);
             expect(authResult.idToken).toEqual(
-                AUTHENTICATION_RESULT.body.id_token
+                AUTHENTICATION_RESULT.body.id_token,
             );
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token
+                AUTHENTICATION_RESULT.body.access_token,
             );
             expect(authResult.state).toHaveLength(0);
             expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
+                createTokenRequestBodySpy.calledWith(refreshTokenRequest),
             ).toBe(true);
 
             const result = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
+                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`
-                )
+                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-                )
+                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-                )
+                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-                )
+                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`,
+                ),
             ).toBe(true);
         });
 
@@ -511,17 +510,17 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake((url: string) => {
                     try {
                         expect(
                             url.includes(
-                                "/token?testParam1=testValue1&testParam3=testValue3"
-                            )
+                                "/token?testParam1=testValue1&testParam3=testValue3",
+                            ),
                         ).toBeTruthy();
                         expect(
-                            !url.includes("/token?testParam2=")
+                            !url.includes("/token?testParam2="),
                         ).toBeTruthy();
                         done();
                     } catch (error) {
@@ -531,7 +530,7 @@ describe("RefreshTokenClient unit tests", () => {
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -557,7 +556,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
@@ -580,12 +579,12 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
             expect(
-                refreshTokenClientSpy.calledWith(expectedRefreshRequest)
+                refreshTokenClientSpy.calledWith(expectedRefreshRequest),
             ).toBe(true);
         });
 
@@ -593,7 +592,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(POP_AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
@@ -615,12 +614,12 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
             expect(
-                refreshTokenClientSpy.calledWith(expectedRefreshRequest)
+                refreshTokenClientSpy.calledWith(expectedRefreshRequest),
             ).toBe(true);
         });
 
@@ -628,7 +627,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(SSH_AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
@@ -651,12 +650,12 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
             expect(
-                refreshTokenClientSpy.calledWith(expectedRefreshRequest)
+                refreshTokenClientSpy.calledWith(expectedRefreshRequest),
             ).toBe(true);
         });
 
@@ -664,16 +663,16 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -684,9 +683,8 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -699,83 +697,83 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.scopes).toEqual(expectedScopes);
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(
-                AUTHENTICATION_RESULT.body.id_token
+                AUTHENTICATION_RESULT.body.id_token,
             );
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token
+                AUTHENTICATION_RESULT.body.access_token,
             );
             expect(authResult.state).toBe("");
             expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
+                createTokenRequestBodySpy.calledWith(refreshTokenRequest),
             ).toBe(true);
 
             const result = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
+                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`
-                )
+                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(false);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-                )
+                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-                )
+                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-                )
+                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`,
+                ),
             ).toBe(true);
         });
 
@@ -783,16 +781,16 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -804,9 +802,8 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -819,83 +816,83 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.scopes).toEqual(expectedScopes);
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(
-                AUTHENTICATION_RESULT.body.id_token
+                AUTHENTICATION_RESULT.body.id_token,
             );
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token
+                AUTHENTICATION_RESULT.body.access_token,
             );
             expect(authResult.state).toBe("");
             expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
+                createTokenRequestBodySpy.calledWith(refreshTokenRequest),
             ).toBe(true);
 
             const result = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
+                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`
-                )
+                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(false);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-                )
+                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-                )
+                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-                )
+                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`,
+                ),
             ).toBe(true);
         });
 
@@ -903,12 +900,12 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -920,13 +917,12 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
 
             expect(authResult.requestId).toBeTruthy;
             expect(authResult.requestId).toEqual(
-                CORS_RESPONSE_HEADERS.xMsRequestId
+                CORS_RESPONSE_HEADERS.xMsRequestId,
             );
         });
 
@@ -934,12 +930,12 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -951,9 +947,8 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
 
             expect(authResult.requestId).toBeFalsy;
             expect(authResult.requestId).toEqual("");
@@ -980,7 +975,7 @@ describe("RefreshTokenClient unit tests", () => {
                 .stub(
                     // @ts-ignore
                     client.networkManager,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 )
                 .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
@@ -1001,7 +996,7 @@ describe("RefreshTokenClient unit tests", () => {
                         AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token
                             .length,
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
         });
 
@@ -1026,7 +1021,7 @@ describe("RefreshTokenClient unit tests", () => {
                 .stub(
                     // @ts-ignore
                     client.networkManager,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 )
                 .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
             const refreshTokenRequest: CommonRefreshTokenRequest = {
@@ -1046,7 +1041,7 @@ describe("RefreshTokenClient unit tests", () => {
                     refreshTokenSize:
                         AUTHENTICATION_RESULT.body.refresh_token.length,
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
         });
     });
@@ -1064,7 +1059,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -1075,7 +1070,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT_WITH_FOCI);
             sinon
@@ -1085,10 +1080,10 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
             config.storageInterface!.setAccount(testAccountEntity);
             config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+                testRefreshTokenEntity,
             );
             config.storageInterface!.setRefreshTokenCredential(
-                testFamilyRefreshTokenEntity
+                testFamilyRefreshTokenEntity,
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config, stubPerformanceClient);
@@ -1101,11 +1096,11 @@ describe("RefreshTokenClient unit tests", () => {
         it("acquires a token (FOCI)", async () => {
             const createTokenRequestBodySpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -1117,9 +1112,8 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -1131,52 +1125,52 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.scopes).toEqual(expectedScopes);
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(
-                AUTHENTICATION_RESULT_WITH_FOCI.body.id_token
+                AUTHENTICATION_RESULT_WITH_FOCI.body.id_token,
             );
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT_WITH_FOCI.body.access_token
+                AUTHENTICATION_RESULT_WITH_FOCI.body.access_token,
             );
             expect(authResult.familyId).toEqual(
-                AUTHENTICATION_RESULT_WITH_FOCI.body.foci
+                AUTHENTICATION_RESULT_WITH_FOCI.body.foci,
             );
             expect(authResult.state).toHaveLength(0);
 
             expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
+                createTokenRequestBodySpy.calledWith(refreshTokenRequest),
             ).toBe(true);
 
             const result = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
+                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`
-                )
+                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
@@ -1201,12 +1195,12 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
             expect(
-                refreshTokenClientSpy.calledWith(expectedRefreshRequest)
+                refreshTokenClientSpy.calledWith(expectedRefreshRequest),
             ).toBe(true);
         });
     });
@@ -1216,14 +1210,14 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             await expect(
                 client.acquireTokenByRefreshToken({
@@ -1233,11 +1227,11 @@ describe("RefreshTokenClient unit tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     forceRefresh: false,
-                })
+                }),
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.noAccountInSilentRequest
-                )
+                    ClientAuthErrorCodes.noAccountInSilentRequest,
+                ),
             );
         });
 
@@ -1245,32 +1239,32 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
 
             await expect(
                 //@ts-ignore
-                client.acquireTokenByRefreshToken(null)
+                client.acquireTokenByRefreshToken(null),
             ).rejects.toMatchObject(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
+                    ClientConfigurationErrorCodes.tokenRequestEmpty,
+                ),
             );
 
             await expect(
                 //@ts-ignore
-                client.acquireTokenByRefreshToken(undefined)
+                client.acquireTokenByRefreshToken(undefined),
             ).rejects.toMatchObject(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
+                    ClientConfigurationErrorCodes.tokenRequestEmpty,
+                ),
             );
         });
 
@@ -1298,7 +1292,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const tokenRequest: CommonSilentFlowRequest = {
@@ -1312,11 +1306,11 @@ describe("RefreshTokenClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
             await expect(
-                client.acquireToken(tokenRequest)
+                client.acquireToken(tokenRequest),
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.noTokensFound
-                )
+                    InteractionRequiredAuthErrorCodes.noTokensFound,
+                ),
             );
         });
 
@@ -1337,14 +1331,14 @@ describe("RefreshTokenClient unit tests", () => {
             });
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             await expect(
-                client.acquireTokenByRefreshToken(tokenRequest)
+                client.acquireTokenByRefreshToken(tokenRequest),
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                )
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                ),
             );
         });
 
@@ -1366,14 +1360,14 @@ describe("RefreshTokenClient unit tests", () => {
             });
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             await expect(
-                client.acquireTokenByRefreshToken(tokenRequest)
+                client.acquireTokenByRefreshToken(tokenRequest),
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                )
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                ),
             );
         });
 
@@ -1382,12 +1376,12 @@ describe("RefreshTokenClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             config.storageInterface!.setAccount(testAccountEntity);
             config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+                testRefreshTokenEntity,
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const testAccount: AccountInfo =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
@@ -1395,7 +1389,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(BAD_TOKEN_ERROR_RESPONSE);
 
@@ -1408,7 +1402,7 @@ describe("RefreshTokenClient unit tests", () => {
                 serverResponse.trace_id || Constants.EMPTY_STRING,
                 serverResponse.correlation_id || Constants.EMPTY_STRING,
                 // @ts-ignore
-                serverResponse.claims || Constants.EMPTY_STRING
+                serverResponse.claims || Constants.EMPTY_STRING,
             );
 
             const silentFlowRequest: CommonSilentFlowRequest = {
@@ -1420,23 +1414,23 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const badRefreshTokenKey = generateCredentialKey(
-                testRefreshTokenEntity
+                testRefreshTokenEntity,
             );
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
-                )
+                    badRefreshTokenKey,
+                ),
             ).toBe(testRefreshTokenEntity);
 
             await expect(
-                client.acquireTokenByRefreshToken(silentFlowRequest)
+                client.acquireTokenByRefreshToken(silentFlowRequest),
             ).rejects.toMatchObject(invalidGrantAuthError);
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
-                )
+                    badRefreshTokenKey,
+                ),
             ).toBe(null);
         });
     });
@@ -1453,58 +1447,57 @@ describe("RefreshTokenClient unit tests", () => {
         it("Adds telemetry headers to token request in AAD protocol mode", async () => {
             const createTokenRequestBodySpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
-            const config = await ClientTestUtils.createTestClientConfiguration(
-                true
-            );
+            const config =
+                await ClientTestUtils.createTestClientConfiguration(true);
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             try {
                 await client.acquireToken(refreshTokenRequest);
             } catch {}
             expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
+                createTokenRequestBodySpy.calledWith(refreshTokenRequest),
             ).toBeTruthy();
 
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`),
             ).toBe(true);
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`),
             ).toBe(true);
         });
         it("Does not add telemetry headers to token request in OIDC protocol mode", async () => {
             const createTokenRequestBodySpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             const config = await ClientTestUtils.createTestClientConfiguration(
                 true,
-                ProtocolMode.OIDC
+                ProtocolMode.OIDC,
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             try {
                 await client.acquireToken(refreshTokenRequest);
             } catch {}
             expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
+                createTokenRequestBodySpy.calledWith(refreshTokenRequest),
             ).toBeTruthy();
 
             const returnVal = (await createTokenRequestBodySpy
                 .returnValues[0]) as string;
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`),
             ).toBe(false);
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`),
             ).toBe(false);
         });
     });

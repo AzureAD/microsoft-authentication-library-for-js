@@ -20,10 +20,10 @@ describe("AuthenticationHeaderParser unit tests", () => {
             headers[HeaderNames.AuthenticationInfo] =
                 TEST_AUTHENTICATION_HEADERS.authenticationInfo;
             const authenticationHeaderParser = new AuthenticationHeaderParser(
-                headers
+                headers,
             );
             expect(authenticationHeaderParser.getShrNonce()).toStrictEqual(
-                TEST_POP_VALUES.SHR_NONCE
+                TEST_POP_VALUES.SHR_NONCE,
             );
         });
 
@@ -31,21 +31,21 @@ describe("AuthenticationHeaderParser unit tests", () => {
             headers[HeaderNames.WWWAuthenticate] =
                 TEST_AUTHENTICATION_HEADERS.wwwAuthenticate;
             const authenticationHeaderParser = new AuthenticationHeaderParser(
-                headers
+                headers,
             );
             expect(authenticationHeaderParser.getShrNonce()).toStrictEqual(
-                TEST_POP_VALUES.SHR_NONCE
+                TEST_POP_VALUES.SHR_NONCE,
             );
         });
 
         it("should throw an error if neither Authentication-Info or WWW-Authenticate headers are present", () => {
             const authenticationHeaderParser = new AuthenticationHeaderParser(
-                {}
+                {},
             );
             expect(() => authenticationHeaderParser.getShrNonce()).toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingNonceAuthenticationHeader
-                )
+                    ClientConfigurationErrorCodes.missingNonceAuthenticationHeader,
+                ),
             );
         });
 
@@ -53,12 +53,12 @@ describe("AuthenticationHeaderParser unit tests", () => {
             headers[HeaderNames.AuthenticationInfo] =
                 TEST_AUTHENTICATION_HEADERS.invalidAuthenticationInfo;
             const authenticationHeaderParser = new AuthenticationHeaderParser(
-                headers
+                headers,
             );
             expect(() => authenticationHeaderParser.getShrNonce()).toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidAuthenticationHeader
-                )
+                    ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                ),
             );
         });
 
@@ -66,12 +66,12 @@ describe("AuthenticationHeaderParser unit tests", () => {
             headers[HeaderNames.WWWAuthenticate] =
                 TEST_AUTHENTICATION_HEADERS.invalidWwwAuthenticate;
             const authenticationHeaderParser = new AuthenticationHeaderParser(
-                headers
+                headers,
             );
             expect(() => authenticationHeaderParser.getShrNonce()).toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidAuthenticationHeader
-                )
+                    ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                ),
             );
         });
     });

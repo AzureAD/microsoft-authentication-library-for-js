@@ -69,7 +69,7 @@ export abstract class CacheManager implements ICacheManager {
         clientId: string,
         cryptoImpl: ICrypto,
         logger: Logger,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
     ) {
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
@@ -83,7 +83,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract getAccount(
         accountKey: string,
-        logger?: Logger
+        logger?: Logger,
     ): AccountEntity | null;
 
     /**
@@ -119,7 +119,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param accessTokenKey
      */
     abstract getAccessTokenCredential(
-        accessTokenKey: string
+        accessTokenKey: string,
     ): AccessTokenEntity | null;
 
     /**
@@ -133,7 +133,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param refreshTokenKey
      */
     abstract getRefreshTokenCredential(
-        refreshTokenKey: string
+        refreshTokenKey: string,
     ): RefreshTokenEntity | null;
 
     /**
@@ -159,7 +159,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param serverTelemetryKey
      */
     abstract getServerTelemetry(
-        serverTelemetryKey: string
+        serverTelemetryKey: string,
     ): ServerTelemetryEntity | null;
 
     /**
@@ -169,7 +169,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setServerTelemetry(
         serverTelemetryKey: string,
-        serverTelemetry: ServerTelemetryEntity
+        serverTelemetry: ServerTelemetryEntity,
     ): void;
 
     /**
@@ -190,7 +190,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setAuthorityMetadata(
         key: string,
-        value: AuthorityMetadataEntity
+        value: AuthorityMetadataEntity,
     ): void;
 
     /**
@@ -198,7 +198,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param throttlingCacheKey
      */
     abstract getThrottlingCache(
-        throttlingCacheKey: string
+        throttlingCacheKey: string,
     ): ThrottlingEntity | null;
 
     /**
@@ -208,7 +208,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setThrottlingCache(
         throttlingCacheKey: string,
-        throttlingCache: ThrottlingEntity
+        throttlingCache: ThrottlingEntity,
     ): void;
 
     /**
@@ -242,7 +242,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract updateCredentialCacheKey(
         currentCacheKey: string,
-        credential: ValidCredentialType
+        credential: ValidCredentialType,
     ): string;
 
     /**
@@ -253,7 +253,7 @@ export abstract class CacheManager implements ICacheManager {
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
         return this.buildTenantProfiles(
             this.getAccountsFilteredBy(accountFilter || {}),
-            accountFilter
+            accountFilter,
         );
     }
 
@@ -299,24 +299,24 @@ export abstract class CacheManager implements ICacheManager {
      */
     private buildTenantProfiles(
         cachedAccounts: AccountEntity[],
-        accountFilter?: AccountFilter
+        accountFilter?: AccountFilter,
     ): AccountInfo[] {
         return cachedAccounts.flatMap((accountEntity) => {
             return this.getAccountInfoForTenantProfiles(
                 accountEntity,
-                accountFilter
+                accountFilter,
             );
         });
     }
 
     private getAccountInfoForTenantProfiles(
         accountEntity: AccountEntity,
-        accountFilter?: AccountFilter
+        accountFilter?: AccountFilter,
     ): AccountInfo[] {
         return this.getTenantProfilesFromAccountEntity(
             accountEntity,
             accountFilter?.tenantId,
-            accountFilter
+            accountFilter,
         );
     }
 
@@ -324,7 +324,7 @@ export abstract class CacheManager implements ICacheManager {
         accountInfo: AccountInfo,
         tokenKeys: TokenKeys,
         tenantProfile: TenantProfile,
-        tenantProfileFilter?: TenantProfileFilter
+        tenantProfileFilter?: TenantProfileFilter,
     ): AccountInfo | null {
         let tenantedAccountInfo: AccountInfo | null = null;
         let idTokenClaims: TokenClaims | undefined;
@@ -333,7 +333,7 @@ export abstract class CacheManager implements ICacheManager {
             if (
                 !this.tenantProfileMatchesFilter(
                     tenantProfile,
-                    tenantProfileFilter
+                    tenantProfileFilter,
                 )
             ) {
                 return null;
@@ -343,19 +343,19 @@ export abstract class CacheManager implements ICacheManager {
         const idToken = this.getIdToken(
             accountInfo,
             tokenKeys,
-            tenantProfile.tenantId
+            tenantProfile.tenantId,
         );
 
         if (idToken) {
             idTokenClaims = extractTokenClaims(
                 idToken.secret,
-                this.cryptoImpl.base64Decode
+                this.cryptoImpl.base64Decode,
             );
 
             if (
                 !this.idTokenClaimsMatchTenantProfileFilter(
                     idTokenClaims,
-                    tenantProfileFilter
+                    tenantProfileFilter,
                 )
             ) {
                 // ID token sourced claims don't match so this tenant profile is not a match
@@ -368,7 +368,7 @@ export abstract class CacheManager implements ICacheManager {
             accountInfo,
             tenantProfile,
             idTokenClaims,
-            idToken?.secret
+            idToken?.secret,
         );
 
         return tenantedAccountInfo;
@@ -377,7 +377,7 @@ export abstract class CacheManager implements ICacheManager {
     private getTenantProfilesFromAccountEntity(
         accountEntity: AccountEntity,
         targetTenantId?: string,
-        tenantProfileFilter?: TenantProfileFilter
+        tenantProfileFilter?: TenantProfileFilter,
     ): AccountInfo[] {
         const accountInfo = accountEntity.getAccountInfo();
         let searchTenantProfiles: Map<string, TenantProfile> =
@@ -404,7 +404,7 @@ export abstract class CacheManager implements ICacheManager {
                 accountInfo,
                 tokenKeys,
                 tenantProfile,
-                tenantProfileFilter
+                tenantProfileFilter,
             );
             if (tenantedAccountInfo) {
                 matchingTenantProfiles.push(tenantedAccountInfo);
@@ -416,13 +416,13 @@ export abstract class CacheManager implements ICacheManager {
 
     private tenantProfileMatchesFilter(
         tenantProfile: TenantProfile,
-        tenantProfileFilter: TenantProfileFilter
+        tenantProfileFilter: TenantProfileFilter,
     ): boolean {
         if (
             !!tenantProfileFilter.localAccountId &&
             !this.matchLocalAccountIdFromTenantProfile(
                 tenantProfile,
-                tenantProfileFilter.localAccountId
+                tenantProfileFilter.localAccountId,
             )
         ) {
             return false;
@@ -447,7 +447,7 @@ export abstract class CacheManager implements ICacheManager {
 
     private idTokenClaimsMatchTenantProfileFilter(
         idTokenClaims: TokenClaims,
-        tenantProfileFilter?: TenantProfileFilter
+        tenantProfileFilter?: TenantProfileFilter,
     ): boolean {
         // Tenant Profile filtering
         if (tenantProfileFilter) {
@@ -455,7 +455,7 @@ export abstract class CacheManager implements ICacheManager {
                 !!tenantProfileFilter.localAccountId &&
                 !this.matchLocalAccountIdFromTokenClaims(
                     idTokenClaims,
-                    tenantProfileFilter.localAccountId
+                    tenantProfileFilter.localAccountId,
                 )
             ) {
                 return false;
@@ -465,7 +465,7 @@ export abstract class CacheManager implements ICacheManager {
                 !!tenantProfileFilter.loginHint &&
                 !this.matchLoginHintFromTokenClaims(
                     idTokenClaims,
-                    tenantProfileFilter.loginHint
+                    tenantProfileFilter.loginHint,
                 )
             ) {
                 return false;
@@ -475,7 +475,7 @@ export abstract class CacheManager implements ICacheManager {
                 !!tenantProfileFilter.username &&
                 !this.matchUsername(
                     idTokenClaims.preferred_username,
-                    tenantProfileFilter.username
+                    tenantProfileFilter.username,
                 )
             ) {
                 return false;
@@ -505,11 +505,11 @@ export abstract class CacheManager implements ICacheManager {
      */
     async saveCacheRecord(
         cacheRecord: CacheRecord,
-        storeInCache?: StoreInCache
+        storeInCache?: StoreInCache,
     ): Promise<void> {
         if (!cacheRecord) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidCacheRecord
+                ClientAuthErrorCodes.invalidCacheRecord,
             );
         }
 
@@ -542,7 +542,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param credential
      */
     private async saveAccessToken(
-        credential: AccessTokenEntity
+        credential: AccessTokenEntity,
     ): Promise<void> {
         const accessTokenFilter: CredentialFilter = {
             clientId: credential.clientId,
@@ -597,7 +597,7 @@ export abstract class CacheManager implements ICacheManager {
 
             const entity: AccountEntity | null = this.getAccount(
                 cacheKey,
-                this.commonLogger
+                this.commonLogger,
             );
 
             // Match base account fields
@@ -638,7 +638,7 @@ export abstract class CacheManager implements ICacheManager {
                 !!accountFilter.nativeAccountId &&
                 !this.matchNativeAccountId(
                     entity,
-                    accountFilter.nativeAccountId
+                    accountFilter.nativeAccountId,
                 )
             ) {
                 return;
@@ -661,9 +661,9 @@ export abstract class CacheManager implements ICacheManager {
                 (tenantProfile: TenantProfile) => {
                     return this.tenantProfileMatchesFilter(
                         tenantProfile,
-                        tenantProfileFilter
+                        tenantProfileFilter,
                     );
-                }
+                },
             );
 
             if (matchingTenantProfiles && matchingTenantProfiles.length === 0) {
@@ -687,7 +687,7 @@ export abstract class CacheManager implements ICacheManager {
     isAccountKey(
         key: string,
         homeAccountId?: string,
-        tenantId?: string
+        tenantId?: string,
     ): boolean {
         if (key.split(Separators.CACHE_KEY_SEPARATOR).length < 3) {
             // Account cache keys contain 3 items separated by '-' (each item may also contain '-')
@@ -728,7 +728,7 @@ export abstract class CacheManager implements ICacheManager {
             lowerCaseKey.indexOf(CredentialType.ACCESS_TOKEN.toLowerCase()) ===
                 -1 &&
             lowerCaseKey.indexOf(
-                CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
+                CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase(),
             ) === -1 &&
             lowerCaseKey.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) ===
                 -1
@@ -765,7 +765,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     credentialMatchesFilter(
         entity: ValidCredentialType,
-        filter: CredentialFilter
+        filter: CredentialFilter,
     ): boolean {
         if (!!filter.clientId && !this.matchClientId(entity, filter.clientId)) {
             return false;
@@ -993,19 +993,19 @@ export abstract class CacheManager implements ICacheManager {
     protected updateOutdatedCachedAccount(
         accountKey: string,
         accountEntity: AccountEntity | null,
-        logger?: Logger
+        logger?: Logger,
     ): AccountEntity | null {
         // Only update if account entity is defined and has no tenantProfiles object (is outdated)
         if (accountEntity && accountEntity.isSingleTenant()) {
             this.commonLogger?.verbose(
-                "updateOutdatedCachedAccount: Found a single-tenant (outdated) account entity in the cache, migrating to multi-tenant account entity"
+                "updateOutdatedCachedAccount: Found a single-tenant (outdated) account entity in the cache, migrating to multi-tenant account entity",
             );
 
             // Get keys of all accounts belonging to user
             const matchingAccountKeys = this.getAccountKeys().filter(
                 (key: string) => {
                     return key.startsWith(accountEntity.homeAccountId);
-                }
+                },
             );
 
             // Get all account entities belonging to user
@@ -1022,7 +1022,7 @@ export abstract class CacheManager implements ICacheManager {
                 accountsToMerge.find((account) => {
                     return tenantIdMatchesHomeTenant(
                         account.realm,
-                        account.homeAccountId
+                        account.homeAccountId,
                     );
                 }) || accountsToMerge[0];
 
@@ -1035,10 +1035,10 @@ export abstract class CacheManager implements ICacheManager {
                         name: account.name,
                         isHomeTenant: tenantIdMatchesHomeTenant(
                             account.realm,
-                            account.homeAccountId
+                            account.homeAccountId,
                         ),
                     };
-                }
+                },
             );
 
             const updatedAccount = CacheManager.toObject(new AccountEntity(), {
@@ -1089,7 +1089,7 @@ export abstract class CacheManager implements ICacheManager {
                         await this.cryptoImpl.removeTokenBindingKey(kid);
                     } catch (error) {
                         throw createClientAuthError(
-                            ClientAuthErrorCodes.bindingKeyNotRemoved
+                            ClientAuthErrorCodes.bindingKeyNotRemoved,
                         );
                     }
                 }
@@ -1136,7 +1136,7 @@ export abstract class CacheManager implements ICacheManager {
         tokenKeys?: TokenKeys,
         targetRealm?: string,
         performanceClient?: IPerformanceClient,
-        correlationId?: string
+        correlationId?: string,
     ): IdTokenEntity | null {
         this.commonLogger.trace("CacheManager - getIdToken called");
         const idTokenFilter: CredentialFilter = {
@@ -1149,7 +1149,7 @@ export abstract class CacheManager implements ICacheManager {
 
         const idTokenMap: Map<string, IdTokenEntity> = this.getIdTokensByFilter(
             idTokenFilter,
-            tokenKeys
+            tokenKeys,
         );
 
         const numIdTokens = idTokenMap.size;
@@ -1173,12 +1173,12 @@ export abstract class CacheManager implements ICacheManager {
                 const numHomeIdTokens = homeIdTokenMap.size;
                 if (numHomeIdTokens < 1) {
                     this.commonLogger.info(
-                        "CacheManager:getIdToken - Multiple ID tokens found for account but none match account entity tenant id, returning first result"
+                        "CacheManager:getIdToken - Multiple ID tokens found for account but none match account entity tenant id, returning first result",
                     );
                     return idTokenMap.values().next().value;
                 } else if (numHomeIdTokens === 1) {
                     this.commonLogger.info(
-                        "CacheManager:getIdToken - Multiple ID tokens found for account, defaulting to home tenant profile"
+                        "CacheManager:getIdToken - Multiple ID tokens found for account, defaulting to home tenant profile",
                     );
                     return homeIdTokenMap.values().next().value;
                 } else {
@@ -1188,7 +1188,7 @@ export abstract class CacheManager implements ICacheManager {
             }
             // Multiple tokens for a single tenant profile, remove all and return null
             this.commonLogger.info(
-                "CacheManager:getIdToken - Multiple matching ID tokens found, clearing them"
+                "CacheManager:getIdToken - Multiple matching ID tokens found, clearing them",
             );
             tokensToBeRemoved.forEach((idToken, key) => {
                 this.removeIdToken(key);
@@ -1196,7 +1196,7 @@ export abstract class CacheManager implements ICacheManager {
             if (performanceClient && correlationId) {
                 performanceClient.addFields(
                     { multiMatchedID: idTokenMap.size },
-                    correlationId
+                    correlationId,
                 );
             }
             return null;
@@ -1213,7 +1213,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     getIdTokensByFilter(
         filter: CredentialFilter,
-        tokenKeys?: TokenKeys
+        tokenKeys?: TokenKeys,
     ): Map<string, IdTokenEntity> {
         const idTokenKeys =
             (tokenKeys && tokenKeys.idToken) || this.getTokenKeys().idToken;
@@ -1248,7 +1248,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     idTokenKeyMatchesFilter(
         inputKey: string,
-        filter: CredentialFilter
+        filter: CredentialFilter,
     ): boolean {
         const key = inputKey.toLowerCase();
         if (
@@ -1298,7 +1298,7 @@ export abstract class CacheManager implements ICacheManager {
         tokenKeys?: TokenKeys,
         targetRealm?: string,
         performanceClient?: IPerformanceClient,
-        correlationId?: string
+        correlationId?: string,
     ): AccessTokenEntity | null {
         this.commonLogger.trace("CacheManager - getAccessToken called");
         const scopes = ScopeSet.createSearchScopes(request.scopes);
@@ -1352,12 +1352,12 @@ export abstract class CacheManager implements ICacheManager {
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {
             this.commonLogger.info(
-                "CacheManager:getAccessToken - No token found"
+                "CacheManager:getAccessToken - No token found",
             );
             return null;
         } else if (numAccessTokens > 1) {
             this.commonLogger.info(
-                "CacheManager:getAccessToken - Multiple access tokens found, clearing them"
+                "CacheManager:getAccessToken - Multiple access tokens found, clearing them",
             );
             accessTokens.forEach((accessToken) => {
                 void this.removeAccessToken(generateCredentialKey(accessToken));
@@ -1365,14 +1365,14 @@ export abstract class CacheManager implements ICacheManager {
             if (performanceClient && correlationId) {
                 performanceClient.addFields(
                     { multiMatchedAT: accessTokens.length },
-                    correlationId
+                    correlationId,
                 );
             }
             return null;
         }
 
         this.commonLogger.info(
-            "CacheManager:getAccessToken - Returning access token"
+            "CacheManager:getAccessToken - Returning access token",
         );
         return accessTokens[0];
     }
@@ -1387,7 +1387,7 @@ export abstract class CacheManager implements ICacheManager {
     accessTokenKeyMatchesFilter(
         inputKey: string,
         filter: CredentialFilter,
-        keyMustContainAllScopes: boolean
+        keyMustContainAllScopes: boolean,
     ): boolean {
         const key = inputKey.toLowerCase();
         if (
@@ -1476,7 +1476,7 @@ export abstract class CacheManager implements ICacheManager {
         familyRT: boolean,
         tokenKeys?: TokenKeys,
         performanceClient?: IPerformanceClient,
-        correlationId?: string
+        correlationId?: string,
     ): RefreshTokenEntity | null {
         this.commonLogger.trace("CacheManager - getRefreshToken called");
         const id = familyRT ? THE_FAMILY_ID : undefined;
@@ -1502,7 +1502,7 @@ export abstract class CacheManager implements ICacheManager {
                     refreshToken &&
                     this.credentialMatchesFilter(
                         refreshToken,
-                        refreshTokenFilter
+                        refreshTokenFilter,
                     )
                 ) {
                     refreshTokens.push(refreshToken);
@@ -1513,7 +1513,7 @@ export abstract class CacheManager implements ICacheManager {
         const numRefreshTokens = refreshTokens.length;
         if (numRefreshTokens < 1) {
             this.commonLogger.info(
-                "CacheManager:getRefreshToken - No refresh token found."
+                "CacheManager:getRefreshToken - No refresh token found.",
             );
             return null;
         }
@@ -1522,12 +1522,12 @@ export abstract class CacheManager implements ICacheManager {
         if (numRefreshTokens > 1 && performanceClient && correlationId) {
             performanceClient.addFields(
                 { multiMatchedRT: numRefreshTokens },
-                correlationId
+                correlationId,
             );
         }
 
         this.commonLogger.info(
-            "CacheManager:getRefreshToken - returning refresh token"
+            "CacheManager:getRefreshToken - returning refresh token",
         );
         return refreshTokens[0] as RefreshTokenEntity;
     }
@@ -1539,7 +1539,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     refreshTokenKeyMatchesFilter(
         inputKey: string,
-        filter: CredentialFilter
+        filter: CredentialFilter,
     ): boolean {
         const key = inputKey.toLowerCase();
         if (
@@ -1580,7 +1580,7 @@ export abstract class CacheManager implements ICacheManager {
         const appMetadata: AppMetadataCache =
             this.getAppMetadataFilteredBy(appMetadataFilter);
         const appMetadataEntries: AppMetadataEntity[] = Object.keys(
-            appMetadata
+            appMetadata,
         ).map((key) => appMetadata[key]);
 
         const numAppMetadata = appMetadataEntries.length;
@@ -1588,7 +1588,7 @@ export abstract class CacheManager implements ICacheManager {
             return null;
         } else if (numAppMetadata > 1) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.multipleMatchingAppMetadata
+                ClientAuthErrorCodes.multipleMatchingAppMetadata,
             );
         }
 
@@ -1612,7 +1612,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchHomeAccountId(
         entity: AccountEntity | CredentialEntity,
-        homeAccountId: string
+        homeAccountId: string,
     ): boolean {
         return !!(
             typeof entity.homeAccountId === "string" &&
@@ -1628,7 +1628,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchLocalAccountIdFromTokenClaims(
         tokenClaims: TokenClaims,
-        localAccountId: string
+        localAccountId: string,
     ): boolean {
         const idTokenLocalAccountId = tokenClaims.oid || tokenClaims.sub;
         return localAccountId === idTokenLocalAccountId;
@@ -1636,7 +1636,7 @@ export abstract class CacheManager implements ICacheManager {
 
     private matchLocalAccountIdFromTenantProfile(
         tenantProfile: TenantProfile,
-        localAccountId: string
+        localAccountId: string,
     ): boolean {
         return tenantProfile.localAccountId === localAccountId;
     }
@@ -1659,7 +1659,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchUsername(
         cachedUsername?: string,
-        filterUsername?: string
+        filterUsername?: string,
     ): boolean {
         return !!(
             cachedUsername &&
@@ -1675,7 +1675,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchUserAssertionHash(
         entity: CredentialEntity,
-        userAssertionHash: string
+        userAssertionHash: string,
     ): boolean {
         return !!(
             entity.userAssertionHash &&
@@ -1690,13 +1690,13 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchEnvironment(
         entity: AccountEntity | CredentialEntity | AppMetadataEntity,
-        environment: string
+        environment: string,
     ): boolean {
         // Check static authority options first for cases where authority metadata has not been resolved and cached yet
         if (this.staticAuthorityOptions) {
             const staticAliases = getAliasesFromStaticSources(
                 this.staticAuthorityOptions,
-                this.commonLogger
+                this.commonLogger,
             );
             if (
                 staticAliases.includes(environment) &&
@@ -1724,7 +1724,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchCredentialType(
         entity: CredentialEntity,
-        credentialType: string
+        credentialType: string,
     ): boolean {
         return (
             entity.credentialType &&
@@ -1739,7 +1739,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchClientId(
         entity: CredentialEntity | AppMetadataEntity,
-        clientId: string
+        clientId: string,
     ): boolean {
         return !!(entity.clientId && clientId === entity.clientId);
     }
@@ -1751,7 +1751,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchFamilyId(
         entity: CredentialEntity | AppMetadataEntity,
-        familyId: string
+        familyId: string,
     ): boolean {
         return !!(entity.familyId && familyId === entity.familyId);
     }
@@ -1763,7 +1763,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchRealm(
         entity: AccountEntity | CredentialEntity,
-        realm: string
+        realm: string,
     ): boolean {
         return !!(entity.realm?.toLowerCase() === realm.toLowerCase());
     }
@@ -1776,7 +1776,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchNativeAccountId(
         entity: AccountEntity,
-        nativeAccountId: string
+        nativeAccountId: string,
     ): boolean {
         return !!(
             entity.nativeAccountId && nativeAccountId === entity.nativeAccountId
@@ -1794,7 +1794,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchLoginHintFromTokenClaims(
         tokenClaims: TokenClaims,
-        loginHint: string
+        loginHint: string,
     ): boolean {
         if (tokenClaims.login_hint === loginHint) {
             return true;
@@ -1823,7 +1823,7 @@ export abstract class CacheManager implements ICacheManager {
 
     private matchAuthorityType(
         entity: AccountEntity,
-        authorityType: string
+        authorityType: string,
     ): boolean {
         return !!(
             entity.authorityType &&
@@ -1858,7 +1858,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchTokenType(
         entity: CredentialEntity,
-        tokenType: AuthenticationScheme
+        tokenType: AuthenticationScheme,
     ): boolean {
         return !!(entity.tokenType && entity.tokenType === tokenType);
     }

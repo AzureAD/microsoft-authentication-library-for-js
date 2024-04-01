@@ -116,7 +116,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
@@ -139,7 +139,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -171,7 +171,7 @@ describe("SilentFlowClient unit tests", () => {
             const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
             expect(authResult.authority).toBe(
-                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
+                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`,
             );
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
@@ -180,7 +180,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toHaveLength(0);
         });
@@ -195,7 +195,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -227,7 +227,7 @@ describe("SilentFlowClient unit tests", () => {
             const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
             expect(authResult.authority).toEqual(
-                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
+                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`,
             );
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
@@ -236,7 +236,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toBe("");
         });
@@ -245,7 +245,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -277,7 +277,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
         });
 
@@ -285,7 +285,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -316,7 +316,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
         });
 
@@ -330,7 +330,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -360,9 +360,11 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             await expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
@@ -376,7 +378,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -401,7 +403,7 @@ describe("SilentFlowClient unit tests", () => {
                         claimsBasedCachingEnabled: true,
                     },
                 },
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
@@ -417,7 +419,7 @@ describe("SilentFlowClient unit tests", () => {
             const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
             expect(authResult.authority).toEqual(
-                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
+                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`,
             );
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
@@ -426,7 +428,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toBe("");
         });
@@ -441,7 +443,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
@@ -482,7 +484,7 @@ describe("SilentFlowClient unit tests", () => {
             const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
             expect(authResult.authority).toBe(
-                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
+                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`,
             );
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
@@ -494,7 +496,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(idTokenClaimsWithAuthTime);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toHaveLength(0);
         });
@@ -505,7 +507,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
@@ -519,11 +521,11 @@ describe("SilentFlowClient unit tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     forceRefresh: false,
-                })
+                }),
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.noAccountInSilentRequest
-                )
+                    ClientAuthErrorCodes.noAccountInSilentRequest,
+                ),
             );
             await expect(
                 client.acquireCachedToken({
@@ -533,11 +535,11 @@ describe("SilentFlowClient unit tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     forceRefresh: false,
-                })
+                }),
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.noAccountInSilentRequest
-                )
+                    ClientAuthErrorCodes.noAccountInSilentRequest,
+                ),
             );
         });
 
@@ -557,7 +559,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const tokenRequest: CommonSilentFlowRequest = {
@@ -571,11 +573,11 @@ describe("SilentFlowClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
             await expect(
-                client.acquireToken(tokenRequest)
+                client.acquireToken(tokenRequest),
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.noTokensFound
-                )
+                    InteractionRequiredAuthErrorCodes.noTokensFound,
+                ),
             );
         });
 
@@ -583,7 +585,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -613,9 +615,11 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
@@ -623,7 +627,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -652,9 +656,11 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
@@ -662,7 +668,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -691,9 +697,11 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
@@ -701,7 +709,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon
@@ -728,9 +736,11 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
     });
@@ -743,7 +753,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             AUTHENTICATION_RESULT.body.client_info =
@@ -751,7 +761,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
             sinon
@@ -787,7 +797,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
             const refreshTokenSpy = sinon.stub(
                 RefreshTokenClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             const authResult = await client.acquireToken(silentFlowRequest);
@@ -800,7 +810,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toHaveLength(0);
         });
@@ -828,13 +838,13 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(true);
             const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             await client.acquireToken(silentFlowRequest);
             expect(refreshTokenClientSpy.called).toBe(true);
             expect(
-                refreshTokenClientSpy.calledWith(expectedRefreshRequest)
+                refreshTokenClientSpy.calledWith(expectedRefreshRequest),
             ).toBe(true);
         });
 
@@ -848,8 +858,8 @@ describe("SilentFlowClient unit tests", () => {
                 new MockStorageClass(
                     TEST_CONFIG.MSAL_CLIENT_ID,
                     mockCrypto,
-                    logger
-                )
+                    logger,
+                ),
             );
             client = new SilentFlowClient(config, stubPerformanceClient);
             const telemetryCacheHitSpy = sinon
@@ -876,7 +886,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toHaveLength(0);
         });
@@ -903,9 +913,9 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             await expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired)
+                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired),
             );
         });
 
@@ -923,9 +933,9 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             await expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound)
+                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound),
             );
         });
 
@@ -942,9 +952,11 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
@@ -953,7 +965,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             AUTHENTICATION_RESULT.body.client_info =
@@ -961,7 +973,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .resolves(AUTHENTICATION_RESULT);
             testAccessTokenEntity.refreshOn = `${
@@ -1017,7 +1029,7 @@ describe("SilentFlowClient unit tests", () => {
              * @returns AccessTokenEntity - the access token in the cache
              */
             const waitUntilAccessTokenInCacheThenReturnIt = async (
-                cache: CacheManager
+                cache: CacheManager,
             ): Promise<AccessTokenEntity | null> => {
                 let counter: number = 0;
                 return await new Promise((resolve) => {
@@ -1050,11 +1062,11 @@ describe("SilentFlowClient unit tests", () => {
             };
             const accessTokenFromCache: AccessTokenEntity | null =
                 await waitUntilAccessTokenInCacheThenReturnIt(
-                    config.storageInterface
+                    config.storageInterface,
                 );
 
             expect(accessTokenFromCache?.clientId).toEqual(
-                testAccessTokenEntity.clientId
+                testAccessTokenEntity.clientId,
             );
         });
 
@@ -1065,17 +1077,17 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
+                    <any>"executePostToTokenEndpoint",
                 )
                 .callsFake((url: string) => {
                     try {
                         expect(
                             url.includes(
-                                "/token?testParam1=testValue1&testParam3=testValue3"
-                            )
+                                "/token?testParam1=testValue1&testParam3=testValue3",
+                            ),
                         ).toBeTruthy();
                         expect(
-                            !url.includes("/token?testParam2=")
+                            !url.includes("/token?testParam2="),
                         ).toBeTruthy();
                         done();
                         return AUTHENTICATION_RESULT;
@@ -1087,7 +1099,7 @@ describe("SilentFlowClient unit tests", () => {
             sinon
                 .stub(
                     Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
+                    <any>"getEndpointMetadataFromNetwork",
                 )
                 .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             testAccessTokenEntity.refreshOn = `${

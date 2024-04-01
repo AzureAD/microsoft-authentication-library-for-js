@@ -72,12 +72,12 @@ export class AuthError extends Error {
 
 export function createAuthError(
     code: string,
-    additionalMessage?: string
+    additionalMessage?: string,
 ): AuthError {
     return new AuthError(
         code,
         additionalMessage
             ? `${AuthErrorMessages[code]} ${additionalMessage}`
-            : AuthErrorMessages[code]
+            : AuthErrorMessages[code],
     );
 }

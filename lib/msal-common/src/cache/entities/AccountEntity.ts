@@ -101,7 +101,7 @@ export class AccountEntity {
             tenantProfiles: new Map(
                 (this.tenantProfiles || []).map((tenantProfile) => {
                     return [tenantProfile.tenantId, tenantProfile];
-                })
+                }),
             ),
         };
     }
@@ -144,7 +144,7 @@ export class AccountEntity {
             tenantProfiles?: Array<TenantProfile>;
         },
         authority: Authority,
-        base64Decode?: (input: string) => string
+        base64Decode?: (input: string) => string,
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -161,7 +161,7 @@ export class AccountEntity {
         if (accountDetails.clientInfo && base64Decode) {
             clientInfo = buildClientInfo(
                 accountDetails.clientInfo,
-                base64Decode
+                base64Decode,
             );
         }
 
@@ -175,7 +175,7 @@ export class AccountEntity {
 
         if (!env) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidCacheEnvironment
+                ClientAuthErrorCodes.invalidCacheEnvironment,
             );
         }
 
@@ -218,7 +218,7 @@ export class AccountEntity {
             if (accountDetails.idTokenClaims) {
                 const tenantProfile = buildTenantProfileFromIdTokenClaims(
                     accountDetails.homeAccountId,
-                    accountDetails.idTokenClaims
+                    accountDetails.idTokenClaims,
                 );
                 tenantProfiles.push(tenantProfile);
             }
@@ -238,7 +238,7 @@ export class AccountEntity {
     static createFromAccountInfo(
         accountInfo: AccountInfo,
         cloudGraphHostName?: string,
-        msGraphHost?: string
+        msGraphHost?: string,
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -258,7 +258,7 @@ export class AccountEntity {
         account.msGraphHost = msGraphHost;
         // Serialize tenant profiles map into an array
         account.tenantProfiles = Array.from(
-            accountInfo.tenantProfiles?.values() || []
+            accountInfo.tenantProfiles?.values() || [],
         );
 
         return account;
@@ -274,7 +274,7 @@ export class AccountEntity {
         authType: AuthorityType,
         logger: Logger,
         cryptoObj: ICrypto,
-        idTokenClaims?: TokenClaims
+        idTokenClaims?: TokenClaims,
     ): string {
         // since ADFS/DSTS do not have tid and does not set client_info
         if (
@@ -288,7 +288,7 @@ export class AccountEntity {
                 try {
                     const clientInfo = buildClientInfo(
                         serverClientInfo,
-                        cryptoObj.base64Decode
+                        cryptoObj.base64Decode,
                     );
                     if (clientInfo.uid && clientInfo.utid) {
                         return `${clientInfo.uid}.${clientInfo.utid}`;
@@ -330,7 +330,7 @@ export class AccountEntity {
     static accountInfoIsEqual(
         accountA: AccountInfo | null,
         accountB: AccountInfo | null,
-        compareClaims?: boolean
+        compareClaims?: boolean,
     ): boolean {
         if (!accountA || !accountB) {
             return false;

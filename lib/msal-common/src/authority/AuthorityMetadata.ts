@@ -106,7 +106,7 @@ InstanceDiscoveryMetadata.metadata.forEach(
         metadataEntry.aliases.forEach((alias: string) => {
             InstanceDiscoveryMetadataAliases.add(alias);
         });
-    }
+    },
 );
 
 /**
@@ -117,26 +117,26 @@ InstanceDiscoveryMetadata.metadata.forEach(
  */
 export function getAliasesFromStaticSources(
     staticAuthorityOptions: StaticAuthorityOptions,
-    logger?: Logger
+    logger?: Logger,
 ): string[] {
     let staticAliases: string[] | undefined;
     const canonicalAuthority = staticAuthorityOptions.canonicalAuthority;
     if (canonicalAuthority) {
         const authorityHost = new UrlString(
-            canonicalAuthority
+            canonicalAuthority,
         ).getUrlComponents().HostNameAndPort;
         staticAliases =
             getAliasesFromMetadata(
                 authorityHost,
                 staticAuthorityOptions.cloudDiscoveryMetadata?.metadata,
                 AuthorityMetadataSource.CONFIG,
-                logger
+                logger,
             ) ||
             getAliasesFromMetadata(
                 authorityHost,
                 InstanceDiscoveryMetadata.metadata,
                 AuthorityMetadataSource.HARDCODED_VALUES,
-                logger
+                logger,
             ) ||
             staticAuthorityOptions.knownAuthorities;
     }
@@ -154,23 +154,23 @@ export function getAliasesFromMetadata(
     authorityHost?: string,
     cloudDiscoveryMetadata?: CloudDiscoveryMetadata[],
     source?: AuthorityMetadataSource,
-    logger?: Logger
+    logger?: Logger,
 ): string[] | null {
     logger?.trace(`getAliasesFromMetadata called with source: ${source}`);
     if (authorityHost && cloudDiscoveryMetadata) {
         const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
             cloudDiscoveryMetadata,
-            authorityHost
+            authorityHost,
         );
 
         if (metadata) {
             logger?.trace(
-                `getAliasesFromMetadata: found cloud discovery metadata in ${source}, returning aliases`
+                `getAliasesFromMetadata: found cloud discovery metadata in ${source}, returning aliases`,
             );
             return metadata.aliases;
         } else {
             logger?.trace(
-                `getAliasesFromMetadata: did not find cloud discovery metadata in ${source}`
+                `getAliasesFromMetadata: did not find cloud discovery metadata in ${source}`,
             );
         }
     }
@@ -182,11 +182,11 @@ export function getAliasesFromMetadata(
  * Get cloud discovery metadata for common authorities
  */
 export function getCloudDiscoveryMetadataFromHardcodedValues(
-    authorityHost: string
+    authorityHost: string,
 ): CloudDiscoveryMetadata | null {
     const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
         InstanceDiscoveryMetadata.metadata,
-        authorityHost
+        authorityHost,
     );
     return metadata;
 }
@@ -198,7 +198,7 @@ export function getCloudDiscoveryMetadataFromHardcodedValues(
  */
 export function getCloudDiscoveryMetadataFromNetworkResponse(
     response: CloudDiscoveryMetadata[],
-    authorityHost: string
+    authorityHost: string,
 ): CloudDiscoveryMetadata | null {
     for (let i = 0; i < response.length; i++) {
         const metadata = response[i];

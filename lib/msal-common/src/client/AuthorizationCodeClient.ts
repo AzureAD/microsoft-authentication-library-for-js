@@ -62,7 +62,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
     constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient
+        performanceClient?: IPerformanceClient,
     ) {
         super(configuration, performanceClient);
         this.oidcDefaultScopes =
@@ -80,11 +80,11 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     async getAuthCodeUrl(
-        request: CommonAuthorizationUrlRequest
+        request: CommonAuthorizationUrlRequest,
     ): Promise<string> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.GetAuthCodeUrl,
-            request.correlationId
+            request.correlationId,
         );
 
         const queryString = await invokeAsync(
@@ -92,12 +92,12 @@ export class AuthorizationCodeClient extends BaseClient {
             PerformanceEvents.AuthClientCreateQueryString,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(request);
 
         return UrlString.appendQueryString(
             this.authority.authorizationEndpoint,
-            queryString
+            queryString,
         );
     }
 
@@ -108,16 +108,16 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async acquireToken(
         request: CommonAuthorizationCodeRequest,
-        authCodePayload?: AuthorizationCodePayload
+        authCodePayload?: AuthorizationCodePayload,
     ): Promise<AuthenticationResult> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.AuthClientAcquireToken,
-            request.correlationId
+            request.correlationId,
         );
 
         if (!request.code) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.requestCannotBeMade
+                ClientAuthErrorCodes.requestCannotBeMade,
             );
         }
 
@@ -127,7 +127,7 @@ export class AuthorizationCodeClient extends BaseClient {
             PerformanceEvents.AuthClientExecuteTokenRequest,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(this.authority, request);
 
         // Retrieve requestId from response headers
@@ -140,7 +140,7 @@ export class AuthorizationCodeClient extends BaseClient {
             this.logger,
             this.config.serializableCache,
             this.config.persistencePlugin,
-            this.performanceClient
+            this.performanceClient,
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
@@ -151,7 +151,7 @@ export class AuthorizationCodeClient extends BaseClient {
             PerformanceEvents.HandleServerTokenResponse,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(
             response.body,
             this.authority,
@@ -161,7 +161,7 @@ export class AuthorizationCodeClient extends BaseClient {
             undefined,
             undefined,
             undefined,
-            requestId
+            requestId,
         );
     }
 
@@ -172,7 +172,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     handleFragmentResponse(
         serverParams: ServerAuthorizationCodeResponse,
-        cachedState: string
+        cachedState: string,
     ): AuthorizationCodePayload {
         // Handle responses.
         const responseHandler = new ResponseHandler(
@@ -181,19 +181,19 @@ export class AuthorizationCodeClient extends BaseClient {
             this.cryptoUtils,
             this.logger,
             null,
-            null
+            null,
         );
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
             serverParams,
-            cachedState
+            cachedState,
         );
 
         // throw when there is no auth code in the response
         if (!serverParams.code) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
+                ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse,
             );
         }
 
@@ -209,7 +209,7 @@ export class AuthorizationCodeClient extends BaseClient {
         // Throw error if logoutRequest is null/undefined
         if (!logoutRequest) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.logoutRequestEmpty
+                ClientConfigurationErrorCodes.logoutRequestEmpty,
             );
         }
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
@@ -217,7 +217,7 @@ export class AuthorizationCodeClient extends BaseClient {
         // Construct logout URI
         return UrlString.appendQueryString(
             this.authority.endSessionEndpoint,
-            queryString
+            queryString,
         );
     }
 
@@ -228,17 +228,17 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     private async executeTokenRequest(
         authority: Authority,
-        request: CommonAuthorizationCodeRequest
+        request: CommonAuthorizationCodeRequest,
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.AuthClientExecuteTokenRequest,
-            request.correlationId
+            request.correlationId,
         );
 
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
-            queryParametersString
+            queryParametersString,
         );
 
         const requestBody = await invokeAsync(
@@ -246,7 +246,7 @@ export class AuthorizationCodeClient extends BaseClient {
             PerformanceEvents.AuthClientCreateTokenRequestBody,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(request);
 
         let ccsCredential: CcsCredential | undefined = undefined;
@@ -254,7 +254,7 @@ export class AuthorizationCodeClient extends BaseClient {
             try {
                 const clientInfo = buildClientInfo(
                     request.clientInfo,
-                    this.cryptoUtils.base64Decode
+                    this.cryptoUtils.base64Decode,
                 );
                 ccsCredential = {
                     credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
@@ -262,12 +262,12 @@ export class AuthorizationCodeClient extends BaseClient {
                 };
             } catch (e) {
                 this.logger.verbose(
-                    "Could not parse client info for CCS Header: " + e
+                    "Could not parse client info for CCS Header: " + e,
                 );
             }
         }
         const headers: Record<string, string> = this.createTokenRequestHeaders(
-            ccsCredential || request.ccsCredential
+            ccsCredential || request.ccsCredential,
         );
 
         const thumbprint: RequestThumbprint = {
@@ -289,14 +289,14 @@ export class AuthorizationCodeClient extends BaseClient {
             PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(
             endpoint,
             requestBody,
             headers,
             thumbprint,
             request.correlationId,
-            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint
+            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
         );
     }
 
@@ -305,18 +305,18 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     private async createTokenRequestBody(
-        request: CommonAuthorizationCodeRequest
+        request: CommonAuthorizationCodeRequest,
     ): Promise<string> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.AuthClientCreateTokenRequestBody,
-            request.correlationId
+            request.correlationId,
         );
 
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(
             request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
-                this.config.authOptions.clientId
+                this.config.authOptions.clientId,
         );
 
         /*
@@ -335,7 +335,7 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addScopes(
             request.scopes,
             true,
-            this.oidcDefaultScopes
+            this.oidcDefaultScopes,
         );
 
         // add code: user set, not validated
@@ -344,7 +344,7 @@ export class AuthorizationCodeClient extends BaseClient {
         // Add library metadata
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
         parameterBuilder.addApplicationTelemetry(
-            this.config.telemetry.application
+            this.config.telemetry.application,
         );
         parameterBuilder.addThrottling();
 
@@ -359,7 +359,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (this.config.clientCredentials.clientSecret) {
             parameterBuilder.addClientSecret(
-                this.config.clientCredentials.clientSecret
+                this.config.clientCredentials.clientSecret,
             );
         }
 
@@ -368,7 +368,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 this.config.clientCredentials.clientAssertion;
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(
-                clientAssertion.assertionType
+                clientAssertion.assertionType,
             );
         }
 
@@ -378,7 +378,7 @@ export class AuthorizationCodeClient extends BaseClient {
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(
                 this.cryptoUtils,
-                this.performanceClient
+                this.performanceClient,
             );
 
             const reqCnfData = await invokeAsync(
@@ -386,7 +386,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 PerformanceEvents.PopTokenGenerateCnf,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                request.correlationId,
             )(request, this.logger);
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
@@ -395,7 +395,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
                 );
             }
         }
@@ -412,7 +412,7 @@ export class AuthorizationCodeClient extends BaseClient {
         ) {
             parameterBuilder.addClaims(
                 request.claims,
-                this.config.authOptions.clientCapabilities
+                this.config.authOptions.clientCapabilities,
             );
         }
 
@@ -421,7 +421,7 @@ export class AuthorizationCodeClient extends BaseClient {
             try {
                 const clientInfo = buildClientInfo(
                     request.clientInfo,
-                    this.cryptoUtils.base64Decode
+                    this.cryptoUtils.base64Decode,
                 );
                 ccsCred = {
                     credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
@@ -429,7 +429,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 };
             } catch (e) {
                 this.logger.verbose(
-                    "Could not parse client info for CCS Header: " + e
+                    "Could not parse client info for CCS Header: " + e,
                 );
             }
         } else {
@@ -442,13 +442,13 @@ export class AuthorizationCodeClient extends BaseClient {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(
-                            ccsCred.credential
+                            ccsCred.credential,
                         );
                         parameterBuilder.addCcsOid(clientInfo);
                     } catch (e) {
                         this.logger.verbose(
                             "Could not parse home account ID for CCS Header: " +
-                                e
+                                e,
                         );
                     }
                     break;
@@ -460,7 +460,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.tokenBodyParameters) {
             parameterBuilder.addExtraQueryParameters(
-                request.tokenBodyParameters
+                request.tokenBodyParameters,
             );
         }
 
@@ -485,18 +485,18 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     private async createAuthCodeUrlQueryString(
-        request: CommonAuthorizationUrlRequest
+        request: CommonAuthorizationUrlRequest,
     ): Promise<string> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.AuthClientCreateQueryString,
-            request.correlationId
+            request.correlationId,
         );
 
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(
             request.extraQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
-                this.config.authOptions.clientId
+                this.config.authOptions.clientId,
         );
 
         const requestScopes = [
@@ -524,7 +524,7 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
         if (!isOidcProtocolMode(this.config)) {
             parameterBuilder.addApplicationTelemetry(
-                this.config.telemetry.application
+                this.config.telemetry.application,
             );
         }
 
@@ -534,7 +534,7 @@ export class AuthorizationCodeClient extends BaseClient {
         if (request.codeChallenge && request.codeChallengeMethod) {
             parameterBuilder.addCodeChallengeParams(
                 request.codeChallenge,
-                request.codeChallengeMethod
+                request.codeChallengeMethod,
             );
         }
 
@@ -552,28 +552,28 @@ export class AuthorizationCodeClient extends BaseClient {
             if (request.sid && request.prompt === PromptValue.NONE) {
                 // SessionID is only used in silent calls
                 this.logger.verbose(
-                    "createAuthCodeUrlQueryString: Prompt is none, adding sid from request"
+                    "createAuthCodeUrlQueryString: Prompt is none, adding sid from request",
                 );
                 parameterBuilder.addSid(request.sid);
             } else if (request.account) {
                 const accountSid = this.extractAccountSid(request.account);
                 const accountLoginHintClaim = this.extractLoginHint(
-                    request.account
+                    request.account,
                 );
                 // If login_hint claim is present, use it over sid/username
                 if (accountLoginHintClaim) {
                     this.logger.verbose(
-                        "createAuthCodeUrlQueryString: login_hint claim present on account"
+                        "createAuthCodeUrlQueryString: login_hint claim present on account",
                     );
                     parameterBuilder.addLoginHint(accountLoginHintClaim);
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(
-                            request.account.homeAccountId
+                            request.account.homeAccountId,
                         );
                         parameterBuilder.addCcsOid(clientInfo);
                     } catch (e) {
                         this.logger.verbose(
-                            "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
+                            "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header",
                         );
                     }
                 } else if (accountSid && request.prompt === PromptValue.NONE) {
@@ -582,52 +582,52 @@ export class AuthorizationCodeClient extends BaseClient {
                      * SessionId is only used in silent calls
                      */
                     this.logger.verbose(
-                        "createAuthCodeUrlQueryString: Prompt is none, adding sid from account"
+                        "createAuthCodeUrlQueryString: Prompt is none, adding sid from account",
                     );
                     parameterBuilder.addSid(accountSid);
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(
-                            request.account.homeAccountId
+                            request.account.homeAccountId,
                         );
                         parameterBuilder.addCcsOid(clientInfo);
                     } catch (e) {
                         this.logger.verbose(
-                            "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
+                            "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header",
                         );
                     }
                 } else if (request.loginHint) {
                     this.logger.verbose(
-                        "createAuthCodeUrlQueryString: Adding login_hint from request"
+                        "createAuthCodeUrlQueryString: Adding login_hint from request",
                     );
                     parameterBuilder.addLoginHint(request.loginHint);
                     parameterBuilder.addCcsUpn(request.loginHint);
                 } else if (request.account.username) {
                     // Fallback to account username if provided
                     this.logger.verbose(
-                        "createAuthCodeUrlQueryString: Adding login_hint from account"
+                        "createAuthCodeUrlQueryString: Adding login_hint from account",
                     );
                     parameterBuilder.addLoginHint(request.account.username);
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(
-                            request.account.homeAccountId
+                            request.account.homeAccountId,
                         );
                         parameterBuilder.addCcsOid(clientInfo);
                     } catch (e) {
                         this.logger.verbose(
-                            "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
+                            "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header",
                         );
                     }
                 }
             } else if (request.loginHint) {
                 this.logger.verbose(
-                    "createAuthCodeUrlQueryString: No account, adding login_hint from request"
+                    "createAuthCodeUrlQueryString: No account, adding login_hint from request",
                 );
                 parameterBuilder.addLoginHint(request.loginHint);
                 parameterBuilder.addCcsUpn(request.loginHint);
             }
         } else {
             this.logger.verbose(
-                "createAuthCodeUrlQueryString: Prompt is select_account, ignoring account hints"
+                "createAuthCodeUrlQueryString: Prompt is select_account, ignoring account hints",
             );
         }
 
@@ -646,13 +646,13 @@ export class AuthorizationCodeClient extends BaseClient {
         ) {
             parameterBuilder.addClaims(
                 request.claims,
-                this.config.authOptions.clientCapabilities
+                this.config.authOptions.clientCapabilities,
             );
         }
 
         if (request.extraQueryParameters) {
             parameterBuilder.addExtraQueryParameters(
-                request.extraQueryParameters
+                request.extraQueryParameters,
             );
         }
 
@@ -663,7 +663,7 @@ export class AuthorizationCodeClient extends BaseClient {
             // pass the req_cnf for POP
             if (request.authenticationScheme === AuthenticationScheme.POP) {
                 const popTokenGenerator = new PopTokenGenerator(
-                    this.cryptoUtils
+                    this.cryptoUtils,
                 );
                 // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
                 const reqCnfData = await invokeAsync(
@@ -671,7 +671,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     PerformanceEvents.PopTokenGenerateCnf,
                     this.logger,
                     this.performanceClient,
-                    request.correlationId
+                    request.correlationId,
                 )(request, this.logger);
                 parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
             }
@@ -685,13 +685,13 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     private createLogoutUrlQueryString(
-        request: CommonEndSessionRequest
+        request: CommonEndSessionRequest,
     ): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         if (request.postLogoutRedirectUri) {
             parameterBuilder.addPostLogoutRedirectUri(
-                request.postLogoutRedirectUri
+                request.postLogoutRedirectUri,
             );
         }
 
@@ -713,7 +713,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.extraQueryParameters) {
             parameterBuilder.addExtraQueryParameters(
-                request.extraQueryParameters
+                request.extraQueryParameters,
             );
         }
 

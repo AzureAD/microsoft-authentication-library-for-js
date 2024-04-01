@@ -80,14 +80,14 @@ describe("PopTokenGenerator Unit Tests", () => {
             const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
             const reqCnfData = await popTokenGenerator.generateCnf(
                 testRequest,
-                new Logger({})
+                new Logger({}),
             );
             expect(reqCnfData.reqCnfString).toBe(
-                TEST_POP_VALUES.ENCODED_REQ_CNF
+                TEST_POP_VALUES.ENCODED_REQ_CNF,
             );
             expect(reqCnfData.kid).toBe(TEST_POP_VALUES.KID);
             expect(reqCnfData.reqCnfHash).toBe(
-                TEST_CRYPTO_VALUES.TEST_SHA256_HASH
+                TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
             );
         });
     });
@@ -129,7 +129,7 @@ describe("PopTokenGenerator Unit Tests", () => {
 
             cryptoInterface.signJwt = (
                 payload: SignedHttpRequest,
-                kid: string
+                kid: string,
             ): Promise<string> => {
                 expect(kid).toBe(TEST_POP_VALUES.KID);
                 const expectedPayload = {
@@ -150,7 +150,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             popTokenGenerator.signPopToken(
                 accessToken,
                 TEST_POP_VALUES.KID,
-                popRequest
+                popRequest,
             );
         });
 
@@ -160,7 +160,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             const currTime = TimeUtils.nowSeconds();
             cryptoInterface.signJwt = (
                 payload: SignedHttpRequest,
-                kid: string
+                kid: string,
             ): Promise<string> => {
                 expect(kid).toBe(TEST_POP_VALUES.KID);
                 const expectedPayload = {
@@ -181,7 +181,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             popTokenGenerator.signPopToken(
                 accessToken,
                 TEST_POP_VALUES.KID,
-                testRequest
+                testRequest,
             );
         });
     });

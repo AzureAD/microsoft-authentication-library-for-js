@@ -31,10 +31,10 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                         staticAuthorityOptions.canonicalAuthority =
                             buildCanonicalAuthorityUrl(
                                 CLOUD_HOSTS[cloudKey],
-                                tenant
+                                tenant,
                             );
                         expect(
-                            getAliasesFromStaticSources(staticAuthorityOptions)
+                            getAliasesFromStaticSources(staticAuthorityOptions),
                         ).toEqual(METADATA_ALIASES[cloudKey]);
                     });
                 });
@@ -48,11 +48,11 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                         const staticAuthorityOptions = {
                             canonicalAuthority: buildCanonicalAuthorityUrl(
                                 CLOUD_HOSTS[cloudKey],
-                                tenant
+                                tenant,
                             ),
                         };
                         expect(
-                            getAliasesFromStaticSources(staticAuthorityOptions)
+                            getAliasesFromStaticSources(staticAuthorityOptions),
                         ).toEqual(METADATA_ALIASES[cloudKey]);
                     });
                 });

@@ -24,7 +24,7 @@ export type ClientInfo = {
  */
 export function buildClientInfo(
     rawClientInfo: string,
-    base64Decode: (input: string) => string
+    base64Decode: (input: string) => string,
 ): ClientInfo {
     if (!rawClientInfo) {
         throw createClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError);
@@ -35,7 +35,7 @@ export function buildClientInfo(
         return JSON.parse(decodedClientInfo) as ClientInfo;
     } catch (e) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.clientInfoDecodingError
+            ClientAuthErrorCodes.clientInfoDecodingError,
         );
     }
 }
@@ -45,16 +45,16 @@ export function buildClientInfo(
  * @param homeAccountId
  */
 export function buildClientInfoFromHomeAccountId(
-    homeAccountId: string
+    homeAccountId: string,
 ): ClientInfo {
     if (!homeAccountId) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.clientInfoDecodingError
+            ClientAuthErrorCodes.clientInfoDecodingError,
         );
     }
     const clientInfoParts: string[] = homeAccountId.split(
         Separators.CLIENT_INFO_SEPARATOR,
-        2
+        2,
     );
     return {
         uid: clientInfoParts[0],

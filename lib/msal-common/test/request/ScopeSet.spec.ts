@@ -19,18 +19,18 @@ describe("ScopeSet.ts", () => {
         it("Throws error if scopes are null or empty and required", () => {
             // @ts-ignore
             expect(() => new ScopeSet(null)).toThrowError(
-                ClientConfigurationErrorMessage.emptyScopesError.desc
+                ClientConfigurationErrorMessage.emptyScopesError.desc,
             );
             // @ts-ignore
             expect(() => new ScopeSet(null)).toThrowError(
-                ClientConfigurationError
+                ClientConfigurationError,
             );
 
             expect(() => new ScopeSet([])).toThrowError(
-                ClientConfigurationErrorMessage.emptyScopesError.desc
+                ClientConfigurationErrorMessage.emptyScopesError.desc,
             );
             expect(() => new ScopeSet([])).toThrowError(
-                ClientConfigurationError
+                ClientConfigurationError,
             );
         });
 
@@ -74,28 +74,28 @@ describe("ScopeSet.ts", () => {
     describe("fromString Constructor", () => {
         it("Throws error if scopeString is empty, null or undefined if scopes are required", () => {
             expect(() => ScopeSet.fromString("")).toThrowError(
-                ClientConfigurationErrorMessage.emptyScopesError.desc
+                ClientConfigurationErrorMessage.emptyScopesError.desc,
             );
             expect(() => ScopeSet.fromString("")).toThrowError(
-                ClientConfigurationError
+                ClientConfigurationError,
             );
 
             // @ts-ignore
             expect(() => ScopeSet.fromString(null)).toThrowError(
-                ClientConfigurationErrorMessage.emptyScopesError.desc
+                ClientConfigurationErrorMessage.emptyScopesError.desc,
             );
             // @ts-ignore
             expect(() => ScopeSet.fromString(null)).toThrowError(
-                ClientConfigurationError
+                ClientConfigurationError,
             );
 
             // @ts-ignore
             expect(() => ScopeSet.fromString(undefined)).toThrowError(
-                ClientConfigurationErrorMessage.emptyScopesError.desc
+                ClientConfigurationErrorMessage.emptyScopesError.desc,
             );
             // @ts-ignore
             expect(() => ScopeSet.fromString(undefined)).toThrowError(
-                ClientConfigurationError
+                ClientConfigurationError,
             );
         });
 
@@ -107,7 +107,7 @@ describe("ScopeSet.ts", () => {
             const testScope3 = "   TESTSCOPE3  ";
             const trimmedTestScope3 = "TESTSCOPE3";
             const scopeSet = ScopeSet.fromString(
-                `${testScope1} ${testScope2} ${testScope3}`
+                `${testScope1} ${testScope2} ${testScope3}`,
             );
             expect(scopeSet.asArray()).toEqual([
                 trimmedTestScope1,
@@ -123,7 +123,7 @@ describe("ScopeSet.ts", () => {
             const testScope4 = "testscope";
             const testScope5 = "testscope";
             const scopeSet = ScopeSet.fromString(
-                `${testScope1} ${testScope2} ${testScope3} ${testScope4} ${testScope5}`
+                `${testScope1} ${testScope2} ${testScope3} ${testScope4} ${testScope5}`,
             );
             expect(scopeSet.asArray()).toEqual([
                 testScope1,
@@ -181,11 +181,11 @@ describe("ScopeSet.ts", () => {
 
         it("appendScope() adds scope to set after trimming", () => {
             expect(scopes.asArray()).toEqual(
-                expect.arrayContaining([testScope])
+                expect.arrayContaining([testScope]),
             );
             scopes.appendScope("   testScope2   ");
             expect(scopes.asArray()).toEqual(
-                expect.arrayContaining(["testScope2"])
+                expect.arrayContaining(["testScope2"]),
             );
         });
 
@@ -217,20 +217,20 @@ describe("ScopeSet.ts", () => {
         it("appendScopes() throws error if given array is null or undefined", () => {
             // @ts-ignore
             expect(() => scopes.appendScopes(null)).toThrowError(
-                ClientAuthError
+                ClientAuthError,
             );
             // @ts-ignore
             expect(() => scopes.appendScopes(null)).toThrowError(
-                ClientAuthErrorMessage.appendScopeSetError.desc
+                ClientAuthErrorMessage.appendScopeSetError.desc,
             );
 
             // @ts-ignore
             expect(() => scopes.appendScopes(undefined)).toThrowError(
-                ClientAuthError
+                ClientAuthError,
             );
             // @ts-ignore
             expect(() => scopes.appendScopes(undefined)).toThrowError(
-                ClientAuthErrorMessage.appendScopeSetError.desc
+                ClientAuthErrorMessage.appendScopeSetError.desc,
             );
         });
 
@@ -245,10 +245,10 @@ describe("ScopeSet.ts", () => {
             const testScope3 = "testscope3";
             scopes.appendScopes([testScope2, testScope3]);
             expect(scopes.asArray()).toEqual(
-                expect.arrayContaining([testScope2])
+                expect.arrayContaining([testScope2]),
             );
             expect(scopes.asArray()).toEqual(
-                expect.arrayContaining([testScope3])
+                expect.arrayContaining([testScope3]),
             );
         });
 
@@ -259,10 +259,10 @@ describe("ScopeSet.ts", () => {
             const expectedTestScope3 = "testscope3";
             scopes.appendScopes([testScope2, testScope3]);
             expect(scopes.asArray()).toEqual(
-                expect.arrayContaining([expectedTestScope2])
+                expect.arrayContaining([expectedTestScope2]),
             );
             expect(scopes.asArray()).toEqual(
-                expect.arrayContaining([expectedTestScope3])
+                expect.arrayContaining([expectedTestScope3]),
             );
         });
 
@@ -282,24 +282,24 @@ describe("ScopeSet.ts", () => {
         it("removeScopes() throws error if scope is null, undefined or empty", () => {
             // @ts-ignore
             expect(() => scopes.removeScope(null)).toThrowError(
-                ClientAuthErrorMessage.removeEmptyScopeError.desc
+                ClientAuthErrorMessage.removeEmptyScopeError.desc,
             );
             // @ts-ignore
             expect(() => scopes.removeScope(null)).toThrowError(
-                ClientAuthError
+                ClientAuthError,
             );
 
             // @ts-ignore
             expect(() => scopes.removeScope(undefined)).toThrowError(
-                ClientAuthErrorMessage.removeEmptyScopeError.desc
+                ClientAuthErrorMessage.removeEmptyScopeError.desc,
             );
             // @ts-ignore
             expect(() => scopes.removeScope(undefined)).toThrowError(
-                ClientAuthError
+                ClientAuthError,
             );
 
             expect(() => scopes.removeScope("")).toThrowError(
-                ClientAuthErrorMessage.removeEmptyScopeError.desc
+                ClientAuthErrorMessage.removeEmptyScopeError.desc,
             );
             expect(() => scopes.removeScope("")).toThrowError(ClientAuthError);
         });
@@ -315,20 +315,20 @@ describe("ScopeSet.ts", () => {
         it("unionScopeSets() throws error if input is null or undefined", () => {
             // @ts-ignore
             expect(() => scopes.unionScopeSets(null)).toThrowError(
-                ClientAuthErrorMessage.emptyInputScopeSetError.desc
+                ClientAuthErrorMessage.emptyInputScopeSetError.desc,
             );
             // @ts-ignore
             expect(() => scopes.unionScopeSets(null)).toThrowError(
-                ClientAuthError
+                ClientAuthError,
             );
 
             // @ts-ignore
             expect(() => scopes.unionScopeSets(undefined)).toThrowError(
-                ClientAuthErrorMessage.emptyInputScopeSetError.desc
+                ClientAuthErrorMessage.emptyInputScopeSetError.desc,
             );
             // @ts-ignore
             expect(() => scopes.unionScopeSets(undefined)).toThrowError(
-                ClientAuthError
+                ClientAuthError,
             );
         });
 
@@ -342,12 +342,12 @@ describe("ScopeSet.ts", () => {
             const unionArray = Array.from(unionSet);
             expect(unionSet instanceof Set).toBe(true);
             expect(unionSet.size).toBe(
-                newScopeSet.getScopeCount() + scopes.getScopeCount()
+                newScopeSet.getScopeCount() + scopes.getScopeCount(),
             );
             for (let i = 0; i < unionArray.length; i++) {
                 expect(
                     newScopeSet.containsScope(unionArray[i]) ||
-                        scopes.containsScope(unionArray[i])
+                        scopes.containsScope(unionArray[i]),
                 ).toBe(true);
             }
         });
@@ -355,20 +355,20 @@ describe("ScopeSet.ts", () => {
         it("intersectingScopeSets() throws error if input is null or undefined", () => {
             // @ts-ignore
             expect(() => scopes.intersectingScopeSets(null)).toThrowError(
-                ClientAuthErrorMessage.emptyInputScopeSetError.desc
+                ClientAuthErrorMessage.emptyInputScopeSetError.desc,
             );
             // @ts-ignore
             expect(() => scopes.intersectingScopeSets(null)).toThrowError(
-                ClientAuthError
+                ClientAuthError,
             );
 
             // @ts-ignore
             expect(() => scopes.intersectingScopeSets(undefined)).toThrowError(
-                ClientAuthErrorMessage.emptyInputScopeSetError.desc
+                ClientAuthErrorMessage.emptyInputScopeSetError.desc,
             );
             // @ts-ignore
             expect(() => scopes.intersectingScopeSets(undefined)).toThrowError(
-                ClientAuthError
+                ClientAuthError,
             );
         });
 
@@ -447,7 +447,7 @@ describe("ScopeSet.ts", () => {
             expect(scopeArr.length).toBe(nonRequiredScopeSet.getScopeCount());
             for (let i = 0; i < scopeArr.length; i++) {
                 expect(nonRequiredScopeSet.containsScope(scopeArr[i])).toBe(
-                    true
+                    true,
                 );
             }
         });
@@ -466,7 +466,7 @@ describe("ScopeSet.ts", () => {
         it("printScopesLowerCase() prints space-delimited string of scopes in lowercase", () => {
             const scopeArr = lowercaseScopeSet.asArray();
             expect(uppercaseScopeSet.printScopesLowerCase()).toBe(
-                scopeArr.join(" ")
+                scopeArr.join(" "),
             );
         });
     });

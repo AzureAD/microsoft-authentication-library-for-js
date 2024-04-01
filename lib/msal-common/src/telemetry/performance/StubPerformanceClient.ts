@@ -29,7 +29,7 @@ export class StubPerformanceClient implements IPerformanceClient {
 
     startMeasurement(
         measureName: string,
-        correlationId?: string | undefined
+        correlationId?: string | undefined,
     ): InProgressPerformanceEvent {
         return {
             end: () => null,

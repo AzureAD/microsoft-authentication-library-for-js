@@ -38,7 +38,7 @@ export interface PreQueueEvent {
 export function startContext(
     event: PerformanceEvent,
     abbreviations: Map<string, string>,
-    stack?: PerformanceEventStackedContext[]
+    stack?: PerformanceEventStackedContext[],
 ): void {
     if (!stack) {
         return;
@@ -61,7 +61,7 @@ export function endContext(
     event: PerformanceEvent,
     abbreviations: Map<string, string>,
     stack?: PerformanceEventStackedContext[],
-    error?: unknown
+    error?: unknown,
 ): PerformanceEventContext | undefined {
     if (!stack?.length) {
         return;
@@ -86,8 +86,8 @@ export function endContext(
         error instanceof AuthError
             ? error.errorCode
             : error instanceof Error
-            ? error.name
-            : undefined;
+              ? error.name
+              : undefined;
     const subErr = error instanceof AuthError ? error.subError : undefined;
 
     if (errorCode && current.childErr !== errorCode) {
@@ -123,7 +123,7 @@ export function endContext(
         childName = abbrEventName;
     } else {
         const siblings = Object.keys(parent).filter((key) =>
-            key.startsWith(abbrEventName)
+            key.startsWith(abbrEventName),
         ).length;
         childName = `${abbrEventName}_${siblings + 1}`;
     }
@@ -142,12 +142,12 @@ export function addError(
     error: unknown,
     logger: Logger,
     event: PerformanceEvent,
-    stackMaxSize: number = 5
+    stackMaxSize: number = 5,
 ): void {
     if (!(error instanceof Error)) {
         logger.trace(
             "PerformanceClient.addErrorStack: Input error is not instance of Error",
-            event.correlationId
+            event.correlationId,
         );
         return;
     } else if (error instanceof AuthError) {
@@ -157,13 +157,13 @@ export function addError(
     } else if (event.errorStack?.length) {
         logger.trace(
             "PerformanceClient.addErrorStack: Stack already exist",
-            event.correlationId
+            event.correlationId,
         );
         return;
     } else if (!error.stack?.length) {
         logger.trace(
             "PerformanceClient.addErrorStack: Input stack is empty",
-            event.correlationId
+            event.correlationId,
         );
         return;
     }
@@ -305,7 +305,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         libraryVersion: string,
         applicationTelemetry: ApplicationTelemetry,
         intFields?: Set<string>,
-        abbreviations?: Map<string, string>
+        abbreviations?: Map<string, string>,
     ) {
         this.authority = authority;
         this.libraryName = libraryName;
@@ -347,7 +347,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     startPerformanceMeasurement(
         measureName: string, // eslint-disable-line @typescript-eslint/no-unused-vars
-        correlationId: string // eslint-disable-line @typescript-eslint/no-unused-vars
+        correlationId: string, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): IPerformanceMeasurement {
         return {} as IPerformanceMeasurement;
     }
@@ -362,7 +362,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     abstract setPreQueueTime(
         eventName: PerformanceEvents,
-        correlationId?: string
+        correlationId?: string,
     ): void;
 
     /**
@@ -378,12 +378,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         if (!preQueueEvent) {
             this.logger.trace(
-                `PerformanceClient.getPreQueueTime: no pre-queue times found for correlationId: ${correlationId}, unable to add queue measurement`
+                `PerformanceClient.getPreQueueTime: no pre-queue times found for correlationId: ${correlationId}, unable to add queue measurement`,
             );
             return;
         } else if (preQueueEvent.name !== eventName) {
             this.logger.trace(
-                `PerformanceClient.getPreQueueTime: no pre-queue time found for ${eventName}, unable to add queue measurement`
+                `PerformanceClient.getPreQueueTime: no pre-queue time found for ${eventName}, unable to add queue measurement`,
             );
             return;
         }
@@ -402,21 +402,21 @@ export abstract class PerformanceClient implements IPerformanceClient {
     calculateQueuedTime(preQueueTime: number, currentTime: number): number {
         if (preQueueTime < 1) {
             this.logger.trace(
-                `PerformanceClient: preQueueTime should be a positive integer and not ${preQueueTime}`
+                `PerformanceClient: preQueueTime should be a positive integer and not ${preQueueTime}`,
             );
             return 0;
         }
 
         if (currentTime < 1) {
             this.logger.trace(
-                `PerformanceClient: currentTime should be a positive integer and not ${currentTime}`
+                `PerformanceClient: currentTime should be a positive integer and not ${currentTime}`,
             );
             return 0;
         }
 
         if (currentTime < preQueueTime) {
             this.logger.trace(
-                "PerformanceClient: currentTime is less than preQueueTime, check how time is being retrieved"
+                "PerformanceClient: currentTime is less than preQueueTime, check how time is being retrieved",
             );
             return 0;
         }
@@ -437,11 +437,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
         eventName: string,
         correlationId?: string,
         queueTime?: number,
-        manuallyCompleted?: boolean
+        manuallyCompleted?: boolean,
     ): void {
         if (!correlationId) {
             this.logger.trace(
-                `PerformanceClient.addQueueMeasurement: correlationId not provided for ${eventName}, cannot add queue measurement`
+                `PerformanceClient.addQueueMeasurement: correlationId not provided for ${eventName}, cannot add queue measurement`,
             );
             return;
         }
@@ -449,11 +449,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
         if (queueTime === 0) {
             // Possible for there to be no queue time after calculation
             this.logger.trace(
-                `PerformanceClient.addQueueMeasurement: queue time provided for ${eventName} is ${queueTime}`
+                `PerformanceClient.addQueueMeasurement: queue time provided for ${eventName} is ${queueTime}`,
             );
         } else if (!queueTime) {
             this.logger.trace(
-                `PerformanceClient.addQueueMeasurement: no queue time provided for ${eventName}`
+                `PerformanceClient.addQueueMeasurement: no queue time provided for ${eventName}`,
             );
             return;
         }
@@ -473,7 +473,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         } else {
             // Sets new correlation Id if not present in queueMeasurements
             this.logger.trace(
-                `PerformanceClient.addQueueMeasurement: adding correlationId ${correlationId} to queue measurements`
+                `PerformanceClient.addQueueMeasurement: adding correlationId ${correlationId} to queue measurements`,
             );
             const measurementArray = [queueMeasurement];
             this.queueMeasurements.set(correlationId, measurementArray);
@@ -491,20 +491,20 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     startMeasurement(
         measureName: string,
-        correlationId?: string
+        correlationId?: string,
     ): InProgressPerformanceEvent {
         // Generate a placeholder correlation if the request does not provide one
         const eventCorrelationId = correlationId || this.generateId();
         if (!correlationId) {
             this.logger.info(
                 `PerformanceClient: No correlation id provided for ${measureName}, generating`,
-                eventCorrelationId
+                eventCorrelationId,
             );
         }
 
         this.logger.trace(
             `PerformanceClient: Performance measurement started for ${measureName}`,
-            eventCorrelationId
+            eventCorrelationId,
         );
 
         const inProgressEvent: PerformanceEvent = {
@@ -526,14 +526,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
         startContext(
             inProgressEvent,
             this.abbreviations,
-            this.eventStack.get(eventCorrelationId)
+            this.eventStack.get(eventCorrelationId),
         );
 
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
             end: (
                 event?: Partial<PerformanceEvent>,
-                error?: unknown
+                error?: unknown,
             ): PerformanceEvent | null => {
                 return this.endMeasurement(
                     {
@@ -542,7 +542,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         // Properties set when event ends
                         ...event,
                     },
-                    error
+                    error,
                 );
             },
             discard: () => {
@@ -554,7 +554,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             increment: (fields: { [key: string]: number | undefined }) => {
                 return this.incrementFields(
                     fields,
-                    inProgressEvent.correlationId
+                    inProgressEvent.correlationId,
                 );
             },
             event: inProgressEvent,
@@ -574,14 +574,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     endMeasurement(
         event: PerformanceEvent,
-        error?: unknown
+        error?: unknown,
     ): PerformanceEvent | null {
         const rootEvent: PerformanceEvent | undefined =
             this.eventsByCorrelationId.get(event.correlationId);
         if (!rootEvent) {
             this.logger.trace(
                 `PerformanceClient: Measurement not found for ${event.eventId}`,
-                event.correlationId
+                event.correlationId,
             );
             return null;
         }
@@ -594,7 +594,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         };
 
         event.durationMs = Math.round(
-            event.durationMs || this.getDurationMs(event.startTimeMs)
+            event.durationMs || this.getDurationMs(event.startTimeMs),
         );
 
         const context = JSON.stringify(
@@ -602,8 +602,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 event,
                 this.abbreviations,
                 this.eventStack.get(rootEvent.correlationId),
-                error
-            )
+                error,
+            ),
         );
 
         if (isRoot) {
@@ -615,7 +615,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         this.logger.trace(
             `PerformanceClient: Performance measurement ended for ${event.name}: ${event.durationMs} ms`,
-            event.correlationId
+            event.correlationId,
         );
 
         // Add sub-measurement attribute to root event.
@@ -634,7 +634,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         finalEvent.incompleteSubMeasurements?.forEach((subMeasurement) => {
             this.logger.trace(
                 `PerformanceClient: Incomplete submeasurement ${subMeasurement.name} found for ${event.name}`,
-                finalEvent.correlationId
+                finalEvent.correlationId,
             );
             incompleteSubsCount++;
         });
@@ -662,7 +662,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     addFields(
         fields: { [key: string]: {} | undefined },
-        correlationId: string
+        correlationId: string,
     ): void {
         this.logger.trace("PerformanceClient: Updating static fields");
         const event = this.eventsByCorrelationId.get(correlationId);
@@ -674,7 +674,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         } else {
             this.logger.trace(
                 "PerformanceClient: Event not found for",
-                correlationId
+                correlationId,
             );
         }
     }
@@ -686,7 +686,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     incrementFields(
         fields: { [key: string]: number | undefined },
-        correlationId: string
+        correlationId: string,
     ): void {
         this.logger.trace("PerformanceClient: Updating counters");
         const event = this.eventsByCorrelationId.get(correlationId);
@@ -702,7 +702,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         } else {
             this.logger.trace(
                 "PerformanceClient: Event not found for",
-                correlationId
+                correlationId,
             );
         }
     }
@@ -721,7 +721,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         if (rootEvent) {
             this.logger.trace(
                 `PerformanceClient: Performance measurement for ${event.name} added/updated`,
-                event.correlationId
+                event.correlationId,
             );
             rootEvent.incompleteSubMeasurements =
                 rootEvent.incompleteSubMeasurements || new Map();
@@ -732,7 +732,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         } else {
             this.logger.trace(
                 `PerformanceClient: Performance measurement for ${event.name} started`,
-                event.correlationId
+                event.correlationId,
             );
             this.eventsByCorrelationId.set(event.correlationId, { ...event });
             this.eventStack.set(event.correlationId, []);
@@ -748,7 +748,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.queueMeasurements.get(correlationId);
         if (!queueMeasurementForCorrelationId) {
             this.logger.trace(
-                `PerformanceClient: no queue measurements found for for correlationId: ${correlationId}`
+                `PerformanceClient: no queue measurements found for for correlationId: ${correlationId}`,
             );
         }
 
@@ -776,7 +776,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
     discardMeasurements(correlationId: string): void {
         this.logger.trace(
             "PerformanceClient: Performance measurements discarded",
-            correlationId
+            correlationId,
         );
         this.eventsByCorrelationId.delete(correlationId);
     }
@@ -791,19 +791,19 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         this.logger.trace(
             "PerformanceClient: QueueMeasurements discarded",
-            correlationId
+            correlationId,
         );
         this.queueMeasurements.delete(correlationId);
 
         this.logger.trace(
             "PerformanceClient: Pre-queue times discarded",
-            correlationId
+            correlationId,
         );
         this.preQueueTimeByCorrelationId.delete(correlationId);
 
         this.logger.trace(
             "PerformanceClient: Event stack discarded",
-            correlationId
+            correlationId,
         );
         this.eventStack.delete(correlationId);
     }
@@ -818,7 +818,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const callbackId = this.generateId();
         this.callbacks.set(callbackId, callback);
         this.logger.verbose(
-            `PerformanceClient: Performance callback registered with id: ${callbackId}`
+            `PerformanceClient: Performance callback registered with id: ${callbackId}`,
         );
 
         return callbackId;
@@ -835,11 +835,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         if (result) {
             this.logger.verbose(
-                `PerformanceClient: Performance callback ${callbackId} removed.`
+                `PerformanceClient: Performance callback ${callbackId} removed.`,
             );
         } else {
             this.logger.verbose(
-                `PerformanceClient: Performance callback ${callbackId} not removed.`
+                `PerformanceClient: Performance callback ${callbackId} not removed.`,
             );
         }
 
@@ -855,17 +855,17 @@ export abstract class PerformanceClient implements IPerformanceClient {
     emitEvents(events: PerformanceEvent[], correlationId: string): void {
         this.logger.verbose(
             "PerformanceClient: Emitting performance events",
-            correlationId
+            correlationId,
         );
 
         this.callbacks.forEach(
             (callback: PerformanceCallbackFunction, callbackId: string) => {
                 this.logger.trace(
                     `PerformanceClient: Emitting event to callback ${callbackId}`,
-                    correlationId
+                    correlationId,
                 );
                 callback.apply(null, [events]);
-            }
+            },
         );
     }
 
