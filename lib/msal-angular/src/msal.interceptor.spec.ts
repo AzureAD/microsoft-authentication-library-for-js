@@ -144,7 +144,7 @@ describe("MsalInterceptor", () => {
       error: (error) => {
         expect(error.errorCode).toBe("invalid_interaction_type");
         expect(error.errorMessage).toBe(
-          "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration"
+          "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration",
         );
         testInteractionType = InteractionType.Popup;
         done();
@@ -179,19 +179,19 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for protected resource with exact match", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(
       PublicClientApplication.prototype,
-      "getActiveAccount"
+      "getActiveAccount",
     ).and.returnValue(sampleAccountInfo);
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
@@ -199,7 +199,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -212,7 +212,7 @@ describe("MsalInterceptor", () => {
 
   it("attaches authorization header with access token via interaction if acquireTokenSilent returns null access token, interaction type is Popup and interaction invocation waits for interaction status becomes None", (done) => {
     const _inProgress = new BehaviorSubject<InteractionStatus>(
-      InteractionStatus.Startup
+      InteractionStatus.Startup,
     );
     const msalBroadcastService = TestBed.inject(MsalBroadcastService);
 
@@ -220,37 +220,37 @@ describe("MsalInterceptor", () => {
 
     const spy1 = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: null,
         });
-      })
+      }),
     );
 
     const spy2 = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenPopup"
+      "acquireTokenPopup",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(
       PublicClientApplication.prototype,
-      "getActiveAccount"
+      "getActiveAccount",
     ).and.returnValue(sampleAccountInfo);
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
     setTimeout(() => {
       const request = httpMock.expectNone(
-        "https://graph.microsoft.com/v1.0/me"
+        "https://graph.microsoft.com/v1.0/me",
       );
       expect(request).toBeUndefined();
       expect(spy1).toHaveBeenCalledWith({
@@ -267,7 +267,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy2).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -281,14 +281,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for protected resource with wildcard", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -300,7 +300,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("https://myapplication.com/user/1");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -314,14 +314,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token to url for protected resource with wildcard, url has multiple slashes", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -331,11 +331,11 @@ describe("MsalInterceptor", () => {
     httpClient.get("https://myapplication.com/user/1/2/3").subscribe();
     setTimeout(() => {
       const request = httpMock.expectOne(
-        "https://myapplication.com/user/1/2/3"
+        "https://myapplication.com/user/1/2/3",
       );
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -349,14 +349,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for protected resource with multiple wildcards", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -368,7 +368,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("https://mail.myapplication.com/me");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -382,14 +382,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for base url as protected resource", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -401,7 +401,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("http://localhost:3000/base");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -416,14 +416,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for multiple matching entries in protected resource, scopes are for first matching entry", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -435,7 +435,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("https://api.test.com");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -472,7 +472,7 @@ describe("MsalInterceptor", () => {
 
   it("attaches authorization header with access token from acquireTokenPopup if acquireTokenSilent fails in interceptor, interaction type is Popup and interaction status is None", (done) => {
     const _inProgress = new BehaviorSubject<InteractionStatus>(
-      InteractionStatus.None
+      InteractionStatus.None,
     );
     const msalBroadcastService = TestBed.inject(MsalBroadcastService);
 
@@ -485,21 +485,21 @@ describe("MsalInterceptor", () => {
 
     const spy1 = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve, reject) => {
         reject(sampleError);
-      })
+      }),
     );
 
     const spy2 = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenPopup"
+      "acquireTokenPopup",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve(sampleAccessToken);
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -511,7 +511,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer 123abc"
+        "Bearer 123abc",
       );
       expect(spy1).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -531,7 +531,7 @@ describe("MsalInterceptor", () => {
     initializeMsal();
 
     const _inProgress = new BehaviorSubject<InteractionStatus>(
-      InteractionStatus.None
+      InteractionStatus.None,
     );
     const msalBroadcastService = TestBed.inject(MsalBroadcastService);
 
@@ -541,21 +541,21 @@ describe("MsalInterceptor", () => {
 
     spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve, reject) => {
         reject(sampleError);
-      })
+      }),
     );
 
     spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenRedirect"
+      "acquireTokenRedirect",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve();
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -565,7 +565,7 @@ describe("MsalInterceptor", () => {
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
     setTimeout(() => {
       const request = httpMock.expectNone(
-        "https://graph.microsoft.com/v1.0/me"
+        "https://graph.microsoft.com/v1.0/me",
       );
       expect(request).toBeUndefined();
       httpMock.verify();
@@ -575,7 +575,7 @@ describe("MsalInterceptor", () => {
 
   it("does not invoke interaction if acquireTokenSilent fails in interceptor and interaction status other than None", (done) => {
     const _inProgress = new BehaviorSubject<InteractionStatus>(
-      InteractionStatus.Startup
+      InteractionStatus.Startup,
     );
     const msalBroadcastService = TestBed.inject(MsalBroadcastService);
 
@@ -588,31 +588,31 @@ describe("MsalInterceptor", () => {
 
     const spy1 = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve, reject) => {
         reject(sampleError);
-      })
+      }),
     );
 
     const spy2 = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenPopup"
+      "acquireTokenPopup",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve(sampleAccessToken);
-      })
+      }),
     );
 
     const spy3 = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenRedirect"
+      "acquireTokenRedirect",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve();
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -622,7 +622,7 @@ describe("MsalInterceptor", () => {
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
     setTimeout(() => {
       const request = httpMock.expectNone(
-        "https://graph.microsoft.com/v1.0/me"
+        "https://graph.microsoft.com/v1.0/me",
       );
       expect(request).toBeUndefined();
       expect(spy1).toHaveBeenCalledWith({
@@ -638,7 +638,7 @@ describe("MsalInterceptor", () => {
 
   it("does not invoke interaction if acquireTokenSilent fails in interceptor and interaction status other than None and should invoke acquireTokenSilent when status became None", (done) => {
     const _inProgress = new BehaviorSubject<InteractionStatus>(
-      InteractionStatus.Startup
+      InteractionStatus.Startup,
     );
     const msalBroadcastService = TestBed.inject(MsalBroadcastService);
 
@@ -651,31 +651,31 @@ describe("MsalInterceptor", () => {
 
     const spy1 = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve, reject) => {
         reject(sampleError);
-      })
+      }),
     );
 
     const spy2 = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenPopup"
+      "acquireTokenPopup",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve(sampleAccessToken);
-      })
+      }),
     );
 
     const spy3 = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenRedirect"
+      "acquireTokenRedirect",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve();
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -685,7 +685,7 @@ describe("MsalInterceptor", () => {
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
     setTimeout(() => {
       const request = httpMock.expectNone(
-        "https://graph.microsoft.com/v1.0/me"
+        "https://graph.microsoft.com/v1.0/me",
       );
       expect(request).toBeUndefined();
       expect(spy1).toHaveBeenCalledWith({
@@ -720,7 +720,7 @@ describe("MsalInterceptor", () => {
     ]);
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.callFake(
       (silentRequest: SilentRequest) =>
         new Promise((resolve) => {
@@ -728,7 +728,7 @@ describe("MsalInterceptor", () => {
           resolve({
             accessToken: `access-token-for-${silentRequest.authority}`,
           });
-        })
+        }),
     );
 
     httpClient.get("https://api.test.com").subscribe();
@@ -736,7 +736,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("https://api.test.com");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token-for-https://login.microsoftonline.com/common"
+        "Bearer access-token-for-https://login.microsoftonline.com/common",
       );
       expect(spy).toHaveBeenCalledWith({
         authority: originalAuthority,
@@ -758,11 +758,11 @@ describe("MsalInterceptor", () => {
     initializeMsal();
     spyOn(
       PublicClientApplication.prototype,
-      "getActiveAccount"
+      "getActiveAccount",
     ).and.returnValue(sampleAccountInfo);
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.callFake(
       (silentRequest: SilentRequest) =>
         new Promise((resolve) => {
@@ -770,7 +770,7 @@ describe("MsalInterceptor", () => {
           resolve({
             accessToken: `access-token-for-${silentRequest.authority}`,
           });
-        })
+        }),
     );
 
     httpClient.get("https://api.test.com").subscribe();
@@ -778,7 +778,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("https://api.test.com");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token-for-https://login.microsoftonline.com/test-tenant"
+        "Bearer access-token-for-https://login.microsoftonline.com/test-tenant",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -793,18 +793,18 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for protected resource with queries", (done) => {
     spyOn(
       PublicClientApplication.prototype,
-      "getActiveAccount"
+      "getActiveAccount",
     ).and.returnValue(sampleAccountInfo);
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     httpClient.get("http://localhost:9876/tenant?abc").subscribe();
@@ -812,7 +812,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("http://localhost:9876/tenant?abc");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -826,14 +826,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for protected resource with trailing slash", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -845,7 +845,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("http://applicationA/slash");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -859,14 +859,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for endpoint with trailing slash", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -878,7 +878,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("http://applicationB/noSlash/");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -892,14 +892,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for relative endpoint", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -911,7 +911,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("http://site.com/relative/me");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -925,14 +925,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for relative endpoint which includes query", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -944,7 +944,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("/tenant?abc");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -958,14 +958,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for endpoint with HTTP methods specified", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -977,7 +977,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("http://applicationC.com");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -1003,14 +1003,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for endpoint with scopes in string array and with HTTP methods specified", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -1022,7 +1022,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("http://applicationD.com");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -1048,14 +1048,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for endpoint with HTTP methods specified, regardless of casing of HTTP method", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -1067,7 +1067,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("http://applicationD.com");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
@@ -1093,14 +1093,14 @@ describe("MsalInterceptor", () => {
   it("attaches authorization header with access token for correct endpoint even though an earlier endpoint in the protectedResourceMap has a matching relative endpoint", (done) => {
     const spy = spyOn(
       PublicClientApplication.prototype,
-      "acquireTokenSilent"
+      "acquireTokenSilent",
     ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
           accessToken: "access-token",
         });
-      })
+      }),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -1112,7 +1112,7 @@ describe("MsalInterceptor", () => {
       const request = httpMock.expectOne("http://applicationF.com/profile/");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
-        "Bearer access-token"
+        "Bearer access-token",
       );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,

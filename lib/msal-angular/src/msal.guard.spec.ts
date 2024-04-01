@@ -117,7 +117,7 @@ describe("MsalGuard", () => {
           path: jasmine
             .createSpy("path")
             .and.callFake((hash: boolean) =>
-              hash ? "/path?code=123#code=456" : "/path"
+              hash ? "/path?code=123#code=456" : "/path",
             ),
           prepareExternalUrl: jasmine
             .createSpy("prepareExternalUrl")
@@ -136,7 +136,7 @@ describe("MsalGuard", () => {
 
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -165,7 +165,7 @@ describe("MsalGuard", () => {
           path: jasmine
             .createSpy("path")
             .and.callFake((hash: boolean) =>
-              hash ? "/path?code=123" : "/path"
+              hash ? "/path?code=123" : "/path",
             ),
           prepareExternalUrl: jasmine
             .createSpy("prepareExternalUrl")
@@ -184,7 +184,7 @@ describe("MsalGuard", () => {
 
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -230,7 +230,7 @@ describe("MsalGuard", () => {
 
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -276,7 +276,7 @@ describe("MsalGuard", () => {
 
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -322,7 +322,7 @@ describe("MsalGuard", () => {
 
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -346,7 +346,7 @@ describe("MsalGuard", () => {
   it("returns true for a logged in user", (done) => {
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -376,16 +376,16 @@ describe("MsalGuard", () => {
     initializeMsal();
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue(
-      []
+      [],
     );
 
     spyOn(MsalService.prototype, "loginPopup").and.returnValue(
       //@ts-ignore
-      of(true)
+      of(true),
     );
 
     guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
@@ -397,11 +397,11 @@ describe("MsalGuard", () => {
   it("should return false after login with popup fails and no loginFailedRoute set", (done) => {
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue(
-      []
+      [],
     );
 
     spyOn(MsalService.prototype, "loginPopup").and.throwError("login error");
@@ -417,16 +417,16 @@ describe("MsalGuard", () => {
     initializeMsal();
 
     spyOn(guard, "parseUrl").and.returnValue(
-      testLoginFailedRoute as unknown as UrlTree
+      testLoginFailedRoute as unknown as UrlTree,
     );
 
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue(
-      []
+      [],
     );
 
     spyOn(MsalService.prototype, "loginPopup").and.throwError("login error");
@@ -443,17 +443,17 @@ describe("MsalGuard", () => {
 
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue(
-      []
+      [],
     );
 
     spyOn(PublicClientApplication.prototype, "loginRedirect").and.returnValue(
       new Promise((resolve) => {
         resolve();
-      })
+      }),
     );
 
     guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
@@ -465,7 +465,7 @@ describe("MsalGuard", () => {
   it("canActivateChild returns true with logged in user", (done) => {
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -487,7 +487,7 @@ describe("MsalGuard", () => {
   it("canLoad returns true with logged in user", (done) => {
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
@@ -509,11 +509,11 @@ describe("MsalGuard", () => {
   it("canLoad returns false with no users logged in", (done) => {
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
-      of("test")
+      of("test"),
     );
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue(
-      []
+      [],
     );
 
     guard.canMatch().subscribe((result) => {

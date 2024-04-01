@@ -43,14 +43,14 @@ export class MsalInterceptor implements HttpInterceptor {
     private location: Location,
     private msalBroadcastService: MsalBroadcastService,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-    @Inject(DOCUMENT) document?: any
+    @Inject(DOCUMENT) document?: any,
   ) {
     this._document = document as Document;
   }
 
   intercept(
     req: HttpRequest<any>, // eslint-disable-line @typescript-eslint/no-explicit-any
-    next: HttpHandler
+    next: HttpHandler,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Observable<HttpEvent<any>> {
     if (
@@ -59,7 +59,7 @@ export class MsalInterceptor implements HttpInterceptor {
     ) {
       throw new BrowserConfigurationAuthError(
         "invalid_interaction_type",
-        "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration"
+        "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration",
       );
     }
 
@@ -109,12 +109,12 @@ export class MsalInterceptor implements HttpInterceptor {
           .verbose("Interceptor - setting authorization headers");
         const headers = req.headers.set(
           "Authorization",
-          `Bearer ${result.accessToken}`
+          `Bearer ${result.accessToken}`,
         );
 
         const requestClone = req.clone({ headers });
         return next.handle(requestClone);
-      })
+      }),
     );
   }
 
@@ -128,7 +128,7 @@ export class MsalInterceptor implements HttpInterceptor {
   private acquireToken(
     authRequest: MsalInterceptorAuthRequest,
     scopes: string[],
-    account: AccountInfo
+    account: AccountInfo,
   ): Observable<AuthenticationResult> {
     // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
     return this.authService
@@ -138,7 +138,7 @@ export class MsalInterceptor implements HttpInterceptor {
           this.authService
             .getLogger()
             .error(
-              "Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve."
+              "Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.",
             );
           return this.msalBroadcastService.inProgress$.pipe(
             take(1),
@@ -150,12 +150,14 @@ export class MsalInterceptor implements HttpInterceptor {
               return this.msalBroadcastService.inProgress$.pipe(
                 filter(
                   (status: InteractionStatus) =>
-                    status === InteractionStatus.None
+                    status === InteractionStatus.None,
                 ),
                 take(1),
-                switchMap(() => this.acquireToken(authRequest, scopes, account))
+                switchMap(() =>
+                  this.acquireToken(authRequest, scopes, account),
+                ),
               );
-            })
+            }),
           );
         }),
         switchMap((result: AuthenticationResult) => {
@@ -163,20 +165,21 @@ export class MsalInterceptor implements HttpInterceptor {
             this.authService
               .getLogger()
               .error(
-                "Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve."
+                "Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.",
               );
             return this.msalBroadcastService.inProgress$.pipe(
               filter(
-                (status: InteractionStatus) => status === InteractionStatus.None
+                (status: InteractionStatus) =>
+                  status === InteractionStatus.None,
               ),
               take(1),
               switchMap(() =>
-                this.acquireTokenInteractively(authRequest, scopes)
-              )
+                this.acquireTokenInteractively(authRequest, scopes),
+              ),
             );
           }
           return of(result);
-        })
+        }),
       );
   }
 
@@ -188,20 +191,20 @@ export class MsalInterceptor implements HttpInterceptor {
    */
   private acquireTokenInteractively(
     authRequest: MsalInterceptorAuthRequest,
-    scopes: string[]
+    scopes: string[],
   ): Observable<AuthenticationResult> {
     if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
       this.authService
         .getLogger()
         .verbose(
-          "Interceptor - error acquiring token silently, acquiring by popup"
+          "Interceptor - error acquiring token silently, acquiring by popup",
         );
       return this.authService.acquireTokenPopup({ ...authRequest, scopes });
     }
     this.authService
       .getLogger()
       .verbose(
-        "Interceptor - error acquiring token silently, acquiring by redirect"
+        "Interceptor - error acquiring token silently, acquiring by redirect",
       );
     const redirectStartPage = window.location.href;
     this.authService.acquireTokenRedirect({
@@ -221,7 +224,7 @@ export class MsalInterceptor implements HttpInterceptor {
    */
   private getScopesForEndpoint(
     endpoint: string,
-    httpMethod: string
+    httpMethod: string,
   ): Array<string> | null {
     this.authService
       .getLogger()
@@ -231,12 +234,12 @@ export class MsalInterceptor implements HttpInterceptor {
     const normalizedEndpoint = this.location.normalize(endpoint);
 
     const protectedResourcesArray = Array.from(
-      this.msalInterceptorConfig.protectedResourceMap.keys()
+      this.msalInterceptorConfig.protectedResourceMap.keys(),
     );
 
     const matchingProtectedResources = this.matchResourcesToEndpoint(
       protectedResourcesArray,
-      normalizedEndpoint
+      normalizedEndpoint,
     );
 
     // Check absolute urls of resources first before checking relative to prevent incorrect matching where multiple resources have similar relative urls
@@ -244,13 +247,13 @@ export class MsalInterceptor implements HttpInterceptor {
       return this.matchScopesToEndpoint(
         this.msalInterceptorConfig.protectedResourceMap,
         matchingProtectedResources.absoluteResources,
-        httpMethod
+        httpMethod,
       );
     } else if (matchingProtectedResources.relativeResources.length > 0) {
       return this.matchScopesToEndpoint(
         this.msalInterceptorConfig.protectedResourceMap,
         matchingProtectedResources.relativeResources,
-        httpMethod
+        httpMethod,
       );
     }
 
@@ -265,7 +268,7 @@ export class MsalInterceptor implements HttpInterceptor {
    */
   private matchResourcesToEndpoint(
     protectedResourcesEndpoints: string[],
-    endpoint: string
+    endpoint: string,
   ): MatchingResources {
     const matchingResources: MatchingResources = {
       absoluteResources: [],
@@ -284,7 +287,7 @@ export class MsalInterceptor implements HttpInterceptor {
       const keyComponents = new UrlString(absoluteKey).getUrlComponents();
       const absoluteEndpoint = this.getAbsoluteUrl(endpoint);
       const endpointComponents = new UrlString(
-        absoluteEndpoint
+        absoluteEndpoint,
       ).getUrlComponents();
 
       // Normalized key should include query strings if applicable
@@ -330,7 +333,7 @@ export class MsalInterceptor implements HttpInterceptor {
       Array<string | ProtectedResourceScopes> | null
     >,
     endpointArray: string[],
-    httpMethod: string
+    httpMethod: string,
   ): Array<string> | null {
     const allMatchedScopes = [];
 
@@ -378,7 +381,7 @@ export class MsalInterceptor implements HttpInterceptor {
         this.authService
           .getLogger()
           .warning(
-            "Interceptor - More than 1 matching scopes for endpoint found."
+            "Interceptor - More than 1 matching scopes for endpoint found.",
           );
       }
       // Returns scopes for first matching endpoint

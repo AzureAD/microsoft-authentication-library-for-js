@@ -49,7 +49,7 @@ describe("MsalService", () => {
         new Promise((resolve) => {
           //@ts-ignore
           resolve(sampleIdToken);
-        })
+        }),
       );
 
       const request = {
@@ -61,7 +61,7 @@ describe("MsalService", () => {
         .subscribe((response: AuthenticationResult) => {
           expect(response.idToken).toBe(sampleIdToken.idToken);
           expect(
-            PublicClientApplication.prototype.loginPopup
+            PublicClientApplication.prototype.loginPopup,
           ).toHaveBeenCalledWith(request);
           done();
         });
@@ -73,7 +73,7 @@ describe("MsalService", () => {
       spyOn(PublicClientApplication.prototype, "loginPopup").and.returnValue(
         new Promise((resolve, reject) => {
           reject(sampleError);
-        })
+        }),
       );
 
       const request = {
@@ -84,7 +84,7 @@ describe("MsalService", () => {
         error: (error: AuthError) => {
           expect(error.message).toBe(sampleError.message);
           expect(
-            PublicClientApplication.prototype.loginPopup
+            PublicClientApplication.prototype.loginPopup,
           ).toHaveBeenCalledWith(request);
           done();
         },
@@ -97,7 +97,7 @@ describe("MsalService", () => {
       spyOn(PublicClientApplication.prototype, "loginRedirect").and.returnValue(
         new Promise((resolve) => {
           resolve();
-        })
+        }),
       );
 
       const request = {
@@ -107,7 +107,7 @@ describe("MsalService", () => {
       await authService.loginRedirect(request);
 
       expect(
-        PublicClientApplication.prototype.loginRedirect
+        PublicClientApplication.prototype.loginRedirect,
       ).toHaveBeenCalled();
     });
   });
@@ -117,7 +117,7 @@ describe("MsalService", () => {
       spyOn(PublicClientApplication.prototype, "logout").and.returnValue(
         new Promise((resolve) => {
           resolve();
-        })
+        }),
       );
       await authService.logout();
       expect(PublicClientApplication.prototype.logout).toHaveBeenCalled();
@@ -129,7 +129,7 @@ describe("MsalService", () => {
       spyOn(PublicClientApplication.prototype, "logoutPopup").and.returnValue(
         new Promise((resolve) => {
           resolve();
-        })
+        }),
       );
       await authService.logoutPopup();
       expect(PublicClientApplication.prototype.logoutPopup).toHaveBeenCalled();
@@ -140,15 +140,15 @@ describe("MsalService", () => {
     it("calls logoutRedirect on msalService", async () => {
       spyOn(
         PublicClientApplication.prototype,
-        "logoutRedirect"
+        "logoutRedirect",
       ).and.returnValue(
         new Promise((resolve) => {
           resolve();
-        })
+        }),
       );
       await authService.logoutRedirect();
       expect(
-        PublicClientApplication.prototype.logoutRedirect
+        PublicClientApplication.prototype.logoutRedirect,
       ).toHaveBeenCalled();
     });
   });
@@ -163,7 +163,7 @@ describe("MsalService", () => {
         new Promise((resolve) => {
           //@ts-ignore
           resolve(sampleIdToken);
-        })
+        }),
       );
 
       const request = {
@@ -176,7 +176,7 @@ describe("MsalService", () => {
         .subscribe((response: AuthenticationResult) => {
           expect(response.idToken).toBe(sampleIdToken.idToken);
           expect(
-            PublicClientApplication.prototype.ssoSilent
+            PublicClientApplication.prototype.ssoSilent,
           ).toHaveBeenCalledWith(request);
           done();
         });
@@ -188,7 +188,7 @@ describe("MsalService", () => {
       spyOn(PublicClientApplication.prototype, "ssoSilent").and.returnValue(
         new Promise((resolve, reject) => {
           reject(sampleError);
-        })
+        }),
       );
 
       const request = {
@@ -200,7 +200,7 @@ describe("MsalService", () => {
         error: (error: AuthError) => {
           expect(error.message).toBe(sampleError.message);
           expect(
-            PublicClientApplication.prototype.ssoSilent
+            PublicClientApplication.prototype.ssoSilent,
           ).toHaveBeenCalledWith(request);
           done();
         },
@@ -216,12 +216,12 @@ describe("MsalService", () => {
 
       spyOn(
         PublicClientApplication.prototype,
-        "acquireTokenSilent"
+        "acquireTokenSilent",
       ).and.returnValue(
         new Promise((resolve) => {
           //@ts-ignore
           resolve(sampleAccessToken);
-        })
+        }),
       );
 
       const request: SilentRequest = {
@@ -234,7 +234,7 @@ describe("MsalService", () => {
         .subscribe((response: AuthenticationResult) => {
           expect(response.accessToken).toBe(sampleAccessToken.accessToken);
           expect(
-            PublicClientApplication.prototype.acquireTokenSilent
+            PublicClientApplication.prototype.acquireTokenSilent,
           ).toHaveBeenCalledWith(request);
           done();
         });
@@ -245,11 +245,11 @@ describe("MsalService", () => {
 
       spyOn(
         PublicClientApplication.prototype,
-        "acquireTokenSilent"
+        "acquireTokenSilent",
       ).and.returnValue(
         new Promise((resolve, reject) => {
           reject(sampleError);
-        })
+        }),
       );
 
       const request: SilentRequest = {
@@ -261,7 +261,7 @@ describe("MsalService", () => {
         error: (error: AuthError) => {
           expect(error.message).toBe(sampleError.message);
           expect(
-            PublicClientApplication.prototype.acquireTokenSilent
+            PublicClientApplication.prototype.acquireTokenSilent,
           ).toHaveBeenCalledWith(request);
           done();
         },
@@ -273,11 +273,11 @@ describe("MsalService", () => {
     it("success", async () => {
       spyOn(
         PublicClientApplication.prototype,
-        "acquireTokenRedirect"
+        "acquireTokenRedirect",
       ).and.returnValue(
         new Promise((resolve) => {
           resolve();
-        })
+        }),
       );
 
       await authService.acquireTokenRedirect({
@@ -285,7 +285,7 @@ describe("MsalService", () => {
       });
 
       expect(
-        PublicClientApplication.prototype.acquireTokenRedirect
+        PublicClientApplication.prototype.acquireTokenRedirect,
       ).toHaveBeenCalled();
     });
   });
@@ -298,12 +298,12 @@ describe("MsalService", () => {
 
       spyOn(
         PublicClientApplication.prototype,
-        "acquireTokenPopup"
+        "acquireTokenPopup",
       ).and.returnValue(
         new Promise((resolve) => {
           //@ts-ignore
           resolve(sampleAccessToken);
-        })
+        }),
       );
 
       const request = {
@@ -315,7 +315,7 @@ describe("MsalService", () => {
         .subscribe((response: AuthenticationResult) => {
           expect(response.accessToken).toBe(sampleAccessToken.accessToken);
           expect(
-            PublicClientApplication.prototype.acquireTokenPopup
+            PublicClientApplication.prototype.acquireTokenPopup,
           ).toHaveBeenCalledWith(request);
           done();
         });
@@ -326,11 +326,11 @@ describe("MsalService", () => {
 
       spyOn(
         PublicClientApplication.prototype,
-        "acquireTokenPopup"
+        "acquireTokenPopup",
       ).and.returnValue(
         new Promise((resolve, reject) => {
           reject(sampleError);
-        })
+        }),
       );
 
       const request = {
@@ -341,7 +341,7 @@ describe("MsalService", () => {
         error: (error: AuthError) => {
           expect(error.message).toBe(sampleError.message);
           expect(
-            PublicClientApplication.prototype.acquireTokenPopup
+            PublicClientApplication.prototype.acquireTokenPopup,
           ).toHaveBeenCalledWith(request);
           done();
         },
@@ -356,17 +356,17 @@ describe("MsalService", () => {
       };
 
       spyOn(PublicClientApplication.prototype, "initialize").and.returnValue(
-        Promise.resolve()
+        Promise.resolve(),
       );
 
       spyOn(
         PublicClientApplication.prototype,
-        "handleRedirectPromise"
+        "handleRedirectPromise",
       ).and.returnValue(
         new Promise((resolve) => {
           //@ts-ignore
           resolve(sampleAccessToken);
-        })
+        }),
       );
 
       authService
@@ -374,10 +374,10 @@ describe("MsalService", () => {
         .subscribe((response: AuthenticationResult) => {
           expect(response.accessToken).toBe(sampleAccessToken.accessToken);
           expect(
-            PublicClientApplication.prototype.initialize
+            PublicClientApplication.prototype.initialize,
           ).toHaveBeenCalled();
           expect(
-            PublicClientApplication.prototype.handleRedirectPromise
+            PublicClientApplication.prototype.handleRedirectPromise,
           ).toHaveBeenCalled();
           done();
         });
@@ -387,26 +387,26 @@ describe("MsalService", () => {
       const sampleError = new AuthError("123", "message");
 
       spyOn(PublicClientApplication.prototype, "initialize").and.returnValue(
-        Promise.resolve()
+        Promise.resolve(),
       );
 
       spyOn(
         PublicClientApplication.prototype,
-        "handleRedirectPromise"
+        "handleRedirectPromise",
       ).and.returnValue(
         new Promise((resolve, reject) => {
           reject(sampleError);
-        })
+        }),
       );
 
       authService.handleRedirectObservable().subscribe({
         error: (error: AuthError) => {
           expect(error.message).toBe(sampleError.message);
           expect(
-            PublicClientApplication.prototype.initialize
+            PublicClientApplication.prototype.initialize,
           ).toHaveBeenCalled();
           expect(
-            PublicClientApplication.prototype.handleRedirectPromise
+            PublicClientApplication.prototype.handleRedirectPromise,
           ).toHaveBeenCalled();
           done();
         },
@@ -422,12 +422,12 @@ describe("MsalService", () => {
 
       spyOn(
         PublicClientApplication.prototype,
-        "handleRedirectPromise"
+        "handleRedirectPromise",
       ).and.returnValue(
         new Promise((resolve) => {
           //@ts-ignore
           resolve(sampleAccessToken);
-        })
+        }),
       );
 
       authService
@@ -435,7 +435,7 @@ describe("MsalService", () => {
         .subscribe((response: AuthenticationResult) => {
           expect(response.accessToken).toBe(sampleAccessToken.accessToken);
           expect(
-            PublicClientApplication.prototype.handleRedirectPromise
+            PublicClientApplication.prototype.handleRedirectPromise,
           ).toHaveBeenCalledWith(hash);
           done();
         });

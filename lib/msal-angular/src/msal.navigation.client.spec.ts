@@ -69,7 +69,7 @@ describe("MsalCustomNaviationClient", () => {
       navigationClient.navigateInternal(url, options).then(() => {
         expect(routerMock.navigateByUrl).toHaveBeenCalledWith(
           normalizedAbsoluteUrl,
-          navigateByUrlOptions
+          navigateByUrlOptions,
         );
         done();
       });
@@ -84,7 +84,7 @@ describe("MsalCustomNaviationClient", () => {
 
       const windowLocationReplaceSpy = spyOn(
         NavigationClient.prototype,
-        "navigateInternal"
+        "navigateInternal",
       );
       navigationClient.navigateInternal(url, options).then(() => {
         expect(windowLocationReplaceSpy).toHaveBeenCalledWith(url, options);

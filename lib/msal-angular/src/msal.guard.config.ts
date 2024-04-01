@@ -21,7 +21,7 @@ export type MsalGuardConfiguration = {
     | MsalGuardAuthRequest
     | ((
         authService: MsalService,
-        state: RouterStateSnapshot
+        state: RouterStateSnapshot,
       ) => MsalGuardAuthRequest);
   loginFailedRoute?: string;
 };

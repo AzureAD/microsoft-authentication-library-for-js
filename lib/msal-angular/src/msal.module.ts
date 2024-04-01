@@ -27,7 +27,7 @@ export class MsalModule {
   static forRoot(
     msalInstance: IPublicClientApplication,
     guardConfig: MsalGuardConfiguration,
-    interceptorConfig: MsalInterceptorConfiguration
+    interceptorConfig: MsalInterceptorConfiguration,
   ): ModuleWithProviders<MsalModule> {
     return {
       ngModule: MsalModule,

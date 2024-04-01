@@ -96,16 +96,16 @@ describe("MsalBroadcastService", () => {
 
     subscription = broadcastService.msalSubject$.subscribe((result) => {
       expect(result.eventType).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].eventType
+        expectedMsalSubjectFirstSubscription[firstIndex].eventType,
       );
       expect(result.interactionType).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].interactionType
+        expectedMsalSubjectFirstSubscription[firstIndex].interactionType,
       );
       expect(result.payload).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].payload
+        expectedMsalSubjectFirstSubscription[firstIndex].payload,
       );
       expect(result.error).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].error
+        expectedMsalSubjectFirstSubscription[firstIndex].error,
       );
       expect(result.timestamp).toBeInstanceOf(Number);
       if (firstIndex === expectedMsalSubjectFirstSubscription.length - 1) {
@@ -148,7 +148,7 @@ describe("MsalBroadcastService", () => {
       (result) => {
         expect(result.eventType).toEqual(expectedMsalSubject[index].eventType);
         expect(result.interactionType).toEqual(
-          expectedMsalSubject[index].interactionType
+          expectedMsalSubject[index].interactionType,
         );
         expect(result.payload).toEqual(expectedMsalSubject[index].payload);
         expect(result.error).toEqual(expectedMsalSubject[index].error);
@@ -158,7 +158,7 @@ describe("MsalBroadcastService", () => {
         } else {
           index++;
         }
-      }
+      },
     );
 
     // @ts-ignore
@@ -201,16 +201,16 @@ describe("MsalBroadcastService", () => {
 
     subscription = broadcastService.msalSubject$.subscribe((result) => {
       expect(result.eventType).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].eventType
+        expectedMsalSubjectFirstSubscription[firstIndex].eventType,
       );
       expect(result.interactionType).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].interactionType
+        expectedMsalSubjectFirstSubscription[firstIndex].interactionType,
       );
       expect(result.payload).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].payload
+        expectedMsalSubjectFirstSubscription[firstIndex].payload,
       );
       expect(result.error).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].error
+        expectedMsalSubjectFirstSubscription[firstIndex].error,
       );
       expect(result.timestamp).toBeInstanceOf(Number);
       if (firstIndex === expectedMsalSubjectFirstSubscription.length - 1) {
@@ -257,7 +257,7 @@ describe("MsalBroadcastService", () => {
       (result) => {
         expect(result.eventType).toEqual(expectedMsalSubject[index].eventType);
         expect(result.interactionType).toEqual(
-          expectedMsalSubject[index].interactionType
+          expectedMsalSubject[index].interactionType,
         );
         expect(result.payload).toEqual(expectedMsalSubject[index].payload);
         expect(result.error).toEqual(expectedMsalSubject[index].error);
@@ -267,7 +267,7 @@ describe("MsalBroadcastService", () => {
         } else {
           index++;
         }
-      }
+      },
     );
 
     // @ts-ignore
@@ -295,16 +295,16 @@ describe("MsalBroadcastService", () => {
 
     subscription = broadcastService.msalSubject$.subscribe((result) => {
       expect(result.eventType).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].eventType
+        expectedMsalSubjectFirstSubscription[firstIndex].eventType,
       );
       expect(result.interactionType).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].interactionType
+        expectedMsalSubjectFirstSubscription[firstIndex].interactionType,
       );
       expect(result.payload).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].payload
+        expectedMsalSubjectFirstSubscription[firstIndex].payload,
       );
       expect(result.error).toEqual(
-        expectedMsalSubjectFirstSubscription[firstIndex].error
+        expectedMsalSubjectFirstSubscription[firstIndex].error,
       );
       expect(result.timestamp).toBeInstanceOf(Number);
       if (firstIndex === expectedMsalSubjectFirstSubscription.length - 1) {
@@ -341,7 +341,7 @@ describe("MsalBroadcastService", () => {
       (result) => {
         expect(result.eventType).toEqual(expectedMsalSubject[index].eventType);
         expect(result.interactionType).toEqual(
-          expectedMsalSubject[index].interactionType
+          expectedMsalSubject[index].interactionType,
         );
         expect(result.payload).toEqual(expectedMsalSubject[index].payload);
         expect(result.error).toEqual(expectedMsalSubject[index].error);
@@ -351,7 +351,7 @@ describe("MsalBroadcastService", () => {
         } else {
           index++;
         }
-      }
+      },
     );
 
     // @ts-ignore

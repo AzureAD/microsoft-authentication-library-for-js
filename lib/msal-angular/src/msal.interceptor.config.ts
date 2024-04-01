@@ -29,7 +29,7 @@ export type MsalInterceptorConfiguration = {
     | ((
         msalService: MsalService,
         req: HttpRequest<unknown>,
-        originalAuthRequest: MsalInterceptorAuthRequest
+        originalAuthRequest: MsalInterceptorAuthRequest,
       ) => MsalInterceptorAuthRequest);
 };
 

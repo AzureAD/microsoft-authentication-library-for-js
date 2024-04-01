@@ -23,14 +23,14 @@ export class MsalCustomNavigationClient extends NavigationClient {
   constructor(
     private authService: MsalService,
     private router: Router,
-    private location: Location
+    private location: Location,
   ) {
     super();
   }
 
   async navigateInternal(
     url: string,
-    options: NavigationOptions
+    options: NavigationOptions,
   ): Promise<boolean> {
     this.authService.getLogger().trace("MsalCustomNavigationClient called");
 

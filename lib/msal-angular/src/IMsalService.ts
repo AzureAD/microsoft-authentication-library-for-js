@@ -19,7 +19,7 @@ export interface IMsalService {
   acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult>;
   acquireTokenRedirect(request: RedirectRequest): Observable<void>;
   acquireTokenSilent(
-    silentRequest: SilentRequest
+    silentRequest: SilentRequest,
   ): Observable<AuthenticationResult>;
   handleRedirectObservable(): Observable<AuthenticationResult | null>;
   loginPopup(request?: PopupRequest): Observable<AuthenticationResult>;

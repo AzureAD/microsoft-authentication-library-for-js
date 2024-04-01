@@ -29,7 +29,7 @@ export class MsalService implements IMsalService {
 
   constructor(
     @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
-    private location: Location
+    private location: Location,
   ) {
     const hash = this.location.path(true).split("#").pop();
     if (hash) {
@@ -48,7 +48,7 @@ export class MsalService implements IMsalService {
     return from(this.instance.acquireTokenRedirect(request));
   }
   acquireTokenSilent(
-    silentRequest: SilentRequest
+    silentRequest: SilentRequest,
   ): Observable<AuthenticationResult> {
     return from(this.instance.acquireTokenSilent(silentRequest));
   }
@@ -57,8 +57,8 @@ export class MsalService implements IMsalService {
       this.instance
         .initialize()
         .then(() =>
-          this.instance.handleRedirectPromise(hash || this.redirectHash)
-        )
+          this.instance.handleRedirectPromise(hash || this.redirectHash),
+        ),
     );
   }
   loginPopup(request?: PopupRequest): Observable<AuthenticationResult> {

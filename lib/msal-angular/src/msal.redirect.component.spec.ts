@@ -43,7 +43,7 @@ describe("MsalRedirectComponent", () => {
 
     spyOn(
       PublicClientApplication.prototype,
-      "handleRedirectPromise"
+      "handleRedirectPromise",
     ).and.callFake(() => {
       return new Promise((resolve) => {
         console.log("Spy called");
@@ -51,7 +51,7 @@ describe("MsalRedirectComponent", () => {
         resolve(sampleAccessToken);
 
         expect(
-          PublicClientApplication.prototype.handleRedirectPromise
+          PublicClientApplication.prototype.handleRedirectPromise,
         ).toHaveBeenCalled();
         done();
       });
