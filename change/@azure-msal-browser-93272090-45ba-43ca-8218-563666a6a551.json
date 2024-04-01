@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update prettier and fix format #6994",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
