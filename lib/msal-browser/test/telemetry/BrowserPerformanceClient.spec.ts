@@ -32,18 +32,18 @@ describe("BrowserPerformanceClient.ts", () => {
         browserPerfClient.setPreQueueTime(eventName, correlationId);
         // @ts-ignore
         expect(
-            browserPerfClient.getPreQueueTime(eventName, correlationId)
+            browserPerfClient.getPreQueueTime(eventName, correlationId),
         ).toEqual(perfTimeNow);
         expect(
             // @ts-ignore
-            browserPerfClient.preQueueTimeByCorrelationId.get(correlationId)
+            browserPerfClient.preQueueTimeByCorrelationId.get(correlationId),
         ).toEqual({ name: eventName, time: perfTimeNow });
     });
 
     describe("generateId", () => {
         it("returns a string", () => {
             const browserPerfClient = new BrowserPerformanceClient(
-                testAppConfig
+                testAppConfig,
             );
 
             expect(typeof browserPerfClient.generateId()).toBe("string");
@@ -53,7 +53,7 @@ describe("BrowserPerformanceClient.ts", () => {
     describe("startPerformanceMeasurement", () => {
         it("calculate performance duration", () => {
             const browserPerfClient = new BrowserPerformanceClient(
-                testAppConfig
+                testAppConfig,
             );
 
             jest.spyOn(window.performance, "now")
@@ -62,7 +62,7 @@ describe("BrowserPerformanceClient.ts", () => {
 
             const measurement = browserPerfClient.startMeasurement(
                 PerformanceEvents.AcquireTokenSilent,
-                correlationId
+                correlationId,
             );
 
             const result = measurement.end();
@@ -70,7 +70,7 @@ describe("BrowserPerformanceClient.ts", () => {
             expect(result?.durationMs).toBe(50);
             expect(
                 // @ts-ignore
-                BrowserPerformanceClient.PERF_MEASUREMENT_MODULE
+                BrowserPerformanceClient.PERF_MEASUREMENT_MODULE,
             ).toBeUndefined();
         });
 
@@ -80,12 +80,12 @@ describe("BrowserPerformanceClient.ts", () => {
                 .mockReturnValue("visible");
 
             const browserPerfClient = new BrowserPerformanceClient(
-                testAppConfig
+                testAppConfig,
             );
 
             const measurement = browserPerfClient.startMeasurement(
                 PerformanceEvents.AcquireTokenSilent,
-                correlationId
+                correlationId,
             );
 
             const result = measurement.end();
@@ -101,11 +101,11 @@ describe("BrowserPerformanceClient.ts", () => {
         it("setPreQueueTime returns if window.performance is not available", () => {
             const addQueueMeasurementSpy = jest.spyOn(
                 BrowserPerformanceClient.prototype,
-                "addQueueMeasurement"
+                "addQueueMeasurement",
             );
 
             const browserPerfClient = new BrowserPerformanceClient(
-                testAppConfig
+                testAppConfig,
             );
             const correlationId = "dummy-correlation-id";
             // @ts-ignore
@@ -119,7 +119,7 @@ describe("BrowserPerformanceClient.ts", () => {
 
             browserPerfClient.setPreQueueTime(
                 PerformanceEvents.AcquireTokenSilent,
-                "dummy-correlation-id"
+                "dummy-correlation-id",
             );
             expect(addQueueMeasurementSpy).toBeCalledTimes(0);
         });
@@ -132,11 +132,11 @@ describe("BrowserPerformanceClient.ts", () => {
             jest.spyOn(window.performance, "now").mockReturnValue(perfTimeNow);
             const addQueueMeasurementSpy = jest.spyOn(
                 BrowserPerformanceClient.prototype,
-                "addQueueMeasurement"
+                "addQueueMeasurement",
             );
 
             const browserPerfClient = new BrowserPerformanceClient(
-                testAppConfig
+                testAppConfig,
             );
             const correlationId = "dummy-correlation-id";
             // @ts-ignore
@@ -147,7 +147,7 @@ describe("BrowserPerformanceClient.ts", () => {
 
             browserPerfClient.setPreQueueTime(
                 PerformanceEvents.AcquireTokenSilent,
-                "dummy-correlation-id"
+                "dummy-correlation-id",
             );
             expect(addQueueMeasurementSpy).toBeCalledTimes(1);
         });

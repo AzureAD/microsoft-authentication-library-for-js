@@ -70,7 +70,7 @@ const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     undefined,
     {
         nativeAccountId: MOCK_WAM_RESPONSE.account.id,
-    }
+    },
 );
 
 const TEST_ACCOUNT_INFO: AccountInfo = {
@@ -81,7 +81,7 @@ const TEST_ACCOUNT_INFO: AccountInfo = {
 
 const TEST_ID_TOKEN: IdTokenEntity = buildIdToken(
     ID_TOKEN_CLAIMS,
-    TEST_TOKENS.IDTOKEN_V2
+    TEST_TOKENS.IDTOKEN_V2,
 );
 
 const testAccessTokenEntity: AccessTokenEntity = {
@@ -133,7 +133,7 @@ describe("NativeInteractionClient Tests", () => {
         wamProvider = new NativeMessageHandler(
             pca.getLogger(),
             2000,
-            getDefaultPerformanceClient()
+            getDefaultPerformanceClient(),
         );
         // @ts-ignore
         nativeInteractionClient = new NativeInteractionClient(
@@ -155,7 +155,7 @@ describe("NativeInteractionClient Tests", () => {
             "nativeAccountId",
             // @ts-ignore
             pca.nativeInternalStorage,
-            RANDOM_TEST_GUID
+            RANDOM_TEST_GUID,
         );
     });
 
@@ -179,7 +179,7 @@ describe("NativeInteractionClient Tests", () => {
         wamProvider = new NativeMessageHandler(
             pca.getLogger(),
             2000,
-            getDefaultPerformanceClient()
+            getDefaultPerformanceClient(),
         );
 
         nativeInteractionClient = new NativeInteractionClient(
@@ -201,7 +201,7 @@ describe("NativeInteractionClient Tests", () => {
             "nativeAccountId",
             // @ts-ignore
             pca.nativeInternalStorage,
-            RANDOM_TEST_GUID
+            RANDOM_TEST_GUID,
         );
 
         postMessageSpy = sinon.spy(window, "postMessage");
@@ -220,23 +220,23 @@ describe("NativeInteractionClient Tests", () => {
         beforeEach(() => {
             jest.spyOn(
                 CacheManager.prototype,
-                "getBaseAccountInfo"
+                "getBaseAccountInfo",
             ).mockReturnValue(TEST_ACCOUNT_INFO);
 
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testCacheRecord.accessToken);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testCacheRecord.idToken
+                testCacheRecord.idToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "readAppMetadataFromCache"
+                "readAppMetadataFromCache",
             ).mockReturnValue(testCacheRecord.appMetadata);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testCacheRecord.account);
         });
 
@@ -268,7 +268,7 @@ describe("NativeInteractionClient Tests", () => {
                 scopes: ["User.Read"],
             });
             expect(response.accessToken).toEqual(
-                MOCK_WAM_RESPONSE.access_token
+                MOCK_WAM_RESPONSE.access_token,
             );
             expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
             expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
@@ -289,10 +289,10 @@ describe("NativeInteractionClient Tests", () => {
                 })
                 .catch((e) => {
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.code
+                        BrowserAuthErrorMessage.nativePromptNotSupported.code,
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.desc
+                        BrowserAuthErrorMessage.nativePromptNotSupported.desc,
                     );
                     done();
                 });
@@ -306,10 +306,10 @@ describe("NativeInteractionClient Tests", () => {
                 })
                 .catch((e) => {
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.code
+                        BrowserAuthErrorMessage.nativePromptNotSupported.code,
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.desc
+                        BrowserAuthErrorMessage.nativePromptNotSupported.desc,
                     );
                     done();
                 });
@@ -326,7 +326,7 @@ describe("NativeInteractionClient Tests", () => {
                 prompt: PromptValue.NONE,
             });
             expect(response.accessToken).toEqual(
-                MOCK_WAM_RESPONSE.access_token
+                MOCK_WAM_RESPONSE.access_token,
             );
             expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
             expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
@@ -350,7 +350,7 @@ describe("NativeInteractionClient Tests", () => {
                 prompt: PromptValue.CONSENT,
             });
             expect(response.accessToken).toEqual(
-                MOCK_WAM_RESPONSE.access_token
+                MOCK_WAM_RESPONSE.access_token,
             );
             expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
             expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
@@ -374,7 +374,7 @@ describe("NativeInteractionClient Tests", () => {
                 prompt: PromptValue.LOGIN,
             });
             expect(response.accessToken).toEqual(
-                MOCK_WAM_RESPONSE.access_token
+                MOCK_WAM_RESPONSE.access_token,
             );
             expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
             expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
@@ -402,7 +402,7 @@ describe("NativeInteractionClient Tests", () => {
 
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccountInfoFilteredBy"
+                "getAccountInfoFilteredBy",
             ).mockReturnValue(TEST_ACCOUNT_INFO);
 
             sinon
@@ -416,13 +416,15 @@ describe("NativeInteractionClient Tests", () => {
                 })
                 .catch((e) => {
                     console.error(
-                        "User switch error should not have been thrown."
+                        "User switch error should not have been thrown.",
                     );
                     expect(e.errorCode).not.toBe(
-                        NativeAuthErrorCodes.userSwitch
+                        NativeAuthErrorCodes.userSwitch,
                     );
                     expect(e.errorMessage).not.toBe(
-                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
+                        NativeAuthErrorMessages[
+                            NativeAuthErrorCodes.userSwitch
+                        ],
                     );
                     done();
                 });
@@ -447,7 +449,7 @@ describe("NativeInteractionClient Tests", () => {
 
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccountInfoFilteredBy"
+                "getAccountInfoFilteredBy",
             ).mockReturnValue(TEST_ACCOUNT_INFO);
 
             sinon
@@ -462,7 +464,9 @@ describe("NativeInteractionClient Tests", () => {
                 .catch((e) => {
                     expect(e.errorCode).toBe(NativeAuthErrorCodes.userSwitch);
                     expect(e.errorMessage).toBe(
-                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
+                        NativeAuthErrorMessages[
+                            NativeAuthErrorCodes.userSwitch
+                        ],
                     );
                     done();
                 });
@@ -473,7 +477,7 @@ describe("NativeInteractionClient Tests", () => {
                 .stub(NativeMessageHandler.prototype, "sendMessage")
                 .callsFake((nativeRequest): Promise<object> => {
                     expect(
-                        nativeRequest.request && nativeRequest.request.prompt
+                        nativeRequest.request && nativeRequest.request.prompt,
                     ).toBe(PromptValue.NONE);
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 });
@@ -498,14 +502,14 @@ describe("NativeInteractionClient Tests", () => {
                 "nativeAccountId",
                 // @ts-ignore
                 pca.nativeInternalStorage,
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             const response = await nativeInteractionClient.acquireToken({
                 scopes: ["User.Read"],
                 prompt: PromptValue.SELECT_ACCOUNT,
             });
             expect(response.accessToken).toEqual(
-                MOCK_WAM_RESPONSE.access_token
+                MOCK_WAM_RESPONSE.access_token,
             );
             expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
             expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
@@ -523,7 +527,7 @@ describe("NativeInteractionClient Tests", () => {
                 .stub(NativeMessageHandler.prototype, "sendMessage")
                 .callsFake((nativeRequest): Promise<object> => {
                     expect(
-                        nativeRequest.request && nativeRequest.request.prompt
+                        nativeRequest.request && nativeRequest.request.prompt,
                     ).toBe(PromptValue.NONE);
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 });
@@ -548,14 +552,14 @@ describe("NativeInteractionClient Tests", () => {
                 "nativeAccountId",
                 // @ts-ignore
                 pca.nativeInternalStorage,
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             const response = await nativeInteractionClient.acquireToken({
                 scopes: ["User.Read"],
                 prompt: PromptValue.SELECT_ACCOUNT,
             });
             expect(response.accessToken).toEqual(
-                MOCK_WAM_RESPONSE.access_token
+                MOCK_WAM_RESPONSE.access_token,
             );
             expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
             expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
@@ -574,7 +578,7 @@ describe("NativeInteractionClient Tests", () => {
             beforeEach(() => {
                 jest.spyOn(
                     NativeMessageHandler.prototype,
-                    "sendMessage"
+                    "sendMessage",
                 ).mockResolvedValue(MOCK_WAM_RESPONSE);
             });
 
@@ -586,7 +590,7 @@ describe("NativeInteractionClient Tests", () => {
                     },
                 });
                 expect(response.accessToken).toEqual(
-                    MOCK_WAM_RESPONSE.access_token
+                    MOCK_WAM_RESPONSE.access_token,
                 );
                 expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
 
@@ -611,7 +615,7 @@ describe("NativeInteractionClient Tests", () => {
                     },
                 });
                 expect(response.accessToken).toEqual(
-                    MOCK_WAM_RESPONSE.access_token
+                    MOCK_WAM_RESPONSE.access_token,
                 );
                 expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
 
@@ -636,7 +640,7 @@ describe("NativeInteractionClient Tests", () => {
                     },
                 });
                 expect(response.accessToken).toEqual(
-                    MOCK_WAM_RESPONSE.access_token
+                    MOCK_WAM_RESPONSE.access_token,
                 );
                 expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
 
@@ -683,8 +687,8 @@ describe("NativeInteractionClient Tests", () => {
                     return Promise.reject(
                         new NativeAuthError(
                             "ContentError",
-                            "problem getting response from extension"
-                        )
+                            "problem getting response from extension",
+                        ),
                     );
                 });
             nativeInteractionClient
@@ -749,13 +753,13 @@ describe("NativeInteractionClient Tests", () => {
                 .stub(NativeMessageHandler.prototype, "sendMessage")
                 .callsFake(
                     (
-                        messageBody: NativeExtensionRequestBody
+                        messageBody: NativeExtensionRequestBody,
                     ): Promise<object> => {
                         expect(
-                            messageBody.request && messageBody.request.prompt
+                            messageBody.request && messageBody.request.prompt,
                         ).toBe(undefined);
                         return Promise.resolve(MOCK_WAM_RESPONSE);
-                    }
+                    },
                 );
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
@@ -806,8 +810,8 @@ describe("NativeInteractionClient Tests", () => {
                     return Promise.reject(
                         new NativeAuthError(
                             "ContentError",
-                            "extension call failed"
-                        )
+                            "extension call failed",
+                        ),
                     ); // handleRedirectPromise call should fail
                 });
             // @ts-ignore
@@ -892,13 +896,13 @@ describe("NativeInteractionClient Tests", () => {
 
             expect(nativeRequest.clientId).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
             expect(nativeRequest.extraParameters!["child_client_id"]).toEqual(
-                "parent_client_id"
+                "parent_client_id",
             );
             expect(
-                nativeRequest.extraParameters!["child_redirect_uri"]
+                nativeRequest.extraParameters!["child_redirect_uri"],
             ).toEqual("localhost");
             expect(nativeRequest.redirectUri).toEqual(
-                "https://broker_redirect_uri.com"
+                "https://broker_redirect_uri.com",
             );
         });
     });

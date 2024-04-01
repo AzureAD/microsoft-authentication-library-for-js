@@ -45,11 +45,10 @@ export class PublicClientNext implements IPublicClientApplication {
     protected configuration: Configuration;
 
     public static async createPublicClientApplication(
-        configuration: Configuration
+        configuration: Configuration,
     ): Promise<IPublicClientApplication> {
-        const controller = await ControllerFactory.createController(
-            configuration
-        );
+        const controller =
+            await ControllerFactory.createController(configuration);
         let pca;
         if (controller !== null) {
             pca = new PublicClientNext(configuration, controller);
@@ -83,7 +82,7 @@ export class PublicClientNext implements IPublicClientApplication {
      */
     private constructor(
         configuration: Configuration,
-        controller?: IController
+        controller?: IController,
     ) {
         this.configuration = configuration;
         if (controller) {
@@ -91,7 +90,7 @@ export class PublicClientNext implements IPublicClientApplication {
         } else {
             const operatingContext = new UnknownOperatingContext(configuration);
             this.controller = new UnknownOperatingContextController(
-                operatingContext
+                operatingContext,
             );
         }
     }
@@ -102,7 +101,7 @@ export class PublicClientNext implements IPublicClientApplication {
     async initialize(): Promise<void> {
         if (this.controller instanceof UnknownOperatingContextController) {
             const result = await ControllerFactory.createController(
-                this.configuration
+                this.configuration,
             );
             if (result !== null) {
                 this.controller = result;
@@ -120,7 +119,7 @@ export class PublicClientNext implements IPublicClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async acquireTokenPopup(
-        request: PopupRequest
+        request: PopupRequest,
     ): Promise<AuthenticationResult> {
         return this.controller.acquireTokenPopup(request);
     }
@@ -145,7 +144,7 @@ export class PublicClientNext implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthenticationResult} object
      */
     acquireTokenSilent(
-        silentRequest: SilentRequest
+        silentRequest: SilentRequest,
     ): Promise<AuthenticationResult> {
         return this.controller.acquireTokenSilent(silentRequest);
     }
@@ -161,7 +160,7 @@ export class PublicClientNext implements IPublicClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     acquireTokenByCode(
-        request: AuthorizationCodeRequest
+        request: AuthorizationCodeRequest,
     ): Promise<AuthenticationResult> {
         return this.controller.acquireTokenByCode(request);
     }
@@ -279,7 +278,7 @@ export class PublicClientNext implements IPublicClientApplication {
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     handleRedirectPromise(
-        hash?: string | undefined
+        hash?: string | undefined,
     ): Promise<AuthenticationResult | null> {
         return this.controller.handleRedirectPromise(hash);
     }
@@ -292,7 +291,7 @@ export class PublicClientNext implements IPublicClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     loginPopup(
-        request?: PopupRequest | undefined
+        request?: PopupRequest | undefined,
     ): Promise<AuthenticationResult> {
         return this.controller.loginPopup(request);
     }
@@ -429,7 +428,7 @@ export class PublicClientNext implements IPublicClientApplication {
             | SilentRequest
             | SsoSilentRequest
             | RedirectRequest
-            | PopupRequest
+            | PopupRequest,
     ): Promise<void> {
         return this.controller.hydrateCache(result, request);
     }

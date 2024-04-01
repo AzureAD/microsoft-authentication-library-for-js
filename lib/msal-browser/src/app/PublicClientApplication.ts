@@ -37,11 +37,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
 
     public static async createPublicClientApplication(
-        configuration: Configuration
+        configuration: Configuration,
     ): Promise<IPublicClientApplication> {
-        const controller = await ControllerFactory.createV3Controller(
-            configuration
-        );
+        const controller =
+            await ControllerFactory.createV3Controller(configuration);
         const pca = new PublicClientApplication(configuration, controller);
 
         return pca;
@@ -74,7 +73,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             this.controller = controller;
         } else {
             const standardOperatingContext = new StandardOperatingContext(
-                configuration
+                configuration,
             );
             this.controller = new StandardController(standardOperatingContext);
         }
@@ -95,7 +94,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async acquireTokenPopup(
-        request: PopupRequest
+        request: PopupRequest,
     ): Promise<AuthenticationResult> {
         return this.controller.acquireTokenPopup(request);
     }
@@ -120,7 +119,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthenticationResult} object
      */
     acquireTokenSilent(
-        silentRequest: SilentRequest
+        silentRequest: SilentRequest,
     ): Promise<AuthenticationResult> {
         return this.controller.acquireTokenSilent(silentRequest);
     }
@@ -136,7 +135,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     acquireTokenByCode(
-        request: AuthorizationCodeRequest
+        request: AuthorizationCodeRequest,
     ): Promise<AuthenticationResult> {
         return this.controller.acquireTokenByCode(request);
     }
@@ -254,7 +253,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     handleRedirectPromise(
-        hash?: string | undefined
+        hash?: string | undefined,
     ): Promise<AuthenticationResult | null> {
         return this.controller.handleRedirectPromise(hash);
     }
@@ -267,7 +266,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     loginPopup(
-        request?: PopupRequest | undefined
+        request?: PopupRequest | undefined,
     ): Promise<AuthenticationResult> {
         return this.controller.loginPopup(request);
     }
@@ -404,7 +403,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             | SilentRequest
             | SsoSilentRequest
             | RedirectRequest
-            | PopupRequest
+            | PopupRequest,
     ): Promise<void> {
         return this.controller.hydrateCache(result, request);
     }

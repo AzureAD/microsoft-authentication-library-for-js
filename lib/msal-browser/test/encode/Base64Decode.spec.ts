@@ -55,13 +55,13 @@ describe("Base64Decode.ts Unit Tests", () => {
         it("MSAL Test Vectors", () => {
             // Client Info B64
             expect(base64Decode(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED)).toBe(
-                TEST_DATA_CLIENT_INFO.TEST_UID
+                TEST_DATA_CLIENT_INFO.TEST_UID,
             );
             expect(base64Decode(TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED)).toBe(
-                TEST_DATA_CLIENT_INFO.TEST_UTID
+                TEST_DATA_CLIENT_INFO.TEST_UTID,
             );
             expect(
-                base64Decode(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO)
+                base64Decode(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO),
             ).toBe(TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO);
 
             // Id token claims B64
@@ -78,7 +78,7 @@ describe("Base64Decode.ts Unit Tests", () => {
             };
             const stringifiedClaims = JSON.stringify(idTokenClaims);
             expect(base64Decode(base64Encode(stringifiedClaims))).toBe(
-                stringifiedClaims
+                stringifiedClaims,
             );
 
             // Request object B64
@@ -92,7 +92,7 @@ describe("Base64Decode.ts Unit Tests", () => {
             };
             const stringifiedReq = JSON.stringify(tokenRequest);
             expect(base64Decode(base64Encode(stringifiedReq))).toBe(
-                stringifiedReq
+                stringifiedReq,
             );
         });
 
@@ -111,7 +111,7 @@ describe("Base64Decode.ts Unit Tests", () => {
             };
             const stringifiedClaims = JSON.stringify(idTokenClaims);
             expect(base64Decode(base64Encode(stringifiedClaims))).toBe(
-                stringifiedClaims
+                stringifiedClaims,
             );
         });
 
@@ -134,7 +134,7 @@ describe("Base64Decode.ts Unit Tests", () => {
                 const decodedString = base64Decode(encodedBase64String);
             } catch (e) {
                 expect((e as any).errorCode).toBe(
-                    BrowserAuthErrorCodes.invalidBase64String
+                    BrowserAuthErrorCodes.invalidBase64String,
                 );
                 done();
             }
@@ -144,9 +144,9 @@ describe("Base64Decode.ts Unit Tests", () => {
             expect(
                 base64Decode(
                     base64Encode(
-                        TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI
-                    )
-                )
+                        TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI,
+                    ),
+                ),
             ).toBe(TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI);
         });
     });

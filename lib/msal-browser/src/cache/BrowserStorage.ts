@@ -25,7 +25,7 @@ export class BrowserStorage implements IWindowStorage<string> {
             !window[cacheLocation]
         ) {
             throw createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.storageNotSupported
+                BrowserConfigurationAuthErrorCodes.storageNotSupported,
             );
         }
     }

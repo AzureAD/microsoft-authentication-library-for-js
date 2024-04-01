@@ -56,7 +56,7 @@ function supportsBrowserPerformanceNow(): boolean {
  * @returns {number | undefined}
  */
 function getPerfDurationMs(
-    startTime: DOMHighResTimeStamp | undefined
+    startTime: DOMHighResTimeStamp | undefined,
 ): number | undefined {
     if (!startTime || !supportsBrowserPerformanceNow()) {
         return undefined;
@@ -72,7 +72,7 @@ export class BrowserPerformanceClient
     constructor(
         configuration: Configuration,
         intFields?: Set<string>,
-        abbreviations?: Map<string, string>
+        abbreviations?: Map<string, string>,
     ) {
         super(
             configuration.auth.clientId,
@@ -80,7 +80,7 @@ export class BrowserPerformanceClient
             new Logger(
                 configuration.system?.loggerOptions || {},
                 name,
-                version
+                version,
             ),
             name,
             version,
@@ -89,7 +89,7 @@ export class BrowserPerformanceClient
                 appVersion: "",
             },
             intFields,
-            abbreviations
+            abbreviations,
         );
     }
 
@@ -102,11 +102,11 @@ export class BrowserPerformanceClient
     }
 
     private deleteIncompleteSubMeasurements(
-        inProgressEvent: InProgressPerformanceEvent
+        inProgressEvent: InProgressPerformanceEvent,
     ): void {
         void getPerfMeasurementModule()?.then((module) => {
             const rootEvent = this.eventsByCorrelationId.get(
-                inProgressEvent.event.correlationId
+                inProgressEvent.event.correlationId,
             );
             const isRootEvent =
                 rootEvent &&
@@ -116,13 +116,13 @@ export class BrowserPerformanceClient
                 rootEvent.incompleteSubMeasurements.forEach(
                     (subMeasurement: SubMeasurement) => {
                         incompleteMeasurements.push({ ...subMeasurement });
-                    }
+                    },
                 );
             }
             // Clean up remaining marks for incomplete sub-measurements
             module.BrowserPerformanceMeasurement.flushMeasurements(
                 inProgressEvent.event.correlationId,
-                incompleteMeasurements
+                incompleteMeasurements,
             );
         });
     }
@@ -137,13 +137,13 @@ export class BrowserPerformanceClient
      */
     startMeasurement(
         measureName: string,
-        correlationId?: string
+        correlationId?: string,
     ): InProgressPerformanceEvent {
         // Capture page visibilityState and then invoke start/end measurement
         const startPageVisibility = this.getPageVisibility();
         const inProgressEvent = super.startMeasurement(
             measureName,
-            correlationId
+            correlationId,
         );
         const startTime: number | undefined = supportsBrowserPerformanceNow()
             ? window.performance.now()
@@ -153,19 +153,19 @@ export class BrowserPerformanceClient
             (module) => {
                 return new module.BrowserPerformanceMeasurement(
                     measureName,
-                    inProgressEvent.event.correlationId
+                    inProgressEvent.event.correlationId,
                 );
-            }
+            },
         );
         void browserMeasurement?.then((measurement) =>
-            measurement.startMeasurement()
+            measurement.startMeasurement(),
         );
 
         return {
             ...inProgressEvent,
             end: (
                 event?: Partial<PerformanceEvent>,
-                error?: unknown
+                error?: unknown,
             ): PerformanceEvent | null => {
                 const res = inProgressEvent.end(
                     {
@@ -174,10 +174,10 @@ export class BrowserPerformanceClient
                         endPageVisibility: this.getPageVisibility(),
                         durationMs: getPerfDurationMs(startTime),
                     },
-                    error
+                    error,
                 );
                 void browserMeasurement?.then((measurement) =>
-                    measurement.endMeasurement()
+                    measurement.endMeasurement(),
                 );
                 this.deleteIncompleteSubMeasurements(inProgressEvent);
 
@@ -186,7 +186,7 @@ export class BrowserPerformanceClient
             discard: () => {
                 inProgressEvent.discard();
                 void browserMeasurement?.then((measurement) =>
-                    measurement.flushMeasurement()
+                    measurement.flushMeasurement(),
                 );
                 this.deleteIncompleteSubMeasurements(inProgressEvent);
             },
@@ -201,18 +201,18 @@ export class BrowserPerformanceClient
      */
     setPreQueueTime(
         eventName: PerformanceEvents,
-        correlationId?: string
+        correlationId?: string,
     ): void {
         if (!supportsBrowserPerformanceNow()) {
             this.logger.trace(
-                `BrowserPerformanceClient: window performance API not available, unable to set telemetry queue time for ${eventName}`
+                `BrowserPerformanceClient: window performance API not available, unable to set telemetry queue time for ${eventName}`,
             );
             return;
         }
 
         if (!correlationId) {
             this.logger.trace(
-                `BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to set telemetry queue time`
+                `BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to set telemetry queue time`,
             );
             return;
         }
@@ -226,13 +226,13 @@ export class BrowserPerformanceClient
         if (preQueueEvent) {
             this.logger.trace(
                 `BrowserPerformanceClient: Incomplete pre-queue ${preQueueEvent.name} found`,
-                correlationId
+                correlationId,
             );
             this.addQueueMeasurement(
                 preQueueEvent.name,
                 correlationId,
                 undefined,
-                true
+                true,
             );
         }
         this.preQueueTimeByCorrelationId.set(correlationId, {
@@ -254,18 +254,18 @@ export class BrowserPerformanceClient
         eventName: string,
         correlationId?: string,
         queueTime?: number,
-        manuallyCompleted?: boolean
+        manuallyCompleted?: boolean,
     ): void {
         if (!supportsBrowserPerformanceNow()) {
             this.logger.trace(
-                `BrowserPerformanceClient: window performance API not available, unable to add queue measurement for ${eventName}`
+                `BrowserPerformanceClient: window performance API not available, unable to add queue measurement for ${eventName}`,
             );
             return;
         }
 
         if (!correlationId) {
             this.logger.trace(
-                `BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to add queue measurement`
+                `BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to add queue measurement`,
             );
             return;
         }
@@ -283,7 +283,7 @@ export class BrowserPerformanceClient
             eventName,
             correlationId,
             resQueueTime,
-            manuallyCompleted
+            manuallyCompleted,
         );
     }
 }

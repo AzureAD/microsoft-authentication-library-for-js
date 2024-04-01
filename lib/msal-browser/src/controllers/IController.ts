@@ -34,17 +34,17 @@ export interface IController {
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
 
     acquireTokenSilent(
-        silentRequest: SilentRequest
+        silentRequest: SilentRequest,
     ): Promise<AuthenticationResult>;
 
     acquireTokenByCode(
-        request: AuthorizationCodeRequest
+        request: AuthorizationCodeRequest,
     ): Promise<AuthenticationResult>;
 
     acquireTokenNative(
         request: PopupRequest | SilentRequest | SsoSilentRequest,
         apiId: ApiId,
-        accountId?: string
+        accountId?: string,
     ): Promise<AuthenticationResult>;
 
     addEventCallback(callback: EventCallbackFunction): string | null;
@@ -108,7 +108,7 @@ export interface IController {
             | SilentRequest
             | SsoSilentRequest
             | RedirectRequest
-            | PopupRequest
+            | PopupRequest,
     ): Promise<void>;
 
     /** @internal */

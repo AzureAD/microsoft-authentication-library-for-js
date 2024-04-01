@@ -24,15 +24,15 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param silentRequest
      */
     async acquireToken(
-        silentRequest: CommonSilentFlowRequest
+        silentRequest: CommonSilentFlowRequest,
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.SilentCacheClientAcquireToken,
-            silentRequest.correlationId
+            silentRequest.correlationId,
         );
         // Telemetry manager only used to increment cacheHits here
         const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenSilent_silentFlow
+            ApiId.acquireTokenSilent_silentFlow,
         );
 
         const clientConfig = await invokeAsync(
@@ -40,16 +40,16 @@ export class SilentCacheClient extends StandardInteractionClient {
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            this.correlationId,
         )(
             serverTelemetryManager,
             silentRequest.authority,
             silentRequest.azureCloudOptions,
-            silentRequest.account
+            silentRequest.account,
         );
         const silentAuthClient = new SilentFlowClient(
             clientConfig,
-            this.performanceClient
+            this.performanceClient,
         );
         this.logger.verbose("Silent auth client created");
 
@@ -59,7 +59,7 @@ export class SilentCacheClient extends StandardInteractionClient {
                 PerformanceEvents.SilentFlowClientAcquireCachedToken,
                 this.logger,
                 this.performanceClient,
-                silentRequest.correlationId
+                silentRequest.correlationId,
             )(silentRequest);
             const authResponse = response[0] as AuthenticationResult;
 
@@ -67,7 +67,7 @@ export class SilentCacheClient extends StandardInteractionClient {
                 {
                     fromCache: true,
                 },
-                silentRequest.correlationId
+                silentRequest.correlationId,
             );
             return authResponse;
         } catch (error) {
@@ -76,7 +76,7 @@ export class SilentCacheClient extends StandardInteractionClient {
                 error.errorCode === BrowserAuthErrorCodes.cryptoKeyNotFound
             ) {
                 this.logger.verbose(
-                    "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair."
+                    "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair.",
                 );
             }
             throw error;

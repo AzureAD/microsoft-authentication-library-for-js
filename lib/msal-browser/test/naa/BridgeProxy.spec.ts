@@ -35,7 +35,7 @@ describe("BridgeProxy tests", () => {
             windowSpy = jest.spyOn(global, "window", "get");
             windowSpy.mockImplementation(() => undefined);
             expect(() => BridgeProxy.create()).rejects.toThrow(
-                "window is undefined"
+                "window is undefined",
             );
             windowSpy.mockRestore();
         });
@@ -43,14 +43,14 @@ describe("BridgeProxy tests", () => {
         it("should throw an error if window.nestedAppAuthBridge is undefined", () => {
             windowSpy.mockImplementation(() => ({ crypto: {} }));
             expect(() => BridgeProxy.create()).rejects.toThrow(
-                "window.nestedAppAuthBridge is undefined"
+                "window.nestedAppAuthBridge is undefined",
             );
         });
 
         it("should throw an error if window.crypto is undefined", () => {
             windowSpy.mockImplementation(() => ({ nestedAppAuthBridge: {} }));
             expect(() => BridgeProxy.create()).rejects.toThrow(
-                "window.crypto is undefined"
+                "window.crypto is undefined",
             );
         });
     });
@@ -69,7 +69,7 @@ describe("BridgeProxy tests", () => {
             mockBridge = window.nestedAppAuthBridge as MockBridge;
             mockBridge.addInitContextResponse(
                 "GetInitContext",
-                INIT_CONTEXT_RESPONSE
+                INIT_CONTEXT_RESPONSE,
             );
             bridgeProxy = await BridgeProxy.create();
         });
@@ -81,68 +81,67 @@ describe("BridgeProxy tests", () => {
 
         it("should get a token silently", async () => {
             mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
-            const response = await bridgeProxy.getTokenSilent(
-                SILENT_TOKEN_REQUEST
-            );
+            const response =
+                await bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST);
             expect(response.token.scope).toEqual(
-                SILENT_TOKEN_RESPONSE.token?.scope
+                SILENT_TOKEN_RESPONSE.token?.scope,
             );
         });
 
         it("should fail with no network", async () => {
             mockBridge.addErrorResponse("GetToken", BRIDGE_ERROR_NOT_NETWORK);
             await expect(
-                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST)
+                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST),
             ).rejects.toMatchObject(BRIDGE_ERROR_NOT_NETWORK);
         });
 
         it("should fail user interaction required", async () => {
             mockBridge.addErrorResponse(
                 "GetToken",
-                BRIDGE_ERROR_USER_INTERACTION_REQUIRED
+                BRIDGE_ERROR_USER_INTERACTION_REQUIRED,
             );
             await expect(
-                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST)
+                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST),
             ).rejects.toMatchObject(BRIDGE_ERROR_USER_INTERACTION_REQUIRED);
         });
 
         it("should fail user account unavailable", async () => {
             mockBridge.addErrorResponse(
                 "GetToken",
-                BRIDGE_ERROR_ACCOUNT_UNAVAILABLE
+                BRIDGE_ERROR_ACCOUNT_UNAVAILABLE,
             );
             await expect(
-                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST)
+                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST),
             ).rejects.toMatchObject(BRIDGE_ERROR_ACCOUNT_UNAVAILABLE);
         });
 
         it("should fail with transient error", async () => {
             mockBridge.addErrorResponse(
                 "GetToken",
-                BRIDGE_ERROR_TRANSIENT_ERROR_SERVER
+                BRIDGE_ERROR_TRANSIENT_ERROR_SERVER,
             );
             await expect(
-                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST)
+                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST),
             ).rejects.toMatchObject(BRIDGE_ERROR_TRANSIENT_ERROR_SERVER);
         });
 
         it("should fail with persistent error", async () => {
             mockBridge.addErrorResponse(
                 "GetToken",
-                BRIDGE_ERROR_PERSISTENT_ERROR_SERVER
+                BRIDGE_ERROR_PERSISTENT_ERROR_SERVER,
             );
             await expect(
-                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST)
+                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST),
             ).rejects.toMatchObject(BRIDGE_ERROR_PERSISTENT_ERROR_SERVER);
         });
 
         it("should fail with nested app auth unavailable", async () => {
             mockBridge.addErrorResponse(
                 "GetToken",
-                BRIDGE_ERROR_NAA_UNAVAILABLE
+                BRIDGE_ERROR_NAA_UNAVAILABLE,
             );
             await expect(
-                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST)
+                bridgeProxy.getTokenSilent(SILENT_TOKEN_REQUEST),
             ).rejects.toMatchObject(BRIDGE_ERROR_NAA_UNAVAILABLE);
         });
     });
@@ -161,7 +160,7 @@ describe("BridgeProxy tests", () => {
             mockBridge = window.nestedAppAuthBridge as MockBridge;
             mockBridge.addInitContextResponse(
                 "GetInitContext",
-                INIT_CONTEXT_RESPONSE
+                INIT_CONTEXT_RESPONSE,
             );
             bridgeProxy = await BridgeProxy.create();
         });
@@ -174,53 +173,52 @@ describe("BridgeProxy tests", () => {
         it("should get a token via popup", async () => {
             mockBridge.addAuthResultResponse(
                 "GetTokenPopup",
-                SILENT_TOKEN_RESPONSE
+                SILENT_TOKEN_RESPONSE,
             );
-            const response = await bridgeProxy.getTokenInteractive(
-                SILENT_TOKEN_REQUEST
-            );
+            const response =
+                await bridgeProxy.getTokenInteractive(SILENT_TOKEN_REQUEST);
             expect(response.token.scope).toEqual(
-                SILENT_TOKEN_RESPONSE.token?.scope
+                SILENT_TOKEN_RESPONSE.token?.scope,
             );
         });
 
         it("should fail with no network", async () => {
             mockBridge.addErrorResponse(
                 "GetTokenPopup",
-                BRIDGE_ERROR_NOT_NETWORK
+                BRIDGE_ERROR_NOT_NETWORK,
             );
             await expect(
-                bridgeProxy.getTokenInteractive(SILENT_TOKEN_REQUEST)
+                bridgeProxy.getTokenInteractive(SILENT_TOKEN_REQUEST),
             ).rejects.toMatchObject(BRIDGE_ERROR_NOT_NETWORK);
         });
 
         it("should fail user account unavailable", async () => {
             mockBridge.addErrorResponse(
                 "GetTokenPopup",
-                BRIDGE_ERROR_ACCOUNT_UNAVAILABLE
+                BRIDGE_ERROR_ACCOUNT_UNAVAILABLE,
             );
             await expect(
-                bridgeProxy.getTokenInteractive(SILENT_TOKEN_REQUEST)
+                bridgeProxy.getTokenInteractive(SILENT_TOKEN_REQUEST),
             ).rejects.toMatchObject(BRIDGE_ERROR_ACCOUNT_UNAVAILABLE);
         });
 
         it("should fail with persistent error", async () => {
             mockBridge.addErrorResponse(
                 "GetTokenPopup",
-                BRIDGE_ERROR_PERSISTENT_ERROR_SERVER
+                BRIDGE_ERROR_PERSISTENT_ERROR_SERVER,
             );
             await expect(
-                bridgeProxy.getTokenInteractive(SILENT_TOKEN_REQUEST)
+                bridgeProxy.getTokenInteractive(SILENT_TOKEN_REQUEST),
             ).rejects.toMatchObject(BRIDGE_ERROR_PERSISTENT_ERROR_SERVER);
         });
 
         it("should fail with nested app auth unavailable", async () => {
             mockBridge.addErrorResponse(
                 "GetTokenPopup",
-                BRIDGE_ERROR_NAA_UNAVAILABLE
+                BRIDGE_ERROR_NAA_UNAVAILABLE,
             );
             await expect(
-                bridgeProxy.getTokenInteractive(SILENT_TOKEN_REQUEST)
+                bridgeProxy.getTokenInteractive(SILENT_TOKEN_REQUEST),
             ).rejects.toMatchObject(BRIDGE_ERROR_NAA_UNAVAILABLE);
         });
     });
@@ -238,7 +236,7 @@ describe("BridgeProxy tests", () => {
             mockBridge = window.nestedAppAuthBridge as MockBridge;
             mockBridge.addInitContextResponse(
                 "GetInitContext",
-                INIT_CONTEXT_RESPONSE
+                INIT_CONTEXT_RESPONSE,
             );
             bridgeProxy = await BridgeProxy.create();
         });
@@ -251,11 +249,11 @@ describe("BridgeProxy tests", () => {
         it("get active account", async () => {
             mockBridge.addAccountResponse(
                 "GetActiveAccount",
-                ACCOUNT_INFO_RESPONSE
+                ACCOUNT_INFO_RESPONSE,
             );
             const response = await bridgeProxy.getActiveAccount();
             expect(response.homeAccountId).toEqual(
-                ACCOUNT_INFO_RESPONSE.homeAccountId
+                ACCOUNT_INFO_RESPONSE.homeAccountId,
             );
         });
     });

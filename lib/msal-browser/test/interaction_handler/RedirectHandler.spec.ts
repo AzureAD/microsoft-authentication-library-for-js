@@ -118,14 +118,14 @@ describe("RedirectHandler.ts Unit Tests", () => {
             browserStorage,
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
         );
         browserCrypto = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(
             TEST_CONFIG.MSAL_CLIENT_ID,
             configObj.cache,
             browserCrypto,
-            logger
+            logger,
         );
         authConfig = {
             authOptions: {
@@ -166,13 +166,13 @@ describe("RedirectHandler.ts Unit Tests", () => {
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
-                    options?: NetworkRequestOptions
+                    options?: NetworkRequestOptions,
                 ): Promise<any> => {
                     return testNetworkResult;
                 },
                 sendPostRequestAsync: async (
                     url: string,
-                    options?: NetworkRequestOptions
+                    options?: NetworkRequestOptions,
                 ): Promise<any> => {
                     return testNetworkResult;
                 },
@@ -209,7 +209,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                performanceClient
+                performanceClient,
             );
             expect(redirectHandler).toBeInstanceOf(RedirectHandler);
         });
@@ -223,7 +223,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                performanceClient
+                performanceClient,
             );
 
             redirectHandler
@@ -235,10 +235,10 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.emptyNavigateUriError.code
+                        BrowserAuthErrorMessage.emptyNavigateUriError.code,
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.emptyNavigateUriError.desc
+                        BrowserAuthErrorMessage.emptyNavigateUriError.desc,
                     );
                     done();
                 });
@@ -254,7 +254,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             const navigationClient = new NavigationClient();
             navigationClient.navigateExternal = (
                 requestUrl: string,
-                options: NavigationOptions
+                options: NavigationOptions,
             ): Promise<boolean> => {
                 expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 expect(options.timeout).toEqual(3000);
@@ -266,7 +266,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                performanceClient
+                performanceClient,
             );
             redirectHandler.initiateAuthRequest(
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI,
@@ -274,7 +274,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     redirectStartPage: "",
                     redirectTimeout: 3000,
                     navigationClient,
-                }
+                },
             );
         });
 
@@ -288,10 +288,10 @@ describe("RedirectHandler.ts Unit Tests", () => {
             const navigationClient = new NavigationClient();
             navigationClient.navigateExternal = (
                 urlNavigate: string,
-                options: NavigationOptions
+                options: NavigationOptions,
             ): Promise<boolean> => {
                 done(
-                    "Navigatation should not happen if onRedirectNavigate returns false"
+                    "Navigatation should not happen if onRedirectNavigate returns false",
                 );
                 return Promise.reject();
             };
@@ -306,7 +306,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                performanceClient
+                performanceClient,
             );
             redirectHandler.initiateAuthRequest(
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI,
@@ -315,7 +315,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     redirectStartPage: "",
                     onRedirectNavigate,
                     navigationClient,
-                }
+                },
             );
         });
 
@@ -330,7 +330,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             const navigationClient = new NavigationClient();
             navigationClient.navigateExternal = (
                 requestUrl,
-                options
+                options,
             ): Promise<boolean> => {
                 expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
@@ -345,7 +345,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 defaultTokenRequest,
                 browserRequestLogger,
-                performanceClient
+                performanceClient,
             );
             redirectHandler.initiateAuthRequest(
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI,
@@ -354,7 +354,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     redirectStartPage: "",
                     onRedirectNavigate,
                     navigationClient,
-                }
+                },
             );
         });
     });
@@ -393,7 +393,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000,
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -417,28 +417,28 @@ describe("RedirectHandler.ts Unit Tests", () => {
             };
             browserStorage.setTemporaryCache(
                 browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             browserStorage.setTemporaryCache(
                 browserStorage.generateCacheKey(
-                    TemporaryCacheKeys.REQUEST_PARAMS
+                    TemporaryCacheKeys.REQUEST_PARAMS,
                 ),
-                browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest))
+                browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)),
             );
             browserStorage.setTemporaryCache(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
             browserStorage.setTemporaryCache(
                 browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH),
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
             );
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    "handleFragmentResponse"
+                    "handleFragmentResponse",
                 )
                 .returns(testCodeResponse);
             sinon
@@ -450,27 +450,29 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 testAuthCodeRequest,
                 browserRequestLogger,
-                performanceClient
+                performanceClient,
             );
             const tokenResponse = await redirectHandler.handleCodeResponse(
                 {
                     code: "thisIsATestCode",
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 },
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateCacheKey(
-                        TemporaryCacheKeys.INTERACTION_STATUS_KEY
-                    )
-                )
+                        TemporaryCacheKeys.INTERACTION_STATUS_KEY,
+                    ),
+                ),
             ).toBe(null);
             expect(
                 browserStorage.getTemporaryCache(
-                    browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH)
-                )
+                    browserStorage.generateCacheKey(
+                        TemporaryCacheKeys.URL_HASH,
+                    ),
+                ),
             ).toBe(null);
         });
 
@@ -511,7 +513,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000,
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -536,32 +538,32 @@ describe("RedirectHandler.ts Unit Tests", () => {
             };
             browserStorage.setTemporaryCache(
                 browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             browserStorage.setTemporaryCache(
                 browserStorage.generateCacheKey(
-                    TemporaryCacheKeys.REQUEST_PARAMS
+                    TemporaryCacheKeys.REQUEST_PARAMS,
                 ),
-                browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest))
+                browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)),
             );
             browserStorage.setTemporaryCache(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
             browserStorage.setTemporaryCache(
                 browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH),
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
             );
             browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.CCS_CREDENTIAL,
-                JSON.stringify(testCcsCred)
+                JSON.stringify(testCcsCred),
             );
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    "handleFragmentResponse"
+                    "handleFragmentResponse",
                 )
                 .returns(testCodeResponse);
             sinon
@@ -573,27 +575,29 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage,
                 testAuthCodeRequest,
                 browserRequestLogger,
-                performanceClient
+                performanceClient,
             );
             const tokenResponse = await redirectHandler.handleCodeResponse(
                 {
                     code: "thisIsATestCode",
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 },
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateCacheKey(
-                        TemporaryCacheKeys.INTERACTION_STATUS_KEY
-                    )
-                )
+                        TemporaryCacheKeys.INTERACTION_STATUS_KEY,
+                    ),
+                ),
             ).toBe(null);
             expect(
                 browserStorage.getTemporaryCache(
-                    browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH)
-                )
+                    browserStorage.generateCacheKey(
+                        TemporaryCacheKeys.URL_HASH,
+                    ),
+                ),
             ).toBe(null);
         });
     });

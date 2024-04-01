@@ -106,11 +106,11 @@ export class UnknownOperatingContextController implements IController {
                   this.config.auth.clientId,
                   this.config.cache,
                   this.browserCrypto,
-                  this.logger
+                  this.logger,
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
-                  this.logger
+                  this.logger,
               );
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
@@ -160,7 +160,7 @@ export class UnknownOperatingContextController implements IController {
     }
     acquireTokenSilent(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        silentRequest: SilentRequest
+        silentRequest: SilentRequest,
     ): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
@@ -168,7 +168,7 @@ export class UnknownOperatingContextController implements IController {
     }
     acquireTokenByCode(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request: AuthorizationCodeRequest
+        request: AuthorizationCodeRequest,
     ): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
@@ -192,7 +192,7 @@ export class UnknownOperatingContextController implements IController {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         apiId: ApiId,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        accountId?: string | undefined
+        accountId?: string | undefined,
     ): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
@@ -202,7 +202,7 @@ export class UnknownOperatingContextController implements IController {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         commonRequest: CommonSilentFlowRequest,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        silentRequest: SilentRequest
+        silentRequest: SilentRequest,
     ): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
@@ -237,14 +237,14 @@ export class UnknownOperatingContextController implements IController {
 
     handleRedirectPromise(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        hash?: string | undefined
+        hash?: string | undefined,
     ): Promise<AuthenticationResult | null> {
         blockAPICallsBeforeInitialize(this.initialized);
         return Promise.resolve(null);
     }
     loginPopup(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request?: PopupRequest | undefined
+        request?: PopupRequest | undefined,
     ): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
@@ -264,7 +264,7 @@ export class UnknownOperatingContextController implements IController {
     }
     logoutRedirect(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        logoutRequest?: EndSessionRequest | undefined
+        logoutRequest?: EndSessionRequest | undefined,
     ): Promise<void> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
@@ -272,7 +272,7 @@ export class UnknownOperatingContextController implements IController {
     }
     logoutPopup(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        logoutRequest?: EndSessionPopupRequest | undefined
+        logoutRequest?: EndSessionPopupRequest | undefined,
     ): Promise<void> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
@@ -289,7 +289,7 @@ export class UnknownOperatingContextController implements IController {
                 | "requestedClaimsHash"
                 | "nativeBroker"
             >
-        >
+        >,
     ): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
@@ -366,7 +366,7 @@ export class UnknownOperatingContextController implements IController {
             | SilentRequest
             | SsoSilentRequest
             | RedirectRequest
-            | PopupRequest
+            | PopupRequest,
     ): Promise<void> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();

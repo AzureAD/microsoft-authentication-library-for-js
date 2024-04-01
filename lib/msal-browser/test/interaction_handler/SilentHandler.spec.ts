@@ -58,10 +58,10 @@ describe("SilentHandler.ts Unit Tests", () => {
                     "",
                     performanceClient,
                     browserRequestLogger,
-                    RANDOM_TEST_GUID
-                )
+                    RANDOM_TEST_GUID,
+                ),
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+                createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri),
             );
         });
 
@@ -74,15 +74,15 @@ describe("SilentHandler.ts Unit Tests", () => {
                     performanceClient,
                     browserRequestLogger,
                     RANDOM_TEST_GUID,
-                    DEFAULT_IFRAME_TIMEOUT_MS
+                    DEFAULT_IFRAME_TIMEOUT_MS,
                 );
                 const endTime = Date.now();
                 expect(endTime - startTime).toBeGreaterThanOrEqual(
-                    DEFAULT_IFRAME_TIMEOUT_MS
+                    DEFAULT_IFRAME_TIMEOUT_MS,
                 );
                 expect(authFrame instanceof HTMLIFrameElement).toBe(true);
             },
-            DEFAULT_IFRAME_TIMEOUT_MS + 1000
+            DEFAULT_IFRAME_TIMEOUT_MS + 1000,
         );
 
         it("Creates a frame synchronously when created with a timeout of 0", async () => {
@@ -92,7 +92,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID,
-                0
+                0,
             );
             const endTime = Date.now();
             expect(endTime - startTime).toBeLessThan(DEFAULT_IFRAME_TIMEOUT_MS);
@@ -117,13 +117,13 @@ describe("SilentHandler.ts Unit Tests", () => {
                 performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID,
-                ServerResponseType.FRAGMENT
+                ServerResponseType.FRAGMENT,
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.monitorWindowTimeout
-                    )
+                        BrowserAuthErrorCodes.monitorWindowTimeout,
+                    ),
                 );
                 done();
             });
@@ -149,13 +149,13 @@ describe("SilentHandler.ts Unit Tests", () => {
                 performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID,
-                ServerResponseType.FRAGMENT
+                ServerResponseType.FRAGMENT,
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.monitorWindowTimeout
-                    )
+                        BrowserAuthErrorCodes.monitorWindowTimeout,
+                    ),
                 );
                 done();
             });
@@ -179,7 +179,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                     new Int32Array(new SharedArrayBuffer(4)),
                     0,
                     0,
-                    pauseDuration
+                    pauseDuration,
                 );
             }, startPauseDelay);
         });
@@ -202,7 +202,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID,
-                ServerResponseType.FRAGMENT
+                ServerResponseType.FRAGMENT,
             ).then((hash: string) => {
                 expect(hash).toEqual("#code=hello");
                 done();

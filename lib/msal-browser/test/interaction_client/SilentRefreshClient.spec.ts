@@ -70,7 +70,7 @@ describe("SilentRefreshClient", () => {
         browserCacheManager = pca.browserStorage;
 
         jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-            RANDOM_TEST_GUID
+            RANDOM_TEST_GUID,
         );
         // @ts-ignore
         silentRefreshClient = new SilentRefreshClient(
@@ -87,7 +87,7 @@ describe("SilentRefreshClient", () => {
             //@ts-ignore
             pca.navigationClient,
             //@ts-ignore
-            pca.performanceClient
+            pca.performanceClient,
         );
     });
 
@@ -121,7 +121,7 @@ describe("SilentRefreshClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -129,7 +129,7 @@ describe("SilentRefreshClient", () => {
             const silentATStub = sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"acquireTokenByRefreshToken"
+                    <any>"acquireTokenByRefreshToken",
                 )
                 .resolves(testTokenResponse);
             const tokenRequest: CommonSilentFlowRequest = {
@@ -147,9 +147,8 @@ describe("SilentRefreshClient", () => {
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
-            const tokenResp = await silentRefreshClient.acquireToken(
-                tokenRequest
-            );
+            const tokenResp =
+                await silentRefreshClient.acquireToken(tokenRequest);
             expect(silentATStub.calledWith(expectedTokenRequest)).toBeTruthy();
             expect(tokenResp).toEqual(testTokenResponse);
         });
@@ -175,7 +174,7 @@ describe("SilentRefreshClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -183,7 +182,7 @@ describe("SilentRefreshClient", () => {
             const silentATStub = jest
                 .spyOn(
                     RefreshTokenClient.prototype,
-                    <any>"acquireTokenByRefreshToken"
+                    <any>"acquireTokenByRefreshToken",
                 )
                 .mockResolvedValue(testTokenResponse);
             const tokenRequest: CommonSilentFlowRequest = {
@@ -203,9 +202,8 @@ describe("SilentRefreshClient", () => {
                 forceRefresh: false,
                 redirectUri: "https://localhost:8081/", // absolute redirectUri
             };
-            const tokenResp = await silentRefreshClient.acquireToken(
-                tokenRequest
-            );
+            const tokenResp =
+                await silentRefreshClient.acquireToken(tokenRequest);
             expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
             expect(tokenResp).toEqual(testTokenResponse);
         });
@@ -223,15 +221,15 @@ describe("SilentRefreshClient", () => {
                 const accountEntity = new AccountEntity();
                 jest.spyOn(
                     BrowserCacheManager.prototype,
-                    "getAccount"
+                    "getAccount",
                 ).mockReturnValue(accountEntity);
                 jest.spyOn(
                     BrowserCacheManager.prototype,
-                    "getRefreshToken"
+                    "getRefreshToken",
                 ).mockReturnValue(rtEntity);
                 jest.spyOn(
                     NetworkManager.prototype,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
             });
 
@@ -249,10 +247,10 @@ describe("SilentRefreshClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -276,10 +274,10 @@ describe("SilentRefreshClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -303,10 +301,10 @@ describe("SilentRefreshClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -322,8 +320,8 @@ describe("SilentRefreshClient", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentRefreshClient.logout).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.silentLogoutUnsupported
-                )
+                    BrowserAuthErrorCodes.silentLogoutUnsupported,
+                ),
             );
         });
     });

@@ -58,7 +58,7 @@ export class TokenCache implements ITokenCache {
         configuration: BrowserConfiguration,
         storage: BrowserCacheManager,
         logger: Logger,
-        cryptoObj: ICrypto
+        cryptoObj: ICrypto,
     ) {
         this.isBrowserEnvironment = typeof window !== "undefined";
         this.config = configuration;
@@ -79,19 +79,19 @@ export class TokenCache implements ITokenCache {
     loadExternalTokens(
         request: SilentRequest,
         response: ExternalTokenResponse,
-        options: LoadTokenOptions
+        options: LoadTokenOptions,
     ): AuthenticationResult {
         this.logger.info("TokenCache - loadExternalTokens called");
 
         if (!response.id_token) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
+                BrowserAuthErrorCodes.unableToLoadToken,
             );
         }
 
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.id_token,
-            base64Decode
+            base64Decode,
         );
 
         let cacheRecord: CacheRecord;
@@ -100,7 +100,7 @@ export class TokenCache implements ITokenCache {
 
         if (request.account) {
             cacheRecordAccount = AccountEntity.createFromAccountInfo(
-                request.account
+                request.account,
             );
             cacheRecord = new CacheRecord(
                 cacheRecordAccount,
@@ -108,7 +108,7 @@ export class TokenCache implements ITokenCache {
                     response.id_token,
                     cacheRecordAccount.homeAccountId,
                     request.account.environment,
-                    request.account.tenantId
+                    request.account.tenantId,
                 ),
                 this.loadAccessToken(
                     request,
@@ -116,19 +116,19 @@ export class TokenCache implements ITokenCache {
                     cacheRecordAccount.homeAccountId,
                     request.account.environment,
                     request.account.tenantId,
-                    options
+                    options,
                 ),
                 this.loadRefreshToken(
                     request,
                     response,
                     cacheRecordAccount.homeAccountId,
-                    request.account.environment
-                )
+                    request.account.environment,
+                ),
             );
         } else if (request.authority) {
             const authorityUrl = Authority.generateAuthority(
                 request.authority,
-                request.azureCloudOptions
+                request.azureCloudOptions,
             );
             const authorityOptions: AuthorityOptions = {
                 protocolMode: this.config.auth.protocolMode,
@@ -144,7 +144,7 @@ export class TokenCache implements ITokenCache {
                 this.storage,
                 authorityOptions,
                 this.logger,
-                request.correlationId || BrowserCrypto.createNewGuid()
+                request.correlationId || BrowserCrypto.createNewGuid(),
             );
 
             // "clientInfo" from options takes precedence over "clientInfo" in response
@@ -153,7 +153,7 @@ export class TokenCache implements ITokenCache {
                 cacheRecordAccount = this.loadAccount(
                     idTokenClaims,
                     authority,
-                    options.clientInfo
+                    options.clientInfo,
                 );
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
@@ -161,7 +161,7 @@ export class TokenCache implements ITokenCache {
                         response.id_token,
                         cacheRecordAccount.homeAccountId,
                         authority.hostnameAndPort,
-                        authority.tenant
+                        authority.tenant,
                     ),
                     this.loadAccessToken(
                         request,
@@ -169,21 +169,21 @@ export class TokenCache implements ITokenCache {
                         cacheRecordAccount.homeAccountId,
                         authority.hostnameAndPort,
                         authority.tenant,
-                        options
+                        options,
                     ),
                     this.loadRefreshToken(
                         request,
                         response,
                         cacheRecordAccount.homeAccountId,
-                        authority.hostnameAndPort
-                    )
+                        authority.hostnameAndPort,
+                    ),
                 );
             } else if (response.client_info) {
                 this.logger.trace("TokenCache - homeAccountId from response");
                 cacheRecordAccount = this.loadAccount(
                     idTokenClaims,
                     authority,
-                    response.client_info
+                    response.client_info,
                 );
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
@@ -191,7 +191,7 @@ export class TokenCache implements ITokenCache {
                         response.id_token,
                         cacheRecordAccount.homeAccountId,
                         authority.hostnameAndPort,
-                        authority.tenant
+                        authority.tenant,
                     ),
                     this.loadAccessToken(
                         request,
@@ -199,23 +199,23 @@ export class TokenCache implements ITokenCache {
                         cacheRecordAccount.homeAccountId,
                         authority.hostnameAndPort,
                         authority.tenant,
-                        options
+                        options,
                     ),
                     this.loadRefreshToken(
                         request,
                         response,
                         cacheRecordAccount.homeAccountId,
-                        authority.hostnameAndPort
-                    )
+                        authority.hostnameAndPort,
+                    ),
                 );
             } else {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.unableToLoadToken
+                    BrowserAuthErrorCodes.unableToLoadToken,
                 );
             }
         } else {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
+                BrowserAuthErrorCodes.unableToLoadToken,
             );
         }
 
@@ -224,7 +224,7 @@ export class TokenCache implements ITokenCache {
             idTokenClaims,
             cacheRecord,
             cacheRecordAccount,
-            authority
+            authority,
         );
     }
 
@@ -241,7 +241,7 @@ export class TokenCache implements ITokenCache {
         idTokenClaims: TokenClaims,
         authority: Authority,
         clientInfo?: string,
-        requestHomeAccountId?: string
+        requestHomeAccountId?: string,
     ): AccountEntity {
         if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading account");
@@ -254,13 +254,13 @@ export class TokenCache implements ITokenCache {
                     authority.authorityType,
                     this.logger,
                     this.cryptoObj,
-                    idTokenClaims
+                    idTokenClaims,
                 );
             }
 
             if (!homeAccountId) {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.unableToLoadToken
+                    BrowserAuthErrorCodes.unableToLoadToken,
                 );
             }
             const claimsTenantId = idTokenClaims.tid;
@@ -276,14 +276,14 @@ export class TokenCache implements ITokenCache {
                 claimsTenantId,
                 undefined, // authCodePayload
                 undefined, // nativeAccountId
-                this.logger
+                this.logger,
             );
 
             this.storage.setAccount(cachedAccount);
             return cachedAccount;
         } else {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
+                BrowserAuthErrorCodes.unableToLoadToken,
             );
         }
     }
@@ -300,14 +300,14 @@ export class TokenCache implements ITokenCache {
         idToken: string,
         homeAccountId: string,
         environment: string,
-        tenantId: string
+        tenantId: string,
     ): IdTokenEntity {
         const idTokenEntity = CacheHelpers.createIdTokenEntity(
             homeAccountId,
             environment,
             idToken,
             this.config.auth.clientId,
-            tenantId
+            tenantId,
         );
 
         if (this.isBrowserEnvironment) {
@@ -316,7 +316,7 @@ export class TokenCache implements ITokenCache {
             return idTokenEntity;
         } else {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
+                BrowserAuthErrorCodes.unableToLoadToken,
             );
         }
     }
@@ -336,24 +336,24 @@ export class TokenCache implements ITokenCache {
         homeAccountId: string,
         environment: string,
         tenantId: string,
-        options: LoadTokenOptions
+        options: LoadTokenOptions,
     ): AccessTokenEntity | null {
         if (!response.access_token) {
             this.logger.verbose(
-                "TokenCache - No access token provided for caching"
+                "TokenCache - No access token provided for caching",
             );
             return null;
         }
 
         if (!response.expires_in) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
+                BrowserAuthErrorCodes.unableToLoadToken,
             );
         }
 
         if (!options.extendedExpiresOn) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
+                BrowserAuthErrorCodes.unableToLoadToken,
             );
         }
 
@@ -372,7 +372,7 @@ export class TokenCache implements ITokenCache {
             scopes,
             expiresOn,
             extendedExpiresOn,
-            base64Decode
+            base64Decode,
         );
 
         if (this.isBrowserEnvironment) {
@@ -381,7 +381,7 @@ export class TokenCache implements ITokenCache {
             return accessTokenEntity;
         } else {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
+                BrowserAuthErrorCodes.unableToLoadToken,
             );
         }
     }
@@ -398,11 +398,11 @@ export class TokenCache implements ITokenCache {
         request: SilentRequest,
         response: ExternalTokenResponse,
         homeAccountId: string,
-        environment: string
+        environment: string,
     ): RefreshTokenEntity | null {
         if (!response.refresh_token) {
             this.logger.verbose(
-                "TokenCache - No refresh token provided for caching"
+                "TokenCache - No refresh token provided for caching",
             );
             return null;
         }
@@ -411,7 +411,7 @@ export class TokenCache implements ITokenCache {
             homeAccountId,
             environment,
             response.refresh_token,
-            this.config.auth.clientId
+            this.config.auth.clientId,
         );
 
         if (this.isBrowserEnvironment) {
@@ -420,7 +420,7 @@ export class TokenCache implements ITokenCache {
             return refreshTokenEntity;
         } else {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
+                BrowserAuthErrorCodes.unableToLoadToken,
             );
         }
     }
@@ -438,7 +438,7 @@ export class TokenCache implements ITokenCache {
         idTokenClaims: TokenClaims,
         cacheRecord: CacheRecord,
         accountEntity: AccountEntity,
-        authority?: Authority
+        authority?: Authority,
     ): AuthenticationResult {
         let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
@@ -448,13 +448,13 @@ export class TokenCache implements ITokenCache {
         if (cacheRecord?.accessToken) {
             accessToken = cacheRecord.accessToken.secret;
             responseScopes = ScopeSet.fromString(
-                cacheRecord.accessToken.target
+                cacheRecord.accessToken.target,
             ).asArray();
             expiresOn = new Date(
-                Number(cacheRecord.accessToken.expiresOn) * 1000
+                Number(cacheRecord.accessToken.expiresOn) * 1000,
             );
             extExpiresOn = new Date(
-                Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
+                Number(cacheRecord.accessToken.extendedExpiresOn) * 1000,
             );
         }
 

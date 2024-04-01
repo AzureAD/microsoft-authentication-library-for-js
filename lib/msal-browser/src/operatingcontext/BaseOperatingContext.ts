@@ -78,8 +78,8 @@ export abstract class BaseOperatingContext {
             piiLoggingKey === "true"
                 ? true
                 : piiLoggingKey === "false"
-                ? false
-                : undefined;
+                  ? false
+                  : undefined;
         const loggerOptions = { ...this.config.system.loggerOptions };
 
         const logLevel =

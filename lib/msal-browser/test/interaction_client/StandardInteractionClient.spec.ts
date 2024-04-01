@@ -40,18 +40,18 @@ class testStandardInteractionClient extends StandardInteractionClient {
 
     async initializeAuthorizationRequest(
         request: RedirectRequest,
-        interactionType: InteractionType
+        interactionType: InteractionType,
     ) {
         return super.initializeAuthorizationRequest(request, interactionType);
     }
 
     async getDiscoveredAuthority(
         requestAuthority?: string,
-        requestAzureCloudOptions?: AzureCloudOptions
+        requestAzureCloudOptions?: AzureCloudOptions,
     ) {
         return super.getDiscoveredAuthority(
             requestAuthority,
-            requestAzureCloudOptions
+            requestAzureCloudOptions,
         );
     }
 
@@ -89,7 +89,7 @@ describe("StandardInteractionClient", () => {
             //@ts-ignore
             null,
             //@ts-ignore
-            pca.performanceClient
+            pca.performanceClient,
         );
         sinon
             .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
@@ -99,7 +99,7 @@ describe("StandardInteractionClient", () => {
             .callsFake((url) => {
                 if (
                     url.startsWith(
-                        "https://login.microsoftonline.com/common/discovery/instance?"
+                        "https://login.microsoftonline.com/common/discovery/instance?",
                     )
                 ) {
                     return Promise.resolve(DEFAULT_TENANT_DISCOVERY_RESPONSE);
@@ -159,7 +159,7 @@ describe("StandardInteractionClient", () => {
 
         const authority = await testClient.getDiscoveredAuthority(
             reqAuthority,
-            reqAzureCloudOptions
+            reqAzureCloudOptions,
         );
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.usGovAuthority);
     });
@@ -179,7 +179,7 @@ describe("StandardInteractionClient", () => {
 
         const authority = await testClient.getDiscoveredAuthority(
             undefined,
-            reqAzureCloudOptions
+            reqAzureCloudOptions,
         );
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.germanyAuthority);
     });
@@ -216,7 +216,7 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             //@ts-ignore
             null,
             //@ts-ignore
-            pca.performanceClient
+            pca.performanceClient,
         );
         sinon
             .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
@@ -226,7 +226,7 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             .callsFake((url) => {
                 if (
                     url.startsWith(
-                        "https://login.microsoftonline.com/common/discovery/instance?"
+                        "https://login.microsoftonline.com/common/discovery/instance?",
                     )
                 ) {
                     return Promise.resolve(DEFAULT_TENANT_DISCOVERY_RESPONSE);
@@ -259,7 +259,7 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
 
         const authCodeRequest = await testClient.initializeAuthorizationRequest(
             request,
-            InteractionType.Redirect
+            InteractionType.Redirect,
         );
         expect(authCodeRequest.responseMode).toBe(ResponseMode.QUERY);
     });

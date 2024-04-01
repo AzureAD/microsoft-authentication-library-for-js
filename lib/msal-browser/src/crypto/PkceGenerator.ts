@@ -31,25 +31,25 @@ const RANDOM_BYTE_ARR_LENGTH = 32;
 export async function generatePkceCodes(
     performanceClient: IPerformanceClient,
     logger: Logger,
-    correlationId: string
+    correlationId: string,
 ): Promise<PkceCodes> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.GeneratePkceCodes,
-        correlationId
+        correlationId,
     );
     const codeVerifier = invoke(
         generateCodeVerifier,
         PerformanceEvents.GenerateCodeVerifier,
         logger,
         performanceClient,
-        correlationId
+        correlationId,
     )(performanceClient, logger, correlationId);
     const codeChallenge = await invokeAsync(
         generateCodeChallengeFromVerifier,
         PerformanceEvents.GenerateCodeChallengeFromVerifier,
         logger,
         performanceClient,
-        correlationId
+        correlationId,
     )(codeVerifier, performanceClient, logger, correlationId);
     return {
         verifier: codeVerifier,
@@ -64,7 +64,7 @@ export async function generatePkceCodes(
 function generateCodeVerifier(
     performanceClient: IPerformanceClient,
     logger: Logger,
-    correlationId: string
+    correlationId: string,
 ): string {
     try {
         // Generate random values as utf-8
@@ -74,7 +74,7 @@ function generateCodeVerifier(
             PerformanceEvents.GetRandomValues,
             logger,
             performanceClient,
-            correlationId
+            correlationId,
         )(buffer);
         // encode verifier as base64
         const pkceCodeVerifierB64: string = urlEncodeArr(buffer);
@@ -92,11 +92,11 @@ async function generateCodeChallengeFromVerifier(
     pkceCodeVerifier: string,
     performanceClient: IPerformanceClient,
     logger: Logger,
-    correlationId: string
+    correlationId: string,
 ): Promise<string> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.GenerateCodeChallengeFromVerifier,
-        correlationId
+        correlationId,
     );
     try {
         // hashed verifier
@@ -105,7 +105,7 @@ async function generateCodeChallengeFromVerifier(
             PerformanceEvents.Sha256Digest,
             logger,
             performanceClient,
-            correlationId
+            correlationId,
         )(pkceCodeVerifier, performanceClient, correlationId);
         // encode hash as base64
         return urlEncodeArr(new Uint8Array(pkceHashedCodeVerifier));

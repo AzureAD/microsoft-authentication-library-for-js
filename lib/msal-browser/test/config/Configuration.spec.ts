@@ -26,7 +26,7 @@ describe("Configuration.ts Class Unit Tests", () => {
     const testLoggerCallback = (
         level: LogLevel,
         message: string,
-        containsPii: boolean
+        containsPii: boolean,
     ): void => {};
 
     it("buildConfiguration assigns default values", () => {
@@ -34,19 +34,19 @@ describe("Configuration.ts Class Unit Tests", () => {
         let emptyConfig: Configuration = buildConfiguration(
             // @ts-ignore
             { auth: null },
-            true
+            true,
         );
         // Auth config checks
         expect(emptyConfig.auth).not.toBeNull();
         expect(emptyConfig.auth.clientId).toHaveLength(0);
         expect(emptyConfig.auth.authority).toBe(
-            `${Constants.DEFAULT_AUTHORITY}`
+            `${Constants.DEFAULT_AUTHORITY}`,
         );
         expect(emptyConfig.auth.redirectUri).toBe("");
         expect(emptyConfig.auth.postLogoutRedirectUri).toBe("");
         expect(emptyConfig.auth.navigateToLoginRequestUrl).toBe(true);
         expect(emptyConfig.auth?.azureCloudOptions?.azureCloudInstance).toBe(
-            AzureCloudInstance.None
+            AzureCloudInstance.None,
         );
         expect(emptyConfig.auth?.azureCloudOptions?.tenant).toBe("");
         // Cache config checks
@@ -62,16 +62,16 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system?.loggerOptions).toBeDefined();
         expect(emptyConfig.system?.loggerOptions?.loggerCallback).toBeDefined();
         expect(emptyConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(
-            false
+            false,
         );
         expect(emptyConfig.system?.networkClient).toBeDefined();
         expect(emptyConfig.system?.windowHashTimeout).toBeDefined();
         expect(emptyConfig.system?.windowHashTimeout).toBe(
-            DEFAULT_POPUP_TIMEOUT_MS
+            DEFAULT_POPUP_TIMEOUT_MS,
         );
         expect(emptyConfig.system?.iframeHashTimeout).toBeDefined();
         expect(emptyConfig.system?.iframeHashTimeout).toBe(
-            DEFAULT_IFRAME_TIMEOUT_MS
+            DEFAULT_IFRAME_TIMEOUT_MS,
         );
         expect(emptyConfig.system?.navigateFrameWait).toBe(0);
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
@@ -89,7 +89,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     allowNativeBroker: true,
                 },
             },
-            true
+            true,
         );
 
         expect(config.system?.allowNativeBroker).toBe(true);
@@ -106,7 +106,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     loadFrameTimeout: 100,
                 },
             },
-            true
+            true,
         );
 
         expect(config.system?.iframeHashTimeout).toBe(100);
@@ -125,7 +125,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     windowHashTimeout: 50000,
                 },
             },
-            true
+            true,
         );
 
         expect(config.system?.iframeHashTimeout).toBe(5000);
@@ -145,7 +145,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     loadFrameTimeout: 500,
                 },
             },
-            true
+            true,
         );
 
         expect(config.system?.iframeHashTimeout).toBe(6001);
@@ -189,7 +189,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     },
                 },
             },
-            true
+            true,
         );
         if (
             !emptyConfig ||
@@ -202,31 +202,31 @@ describe("Configuration.ts Class Unit Tests", () => {
         emptyConfig.system.loggerOptions.loggerCallback(
             LogLevel.Error,
             message,
-            true
+            true,
         );
         expect(consoleErrorSpy.called).toBe(false);
         emptyConfig.system.loggerOptions.loggerCallback(
             LogLevel.Error,
             message,
-            false
+            false,
         );
         expect(consoleErrorSpy.calledOnce).toBe(true);
         emptyConfig.system.loggerOptions.loggerCallback(
             LogLevel.Info,
             message,
-            false
+            false,
         );
         expect(consoleInfoSpy.calledOnce).toBe(true);
         emptyConfig.system.loggerOptions.loggerCallback(
             LogLevel.Verbose,
             message,
-            false
+            false,
         );
         expect(consoleDebugSpy.calledOnce).toBe(true);
         emptyConfig.system.loggerOptions.loggerCallback(
             LogLevel.Warning,
             message,
-            false
+            false,
         );
         expect(consoleWarnSpy.calledOnce).toBe(true);
     });
@@ -259,17 +259,17 @@ describe("Configuration.ts Class Unit Tests", () => {
                     asyncPopups: true,
                 },
             },
-            true
+            true,
         );
         // Auth config checks
         expect(newConfig.auth).not.toBeNull();
         expect(newConfig.auth.clientId).toBe(TEST_CONFIG.MSAL_CLIENT_ID);
         expect(newConfig.auth.authority).toBe(TEST_CONFIG.validAuthority);
         expect(newConfig.auth.redirectUri).toBe(
-            TEST_URIS.TEST_ALTERNATE_REDIR_URI
+            TEST_URIS.TEST_ALTERNATE_REDIR_URI,
         );
         expect(newConfig.auth.postLogoutRedirectUri).toBe(
-            TEST_URIS.TEST_LOGOUT_URI
+            TEST_URIS.TEST_LOGOUT_URI,
         );
         expect(newConfig.auth.navigateToLoginRequestUrl).toBe(false);
         // Cache config checks
@@ -307,7 +307,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     },
                 },
             },
-            true
+            true,
         );
         expect(loggerSpy).toBeCalled();
     });

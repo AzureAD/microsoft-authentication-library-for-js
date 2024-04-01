@@ -45,7 +45,7 @@ export class EventHandler {
             const callbackId = createNewGuid();
             this.eventCallbacks.set(callbackId, callback);
             this.logger.verbose(
-                `Event callback registered with id: ${callbackId}`
+                `Event callback registered with id: ${callbackId}`,
             );
 
             return callbackId;
@@ -92,7 +92,7 @@ export class EventHandler {
             this.logger.verbose("Removing account storage listener.");
             window.removeEventListener(
                 "storage",
-                this.handleAccountCacheChange
+                this.handleAccountCacheChange,
             );
             this.listeningToStorageEvents = false;
         } else {
@@ -111,7 +111,7 @@ export class EventHandler {
         eventType: EventType,
         interactionType?: InteractionType,
         payload?: EventPayload,
-        error?: EventError
+        error?: EventError,
     ): void {
         if (typeof window !== "undefined") {
             const message: EventMessage = {
@@ -127,10 +127,10 @@ export class EventHandler {
             this.eventCallbacks.forEach(
                 (callback: EventCallbackFunction, callbackId: string) => {
                     this.logger.verbose(
-                        `Emitting event to callback ${callbackId}: ${eventType}`
+                        `Emitting event to callback ${callbackId}: ${eventType}`,
                     );
                     callback.apply(null, [message]);
-                }
+                },
             );
         }
     }
@@ -160,22 +160,22 @@ export class EventHandler {
             }
             const accountEntity = CacheManager.toObject<AccountEntity>(
                 new AccountEntity(),
-                parsedValue
+                parsedValue,
             );
             const accountInfo = accountEntity.getAccountInfo();
             if (!e.oldValue && e.newValue) {
                 this.logger.info(
-                    "Account was added to cache in a different window"
+                    "Account was added to cache in a different window",
                 );
                 this.emitEvent(EventType.ACCOUNT_ADDED, undefined, accountInfo);
             } else if (!e.newValue && e.oldValue) {
                 this.logger.info(
-                    "Account was removed from cache in a different window"
+                    "Account was removed from cache in a different window",
                 );
                 this.emitEvent(
                     EventType.ACCOUNT_REMOVED,
                     undefined,
-                    accountInfo
+                    accountInfo,
                 );
             }
         } catch (e) {

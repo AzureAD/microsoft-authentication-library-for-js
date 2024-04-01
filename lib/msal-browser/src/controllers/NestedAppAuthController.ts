@@ -93,7 +93,7 @@ export class NestedAppAuthController implements IController {
             this.config.auth.clientId,
             this.config.auth.clientCapabilities,
             this.browserCrypto,
-            this.logger
+            this.logger,
         );
     }
     getBrowserStorage(): BrowserCacheManager {
@@ -105,7 +105,7 @@ export class NestedAppAuthController implements IController {
     }
 
     static async createController(
-        operatingContext: TeamsAppOperatingContext
+        operatingContext: TeamsAppOperatingContext,
     ): Promise<IController> {
         const controller = new NestedAppAuthController(operatingContext);
         return Promise.resolve(controller);
@@ -121,7 +121,7 @@ export class NestedAppAuthController implements IController {
             | SsoSilentRequest
             | SilentRequest
             | PopupRequest
-            | RedirectRequest
+            | RedirectRequest,
     >(request: T): T {
         if (request?.correlationId) {
             return request;
@@ -133,19 +133,19 @@ export class NestedAppAuthController implements IController {
     }
 
     private async acquireTokenInteractive(
-        request: PopupRequest | RedirectRequest
+        request: PopupRequest | RedirectRequest,
     ): Promise<AuthenticationResult> {
         const validRequest = this.ensureValidRequest(request);
 
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             InteractionType.Popup,
-            validRequest
+            validRequest,
         );
 
         const atPopupMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.AcquireTokenPopup,
-            validRequest.correlationId
+            validRequest.correlationId,
         );
 
         atPopupMeasurement?.add({ nestedAppAuthRequest: true });
@@ -154,21 +154,20 @@ export class NestedAppAuthController implements IController {
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
             const reqTimestamp = TimeUtils.nowSeconds();
-            const response = await this.bridgeProxy.getTokenInteractive(
-                naaRequest
-            );
+            const response =
+                await this.bridgeProxy.getTokenInteractive(naaRequest);
             const result: AuthenticationResult =
                 this.nestedAppAuthAdapter.fromNaaTokenResponse(
                     naaRequest,
                     response,
-                    reqTimestamp
+                    reqTimestamp,
                 );
 
             this.operatingContext.setActiveAccount(result.account);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Popup,
-                result
+                result,
             );
 
             atPopupMeasurement.add({
@@ -188,14 +187,14 @@ export class NestedAppAuthController implements IController {
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Popup,
                 null,
-                e as EventError
+                e as EventError,
             );
 
             atPopupMeasurement.end(
                 {
                     success: false,
                 },
-                e
+                e,
             );
 
             throw error;
@@ -203,18 +202,18 @@ export class NestedAppAuthController implements IController {
     }
 
     private async acquireTokenSilentInternal(
-        request: SilentRequest
+        request: SilentRequest,
     ): Promise<AuthenticationResult> {
         const validRequest = this.ensureValidRequest(request);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             InteractionType.Silent,
-            validRequest
+            validRequest,
         );
 
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.SsoSilent,
-            validRequest.correlationId
+            validRequest.correlationId,
         );
 
         ssoSilentMeasurement?.increment({
@@ -235,14 +234,14 @@ export class NestedAppAuthController implements IController {
                 this.nestedAppAuthAdapter.fromNaaTokenResponse(
                     naaRequest,
                     response,
-                    reqTimestamp
+                    reqTimestamp,
                 );
 
             this.operatingContext.setActiveAccount(result.account);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Silent,
-                result
+                result,
             );
             ssoSilentMeasurement?.add({
                 accessTokenSize: result.accessToken.length,
@@ -259,20 +258,20 @@ export class NestedAppAuthController implements IController {
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Silent,
                 null,
-                e as EventError
+                e as EventError,
             );
             ssoSilentMeasurement?.end(
                 {
                     success: false,
                 },
-                e
+                e,
             );
             throw error;
         }
     }
 
     async acquireTokenPopup(
-        request: PopupRequest
+        request: PopupRequest,
     ): Promise<AuthenticationResult> {
         return this.acquireTokenInteractive(request);
     }
@@ -282,14 +281,14 @@ export class NestedAppAuthController implements IController {
     }
 
     async acquireTokenSilent(
-        silentRequest: SilentRequest
+        silentRequest: SilentRequest,
     ): Promise<AuthenticationResult> {
         return this.acquireTokenSilentInternal(silentRequest);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenByCode(
-        request: AuthorizationCodeRequest // eslint-disable-line @typescript-eslint/no-unused-vars
+        request: AuthorizationCodeRequest, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult> {
         throw NestedAppAuthError.createUnsupportedError();
     }
@@ -308,13 +307,13 @@ export class NestedAppAuthController implements IController {
               >
             | PopupRequest,
         apiId: ApiId, // eslint-disable-line @typescript-eslint/no-unused-vars
-        accountId?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        accountId?: string | undefined, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult> {
         throw NestedAppAuthError.createUnsupportedError();
     }
     acquireTokenByRefreshToken(
         commonRequest: CommonSilentFlowRequest, // eslint-disable-line @typescript-eslint/no-unused-vars
-        silentRequest: SilentRequest // eslint-disable-line @typescript-eslint/no-unused-vars
+        silentRequest: SilentRequest, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult> {
         throw NestedAppAuthError.createUnsupportedError();
     }
@@ -361,7 +360,7 @@ export class NestedAppAuthController implements IController {
         if (currentAccount !== undefined) {
             if (currentAccount.homeAccountId === homeAccountId) {
                 return this.nestedAppAuthAdapter.fromNaaAccountInfo(
-                    currentAccount
+                    currentAccount,
                 );
             } else {
                 return null;
@@ -376,7 +375,7 @@ export class NestedAppAuthController implements IController {
         if (currentAccount !== undefined) {
             if (currentAccount.localAccountId === localId) {
                 return this.nestedAppAuthAdapter.fromNaaAccountInfo(
-                    currentAccount
+                    currentAccount,
                 );
             } else {
                 return null;
@@ -391,7 +390,7 @@ export class NestedAppAuthController implements IController {
         if (currentAccount !== undefined) {
             if (currentAccount.username === userName) {
                 return this.nestedAppAuthAdapter.fromNaaAccountInfo(
-                    currentAccount
+                    currentAccount,
                 );
             } else {
                 return null;
@@ -411,12 +410,12 @@ export class NestedAppAuthController implements IController {
         }
     }
     handleRedirectPromise(
-        hash?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        hash?: string | undefined, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult | null> {
         return Promise.resolve(null);
     }
     loginPopup(
-        request?: PopupRequest | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        request?: PopupRequest | undefined, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult> {
         if (request !== undefined) {
             return this.acquireTokenInteractive(request);
@@ -433,12 +432,12 @@ export class NestedAppAuthController implements IController {
         throw NestedAppAuthError.createUnsupportedError();
     }
     logoutRedirect(
-        logoutRequest?: EndSessionRequest | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        logoutRequest?: EndSessionRequest | undefined, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<void> {
         throw NestedAppAuthError.createUnsupportedError();
     }
     logoutPopup(
-        logoutRequest?: EndSessionPopupRequest | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        logoutRequest?: EndSessionPopupRequest | undefined, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<void> {
         throw NestedAppAuthError.createUnsupportedError();
     }
@@ -453,7 +452,7 @@ export class NestedAppAuthController implements IController {
                 | "codeChallengeMethod"
                 | "nativeBroker"
             >
-        >
+        >,
     ): Promise<AuthenticationResult> {
         return this.acquireTokenSilentInternal(request as SilentRequest);
     }
@@ -504,7 +503,7 @@ export class NestedAppAuthController implements IController {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setNavigationClient(navigationClient: INavigationClient): void {
         this.logger.warning(
-            "setNavigationClient is not supported in nested app auth"
+            "setNavigationClient is not supported in nested app auth",
         );
     }
     getConfiguration(): BrowserConfiguration {
@@ -538,7 +537,7 @@ export class NestedAppAuthController implements IController {
             | SilentRequest
             | SsoSilentRequest
             | RedirectRequest
-            | PopupRequest
+            | PopupRequest,
     ): Promise<void> {
         throw NestedAppAuthError.createUnsupportedError();
     }

@@ -64,7 +64,7 @@ describe("NativeMessageHandler Tests", () => {
             const wamMessageHandler = await NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
             );
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
@@ -100,20 +100,20 @@ describe("NativeMessageHandler Tests", () => {
                     const event = events[0];
                     expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
                     expect(event.extensionId).toEqual(
-                        "ppnbnpeolgkicgegkbkbjmhlideopiji"
+                        "ppnbnpeolgkicgegkbkbjmhlideopiji",
                     );
                     expect(event.extensionInstalled).toBeTruthy();
                     expect(event.extensionHandshakeTimedOut).toBeUndefined();
                     expect(event.success).toBeTruthy();
                     performanceClient.removePerformanceCallback(callbackId);
                     done();
-                }
+                },
             );
 
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
             ).then(() => {
                 window.removeEventListener("message", eventHandler, true);
             });
@@ -150,7 +150,7 @@ describe("NativeMessageHandler Tests", () => {
             const wamMessageHandler = await NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
             );
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
@@ -161,14 +161,14 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(
-                    BrowserAuthErrorMessage.nativeExtensionNotInstalled.code
+                    BrowserAuthErrorMessage.nativeExtensionNotInstalled.code,
                 );
                 expect(e.errorMessage).toBe(
-                    BrowserAuthErrorMessage.nativeExtensionNotInstalled.desc
+                    BrowserAuthErrorMessage.nativeExtensionNotInstalled.desc,
                 );
                 done();
             });
@@ -184,15 +184,15 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
             )
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.nativeHandshakeTimeout.code
+                        BrowserAuthErrorMessage.nativeHandshakeTimeout.code,
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessage.nativeHandshakeTimeout.desc
+                        BrowserAuthErrorMessage.nativeHandshakeTimeout.desc,
                     );
                     done();
                 })
@@ -209,20 +209,20 @@ describe("NativeMessageHandler Tests", () => {
                     const event = events[0];
                     expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
                     expect(event.extensionId).toEqual(
-                        "ppnbnpeolgkicgegkbkbjmhlideopiji"
+                        "ppnbnpeolgkicgegkbkbjmhlideopiji",
                     );
                     expect(event.extensionInstalled).toBeFalsy();
                     expect(event.extensionHandshakeTimedOut).toBeUndefined();
                     expect(event.success).toBeFalsy();
                     performanceClient.removePerformanceCallback(callbackId);
                     callbackDone = true;
-                }
+                },
             );
 
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
             ).catch(() => {
                 if (callbackDone) {
                     done();
@@ -258,7 +258,7 @@ describe("NativeMessageHandler Tests", () => {
                 }
                 mcPort.onmessage = (event) => {
                     expect(event.data.body.method).toBe(
-                        NativeExtensionMethod.GetToken
+                        NativeExtensionMethod.GetToken,
                     );
                     mcPort.postMessage({
                         channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
@@ -278,7 +278,7 @@ describe("NativeMessageHandler Tests", () => {
             const wamMessageHandler = await NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
             );
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
@@ -315,7 +315,7 @@ describe("NativeMessageHandler Tests", () => {
                 }
                 mcPort.onmessage = (event) => {
                     expect(event.data.body.method).toBe(
-                        NativeExtensionMethod.GetToken
+                        NativeExtensionMethod.GetToken,
                     );
                     mcPort.postMessage({
                         channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
@@ -335,7 +335,7 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler
@@ -344,7 +344,7 @@ describe("NativeMessageHandler Tests", () => {
                             expect(e).toBeInstanceOf(NativeAuthError);
                             expect(e.errorCode).toEqual(testResponse.code);
                             expect(e.errorMessage).toEqual(
-                                testResponse.description
+                                testResponse.description,
                             );
                             done();
                         });
@@ -381,7 +381,7 @@ describe("NativeMessageHandler Tests", () => {
                 }
                 mcPort.onmessage = (event) => {
                     expect(event.data.body.method).toBe(
-                        NativeExtensionMethod.GetToken
+                        NativeExtensionMethod.GetToken,
                     );
                     mcPort.postMessage({
                         channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
@@ -401,7 +401,7 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler
@@ -409,10 +409,10 @@ describe("NativeMessageHandler Tests", () => {
                         .catch((e) => {
                             expect(e).toBeInstanceOf(NativeAuthError);
                             expect(e.errorCode).toEqual(
-                                testResponse.result.code
+                                testResponse.result.code,
                             );
                             expect(e.errorMessage).toEqual(
-                                testResponse.result.description
+                                testResponse.result.description,
                             );
                             done();
                         });
@@ -445,7 +445,7 @@ describe("NativeMessageHandler Tests", () => {
                 }
                 mcPort.onmessage = (event) => {
                     expect(event.data.body.method).toBe(
-                        NativeExtensionMethod.GetToken
+                        NativeExtensionMethod.GetToken,
                     );
                     mcPort.postMessage({
                         channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
@@ -465,7 +465,7 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler
@@ -473,10 +473,10 @@ describe("NativeMessageHandler Tests", () => {
                         .catch((e) => {
                             expect(e).toBeInstanceOf(AuthError);
                             expect(e.errorCode).toEqual(
-                                AuthErrorMessage.unexpectedError.code
+                                AuthErrorMessage.unexpectedError.code,
                             );
                             expect(e.errorMessage).toContain(
-                                AuthErrorMessage.unexpectedError.desc
+                                AuthErrorMessage.unexpectedError.desc,
                             );
                             done();
                         });

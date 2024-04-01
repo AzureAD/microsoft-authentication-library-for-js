@@ -54,7 +54,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
         nativeMessageHandler?: NativeMessageHandler,
-        correlationId?: string
+        correlationId?: string,
     ) {
         super(
             config,
@@ -65,7 +65,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             nativeMessageHandler,
-            correlationId
+            correlationId,
         );
         this.apiId = apiId;
         this.nativeStorage = nativeStorageImpl;
@@ -76,11 +76,11 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(
-        request: SsoSilentRequest
+        request: SsoSilentRequest,
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.SilentIframeClientAcquireToken,
-            request.correlationId
+            request.correlationId,
         );
         // Check that we have some SSO data
         if (
@@ -89,7 +89,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             (!request.account || !request.account.username)
         ) {
             this.logger.warning(
-                "No user hint provided. The authorization server may need more information to complete this request."
+                "No user hint provided. The authorization server may need more information to complete this request.",
             );
         }
 
@@ -101,7 +101,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 inputRequest.prompt !== PromptValue.NO_SESSION
             ) {
                 this.logger.warning(
-                    `SilentIframeClient. Replacing invalid prompt ${inputRequest.prompt} with ${PromptValue.NONE}`
+                    `SilentIframeClient. Replacing invalid prompt ${inputRequest.prompt} with ${PromptValue.NONE}`,
                 );
                 inputRequest.prompt = PromptValue.NONE;
             }
@@ -115,12 +115,12 @@ export class SilentIframeClient extends StandardInteractionClient {
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(inputRequest, InteractionType.Silent);
         BrowserUtils.preconnect(silentRequest.authority);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
+            this.apiId,
         );
 
         try {
@@ -130,12 +130,12 @@ export class SilentIframeClient extends StandardInteractionClient {
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                request.correlationId,
             )(
                 serverTelemetryManager,
                 silentRequest.authority,
                 silentRequest.azureCloudOptions,
-                silentRequest.account
+                silentRequest.account,
             );
 
             return await invokeAsync(
@@ -143,7 +143,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 PerformanceEvents.SilentIframeClientTokenHelper,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                request.correlationId,
             )(authClient, silentRequest);
         } catch (e) {
             if (e instanceof AuthError) {
@@ -161,8 +161,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Synchronous so we must reject
         return Promise.reject(
             createBrowserAuthError(
-                BrowserAuthErrorCodes.silentLogoutUnsupported
-            )
+                BrowserAuthErrorCodes.silentLogoutUnsupported,
+            ),
         );
     }
 
@@ -174,12 +174,12 @@ export class SilentIframeClient extends StandardInteractionClient {
      */
     protected async silentTokenHelper(
         authClient: AuthorizationCodeClient,
-        silentRequest: AuthorizationUrlRequest
+        silentRequest: AuthorizationUrlRequest,
     ): Promise<AuthenticationResult> {
         const correlationId = silentRequest.correlationId;
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.SilentIframeClientTokenHelper,
-            correlationId
+            correlationId,
         );
 
         // Create auth code request and generate PKCE params
@@ -189,7 +189,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
                 this.logger,
                 this.performanceClient,
-                correlationId
+                correlationId,
             )(silentRequest);
 
         // Create authorize request url
@@ -198,14 +198,14 @@ export class SilentIframeClient extends StandardInteractionClient {
             PerformanceEvents.GetAuthCodeUrl,
             this.logger,
             this.performanceClient,
-            correlationId
+            correlationId,
         )({
             ...silentRequest,
             nativeBroker: NativeMessageHandler.isNativeAvailable(
                 this.config,
                 this.logger,
                 this.nativeMessageHandler,
-                silentRequest.authenticationScheme
+                silentRequest.authenticationScheme,
             ),
         });
 
@@ -215,7 +215,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.browserStorage,
             authCodeRequest,
             this.logger,
-            this.performanceClient
+            this.performanceClient,
         );
         // Get the frame handle for the silent request
         const msalFrame = await invokeAsync(
@@ -223,13 +223,13 @@ export class SilentIframeClient extends StandardInteractionClient {
             PerformanceEvents.SilentHandlerInitiateAuthRequest,
             this.logger,
             this.performanceClient,
-            correlationId
+            correlationId,
         )(
             navigateUrl,
             this.performanceClient,
             this.logger,
             correlationId,
-            this.config.system.navigateFrameWait
+            this.config.system.navigateFrameWait,
         );
         const responseType = this.config.auth.OIDCOptions.serverResponseType;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -238,7 +238,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             PerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
-            correlationId
+            correlationId,
         )(
             msalFrame,
             this.config.system.iframeHashTimeout,
@@ -246,23 +246,23 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             this.logger,
             correlationId,
-            responseType
+            responseType,
         );
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
             PerformanceEvents.DeserializeResponse,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            this.correlationId,
         )(responseString, responseType, this.logger);
 
         if (serverParams.accountId) {
             this.logger.verbose(
-                "Account id found in hash, calling WAM for token"
+                "Account id found in hash, calling WAM for token",
             );
             if (!this.nativeMessageHandler) {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                    BrowserAuthErrorCodes.nativeConnectionNotEstablished,
                 );
             }
             const nativeInteractionClient = new NativeInteractionClient(
@@ -277,20 +277,20 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.nativeMessageHandler,
                 serverParams.accountId,
                 this.browserStorage,
-                correlationId
+                correlationId,
             );
             const { userRequestState } = ProtocolUtils.parseRequestState(
                 this.browserCrypto,
-                silentRequest.state
+                silentRequest.state,
             );
             return invokeAsync(
                 nativeInteractionClient.acquireToken.bind(
-                    nativeInteractionClient
+                    nativeInteractionClient,
                 ),
                 PerformanceEvents.NativeInteractionClientAcquireToken,
                 this.logger,
                 this.performanceClient,
-                correlationId
+                correlationId,
             )({
                 ...silentRequest,
                 state: userRequestState,
@@ -304,7 +304,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             PerformanceEvents.HandleCodeResponse,
             this.logger,
             this.performanceClient,
-            correlationId
+            correlationId,
         )(serverParams, silentRequest);
     }
 }

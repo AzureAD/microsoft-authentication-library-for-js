@@ -11,8 +11,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "#code=hello&state=state",
                     "hash",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toEqual({ code: "hello", state: "state" });
 
             // Test response without leading hash
@@ -20,8 +20,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "code=hello&state=state",
                     "hash",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toEqual({ code: "hello", state: "state" });
 
             // Test error response
@@ -29,8 +29,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "#error=errorCode&error_description=errorDescription",
                     "hash",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toEqual({
                 error: "errorCode",
                 error_description: "errorDescription",
@@ -43,8 +43,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "?code=hello&state=state",
                     "query",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toEqual({ code: "hello", state: "state" });
 
             // Test response without leading ?
@@ -52,8 +52,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "code=hello&state=state",
                     "query",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toEqual({ code: "hello", state: "state" });
 
             // Test error response
@@ -61,8 +61,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "?error=errorCode&error_description=errorDescription",
                     "query",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toEqual({
                 error: "errorCode",
                 error_description: "errorDescription",
@@ -71,31 +71,39 @@ describe("ResponseHandler tests", () => {
 
         it("Throws error if response is empty", () => {
             expect(() =>
-                ResponseHandler.deserializeResponse("#", "hash", new Logger({}))
+                ResponseHandler.deserializeResponse(
+                    "#",
+                    "hash",
+                    new Logger({}),
+                ),
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError),
             );
 
             expect(() =>
-                ResponseHandler.deserializeResponse("", "hash", new Logger({}))
+                ResponseHandler.deserializeResponse("", "hash", new Logger({})),
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError),
             );
 
             expect(() =>
                 ResponseHandler.deserializeResponse(
                     "?",
                     "query",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError),
             );
 
             expect(() =>
-                ResponseHandler.deserializeResponse("", "query", new Logger({}))
+                ResponseHandler.deserializeResponse(
+                    "",
+                    "query",
+                    new Logger({}),
+                ),
             ).toThrowError(
-                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
+                createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError),
             );
         });
 
@@ -104,47 +112,47 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "#hello",
                     "hash",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toThrowError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-                )
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                ),
             );
             expect(() =>
                 ResponseHandler.deserializeResponse(
                     "#key=value",
                     "hash",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toThrowError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-                )
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                ),
             );
 
             expect(() =>
                 ResponseHandler.deserializeResponse(
                     "?hello",
                     "query",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toThrowError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-                )
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                ),
             );
 
             expect(() =>
                 ResponseHandler.deserializeResponse(
                     "?key=value",
                     "query",
-                    new Logger({})
-                )
+                    new Logger({}),
+                ),
             ).toThrowError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-                )
+                    BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                ),
             );
         });
     });

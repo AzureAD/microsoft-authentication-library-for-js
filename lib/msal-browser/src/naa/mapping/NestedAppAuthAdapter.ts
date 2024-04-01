@@ -43,7 +43,7 @@ export class NestedAppAuthAdapter {
         clientId: string,
         clientCapabilities: string[],
         crypto: ICrypto,
-        logger: Logger
+        logger: Logger,
     ) {
         this.clientId = clientId;
         this.clientCapabilities = clientCapabilities;
@@ -56,21 +56,21 @@ export class NestedAppAuthAdapter {
             | PopupRequest
             | RedirectRequest
             | SilentRequest
-            | SsoSilentRequest
+            | SsoSilentRequest,
     ): TokenRequest {
         let extraParams: Map<string, string>;
         if (request.extraQueryParameters === undefined) {
             extraParams = new Map<string, string>();
         } else {
             extraParams = new Map<string, string>(
-                Object.entries(request.extraQueryParameters)
+                Object.entries(request.extraQueryParameters),
             );
         }
 
         const requestBuilder = new RequestParameterBuilder();
         const claims = requestBuilder.addClientCapabilitiesToClaims(
             request.claims,
-            this.clientCapabilities
+            this.clientCapabilities,
         );
         const scopes = request.scopes || OIDC_DEFAULT_SCOPES;
         const tokenRequest: TokenRequest = {
@@ -95,22 +95,22 @@ export class NestedAppAuthAdapter {
     public fromNaaTokenResponse(
         request: TokenRequest,
         response: AuthResult,
-        reqTimestamp: number
+        reqTimestamp: number,
     ): AuthenticationResult {
         if (!response.token.id_token || !response.token.access_token) {
             throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
         }
 
         const expiresOn = new Date(
-            (reqTimestamp + (response.token.expires_in || 0)) * 1000
+            (reqTimestamp + (response.token.expires_in || 0)) * 1000,
         );
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.token.id_token,
-            this.crypto.base64Decode
+            this.crypto.base64Decode,
         );
         const account = this.fromNaaAccountInfo(
             response.account,
-            idTokenClaims
+            idTokenClaims,
         );
         const scopes = response.token.scope || request.scope;
 
@@ -159,7 +159,7 @@ export class NestedAppAuthAdapter {
      */
     public fromNaaAccountInfo(
         fromAccount: NaaAccountInfo,
-        idTokenClaims?: TokenClaims
+        idTokenClaims?: TokenClaims,
     ): MsalAccountInfo {
         const effectiveIdTokenClaims =
             idTokenClaims || (fromAccount.idTokenClaims as TokenClaims);
@@ -203,7 +203,7 @@ export class NestedAppAuthAdapter {
      * @returns AuthError, ClientAuthError, ClientConfigurationError, ServerError, InteractionRequiredError
      */
     public fromBridgeError(
-        error: unknown
+        error: unknown,
     ):
         | AuthError
         | ClientAuthError
@@ -214,25 +214,25 @@ export class NestedAppAuthAdapter {
             switch (error.status) {
                 case BridgeStatusCode.UserCancel:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.userCanceled
+                        ClientAuthErrorCodes.userCanceled,
                     );
                 case BridgeStatusCode.NoNetwork:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.noNetworkConnectivity
+                        ClientAuthErrorCodes.noNetworkConnectivity,
                     );
                 case BridgeStatusCode.AccountUnavailable:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.noAccountFound
+                        ClientAuthErrorCodes.noAccountFound,
                     );
                 case BridgeStatusCode.Disabled:
                     return new ClientAuthError(
-                        ClientAuthErrorCodes.nestedAppAuthBridgeDisabled
+                        ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
                     );
                 case BridgeStatusCode.NestedAppAuthUnavailable:
                     return new ClientAuthError(
                         error.code ||
                             ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
-                        error.description
+                        error.description,
                     );
                 case BridgeStatusCode.TransientError:
                 case BridgeStatusCode.PersistentError:
@@ -240,7 +240,7 @@ export class NestedAppAuthAdapter {
                 case BridgeStatusCode.UserInteractionRequired:
                     return new InteractionRequiredAuthError(
                         error.code,
-                        error.description
+                        error.description,
                     );
                 default:
                     return new AuthError(error.code, error.description);

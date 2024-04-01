@@ -27,7 +27,7 @@ describe("BrowserConfigurationAuthError Unit Tests", () => {
             expect(err.message).toBe(`${code}: ${message}`);
             expect(err.name).toBe("BrowserConfigurationAuthError");
             expect(
-                err.stack?.includes("BrowserConfigurationAuthError.spec.ts")
+                err.stack?.includes("BrowserConfigurationAuthError.spec.ts"),
             ).toBe(true);
         });
     }

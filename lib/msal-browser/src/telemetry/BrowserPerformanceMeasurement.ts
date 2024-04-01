@@ -15,15 +15,15 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
         this.correlationId = correlationId;
         this.measureName = BrowserPerformanceMeasurement.makeMeasureName(
             name,
-            correlationId
+            correlationId,
         );
         this.startMark = BrowserPerformanceMeasurement.makeStartMark(
             name,
-            correlationId
+            correlationId,
         );
         this.endMark = BrowserPerformanceMeasurement.makeEndMark(
             name,
-            correlationId
+            correlationId,
         );
     }
 
@@ -58,7 +58,7 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
      */
     public static flushMeasurements(
         correlationId: string,
-        measurements: SubMeasurement[]
+        measurements: SubMeasurement[],
     ): void {
         if (BrowserPerformanceMeasurement.supportsBrowserPerformance()) {
             try {
@@ -66,26 +66,26 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
                     const measureName =
                         BrowserPerformanceMeasurement.makeMeasureName(
                             measurement.name,
-                            correlationId
+                            correlationId,
                         );
                     const entriesForMeasurement =
                         window.performance.getEntriesByName(
                             measureName,
-                            "measure"
+                            "measure",
                         );
                     if (entriesForMeasurement.length > 0) {
                         window.performance.clearMeasures(measureName);
                         window.performance.clearMarks(
                             BrowserPerformanceMeasurement.makeStartMark(
                                 measureName,
-                                correlationId
-                            )
+                                correlationId,
+                            ),
                         );
                         window.performance.clearMarks(
                             BrowserPerformanceMeasurement.makeEndMark(
                                 measureName,
-                                correlationId
-                            )
+                                correlationId,
+                            ),
                         );
                     }
                 });
@@ -112,7 +112,7 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
                 window.performance.measure(
                     this.measureName,
                     this.startMark,
-                    this.endMark
+                    this.endMark,
                 );
             } catch (e) {
                 // Silently catch
@@ -126,7 +126,7 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
                 const entriesForMeasurement =
                     window.performance.getEntriesByName(
                         this.measureName,
-                        "measure"
+                        "measure",
                     );
                 if (entriesForMeasurement.length > 0) {
                     const durationMs = entriesForMeasurement[0].duration;

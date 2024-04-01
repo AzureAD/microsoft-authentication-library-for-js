@@ -83,23 +83,23 @@ export class CryptoOps implements ICrypto {
      * @param request
      */
     async getPublicKeyThumbprint(
-        request: SignedHttpRequestParameters
+        request: SignedHttpRequestParameters,
     ): Promise<string> {
         const publicKeyThumbMeasurement =
             this.performanceClient?.startMeasurement(
                 PerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
-                request.correlationId
+                request.correlationId,
             );
 
         // Generate Keypair
         const keyPair: CryptoKeyPair = await BrowserCrypto.generateKeyPair(
             CryptoOps.EXTRACTABLE,
-            CryptoOps.POP_KEY_USAGES
+            CryptoOps.POP_KEY_USAGES,
         );
 
         // Generate Thumbprint for Public Key
         const publicKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
-            keyPair.publicKey
+            keyPair.publicKey,
         );
 
         const pubKeyThumprintObj: JsonWebKey = {
@@ -114,7 +114,7 @@ export class CryptoOps implements ICrypto {
 
         // Generate Thumbprint for Private Key
         const privateKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
-            keyPair.privateKey
+            keyPair.privateKey,
         );
         // Re-import private key to make it unextractable
         const unextractablePrivateKey: CryptoKey =
@@ -164,11 +164,11 @@ export class CryptoOps implements ICrypto {
         } catch (e) {
             if (e instanceof Error) {
                 this.logger.error(
-                    `Clearing keystore failed with error: ${e.message}`
+                    `Clearing keystore failed with error: ${e.message}`,
                 );
             } else {
                 this.logger.error(
-                    "Clearing keystore failed with unknown error"
+                    "Clearing keystore failed with unknown error",
                 );
             }
 
@@ -185,23 +185,23 @@ export class CryptoOps implements ICrypto {
         payload: SignedHttpRequest,
         kid: string,
         shrOptions?: ShrOptions,
-        correlationId?: string
+        correlationId?: string,
     ): Promise<string> {
         const signJwtMeasurement = this.performanceClient?.startMeasurement(
             PerformanceEvents.CryptoOptsSignJwt,
-            correlationId
+            correlationId,
         );
         const cachedKeyPair = await this.cache.getItem(kid);
 
         if (!cachedKeyPair) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.cryptoKeyNotFound
+                BrowserAuthErrorCodes.cryptoKeyNotFound,
             );
         }
 
         // Get public key as JWK
         const publicKeyJwk = await BrowserCrypto.exportJwk(
-            cachedKeyPair.publicKey
+            cachedKeyPair.publicKey,
         );
         const publicKeyJwkString = getSortedObjectString(publicKeyJwk);
         // Base64URL encode public key thumbprint with keyId only: BASE64URL({ kid: "FULL_PUBLIC_KEY_HASH" })
@@ -229,7 +229,7 @@ export class CryptoOps implements ICrypto {
         const tokenBuffer = encoder.encode(tokenString);
         const signatureBuffer = await BrowserCrypto.sign(
             cachedKeyPair.privateKey,
-            tokenBuffer
+            tokenBuffer,
         );
         const encodedSignature = urlEncodeArr(new Uint8Array(signatureBuffer));
 

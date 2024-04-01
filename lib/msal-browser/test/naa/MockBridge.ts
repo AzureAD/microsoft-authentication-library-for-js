@@ -19,7 +19,7 @@ export class MockBridge implements AuthBridge {
 
     public addEventListener(
         eventName: string,
-        callback: (response: string) => void
+        callback: (response: string) => void,
     ): void {
         if (this.listeners[eventName] === undefined) {
             this.listeners[eventName] = [];
@@ -49,11 +49,11 @@ export class MockBridge implements AuthBridge {
 
     public removeEventListener(
         eventName: string,
-        callback: (response: string) => void
+        callback: (response: string) => void,
     ): void {
         if (this.listeners[eventName] !== undefined) {
             this.listeners[eventName] = this.listeners[eventName].filter(
-                (listener) => listener !== callback
+                (listener) => listener !== callback,
             );
         }
     }
@@ -64,7 +64,7 @@ export class MockBridge implements AuthBridge {
 
     public addInitContextResponse(
         method: string,
-        initContext: InitContext
+        initContext: InitContext,
     ): void {
         this.addResponse(method, { initContext });
     }
@@ -79,7 +79,7 @@ export class MockBridge implements AuthBridge {
 
     private addResponse(
         method: string,
-        response: Partial<BridgeResponseEnvelope>
+        response: Partial<BridgeResponseEnvelope>,
     ): void {
         if (this.responses[method] === undefined) {
             this.responses[method] = [];

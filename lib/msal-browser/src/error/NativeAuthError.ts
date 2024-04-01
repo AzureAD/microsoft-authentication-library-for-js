@@ -84,23 +84,23 @@ export function isFatalNativeAuthError(error: NativeAuthError): boolean {
 export function createNativeAuthError(
     code: string,
     description?: string,
-    ext?: OSError
+    ext?: OSError,
 ): AuthError {
     if (ext && ext.status) {
         switch (ext.status) {
             case NativeStatusCodes.ACCOUNT_UNAVAILABLE:
                 return createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                    InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
                 );
             case NativeStatusCodes.USER_INTERACTION_REQUIRED:
                 return new InteractionRequiredAuthError(code, description);
             case NativeStatusCodes.USER_CANCEL:
                 return createBrowserAuthError(
-                    BrowserAuthErrorCodes.userCancelled
+                    BrowserAuthErrorCodes.userCancelled,
                 );
             case NativeStatusCodes.NO_NETWORK:
                 return createBrowserAuthError(
-                    BrowserAuthErrorCodes.noNetworkConnectivity
+                    BrowserAuthErrorCodes.noNetworkConnectivity,
                 );
         }
     }
@@ -108,6 +108,6 @@ export function createNativeAuthError(
     return new NativeAuthError(
         code,
         NativeAuthErrorMessages[code] || description,
-        ext
+        ext,
     );
 }

@@ -101,7 +101,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             } catch (e) {
                 const browserAuthError = e as BrowserAuthError;
                 expect(browserAuthError.errorCode).toBe(
-                    BrowserAuthErrorMessage.redirectInIframeError.code
+                    BrowserAuthErrorMessage.redirectInIframeError.code,
                 );
                 done();
             }
@@ -125,7 +125,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         expect(preconnectLink).toBeTruthy();
         expect(preconnectLink?.getAttribute("rel")).toBe("preconnect");
         expect(preconnectLink?.getAttribute("href")).toBe(
-            new URL(TEST_CONFIG.validAuthority).origin
+            new URL(TEST_CONFIG.validAuthority).origin,
         );
 
         jest.runAllTimers();

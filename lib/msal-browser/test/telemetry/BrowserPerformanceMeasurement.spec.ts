@@ -32,13 +32,13 @@ describe("BrowserPerformanceMeasurement.ts", () => {
         const markSpy = jest.spyOn(window.performance, "mark");
         const measurement = new BrowserPerformanceMeasurement(
             eventName,
-            correlationId
+            correlationId,
         );
 
         measurement.startMeasurement();
 
         expect(markSpy).toBeCalledWith(
-            `msal.start.${eventName}.${correlationId}`
+            `msal.start.${eventName}.${correlationId}`,
         );
     });
 
@@ -47,18 +47,18 @@ describe("BrowserPerformanceMeasurement.ts", () => {
         const measureSpy = jest.spyOn(window.performance, "measure");
         const measurement = new BrowserPerformanceMeasurement(
             eventName,
-            correlationId
+            correlationId,
         );
 
         measurement.endMeasurement();
 
         expect(markSpy).toBeCalledWith(
-            `msal.end.${eventName}.${correlationId}`
+            `msal.end.${eventName}.${correlationId}`,
         );
         expect(measureSpy).toBeCalledWith(
             `msal.measure.${eventName}.${correlationId}`,
             `msal.start.${eventName}.${correlationId}`,
-            `msal.end.${eventName}.${correlationId}`
+            `msal.end.${eventName}.${correlationId}`,
         );
     });
 
@@ -81,7 +81,7 @@ describe("BrowserPerformanceMeasurement.ts", () => {
 
         const measurement = new BrowserPerformanceMeasurement(
             eventName,
-            correlationId
+            correlationId,
         );
 
         const realDuration = measurement.flushMeasurement();
@@ -89,16 +89,16 @@ describe("BrowserPerformanceMeasurement.ts", () => {
         expect(realDuration).toBe(expectedDuration);
         expect(getEntriesByNameSpy).toBeCalledWith(
             `msal.measure.${eventName}.${correlationId}`,
-            "measure"
+            "measure",
         );
         expect(measureSpy).toBeCalledWith(
-            `msal.measure.${eventName}.${correlationId}`
+            `msal.measure.${eventName}.${correlationId}`,
         ),
             expect(markSpy).toBeCalledWith(
-                `msal.start.${eventName}.${correlationId}`
+                `msal.start.${eventName}.${correlationId}`,
             );
         expect(markSpy).toBeCalledWith(
-            `msal.end.${eventName}.${correlationId}`
+            `msal.end.${eventName}.${correlationId}`,
         );
     });
 
@@ -108,7 +108,7 @@ describe("BrowserPerformanceMeasurement.ts", () => {
 
         const measurement = new BrowserPerformanceMeasurement(
             eventName,
-            correlationId
+            correlationId,
         );
 
         const realDuration = measurement.flushMeasurement();
@@ -121,7 +121,7 @@ describe("BrowserPerformanceMeasurement.ts", () => {
         jest.spyOn(window, "performance", "get").mockReturnValue(undefined);
 
         expect(BrowserPerformanceMeasurement.supportsBrowserPerformance()).toBe(
-            false
+            false,
         );
     });
 
@@ -131,16 +131,16 @@ describe("BrowserPerformanceMeasurement.ts", () => {
                 jest.spyOn(window.performance, "mark").mockImplementation(
                     () => {
                         throw "markError";
-                    }
+                    },
                 );
 
                 const measurement = new BrowserPerformanceMeasurement(
                     eventName,
-                    correlationId
+                    correlationId,
                 );
 
                 expect(() => measurement.startMeasurement()).not.toThrow(
-                    "markError"
+                    "markError",
                 );
             });
         });
@@ -149,34 +149,34 @@ describe("BrowserPerformanceMeasurement.ts", () => {
             it("mark", () => {
                 const measurement = new BrowserPerformanceMeasurement(
                     eventName,
-                    correlationId
+                    correlationId,
                 );
 
                 jest.spyOn(window.performance, "mark").mockImplementation(
                     () => {
                         throw "markError";
-                    }
+                    },
                 );
 
                 expect(() => measurement.endMeasurement()).not.toThrow(
-                    "markError"
+                    "markError",
                 );
             });
 
             it("measure", () => {
                 const measurement = new BrowserPerformanceMeasurement(
                     eventName,
-                    correlationId
+                    correlationId,
                 );
 
                 jest.spyOn(window.performance, "measure").mockImplementation(
                     () => {
                         throw "measureError";
-                    }
+                    },
                 );
 
                 expect(() => measurement.endMeasurement()).not.toThrow(
-                    "measureError"
+                    "measureError",
                 );
             });
         });
@@ -185,53 +185,53 @@ describe("BrowserPerformanceMeasurement.ts", () => {
             it("getEntriesByName", () => {
                 const measurement = new BrowserPerformanceMeasurement(
                     eventName,
-                    correlationId
+                    correlationId,
                 );
 
                 jest.spyOn(
                     window.performance,
-                    "getEntriesByName"
+                    "getEntriesByName",
                 ).mockImplementation(() => {
                     throw "getEntriesByNameError";
                 });
 
                 expect(() => measurement.flushMeasurement()).not.toThrow(
-                    "getEntriesByNameError"
+                    "getEntriesByNameError",
                 );
             });
 
             it("clearMeasures", () => {
                 const measurement = new BrowserPerformanceMeasurement(
                     eventName,
-                    correlationId
+                    correlationId,
                 );
 
                 jest.spyOn(
                     window.performance,
-                    "clearMeasures"
+                    "clearMeasures",
                 ).mockImplementation(() => {
                     throw "clearMeasuresError";
                 });
 
                 expect(() => measurement.flushMeasurement()).not.toThrow(
-                    "clearMeasuresError"
+                    "clearMeasuresError",
                 );
             });
 
             it("clearMarks", () => {
                 const measurement = new BrowserPerformanceMeasurement(
                     eventName,
-                    correlationId
+                    correlationId,
                 );
 
                 jest.spyOn(window.performance, "clearMarks").mockImplementation(
                     () => {
                         throw "clearMarksError";
-                    }
+                    },
                 );
 
                 expect(() => measurement.flushMeasurement()).not.toThrow(
-                    "clearMarksError"
+                    "clearMarksError",
                 );
             });
         });

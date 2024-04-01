@@ -63,12 +63,12 @@ export class BridgeProxy implements IBridgeProxy {
                         JSON.parse(responsePayload);
                     const request = BridgeProxy.bridgeRequests.find(
                         (element) =>
-                            element.requestId === responseEnvelope.requestId
+                            element.requestId === responseEnvelope.requestId,
                     );
                     if (request !== undefined) {
                         BridgeProxy.bridgeRequests.splice(
                             BridgeProxy.bridgeRequests.indexOf(request),
-                            1
+                            1,
                         );
                         if (responseEnvelope.success) {
                             request.resolve(responseEnvelope);
@@ -76,7 +76,7 @@ export class BridgeProxy implements IBridgeProxy {
                             request.reject(responseEnvelope.error);
                         }
                     }
-                }
+                },
             );
 
             const bridgeResponse = await new Promise<BridgeResponseEnvelope>(
@@ -94,13 +94,13 @@ export class BridgeProxy implements IBridgeProxy {
                     };
                     BridgeProxy.bridgeRequests.push(request);
                     window.nestedAppAuthBridge.postMessage(
-                        JSON.stringify(message)
+                        JSON.stringify(message),
                     );
-                }
+                },
             );
 
             return BridgeProxy.validateBridgeResultOrThrow(
-                bridgeResponse.initContext
+                bridgeResponse.initContext,
             );
         } catch (error) {
             window.console.log(error);
@@ -132,7 +132,7 @@ export class BridgeProxy implements IBridgeProxy {
 
     private async getToken(
         requestType: BridgeMethods,
-        request: TokenRequest
+        request: TokenRequest,
     ): Promise<AuthResult> {
         const result = await this.sendRequest(requestType, {
             tokenParams: request,
@@ -159,7 +159,7 @@ export class BridgeProxy implements IBridgeProxy {
      */
     private sendRequest(
         method: BridgeMethods,
-        requestParams?: Partial<BridgeRequestEnvelope>
+        requestParams?: Partial<BridgeRequestEnvelope>,
     ): Promise<BridgeResponseEnvelope> {
         const message: BridgeRequestEnvelope = {
             messageType: "NestedAppAuthRequest",
@@ -178,7 +178,7 @@ export class BridgeProxy implements IBridgeProxy {
                 };
                 BridgeProxy.bridgeRequests.push(request);
                 window.nestedAppAuthBridge.postMessage(JSON.stringify(message));
-            }
+            },
         );
 
         return promise;
@@ -203,7 +203,7 @@ export class BridgeProxy implements IBridgeProxy {
     private constructor(
         sdkName: string,
         sdkVersion: string,
-        capabilities?: BridgeCapabilities
+        capabilities?: BridgeCapabilities,
     ) {
         this.sdkName = sdkName;
         this.sdkVersion = sdkVersion;
@@ -219,7 +219,7 @@ export class BridgeProxy implements IBridgeProxy {
         return new BridgeProxy(
             response.sdkName,
             response.sdkVersion,
-            response.capabilities
+            response.capabilities,
         );
     }
 }

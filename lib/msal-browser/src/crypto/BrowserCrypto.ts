@@ -64,17 +64,17 @@ export function validateCryptoAvailable(logger: Logger): void {
 export async function sha256Digest(
     dataString: string,
     performanceClient?: IPerformanceClient,
-    correlationId?: string
+    correlationId?: string,
 ): Promise<ArrayBuffer> {
     performanceClient?.addQueueMeasurement(
         PerformanceEvents.Sha256Digest,
-        correlationId
+        correlationId,
     );
     const encoder = new TextEncoder();
     const data = encoder.encode(dataString);
     return window.crypto.subtle.digest(
         S256_HASH_ALG,
-        data
+        data,
     ) as Promise<ArrayBuffer>;
 }
 
@@ -148,12 +148,12 @@ export function createNewGuid(): string {
  */
 export async function generateKeyPair(
     extractable: boolean,
-    usages: Array<KeyUsage>
+    usages: Array<KeyUsage>,
 ): Promise<CryptoKeyPair> {
     return window.crypto.subtle.generateKey(
         keygenAlgorithmOptions,
         extractable,
-        usages
+        usages,
     ) as Promise<CryptoKeyPair>;
 }
 
@@ -164,7 +164,7 @@ export async function generateKeyPair(
 export async function exportJwk(key: CryptoKey): Promise<JsonWebKey> {
     return window.crypto.subtle.exportKey(
         KEY_FORMAT_JWK,
-        key
+        key,
     ) as Promise<JsonWebKey>;
 }
 
@@ -177,14 +177,14 @@ export async function exportJwk(key: CryptoKey): Promise<JsonWebKey> {
 export async function importJwk(
     key: JsonWebKey,
     extractable: boolean,
-    usages: Array<KeyUsage>
+    usages: Array<KeyUsage>,
 ): Promise<CryptoKey> {
     return window.crypto.subtle.importKey(
         KEY_FORMAT_JWK,
         key,
         keygenAlgorithmOptions,
         extractable,
-        usages
+        usages,
     ) as Promise<CryptoKey>;
 }
 
@@ -195,12 +195,12 @@ export async function importJwk(
  */
 export async function sign(
     key: CryptoKey,
-    data: ArrayBuffer
+    data: ArrayBuffer,
 ): Promise<ArrayBuffer> {
     return window.crypto.subtle.sign(
         keygenAlgorithmOptions,
         key,
-        data
+        data,
     ) as Promise<ArrayBuffer>;
 }
 

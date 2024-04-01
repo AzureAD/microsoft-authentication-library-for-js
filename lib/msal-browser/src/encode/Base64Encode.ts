@@ -17,7 +17,7 @@ export function urlEncode(input: string): string {
         base64Encode(input)
             .replace(/=/g, "")
             .replace(/\+/g, "-")
-            .replace(/\//g, "_")
+            .replace(/\//g, "_"),
     );
 }
 
@@ -46,7 +46,7 @@ export function base64Encode(input: string): string {
  */
 function base64EncArr(aBytes: Uint8Array): string {
     const binString = Array.from(aBytes, (x) => String.fromCodePoint(x)).join(
-        ""
+        "",
     );
     return btoa(binString);
 }

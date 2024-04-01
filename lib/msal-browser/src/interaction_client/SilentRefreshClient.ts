@@ -28,11 +28,11 @@ export class SilentRefreshClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(
-        request: CommonSilentFlowRequest
+        request: CommonSilentFlowRequest,
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.SilentRefreshClientAcquireToken,
-            request.correlationId
+            request.correlationId,
         );
 
         const baseRequest = await invokeAsync(
@@ -40,7 +40,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
             PerformanceEvents.InitializeBaseRequest,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(request, this.config, this.performanceClient, this.logger);
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
@@ -50,29 +50,29 @@ export class SilentRefreshClient extends StandardInteractionClient {
         if (request.redirectUri) {
             // Make sure any passed redirectUri is converted to an absolute URL - redirectUri is not a required parameter for refresh token redemption so only include if explicitly provided
             silentRequest.redirectUri = this.getRedirectUri(
-                request.redirectUri
+                request.redirectUri,
             );
         }
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenSilent_silentFlow
+            ApiId.acquireTokenSilent_silentFlow,
         );
 
         const refreshTokenClient = await this.createRefreshTokenClient(
             serverTelemetryManager,
             silentRequest.authority,
             silentRequest.azureCloudOptions,
-            silentRequest.account
+            silentRequest.account,
         );
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return invokeAsync(
             refreshTokenClient.acquireTokenByRefreshToken.bind(
-                refreshTokenClient
+                refreshTokenClient,
             ),
             PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(silentRequest).catch((e: AuthError) => {
             (e as AuthError).setCorrelationId(this.correlationId);
             serverTelemetryManager.cacheFailedRequest(e);
@@ -87,8 +87,8 @@ export class SilentRefreshClient extends StandardInteractionClient {
         // Synchronous so we must reject
         return Promise.reject(
             createBrowserAuthError(
-                BrowserAuthErrorCodes.silentLogoutUnsupported
-            )
+                BrowserAuthErrorCodes.silentLogoutUnsupported,
+            ),
         );
     }
 
@@ -101,7 +101,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
         serverTelemetryManager: ServerTelemetryManager,
         authorityUrl?: string,
         azureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
+        account?: AccountInfo,
     ): Promise<RefreshTokenClient> {
         // Create auth module.
         const clientConfig = await invokeAsync(
@@ -109,7 +109,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            this.correlationId,
         )(serverTelemetryManager, authorityUrl, azureCloudOptions, account);
         return new RefreshTokenClient(clientConfig, this.performanceClient);
     }

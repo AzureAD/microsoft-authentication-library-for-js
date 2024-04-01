@@ -16,6 +16,6 @@ export interface ITokenCache {
     loadExternalTokens(
         request: SilentRequest,
         response: ExternalTokenResponse,
-        options: LoadTokenOptions
+        options: LoadTokenOptions,
     ): AuthenticationResult;
 }

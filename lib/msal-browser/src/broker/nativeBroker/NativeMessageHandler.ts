@@ -32,7 +32,7 @@ import { createNewGuid } from "../../crypto/BrowserCrypto";
 type ResponseResolvers<T> = {
     resolve: (value: T | PromiseLike<T>) => void;
     reject: (
-        value: AuthError | Error | PromiseLike<Error> | PromiseLike<AuthError>
+        value: AuthError | Error | PromiseLike<Error> | PromiseLike<AuthError>,
     ) => void;
 };
 
@@ -53,7 +53,7 @@ export class NativeMessageHandler {
         logger: Logger,
         handshakeTimeoutMs: number,
         performanceClient: IPerformanceClient,
-        extensionId?: string
+        extensionId?: string,
     ) {
         this.logger = logger;
         this.handshakeTimeoutMs = handshakeTimeoutMs;
@@ -64,7 +64,7 @@ export class NativeMessageHandler {
         this.windowListener = this.onWindowMessage.bind(this); // Window event callback doesn't have access to 'this' unless it's bound
         this.performanceClient = performanceClient;
         this.handshakeEvent = performanceClient.startMeasurement(
-            PerformanceEvents.NativeMessageHandlerHandshake
+            PerformanceEvents.NativeMessageHandlerHandshake,
         );
     }
 
@@ -82,12 +82,12 @@ export class NativeMessageHandler {
         };
 
         this.logger.trace(
-            "NativeMessageHandler - Sending request to browser extension"
+            "NativeMessageHandler - Sending request to browser extension",
         );
         this.logger.tracePii(
             `NativeMessageHandler - Sending request to browser extension: ${JSON.stringify(
-                req
-            )}`
+                req,
+            )}`,
         );
         this.messageChannel.port1.postMessage(req);
 
@@ -106,7 +106,7 @@ export class NativeMessageHandler {
     static async createProvider(
         logger: Logger,
         handshakeTimeoutMs: number,
-        performanceClient: IPerformanceClient
+        performanceClient: IPerformanceClient,
     ): Promise<NativeMessageHandler> {
         logger.trace("NativeMessageHandler - createProvider called.");
         try {
@@ -114,7 +114,7 @@ export class NativeMessageHandler {
                 logger,
                 handshakeTimeoutMs,
                 performanceClient,
-                NativeConstants.PREFERRED_EXTENSION_ID
+                NativeConstants.PREFERRED_EXTENSION_ID,
             );
             await preferredProvider.sendHandshakeRequest();
             return preferredProvider;
@@ -123,7 +123,7 @@ export class NativeMessageHandler {
             const backupProvider = new NativeMessageHandler(
                 logger,
                 handshakeTimeoutMs,
-                performanceClient
+                performanceClient,
             );
             await backupProvider.sendHandshakeRequest();
             return backupProvider;
@@ -135,7 +135,7 @@ export class NativeMessageHandler {
      */
     private async sendHandshakeRequest(): Promise<void> {
         this.logger.trace(
-            "NativeMessageHandler - sendHandshakeRequest called."
+            "NativeMessageHandler - sendHandshakeRequest called.",
         );
         // Register this event listener before sending handshake
         window.addEventListener("message", this.windowListener, false); // false is important, because content script message processing should work first
@@ -169,7 +169,7 @@ export class NativeMessageHandler {
                 window.removeEventListener(
                     "message",
                     this.windowListener,
-                    false
+                    false,
                 );
                 this.messageChannel.port1.close();
                 this.messageChannel.port2.close();
@@ -179,8 +179,8 @@ export class NativeMessageHandler {
                 });
                 reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.nativeHandshakeTimeout
-                    )
+                        BrowserAuthErrorCodes.nativeHandshakeTimeout,
+                    ),
                 );
                 this.handshakeResolvers.delete(req.responseId);
             }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
@@ -213,7 +213,7 @@ export class NativeMessageHandler {
 
         if (request.body.method === NativeExtensionMethod.HandshakeRequest) {
             const handshakeResolver = this.handshakeResolvers.get(
-                request.responseId
+                request.responseId,
             );
             /*
              * Filter out responses with no matched resolvers sooner to keep channel ports open while waiting for
@@ -221,7 +221,7 @@ export class NativeMessageHandler {
              */
             if (!handshakeResolver) {
                 this.logger.trace(
-                    `NativeMessageHandler.onWindowMessage - resolver can't be found for request ${request.responseId}`
+                    `NativeMessageHandler.onWindowMessage - resolver can't be found for request ${request.responseId}`,
                 );
                 return;
             }
@@ -230,7 +230,7 @@ export class NativeMessageHandler {
             this.logger.verbose(
                 request.extensionId
                     ? `Extension with id: ${request.extensionId} not installed`
-                    : "No extension installed"
+                    : "No extension installed",
             );
             clearTimeout(this.timeoutId);
             this.messageChannel.port1.close();
@@ -242,8 +242,8 @@ export class NativeMessageHandler {
             });
             handshakeResolver.reject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativeExtensionNotInstalled
-                )
+                    BrowserAuthErrorCodes.nativeExtensionNotInstalled,
+                ),
             );
         }
     }
@@ -258,7 +258,7 @@ export class NativeMessageHandler {
 
         const resolver = this.resolvers.get(request.responseId);
         const handshakeResolver = this.handshakeResolvers.get(
-            request.responseId
+            request.responseId,
         );
 
         try {
@@ -270,20 +270,20 @@ export class NativeMessageHandler {
                 }
                 const response = request.body.response;
                 this.logger.trace(
-                    "NativeMessageHandler - Received response from browser extension"
+                    "NativeMessageHandler - Received response from browser extension",
                 );
                 this.logger.tracePii(
                     `NativeMessageHandler - Received response from browser extension: ${JSON.stringify(
-                        response
-                    )}`
+                        response,
+                    )}`,
                 );
                 if (response.status !== "Success") {
                     resolver.reject(
                         createNativeAuthError(
                             response.code,
                             response.description,
-                            response.ext
-                        )
+                            response.ext,
+                        ),
                     );
                 } else if (response.result) {
                     if (
@@ -294,8 +294,8 @@ export class NativeMessageHandler {
                             createNativeAuthError(
                                 response.result["code"],
                                 response.result["description"],
-                                response.result["ext"]
-                            )
+                                response.result["ext"],
+                            ),
                         );
                     } else {
                         resolver.resolve(response.result);
@@ -303,14 +303,14 @@ export class NativeMessageHandler {
                 } else {
                     throw createAuthError(
                         AuthErrorCodes.unexpectedError,
-                        "Event does not contain result."
+                        "Event does not contain result.",
                     );
                 }
                 this.resolvers.delete(request.responseId);
             } else if (method === NativeExtensionMethod.HandshakeResponse) {
                 if (!handshakeResolver) {
                     this.logger.trace(
-                        `NativeMessageHandler.onChannelMessage - resolver can't be found for request ${request.responseId}`
+                        `NativeMessageHandler.onChannelMessage - resolver can't be found for request ${request.responseId}`,
                     );
                     return;
                 }
@@ -318,12 +318,12 @@ export class NativeMessageHandler {
                 window.removeEventListener(
                     "message",
                     this.windowListener,
-                    false
+                    false,
                 ); // Remove 'No extension' listener
                 this.extensionId = request.extensionId;
                 this.extensionVersion = request.body.version;
                 this.logger.verbose(
-                    `NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`
+                    `NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`,
                 );
                 this.handshakeEvent.end({
                     extensionInstalled: true,
@@ -337,7 +337,7 @@ export class NativeMessageHandler {
         } catch (err) {
             this.logger.error("Error parsing response from WAM Extension");
             this.logger.errorPii(
-                `Error parsing response from WAM Extension: ${err as string}`
+                `Error parsing response from WAM Extension: ${err as string}`,
             );
             this.logger.errorPii(`Unable to parse ${event}`);
 
@@ -376,12 +376,12 @@ export class NativeMessageHandler {
         config: BrowserConfiguration,
         logger: Logger,
         nativeExtensionProvider?: NativeMessageHandler,
-        authenticationScheme?: AuthenticationScheme
+        authenticationScheme?: AuthenticationScheme,
     ): boolean {
         logger.trace("isNativeAvailable called");
         if (!config.system.allowNativeBroker) {
             logger.trace(
-                "isNativeAvailable: allowNativeBroker is not enabled, returning false"
+                "isNativeAvailable: allowNativeBroker is not enabled, returning false",
             );
             // Developer disabled WAM
             return false;
@@ -389,7 +389,7 @@ export class NativeMessageHandler {
 
         if (!nativeExtensionProvider) {
             logger.trace(
-                "isNativeAvailable: WAM extension provider is not initialized, returning false"
+                "isNativeAvailable: WAM extension provider is not initialized, returning false",
             );
             // Extension is not available
             return false;
@@ -400,12 +400,12 @@ export class NativeMessageHandler {
                 case AuthenticationScheme.BEARER:
                 case AuthenticationScheme.POP:
                     logger.trace(
-                        "isNativeAvailable: authenticationScheme is supported, returning true"
+                        "isNativeAvailable: authenticationScheme is supported, returning true",
                     );
                     return true;
                 default:
                     logger.trace(
-                        "isNativeAvailable: authenticationScheme is not supported, returning false"
+                        "isNativeAvailable: authenticationScheme is not supported, returning false",
                     );
                     return false;
             }

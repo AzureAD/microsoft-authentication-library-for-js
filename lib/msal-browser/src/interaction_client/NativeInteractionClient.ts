@@ -97,7 +97,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         provider: NativeMessageHandler,
         accountId: string,
         nativeStorageImpl: BrowserCacheManager,
-        correlationId?: string
+        correlationId?: string,
     ) {
         super(
             config,
@@ -108,7 +108,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             navigationClient,
             performanceClient,
             provider,
-            correlationId
+            correlationId,
         );
         this.apiId = apiId;
         this.accountId = accountId;
@@ -123,7 +123,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             navigationClient,
             performanceClient,
             provider,
-            correlationId
+            correlationId,
         );
     }
 
@@ -132,18 +132,18 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request
      */
     async acquireToken(
-        request: PopupRequest | SilentRequest | SsoSilentRequest
+        request: PopupRequest | SilentRequest | SsoSilentRequest,
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.NativeInteractionClientAcquireToken,
-            request.correlationId
+            request.correlationId,
         );
         this.logger.trace("NativeInteractionClient - acquireToken called.");
 
         // start the perf measurement
         const nativeATMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.NativeInteractionClientAcquireToken,
-            request.correlationId
+            request.correlationId,
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
@@ -154,7 +154,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         try {
             const result = await this.acquireTokensFromCache(
                 this.accountId,
-                nativeRequest
+                nativeRequest,
             );
             nativeATMeasurement.end({
                 success: true,
@@ -165,7 +165,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         } catch (e) {
             // continue with a native call for any and all errors
             this.logger.info(
-                "MSAL internal Cache does not contain tokens, proceed to make a native call"
+                "MSAL internal Cache does not contain tokens, proceed to make a native call",
             );
         }
 
@@ -175,16 +175,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             request: nativeRequest,
         };
 
-        const response: object = await this.nativeMessageHandler.sendMessage(
-            messageBody
-        );
+        const response: object =
+            await this.nativeMessageHandler.sendMessage(messageBody);
         const validatedResponse: NativeResponse =
             this.validateNativeResponse(response);
 
         return this.handleNativeResponse(
             validatedResponse,
             nativeRequest,
-            reqTimestamp
+            reqTimestamp,
         )
             .then((result: AuthenticationResult) => {
                 nativeATMeasurement.end({
@@ -213,7 +212,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     private createSilentCacheRequest(
         request: NativeTokenRequest,
-        cachedAccount: AccountInfo
+        cachedAccount: AccountInfo,
     ): CommonSilentFlowRequest {
         return {
             authority: request.authority,
@@ -232,11 +231,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     protected async acquireTokensFromCache(
         nativeAccountId: string,
-        request: NativeTokenRequest
+        request: NativeTokenRequest,
     ): Promise<AuthenticationResult> {
         if (!nativeAccountId) {
             this.logger.warning(
-                "NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided"
+                "NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided",
             );
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
@@ -253,11 +252,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
         try {
             const silentRequest = this.createSilentCacheRequest(
                 request,
-                account
+                account,
             );
-            const result = await this.silentCacheClient.acquireToken(
-                silentRequest
-            );
+            const result =
+                await this.silentCacheClient.acquireToken(silentRequest);
 
             const fullAccount = {
                 ...account,
@@ -280,7 +278,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         this.logger.trace(
-            "NativeInteractionClient - acquireTokenRedirect called."
+            "NativeInteractionClient - acquireTokenRedirect called.",
         );
         const nativeRequest = await this.initializeNativeRequest(request);
 
@@ -302,7 +300,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.browserStorage.setTemporaryCache(
             TemporaryCacheKeys.NATIVE_REQUEST,
             JSON.stringify(nativeRequest),
-            true
+            true,
         );
 
         const navigationOptions: NavigationOptions = {
@@ -315,7 +313,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             : this.getRedirectUri(request.redirectUri);
         await this.navigationClient.navigateExternal(
             redirectUri,
-            navigationOptions
+            navigationOptions,
         ); // Need to treat this as external to ensure handleRedirectPromise is run again
     }
 
@@ -326,14 +324,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     async handleRedirectPromise(
         performanceClient?: IPerformanceClient,
-        correlationId?: string
+        correlationId?: string,
     ): Promise<AuthenticationResult | null> {
         this.logger.trace(
-            "NativeInteractionClient - handleRedirectPromise called."
+            "NativeInteractionClient - handleRedirectPromise called.",
         );
         if (!this.browserStorage.isInteractionInProgress(true)) {
             this.logger.info(
-                "handleRedirectPromise called but there is no interaction in progress, returning null."
+                "handleRedirectPromise called but there is no interaction in progress, returning null.",
             );
             return null;
         }
@@ -342,12 +340,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const cachedRequest = this.browserStorage.getCachedNativeRequest();
         if (!cachedRequest) {
             this.logger.verbose(
-                "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null."
+                "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null.",
             );
             if (performanceClient && correlationId) {
                 performanceClient?.addFields(
                     { errorCode: "no_cached_request" },
-                    correlationId
+                    correlationId,
                 );
             }
             return null;
@@ -356,14 +354,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const { prompt, ...request } = cachedRequest;
         if (prompt) {
             this.logger.verbose(
-                "NativeInteractionClient - handleRedirectPromise called and prompt was included in the original request, removing prompt from cached request to prevent second interaction with native broker window."
+                "NativeInteractionClient - handleRedirectPromise called and prompt was included in the original request, removing prompt from cached request to prevent second interaction with native broker window.",
             );
         }
 
         this.browserStorage.removeItem(
             this.browserStorage.generateCacheKey(
-                TemporaryCacheKeys.NATIVE_REQUEST
-            )
+                TemporaryCacheKeys.NATIVE_REQUEST,
+            ),
         );
 
         const messageBody: NativeExtensionRequestBody = {
@@ -375,7 +373,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         try {
             this.logger.verbose(
-                "NativeInteractionClient - handleRedirectPromise sending message to native broker."
+                "NativeInteractionClient - handleRedirectPromise sending message to native broker.",
             );
             const response: object =
                 await this.nativeMessageHandler.sendMessage(messageBody);
@@ -383,7 +381,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const result = this.handleNativeResponse(
                 response as NativeResponse,
                 request,
-                reqTimestamp
+                reqTimestamp,
             );
             this.browserStorage.setInteractionInProgress(false);
             return await result;
@@ -411,21 +409,21 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected async handleNativeResponse(
         response: NativeResponse,
         request: NativeTokenRequest,
-        reqTimestamp: number
+        reqTimestamp: number,
     ): Promise<AuthenticationResult> {
         this.logger.trace(
-            "NativeInteractionClient - handleNativeResponse called."
+            "NativeInteractionClient - handleNativeResponse called.",
         );
 
         // generate identifiers
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.id_token,
-            base64Decode
+            base64Decode,
         );
 
         const homeAccountIdentifier = this.createHomeAccountIdentifier(
             response,
-            idTokenClaims
+            idTokenClaims,
         );
 
         const cachedhomeAccountId =
@@ -455,7 +453,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims.tid,
             undefined, // auth code payload
             response.account.id,
-            this.logger
+            this.logger,
         );
 
         // generate authenticationResult
@@ -465,7 +463,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims,
             baseAccount,
             authority.canonicalAuthority,
-            reqTimestamp
+            reqTimestamp,
         );
 
         // cache accounts and tokens in the appropriate storage
@@ -477,7 +475,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims,
             result.accessToken,
             result.tenantId,
-            reqTimestamp
+            reqTimestamp,
         );
 
         return result;
@@ -491,7 +489,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     protected createHomeAccountIdentifier(
         response: NativeResponse,
-        idTokenClaims: TokenClaims
+        idTokenClaims: TokenClaims,
     ): string {
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(
@@ -499,7 +497,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             AuthorityType.Default,
             this.logger,
             this.browserCrypto,
-            idTokenClaims
+            idTokenClaims,
         );
 
         return homeAccountIdentifier;
@@ -513,7 +511,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     generateScopes(
         response: NativeResponse,
-        request: NativeTokenRequest
+        request: NativeTokenRequest,
     ): ScopeSet {
         return response.scope
             ? ScopeSet.fromString(response.scope)
@@ -527,7 +525,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     async generatePopAccessToken(
         response: NativeResponse,
-        request: NativeTokenRequest
+        request: NativeTokenRequest,
     ): Promise<string> {
         if (request.tokenType === AuthenticationScheme.POP) {
             /**
@@ -538,14 +536,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
             // Check if native layer returned an SHR token
             if (response.shr) {
                 this.logger.trace(
-                    "handleNativeServerResponse: SHR is enabled in native layer"
+                    "handleNativeServerResponse: SHR is enabled in native layer",
                 );
                 return response.shr;
             }
 
             // Generate SHR in msal js if WAM does not compute it when POP is enabled
             const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(
-                this.browserCrypto
+                this.browserCrypto,
             );
             const shrParameters: SignedHttpRequestParameters = {
                 resourceRequestMethod: request.resourceRequestMethod,
@@ -564,7 +562,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             return popTokenGenerator.signPopToken(
                 response.access_token,
                 request.keyId,
-                shrParameters
+                shrParameters,
             );
         } else {
             return response.access_token;
@@ -587,7 +585,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         idTokenClaims: TokenClaims,
         accountEntity: AccountEntity,
         authority: string,
-        reqTimestamp: number
+        reqTimestamp: number,
     ): Promise<AuthenticationResult> {
         // Add Native Broker fields to Telemetry
         const mats = this.addTelemetryFromNativeResponse(response);
@@ -612,7 +610,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             accountEntity.getAccountInfo(),
             undefined, // tenantProfile optional
             idTokenClaims,
-            response.id_token
+            response.id_token,
         );
 
         /**
@@ -626,7 +624,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // generate PoP token as needed
         const responseAccessToken = await this.generatePopAccessToken(
             response,
-            request
+            request,
         );
         const tokenType =
             request.tokenType === AuthenticationScheme.POP
@@ -644,7 +642,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             accessToken: responseAccessToken,
             fromCache: mats ? this.isResponseFromCache(mats) : false,
             expiresOn: new Date(
-                Number(reqTimestamp + response.expires_in) * 1000
+                Number(reqTimestamp + response.expires_in) * 1000,
             ),
             tokenType: tokenType,
             correlationId: this.correlationId,
@@ -666,7 +664,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
             this.logger.error(
-                `Error occurred while removing account context from browser storage. ${e}`
+                `Error occurred while removing account context from browser storage. ${e}`,
             );
         });
     }
@@ -688,7 +686,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         idTokenClaims: TokenClaims,
         responseAccessToken: string,
         tenantId: string,
-        reqTimestamp: number
+        reqTimestamp: number,
     ): void {
         const cachedIdToken: IdTokenEntity | null =
             CacheHelpers.createIdTokenEntity(
@@ -696,7 +694,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 request.authority,
                 response.id_token || "",
                 request.clientId,
-                idTokenClaims.tid || ""
+                idTokenClaims.tid || "",
             );
 
         // cache accessToken in inmemory storage
@@ -719,23 +717,23 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 0,
-                base64Decode
+                base64Decode,
             );
 
         const nativeCacheRecord = new CacheRecord(
             undefined,
             cachedIdToken,
-            cachedAccessToken
+            cachedAccessToken,
         );
 
         void this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
-            request.storeInCache
+            request.storeInCache,
         );
     }
 
     protected addTelemetryFromNativeResponse(
-        response: NativeResponse
+        response: NativeResponse,
     ): MATS | null {
         const mats = this.getMATSFromResponse(response);
 
@@ -762,7 +760,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 matsHttpStatus: mats.http_status,
                 matsHttpEventCount: mats.http_event_count,
             },
-            this.correlationId
+            this.correlationId,
         );
 
         return mats;
@@ -785,7 +783,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         } else {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,
-                "Response missing expected properties."
+                "Response missing expected properties.",
             );
         }
     }
@@ -801,7 +799,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 return JSON.parse(response.properties.MATS);
             } catch (e) {
                 this.logger.error(
-                    "NativeInteractionClient - Error parsing MATS telemetry, returning null instead"
+                    "NativeInteractionClient - Error parsing MATS telemetry, returning null instead",
                 );
             }
         }
@@ -817,7 +815,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected isResponseFromCache(mats: MATS): boolean {
         if (typeof mats.is_cached === "undefined") {
             this.logger.verbose(
-                "NativeInteractionClient - MATS telemetry does not contain field indicating if response was served from cache. Returning false."
+                "NativeInteractionClient - MATS telemetry does not contain field indicating if response was served from cache. Returning false.",
             );
             return false;
         }
@@ -830,10 +828,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request
      */
     protected async initializeNativeRequest(
-        request: PopupRequest | SsoSilentRequest
+        request: PopupRequest | SsoSilentRequest,
     ): Promise<NativeTokenRequest> {
         this.logger.trace(
-            "NativeInteractionClient - initializeNativeRequest called"
+            "NativeInteractionClient - initializeNativeRequest called",
         );
 
         const authority = request.authority || this.config.auth.authority;
@@ -843,7 +841,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             await this.getDiscoveredAuthority(
                 authority,
                 request.azureCloudOptions,
-                request.account
+                request.account,
             );
         }
 
@@ -861,7 +859,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 case ApiId.ssoSilent:
                 case ApiId.acquireTokenSilent_silentFlow:
                     this.logger.trace(
-                        "initializeNativeRequest: silent request sets prompt to none"
+                        "initializeNativeRequest: silent request sets prompt to none",
                     );
                     return PromptValue.NONE;
                 default:
@@ -871,7 +869,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             // Prompt not provided, request may proceed and native broker decides if it needs to prompt
             if (!request.prompt) {
                 this.logger.trace(
-                    "initializeNativeRequest: prompt was not provided"
+                    "initializeNativeRequest: prompt was not provided",
                 );
                 return undefined;
             }
@@ -882,15 +880,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 case PromptValue.CONSENT:
                 case PromptValue.LOGIN:
                     this.logger.trace(
-                        "initializeNativeRequest: prompt is compatible with native flow"
+                        "initializeNativeRequest: prompt is compatible with native flow",
                     );
                     return request.prompt;
                 default:
                     this.logger.trace(
-                        `initializeNativeRequest: prompt = ${request.prompt} is not compatible with native flow`
+                        `initializeNativeRequest: prompt = ${request.prompt} is not compatible with native flow`,
                     );
                     throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.nativePromptNotSupported
+                        BrowserAuthErrorCodes.nativePromptNotSupported,
                     );
             }
         };
@@ -934,7 +932,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 PerformanceEvents.PopTokenGenerateCnf,
                 this.logger,
                 this.performanceClient,
-                this.correlationId
+                this.correlationId,
             )(shrParameters, this.logger);
 
             // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
@@ -957,10 +955,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         if (
             request.extraParameters.hasOwnProperty(
-                BrokerServerParamKeys.BROKER_CLIENT_ID
+                BrokerServerParamKeys.BROKER_CLIENT_ID,
             ) &&
             request.extraParameters.hasOwnProperty(
-                BrokerServerParamKeys.BROKER_REDIRECT_URI
+                BrokerServerParamKeys.BROKER_REDIRECT_URI,
             ) &&
             request.extraParameters.hasOwnProperty(AADServerParamKeys.CLIENT_ID)
         ) {

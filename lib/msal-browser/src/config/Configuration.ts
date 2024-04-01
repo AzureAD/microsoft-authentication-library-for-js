@@ -250,7 +250,7 @@ export function buildConfiguration(
         system: userInputSystem,
         telemetry: userInputTelemetry,
     }: Configuration,
-    isBrowserEnvironment: boolean
+    isBrowserEnvironment: boolean,
 ): BrowserConfiguration {
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: InternalAuthOptions = {
@@ -353,9 +353,9 @@ export function buildConfiguration(
         logger.warning(
             JSON.stringify(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.cannotSetOIDCOptions
-                )
-            )
+                    ClientConfigurationErrorCodes.cannotSetOIDCOptions,
+                ),
+            ),
         );
     }
 
@@ -366,7 +366,7 @@ export function buildConfiguration(
         providedSystemOptions?.allowNativeBroker
     ) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.cannotAllowNativeBroker
+            ClientConfigurationErrorCodes.cannotAllowNativeBroker,
         );
     }
 

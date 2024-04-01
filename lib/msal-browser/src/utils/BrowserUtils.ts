@@ -27,7 +27,7 @@ export function clearHash(contentWindow: Window): void {
         contentWindow.history.replaceState(
             null,
             "",
-            `${contentWindow.location.origin}${contentWindow.location.pathname}${contentWindow.location.search}`
+            `${contentWindow.location.origin}${contentWindow.location.pathname}${contentWindow.location.search}`,
         );
     }
 }
@@ -85,7 +85,7 @@ export function getHomepage(): string {
  */
 export function blockReloadInHiddenIframes(): void {
     const isResponseHash = UrlString.hashContainsKnownProperties(
-        window.location.hash
+        window.location.hash,
     );
     // return an error if called from the hidden iframe created by the msal js silent calls
     if (isResponseHash && isInIframe()) {
@@ -122,7 +122,7 @@ export function blockAcquireTokenInPopups(): void {
 export function blockNonBrowserEnvironment(): void {
     if (typeof window === "undefined") {
         throw createBrowserAuthError(
-            BrowserAuthErrorCodes.nonBrowserEnvironment
+            BrowserAuthErrorCodes.nonBrowserEnvironment,
         );
     }
 }
@@ -134,7 +134,7 @@ export function blockNonBrowserEnvironment(): void {
 export function blockAPICallsBeforeInitialize(initialized: boolean): void {
     if (!initialized) {
         throw createBrowserAuthError(
-            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+            BrowserAuthErrorCodes.uninitializedPublicClientApplication,
         );
     }
 }
@@ -164,7 +164,7 @@ export function preflightCheck(initialized: boolean): void {
  */
 export function redirectPreflightCheck(
     initialized: boolean,
-    config: BrowserConfiguration
+    config: BrowserConfiguration,
 ): void {
     preflightCheck(initialized);
     blockRedirectInIframe(config.system.allowRedirectInIframe);
@@ -174,7 +174,7 @@ export function redirectPreflightCheck(
         !config.cache.storeAuthStateInCookie
     ) {
         throw createBrowserConfigurationAuthError(
-            BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
+            BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable,
         );
     }
 }

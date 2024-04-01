@@ -45,7 +45,7 @@ export class RedirectHandler {
         storageImpl: BrowserCacheManager,
         authCodeRequest: CommonAuthorizationCodeRequest,
         logger: Logger,
-        performanceClient: IPerformanceClient
+        performanceClient: IPerformanceClient,
     ) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
@@ -60,7 +60,7 @@ export class RedirectHandler {
      */
     async initiateAuthRequest(
         requestUrl: string,
-        params: RedirectParams
+        params: RedirectParams,
     ): Promise<void> {
         this.logger.verbose("RedirectHandler.initiateAuthRequest called");
         // Navigate if valid URL
@@ -68,12 +68,12 @@ export class RedirectHandler {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
             if (params.redirectStartPage) {
                 this.logger.verbose(
-                    "RedirectHandler.initiateAuthRequest: redirectStartPage set, caching start page"
+                    "RedirectHandler.initiateAuthRequest: redirectStartPage set, caching start page",
                 );
                 this.browserStorage.setTemporaryCache(
                     TemporaryCacheKeys.ORIGIN_URI,
                     params.redirectStartPage,
-                    true
+                    true,
                 );
             }
 
@@ -81,11 +81,11 @@ export class RedirectHandler {
             this.browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.CORRELATION_ID,
                 this.authCodeRequest.correlationId,
-                true
+                true,
             );
             this.browserStorage.cacheCodeRequest(this.authCodeRequest);
             this.logger.infoPii(
-                `RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`
+                `RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`,
             );
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.acquireTokenRedirect,
@@ -96,44 +96,44 @@ export class RedirectHandler {
             // If onRedirectNavigate is implemented, invoke it and provide requestUrl
             if (typeof params.onRedirectNavigate === "function") {
                 this.logger.verbose(
-                    "RedirectHandler.initiateAuthRequest: Invoking onRedirectNavigate callback"
+                    "RedirectHandler.initiateAuthRequest: Invoking onRedirectNavigate callback",
                 );
                 const navigate = params.onRedirectNavigate(requestUrl);
 
                 // Returning false from onRedirectNavigate will stop navigation
                 if (navigate !== false) {
                     this.logger.verbose(
-                        "RedirectHandler.initiateAuthRequest: onRedirectNavigate did not return false, navigating"
+                        "RedirectHandler.initiateAuthRequest: onRedirectNavigate did not return false, navigating",
                     );
                     await params.navigationClient.navigateExternal(
                         requestUrl,
-                        navigationOptions
+                        navigationOptions,
                     );
                     return;
                 } else {
                     this.logger.verbose(
-                        "RedirectHandler.initiateAuthRequest: onRedirectNavigate returned false, stopping navigation"
+                        "RedirectHandler.initiateAuthRequest: onRedirectNavigate returned false, stopping navigation",
                     );
                     return;
                 }
             } else {
                 // Navigate window to request URL
                 this.logger.verbose(
-                    "RedirectHandler.initiateAuthRequest: Navigating window to navigate url"
+                    "RedirectHandler.initiateAuthRequest: Navigating window to navigate url",
                 );
                 await params.navigationClient.navigateExternal(
                     requestUrl,
-                    navigationOptions
+                    navigationOptions,
                 );
                 return;
             }
         } else {
             // Throw error if request URL is empty.
             this.logger.info(
-                "RedirectHandler.initiateAuthRequest: Navigate url is empty"
+                "RedirectHandler.initiateAuthRequest: Navigate url is empty",
             );
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUri
+                BrowserAuthErrorCodes.emptyNavigateUri,
             );
         }
     }
@@ -144,7 +144,7 @@ export class RedirectHandler {
      */
     async handleCodeResponse(
         response: ServerAuthorizationCodeResponse,
-        state: string
+        state: string,
     ): Promise<AuthenticationResult> {
         this.logger.verbose("RedirectHandler.handleCodeResponse called");
 
@@ -157,7 +157,7 @@ export class RedirectHandler {
         if (!requestState) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.stateNotFound,
-                "Cached State"
+                "Cached State",
             );
         }
 
@@ -165,7 +165,7 @@ export class RedirectHandler {
         try {
             authCodeResponse = this.authModule.handleFragmentResponse(
                 response,
-                requestState
+                requestState,
             );
         } catch (e) {
             if (
@@ -174,7 +174,7 @@ export class RedirectHandler {
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.userCancelled
+                    BrowserAuthErrorCodes.userCancelled,
                 );
             } else {
                 throw e;
@@ -195,10 +195,10 @@ export class RedirectHandler {
                 PerformanceEvents.UpdateTokenEndpointAuthority,
                 this.logger,
                 this.performanceClient,
-                this.authCodeRequest.correlationId
+                this.authCodeRequest.correlationId,
             )(
                 authCodeResponse.cloud_instance_host_name,
-                this.authCodeRequest.correlationId
+                this.authCodeRequest.correlationId,
             );
         }
 
@@ -218,7 +218,7 @@ export class RedirectHandler {
         // Acquire token with retrieved code.
         const tokenResponse = (await this.authModule.acquireToken(
             this.authCodeRequest,
-            authCodeResponse
+            authCodeResponse,
         )) as AuthenticationResult;
 
         this.browserStorage.cleanRequestByState(state);
@@ -232,17 +232,17 @@ export class RedirectHandler {
         // Look up ccs credential in temp cache
         const cachedCcsCred = this.browserStorage.getTemporaryCache(
             TemporaryCacheKeys.CCS_CREDENTIAL,
-            true
+            true,
         );
         if (cachedCcsCred) {
             try {
                 return JSON.parse(cachedCcsCred) as CcsCredential;
             } catch (e) {
                 this.authModule.logger.error(
-                    "Cache credential could not be parsed"
+                    "Cache credential could not be parsed",
                 );
                 this.authModule.logger.errorPii(
-                    `Cache credential could not be parsed: ${cachedCcsCred}`
+                    `Cache credential could not be parsed: ${cachedCcsCred}`,
                 );
             }
         }

@@ -42,7 +42,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         nativeMessageHandler?: NativeMessageHandler,
-        correlationId?: string
+        correlationId?: string,
     ) {
         super(
             config,
@@ -53,7 +53,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             nativeMessageHandler,
-            correlationId
+            correlationId,
         );
         this.apiId = apiId;
     }
@@ -63,12 +63,12 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(
-        request: AuthorizationCodeRequest
+        request: AuthorizationCodeRequest,
     ): Promise<AuthenticationResult> {
         // Auth code payload is required
         if (!request.code) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.authCodeRequired
+                BrowserAuthErrorCodes.authCodeRequired,
             );
         }
 
@@ -78,11 +78,11 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(request, InteractionType.Silent);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
+            this.apiId,
         );
 
         try {
@@ -98,12 +98,12 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 PerformanceEvents.StandardInteractionClientGetClientConfiguration,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                request.correlationId,
             )(
                 serverTelemetryManager,
                 silentRequest.authority,
                 silentRequest.azureCloudOptions,
-                silentRequest.account
+                silentRequest.account,
             );
             const authClient: HybridSpaAuthorizationCodeClient =
                 new HybridSpaAuthorizationCodeClient(clientConfig);
@@ -115,18 +115,18 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 this.browserStorage,
                 authCodeRequest,
                 this.logger,
-                this.performanceClient
+                this.performanceClient,
             );
 
             // Handle auth code parameters from request
             return await invokeAsync(
                 interactionHandler.handleCodeResponseFromServer.bind(
-                    interactionHandler
+                    interactionHandler,
                 ),
                 PerformanceEvents.HandleCodeResponseFromServer,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                request.correlationId,
             )(
                 {
                     code: request.code,
@@ -135,7 +135,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                     cloud_instance_host_name: request.cloudInstanceHostName,
                 },
                 silentRequest,
-                false
+                false,
             );
         } catch (e) {
             if (e instanceof AuthError) {
@@ -153,8 +153,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         // Synchronous so we must reject
         return Promise.reject(
             createBrowserAuthError(
-                BrowserAuthErrorCodes.silentLogoutUnsupported
-            )
+                BrowserAuthErrorCodes.silentLogoutUnsupported,
+            ),
         );
     }
 }

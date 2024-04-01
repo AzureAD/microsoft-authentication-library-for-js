@@ -69,7 +69,7 @@ describe("SilentAuthCodeClient", () => {
             pca.navigationClient,
             ApiId.acquireTokenSilent_authCode,
             //@ts-ignore
-            pca.performanceClient
+            pca.performanceClient,
         );
     });
 
@@ -87,9 +87,9 @@ describe("SilentAuthCodeClient", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
                     code: "",
-                })
+                }),
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.authCodeRequired)
+                createBrowserAuthError(BrowserAuthErrorCodes.authCodeRequired),
             );
         });
 
@@ -131,7 +131,7 @@ describe("SilentAuthCodeClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -142,7 +142,7 @@ describe("SilentAuthCodeClient", () => {
             const handleCodeSpy = sinon
                 .stub(
                     InteractionHandler.prototype,
-                    "handleCodeResponseFromServer"
+                    "handleCodeResponseFromServer",
                 )
                 .resolves(testTokenResponse);
 
@@ -162,7 +162,7 @@ describe("SilentAuthCodeClient", () => {
                     msgraph_host: request.msGraphHost,
                     cloud_graph_host_name: request.cloudGraphHostName,
                     cloud_instance_host_name: request.cloudInstanceHostName,
-                })
+                }),
             ).toBe(true);
             expect(tokenResp).toEqual(testTokenResponse);
         });
@@ -171,7 +171,7 @@ describe("SilentAuthCodeClient", () => {
             beforeEach(() => {
                 jest.spyOn(
                     NetworkManager.prototype,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
             });
 
@@ -187,10 +187,10 @@ describe("SilentAuthCodeClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -212,10 +212,10 @@ describe("SilentAuthCodeClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -237,10 +237,10 @@ describe("SilentAuthCodeClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -256,8 +256,8 @@ describe("SilentAuthCodeClient", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentAuthCodeClient.logout).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.silentLogoutUnsupported
-                )
+                    BrowserAuthErrorCodes.silentLogoutUnsupported,
+                ),
             );
         });
     });

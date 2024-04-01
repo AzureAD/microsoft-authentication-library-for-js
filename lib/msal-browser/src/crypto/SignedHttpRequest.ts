@@ -24,7 +24,7 @@ export class SignedHttpRequest {
 
     constructor(
         shrParameters: SignedHttpRequestParameters,
-        shrOptions?: SignedHttpRequestOptions
+        shrOptions?: SignedHttpRequestOptions,
     ) {
         const loggerOptions = (shrOptions && shrOptions.loggerOptions) || {};
         this.logger = new Logger(loggerOptions, name, version);
@@ -39,7 +39,7 @@ export class SignedHttpRequest {
      */
     async generatePublicKeyThumbprint(): Promise<string> {
         const { kid } = await this.popTokenGenerator.generateKid(
-            this.shrParameters
+            this.shrParameters,
         );
 
         return kid;
@@ -55,13 +55,13 @@ export class SignedHttpRequest {
     async signRequest(
         payload: string,
         publicKeyThumbprint: string,
-        claims?: object
+        claims?: object,
     ): Promise<string> {
         return this.popTokenGenerator.signPayload(
             payload,
             publicKeyThumbprint,
             this.shrParameters,
-            claims
+            claims,
         );
     }
 

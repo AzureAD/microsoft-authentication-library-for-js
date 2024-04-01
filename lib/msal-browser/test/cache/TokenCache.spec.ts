@@ -54,7 +54,7 @@ describe("TokenCache tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
             },
-            true
+            true,
         );
         cacheConfig = {
             temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -68,7 +68,7 @@ describe("TokenCache tests", () => {
             loggerCallback: (
                 level: LogLevel,
                 message: string,
-                containsPii: boolean
+                containsPii: boolean,
             ): void => {},
             piiLoggingEnabled: true,
         });
@@ -77,7 +77,7 @@ describe("TokenCache tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             cacheConfig,
             cryptoObj,
-            logger
+            logger,
         );
     });
 
@@ -110,7 +110,7 @@ describe("TokenCache tests", () => {
                 configuration,
                 browserStorage,
                 logger,
-                cryptoObj
+                cryptoObj,
             );
             testEnvironment = "login.microsoftonline.com";
 
@@ -118,14 +118,14 @@ describe("TokenCache tests", () => {
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
             testIdTokenClaims = AuthToken.extractTokenClaims(
                 testIdToken,
-                base64Decode
+                base64Decode,
             );
             testHomeAccountId = AccountEntity.generateHomeAccountId(
                 testClientInfo,
                 AuthorityType.Default,
                 logger,
                 cryptoObj,
-                testIdTokenClaims
+                testIdTokenClaims,
             );
 
             idTokenEntity = CacheHelpers.createIdTokenEntity(
@@ -133,12 +133,12 @@ describe("TokenCache tests", () => {
                 testEnvironment,
                 TEST_TOKENS.IDTOKEN_V2,
                 configuration.auth.clientId,
-                TEST_CONFIG.TENANT
+                TEST_CONFIG.TENANT,
             );
             idTokenKey = CacheHelpers.generateCredentialKey(idTokenEntity);
 
             scopeString = new ScopeSet(
-                TEST_CONFIG.DEFAULT_SCOPES
+                TEST_CONFIG.DEFAULT_SCOPES,
             ).printScopes();
             (testAccessToken = TEST_TOKENS.ACCESS_TOKEN),
                 (accessTokenEntity = CacheHelpers.createAccessTokenEntity(
@@ -150,7 +150,7 @@ describe("TokenCache tests", () => {
                     scopeString,
                     TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                     TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
-                    cryptoObj.base64Decode
+                    cryptoObj.base64Decode,
                 ));
             accessTokenKey =
                 CacheHelpers.generateCredentialKey(accessTokenEntity);
@@ -160,7 +160,7 @@ describe("TokenCache tests", () => {
                 testHomeAccountId,
                 testEnvironment,
                 testRefreshToken,
-                configuration.auth.clientId
+                configuration.auth.clientId,
             );
             refreshTokenKey =
                 CacheHelpers.generateCredentialKey(refreshTokenEntity);
@@ -191,7 +191,7 @@ describe("TokenCache tests", () => {
             const result = tokenCache.loadExternalTokens(
                 request,
                 response,
-                options
+                options,
             );
 
             const testIdTokenEntity = CacheHelpers.createIdTokenEntity(
@@ -199,14 +199,14 @@ describe("TokenCache tests", () => {
                 testEnvironment,
                 TEST_TOKENS.IDTOKEN_V2,
                 configuration.auth.clientId,
-                TEST_CONFIG.TENANT
+                TEST_CONFIG.TENANT,
             );
             const testIdTokenKey =
                 CacheHelpers.generateCredentialKey(testIdTokenEntity);
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getIdTokenCredential(testIdTokenKey)).toEqual(
-                testIdTokenEntity
+                testIdTokenEntity,
             );
         });
 
@@ -225,12 +225,12 @@ describe("TokenCache tests", () => {
             const result = tokenCache.loadExternalTokens(
                 request,
                 response,
-                options
+                options,
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
+                idTokenEntity,
             );
         });
 
@@ -249,23 +249,23 @@ describe("TokenCache tests", () => {
             const testAccountInfo = buildAccountFromIdTokenClaims(
                 ID_TOKEN_CLAIMS,
                 undefined,
-                { environment: testEnvironment }
+                { environment: testEnvironment },
             ).getAccountInfo();
             const testAccountKey =
                 AccountEntity.generateAccountCacheKey(testAccountInfo);
             const result = tokenCache.loadExternalTokens(
                 request,
                 response,
-                options
+                options,
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(result.account).toEqual(testAccountInfo);
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
+                idTokenEntity,
             );
             expect(
-                browserStorage.getAccount(testAccountKey)?.homeAccountId
+                browserStorage.getAccount(testAccountKey)?.homeAccountId,
             ).toEqual(testAccountInfo.homeAccountId);
         });
 
@@ -282,12 +282,12 @@ describe("TokenCache tests", () => {
             const result = tokenCache.loadExternalTokens(
                 request,
                 response,
-                options
+                options,
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
+                idTokenEntity,
             );
         });
 
@@ -306,9 +306,9 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {};
 
             expect(() =>
-                tokenCache.loadExternalTokens(request, response, options)
+                tokenCache.loadExternalTokens(request, response, options),
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`,
             );
         });
 
@@ -322,9 +322,9 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {};
 
             expect(() =>
-                tokenCache.loadExternalTokens(request, response, options)
+                tokenCache.loadExternalTokens(request, response, options),
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`,
             );
         });
 
@@ -339,9 +339,9 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {};
 
             expect(() =>
-                tokenCache.loadExternalTokens(request, response, options)
+                tokenCache.loadExternalTokens(request, response, options),
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`,
             );
         });
 
@@ -363,9 +363,9 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {};
 
             expect(() =>
-                tokenCache.loadExternalTokens(request, response, options)
+                tokenCache.loadExternalTokens(request, response, options),
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`,
             );
         });
 
@@ -388,9 +388,9 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {};
 
             expect(() =>
-                tokenCache.loadExternalTokens(request, response, options)
+                tokenCache.loadExternalTokens(request, response, options),
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`,
             );
         });
 
@@ -417,15 +417,15 @@ describe("TokenCache tests", () => {
             const result = tokenCache.loadExternalTokens(
                 request,
                 response,
-                options
+                options,
             );
 
             expect(parseInt(accessTokenEntity.expiresOn)).toBeGreaterThan(
-                TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
             );
             expect(result.accessToken).toEqual(accessTokenEntity.secret);
             expect(
-                browserStorage.getAccessTokenCredential(accessTokenKey)
+                browserStorage.getAccessTokenCredential(accessTokenKey),
             ).toEqual(accessTokenEntity);
         });
 
@@ -449,9 +449,9 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {};
 
             expect(() =>
-                tokenCache.loadExternalTokens(request, response, options)
+                tokenCache.loadExternalTokens(request, response, options),
             ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
+                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`,
             );
         });
 
@@ -471,12 +471,12 @@ describe("TokenCache tests", () => {
             const result = tokenCache.loadExternalTokens(
                 request,
                 response,
-                options
+                options,
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(
-                browserStorage.getRefreshTokenCredential(refreshTokenKey)
+                browserStorage.getRefreshTokenCredential(refreshTokenKey),
             ).toEqual(refreshTokenEntity);
         });
     });

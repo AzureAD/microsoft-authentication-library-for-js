@@ -18,7 +18,7 @@ describe("Event API tests", () => {
         loggerCallback: (
             level: LogLevel,
             message: string,
-            containsPii: boolean
+            containsPii: boolean,
         ): void => {
             if (containsPii) {
                 console.log(`Log level: ${level} Message: ${message}`);
@@ -78,7 +78,7 @@ describe("Event API tests", () => {
         eventHandler.addEventCallback(subscriber2);
         eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
-            InteractionType.Redirect
+            InteractionType.Redirect,
         );
     });
 
@@ -115,7 +115,7 @@ describe("Event API tests", () => {
             EventType.LOGIN_START,
             InteractionType.Silent,
             { scopes: ["user.read"] },
-            null
+            null,
         );
     });
 
@@ -229,7 +229,7 @@ describe("Event API tests", () => {
         it("ACTIVE_ACCOUNT_CHANGED event raised when active account is changed in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(
-                    EventType.ACTIVE_ACCOUNT_CHANGED
+                    EventType.ACTIVE_ACCOUNT_CHANGED,
                 );
                 expect(message.interactionType).toBeNull();
                 expect(message.payload).toBeNull();

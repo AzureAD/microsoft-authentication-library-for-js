@@ -55,14 +55,14 @@ import {
 class TestInteractionHandler extends InteractionHandler {
     constructor(
         authCodeModule: AuthorizationCodeClient,
-        storageImpl: BrowserCacheManager
+        storageImpl: BrowserCacheManager,
     ) {
         super(
             authCodeModule,
             storageImpl,
             testAuthCodeRequest,
             testBrowserRequestLogger,
-            performanceClient
+            performanceClient,
         );
     }
 
@@ -71,7 +71,7 @@ class TestInteractionHandler extends InteractionHandler {
     }
 
     initiateAuthRequest(
-        requestUrl: string
+        requestUrl: string,
     ): Window | Promise<HTMLIFrameElement> {
         this.authCodeRequest = testAuthCodeRequest;
         //@ts-ignore
@@ -93,12 +93,12 @@ const testBrowserRequestLogger: Logger = new Logger(
         loggerCallback: (
             level: LogLevel,
             message: string,
-            containsPii: boolean
+            containsPii: boolean,
         ): void => {},
         piiLoggingEnabled: true,
     },
     "@azure/msal-browser",
-    "test"
+    "test",
 );
 
 const testPkceCodes = {
@@ -195,7 +195,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             configObj.cache,
             cryptoOpts,
-            logger
+            logger,
         );
         authorityInstance = new Authority(
             configObj.auth.authority,
@@ -203,7 +203,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             browserStorage,
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
         );
         await authorityInstance.resolveEndpointsAsync();
         authConfig = {
@@ -219,18 +219,18 @@ describe("InteractionHandler.ts Unit Tests", () => {
             storageInterface: new TestStorageManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cryptoInterface,
-                logger
+                logger,
             ),
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
-                    options?: NetworkRequestOptions
+                    options?: NetworkRequestOptions,
                 ): Promise<any> => {
                     return testNetworkResult;
                 },
                 sendPostRequestAsync: async (
                     url: string,
-                    options?: NetworkRequestOptions
+                    options?: NetworkRequestOptions,
                 ): Promise<any> => {
                     return testNetworkResult;
                 },
@@ -247,7 +247,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
     it("Constructor", () => {
         const interactionHandler = new TestInteractionHandler(
             authCodeModule,
-            browserStorage
+            browserStorage,
         );
 
         expect(interactionHandler).toBeInstanceOf(TestInteractionHandler);
@@ -292,7 +292,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000,
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -303,26 +303,26 @@ describe("InteractionHandler.ts Unit Tests", () => {
             testAuthCodeRequest.ccsCredential = testCcsCred;
             browserStorage.setTemporaryCache(
                 browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             browserStorage.setTemporaryCache(
                 browserStorage.generateNonceKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 ),
-                idTokenClaims.nonce
+                idTokenClaims.nonce,
             );
             browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.CCS_CREDENTIAL,
-                CcsCredentialType.UPN
+                CcsCredentialType.UPN,
             );
             const acquireTokenSpy = sinon
                 .stub(AuthorizationCodeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(
                 authCodeModule,
-                browserStorage
+                browserStorage,
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
 
@@ -337,15 +337,15 @@ describe("InteractionHandler.ts Unit Tests", () => {
                         responseMode: "fragment",
                         nonce: TEST_CONFIG.CORRELATION_ID,
                         state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    }
+                    },
                 );
 
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 acquireTokenSpy.calledWith(
                     testAuthCodeRequest,
-                    testCodeResponse
-                )
+                    testCodeResponse,
+                ),
             ).toBe(true);
             expect(acquireTokenSpy.threw()).toBe(false);
         });
@@ -387,7 +387,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000,
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -397,32 +397,32 @@ describe("InteractionHandler.ts Unit Tests", () => {
             };
             browserStorage.setTemporaryCache(
                 browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             browserStorage.setTemporaryCache(
                 browserStorage.generateNonceKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 ),
-                idTokenClaims.nonce
+                idTokenClaims.nonce,
             );
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    "handleFragmentResponse"
+                    "handleFragmentResponse",
                 )
                 .returns(testCodeResponse);
             const updateAuthoritySpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                "updateAuthority"
+                "updateAuthority",
             );
             const acquireTokenSpy = sinon
                 .stub(AuthorizationCodeClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(
                 authCodeModule,
-                browserStorage
+                browserStorage,
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(
@@ -438,20 +438,20 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     responseMode: "fragment",
                     nonce: TEST_CONFIG.CORRELATION_ID,
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                }
+                },
             );
             expect(
                 updateAuthoritySpy.calledWith(
                     testCodeResponse.cloud_instance_host_name,
-                    TEST_CONFIG.CORRELATION_ID
-                )
+                    TEST_CONFIG.CORRELATION_ID,
+                ),
             ).toBe(true);
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 acquireTokenSpy.calledWith(
                     testAuthCodeRequest,
-                    testCodeResponse
-                )
+                    testCodeResponse,
+                ),
             ).toBe(true);
             expect(acquireTokenSpy.threw()).toBe(false);
         });
@@ -493,7 +493,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000,
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -504,24 +504,24 @@ describe("InteractionHandler.ts Unit Tests", () => {
             testAuthCodeRequest.ccsCredential = testCcsCred;
             browserStorage.setTemporaryCache(
                 browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             browserStorage.setTemporaryCache(
                 browserStorage.generateNonceKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 ),
-                idTokenClaims.nonce
+                idTokenClaims.nonce,
             );
             browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.CCS_CREDENTIAL,
-                CcsCredentialType.UPN
+                CcsCredentialType.UPN,
             );
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
-                    "handleFragmentResponse"
+                    "handleFragmentResponse",
                 )
                 .returns(testCodeResponse);
             const acquireTokenSpy = sinon
@@ -529,7 +529,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 .resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(
                 authCodeModule,
-                browserStorage
+                browserStorage,
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(
@@ -545,14 +545,14 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     responseMode: "fragment",
                     nonce: TEST_CONFIG.CORRELATION_ID,
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                }
+                },
             );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(
                 acquireTokenSpy.calledWith(
                     testAuthCodeRequest,
-                    testCodeResponse
-                )
+                    testCodeResponse,
+                ),
             ).toBe(true);
             expect(acquireTokenSpy.threw()).toBe(false);
         });

@@ -47,7 +47,7 @@ describe("FetchClient.ts Unit Tests", () => {
                         expect(url).toBe(targetUri);
                         done();
                         return Promise.resolve(mockResponse);
-                    }
+                    },
                 );
 
             fetchClient.sendGetRequestAsync(targetUri);
@@ -65,13 +65,13 @@ describe("FetchClient.ts Unit Tests", () => {
                 .mockImplementation(
                     (url: RequestInfo | URL, init: RequestInit | undefined) => {
                         expect(init && init.method).toBe(
-                            HTTP_REQUEST_TYPE.POST
+                            HTTP_REQUEST_TYPE.POST,
                         );
                         expect(init && init.body).toBe(requestOptions.body);
                         expect(url).toBe(targetUri);
                         done();
                         return Promise.resolve(mockResponse);
-                    }
+                    },
                 );
 
             fetchClient.sendPostRequestAsync(targetUri, requestOptions);
@@ -91,7 +91,7 @@ describe("FetchClient.ts Unit Tests", () => {
                 .mockImplementation(
                     (url: RequestInfo | URL, init: RequestInit | undefined) => {
                         expect(init && init.method).toBe(
-                            HTTP_REQUEST_TYPE.POST
+                            HTTP_REQUEST_TYPE.POST,
                         );
                         expect(init && init.body).toBe(requestOptions.body);
 
@@ -100,13 +100,13 @@ describe("FetchClient.ts Unit Tests", () => {
                                 init &&
                                     init.headers &&
                                     // @ts-ignore
-                                    init.headers.get(headerName)
+                                    init.headers.get(headerName),
                             ).toBe(reqHeaders[headerName]);
                         }
                         expect(url).toBe(targetUri);
                         done();
                         return Promise.resolve(mockResponse);
-                    }
+                    },
                 );
 
             fetchClient.sendPostRequestAsync(targetUri, requestOptions);
@@ -125,12 +125,12 @@ describe("FetchClient.ts Unit Tests", () => {
                 .mockImplementation(
                     (url: RequestInfo | URL, init: RequestInit | undefined) => {
                         expect(init && init.method).toBe(
-                            HTTP_REQUEST_TYPE.POST
+                            HTTP_REQUEST_TYPE.POST,
                         );
                         expect(init && init.body).toBe(requestOptions.body);
                         expect(url).toBe(targetUri);
                         return Promise.reject({ ...mockResponse, status: 16 });
-                    }
+                    },
                 );
 
             fetchClient
@@ -138,7 +138,7 @@ describe("FetchClient.ts Unit Tests", () => {
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.postRequestFailed.code
+                        BrowserAuthErrorMessage.postRequestFailed.code,
                     );
                     done();
                 });
@@ -153,13 +153,13 @@ describe("FetchClient.ts Unit Tests", () => {
                         expect(init && init.method).toBe(HTTP_REQUEST_TYPE.GET);
                         expect(url).toBe(targetUri);
                         return Promise.reject({ ...mockResponse, status: 16 });
-                    }
+                    },
                 );
 
             fetchClient.sendGetRequestAsync<any>(targetUri).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(
-                    BrowserAuthErrorMessage.getRequestFailed.code
+                    BrowserAuthErrorMessage.getRequestFailed.code,
                 );
                 done();
             });
@@ -176,7 +176,7 @@ describe("FetchClient.ts Unit Tests", () => {
                 .mockImplementation(
                     (url: RequestInfo | URL, init: RequestInit | undefined) => {
                         expect(init && init.method).toBe(
-                            HTTP_REQUEST_TYPE.POST
+                            HTTP_REQUEST_TYPE.POST,
                         );
                         expect(init && init.body).toBe(requestOptions.body);
                         expect(url).toBe(targetUri);
@@ -184,7 +184,7 @@ describe("FetchClient.ts Unit Tests", () => {
                             ...mockResponse,
                             json: () => Promise.reject("thisIsNotJSON"),
                         });
-                    }
+                    },
                 );
 
             fetchClient
@@ -193,7 +193,7 @@ describe("FetchClient.ts Unit Tests", () => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
                         BrowserAuthErrorMessage.failedToParseNetworkResponse
-                            .code
+                            .code,
                     );
                     done();
                 });
@@ -210,12 +210,12 @@ describe("FetchClient.ts Unit Tests", () => {
                 .mockImplementation(
                     (url: RequestInfo | URL, init: RequestInit | undefined) => {
                         expect(init && init.method).toBe(
-                            HTTP_REQUEST_TYPE.POST
+                            HTTP_REQUEST_TYPE.POST,
                         );
                         expect(init && init.body).toBe(requestOptions.body);
                         expect(url).toBe(targetUri);
                         return Promise.reject({ ...mockResponse, status: 0 });
-                    }
+                    },
                 );
 
             const oldWindowNavigator = window.navigator;
@@ -232,7 +232,7 @@ describe("FetchClient.ts Unit Tests", () => {
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.noNetworkConnectivity.code
+                        BrowserAuthErrorMessage.noNetworkConnectivity.code,
                     );
                     done();
                 });

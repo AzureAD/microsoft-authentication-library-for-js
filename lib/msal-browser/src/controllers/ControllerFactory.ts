@@ -9,7 +9,7 @@ import { IController } from "./IController";
 import { Configuration } from "../config/Configuration";
 
 export async function createV3Controller(
-    config: Configuration
+    config: Configuration,
 ): Promise<IController> {
     const standard = new StandardOperatingContext(config);
 
@@ -20,7 +20,7 @@ export async function createV3Controller(
 }
 
 export async function createController(
-    config: Configuration
+    config: Configuration,
 ): Promise<IController | null> {
     const standard = new StandardOperatingContext(config);
     const teamsApp = new TeamsAppOperatingContext(config);

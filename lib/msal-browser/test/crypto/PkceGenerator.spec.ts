@@ -16,9 +16,9 @@ describe("PkceGenerator.ts Unit Tests", () => {
             //@ts-ignore
             (data: Uint8Array): Promise<ArrayBuffer> => {
                 return Promise.resolve(
-                    createHash("SHA256").update(Buffer.from(data)).digest()
+                    createHash("SHA256").update(Buffer.from(data)).digest(),
                 );
-            }
+            },
         );
         /**
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
@@ -28,7 +28,7 @@ describe("PkceGenerator.ts Unit Tests", () => {
             const generatedCodes: PkceCodes = await generatePkceCodes(
                 new StubPerformanceClient(),
                 new Logger({}),
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             expect(regExp.test(generatedCodes.challenge)).toBe(true);
             expect(regExp.test(generatedCodes.verifier)).toBe(true);

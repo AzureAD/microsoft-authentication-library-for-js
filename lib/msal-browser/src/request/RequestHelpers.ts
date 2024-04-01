@@ -28,11 +28,11 @@ export async function initializeBaseRequest(
     request: Partial<BaseAuthRequest> & { correlationId: string },
     config: BrowserConfiguration,
     performanceClient: IPerformanceClient,
-    logger: Logger
+    logger: Logger,
 ): Promise<BaseAuthRequest> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.InitializeBaseRequest,
-        request.correlationId
+        request.correlationId,
     );
     const authority = request.authority || config.auth.authority;
 
@@ -49,7 +49,7 @@ export async function initializeBaseRequest(
     if (!validatedRequest.authenticationScheme) {
         validatedRequest.authenticationScheme = AuthenticationScheme.BEARER;
         logger.verbose(
-            'Authentication Scheme wasn\'t explicitly set in request, defaulting to "Bearer" request'
+            'Authentication Scheme wasn\'t explicitly set in request, defaulting to "Bearer" request',
         );
     } else {
         if (
@@ -57,17 +57,17 @@ export async function initializeBaseRequest(
         ) {
             if (!request.sshJwk) {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
+                    ClientConfigurationErrorCodes.missingSshJwk,
                 );
             }
             if (!request.sshKid) {
                 throw createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid
+                    ClientConfigurationErrorCodes.missingSshKid,
                 );
             }
         }
         logger.verbose(
-            `Authentication Scheme set to "${validatedRequest.authenticationScheme}" as configured in Auth request`
+            `Authentication Scheme set to "${validatedRequest.authenticationScheme}" as configured in Auth request`,
         );
     }
 
@@ -89,11 +89,11 @@ export async function initializeSilentRequest(
     account: AccountInfo,
     config: BrowserConfiguration,
     performanceClient: IPerformanceClient,
-    logger: Logger
+    logger: Logger,
 ): Promise<CommonSilentFlowRequest> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.InitializeSilentRequest,
-        request.correlationId
+        request.correlationId,
     );
 
     const baseRequest = await invokeAsync(
@@ -101,7 +101,7 @@ export async function initializeSilentRequest(
         PerformanceEvents.InitializeBaseRequest,
         logger,
         performanceClient,
-        request.correlationId
+        request.correlationId,
     )(request, config, performanceClient, logger);
     return {
         ...request,

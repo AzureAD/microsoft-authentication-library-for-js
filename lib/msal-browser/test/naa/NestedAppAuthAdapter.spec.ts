@@ -44,7 +44,7 @@ describe("NestedAppAuthAdapter tests", () => {
             NAA_CLIENT_ID,
             NAA_CLIENT_CAPABILITIES,
             crypto,
-            logger
+            logger,
         );
     });
 
@@ -54,7 +54,7 @@ describe("NestedAppAuthAdapter tests", () => {
                 nestedAppAuthAdapter.toNaaTokenRequest(POPUP_REQUEST);
             expect(result.clientId).toBe(NAA_CLIENT_ID);
             expect(result.correlationId).toBe(
-                SILENT_TOKEN_REQUEST.correlationId
+                SILENT_TOKEN_REQUEST.correlationId,
             );
             expect(result.scope).toBe(NAA_SCOPE);
         });
@@ -64,7 +64,7 @@ describe("NestedAppAuthAdapter tests", () => {
                 nestedAppAuthAdapter.toNaaTokenRequest(REDIRECT_REQUEST);
             expect(result.clientId).toBe(NAA_CLIENT_ID);
             expect(result.correlationId).toBe(
-                SILENT_TOKEN_REQUEST.correlationId
+                SILENT_TOKEN_REQUEST.correlationId,
             );
             expect(result.scope).toBe(NAA_SCOPE);
         });
@@ -76,31 +76,31 @@ describe("NestedAppAuthAdapter tests", () => {
                 nestedAppAuthAdapter.fromNaaTokenResponse(
                     SILENT_TOKEN_REQUEST,
                     SILENT_TOKEN_RESPONSE,
-                    0
+                    0,
                 );
             expect(result.authority).toBe(
-                SILENT_TOKEN_RESPONSE.account.environment
+                SILENT_TOKEN_RESPONSE.account.environment,
             );
             expect(result.uniqueId).toBe(
-                SILENT_TOKEN_RESPONSE.account.localAccountId
+                SILENT_TOKEN_RESPONSE.account.localAccountId,
             );
             expect(result.tenantId).toBe(
-                SILENT_TOKEN_RESPONSE.account.tenantId
+                SILENT_TOKEN_RESPONSE.account.tenantId,
             );
             expect(result.accessToken).toBe(
-                SILENT_TOKEN_RESPONSE.token.access_token
+                SILENT_TOKEN_RESPONSE.token.access_token,
             );
             expect(result.account?.environment).toBe(
-                SILENT_TOKEN_RESPONSE.account.environment
+                SILENT_TOKEN_RESPONSE.account.environment,
             );
             expect(result.account?.homeAccountId).toBe(
-                SILENT_TOKEN_RESPONSE.account.homeAccountId
+                SILENT_TOKEN_RESPONSE.account.homeAccountId,
             );
             expect(result.account?.localAccountId).toBe(
-                SILENT_TOKEN_RESPONSE.account.localAccountId
+                SILENT_TOKEN_RESPONSE.account.localAccountId,
             );
             expect(result.account?.name).toBe(
-                SILENT_TOKEN_RESPONSE.account.name
+                SILENT_TOKEN_RESPONSE.account.name,
             );
         });
     });
@@ -109,29 +109,29 @@ describe("NestedAppAuthAdapter tests", () => {
         // No Network
         it("no network bridge error to ClientAuthError", () => {
             const error = nestedAppAuthAdapter.fromBridgeError(
-                BRIDGE_ERROR_NOT_NETWORK
+                BRIDGE_ERROR_NOT_NETWORK,
             );
             expect(error instanceof ClientAuthError).toBe(true);
             expect(error.errorCode).toBe(
-                ClientAuthErrorCodes.noNetworkConnectivity
+                ClientAuthErrorCodes.noNetworkConnectivity,
             );
         });
 
         // Disabled
         it("disabled bridge error to ClientAuthError", () => {
             const error = nestedAppAuthAdapter.fromBridgeError(
-                BRIDGE_ERROR_DISABLED
+                BRIDGE_ERROR_DISABLED,
             );
             expect(error instanceof ClientAuthError).toBe(true);
             expect(error.errorCode).toBe(
-                ClientAuthErrorCodes.nestedAppAuthBridgeDisabled
+                ClientAuthErrorCodes.nestedAppAuthBridgeDisabled,
             );
         });
 
         // Account Unavailable
         it("account unavailable bridge error to ClientAuthError", () => {
             const error = nestedAppAuthAdapter.fromBridgeError(
-                BRIDGE_ERROR_ACCOUNT_UNAVAILABLE
+                BRIDGE_ERROR_ACCOUNT_UNAVAILABLE,
             );
             expect(error instanceof ClientAuthError).toBe(true);
             expect(error.errorCode).toBe(ClientAuthErrorCodes.noAccountFound);
@@ -140,7 +140,7 @@ describe("NestedAppAuthAdapter tests", () => {
         // Nested App Auth Unavailable
         it("nested app auth bridge error to ClientAuthError", () => {
             const error = nestedAppAuthAdapter.fromBridgeError(
-                BRIDGE_ERROR_NAA_UNAVAILABLE
+                BRIDGE_ERROR_NAA_UNAVAILABLE,
             );
             expect(error instanceof ClientAuthError).toBe(true);
         });
@@ -148,7 +148,7 @@ describe("NestedAppAuthAdapter tests", () => {
         // User Cancelled
         it("user cancelled bridge error to ClientAuthError", () => {
             const error = nestedAppAuthAdapter.fromBridgeError(
-                BRIDGE_ERROR_USER_CANCEL
+                BRIDGE_ERROR_USER_CANCEL,
             );
             expect(error instanceof ClientAuthError).toBe(true);
             expect(error.errorCode).toBe(ClientAuthErrorCodes.userCanceled);
@@ -157,42 +157,42 @@ describe("NestedAppAuthAdapter tests", () => {
         // Transient
         it("transient bridge error to ServerAuthError", () => {
             const error = nestedAppAuthAdapter.fromBridgeError(
-                BRIDGE_ERROR_TRANSIENT_ERROR_SERVER
+                BRIDGE_ERROR_TRANSIENT_ERROR_SERVER,
             );
             expect(error instanceof ServerError).toBe(true);
             expect(error.errorCode).toBe(
-                BRIDGE_ERROR_TRANSIENT_ERROR_SERVER.code
+                BRIDGE_ERROR_TRANSIENT_ERROR_SERVER.code,
             );
             expect(error.errorMessage).toBe(
-                BRIDGE_ERROR_TRANSIENT_ERROR_SERVER.description
+                BRIDGE_ERROR_TRANSIENT_ERROR_SERVER.description,
             );
         });
 
         // Persistent
         it("persistent bridge error to ServerAuthError", () => {
             const error = nestedAppAuthAdapter.fromBridgeError(
-                BRIDGE_ERROR_PERSISTENT_ERROR_SERVER
+                BRIDGE_ERROR_PERSISTENT_ERROR_SERVER,
             );
             expect(error instanceof ServerError).toBe(true);
             expect(error.errorCode).toBe(
-                BRIDGE_ERROR_PERSISTENT_ERROR_SERVER.code
+                BRIDGE_ERROR_PERSISTENT_ERROR_SERVER.code,
             );
             expect(error.errorMessage).toBe(
-                BRIDGE_ERROR_PERSISTENT_ERROR_SERVER.description
+                BRIDGE_ERROR_PERSISTENT_ERROR_SERVER.description,
             );
         });
 
         // InteractionRequired
         it("interaction required bridge error to InteractionRequiredAuthError", () => {
             const error = nestedAppAuthAdapter.fromBridgeError(
-                BRIDGE_ERROR_USER_INTERACTION_REQUIRED
+                BRIDGE_ERROR_USER_INTERACTION_REQUIRED,
             );
             expect(error instanceof InteractionRequiredAuthError).toBe(true);
             expect(error.errorCode).toBe(
-                BRIDGE_ERROR_USER_INTERACTION_REQUIRED.code
+                BRIDGE_ERROR_USER_INTERACTION_REQUIRED.code,
             );
             expect(error.errorMessage).toBe(
-                BRIDGE_ERROR_USER_INTERACTION_REQUIRED.description
+                BRIDGE_ERROR_USER_INTERACTION_REQUIRED.description,
             );
         });
 

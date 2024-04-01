@@ -27,7 +27,7 @@ export class FetchClient implements INetworkModule {
      */
     async sendGetRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
     ): Promise<NetworkResponse<T>> {
         let response;
         try {
@@ -38,11 +38,11 @@ export class FetchClient implements INetworkModule {
         } catch (e) {
             if (window.navigator.onLine) {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.getRequestFailed
+                    BrowserAuthErrorCodes.getRequestFailed,
                 );
             } else {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.noNetworkConnectivity
+                    BrowserAuthErrorCodes.noNetworkConnectivity,
                 );
             }
         }
@@ -55,7 +55,7 @@ export class FetchClient implements INetworkModule {
             };
         } catch (e) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.failedToParseResponse
+                BrowserAuthErrorCodes.failedToParseResponse,
             );
         }
     }
@@ -68,7 +68,7 @@ export class FetchClient implements INetworkModule {
      */
     async sendPostRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
     ): Promise<NetworkResponse<T>> {
         const reqBody = (options && options.body) || Constants.EMPTY_STRING;
 
@@ -82,11 +82,11 @@ export class FetchClient implements INetworkModule {
         } catch (e) {
             if (window.navigator.onLine) {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.postRequestFailed
+                    BrowserAuthErrorCodes.postRequestFailed,
                 );
             } else {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.noNetworkConnectivity
+                    BrowserAuthErrorCodes.noNetworkConnectivity,
                 );
             }
         }
@@ -99,7 +99,7 @@ export class FetchClient implements INetworkModule {
             };
         } catch (e) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.failedToParseResponse
+                BrowserAuthErrorCodes.failedToParseResponse,
             );
         }
     }

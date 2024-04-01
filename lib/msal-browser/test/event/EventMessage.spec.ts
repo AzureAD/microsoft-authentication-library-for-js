@@ -22,7 +22,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const result =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(result).toBe(InteractionStatus.Login);
         });
@@ -32,7 +32,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const result =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(result).toBe(InteractionStatus.SsoSilent);
         });
@@ -43,7 +43,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const result =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(result).toBe(InteractionStatus.AcquireToken);
         });
@@ -54,7 +54,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const result =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(result).toBe(null);
         });
@@ -64,7 +64,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const result =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(result).toBe(InteractionStatus.HandleRedirect);
         });
@@ -74,7 +74,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const result =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(result).toBe(InteractionStatus.Logout);
         });
@@ -84,13 +84,13 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.HandleRedirect
+                InteractionStatus.HandleRedirect,
             );
             expect(test1).toBe(InteractionStatus.None);
 
             const test2 =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(test2).toBe(InteractionStatus.None);
         });
@@ -100,7 +100,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.Login
+                InteractionStatus.Login,
             );
             expect(test1).toBe(null);
         });
@@ -111,13 +111,13 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.Login
+                InteractionStatus.Login,
             );
             expect(test1).toBe(InteractionStatus.None);
 
             const test2 =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(test2).toBe(InteractionStatus.None);
         });
@@ -128,7 +128,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.HandleRedirect
+                InteractionStatus.HandleRedirect,
             );
             expect(test1).toBe(null);
         });
@@ -139,13 +139,13 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.Login
+                InteractionStatus.Login,
             );
             expect(test1).toBe(InteractionStatus.None);
 
             const test2 =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(test2).toBe(InteractionStatus.None);
         });
@@ -156,7 +156,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.HandleRedirect
+                InteractionStatus.HandleRedirect,
             );
             expect(test1).toBe(null);
         });
@@ -167,13 +167,13 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.AcquireToken
+                InteractionStatus.AcquireToken,
             );
             expect(test1).toBe(InteractionStatus.None);
 
             const test2 =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(test2).toBe(InteractionStatus.None);
         });
@@ -184,13 +184,13 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.Login
+                InteractionStatus.Login,
             );
             expect(test1).toBe(InteractionStatus.None);
 
             const test2 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.AcquireToken
+                InteractionStatus.AcquireToken,
             );
             expect(test2).toBe(InteractionStatus.None);
         });
@@ -201,7 +201,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.HandleRedirect
+                InteractionStatus.HandleRedirect,
             );
             expect(test1).toBe(null);
         });
@@ -212,13 +212,13 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.AcquireToken
+                InteractionStatus.AcquireToken,
             );
             expect(test1).toBe(null);
 
             const test2 =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(test1).toBe(null);
         });
@@ -229,7 +229,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.HandleRedirect
+                InteractionStatus.HandleRedirect,
             );
             expect(test1).toBe(null);
         });
@@ -240,7 +240,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const result =
                 EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
+                    TEST_EVENT_MESSAGE,
                 );
             expect(result).toBe(null);
         });

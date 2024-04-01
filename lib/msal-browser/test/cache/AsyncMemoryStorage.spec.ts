@@ -45,7 +45,7 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
 
                     if (item === DB_UNAVAILABLE) {
                         throw createBrowserAuthError(
-                            BrowserAuthErrorCodes.databaseUnavailable
+                            BrowserAuthErrorCodes.databaseUnavailable,
                         );
                     }
 
@@ -56,7 +56,7 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
 
                     if (payload === DB_UNAVAILABLE) {
                         throw createBrowserAuthError(
-                            BrowserAuthErrorCodes.databaseUnavailable
+                            BrowserAuthErrorCodes.databaseUnavailable,
                         );
                     }
 
@@ -69,7 +69,7 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
 
                     if (item === DB_UNAVAILABLE) {
                         throw createBrowserAuthError(
-                            BrowserAuthErrorCodes.databaseUnavailable
+                            BrowserAuthErrorCodes.databaseUnavailable,
                         );
                     }
 
@@ -152,7 +152,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     logMessages.push({ level: level, message: message });
                 },
                 logLevel: LogLevel.Verbose,
-            })
+            }),
         );
 
         describe("getItem", () => {
@@ -168,7 +168,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = TEST_CACHE_ITEMS.TestItem.value;
                 const item = await asyncMemoryStorage.getItem(
-                    TEST_CACHE_ITEMS.TestItem.key
+                    TEST_CACHE_ITEMS.TestItem.key,
                 );
                 expect(callCounter.getItem).toBe(1);
                 expect(callCounter.getItemPersistent).toBe(0);
@@ -180,15 +180,15 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = TEST_CACHE_ITEMS.TestItem.value;
                 const item = await asyncMemoryStorage.getItem(
-                    TEST_CACHE_ITEMS.TestItem.key
+                    TEST_CACHE_ITEMS.TestItem.key,
                 );
                 expect(callCounter.getItem).toBe(1);
                 expect(callCounter.getItemPersistent).toBe(1);
                 expect(logMessages[0]["level"]).toBe(3);
                 expect(
                     logMessages[0]["message"].indexOf(
-                        "Queried item not found in in-memory cache, now querying persistent storage."
-                    )
+                        "Queried item not found in in-memory cache, now querying persistent storage.",
+                    ),
                 ).not.toBe(-1);
                 expect(item).toBe(TEST_CACHE_ITEMS.TestItem.value);
             });
@@ -205,7 +205,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
             it("should set item in in-memory cache and persistent storage", async () => {
                 await asyncMemoryStorage.setItem(
                     TEST_CACHE_ITEMS.TestItem.key,
-                    TEST_CACHE_ITEMS.TestItem.value
+                    TEST_CACHE_ITEMS.TestItem.value,
                 );
                 const memoryItem =
                     mockInMemoryCache[TEST_DB_TABLE_NAME][
@@ -238,19 +238,19 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = TEST_CACHE_ITEMS.TestItem.value;
                 await asyncMemoryStorage.removeItem(
-                    TEST_CACHE_ITEMS.TestItem.key
+                    TEST_CACHE_ITEMS.TestItem.key,
                 );
                 expect(callCounter.removeItem).toBe(1);
                 expect(callCounter.removeItemPersistent).toBe(1);
                 expect(
                     mockInMemoryCache[TEST_DB_TABLE_NAME][
                         TEST_CACHE_ITEMS.TestItem.key
-                    ]
+                    ],
                 ).toBe(undefined);
                 expect(
                     mockDatabase[TEST_DB_TABLE_NAME][
                         TEST_CACHE_ITEMS.TestItem.key
-                    ]
+                    ],
                 ).toBe(undefined);
             });
         });
@@ -274,7 +274,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 asyncMemoryStorage.clearInMemory();
                 expect(callCounter.clearInMemory).toBe(1);
                 expect(
-                    Object.keys(mockInMemoryCache[TEST_DB_TABLE_NAME]).length
+                    Object.keys(mockInMemoryCache[TEST_DB_TABLE_NAME]).length,
                 ).toBe(0);
             });
 
@@ -311,7 +311,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     logMessages.push({ level: level, message: message });
                 },
                 logLevel: LogLevel.Verbose,
-            })
+            }),
         );
 
         describe("getItem", () => {
@@ -327,7 +327,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = DB_UNAVAILABLE;
                 const item = await asyncMemoryStorage.getItem(
-                    TEST_CACHE_ITEMS.TestItem.key
+                    TEST_CACHE_ITEMS.TestItem.key,
                 );
                 const lastLog = logMessages[logMessages.length - 1];
                 expect(callCounter.getItem).toBe(1);
@@ -336,8 +336,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 expect(lastLog["level"]).toBe(0);
                 expect(
                     lastLog["message"].indexOf(
-                        "Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts."
-                    )
+                        "Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts.",
+                    ),
                 ).not.toBe(-1);
             });
         });
@@ -353,7 +353,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
             it("should log an error if persistent storage is unavailable or inaccessible", async () => {
                 const item = await asyncMemoryStorage.setItem(
                     TEST_CACHE_ITEMS.TestItem.key,
-                    DB_UNAVAILABLE
+                    DB_UNAVAILABLE,
                 );
                 const lastLog = logMessages[logMessages.length - 1];
                 expect(callCounter.setItem).toBe(1);
@@ -362,8 +362,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 expect(lastLog["level"]).toBe(0);
                 expect(
                     lastLog["message"].indexOf(
-                        "Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts."
-                    )
+                        "Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts.",
+                    ),
                 ).not.toBe(-1);
             });
         });
@@ -381,7 +381,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = DB_UNAVAILABLE;
                 await asyncMemoryStorage.removeItem(
-                    TEST_CACHE_ITEMS.TestItem.key
+                    TEST_CACHE_ITEMS.TestItem.key,
                 );
                 const lastLog = logMessages[logMessages.length - 1];
                 expect(callCounter.removeItem).toBe(1);
@@ -389,8 +389,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 expect(lastLog["level"]).toBe(0);
                 expect(
                     lastLog["message"].indexOf(
-                        "Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts."
-                    )
+                        "Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts.",
+                    ),
                 ).not.toBe(-1);
             });
         });

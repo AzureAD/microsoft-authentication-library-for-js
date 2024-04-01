@@ -26,7 +26,7 @@ export class NestedAppAuthError extends AuthError {
     public static createUnsupportedError(): NestedAppAuthError {
         return new NestedAppAuthError(
             NestedAppAuthErrorMessage.unsupportedMethod.code,
-            NestedAppAuthErrorMessage.unsupportedMethod.desc
+            NestedAppAuthErrorMessage.unsupportedMethod.desc,
         );
     }
 }

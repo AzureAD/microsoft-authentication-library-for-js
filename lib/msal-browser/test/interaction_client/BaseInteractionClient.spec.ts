@@ -67,7 +67,7 @@ describe("BaseInteractionClient", () => {
             // @ts-ignore
             pca.navigationClient,
             // @ts-ignore
-            pca.performanceClient
+            pca.performanceClient,
         );
     });
 
@@ -152,7 +152,7 @@ describe("BaseInteractionClient", () => {
 
             jest.spyOn(
                 CacheManager.prototype,
-                "getAuthorityMetadataByAlias"
+                "getAuthorityMetadataByAlias",
             ).mockImplementation((host: string) => {
                 const metadata =
                     DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0];
@@ -196,10 +196,10 @@ describe("BaseInteractionClient", () => {
             expect(pca.getActiveAccount()).toMatchObject(testAccountInfo1);
             await testClient.logout({ account: testAccountInfo1 });
             expect(pca.getAccountByHomeId(testAccountInfo1.homeAccountId)).toBe(
-                null
+                null,
             );
             expect(
-                pca.getAccountByHomeId(testAccountInfo2.homeAccountId)
+                pca.getAccountByHomeId(testAccountInfo2.homeAccountId),
             ).toMatchObject(testAccountInfo2);
             expect(pca.getActiveAccount()).toBe(null);
         });
@@ -223,7 +223,7 @@ describe("BaseInteractionClient", () => {
                 .getDiscoveredAuthority(
                     "https://login.microsoftonline.com/common",
                     undefined, // AzureCloudOptions
-                    testAccount
+                    testAccount,
                 )
                 .then(() => {
                     throw "This is unexpected. This call should have failed.";
@@ -231,8 +231,8 @@ describe("BaseInteractionClient", () => {
                 .catch((error) => {
                     expect(error).toStrictEqual(
                         createClientConfigurationError(
-                            ClientConfigurationErrorCodes.authorityMismatch
-                        )
+                            ClientConfigurationErrorCodes.authorityMismatch,
+                        ),
                     );
                 });
         });
@@ -251,7 +251,7 @@ describe("BaseInteractionClient", () => {
                 .getDiscoveredAuthority(
                     "https://login.microsoftonline.com/common",
                     undefined, // AzureCloudOptions
-                    testAccount
+                    testAccount,
                 )
                 .then(() => {
                     done();

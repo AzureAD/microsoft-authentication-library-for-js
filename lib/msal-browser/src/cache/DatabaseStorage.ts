@@ -50,7 +50,7 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
                 (e: IDBVersionChangeEvent) => {
                     const event = e as IDBOpenOnUpgradeNeededEvent;
                     event.target.result.createObjectStore(this.tableName);
-                }
+                },
             );
             openDB.addEventListener("success", (e: Event) => {
                 const event = e as IDBOpenDBRequestEvent;
@@ -61,9 +61,9 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             openDB.addEventListener("error", () =>
                 reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseUnavailable
-                    )
-                )
+                        BrowserAuthErrorCodes.databaseUnavailable,
+                    ),
+                ),
             );
         });
     }
@@ -100,13 +100,13 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseNotOpen
-                    )
+                        BrowserAuthErrorCodes.databaseNotOpen,
+                    ),
                 );
             }
             const transaction = this.db.transaction(
                 [this.tableName],
-                "readonly"
+                "readonly",
             );
             const objectStore = transaction.objectStore(this.tableName);
             const dbGet = objectStore.get(key);
@@ -136,13 +136,13 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseNotOpen
-                    )
+                        BrowserAuthErrorCodes.databaseNotOpen,
+                    ),
                 );
             }
             const transaction = this.db.transaction(
                 [this.tableName],
-                "readwrite"
+                "readwrite",
             );
 
             const objectStore = transaction.objectStore(this.tableName);
@@ -171,14 +171,14 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseNotOpen
-                    )
+                        BrowserAuthErrorCodes.databaseNotOpen,
+                    ),
                 );
             }
 
             const transaction = this.db.transaction(
                 [this.tableName],
-                "readwrite"
+                "readwrite",
             );
             const objectStore = transaction.objectStore(this.tableName);
             const dbDelete = objectStore.delete(key);
@@ -204,14 +204,14 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseNotOpen
-                    )
+                        BrowserAuthErrorCodes.databaseNotOpen,
+                    ),
                 );
             }
 
             const transaction = this.db.transaction(
                 [this.tableName],
-                "readonly"
+                "readonly",
             );
             const objectStore = transaction.objectStore(this.tableName);
             const dbGetKeys = objectStore.getAllKeys();
@@ -240,14 +240,14 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.databaseNotOpen
-                    )
+                        BrowserAuthErrorCodes.databaseNotOpen,
+                    ),
                 );
             }
 
             const transaction = this.db.transaction(
                 [this.tableName],
-                "readonly"
+                "readonly",
             );
             const objectStore = transaction.objectStore(this.tableName);
             const dbContainsKey = objectStore.count(key);

@@ -23,7 +23,7 @@ export type BridgeRequestEnvelope = {
 };
 
 export function isBridgeRequestEnvelope(
-    obj: unknown
+    obj: unknown,
 ): obj is BridgeRequestEnvelope {
     return (
         (obj as BridgeRequestEnvelope).messageType !== undefined &&

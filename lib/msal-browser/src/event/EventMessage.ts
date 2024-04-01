@@ -50,7 +50,7 @@ export class EventMessageUtils {
      */
     static getInteractionStatusFromEvent(
         message: EventMessage,
-        currentStatus?: InteractionStatus
+        currentStatus?: InteractionStatus,
     ): InteractionStatus | null {
         switch (message.eventType) {
             case EventType.LOGIN_START:

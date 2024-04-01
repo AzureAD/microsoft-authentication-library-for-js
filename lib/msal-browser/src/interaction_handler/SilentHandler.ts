@@ -27,11 +27,11 @@ export async function initiateAuthRequest(
     performanceClient: IPerformanceClient,
     logger: Logger,
     correlationId: string,
-    navigateFrameWait?: number
+    navigateFrameWait?: number,
 ): Promise<HTMLIFrameElement> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.SilentHandlerInitiateAuthRequest,
-        correlationId
+        correlationId,
     );
 
     if (!requestUrl) {
@@ -45,7 +45,7 @@ export async function initiateAuthRequest(
             PerformanceEvents.SilentHandlerLoadFrame,
             logger,
             performanceClient,
-            correlationId
+            correlationId,
         )(requestUrl, navigateFrameWait, performanceClient, correlationId);
     }
     return invoke(
@@ -53,7 +53,7 @@ export async function initiateAuthRequest(
         PerformanceEvents.SilentHandlerLoadFrameSync,
         logger,
         performanceClient,
-        correlationId
+        correlationId,
     )(requestUrl);
 }
 
@@ -69,17 +69,17 @@ export async function monitorIframeForHash(
     performanceClient: IPerformanceClient,
     logger: Logger,
     correlationId: string,
-    responseType: ServerResponseType
+    responseType: ServerResponseType,
 ): Promise<string> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.SilentHandlerMonitorIframeForHash,
-        correlationId
+        correlationId,
     );
 
     return new Promise<string>((resolve, reject) => {
         if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
             logger.warning(
-                `system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`
+                `system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`,
             );
         }
 
@@ -91,8 +91,8 @@ export async function monitorIframeForHash(
             window.clearInterval(intervalId);
             reject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.monitorWindowTimeout
-                )
+                    BrowserAuthErrorCodes.monitorWindowTimeout,
+                ),
             );
         }, timeout);
 
@@ -130,7 +130,7 @@ export async function monitorIframeForHash(
             PerformanceEvents.RemoveHiddenIframe,
             logger,
             performanceClient,
-            correlationId
+            correlationId,
         )(iframe);
     });
 }
@@ -145,11 +145,11 @@ function loadFrame(
     urlNavigate: string,
     navigateFrameWait: number,
     performanceClient: IPerformanceClient,
-    correlationId: string
+    correlationId: string,
 ): Promise<HTMLIFrameElement> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.SilentHandlerLoadFrame,
-        correlationId
+        correlationId,
     );
 
     /*
@@ -201,7 +201,7 @@ function createHiddenIframe(): HTMLIFrameElement {
     authFrame.style.border = "0";
     authFrame.setAttribute(
         "sandbox",
-        "allow-scripts allow-same-origin allow-forms"
+        "allow-scripts allow-same-origin allow-forms",
     );
     document.body.appendChild(authFrame);
 

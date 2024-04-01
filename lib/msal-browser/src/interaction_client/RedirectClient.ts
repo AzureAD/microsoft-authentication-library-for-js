@@ -61,7 +61,7 @@ export class RedirectClient extends StandardInteractionClient {
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
         nativeMessageHandler?: NativeMessageHandler,
-        correlationId?: string
+        correlationId?: string,
     ) {
         super(
             config,
@@ -72,7 +72,7 @@ export class RedirectClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             nativeMessageHandler,
-            correlationId
+            correlationId,
         );
         this.nativeStorage = nativeStorageImpl;
     }
@@ -87,7 +87,7 @@ export class RedirectClient extends StandardInteractionClient {
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            this.correlationId,
         )(request, InteractionType.Redirect);
 
         this.browserStorage.updateCacheEntries(
@@ -95,22 +95,22 @@ export class RedirectClient extends StandardInteractionClient {
             validRequest.nonce,
             validRequest.authority,
             validRequest.loginHint || "",
-            validRequest.account || null
+            validRequest.account || null,
         );
         const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenRedirect
+            ApiId.acquireTokenRedirect,
         );
 
         const handleBackButton = (event: PageTransitionEvent) => {
             // Clear temporary cache if the back button is clicked during the redirect flow.
             if (event.persisted) {
                 this.logger.verbose(
-                    "Page was restored from back/forward cache. Clearing temporary cache."
+                    "Page was restored from back/forward cache. Clearing temporary cache.",
                 );
                 this.browserStorage.cleanRequestByState(validRequest.state);
                 this.eventHandler.emitEvent(
                     EventType.RESTORE_FROM_BFCACHE,
-                    InteractionType.Redirect
+                    InteractionType.Redirect,
                 );
             }
         };
@@ -123,7 +123,7 @@ export class RedirectClient extends StandardInteractionClient {
                     PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
                     this.logger,
                     this.performanceClient,
-                    this.correlationId
+                    this.correlationId,
                 )(validRequest);
 
             // Initialize the client
@@ -132,12 +132,12 @@ export class RedirectClient extends StandardInteractionClient {
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
-                this.correlationId
+                this.correlationId,
             )(
                 serverTelemetryManager,
                 validRequest.authority,
                 validRequest.azureCloudOptions,
-                validRequest.account
+                validRequest.account,
             );
 
             // Create redirect interaction handler.
@@ -146,7 +146,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage,
                 authCodeRequest,
                 this.logger,
-                this.performanceClient
+                this.performanceClient,
             );
 
             // Create acquire token url.
@@ -156,12 +156,12 @@ export class RedirectClient extends StandardInteractionClient {
                     this.config,
                     this.logger,
                     this.nativeMessageHandler,
-                    request.authenticationScheme
+                    request.authenticationScheme,
                 ),
             });
 
             const redirectStartPage = this.getRedirectStartPage(
-                request.redirectStartPage
+                request.redirectStartPage,
             );
             this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
 
@@ -197,33 +197,33 @@ export class RedirectClient extends StandardInteractionClient {
     async handleRedirectPromise(
         hash?: string,
         performanceClient?: IPerformanceClient,
-        correlationId?: string
+        correlationId?: string,
     ): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.handleRedirectPromise
+            ApiId.handleRedirectPromise,
         );
         try {
             if (!this.browserStorage.isInteractionInProgress(true)) {
                 this.logger.info(
-                    "handleRedirectPromise called but there is no interaction in progress, returning null."
+                    "handleRedirectPromise called but there is no interaction in progress, returning null.",
                 );
                 return null;
             }
             const [serverParams, responseString] = this.getRedirectResponse(
-                hash || ""
+                hash || "",
             );
             if (!serverParams) {
                 // Not a recognized server response hash or hash not associated with a redirect request
                 this.logger.info(
-                    "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache."
+                    "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache.",
                 );
                 this.browserStorage.cleanRequestByInteractionType(
-                    InteractionType.Redirect
+                    InteractionType.Redirect,
                 );
                 if (performanceClient && correlationId) {
                     performanceClient?.addFields(
                         { errorCode: "no_server_response" },
-                        correlationId
+                        correlationId,
                     );
                 }
                 return null;
@@ -233,12 +233,12 @@ export class RedirectClient extends StandardInteractionClient {
             const loginRequestUrl =
                 this.browserStorage.getTemporaryCache(
                     TemporaryCacheKeys.ORIGIN_URI,
-                    true
+                    true,
                 ) || Constants.EMPTY_STRING;
             const loginRequestUrlNormalized =
                 UrlString.removeHashFromUrl(loginRequestUrl);
             const currentUrlNormalized = UrlString.removeHashFromUrl(
-                window.location.href
+                window.location.href,
             );
 
             if (
@@ -247,7 +247,7 @@ export class RedirectClient extends StandardInteractionClient {
             ) {
                 // We are on the page we need to navigate to - handle hash
                 this.logger.verbose(
-                    "Current page is loginRequestUrl, handling response"
+                    "Current page is loginRequestUrl, handling response",
                 );
 
                 if (loginRequestUrl.indexOf("#") > -1) {
@@ -257,17 +257,17 @@ export class RedirectClient extends StandardInteractionClient {
 
                 const handleHashResult = await this.handleResponse(
                     serverParams,
-                    serverTelemetryManager
+                    serverTelemetryManager,
                 );
 
                 return handleHashResult;
             } else if (!this.config.auth.navigateToLoginRequestUrl) {
                 this.logger.verbose(
-                    "NavigateToLoginRequestUrl set to false, handling response"
+                    "NavigateToLoginRequestUrl set to false, handling response",
                 );
                 return await this.handleResponse(
                     serverParams,
-                    serverTelemetryManager
+                    serverTelemetryManager,
                 );
             } else if (
                 !BrowserUtils.isInIframe() ||
@@ -280,7 +280,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.setTemporaryCache(
                     TemporaryCacheKeys.URL_HASH,
                     responseString,
-                    true
+                    true,
                 );
                 const navigationOptions: NavigationOptions = {
                     apiId: ApiId.handleRedirectPromise,
@@ -300,25 +300,25 @@ export class RedirectClient extends StandardInteractionClient {
                     this.browserStorage.setTemporaryCache(
                         TemporaryCacheKeys.ORIGIN_URI,
                         homepage,
-                        true
+                        true,
                     );
                     this.logger.warning(
-                        "Unable to get valid login request url from cache, redirecting to home page"
+                        "Unable to get valid login request url from cache, redirecting to home page",
                     );
                     processHashOnRedirect =
                         await this.navigationClient.navigateInternal(
                             homepage,
-                            navigationOptions
+                            navigationOptions,
                         );
                 } else {
                     // Navigate to page that initiated the redirect request
                     this.logger.verbose(
-                        `Navigating to loginRequestUrl: ${loginRequestUrl}`
+                        `Navigating to loginRequestUrl: ${loginRequestUrl}`,
                     );
                     processHashOnRedirect =
                         await this.navigationClient.navigateInternal(
                             loginRequestUrl,
-                            navigationOptions
+                            navigationOptions,
                         );
                 }
 
@@ -326,7 +326,7 @@ export class RedirectClient extends StandardInteractionClient {
                 if (!processHashOnRedirect) {
                     return await this.handleResponse(
                         serverParams,
-                        serverTelemetryManager
+                        serverTelemetryManager,
                     );
                 }
             }
@@ -338,7 +338,7 @@ export class RedirectClient extends StandardInteractionClient {
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             this.browserStorage.cleanRequestByInteractionType(
-                InteractionType.Redirect
+                InteractionType.Redirect,
             );
             throw e;
         }
@@ -350,7 +350,7 @@ export class RedirectClient extends StandardInteractionClient {
      * @param hash
      */
     protected getRedirectResponse(
-        userProvidedResponse: string
+        userProvidedResponse: string,
     ): [ServerAuthorizationCodeResponse | null, string] {
         this.logger.verbose("getRedirectResponseHash called");
         // Get current location hash from window or cache.
@@ -372,12 +372,12 @@ export class RedirectClient extends StandardInteractionClient {
                 ResponseHandler.validateInteractionType(
                     response,
                     this.browserCrypto,
-                    InteractionType.Redirect
+                    InteractionType.Redirect,
                 );
             } catch (e) {
                 if (e instanceof AuthError) {
                     this.logger.error(
-                        `Interaction type validation failed due to ${e.errorCode}: ${e.errorMessage}`
+                        `Interaction type validation failed due to ${e.errorCode}: ${e.errorMessage}`,
                     );
                 }
                 return [null, ""];
@@ -385,24 +385,24 @@ export class RedirectClient extends StandardInteractionClient {
 
             BrowserUtils.clearHash(window);
             this.logger.verbose(
-                "Hash contains known properties, returning response hash"
+                "Hash contains known properties, returning response hash",
             );
             return [response, responseString];
         }
 
         const cachedHash = this.browserStorage.getTemporaryCache(
             TemporaryCacheKeys.URL_HASH,
-            true
+            true,
         );
         this.browserStorage.removeItem(
-            this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH)
+            this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH),
         );
 
         if (cachedHash) {
             response = UrlUtils.getDeserializedResponse(cachedHash);
             if (response) {
                 this.logger.verbose(
-                    "Hash does not contain known properties, returning cached hash"
+                    "Hash does not contain known properties, returning cached hash",
                 );
                 return [response, cachedHash];
             }
@@ -418,7 +418,7 @@ export class RedirectClient extends StandardInteractionClient {
      */
     protected async handleResponse(
         serverParams: ServerAuthorizationCodeResponse,
-        serverTelemetryManager: ServerTelemetryManager
+        serverTelemetryManager: ServerTelemetryManager,
     ): Promise<AuthenticationResult> {
         const state = serverParams.state;
         if (!state) {
@@ -430,11 +430,11 @@ export class RedirectClient extends StandardInteractionClient {
 
         if (serverParams.accountId) {
             this.logger.verbose(
-                "Account id found in hash, calling WAM for token"
+                "Account id found in hash, calling WAM for token",
             );
             if (!this.nativeMessageHandler) {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                    BrowserAuthErrorCodes.nativeConnectionNotEstablished,
                 );
             }
             const nativeInteractionClient = new NativeInteractionClient(
@@ -449,11 +449,11 @@ export class RedirectClient extends StandardInteractionClient {
                 this.nativeMessageHandler,
                 serverParams.accountId,
                 this.nativeStorage,
-                cachedRequest.correlationId
+                cachedRequest.correlationId,
             );
             const { userRequestState } = ProtocolUtils.parseRequestState(
                 this.browserCrypto,
-                state
+                state,
             );
             return nativeInteractionClient
                 .acquireToken({
@@ -470,7 +470,7 @@ export class RedirectClient extends StandardInteractionClient {
         const currentAuthority = this.browserStorage.getCachedAuthority(state);
         if (!currentAuthority) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.noCachedAuthorityError
+                BrowserAuthErrorCodes.noCachedAuthorityError,
             );
         }
 
@@ -479,20 +479,20 @@ export class RedirectClient extends StandardInteractionClient {
             PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            this.correlationId,
         )(serverTelemetryManager, currentAuthority);
 
         ThrottlingUtils.removeThrottle(
             this.browserStorage,
             this.config.auth.clientId,
-            cachedRequest
+            cachedRequest,
         );
         const interactionHandler = new RedirectHandler(
             authClient,
             this.browserStorage,
             cachedRequest,
             this.logger,
-            this.performanceClient
+            this.performanceClient,
         );
         return interactionHandler.handleCodeResponse(serverParams, state);
     }
@@ -506,14 +506,14 @@ export class RedirectClient extends StandardInteractionClient {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.logout
+            ApiId.logout,
         );
 
         try {
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_START,
                 InteractionType.Redirect,
-                logoutRequest
+                logoutRequest,
             );
 
             // Clear cache on logout
@@ -530,12 +530,12 @@ export class RedirectClient extends StandardInteractionClient {
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
-                this.correlationId
+                this.correlationId,
             )(
                 serverTelemetryManager,
                 logoutRequest && logoutRequest.authority,
                 undefined, // AzureCloudOptions
-                (logoutRequest && logoutRequest.account) || undefined
+                (logoutRequest && logoutRequest.account) || undefined,
             );
 
             if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
@@ -544,13 +544,13 @@ export class RedirectClient extends StandardInteractionClient {
                 } catch {
                     if (validLogoutRequest.account?.homeAccountId) {
                         void this.browserStorage.removeAccount(
-                            validLogoutRequest.account?.homeAccountId
+                            validLogoutRequest.account?.homeAccountId,
                         );
 
                         this.eventHandler.emitEvent(
                             EventType.LOGOUT_SUCCESS,
                             InteractionType.Redirect,
-                            validLogoutRequest
+                            validLogoutRequest,
                         );
 
                         return;
@@ -565,7 +565,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_SUCCESS,
                 InteractionType.Redirect,
-                validLogoutRequest
+                validLogoutRequest,
             );
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (
@@ -576,7 +576,7 @@ export class RedirectClient extends StandardInteractionClient {
 
                 if (navigate !== false) {
                     this.logger.verbose(
-                        "Logout onRedirectNavigate did not return false, navigating"
+                        "Logout onRedirectNavigate did not return false, navigating",
                     );
                     // Ensure interaction is in progress
                     if (!this.browserStorage.getInteractionInProgress()) {
@@ -584,14 +584,14 @@ export class RedirectClient extends StandardInteractionClient {
                     }
                     await this.navigationClient.navigateExternal(
                         logoutUri,
-                        navigationOptions
+                        navigationOptions,
                     );
                     return;
                 } else {
                     // Ensure interaction is not in progress
                     this.browserStorage.setInteractionInProgress(false);
                     this.logger.verbose(
-                        "Logout onRedirectNavigate returned false, stopping navigation"
+                        "Logout onRedirectNavigate returned false, stopping navigation",
                     );
                 }
             } else {
@@ -601,7 +601,7 @@ export class RedirectClient extends StandardInteractionClient {
                 }
                 await this.navigationClient.navigateExternal(
                     logoutUri,
-                    navigationOptions
+                    navigationOptions,
                 );
                 return;
             }
@@ -614,18 +614,18 @@ export class RedirectClient extends StandardInteractionClient {
                 EventType.LOGOUT_FAILURE,
                 InteractionType.Redirect,
                 null,
-                e as EventError
+                e as EventError,
             );
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_END,
-                InteractionType.Redirect
+                InteractionType.Redirect,
             );
             throw e;
         }
 
         this.eventHandler.emitEvent(
             EventType.LOGOUT_END,
-            InteractionType.Redirect
+            InteractionType.Redirect,
         );
     }
 
@@ -637,7 +637,7 @@ export class RedirectClient extends StandardInteractionClient {
         const redirectStartPage = requestStartPage || window.location.href;
         return UrlString.getAbsoluteUrl(
             redirectStartPage,
-            BrowserUtils.getCurrentUri()
+            BrowserUtils.getCurrentUri(),
         );
     }
 }

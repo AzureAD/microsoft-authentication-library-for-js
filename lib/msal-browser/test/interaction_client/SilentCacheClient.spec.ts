@@ -29,7 +29,7 @@ import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     ID_TOKEN_CLAIMS,
     undefined,
-    { environment: "login.microsoftonline.com" }
+    { environment: "login.microsoftonline.com" },
 );
 const testAccount: AccountInfo = {
     ...testAccountEntity.getAccountInfo(),
@@ -43,7 +43,7 @@ const testIdToken: IdTokenEntity = buildIdToken(
     {
         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
         environment: testAccount.environment,
-    }
+    },
 );
 
 const testAccessTokenEntity: AccessTokenEntity = {
@@ -97,7 +97,7 @@ describe("SilentCacheClient", () => {
             //@ts-ignore
             pca.navigationClient,
             //@ts-ignore
-            pca.performanceClient
+            pca.performanceClient,
         );
     });
 
@@ -120,7 +120,7 @@ describe("SilentCacheClient", () => {
                 fromCache: true,
                 correlationId: "testCorrelationId",
                 expiresOn: new Date(
-                    Number(testAccessTokenEntity.expiresOn) * 1000
+                    Number(testAccessTokenEntity.expiresOn) * 1000,
                 ),
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -143,7 +143,7 @@ describe("SilentCacheClient", () => {
                     account: testAccount,
                     scopes: ["openid"],
                     forceRefresh: false,
-                })
+                }),
             ).resolves.toMatchObject(response);
         });
     });

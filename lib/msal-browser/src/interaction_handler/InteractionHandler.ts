@@ -40,7 +40,7 @@ export class InteractionHandler {
         storageImpl: BrowserCacheManager,
         authCodeRequest: CommonAuthorizationCodeRequest,
         logger: Logger,
-        performanceClient: IPerformanceClient
+        performanceClient: IPerformanceClient,
     ) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
@@ -55,18 +55,18 @@ export class InteractionHandler {
      */
     async handleCodeResponse(
         response: ServerAuthorizationCodeResponse,
-        request: AuthorizationUrlRequest
+        request: AuthorizationUrlRequest,
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.HandleCodeResponse,
-            request.correlationId
+            request.correlationId,
         );
 
         let authCodeResponse;
         try {
             authCodeResponse = this.authModule.handleFragmentResponse(
                 response,
-                request.state
+                request.state,
             );
         } catch (e) {
             if (
@@ -75,7 +75,7 @@ export class InteractionHandler {
             ) {
                 // Translate server error caused by user closing native prompt to corresponding first class MSAL error
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.userCancelled
+                    BrowserAuthErrorCodes.userCancelled,
                 );
             } else {
                 throw e;
@@ -87,7 +87,7 @@ export class InteractionHandler {
             PerformanceEvents.HandleCodeResponseFromServer,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(authCodeResponse, request);
     }
 
@@ -102,14 +102,14 @@ export class InteractionHandler {
     async handleCodeResponseFromServer(
         authCodeResponse: AuthorizationCodePayload,
         request: AuthorizationUrlRequest,
-        validateNonce: boolean = true
+        validateNonce: boolean = true,
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.HandleCodeResponseFromServer,
-            request.correlationId
+            request.correlationId,
         );
         this.logger.trace(
-            "InteractionHandler.handleCodeResponseFromServer called"
+            "InteractionHandler.handleCodeResponseFromServer called",
         );
 
         // Assign code to request
@@ -122,7 +122,7 @@ export class InteractionHandler {
                 PerformanceEvents.UpdateTokenEndpointAuthority,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                request.correlationId,
             )(authCodeResponse.cloud_instance_host_name, request.correlationId);
         }
 
@@ -150,7 +150,7 @@ export class InteractionHandler {
             PerformanceEvents.AuthClientAcquireToken,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            request.correlationId,
         )(this.authCodeRequest, authCodeResponse)) as AuthenticationResult;
         return tokenResponse;
     }
@@ -159,7 +159,7 @@ export class InteractionHandler {
      * Build ccs creds if available
      */
     protected createCcsCredentials(
-        request: AuthorizationUrlRequest
+        request: AuthorizationUrlRequest,
     ): CcsCredential | null {
         if (request.account) {
             return {

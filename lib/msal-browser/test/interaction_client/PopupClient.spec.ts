@@ -107,7 +107,7 @@ describe("PopupClient", () => {
             //@ts-ignore
             pca.nativeInternalStorage,
             undefined,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
         );
     });
 
@@ -154,8 +154,8 @@ describe("PopupClient", () => {
 
             expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
-                )
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                ),
             );
         });
 
@@ -174,8 +174,8 @@ describe("PopupClient", () => {
 
             expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid
-                )
+                    ClientConfigurationErrorCodes.missingSshKid,
+                ),
             );
         });
 
@@ -200,7 +200,7 @@ describe("PopupClient", () => {
 
             const popupSpy = sinon.stub(
                 PopupClient.prototype,
-                "openSizedPopup"
+                "openSizedPopup",
             );
 
             try {
@@ -241,7 +241,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -264,7 +264,7 @@ describe("PopupClient", () => {
 
             const popupSpy = sinon.stub(
                 PopupClient.prototype,
-                "openSizedPopup"
+                "openSizedPopup",
             );
 
             try {
@@ -275,16 +275,16 @@ describe("PopupClient", () => {
             expect(
                 popupSpy
                     .getCall(0)
-                    .args[0].startsWith(TEST_URIS.TEST_AUTH_ENDPT)
+                    .args[0].startsWith(TEST_URIS.TEST_AUTH_ENDPT),
             ).toBeTruthy();
             expect(popupSpy.getCall(0).args[0]).toContain(
-                `client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`
+                `client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`,
             );
             expect(popupSpy.getCall(0).args[0]).toContain(
-                `redirect_uri=${encodeURIComponent(request.redirectUri)}`
+                `redirect_uri=${encodeURIComponent(request.redirectUri)}`,
             );
             expect(popupSpy.getCall(0).args[0]).toContain(
-                `login_hint=${encodeURIComponent(request.loginHint || "")}`
+                `login_hint=${encodeURIComponent(request.loginHint || "")}`,
             );
         });
 
@@ -340,7 +340,7 @@ describe("PopupClient", () => {
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -365,13 +365,13 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             const nativeMessageHandler = new NativeMessageHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
-                getDefaultPerformanceClient()
+                getDefaultPerformanceClient(),
             );
             //@ts-ignore
             popupClient = new PopupClient(
@@ -391,7 +391,7 @@ describe("PopupClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                nativeMessageHandler
+                nativeMessageHandler,
             );
             const tokenResp = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -452,7 +452,7 @@ describe("PopupClient", () => {
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -477,7 +477,7 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             //@ts-ignore
             popupClient = new PopupClient(
@@ -496,7 +496,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             const result = await popupClient
@@ -507,11 +507,11 @@ describe("PopupClient", () => {
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
                         BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .code
+                            .code,
                     );
                     expect(e.errorMessage).toEqual(
                         BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .desc
+                            .desc,
                     );
                 });
         });
@@ -554,7 +554,7 @@ describe("PopupClient", () => {
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -579,7 +579,7 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             const tokenResp = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -591,7 +591,7 @@ describe("PopupClient", () => {
         it("throws hash_empty_error if popup returns to redirectUri without a hash", (done) => {
             jest.spyOn(
                 PopupClient.prototype,
-                "monitorPopupForHash"
+                "monitorPopupForHash",
             ).mockResolvedValue("");
 
             popupClient
@@ -602,8 +602,8 @@ describe("PopupClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashEmptyError
-                        )
+                            BrowserAuthErrorCodes.hashEmptyError,
+                        ),
                     );
                     done();
                 });
@@ -612,9 +612,9 @@ describe("PopupClient", () => {
         it("throws hash_does_not_contain_known_properties error if popup returns to redirectUri with unrecognized params in the hash", (done) => {
             jest.spyOn(
                 PopupClient.prototype,
-                "monitorPopupForHash"
+                "monitorPopupForHash",
             ).mockResolvedValue(
-                "#fakeKey=fakeValue&anotherFakeKey=anotherFakeValue"
+                "#fakeKey=fakeValue&anotherFakeKey=anotherFakeValue",
             );
 
             popupClient
@@ -625,8 +625,8 @@ describe("PopupClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-                        )
+                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                        ),
                     );
                     done();
                 });
@@ -635,22 +635,22 @@ describe("PopupClient", () => {
         describe("storeInCache tests", () => {
             beforeEach(() => {
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                    TEST_STATE_VALUES.TEST_STATE_POPUP
+                    TEST_STATE_VALUES.TEST_STATE_POPUP,
                 );
                 jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
-                    window
+                    window,
                 );
                 jest.spyOn(
                     PopupClient.prototype,
-                    "monitorPopupForHash"
+                    "monitorPopupForHash",
                 ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
                 jest.spyOn(
                     NetworkManager.prototype,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
                 jest.spyOn(
                     PkceGenerator,
-                    "generatePkceCodes"
+                    "generatePkceCodes",
                 ).mockResolvedValue({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -669,10 +669,10 @@ describe("PopupClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -694,10 +694,10 @@ describe("PopupClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -719,10 +719,10 @@ describe("PopupClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -736,7 +736,7 @@ describe("PopupClient", () => {
         it("catches error and cleans cache before rethrowing", async () => {
             const testError: AuthError = new AuthError(
                 "create_login_url_error",
-                "Error in creating a login url"
+                "Error in creating a login url",
             );
             sinon
                 .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
@@ -749,7 +749,7 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             try {
                 await popupClient.acquireToken({
@@ -760,14 +760,14 @@ describe("PopupClient", () => {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
-                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 );
                 const failureObj = JSON.parse(
-                    failures || ""
+                    failures || "",
                 ) as ServerTelemetryEntity;
                 expect(failureObj.failedRequests).toHaveLength(2);
                 expect(failureObj.failedRequests[0]).toEqual(
-                    ApiId.acquireTokenPopup
+                    ApiId.acquireTokenPopup,
                 );
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
                 expect(e).toEqual(testError);
@@ -794,7 +794,7 @@ describe("PopupClient", () => {
         it("opens popup window before network request by default", async () => {
             const popupSpy = sinon.stub(
                 PopupClient.prototype,
-                "openSizedPopup"
+                "openSizedPopup",
             );
 
             try {
@@ -835,7 +835,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             sinon
@@ -843,13 +843,13 @@ describe("PopupClient", () => {
                 .callsFake((urlNavigate, popupName) => {
                     expect(
                         urlNavigate.startsWith(
-                            TEST_URIS.TEST_END_SESSION_ENDPOINT
-                        )
+                            TEST_URIS.TEST_END_SESSION_ENDPOINT,
+                        ),
                     ).toBeTruthy();
                     expect(
                         popupName.startsWith(
-                            `msal.${TEST_CONFIG.MSAL_CLIENT_ID}`
-                        )
+                            `msal.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                        ),
                     ).toBeTruthy();
                     return null;
                 });
@@ -860,7 +860,7 @@ describe("PopupClient", () => {
         it("catches error and cleans cache before rethrowing", async () => {
             const testError: AuthError = new AuthError(
                 "create_logout_url_error",
-                "Error in creating a logout url"
+                "Error in creating a logout url",
             );
             sinon
                 .stub(AuthorizationCodeClient.prototype, "getLogoutUri")
@@ -872,10 +872,10 @@ describe("PopupClient", () => {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
-                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 );
                 const failureObj = JSON.parse(
-                    failures || ""
+                    failures || "",
                 ) as ServerTelemetryEntity;
                 expect(failureObj.failedRequests).toHaveLength(2);
                 expect(failureObj.failedRequests[0]).toEqual(ApiId.logoutPopup);
@@ -916,7 +916,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             sinon
@@ -924,13 +924,13 @@ describe("PopupClient", () => {
                 .callsFake((urlNavigate) => {
                     expect(
                         urlNavigate.startsWith(
-                            TEST_URIS.TEST_END_SESSION_ENDPOINT
-                        )
+                            TEST_URIS.TEST_END_SESSION_ENDPOINT,
+                        ),
                     ).toBeTruthy();
                     expect(urlNavigate).toContain(
                         `post_logout_redirect_uri=${encodeURIComponent(
-                            postLogoutRedirectUri
-                        )}`
+                            postLogoutRedirectUri,
+                        )}`,
                     );
                     throw "Stop Test";
                 });
@@ -976,7 +976,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.navigationClient,
                 //@ts-ignore
-                pca.performanceClient
+                pca.performanceClient,
             );
 
             sinon
@@ -984,13 +984,13 @@ describe("PopupClient", () => {
                 .callsFake((urlNavigate) => {
                     expect(
                         urlNavigate.startsWith(
-                            TEST_URIS.TEST_END_SESSION_ENDPOINT
-                        )
+                            TEST_URIS.TEST_END_SESSION_ENDPOINT,
+                        ),
                     ).toBeTruthy();
                     expect(urlNavigate).toContain(
                         `post_logout_redirect_uri=${encodeURIComponent(
-                            postLogoutRedirectUri
-                        )}`
+                            postLogoutRedirectUri,
+                        )}`,
                     );
                     throw "Stop Test";
                 });
@@ -1030,7 +1030,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             sinon
@@ -1038,13 +1038,13 @@ describe("PopupClient", () => {
                 .callsFake((urlNavigate) => {
                     expect(
                         urlNavigate.startsWith(
-                            TEST_URIS.TEST_END_SESSION_ENDPOINT
-                        )
+                            TEST_URIS.TEST_END_SESSION_ENDPOINT,
+                        ),
                     ).toBeTruthy();
                     expect(urlNavigate).toContain(
                         `post_logout_redirect_uri=${encodeURIComponent(
-                            window.location.href
-                        )}`
+                            window.location.href,
+                        )}`,
                     );
                     throw "Stop Test";
                 });
@@ -1082,7 +1082,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.navigationClient,
                 //@ts-ignore
-                pca.performanceClient
+                pca.performanceClient,
             );
             const logoutHint = "test@user.com";
 
@@ -1090,7 +1090,7 @@ describe("PopupClient", () => {
                 .stub(PopupClient.prototype, "openSizedPopup")
                 .callsFake((urlNavigate) => {
                     expect(urlNavigate).toContain(
-                        `logout_hint=${encodeURIComponent(logoutHint)}`
+                        `logout_hint=${encodeURIComponent(logoutHint)}`,
                     );
                     throw "Stop Test";
                 });
@@ -1134,7 +1134,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             const logoutHint = "test@user.com";
@@ -1177,7 +1177,7 @@ describe("PopupClient", () => {
                 .stub(PopupClient.prototype, "openSizedPopup")
                 .callsFake((urlNavigate) => {
                     expect(urlNavigate).toContain(
-                        `logout_hint=${encodeURIComponent(logoutHint)}`
+                        `logout_hint=${encodeURIComponent(logoutHint)}`,
                     );
                     throw "Stop Test";
                 });
@@ -1221,7 +1221,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
             const logoutHint = "test@user.com";
             const loginHint = "anothertest@user.com";
@@ -1264,10 +1264,10 @@ describe("PopupClient", () => {
                 .stub(PopupClient.prototype, "openSizedPopup")
                 .callsFake((urlNavigate) => {
                     expect(urlNavigate).toContain(
-                        `logout_hint=${encodeURIComponent(logoutHint)}`
+                        `logout_hint=${encodeURIComponent(logoutHint)}`,
                     );
                     expect(urlNavigate).not.toContain(
-                        `logout_hint=${encodeURIComponent(loginHint)}`
+                        `logout_hint=${encodeURIComponent(loginHint)}`,
                     );
                     throw "Stop Test";
                 });
@@ -1363,7 +1363,7 @@ describe("PopupClient", () => {
                 .stub(PopupClient.prototype, "cleanPopup")
                 .callsFake((popup) => {
                     window.sessionStorage.removeItem(
-                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
+                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                     );
                 });
             sinon
@@ -1389,7 +1389,7 @@ describe("PopupClient", () => {
             popupClient.openSizedPopup("http://localhost/", "popup", {});
 
             expect(windowOpenSpy.calledWith("http://localhost/", "popup")).toBe(
-                true
+                true,
             );
         });
 
@@ -1415,15 +1415,15 @@ describe("PopupClient", () => {
             popupClient.openSizedPopup(
                 "about:blank",
                 "popup",
-                testPopupWindowAttributes
+                testPopupWindowAttributes,
             );
 
             expect(
                 windowOpenSpy.calledWith(
                     "about:blank",
                     "popup",
-                    `width=100, height=100, top=100, left=100, scrollbars=yes`
-                )
+                    `width=100, height=100, top=100, left=100, scrollbars=yes`,
+                ),
             ).toBe(true);
         });
 
@@ -1435,8 +1435,8 @@ describe("PopupClient", () => {
                 windowOpenSpy.calledWith(
                     "about:blank",
                     "popup",
-                    `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`
-                )
+                    `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`,
+                ),
             ).toBe(true);
         });
 
@@ -1455,15 +1455,15 @@ describe("PopupClient", () => {
             popupClient.openSizedPopup(
                 "about:blank",
                 "popup",
-                testPopupWindowAttributes
+                testPopupWindowAttributes,
             );
 
             expect(
                 windowOpenSpy.calledWith(
                     "about:blank",
                     "popup",
-                    `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`
-                )
+                    `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`,
+                ),
             ).toBe(true);
         });
 
@@ -1478,15 +1478,15 @@ describe("PopupClient", () => {
             popupClient.openSizedPopup(
                 "about:blank",
                 "popup",
-                testPopupWindowAttributes
+                testPopupWindowAttributes,
             );
 
             expect(
                 windowOpenSpy.calledWith(
                     "about:blank",
                     "popup",
-                    `width=100, height=100, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`
-                )
+                    `width=100, height=100, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`,
+                ),
             ).toBe(true);
         });
 
@@ -1501,15 +1501,15 @@ describe("PopupClient", () => {
             popupClient.openSizedPopup(
                 "about:blank",
                 "popup",
-                testPopupWindowAttributes
+                testPopupWindowAttributes,
             );
 
             expect(
                 windowOpenSpy.calledWith(
                     "about:blank",
                     "popup",
-                    `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=100, left=100, scrollbars=yes`
-                )
+                    `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=100, left=100, scrollbars=yes`,
+                ),
             ).toBe(true);
         });
 
@@ -1524,15 +1524,15 @@ describe("PopupClient", () => {
             popupClient.openSizedPopup(
                 "about:blank",
                 "popup",
-                testPopupWindowAttributes
+                testPopupWindowAttributes,
             );
 
             expect(
                 windowOpenSpy.calledWith(
                     "about:blank",
                     "popup",
-                    `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`
-                )
+                    `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`,
+                ),
             ).toBe(true);
         });
 
@@ -1547,15 +1547,15 @@ describe("PopupClient", () => {
             popupClient.openSizedPopup(
                 "about:blank",
                 "popup",
-                testPopupWindowAttributes
+                testPopupWindowAttributes,
             );
 
             expect(
                 windowOpenSpy.calledWith(
                     "about:blank",
                     "popup",
-                    `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`
-                )
+                    `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`,
+                ),
             ).toBe(true);
         });
     });
@@ -1566,7 +1566,7 @@ describe("PopupClient", () => {
             pca.browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.INTERACTION_STATUS_KEY,
                 BrowserConstants.INTERACTION_IN_PROGRESS_VALUE,
-                true
+                true,
             );
             const popupWindow: Window = {
                 ...window,
@@ -1580,8 +1580,8 @@ describe("PopupClient", () => {
                     expect(
                         //@ts-ignore
                         pca.browserStorage.getTemporaryCache(
-                            TemporaryCacheKeys.INTERACTION_STATUS_KEY
-                        )
+                            TemporaryCacheKeys.INTERACTION_STATUS_KEY,
+                        ),
                     ).toBe(null);
                     done();
                 },
@@ -1681,7 +1681,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.nativeInternalStorage,
                 undefined,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
 
             const result = await popupClient
@@ -1689,7 +1689,7 @@ describe("PopupClient", () => {
                 .monitorPopupForHash(popup)
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.monitorPopupTimeoutError.code
+                        BrowserAuthErrorMessage.monitorPopupTimeoutError.code,
                     );
                 });
         });
@@ -1747,7 +1747,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.nativeInternalStorage,
                 undefined,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
 
             const popup = {
@@ -1790,11 +1790,11 @@ describe("PopupClient", () => {
         it("generatePopupName generates expected name", () => {
             const popupName = popupClient.generatePopupName(
                 ["scope1", "scope2"],
-                "https://login.microsoftonline.com/common"
+                "https://login.microsoftonline.com/common",
             );
 
             expect(popupName).toEqual(
-                `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.scope1-scope2.https://login.microsoftonline.com/common.${TEST_CONFIG.CORRELATION_ID}`
+                `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.scope1-scope2.https://login.microsoftonline.com/common.${TEST_CONFIG.CORRELATION_ID}`,
             );
         });
 
@@ -1812,7 +1812,7 @@ describe("PopupClient", () => {
             });
 
             expect(popupName).toEqual(
-                `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.homeAccountId.${TEST_CONFIG.CORRELATION_ID}`
+                `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.homeAccountId.${TEST_CONFIG.CORRELATION_ID}`,
             );
         });
 
@@ -1822,7 +1822,7 @@ describe("PopupClient", () => {
             });
 
             expect(popupName).toEqual(
-                `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.undefined.${TEST_CONFIG.CORRELATION_ID}`
+                `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.undefined.${TEST_CONFIG.CORRELATION_ID}`,
             );
         });
     });
@@ -1842,22 +1842,22 @@ describe("PopupClient", () => {
                 popupClient.initiateAuthRequest("", {
                     popupName: "name",
                     popupWindowAttributes: {},
-                })
+                }),
             ).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
             expect(() =>
                 popupClient.initiateAuthRequest("", {
                     popupName: "name",
                     popupWindowAttributes: {},
-                })
+                }),
             ).toThrow(BrowserAuthError);
 
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
-                BrowserAuthErrorMessage.emptyNavigateUriError.desc
+                BrowserAuthErrorMessage.emptyNavigateUriError.desc,
             );
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
-                BrowserAuthError
+                BrowserAuthError,
             );
         });
 
@@ -1880,10 +1880,10 @@ describe("PopupClient", () => {
                 url?: string | URL,
                 target?: string,
                 features?: string,
-                replace?: boolean
+                replace?: boolean,
             ): Window => {
                 expect(
-                    (url as string)?.startsWith(TEST_URIS.ALTERNATE_INSTANCE)
+                    (url as string)?.startsWith(TEST_URIS.ALTERNATE_INSTANCE),
                 ).toBe(true);
                 done();
                 return window;
@@ -1927,11 +1927,11 @@ describe("PopupClient", () => {
                 {
                     // @ts-ignore
                     popup: windowObject,
-                }
+                },
             );
 
             expect(assignSpy.calledWith("http://localhost/#/code=hello")).toBe(
-                true
+                true,
             );
             expect(popupWindow).toEqual(windowObject);
         });
@@ -1955,7 +1955,7 @@ describe("PopupClient", () => {
                 {
                     popupName: "name",
                     popupWindowAttributes: {},
-                }
+                },
             );
 
             expect(popupWindow).toEqual(window);
@@ -1977,10 +1977,10 @@ describe("PopupClient", () => {
             expect(() =>
                 popupClient.initiateAuthRequest(
                     "http://localhost/#/code=hello",
-                    { popupName: "name", popupWindowAttributes: {} }
-                )
+                    { popupName: "name", popupWindowAttributes: {} },
+                ),
             ).toThrow(
-                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError),
             );
         });
 
@@ -2001,10 +2001,10 @@ describe("PopupClient", () => {
                         popup: null,
                         popupName: "name",
                         popupWindowAttributes: {},
-                    }
-                )
+                    },
+                ),
             ).toThrow(
-                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
+                createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError),
             );
         });
     });

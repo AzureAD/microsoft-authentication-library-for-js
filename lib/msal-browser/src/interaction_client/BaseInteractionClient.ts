@@ -59,7 +59,7 @@ export abstract class BaseInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeMessageHandler?: NativeMessageHandler,
-        correlationId?: string
+        correlationId?: string,
     ) {
         this.config = config;
         this.browserStorage = storageImpl;
@@ -72,28 +72,28 @@ export abstract class BaseInteractionClient {
         this.logger = logger.clone(
             BrowserConstants.MSAL_SKU,
             version,
-            this.correlationId
+            this.correlationId,
         );
         this.performanceClient = performanceClient;
     }
 
     abstract acquireToken(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest
+        request: RedirectRequest | PopupRequest | SsoSilentRequest,
     ): Promise<AuthenticationResult | void>;
 
     abstract logout(
-        request: EndSessionRequest | ClearCacheRequest | undefined
+        request: EndSessionRequest | ClearCacheRequest | undefined,
     ): Promise<void>;
 
     protected async clearCacheOnLogout(
-        account?: AccountInfo | null
+        account?: AccountInfo | null,
     ): Promise<void> {
         if (account) {
             if (
                 AccountEntity.accountInfoIsEqual(
                     account,
                     this.browserStorage.getActiveAccount(),
-                    false
+                    false,
                 )
             ) {
                 this.logger.verbose("Setting active account to null");
@@ -102,21 +102,21 @@ export abstract class BaseInteractionClient {
             // Clear given account.
             try {
                 await this.browserStorage.removeAccount(
-                    AccountEntity.generateAccountCacheKey(account)
+                    AccountEntity.generateAccountCacheKey(account),
                 );
                 this.logger.verbose(
-                    "Cleared cache items belonging to the account provided in the logout request."
+                    "Cleared cache items belonging to the account provided in the logout request.",
                 );
             } catch (error) {
                 this.logger.error(
-                    "Account provided in logout request was not found. Local cache unchanged."
+                    "Account provided in logout request was not found. Local cache unchanged.",
                 );
             }
         } else {
             try {
                 this.logger.verbose(
                     "No account provided in logout request, clearing all cache items.",
-                    this.correlationId
+                    this.correlationId,
                 );
                 // Clear all accounts and tokens
                 await this.browserStorage.clear();
@@ -124,7 +124,7 @@ export abstract class BaseInteractionClient {
                 await this.browserCrypto.clearKeystore();
             } catch (e) {
                 this.logger.error(
-                    "Attempted to clear all MSAL cache items and failed. Local cache unchanged."
+                    "Attempted to clear all MSAL cache items and failed. Local cache unchanged.",
                 );
             }
         }
@@ -145,7 +145,7 @@ export abstract class BaseInteractionClient {
             BrowserUtils.getCurrentUri();
         return UrlString.getAbsoluteUrl(
             redirectUri,
-            BrowserUtils.getCurrentUri()
+            BrowserUtils.getCurrentUri(),
         );
     }
 
@@ -157,7 +157,7 @@ export abstract class BaseInteractionClient {
      */
     protected initializeServerTelemetryManager(
         apiId: number,
-        forceRefresh?: boolean
+        forceRefresh?: boolean,
     ): ServerTelemetryManager {
         this.logger.verbose("initializeServerTelemetryManager called");
         const telemetryPayload: ServerTelemetryRequest = {
@@ -171,7 +171,7 @@ export abstract class BaseInteractionClient {
 
         return new ServerTelemetryManager(
             telemetryPayload,
-            this.browserStorage
+            this.browserStorage,
         );
     }
 
@@ -184,11 +184,11 @@ export abstract class BaseInteractionClient {
     protected async getDiscoveredAuthority(
         requestAuthority?: string,
         requestAzureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
+        account?: AccountInfo,
     ): Promise<Authority> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-            this.correlationId
+            this.correlationId,
         );
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
@@ -208,14 +208,14 @@ export abstract class BaseInteractionClient {
         // fall back to the authority from config
         const builtAuthority = Authority.generateAuthority(
             userAuthority,
-            requestAzureCloudOptions || this.config.auth.azureCloudOptions
+            requestAzureCloudOptions || this.config.auth.azureCloudOptions,
         );
         const discoveredAuthority = await invokeAsync(
             AuthorityFactory.createDiscoveredInstance,
             PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            this.correlationId,
         )(
             builtAuthority,
             this.config.system.networkClient,
@@ -223,12 +223,12 @@ export abstract class BaseInteractionClient {
             authorityOptions,
             this.logger,
             this.correlationId,
-            this.performanceClient
+            this.performanceClient,
         );
 
         if (account && !discoveredAuthority.isAlias(account.environment)) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.authorityMismatch
+                ClientConfigurationErrorCodes.authorityMismatch,
             );
         }
 

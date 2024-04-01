@@ -14,7 +14,7 @@ describe("BrowserCrypto.ts Function Unit Tests", () => {
 
     it("createNewGuid is of valid format", () => {
         expect(BrowserCrypto.createNewGuid()).toMatch(
-            /^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i
+            /^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i,
         );
     });
 

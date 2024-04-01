@@ -138,7 +138,7 @@ function stubProvider(config: Configuration) {
     const logger = new Logger(
         newConfig.system.loggerOptions,
         "unittest",
-        "unittest"
+        "unittest",
     );
     const performanceClient = newConfig.telemetry.client;
 
@@ -149,7 +149,7 @@ function stubProvider(config: Configuration) {
                 logger,
                 2000,
                 performanceClient,
-                "test-extensionId"
+                "test-extensionId",
             );
         });
 }
@@ -180,16 +180,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         // Navigation not allowed in tests
         jest.spyOn(
             NavigationClient.prototype,
-            "navigateExternal"
+            "navigateExternal",
         ).mockImplementation();
         jest.spyOn(
             NavigationClient.prototype,
-            "navigateInternal"
+            "navigateInternal",
         ).mockImplementation();
 
         jest.spyOn(
             CacheManager.prototype,
-            "getAuthorityMetadataByAlias"
+            "getAuthorityMetadataByAlias",
         ).mockImplementation((host) => {
             const authorityMetadata: AuthorityMetadataEntity = {
                 aliases: [host],
@@ -254,17 +254,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const postMessageSpy: sinon.SinonSpy = sinon.spy(
                 window,
-                "postMessage"
+                "postMessage",
             );
             const initSpy: sinon.SinonSpy = sinon.spy(
                 PublicClientApplication.prototype,
-                "initialize"
+                "initialize",
             );
             // @ts-ignore
             const handshakeSpy: sinon.SinonSpy = sinon.spy(
                 NativeMessageHandler.prototype,
                 // @ts-ignore
-                "sendHandshakeRequest"
+                "sendHandshakeRequest",
             );
 
             let ports: Set<MessagePort> = new Set();
@@ -314,7 +314,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(apps[i].controller.initialized).toBeTruthy();
                     // @ts-ignore
                     expect(
-                        (apps[i] as any).controller.getNativeExtensionProvider()
+                        (
+                            apps[i] as any
+                        ).controller.getNativeExtensionProvider(),
                     ).toBeInstanceOf(NativeMessageHandler);
                 }
             } finally {
@@ -344,16 +346,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const postMessageSpy: sinon.SinonSpy = sinon.spy(
                 window,
-                "postMessage"
+                "postMessage",
             );
             const initSpy: sinon.SinonSpy = sinon.spy(
                 PublicClientApplication.prototype,
-                "initialize"
+                "initialize",
             );
             // @ts-ignore
             const createProviderSpy: sinon.SinonSpy = sinon.spy(
                 NativeMessageHandler,
-                "createProvider"
+                "createProvider",
             );
 
             let ports: Set<MessagePort> = new Set();
@@ -445,14 +447,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(createProviderSpy.called).toBeTruthy();
             // @ts-ignore
             expect(pca.nativeExtensionProvider).toBeInstanceOf(
-                NativeMessageHandler
+                NativeMessageHandler,
             );
         });
 
         it("does not create extension provider if allowNativeBroker is false", async () => {
             const createProviderSpy = sinon.spy(
                 NativeMessageHandler,
-                "createProvider"
+                "createProvider",
             );
             pca = new PublicClientApplication({
                 auth: {
@@ -584,7 +586,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(event.correlationId).toBeDefined();
                 expect(event.success).toBeTruthy();
                 expect(
-                    event["handleRedirectPromiseDurationMs"]
+                    event["handleRedirectPromiseDurationMs"],
                 ).toBeGreaterThanOrEqual(0);
                 expect(event["handleRedirectPromiseCallCount"]).toEqual(1);
                 expect(event.success).toBeTruthy();
@@ -650,12 +652,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.NATIVE_REQUEST,
                 JSON.stringify(nativeRequest),
-                true
+                true,
             );
             const redirectClientSpy = sinon
                 .stub(
                     NativeInteractionClient.prototype,
-                    "handleRedirectPromise"
+                    "handleRedirectPromise",
                 )
                 .callsFake(() => {
                     sinon.stub(pca, "getAllAccounts").returns([testAccount]);
@@ -700,15 +702,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(events.length).toEqual(1);
                     const event = events[0];
                     expect(event.name).toBe(
-                        PerformanceEvents.AcquireTokenRedirect
+                        PerformanceEvents.AcquireTokenRedirect,
                     );
                     expect(event.correlationId).toBeDefined();
                     expect(event.success).toBeTruthy();
                     expect(
-                        event["handleNativeRedirectPromiseDurationMs"]
+                        event["handleNativeRedirectPromiseDurationMs"],
                     ).toBeGreaterThanOrEqual(0);
                     expect(
-                        event["handleNativeRedirectPromiseCallCount"]
+                        event["handleNativeRedirectPromiseCallCount"],
                     ).toEqual(1);
                     expect(event.success).toBeTruthy();
                     pca.removePerformanceCallback(callbackId);
@@ -755,13 +757,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca.browserStorage.setTemporaryCache(
                     TemporaryCacheKeys.NATIVE_REQUEST,
                     JSON.stringify(nativeRequest),
-                    true
+                    true,
                 );
                 sinon.stub(pca, "getAllAccounts").returns([testAccount]);
                 sinon
                     .stub(
                         NativeInteractionClient.prototype,
-                        "handleRedirectPromise"
+                        "handleRedirectPromise",
                     )
                     .callsFake(() => {
                         return Promise.resolve(testTokenResponse);
@@ -863,32 +865,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_REDIR_URI
+                TEST_URIS.TEST_REDIR_URI,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
-                TEST_CONFIG.validAuthority
+                TEST_CONFIG.validAuthority,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
-                "123523"
+                "123523",
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -902,7 +904,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                base64Encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq)),
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -937,7 +939,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                    Date.now() + testServerTokenResponse.body.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -989,16 +991,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResponse1.scopes).toEqual(testTokenResponse.scopes);
             expect(tokenResponse1.idToken).toEqual(testTokenResponse.idToken);
             expect(tokenResponse1.idTokenClaims).toEqual(
-                expect.objectContaining(testTokenResponse.idTokenClaims)
+                expect.objectContaining(testTokenResponse.idTokenClaims),
             );
             expect(tokenResponse1.accessToken).toEqual(
-                testTokenResponse.accessToken
+                testTokenResponse.accessToken,
             );
             expect(
                 testTokenResponse.expiresOn &&
                     tokenResponse1.expiresOn &&
                     testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse1.expiresOn.getMilliseconds()
+                        tokenResponse1.expiresOn.getMilliseconds(),
             ).toBeTruthy();
 
             // Response from second promise
@@ -1007,16 +1009,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResponse2.scopes).toEqual(testTokenResponse.scopes);
             expect(tokenResponse2.idToken).toEqual(testTokenResponse.idToken);
             expect(tokenResponse2.idTokenClaims).toEqual(
-                expect.objectContaining(testTokenResponse.idTokenClaims)
+                expect.objectContaining(testTokenResponse.idTokenClaims),
             );
             expect(tokenResponse2.accessToken).toEqual(
-                testTokenResponse.accessToken
+                testTokenResponse.accessToken,
             );
             expect(
                 testTokenResponse.expiresOn &&
                     tokenResponse2.expiresOn &&
                     testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse2.expiresOn.getMilliseconds()
+                        tokenResponse2.expiresOn.getMilliseconds(),
             ).toBeTruthy();
 
             expect(tokenResponse1).toEqual(tokenResponse2);
@@ -1050,11 +1052,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("Looks for server code response in query param if OIDCOptions.serverResponseType is set to query", async () => {
             const responseSpy = jest.spyOn(
                 RedirectClient.prototype,
-                <any>"getRedirectResponse"
+                <any>"getRedirectResponse",
             );
             jest.spyOn(
                 BrowserCacheManager.prototype,
-                "isInteractionInProgress"
+                "isInteractionInProgress",
             ).mockReturnValue(true);
             const responseString = `?code=authCode&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`;
 
@@ -1094,8 +1096,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.loginRedirect().catch((e) => {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
                 done();
             });
@@ -1115,7 +1117,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("Uses default request if no request provided", (done) => {
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             sinon
                 .stub(StandardController.prototype, "acquireTokenRedirect")
@@ -1146,7 +1148,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .stub(RedirectHandler.prototype, "initiateAuthRequest")
                 .callsFake((navigateUrl): Promise<void> => {
                     expect(
-                        navigateUrl.startsWith(testNavUrlNoRequest)
+                        navigateUrl.startsWith(testNavUrlNoRequest),
                     ).toBeTruthy();
                     return Promise.resolve(done());
                 });
@@ -1155,7 +1157,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
 
             // @ts-ignore
@@ -1180,8 +1182,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.acquireTokenRedirect({ scopes: [] }).catch((e) => {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
                 done();
             });
@@ -1213,7 +1215,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
 
             const nativeAcquireTokenSpy = sinon
@@ -1308,7 +1310,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy = sinon.spy(
                 NativeInteractionClient.prototype,
-                "acquireTokenRedirect"
+                "acquireTokenRedirect",
             );
             const redirectSpy = sinon
                 .stub(RedirectClient.prototype, "acquireToken")
@@ -1357,7 +1359,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .callsFake(async () => {
                     throw new NativeAuthError(
                         "ContentError",
-                        "error in extension"
+                        "error in extension",
                     );
                 });
             const redirectSpy = sinon
@@ -1405,7 +1407,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .stub(NativeInteractionClient.prototype, "acquireTokenRedirect")
                 .callsFake(async () => {
                     throw createInteractionRequiredAuthError(
-                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
                     );
                 });
             const redirectSpy = sinon
@@ -1467,7 +1469,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .catch((e) => {
                     expect(
                         // @ts-ignore
-                        pca.browserStorage.getInteractionInProgress()
+                        pca.browserStorage.getInteractionInProgress(),
                     ).toBeFalsy();
                     expect(e.message).toEqual("testError");
                 });
@@ -1494,15 +1496,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
             );
             browserStorage.setInteractionInProgress(true);
             await expect(
-                pca.acquireTokenRedirect({ scopes: ["openid"] })
+                pca.acquireTokenRedirect({ scopes: ["openid"] }),
             ).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.interactionInProgress
-                )
+                    BrowserAuthErrorCodes.interactionInProgress,
+                ),
             );
         });
 
@@ -1513,30 +1515,30 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
             );
             const secondInstanceStorage = new BrowserCacheManager(
                 "different-client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
             );
             secondInstanceStorage.setInteractionInProgress(true);
 
             expect(browserStorage.isInteractionInProgress(true)).toBe(false);
             expect(browserStorage.isInteractionInProgress(false)).toBe(true);
             expect(secondInstanceStorage.isInteractionInProgress(true)).toBe(
-                true
+                true,
             );
             expect(secondInstanceStorage.isInteractionInProgress(false)).toBe(
-                true
+                true,
             );
             await expect(
-                pca.acquireTokenRedirect({ scopes: ["openid"] })
+                pca.acquireTokenRedirect({ scopes: ["openid"] }),
             ).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.interactionInProgress
-                )
+                    BrowserAuthErrorCodes.interactionInProgress,
+                ),
             );
         });
 
@@ -1560,11 +1562,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toEqual(
                         BrowserAuthErrorMessage.blockAcquireTokenInPopupsError
-                            .code
+                            .code,
                     );
                     expect(e.errorMessage).toEqual(
                         BrowserAuthErrorMessage.blockAcquireTokenInPopupsError
-                            .desc
+                            .desc,
                     );
                     done();
                 })
@@ -1577,12 +1579,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws an error if inside an iframe", async () => {
             const mockParentWindow = { ...window };
             jest.spyOn(window, "parent", "get").mockReturnValue(
-                mockParentWindow
+                mockParentWindow,
             );
             await expect(
-                pca.acquireTokenRedirect({ scopes: [] })
+                pca.acquireTokenRedirect({ scopes: [] }),
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
+                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe),
             );
         });
 
@@ -1598,8 +1600,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
             }
         });
@@ -1619,11 +1621,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             await pca.initialize();
             await expect(
-                pca.acquireTokenRedirect({ scopes: [] })
+                pca.acquireTokenRedirect({ scopes: [] }),
             ).rejects.toMatchObject(
                 createBrowserConfigurationAuthError(
-                    BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
-                )
+                    BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable,
+                ),
             );
         });
 
@@ -1723,8 +1725,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
             }
         });
@@ -1736,7 +1738,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             jest.spyOn(
                 PopupClient.prototype,
-                "initiateAuthRequest"
+                "initiateAuthRequest",
             ).mockImplementation(() => {
                 throw "Request object has been built at this point, no need to continue";
             });
@@ -1785,13 +1787,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             sinon
                 .stub(StandardController.prototype, "acquireTokenPopup")
@@ -1843,11 +1845,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(
-                pca.acquireTokenPopup({ scopes: [] })
+                pca.acquireTokenPopup({ scopes: [] }),
             ).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                )
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                ),
             );
         });
 
@@ -1892,7 +1894,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
 
             const nativeAcquireTokenSpy = sinon
@@ -1955,7 +1957,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy = sinon.spy(
                 NativeInteractionClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
             const popupSpy = sinon
                 .stub(PopupClient.prototype, "acquireToken")
@@ -2018,7 +2020,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .callsFake(async () => {
                     throw new NativeAuthError(
                         "ContentError",
-                        "error in extension"
+                        "error in extension",
                     );
                 });
             const popupSpy = sinon
@@ -2080,7 +2082,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .stub(NativeInteractionClient.prototype, "acquireToken")
                 .callsFake(async () => {
                     throw createInteractionRequiredAuthError(
-                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                        InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
                     );
                 });
             const popupSpy = sinon
@@ -2143,7 +2145,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .catch((e) => {
                     expect(
                         // @ts-ignore
-                        pca.browserStorage.getInteractionInProgress()
+                        pca.browserStorage.getInteractionInProgress(),
                     ).toBeFalsy();
                     expect(e.message).toEqual("testError");
                 });
@@ -2158,7 +2160,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             jest.spyOn(
                 PopupClient.prototype,
-                "initiateAuthRequest"
+                "initiateAuthRequest",
             ).mockImplementation(() => {
                 throw "Request object has been built at this point, no need to continue";
             });
@@ -2176,16 +2178,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
             );
             browserStorage.setInteractionInProgress(true);
 
             await expect(
-                pca.acquireTokenPopup({ scopes: [] })
+                pca.acquireTokenPopup({ scopes: [] }),
             ).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.interactionInProgress
-                )
+                    BrowserAuthErrorCodes.interactionInProgress,
+                ),
             );
         });
 
@@ -2199,11 +2201,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await expect(
-                pca.acquireTokenPopup({ scopes: [] })
+                pca.acquireTokenPopup({ scopes: [] }),
             ).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                )
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                ),
             );
         });
 
@@ -2418,11 +2420,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toEqual(
                         BrowserAuthErrorMessage.blockAcquireTokenInPopupsError
-                            .code
+                            .code,
                     );
                     expect(e.errorMessage).toEqual(
                         BrowserAuthErrorMessage.blockAcquireTokenInPopupsError
-                            .desc
+                            .desc,
                     );
                     done();
                 })
@@ -2451,8 +2453,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
             }
         });
@@ -2563,7 +2565,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .callsFake(async () => {
                     throw new NativeAuthError(
                         "ContentError",
-                        "error in extension"
+                        "error in extension",
                     );
                 });
             const silentSpy = sinon
@@ -2652,8 +2654,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
             }
         });
@@ -2846,8 +2848,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
             }
         });
@@ -2928,7 +2930,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .callsFake(async () => {
                     throw new NativeAuthError(
                         "ContentError",
-                        "something went wrong in the extension"
+                        "something went wrong in the extension",
                     );
                 });
 
@@ -2956,7 +2958,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy = sinon.spy(
                 NativeInteractionClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             await pca
@@ -2967,11 +2969,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
                         BrowserAuthErrorMessage
-                            .unableToAcquireTokenFromNativePlatform.code
+                            .unableToAcquireTokenFromNativePlatform.code,
                     );
                     expect(e.errorMessage).toEqual(
                         BrowserAuthErrorMessage
-                            .unableToAcquireTokenFromNativePlatform.desc
+                            .unableToAcquireTokenFromNativePlatform.desc,
                     );
                 });
             expect(nativeAcquireTokenSpy.calledOnce).toBeFalsy();
@@ -3001,8 +3003,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
             }
         });
@@ -3043,7 +3045,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 silentClientSpy.calledWith({
                     code: "auth-code",
                     correlationId: testTokenResponse.correlationId,
-                })
+                }),
             ).toBe(true);
         });
 
@@ -3091,7 +3093,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 silentClientSpy.calledWith({
                     code: "auth-code",
                     correlationId: testTokenResponse.correlationId,
-                })
+                }),
             ).toBe(true);
         });
 
@@ -3138,15 +3140,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 silentClientSpy.calledWith({
                     code: "auth-code",
                     correlationId: testTokenResponse.correlationId,
-                })
+                }),
             ).toBe(true);
         });
 
         it("throws an error if falsey code is provided", () => {
             expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired
-                )
+                    BrowserAuthErrorCodes.authCodeOrNativeAccountIdRequired,
+                ),
             );
         });
 
@@ -3292,9 +3294,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("throws No Account error if no account is provided", async () => {
             await expect(
-                pca.acquireTokenSilent({ scopes: [] })
+                pca.acquireTokenSilent({ scopes: [] }),
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.noAccountError)
+                createBrowserAuthError(BrowserAuthErrorCodes.noAccountError),
             );
         });
 
@@ -3313,8 +3315,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
             }
         });
@@ -3424,7 +3426,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .callsFake(async () => {
                     throw new NativeAuthError(
                         "ContentError",
-                        "error in extension"
+                        "error in extension",
                     );
                 });
             const silentSpy = sinon
@@ -3531,11 +3533,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .resolves(testTokenResponse);
             const silentRefreshSpy = sinon.spy(
                 SilentRefreshClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
             const silentIframeSpy = sinon.spy(
                 SilentIframeClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             const response = await pca.acquireTokenSilent({
@@ -3561,7 +3563,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             jest.spyOn(
                 SilentCacheClient.prototype,
-                "acquireToken"
+                "acquireToken",
             ).mockRejectedValue(new Error("Test error message"));
 
             const callbackId = pca.addPerformanceCallback(
@@ -3570,7 +3572,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         expect(events.length).toEqual(1);
                         const event = events[0];
                         expect(event.name).toBe(
-                            PerformanceEvents.AcquireTokenSilent
+                            PerformanceEvents.AcquireTokenSilent,
                         );
                         expect(event.correlationId).toBeDefined();
                         expect(event.success).toBeFalsy();
@@ -3582,7 +3584,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     } catch (e) {
                         done(e);
                     }
-                }
+                },
             );
 
             pca.acquireTokenSilent({
@@ -3624,7 +3626,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .resolves(testTokenResponse);
             const silentIframeSpy = sinon.spy(
                 SilentIframeClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             const response = await pca.acquireTokenSilent({
@@ -3669,8 +3671,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .rejects(
                     new ServerError(
                         BrowserConstants.INVALID_GRANT_ERROR,
-                        "Refresh Token expired"
-                    )
+                        "Refresh Token expired",
+                    ),
                 );
             const silentIframeSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
@@ -3717,8 +3719,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .stub(SilentRefreshClient.prototype, "acquireToken")
                 .rejects(
                     createInteractionRequiredAuthError(
-                        InteractionRequiredAuthErrorCodes.noTokensFound
-                    )
+                        InteractionRequiredAuthErrorCodes.noTokensFound,
+                    ),
                 );
             const silentIframeSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
@@ -3773,25 +3775,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             const atsSpy = sinon.spy(
                 StandardController.prototype,
-                <any>"acquireTokenSilentAsync"
+                <any>"acquireTokenSilentAsync",
             );
             const silentATStub = sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    "acquireTokenByRefreshToken"
+                    "acquireTokenByRefreshToken",
                 )
                 .resolves(testTokenResponse);
             const tokenRequest: CommonSilentFlowRequest = {
@@ -3879,25 +3881,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             const atsSpy = sinon.spy(
                 StandardController.prototype,
-                <any>"acquireTokenSilentAsync"
+                <any>"acquireTokenSilentAsync",
             );
             const silentATStub = sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    "acquireTokenByRefreshToken"
+                    "acquireTokenByRefreshToken",
                 )
                 .resolves(testTokenResponse);
             const tokenRequest: CommonSilentFlowRequest = {
@@ -3975,13 +3977,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             sinon
                 .stub(CryptoOps.prototype, "hashString")
@@ -3989,7 +3991,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentATStub = sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    "acquireTokenByRefreshToken"
+                    "acquireTokenByRefreshToken",
                 )
                 .resolves(testTokenResponse);
             // Beaerer requests
@@ -4128,16 +4130,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentATStub.calledWith(expectedTokenRequest1)).toBeTruthy();
             expect(silentATStub.calledWith(expectedTokenRequest2)).toBeTruthy();
             expect(
-                silentATStub.calledWith(expectedPopTokenRequest1)
+                silentATStub.calledWith(expectedPopTokenRequest1),
             ).toBeTruthy();
             expect(
-                silentATStub.calledWith(expectedPopTokenRequest2)
+                silentATStub.calledWith(expectedPopTokenRequest2),
             ).toBeTruthy();
             expect(
-                silentATStub.calledWith(expectedSshCertificateRequest1)
+                silentATStub.calledWith(expectedSshCertificateRequest1),
             ).toBeTruthy();
             expect(
-                silentATStub.calledWith(expectedSshCertificateRequest2)
+                silentATStub.calledWith(expectedSshCertificateRequest2),
             ).toBeTruthy();
             expect(silentATStub.callCount).toEqual(6);
         });
@@ -4193,13 +4195,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             sinon
                 .stub(BrowserCrypto, "hashString")
@@ -4207,7 +4209,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentATStub = sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    "acquireTokenByRefreshToken"
+                    "acquireTokenByRefreshToken",
                 )
                 .resolves(testTokenResponse);
             // Beaerer requests
@@ -4394,22 +4396,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentATStub.calledWith(expectedTokenRequest1)).toBeTruthy();
             expect(silentATStub.calledWith(expectedTokenRequest2)).toBeTruthy();
             expect(
-                silentATStub.calledWith(expectedPopTokenRequest1)
+                silentATStub.calledWith(expectedPopTokenRequest1),
             ).toBeTruthy();
             expect(
-                silentATStub.calledWith(expectedPopTokenRequest2)
+                silentATStub.calledWith(expectedPopTokenRequest2),
             ).toBeTruthy();
             expect(
-                silentATStub.calledWith(expectedSshCertificateRequest1)
+                silentATStub.calledWith(expectedSshCertificateRequest1),
             ).toBeTruthy();
             expect(
-                silentATStub.calledWith(expectedSshCertificateRequest2)
+                silentATStub.calledWith(expectedSshCertificateRequest2),
             ).toBeTruthy();
             expect(
-                silentATStub.calledWith(expectedClaimsRequest1)
+                silentATStub.calledWith(expectedClaimsRequest1),
             ).toBeTruthy();
             expect(
-                silentATStub.calledWith(expectedClaimsRequest2)
+                silentATStub.calledWith(expectedClaimsRequest2),
             ).toBeTruthy();
             expect(silentATStub.callCount).toEqual(8);
         });
@@ -4417,7 +4419,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
             const testError: AuthError = new AuthError(
                 "create_login_url_error",
-                "Error in creating a login url"
+                "Error in creating a login url",
             );
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -4429,7 +4431,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"acquireTokenByRefreshToken"
+                    <any>"acquireTokenByRefreshToken",
                 )
                 .rejects(testError);
             try {
@@ -4441,14 +4443,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
-                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 );
                 const failureObj = JSON.parse(
-                    failures || ""
+                    failures || "",
                 ) as ServerTelemetryEntity;
                 expect(failureObj.failedRequests).toHaveLength(2);
                 expect(failureObj.failedRequests[0]).toEqual(
-                    ApiId.acquireTokenSilent_silentFlow
+                    ApiId.acquireTokenSilent_silentFlow,
                 );
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
                 expect(e).toEqual(testError);
@@ -4458,7 +4460,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws error that SilentFlowClient.acquireToken() throws when making parallel requests", async () => {
             const testError: AuthError = new AuthError(
                 "create_login_url_error",
-                "Error in creating a login url"
+                "Error in creating a login url",
             );
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -4469,12 +4471,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const atsSpy = sinon.spy(
                 StandardController.prototype,
-                <any>"acquireTokenSilentAsync"
+                <any>"acquireTokenSilentAsync",
             );
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"acquireTokenByRefreshToken"
+                    <any>"acquireTokenByRefreshToken",
                 )
                 .rejects(testError);
             const tokenRequest = {
@@ -4499,14 +4501,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(atsSpy.calledOnce).toBe(true);
                 expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
-                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 );
                 const failureObj = JSON.parse(
-                    failures || ""
+                    failures || "",
                 ) as ServerTelemetryEntity;
                 expect(failureObj.failedRequests).toHaveLength(2);
                 expect(failureObj.failedRequests[0]).toEqual(
-                    ApiId.acquireTokenSilent_silentFlow
+                    ApiId.acquireTokenSilent_silentFlow,
                 );
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
                 expect(e).toEqual(testError);
@@ -4516,12 +4518,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("Falls back to silent handler if thrown error is a refresh token expired error", async () => {
             const invalidGrantError: ServerError = new ServerError(
                 "invalid_grant",
-                "AADSTS700081: The refresh token has expired due to maximum lifetime. The token was issued on xxxxxxx and the maximum allowed lifetime for this application is 1.00:00:00.\r\nTrace ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx\r\nCorrelation ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx\r\nTimestamp: 2020-0x-0x XX:XX:XXZ"
+                "AADSTS700081: The refresh token has expired due to maximum lifetime. The token was issued on xxxxxxx and the maximum allowed lifetime for this application is 1.00:00:00.\r\nTrace ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx\r\nCorrelation ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx\r\nTimestamp: 2020-0x-0x XX:XX:XXZ",
             );
             sinon
                 .stub(
                     RefreshTokenClient.prototype,
-                    <any>"acquireTokenByRefreshToken"
+                    <any>"acquireTokenByRefreshToken",
                 )
                 .rejects(invalidGrantError);
             const testServerTokenResponse = {
@@ -4561,7 +4563,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -4574,7 +4576,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             sinon
                 .stub(ProtocolUtils, "setRequestState")
@@ -4601,12 +4603,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 responseMode: ResponseMode.FRAGMENT,
             };
             const tokenResp = await pca.acquireTokenSilent(
-                CommonSilentFlowRequest
+                CommonSilentFlowRequest,
             );
 
             expect(tokenResp).toEqual(testTokenResponse);
             expect(silentTokenHelperStub.args[0][1]).toEqual(
-                expect.objectContaining(expectedRequest)
+                expect.objectContaining(expectedRequest),
             );
         });
 
@@ -4649,7 +4651,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -4667,7 +4669,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const atsSpy = sinon
                 .stub(
                     StandardController.prototype,
-                    <any>"acquireTokenSilentAsync"
+                    <any>"acquireTokenSilentAsync",
                 )
                 .resolves({
                     fromCache: true,
@@ -4722,8 +4724,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .rejects(
                     new ServerError(
                         BrowserConstants.INVALID_GRANT_ERROR,
-                        "Refresh Token expired"
-                    )
+                        "Refresh Token expired",
+                    ),
                 );
             const silentIframeSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
@@ -4779,8 +4781,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .rejects(
                     new ServerError(
                         BrowserConstants.INVALID_GRANT_ERROR,
-                        "Refresh Token expired"
-                    )
+                        "Refresh Token expired",
+                    ),
                 );
             const silentIframeSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
@@ -4848,7 +4850,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -4866,7 +4868,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const atsSpy = sinon
                 .stub(
                     StandardController.prototype,
-                    <any>"acquireTokenSilentAsync"
+                    <any>"acquireTokenSilentAsync",
                 )
                 .rejects(new AuthError("abc", "error message", "defg"));
 
@@ -4907,11 +4909,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const refreshRequiredCacheError = createClientAuthError(
-                ClientAuthErrorCodes.tokenRefreshRequired
+                ClientAuthErrorCodes.tokenRefreshRequired,
             );
             const refreshRequiredServerError = new ServerError(
                 BrowserConstants.INVALID_GRANT_ERROR,
-                "Refresh Token expired"
+                "Refresh Token expired",
             );
 
             afterEach(() => {
@@ -4948,8 +4950,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .spyOn(SilentRefreshClient.prototype, "acquireToken")
                     .mockRejectedValue(
                         createInteractionRequiredAuthError(
-                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                        )
+                            InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                        ),
                     );
                 const silentIframeSpy = jest
                     .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -4972,11 +4974,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .rejects(refreshRequiredCacheError);
                 const silentRefreshSpy = sinon.stub(
                     SilentRefreshClient.prototype,
-                    "acquireToken"
+                    "acquireToken",
                 );
                 const silentIframeSpy = sinon.stub(
                     SilentIframeClient.prototype,
-                    "acquireToken"
+                    "acquireToken",
                 );
 
                 const response = pca.acquireTokenSilent({
@@ -4985,7 +4987,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     cacheLookupPolicy: CacheLookupPolicy.AccessToken,
                 });
                 await expect(response).rejects.toMatchObject(
-                    refreshRequiredCacheError
+                    refreshRequiredCacheError,
                 );
                 expect(silentCacheSpy.calledOnce).toBeTruthy();
                 expect(silentRefreshSpy.notCalled).toBeTruthy();
@@ -5001,7 +5003,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .rejects(refreshRequiredServerError);
                 const silentIframeSpy = sinon.stub(
                     SilentIframeClient.prototype,
-                    "acquireToken"
+                    "acquireToken",
                 );
 
                 const response = pca.acquireTokenSilent({
@@ -5011,7 +5013,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         CacheLookupPolicy.AccessTokenAndRefreshToken,
                 });
                 await expect(response).rejects.toMatchObject(
-                    refreshRequiredServerError
+                    refreshRequiredServerError,
                 );
                 expect(silentCacheSpy.calledOnce).toBeTruthy();
                 expect(silentRefreshSpy.calledOnce).toBeTruthy();
@@ -5021,14 +5023,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("Calls SilentRefreshClient.acquireToken, and doesn't call SilentCacheClient.acquireToken or SilentIframeClient.acquireToken if refresh token is expired when CacheLookupPolicy is set to RefreshToken", async () => {
                 const silentCacheSpy = sinon.stub(
                     SilentCacheClient.prototype,
-                    "acquireToken"
+                    "acquireToken",
                 );
                 const silentRefreshSpy = sinon
                     .stub(SilentRefreshClient.prototype, "acquireToken")
                     .rejects(refreshRequiredServerError);
                 const silentIframeSpy = sinon.stub(
                     SilentIframeClient.prototype,
-                    "acquireToken"
+                    "acquireToken",
                 );
 
                 const response = pca.acquireTokenSilent({
@@ -5037,7 +5039,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     cacheLookupPolicy: CacheLookupPolicy.RefreshToken,
                 });
                 await expect(response).rejects.toMatchObject(
-                    refreshRequiredServerError
+                    refreshRequiredServerError,
                 );
                 expect(silentCacheSpy.notCalled).toBeTruthy();
                 expect(silentRefreshSpy.calledOnce).toBeTruthy();
@@ -5047,7 +5049,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("Calls SilentRefreshClient.acquireToken and SilentIframeClient.acquireToken, and doesn't call SilentCacheClient.acquireToken if refresh token is expired when CacheLookupPolicy is set to RefreshTokenAndNetwork", async () => {
                 const silentCacheSpy = sinon.stub(
                     SilentCacheClient.prototype,
-                    "acquireToken"
+                    "acquireToken",
                 );
                 const silentRefreshSpy = sinon
                     .stub(SilentRefreshClient.prototype, "acquireToken")
@@ -5070,11 +5072,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("Calls SilentIframeClient.acquireToken, and doesn't call SilentCacheClient.acquireToken or SilentRefreshClient.acquireToken when CacheLookupPolicy is set to Skip", async () => {
                 const silentCacheSpy = sinon.stub(
                     SilentCacheClient.prototype,
-                    "acquireToken"
+                    "acquireToken",
                 );
                 const silentRefreshSpy = sinon.stub(
                     SilentRefreshClient.prototype,
-                    "acquireToken"
+                    "acquireToken",
                 );
                 const silentIframeSpy = sinon
                     .stub(SilentIframeClient.prototype, "acquireToken")
@@ -5108,8 +5110,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.logout().catch((error: any) => {
                 expect(error).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
                 done();
             });
@@ -5118,7 +5120,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("calls logoutRedirect", (done) => {
             sinon.stub(pca, "logoutRedirect").callsFake((request) => {
                 expect(request && request.postLogoutRedirectUri).toBe(
-                    "/logout"
+                    "/logout",
                 );
                 done();
                 return Promise.resolve();
@@ -5157,8 +5159,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (error: any) {
                 expect(error).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
             }
         });
@@ -5187,10 +5189,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws an error if inside an iframe", async () => {
             const mockParentWindow = { ...window };
             jest.spyOn(window, "parent", "get").mockReturnValue(
-                mockParentWindow
+                mockParentWindow,
             );
             await expect(pca.logoutRedirect()).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe)
+                createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe),
             );
         });
     });
@@ -5212,8 +5214,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (error: any) {
                 expect(error).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ),
                 );
             }
         });
@@ -5246,14 +5248,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
             );
             browserStorage.setInteractionInProgress(true);
 
             await expect(pca.logoutPopup()).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.interactionInProgress
-                )
+                    BrowserAuthErrorCodes.interactionInProgress,
+                ),
             );
         });
     });
@@ -5273,7 +5275,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testIdToken: IdTokenEntity = buildIdToken(
             ID_TOKEN_CLAIMS,
             TEST_TOKENS.IDTOKEN_V2,
-            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
         );
         beforeEach(async () => {
             pca = (pca as any).controller;
@@ -5327,7 +5329,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const idToken1: IdTokenEntity = buildIdToken(
             ID_TOKEN_CLAIMS,
             TEST_TOKENS.IDTOKEN_V2,
-            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
         );
 
         // Account 2
@@ -5344,7 +5346,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const idToken2: IdTokenEntity = buildIdToken(
             ID_TOKEN_ALT_CLAIMS,
             TEST_TOKENS.IDTOKEN_V2_ALT,
-            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
         );
 
         beforeEach(async () => {
@@ -5391,7 +5393,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByUsername returns account specified", () => {
             const account = pca.getAccountByUsername(
-                ID_TOKEN_CLAIMS.preferred_username
+                ID_TOKEN_CLAIMS.preferred_username,
             );
             expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
@@ -5399,13 +5401,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByUsername returns account specified with case mismatch", () => {
             const account = pca.getAccountByUsername(
-                ID_TOKEN_CLAIMS.preferred_username.toUpperCase()
+                ID_TOKEN_CLAIMS.preferred_username.toUpperCase(),
             );
             expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
 
             const account2 = pca.getAccountByUsername(
-                ID_TOKEN_ALT_CLAIMS.preferred_username.toUpperCase()
+                ID_TOKEN_ALT_CLAIMS.preferred_username.toUpperCase(),
             );
             expect(account2?.idTokenClaims).not.toBeUndefined();
             expect(account2).toEqual(testAccountInfo2);
@@ -5413,7 +5415,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByUsername returns null if account doesn't exist", () => {
             const account = pca.getAccountByUsername(
-                "this-email-doesnt-exist@microsoft.com"
+                "this-email-doesnt-exist@microsoft.com",
             );
             expect(account).toBe(null);
         });
@@ -5426,7 +5428,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByHomeId returns account specified", () => {
             const account = pca.getAccountByHomeId(
-                testAccountInfo1.homeAccountId
+                testAccountInfo1.homeAccountId,
             );
             expect(account?.idTokenClaims).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
@@ -5473,7 +5475,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     });
                     expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
-                        testAccountInfo1.homeAccountId
+                        testAccountInfo1.homeAccountId,
                     );
                 });
                 it("getAccount returns account specified using username", () => {
@@ -5482,7 +5484,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     });
                     expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
-                        testAccountInfo2.homeAccountId
+                        testAccountInfo2.homeAccountId,
                     );
                 });
                 it("getAccount returns account specified using upn", () => {
@@ -5491,7 +5493,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     });
                     expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
-                        testAccountInfo1.homeAccountId
+                        testAccountInfo1.homeAccountId,
                     );
                 });
                 it("getAccount returns account specified using sid", () => {
@@ -5500,7 +5502,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     });
                     expect(account?.idTokenClaims).not.toBeUndefined();
                     expect(account?.homeAccountId).toEqual(
-                        testAccountInfo1.homeAccountId
+                        testAccountInfo1.homeAccountId,
                     );
                 });
             });
@@ -5553,7 +5555,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const idToken1: IdTokenEntity = buildIdToken(
             ID_TOKEN_CLAIMS,
             TEST_TOKENS.IDTOKEN_V2,
-            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
         );
 
         // Account 2
@@ -5569,7 +5571,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const idToken2: IdTokenEntity = buildIdToken(
             ID_TOKEN_ALT_CLAIMS,
             TEST_TOKENS.IDTOKEN_V2_ALT,
-            { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+            { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
         );
 
         beforeEach(async () => {
@@ -5632,9 +5634,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 localStorage.setIdTokenCredential(idToken1);
                 localStorage.setItem(
                     localStorage.generateCacheKey(
-                        PersistentCacheKeys.ACTIVE_ACCOUNT
+                        PersistentCacheKeys.ACTIVE_ACCOUNT,
                     ),
-                    testAccount1.localAccountId
+                    testAccount1.localAccountId,
                 );
 
                 const activeAccount = pcaLocal.getActiveAccount();
@@ -5650,10 +5652,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(activeAccount).not.toBeNull();
                     expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                     expect(activeAccount?.homeAccountId).toEqual(
-                        testAccountInfo1.homeAccountId
+                        testAccountInfo1.homeAccountId,
                     );
                     expect(activeAccount?.localAccountId).toEqual(
-                        testAccountInfo1.localAccountId
+                        testAccountInfo1.localAccountId,
                     );
                 });
 
@@ -5670,7 +5672,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     activeAccount = pca.getActiveAccount();
                     expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                     expect(pca.getActiveAccount()).not.toEqual(
-                        testAccountInfo1
+                        testAccountInfo1,
                     );
                     expect(pca.getActiveAccount()).toEqual(testAccountInfo2);
                 });
@@ -5706,12 +5708,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .callsFake(
                         (
                             urlNavigate: string,
-                            options: NavigationOptions
+                            options: NavigationOptions,
                         ): Promise<boolean> => {
                             expect(urlNavigate).toEqual(testLogoutUrl);
                             expect(options.noHistory).toBeFalsy();
                             return Promise.resolve(true);
-                        }
+                        },
                     );
                 const popupWindow = { ...window };
                 sinon
@@ -5779,7 +5781,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const callbackSpy = sinon.spy(
                 EventHandler.prototype,
-                "addEventCallback"
+                "addEventCallback",
             );
 
             pca.addEventCallback(subscriber);
@@ -5790,7 +5792,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("can remove an event callback", (done) => {
             const callbackSpy = sinon.spy(
                 EventHandler.prototype,
-                "removeEventCallback"
+                "removeEventCallback",
             );
 
             const callbackId = pca.addEventCallback(() => {});
@@ -5886,7 +5888,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const result = await pca.acquireTokenSilent(request); // Get tokens from the cache
             expect(result.accessToken).toEqual(
-                testAuthenticationResult.accessToken
+                testAuthenticationResult.accessToken,
             );
             expect(result.idToken).toEqual(testAuthenticationResult.idToken);
             expect(result.account).toEqual(testAccount);
@@ -5984,12 +5986,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Info,
                 expect.stringContaining("test info"),
-                false
+                false,
             );
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Verbose,
                 expect.stringContaining("test verbose"),
-                false
+                false,
             );
         });
 
@@ -6030,7 +6032,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Info,
                 expect.stringContaining("test info"),
-                false
+                false,
             );
         });
 
@@ -6073,17 +6075,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Info,
                 expect.stringContaining("test info"),
-                false
+                false,
             );
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Verbose,
                 expect.stringContaining("test verbose"),
-                false
+                false,
             );
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Verbose,
                 expect.stringContaining("test pii verbose"),
-                true
+                true,
             );
         });
 
@@ -6127,12 +6129,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Info,
                 expect.stringContaining("test info"),
-                false
+                false,
             );
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Verbose,
                 expect.stringContaining("test verbose"),
-                false
+                false,
             );
         });
 
@@ -6179,17 +6181,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Info,
                 expect.stringContaining("test info"),
-                false
+                false,
             );
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Verbose,
                 expect.stringContaining("test verbose"),
-                false
+                false,
             );
             expect(loggerCallbackStub).toHaveBeenCalledWith(
                 LogLevel.Verbose,
                 expect.stringContaining("test pii verbose"),
-                true
+                true,
             );
         });
     });

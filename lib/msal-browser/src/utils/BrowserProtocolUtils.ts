@@ -23,7 +23,7 @@ export type BrowserStateObject = {
  */
 export function extractBrowserRequestState(
     browserCrypto: ICrypto,
-    state: string
+    state: string,
 ): BrowserStateObject | null {
     if (!state) {
         return null;

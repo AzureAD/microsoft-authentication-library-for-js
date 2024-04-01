@@ -27,10 +27,10 @@ describe("Base64Encode.ts Unit Tests", () => {
         it("MSAL Test Vectors", () => {
             // Client Info B64
             expect(base64Encode(TEST_DATA_CLIENT_INFO.TEST_UID)).toBe(
-                TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED
+                TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED,
             );
             expect(base64Encode(TEST_DATA_CLIENT_INFO.TEST_UTID)).toBe(
-                TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED
+                TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED,
             );
         });
     });
@@ -59,10 +59,10 @@ describe("Base64Encode.ts Unit Tests", () => {
         it("MSAL Test Vectors", () => {
             // Client Info B64
             expect(urlEncode(TEST_DATA_CLIENT_INFO.TEST_UID)).toBe(
-                TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED
+                TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED,
             );
             expect(urlEncode(TEST_DATA_CLIENT_INFO.TEST_UTID)).toBe(
-                TEST_DATA_CLIENT_INFO.TEST_UTID_URLENCODED
+                TEST_DATA_CLIENT_INFO.TEST_UTID_URLENCODED,
             );
         });
 

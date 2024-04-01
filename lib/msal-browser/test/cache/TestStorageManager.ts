@@ -41,7 +41,7 @@ export class TestStorageManager extends CacheManager {
     removeAccountKeyFromMap(key: string): void {
         const currentAccounts = this.getAccountKeys();
         this.store[ACCOUNT_KEYS] = currentAccounts.filter(
-            (entry) => entry !== key
+            (entry) => entry !== key,
         );
     }
 
@@ -192,7 +192,7 @@ export class TestStorageManager extends CacheManager {
     }
     updateCredentialCacheKey(
         currentCacheKey: string,
-        credential: ValidCredentialType
+        credential: ValidCredentialType,
     ): string {
         const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 

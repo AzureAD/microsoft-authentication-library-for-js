@@ -95,7 +95,7 @@ const loggerOptions = {
     loggerCallback: (
         level: LogLevel,
         message: string,
-        containsPii: boolean
+        containsPii: boolean,
     ): void => {
         if (containsPii) {
             console.log(`Log level: ${level} Message: ${message}`);
@@ -129,16 +129,16 @@ describe("RedirectClient", () => {
         pca = (pca as any).controller;
 
         jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-            RANDOM_TEST_GUID
+            RANDOM_TEST_GUID,
         );
 
         jest.spyOn(
             NavigationClient.prototype,
-            "navigateExternal"
+            "navigateExternal",
         ).mockResolvedValue(true);
         jest.spyOn(
             NavigationClient.prototype,
-            "navigateInternal"
+            "navigateInternal",
         ).mockResolvedValue(true);
 
         // @ts-ignore
@@ -160,7 +160,7 @@ describe("RedirectClient", () => {
             //@ts-ignore
             pca.performanceClient,
             //@ts-ignore
-            pca.nativeInternalStorage
+            pca.nativeInternalStorage,
         );
     });
 
@@ -179,11 +179,11 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             redirectClient.handleRedirectPromise().then((response) => {
                 expect(response).toBe(null);
@@ -199,11 +199,11 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             redirectClient
                 .handleRedirectPromise("#code=ThisIsAnAuthCode")
@@ -221,11 +221,11 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
             redirectClient.handleRedirectPromise().then((response) => {
@@ -233,7 +233,7 @@ describe("RedirectClient", () => {
                 expect(window.localStorage.length).toEqual(0);
                 expect(window.sessionStorage.length).toEqual(0);
                 expect(window.location.hash).toEqual(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
                 );
                 done();
             });
@@ -245,19 +245,19 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             const testError: AuthError = new AuthError(
                 "Unexpected error!",
-                "Unexpected error"
+                "Unexpected error",
             );
             jest.spyOn(
                 RedirectClient.prototype,
-                <any>"getRedirectResponse"
+                <any>"getRedirectResponse",
             ).mockImplementation(() => {
                 throw testError;
             });
@@ -275,15 +275,15 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META
+                    TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META,
                 )
                 .then((response) => {
                     expect(response).toBe(null);
@@ -298,24 +298,24 @@ describe("RedirectClient", () => {
             browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.ORIGIN_URI,
                 window.location.href,
-                true
+                true,
             );
             const statekey = browserStorage.generateStateKey(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             browserStorage.setTemporaryCache(
                 statekey,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                true
+                true,
             );
 
             jest.spyOn(
                 RedirectClient.prototype,
-                <any>"handleResponse"
+                <any>"handleResponse",
             ).mockRejectedValue("Error in handleResponse");
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -328,31 +328,31 @@ describe("RedirectClient", () => {
         it("cleans temporary cache and re-throws error thrown by handleResponse after clientside navigation to loginRequestUrl", (done) => {
             jest.spyOn(
                 NavigationClient.prototype,
-                "navigateInternal"
+                "navigateInternal",
             ).mockResolvedValue(false); // Client-side navigation
 
             browserStorage.setInteractionInProgress(true);
             browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.ORIGIN_URI,
                 window.location.href + "/differentPath",
-                true
+                true,
             );
             const statekey = browserStorage.generateStateKey(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             browserStorage.setTemporaryCache(
                 statekey,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                true
+                true,
             );
 
             jest.spyOn(
                 RedirectClient.prototype,
-                <any>"handleResponse"
+                <any>"handleResponse",
             ).mockRejectedValue("Error in handleResponse");
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -367,20 +367,20 @@ describe("RedirectClient", () => {
             browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.ORIGIN_URI,
                 window.location.href + "/differentPath",
-                true
+                true,
             );
             const statekey = browserStorage.generateStateKey(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             browserStorage.setTemporaryCache(
                 statekey,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                true
+                true,
             );
 
             jest.spyOn(
                 RedirectClient.prototype,
-                <any>"handleResponse"
+                <any>"handleResponse",
             ).mockRejectedValue("Error in handleResponse");
             redirectClient = // @ts-ignore
                 redirectClient = new RedirectClient(
@@ -405,11 +405,11 @@ describe("RedirectClient", () => {
                     //@ts-ignore
                     pca.performanceClient,
                     //@ts-ignore
-                    pca.nativeInternalStorage
+                    pca.nativeInternalStorage,
                 );
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -424,32 +424,32 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_REDIR_URI
+                TEST_URIS.TEST_REDIR_URI,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
-                TEST_CONFIG.validAuthority
+                TEST_CONFIG.validAuthority,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
-                "123523"
+                "123523",
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -463,7 +463,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                base64Encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq)),
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -494,7 +494,7 @@ describe("RedirectClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                    Date.now() + testServerTokenResponse.body.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -521,16 +521,16 @@ describe("RedirectClient", () => {
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
             expect(tokenResponse?.idToken).toEqual(testTokenResponse.idToken);
             expect(tokenResponse?.idTokenClaims).toEqual(
-                expect.objectContaining(testTokenResponse.idTokenClaims)
+                expect.objectContaining(testTokenResponse.idTokenClaims),
             );
             expect(tokenResponse?.accessToken).toEqual(
-                testTokenResponse.accessToken
+                testTokenResponse.accessToken,
             );
             expect(
                 tokenResponse?.expiresOn &&
                     testTokenResponse.expiresOn &&
                     testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                        tokenResponse.expiresOn.getMilliseconds(),
             ).toBeTruthy();
         });
 
@@ -554,7 +554,7 @@ describe("RedirectClient", () => {
                 //@ts-ignore
                 pca.logger,
                 2000,
-                getDefaultPerformanceClient()
+                getDefaultPerformanceClient(),
             );
             // @ts-ignore
             redirectClient = new RedirectClient(
@@ -573,39 +573,39 @@ describe("RedirectClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                nativeMessageHandler
+                nativeMessageHandler,
             );
 
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_REDIR_URI
+                TEST_URIS.TEST_REDIR_URI,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
-                TEST_CONFIG.validAuthority
+                TEST_CONFIG.validAuthority,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
-                TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT
+                TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
-                "123523"
+                "123523",
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -619,7 +619,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                base64Encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq)),
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -639,7 +639,7 @@ describe("RedirectClient", () => {
             const testAccount: AccountInfo = buildAccountFromIdTokenClaims(
                 ID_TOKEN_CLAIMS,
                 undefined,
-                { nativeAccountId: "test-nativeAccountId" }
+                { nativeAccountId: "test-nativeAccountId" },
             ).getAccountInfo();
 
             const testTokenResponse: AuthenticationResult = {
@@ -653,7 +653,7 @@ describe("RedirectClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                    Date.now() + testServerTokenResponse.body.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -680,16 +680,16 @@ describe("RedirectClient", () => {
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
             expect(tokenResponse?.idToken).toEqual(testTokenResponse.idToken);
             expect(tokenResponse?.idTokenClaims).toEqual(
-                expect.objectContaining(testTokenResponse.idTokenClaims)
+                expect.objectContaining(testTokenResponse.idTokenClaims),
             );
             expect(tokenResponse?.accessToken).toEqual(
-                testTokenResponse.accessToken
+                testTokenResponse.accessToken,
             );
             expect(
                 tokenResponse?.expiresOn &&
                     testTokenResponse.expiresOn &&
                     testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                        tokenResponse.expiresOn.getMilliseconds(),
             ).toBeTruthy();
         });
 
@@ -722,39 +722,39 @@ describe("RedirectClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_REDIR_URI
+                TEST_URIS.TEST_REDIR_URI,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
-                TEST_CONFIG.validAuthority
+                TEST_CONFIG.validAuthority,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
-                TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT
+                TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
-                "123523"
+                "123523",
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -768,15 +768,15 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                base64Encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq)),
             );
 
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e.errorCode).toEqual(
-                    BrowserAuthErrorMessage.nativeConnectionNotEstablished.code
+                    BrowserAuthErrorMessage.nativeConnectionNotEstablished.code,
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc
+                    BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc,
                 );
                 done();
             });
@@ -787,28 +787,28 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_REDIR_URI
+                TEST_URIS.TEST_REDIR_URI,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
-                "123523"
+                "123523",
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -822,14 +822,14 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                base64Encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq)),
             );
 
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.noCachedAuthorityError
-                    )
+                        BrowserAuthErrorCodes.noCachedAuthorityError,
+                    ),
                 );
                 expect(window.sessionStorage.length).toEqual(1); // telemetry
                 done();
@@ -851,32 +851,32 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest))
+                browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)),
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_REDIR_URI
+                TEST_URIS.TEST_REDIR_URI,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
-                TEST_CONFIG.validAuthority
+                TEST_CONFIG.validAuthority,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
-                TEST_HASHES.TEST_ERROR_HASH
+                TEST_HASHES.TEST_ERROR_HASH,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
 
             redirectClient.handleRedirectPromise().catch((err) => {
@@ -890,29 +890,29 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_REDIR_URI
+                TEST_URIS.TEST_REDIR_URI,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
-                TEST_CONFIG.validAuthority
+                TEST_CONFIG.validAuthority,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
-                "123523"
+                "123523",
             );
 
             const testTokenReq: CommonAuthorizationCodeRequest = {
@@ -928,7 +928,7 @@ describe("RedirectClient", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                base64Encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq)),
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -959,7 +959,7 @@ describe("RedirectClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                    Date.now() + testServerTokenResponse.body.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -1008,7 +1008,7 @@ describe("RedirectClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
@@ -1017,16 +1017,16 @@ describe("RedirectClient", () => {
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
             expect(tokenResponse?.idToken).toEqual(testTokenResponse.idToken);
             expect(tokenResponse?.idTokenClaims).toEqual(
-                expect.objectContaining(testTokenResponse.idTokenClaims)
+                expect.objectContaining(testTokenResponse.idTokenClaims),
             );
             expect(tokenResponse?.accessToken).toEqual(
-                testTokenResponse.accessToken
+                testTokenResponse.accessToken,
             );
             expect(
                 testTokenResponse.expiresOn &&
                     tokenResponse?.expiresOn &&
                     testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                        tokenResponse.expiresOn.getMilliseconds(),
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1036,29 +1036,29 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
-                TEST_CONFIG.validAuthority
+                TEST_CONFIG.validAuthority,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
-                "123523"
+                "123523",
             );
 
             const testTokenReq: CommonAuthorizationCodeRequest = {
@@ -1074,7 +1074,7 @@ describe("RedirectClient", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                base64Encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq)),
             );
             const testServerTokenResponse: NetworkResponse<ServerAuthorizationTokenResponse> =
                 {
@@ -1106,7 +1106,8 @@ describe("RedirectClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in! * 1000
+                    Date.now() +
+                        testServerTokenResponse.body.expires_in! * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -1141,7 +1142,7 @@ describe("RedirectClient", () => {
             const navigationClient = new NavigationClient();
             navigationClient.navigateInternal = async (
                 url: string,
-                options: NavigationOptions
+                options: NavigationOptions,
             ): Promise<boolean> => {
                 callbackCalled = true;
                 expect(url).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
@@ -1168,7 +1169,7 @@ describe("RedirectClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
@@ -1182,14 +1183,14 @@ describe("RedirectClient", () => {
             expect(tokenResponse.scopes).toEqual(testTokenResponse.scopes);
             expect(tokenResponse.idToken).toEqual(testTokenResponse.idToken);
             expect(tokenResponse.idTokenClaims).toEqual(
-                expect.objectContaining(testTokenResponse.idTokenClaims)
+                expect.objectContaining(testTokenResponse.idTokenClaims),
             );
             expect(tokenResponse.accessToken).toEqual(
-                testTokenResponse.accessToken
+                testTokenResponse.accessToken,
             );
             expect(
                 testTokenResponse.expiresOn!.getMilliseconds() >=
-                    tokenResponse.expiresOn!.getMilliseconds()
+                    tokenResponse.expiresOn!.getMilliseconds(),
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1199,29 +1200,29 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
                 browserCrypto,
-                stateString
+                stateString,
             ).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
-                TEST_CONFIG.validAuthority
+                TEST_CONFIG.validAuthority,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                TEST_CONFIG.MSAL_CLIENT_ID,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
-                "123523"
+                "123523",
             );
 
             const testTokenReq: CommonAuthorizationCodeRequest = {
@@ -1237,7 +1238,7 @@ describe("RedirectClient", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                base64Encode(JSON.stringify(testTokenReq))
+                base64Encode(JSON.stringify(testTokenReq)),
             );
             const testServerTokenResponse = {
                 headers: {},
@@ -1268,7 +1269,7 @@ describe("RedirectClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                    Date.now() + testServerTokenResponse.body.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -1317,7 +1318,7 @@ describe("RedirectClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
@@ -1326,16 +1327,16 @@ describe("RedirectClient", () => {
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
             expect(tokenResponse?.idToken).toEqual(testTokenResponse.idToken);
             expect(tokenResponse?.idTokenClaims).toEqual(
-                expect.objectContaining(testTokenResponse.idTokenClaims)
+                expect.objectContaining(testTokenResponse.idTokenClaims),
             );
             expect(tokenResponse?.accessToken).toEqual(
-                testTokenResponse.accessToken
+                testTokenResponse.accessToken,
             );
             expect(
                 testTokenResponse.expiresOn &&
                     tokenResponse?.expiresOn &&
                     testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                        tokenResponse.expiresOn.getMilliseconds(),
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1345,7 +1346,7 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
             );
             expect(await redirectClient.handleRedirectPromise()).toBe(null);
         });
@@ -1357,22 +1358,22 @@ describe("RedirectClient", () => {
                 "different-client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
             );
             secondInstanceStorage.setInteractionInProgress(true);
             browserStorage.setInteractionInProgress(false);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
             );
             expect(browserStorage.isInteractionInProgress(true)).toBe(false);
             expect(browserStorage.isInteractionInProgress(false)).toBe(true);
             expect(secondInstanceStorage.isInteractionInProgress(true)).toBe(
-                true
+                true,
             );
             expect(secondInstanceStorage.isInteractionInProgress(false)).toBe(
-                true
+                true,
             );
             expect(await redirectClient.handleRedirectPromise()).toBe(null);
         });
@@ -1382,28 +1383,28 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
             );
             sinon
                 .stub(NavigationClient.prototype, "navigateInternal")
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeTruthy();
                         expect(options.timeout).toBeGreaterThan(0);
                         expect(urlNavigate).toEqual(
-                            TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                            TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                         );
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             await redirectClient.handleRedirectPromise();
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
-                )
+                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                ),
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -1444,35 +1445,35 @@ describe("RedirectClient", () => {
                 // @ts-ignore
                 pca.performanceClient,
                 // @ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
             );
             sinon
                 .stub(NavigationClient.prototype, "navigateInternal")
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeTruthy();
                         expect(options.timeout).toBeGreaterThan(0);
                         expect(urlNavigate).toEqual(
-                            TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                            TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                         );
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             await redirectClient.handleRedirectPromise();
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
-                )
+                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                ),
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -1484,25 +1485,25 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeTruthy();
                         expect(options.timeout).toBeGreaterThan(0);
                         expect(urlNavigate).toEqual("https://localhost:8081/");
                         expect(
                             window.sessionStorage.getItem(
-                                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
-                            )
+                                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                            ),
                         ).toEqual("https://localhost:8081/");
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.handleRedirectPromise();
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
-                )
+                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                ),
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -1511,32 +1512,32 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                "null"
+                "null",
             );
             sinon
                 .stub(NavigationClient.prototype, "navigateInternal")
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeTruthy();
                         expect(options.timeout).toBeGreaterThan(0);
                         expect(urlNavigate).toEqual("https://localhost:8081/");
                         expect(
                             window.sessionStorage.getItem(
-                                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
-                            )
+                                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                            ),
                         ).toEqual("https://localhost:8081/");
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.handleRedirectPromise();
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
-                )
+                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                ),
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -1546,27 +1547,27 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                loginRequestUrl
+                loginRequestUrl,
             );
             sinon
                 .stub(NavigationClient.prototype, "navigateInternal")
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeTruthy();
                         expect(options.timeout).toBeGreaterThan(0);
                         expect(urlNavigate).toEqual(loginRequestUrl);
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.handleRedirectPromise();
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
-                )
+                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                ),
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -1577,27 +1578,27 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                loginRequestUrl
+                loginRequestUrl,
             );
             sinon
                 .stub(NavigationClient.prototype, "navigateInternal")
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeTruthy();
                         expect(options.timeout).toBeGreaterThan(0);
                         expect(urlNavigate).toEqual(loginRequestUrl);
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.handleRedirectPromise();
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
-                )
+                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                ),
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -1607,11 +1608,11 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                loginRequestUrl
+                loginRequestUrl,
             );
             jest.spyOn(
                 RedirectClient.prototype,
-                <any>"handleResponse"
+                <any>"handleResponse",
             ).mockImplementation((response) => {
                 expect(response).toEqual({
                     code: "thisIsATestCode",
@@ -1629,11 +1630,11 @@ describe("RedirectClient", () => {
             const loginRequestUrl = window.location.href + "#testHash";
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                loginRequestUrl
+                loginRequestUrl,
             );
             jest.spyOn(
                 RedirectClient.prototype,
-                <any>"handleResponse"
+                <any>"handleResponse",
             ).mockImplementation((response) => {
                 expect(response).toEqual({
                     code: "thisIsATestCode",
@@ -1643,7 +1644,7 @@ describe("RedirectClient", () => {
             });
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                 )
                 .then(() => {
                     expect(window.location.href).toEqual(loginRequestUrl);
@@ -1654,11 +1655,11 @@ describe("RedirectClient", () => {
             browserStorage.setInteractionInProgress(true);
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                window.location.href
+                window.location.href,
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
             );
 
             window.location.hash = "testHash";
@@ -1666,7 +1667,7 @@ describe("RedirectClient", () => {
 
             jest.spyOn(
                 RedirectClient.prototype,
-                <any>"handleResponse"
+                <any>"handleResponse",
             ).mockImplementation((response) => {
                 expect(response).toEqual({
                     code: "thisIsATestCode",
@@ -1689,11 +1690,11 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                loginRequestUrl
+                loginRequestUrl,
             );
             jest.spyOn(
                 RedirectClient.prototype,
-                <any>"handleResponse"
+                <any>"handleResponse",
             ).mockImplementation((response) => {
                 expect(response).toEqual({
                     code: "thisIsATestCode",
@@ -1712,7 +1713,7 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                loginRequestUrl
+                loginRequestUrl,
             );
 
             redirectClient.handleRedirectPromise().then((response) => {
@@ -1749,7 +1750,7 @@ describe("RedirectClient", () => {
                 // @ts-ignore
                 pca.performanceClient,
                 // @ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             browserStorage.setInteractionInProgress(true);
@@ -1757,11 +1758,11 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                loginRequestUrl
+                loginRequestUrl,
             );
             jest.spyOn(
                 RedirectClient.prototype,
-                <any>"handleResponse"
+                <any>"handleResponse",
             ).mockImplementation((response) => {
                 expect(window.location.href).not.toContain("#testHash");
                 expect(response).toEqual({
@@ -1790,8 +1791,8 @@ describe("RedirectClient", () => {
 
             expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk
-                )
+                    ClientConfigurationErrorCodes.missingSshJwk,
+                ),
             );
         });
 
@@ -1810,8 +1811,8 @@ describe("RedirectClient", () => {
 
             expect(redirectClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshKid
-                )
+                    ClientConfigurationErrorCodes.missingSshKid,
+                ),
             );
         });
 
@@ -1868,12 +1869,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const testLogger = new Logger(loggerOptions);
 
@@ -1882,29 +1883,29 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateStateKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateNonceKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(RANDOM_TEST_GUID);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateAuthorityKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
         });
 
@@ -1915,7 +1916,7 @@ describe("RedirectClient", () => {
                     expect(eventName).toEqual("pageshow");
                     // @ts-ignore
                     bfCacheCallback = callback;
-                }
+                },
             );
             const emptyRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -1942,7 +1943,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
 
             sinon
@@ -1950,66 +1951,66 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(browserStorage.isInteractionInProgress()).toBe(
-                            true
+                            true,
                         );
                         expect(
                             browserStorage.getTemporaryCache(
                                 browserStorage.generateStateKey(
-                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                                )
-                            )
+                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                                ),
+                            ),
                         ).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
                         expect(
                             browserStorage.getTemporaryCache(
                                 browserStorage.generateNonceKey(
-                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                                )
-                            )
+                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                                ),
+                            ),
                         ).toEqual(RANDOM_TEST_GUID);
                         expect(
                             browserStorage.getTemporaryCache(
                                 browserStorage.generateAuthorityKey(
-                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                                )
-                            )
+                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                                ),
+                            ),
                         ).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
                         bfCacheCallback({ persisted: true });
                         expect(
                             eventSpy.calledWith(
                                 EventType.RESTORE_FROM_BFCACHE,
-                                InteractionType.Redirect
-                            )
+                                InteractionType.Redirect,
+                            ),
                         ).toBe(true);
                         expect(browserStorage.isInteractionInProgress()).toBe(
-                            false
+                            false,
                         );
                         expect(
                             browserStorage.getTemporaryCache(
                                 browserStorage.generateStateKey(
-                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                                )
-                            )
+                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                                ),
+                            ),
                         ).toEqual(null);
                         expect(
                             browserStorage.getTemporaryCache(
                                 browserStorage.generateNonceKey(
-                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                                )
-                            )
+                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                                ),
+                            ),
                         ).toEqual(null);
                         expect(
                             browserStorage.getTemporaryCache(
                                 browserStorage.generateAuthorityKey(
-                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                                )
-                            )
+                                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                                ),
+                            ),
                         ).toEqual(null);
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             browserStorage.setInteractionInProgress(true); // This happens in PCA so need to set manually here
             redirectClient.acquireToken(emptyRequest);
@@ -2043,12 +2044,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const testLogger = new Logger(loggerOptions);
 
@@ -2057,35 +2058,35 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateStateKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateNonceKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(RANDOM_TEST_GUID);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateAuthorityKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
             expect(
                 browserStorage.getTemporaryCache(
                     TemporaryCacheKeys.CCS_CREDENTIAL,
-                    true
-                )
+                    true,
+                ),
             ).toEqual(JSON.stringify(testCcsCred));
         });
 
@@ -2119,12 +2120,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const testLogger = new Logger(loggerOptions);
 
@@ -2133,35 +2134,35 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateStateKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateNonceKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(RANDOM_TEST_GUID);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateAuthorityKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
             expect(
                 browserStorage.getTemporaryCache(
                     TemporaryCacheKeys.CCS_CREDENTIAL,
-                    true
-                )
+                    true,
+                ),
             ).toEqual(JSON.stringify(testCcsCred));
         });
 
@@ -2188,12 +2189,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
 
             const browserCrypto = new CryptoOps(new Logger({}));
@@ -2202,27 +2203,27 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(
                 browserCrypto.base64Decode(
                     browserStorage.getTemporaryCache(
                         TemporaryCacheKeys.REQUEST_PARAMS,
-                        true
-                    ) || ""
-                )
+                        true,
+                    ) || "",
+                ),
             );
             expect(cachedRequest.scopes).toEqual([]);
             expect(cachedRequest.codeVerifier).toEqual(
-                TEST_CONFIG.TEST_VERIFIER
+                TEST_CONFIG.TEST_VERIFIER,
             );
             expect(cachedRequest.authority).toEqual(
-                `${Constants.DEFAULT_AUTHORITY}`
+                `${Constants.DEFAULT_AUTHORITY}`,
             );
             expect(cachedRequest.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(cachedRequest.authenticationScheme).toEqual(
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             );
         });
 
@@ -2245,7 +2246,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2266,14 +2267,14 @@ describe("RedirectClient", () => {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
-                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 );
                 const failureObj = JSON.parse(
-                    failures || ""
+                    failures || "",
                 ) as ServerTelemetryEntity;
                 expect(failureObj.failedRequests).toHaveLength(2);
                 expect(failureObj.failedRequests[0]).toEqual(
-                    ApiId.acquireTokenRedirect
+                    ApiId.acquireTokenRedirect,
                 );
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
             }
@@ -2297,15 +2298,15 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
+                TEST_TOKENS.IDTOKEN_V1,
             );
             const loginUrlSpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                "getAuthCodeUrl",
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2316,12 +2317,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const emptyRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -2369,15 +2370,15 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
+                TEST_TOKENS.IDTOKEN_V1,
             );
             const loginUrlSpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                "getAuthCodeUrl",
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2388,12 +2389,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const emptyRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -2442,15 +2443,15 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
+                TEST_TOKENS.IDTOKEN_V1,
             );
             const loginUrlSpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                "getAuthCodeUrl",
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2461,12 +2462,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const emptyRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -2514,16 +2515,16 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ID_TOKEN,
                 TEST_TOKENS.IDTOKEN_V1,
-                true
+                true,
             );
             const loginUrlSpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                "getAuthCodeUrl",
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2534,12 +2535,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const emptyRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -2576,15 +2577,15 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
+                TEST_TOKENS.IDTOKEN_V1,
             );
             const loginUrlSpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                "getAuthCodeUrl",
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2595,12 +2596,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -2669,15 +2670,15 @@ describe("RedirectClient", () => {
                             redirectTimeout: timeout,
                             redirectStartPage,
                             onRedirectNavigate: onRedirectNavigateCb,
-                        }
+                        },
                     ): Promise<void> => {
                         expect(onRedirectNavigateCb).toEqual(
-                            onRedirectNavigate
+                            onRedirectNavigate,
                         );
                         expect(navigateUrl).toEqual(testNavUrl);
                         onRedirectNavigate(navigateUrl);
                         return Promise.resolve();
-                    }
+                    },
                 );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2714,12 +2715,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
@@ -2727,29 +2728,29 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateStateKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateNonceKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(RANDOM_TEST_GUID);
             expect(
                 browserStorage.getTemporaryCache(
                     browserStorage.generateAuthorityKey(
-                        TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                    )
-                )
+                        TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    ),
+                ),
             ).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
         });
 
@@ -2775,12 +2776,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
@@ -2788,27 +2789,27 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(
                 browserCrypto.base64Decode(
                     browserStorage.getTemporaryCache(
                         TemporaryCacheKeys.REQUEST_PARAMS,
-                        true
-                    ) || ""
-                )
+                        true,
+                    ) || "",
+                ),
             );
             expect(cachedRequest.scopes).toEqual([testScope]);
             expect(cachedRequest.codeVerifier).toEqual(
-                TEST_CONFIG.TEST_VERIFIER
+                TEST_CONFIG.TEST_VERIFIER,
             );
             expect(cachedRequest.authority).toEqual(
-                `${Constants.DEFAULT_AUTHORITY}`
+                `${Constants.DEFAULT_AUTHORITY}`,
             );
             expect(cachedRequest.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(cachedRequest.authenticationScheme).toEqual(
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             );
         });
 
@@ -2831,7 +2832,7 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2840,7 +2841,7 @@ describe("RedirectClient", () => {
 
             const testError: AuthError = new AuthError(
                 "create_login_url_error",
-                "Error in creating a login url"
+                "Error in creating a login url",
             );
             sinon
                 .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
@@ -2851,14 +2852,14 @@ describe("RedirectClient", () => {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
-                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 );
                 const failureObj = JSON.parse(
-                    failures || ""
+                    failures || "",
                 ) as ServerTelemetryEntity;
                 expect(failureObj.failedRequests).toHaveLength(2);
                 expect(failureObj.failedRequests[0]).toEqual(
-                    ApiId.acquireTokenRedirect
+                    ApiId.acquireTokenRedirect,
                 );
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
                 expect(e).toEqual(testError);
@@ -2884,15 +2885,15 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
+                TEST_TOKENS.IDTOKEN_V1,
             );
             const acquireTokenUrlSpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                "getAuthCodeUrl",
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2903,12 +2904,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const emptyRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -2936,7 +2937,7 @@ describe("RedirectClient", () => {
                 nativeBroker: false,
             };
             expect(
-                acquireTokenUrlSpy.calledWith(validatedRequest)
+                acquireTokenUrlSpy.calledWith(validatedRequest),
             ).toBeTruthy();
         });
 
@@ -2947,15 +2948,15 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
             );
             browserStorage.setTemporaryCache(
                 PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
+                TEST_TOKENS.IDTOKEN_V1,
             );
             const acquireTokenUrlSpy = sinon.spy(
                 AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                "getAuthCodeUrl",
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2966,12 +2967,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(options.noHistory).toBeFalsy();
                         expect(urlNavigate).not.toBe("");
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             const testScope = "testscope";
             const loginRequest: CommonAuthorizationUrlRequest = {
@@ -3000,22 +3001,22 @@ describe("RedirectClient", () => {
                 nativeBroker: false,
             };
             expect(
-                acquireTokenUrlSpy.calledWith(validatedRequest)
+                acquireTokenUrlSpy.calledWith(validatedRequest),
             ).toBeTruthy();
         });
 
         describe("storeInCache tests", () => {
             beforeEach(() => {
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                    TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 );
                 jest.spyOn(
                     NetworkManager.prototype,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
                 jest.spyOn(
                     PkceGenerator,
-                    "generatePkceCodes"
+                    "generatePkceCodes",
                 ).mockResolvedValue({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -3037,7 +3038,7 @@ describe("RedirectClient", () => {
                 });
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -3045,10 +3046,10 @@ describe("RedirectClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -3073,7 +3074,7 @@ describe("RedirectClient", () => {
                 });
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -3081,10 +3082,10 @@ describe("RedirectClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -3109,7 +3110,7 @@ describe("RedirectClient", () => {
                 });
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -3117,10 +3118,10 @@ describe("RedirectClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -3142,13 +3143,13 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(urlNavigate).toEqual(testLogoutUrl);
                         expect(options.noHistory).toBeFalsy();
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.logout();
             const validatedLogoutRequest: CommonEndSessionRequest = {
@@ -3165,16 +3166,16 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(urlNavigate).toContain(
                             `post_logout_redirect_uri=${encodeURIComponent(
-                                postLogoutRedirectUri
-                            )}`
+                                postLogoutRedirectUri,
+                            )}`,
                         );
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.logout({
                 postLogoutRedirectUri,
@@ -3188,15 +3189,15 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(urlNavigate).toContain(
                             `post_logout_redirect_uri=${encodeURIComponent(
-                                postLogoutRedirectUri
-                            )}`
+                                postLogoutRedirectUri,
+                            )}`,
                         );
                         return Promise.resolve(true);
-                    }
+                    },
                 );
 
             let pca = new PublicClientApplication({
@@ -3228,7 +3229,7 @@ describe("RedirectClient", () => {
                 // @ts-ignore
                 pca.performanceClient,
                 // @ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
 
             redirectClient.logout();
@@ -3240,13 +3241,13 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(urlNavigate).not.toContain(
-                            `post_logout_redirect_uri`
+                            `post_logout_redirect_uri`,
                         );
                         return Promise.resolve(true);
-                    }
+                    },
                 );
 
             let pca = new PublicClientApplication({
@@ -3276,7 +3277,7 @@ describe("RedirectClient", () => {
                 // @ts-ignore
                 pca.navigationClient,
                 // @ts-ignore
-                pca.performanceClient
+                pca.performanceClient,
             );
 
             redirectClient.logout();
@@ -3288,14 +3289,14 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(urlNavigate).not.toContain(
-                            "post_logout_redirect_uri"
+                            "post_logout_redirect_uri",
                         );
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.logout({
                 postLogoutRedirectUri: null,
@@ -3308,16 +3309,16 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(urlNavigate).toContain(
                             `post_logout_redirect_uri=${encodeURIComponent(
-                                "https://localhost:8081/index.html"
-                            )}`
+                                "https://localhost:8081/index.html",
+                            )}`,
                         );
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.logout();
         });
@@ -3329,14 +3330,14 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(urlNavigate).toContain(
-                            `logout_hint=${encodeURIComponent(logoutHint)}`
+                            `logout_hint=${encodeURIComponent(logoutHint)}`,
                         );
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.logout({ logoutHint: logoutHint });
         });
@@ -3382,14 +3383,14 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(urlNavigate).toContain(
-                            `logout_hint=${encodeURIComponent(logoutHint)}`
+                            `logout_hint=${encodeURIComponent(logoutHint)}`,
                         );
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.logout({ account: testAccountInfo });
         });
@@ -3436,17 +3437,17 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(urlNavigate).toContain(
-                            `logout_hint=${encodeURIComponent(logoutHint)}`
+                            `logout_hint=${encodeURIComponent(logoutHint)}`,
                         );
                         expect(urlNavigate).not.toContain(
-                            `logout_hint=${encodeURIComponent(loginHint)}`
+                            `logout_hint=${encodeURIComponent(loginHint)}`,
                         );
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             redirectClient.logout({
                 account: testAccountInfo,
@@ -3463,12 +3464,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             browserStorage.setInteractionInProgress(true);
             redirectClient
@@ -3480,7 +3481,7 @@ describe("RedirectClient", () => {
                 })
                 .then(() => {
                     expect(
-                        browserStorage.getInteractionInProgress()
+                        browserStorage.getInteractionInProgress(),
                     ).toBeFalsy();
 
                     const validatedLogoutRequest: CommonEndSessionRequest = {
@@ -3522,12 +3523,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
                         done();
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             browserStorage.setInteractionInProgress(true);
             redirectClient
@@ -3540,7 +3541,7 @@ describe("RedirectClient", () => {
                 })
                 .then(() => {
                     expect(
-                        browserStorage.getInteractionInProgress()
+                        browserStorage.getInteractionInProgress(),
                     ).toBeFalsy();
 
                     const validatedLogoutRequest: CommonEndSessionRequest = {
@@ -3561,15 +3562,15 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(
-                            browserStorage.getInteractionInProgress()
+                            browserStorage.getInteractionInProgress(),
                         ).toBeTruthy();
                         expect(urlNavigate).toEqual(testLogoutUrl);
 
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             browserStorage.setInteractionInProgress(true);
             redirectClient
@@ -3581,7 +3582,7 @@ describe("RedirectClient", () => {
                 })
                 .then(() => {
                     expect(
-                        browserStorage.getInteractionInProgress()
+                        browserStorage.getInteractionInProgress(),
                     ).toBeTruthy();
 
                     // Reset after testing it was properly set
@@ -3626,12 +3627,12 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         expect(urlNavigate).toEqual(testLogoutUrl);
 
                         return Promise.resolve(true);
-                    }
+                    },
                 );
             browserStorage.setInteractionInProgress(true);
             redirectClient
@@ -3644,7 +3645,7 @@ describe("RedirectClient", () => {
                 })
                 .then(() => {
                     expect(
-                        browserStorage.getInteractionInProgress()
+                        browserStorage.getInteractionInProgress(),
                     ).toBeTruthy();
 
                     // Reset after testing it was properly set
@@ -3661,7 +3662,7 @@ describe("RedirectClient", () => {
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
             const testError = createBrowserAuthError(
-                BrowserAuthErrorCodes.emptyNavigateUri
+                BrowserAuthErrorCodes.emptyNavigateUri,
             );
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
@@ -3671,7 +3672,7 @@ describe("RedirectClient", () => {
             const eventSpy = sinon.spy(EventHandler.prototype, "emitEvent");
             const telemetrySpy = sinon.spy(
                 ServerTelemetryManager.prototype,
-                "cacheFailedRequest"
+                "cacheFailedRequest",
             );
             redirectClient.logout().catch((e) => {
                 expect(e).toMatchObject(testError);
@@ -3681,8 +3682,8 @@ describe("RedirectClient", () => {
                         EventType.LOGOUT_FAILURE,
                         InteractionType.Redirect,
                         null,
-                        testError
-                    )
+                        testError,
+                    ),
                 ).toBe(true);
                 done();
             });
@@ -3717,7 +3718,7 @@ describe("RedirectClient", () => {
             const testIdToken: IdTokenEntity = buildIdToken(
                 ID_TOKEN_CLAIMS,
                 TEST_TOKENS.IDTOKEN_V2,
-                { clientId: TEST_CONFIG.MSAL_CLIENT_ID }
+                { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
             );
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
@@ -3731,10 +3732,10 @@ describe("RedirectClient", () => {
                 .callsFake(
                     (
                         urlNavigate: string,
-                        options: NavigationOptions
+                        options: NavigationOptions,
                     ): Promise<boolean> => {
                         return Promise.resolve(true);
-                    }
+                    },
                 );
 
             browserStorage.setAccount(testAccountEntity);

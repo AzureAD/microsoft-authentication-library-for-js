@@ -43,18 +43,18 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param request
      */
     protected async initializeAuthorizationCodeRequest(
-        request: AuthorizationUrlRequest
+        request: AuthorizationUrlRequest,
     ): Promise<CommonAuthorizationCodeRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            this.correlationId
+            this.correlationId,
         );
         const generatedPkceParams = await invokeAsync(
             generatePkceCodes,
             PerformanceEvents.GeneratePkceCodes,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            this.correlationId,
         )(this.performanceClient, this.logger, this.correlationId);
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -75,11 +75,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param logoutRequest
      */
     protected initializeLogoutRequest(
-        logoutRequest?: EndSessionRequest
+        logoutRequest?: EndSessionRequest,
     ): CommonEndSessionRequest {
         this.logger.verbose(
             "initializeLogoutRequest called",
-            logoutRequest?.correlationId
+            logoutRequest?.correlationId,
         );
 
         const validLogoutRequest: CommonEndSessionRequest = {
@@ -96,27 +96,27 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             if (!logoutRequest.logoutHint) {
                 if (logoutRequest.account) {
                     const logoutHint = this.getLogoutHintFromIdTokenClaims(
-                        logoutRequest.account
+                        logoutRequest.account,
                     );
                     if (logoutHint) {
                         this.logger.verbose(
-                            "Setting logoutHint to login_hint ID Token Claim value for the account provided"
+                            "Setting logoutHint to login_hint ID Token Claim value for the account provided",
                         );
                         validLogoutRequest.logoutHint = logoutHint;
                     }
                 } else {
                     this.logger.verbose(
-                        "logoutHint was not set and account was not passed into logout request, logoutHint will not be set"
+                        "logoutHint was not set and account was not passed into logout request, logoutHint will not be set",
                     );
                 }
             } else {
                 this.logger.verbose(
-                    "logoutHint has already been set in logoutRequest"
+                    "logoutHint has already been set in logoutRequest",
                 );
             }
         } else {
             this.logger.verbose(
-                "logoutHint will not be set since no logout request was configured"
+                "logoutHint will not be set since no logout request was configured",
             );
         }
 
@@ -128,43 +128,43 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             if (logoutRequest && logoutRequest.postLogoutRedirectUri) {
                 this.logger.verbose(
                     "Setting postLogoutRedirectUri to uri set on logout request",
-                    validLogoutRequest.correlationId
+                    validLogoutRequest.correlationId,
                 );
                 validLogoutRequest.postLogoutRedirectUri =
                     UrlString.getAbsoluteUrl(
                         logoutRequest.postLogoutRedirectUri,
-                        BrowserUtils.getCurrentUri()
+                        BrowserUtils.getCurrentUri(),
                     );
             } else if (this.config.auth.postLogoutRedirectUri === null) {
                 this.logger.verbose(
                     "postLogoutRedirectUri configured as null and no uri set on request, not passing post logout redirect",
-                    validLogoutRequest.correlationId
+                    validLogoutRequest.correlationId,
                 );
             } else if (this.config.auth.postLogoutRedirectUri) {
                 this.logger.verbose(
                     "Setting postLogoutRedirectUri to configured uri",
-                    validLogoutRequest.correlationId
+                    validLogoutRequest.correlationId,
                 );
                 validLogoutRequest.postLogoutRedirectUri =
                     UrlString.getAbsoluteUrl(
                         this.config.auth.postLogoutRedirectUri,
-                        BrowserUtils.getCurrentUri()
+                        BrowserUtils.getCurrentUri(),
                     );
             } else {
                 this.logger.verbose(
                     "Setting postLogoutRedirectUri to current page",
-                    validLogoutRequest.correlationId
+                    validLogoutRequest.correlationId,
                 );
                 validLogoutRequest.postLogoutRedirectUri =
                     UrlString.getAbsoluteUrl(
                         BrowserUtils.getCurrentUri(),
-                        BrowserUtils.getCurrentUri()
+                        BrowserUtils.getCurrentUri(),
                     );
             }
         } else {
             this.logger.verbose(
                 "postLogoutRedirectUri passed as null, not setting post logout redirect uri",
-                validLogoutRequest.correlationId
+                validLogoutRequest.correlationId,
             );
         }
 
@@ -177,7 +177,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param account
      */
     protected getLogoutHintFromIdTokenClaims(
-        account: AccountInfo
+        account: AccountInfo,
     ): string | null {
         const idTokenClaims: IdTokenClaims | undefined = account.idTokenClaims;
         if (idTokenClaims) {
@@ -185,12 +185,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 return idTokenClaims.login_hint;
             } else {
                 this.logger.verbose(
-                    "The ID Token Claims tied to the provided account do not contain a login_hint claim, logoutHint will not be added to logout request"
+                    "The ID Token Claims tied to the provided account do not contain a login_hint claim, logoutHint will not be added to logout request",
                 );
             }
         } else {
             this.logger.verbose(
-                "The provided account does not contain ID Token Claims, logoutHint will not be added to logout request"
+                "The provided account does not contain ID Token Claims, logoutHint will not be added to logout request",
             );
         }
 
@@ -206,11 +206,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         serverTelemetryManager: ServerTelemetryManager,
         authorityUrl?: string,
         requestAzureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
+        account?: AccountInfo,
     ): Promise<AuthorizationCodeClient> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-            this.correlationId
+            this.correlationId,
         );
         // Create auth module.
         const clientConfig = await invokeAsync(
@@ -218,16 +218,16 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            this.correlationId,
         )(
             serverTelemetryManager,
             authorityUrl,
             requestAzureCloudOptions,
-            account
+            account,
         );
         return new AuthorizationCodeClient(
             clientConfig,
-            this.performanceClient
+            this.performanceClient,
         );
     }
 
@@ -241,18 +241,18 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         serverTelemetryManager: ServerTelemetryManager,
         requestAuthority?: string,
         requestAzureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
+        account?: AccountInfo,
     ): Promise<ClientConfiguration> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
-            this.correlationId
+            this.correlationId,
         );
         const discoveredAuthority = await invokeAsync(
             this.getDiscoveredAuthority.bind(this),
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            this.correlationId,
         )(requestAuthority, requestAzureCloudOptions, account);
         const logger = this.config.system.loggerOptions;
 
@@ -298,11 +298,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      */
     protected async initializeAuthorizationRequest(
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
-        interactionType: InteractionType
+        interactionType: InteractionType,
     ): Promise<AuthorizationUrlRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-            this.correlationId
+            this.correlationId,
         );
 
         const redirectUri = this.getRedirectUri(request.redirectUri);
@@ -312,7 +312,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
             (request && request.state) || Constants.EMPTY_STRING,
-            browserState
+            browserState,
         );
 
         const baseRequest: BaseAuthRequest = await invokeAsync(
@@ -320,12 +320,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             PerformanceEvents.InitializeBaseRequest,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            this.correlationId,
         )(
             { ...request, correlationId: this.correlationId },
             this.config,
             this.performanceClient,
-            this.logger
+            this.logger,
         );
 
         const validatedRequest: AuthorizationUrlRequest = {
@@ -342,11 +342,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         if (account) {
             this.logger.verbose(
                 "Setting validated request account",
-                this.correlationId
+                this.correlationId,
             );
             this.logger.verbosePii(
                 `Setting validated request account: ${account.homeAccountId}`,
-                this.correlationId
+                this.correlationId,
             );
             validatedRequest.account = account;
         }

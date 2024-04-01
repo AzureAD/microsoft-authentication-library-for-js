@@ -84,7 +84,7 @@ describe("SilentIframeClient", () => {
             //@ts-ignore
             pca.performanceClient,
             //@ts-ignore
-            pca.nativeInternalStorage
+            pca.nativeInternalStorage,
         );
     });
 
@@ -135,34 +135,34 @@ describe("SilentIframeClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                "getAuthCodeUrl",
             ).mockResolvedValue(testNavUrl);
             sinon
                 .stub(SilentHandler, "monitorIframeForHash")
                 .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
             jest.spyOn(
                 InteractionHandler.prototype,
-                "handleCodeResponse"
+                "handleCodeResponse",
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
 
             const initializeAuthorizationRequestSpy = jest.spyOn(
                 SilentIframeClient.prototype,
                 // @ts-ignore
-                "initializeAuthorizationRequest"
+                "initializeAuthorizationRequest",
             );
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -176,7 +176,7 @@ describe("SilentIframeClient", () => {
                     loginHint: "testLoginHint",
                     prompt: PromptValue.NONE,
                 },
-                InteractionType.Silent
+                InteractionType.Silent,
             );
         });
 
@@ -188,23 +188,23 @@ describe("SilentIframeClient", () => {
                 .stub(SilentHandler, "monitorIframeForHash")
                 .rejects(
                     createBrowserAuthError(
-                        BrowserAuthErrorCodes.monitorWindowTimeout
-                    )
+                        BrowserAuthErrorCodes.monitorWindowTimeout,
+                    ),
                 );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             const telemetryStub = sinon
                 .stub(ServerTelemetryManager.prototype, "cacheFailedRequest")
                 .callsFake((e) => {
                     expect(e).toMatchObject(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.monitorWindowTimeout
-                        )
+                            BrowserAuthErrorCodes.monitorWindowTimeout,
+                        ),
                     );
                 });
 
@@ -235,7 +235,7 @@ describe("SilentIframeClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
 
             silentIframeClient
@@ -288,7 +288,7 @@ describe("SilentIframeClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -307,7 +307,7 @@ describe("SilentIframeClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -355,7 +355,7 @@ describe("SilentIframeClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -374,7 +374,7 @@ describe("SilentIframeClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -403,7 +403,7 @@ describe("SilentIframeClient", () => {
                 //@ts-ignore
                 pca.logger,
                 2000,
-                getDefaultPerformanceClient()
+                getDefaultPerformanceClient(),
             );
             // @ts-ignore
             silentIframeClient = new SilentIframeClient(
@@ -424,7 +424,7 @@ describe("SilentIframeClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                nativeMessageHandler
+                nativeMessageHandler,
             );
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -464,7 +464,7 @@ describe("SilentIframeClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -483,7 +483,7 @@ describe("SilentIframeClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -524,7 +524,7 @@ describe("SilentIframeClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
             );
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -564,7 +564,7 @@ describe("SilentIframeClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                    Date.now() + testServerTokenResponse.expires_in * 1000,
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -583,7 +583,7 @@ describe("SilentIframeClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             silentIframeClient
                 .acquireToken({
@@ -592,11 +592,11 @@ describe("SilentIframeClient", () => {
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
                         BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .code
+                            .code,
                     );
                     expect(e.errorMessage).toEqual(
                         BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .desc
+                            .desc,
                     );
                     done();
                 });
@@ -604,7 +604,7 @@ describe("SilentIframeClient", () => {
 
         it("Throws hash empty error", (done) => {
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
-                ""
+                "",
             );
             silentIframeClient
                 .acquireToken({
@@ -613,8 +613,8 @@ describe("SilentIframeClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashEmptyError
-                        )
+                            BrowserAuthErrorCodes.hashEmptyError,
+                        ),
                     );
                     done();
                 });
@@ -622,7 +622,7 @@ describe("SilentIframeClient", () => {
 
         it("Throws hashDoesNotContainKnownProperties error", (done) => {
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
-                "myCustomHash"
+                "myCustomHash",
             );
             silentIframeClient
                 .acquireToken({
@@ -631,8 +631,8 @@ describe("SilentIframeClient", () => {
                 .catch((e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties
-                        )
+                            BrowserAuthErrorCodes.hashDoesNotContainKnownProperties,
+                        ),
                     );
                     done();
                 });
@@ -641,19 +641,19 @@ describe("SilentIframeClient", () => {
         describe("storeInCache tests", () => {
             beforeEach(() => {
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                    TEST_STATE_VALUES.TEST_STATE_SILENT,
                 );
                 jest.spyOn(
                     SilentHandler,
-                    "monitorIframeForHash"
+                    "monitorIframeForHash",
                 ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
                 jest.spyOn(
                     NetworkManager.prototype,
-                    "sendPostRequest"
+                    "sendPostRequest",
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
                 jest.spyOn(
                     PkceGenerator,
-                    "generatePkceCodes"
+                    "generatePkceCodes",
                 ).mockResolvedValue({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -672,10 +672,10 @@ describe("SilentIframeClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -697,10 +697,10 @@ describe("SilentIframeClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -722,10 +722,10 @@ describe("SilentIframeClient", () => {
 
                 // Response should still contain acquired tokens
                 expect(tokenResp.idToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.id_token
+                    TEST_TOKEN_RESPONSE.body.id_token,
                 );
                 expect(tokenResp.accessToken).toEqual(
-                    TEST_TOKEN_RESPONSE.body.access_token
+                    TEST_TOKEN_RESPONSE.body.access_token,
                 );
 
                 // Cache should not contain tokens which were turned off
@@ -741,8 +741,8 @@ describe("SilentIframeClient", () => {
         it("logout throws unsupported error", async () => {
             await expect(silentIframeClient.logout).rejects.toMatchObject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.silentLogoutUnsupported
-                )
+                    BrowserAuthErrorCodes.silentLogoutUnsupported,
+                ),
             );
         });
     });
