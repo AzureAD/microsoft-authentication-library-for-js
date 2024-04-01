@@ -68,8 +68,8 @@
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build": "npm run clean && npm run build:modules",
     "prepack": "npm run build:all",
-    "format:check": "npx prettier --ignore-path .gitignore --check src test",
-    "format:fix": "npx prettier --ignore-path .gitignore --write src test"
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test"
   },
   "devDependencies": {
     "@azure/storage-blob": "^12.2.1",
