@@ -41,6 +41,7 @@ extends:
                     parameters:
                         libName: msal-browser-1p
                         subdirectory: ""
+                        paht: ""
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-node
