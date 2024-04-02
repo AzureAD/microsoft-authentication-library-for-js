@@ -82,6 +82,7 @@ import { IController } from "./IController";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
 import { createNewGuid } from "../crypto/BrowserCrypto";
+import { initializeSilentRequest } from "../request/RequestHelpers";
 
 export class StandardController implements IController {
     // OperatingContext
@@ -1077,7 +1078,6 @@ export class StandardController implements IController {
      * @returns A promise that, when resolved, returns the access token
      */
     protected async acquireTokenFromCache(
-        silentCacheClient: SilentCacheClient,
         commonRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
@@ -1089,6 +1089,9 @@ export class StandardController implements IController {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
+                const silentCacheClient = this.createSilentCacheClient(
+                    commonRequest.correlationId
+                );
                 return invokeAsync(
                     silentCacheClient.acquireToken.bind(silentCacheClient),
                     PerformanceEvents.SilentCacheClientAcquireToken,
@@ -1944,7 +1947,7 @@ export class StandardController implements IController {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse}
      */
     protected async acquireTokenSilentAsync(
-        request: SilentRequest,
+        request: SilentRequest & { correlationId: string },
         account: AccountInfo
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
@@ -2009,19 +2012,19 @@ export class StandardController implements IController {
                 "acquireTokenSilent - attempting to acquire token from web flow"
             );
 
-            const silentCacheClient = this.createSilentCacheClient(
-                request.correlationId
-            );
-
             const silentRequest = await invokeAsync(
-                silentCacheClient.initializeSilentRequest.bind(
-                    silentCacheClient
-                ),
+                initializeSilentRequest,
                 PerformanceEvents.InitializeSilentRequest,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )(request, account);
+            )(
+                request,
+                account,
+                this.config,
+                this.performanceClient,
+                this.logger
+            );
 
             const cacheLookupPolicy =
                 request.cacheLookupPolicy || CacheLookupPolicy.Default;
@@ -2032,7 +2035,7 @@ export class StandardController implements IController {
                 this.logger,
                 this.performanceClient,
                 silentRequest.correlationId
-            )(silentCacheClient, silentRequest, cacheLookupPolicy).catch(
+            )(silentRequest, cacheLookupPolicy).catch(
                 (cacheError: AuthError) => {
                     if (
                         request.cacheLookupPolicy ===
@@ -2041,8 +2044,6 @@ export class StandardController implements IController {
                         throw cacheError;
                     }
 
-                    // block the reload if it occurred inside a hidden iframe
-                    BrowserUtils.blockReloadInHiddenIframes();
                     this.eventHandler.emitEvent(
                         EventType.ACQUIRE_TOKEN_NETWORK_START,
                         InteractionType.Silent,

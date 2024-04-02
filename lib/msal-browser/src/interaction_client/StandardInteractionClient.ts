@@ -32,6 +32,7 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { generatePkceCodes } from "../crypto/PkceGenerator";
 import { createNewGuid } from "../crypto/BrowserCrypto";
+import { initializeBaseRequest } from "../request/RequestHelpers";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -315,12 +316,17 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         );
 
         const baseRequest: BaseAuthRequest = await invokeAsync(
-            this.initializeBaseRequest.bind(this),
+            initializeBaseRequest,
             PerformanceEvents.InitializeBaseRequest,
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(request);
+        )(
+            { ...request, correlationId: this.correlationId },
+            this.config,
+            this.performanceClient,
+            this.logger
+        );
 
         const validatedRequest: AuthorizationUrlRequest = {
             ...baseRequest,

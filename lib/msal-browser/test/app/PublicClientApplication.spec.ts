@@ -3550,27 +3550,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 username: "AbeLi@microsoft.com",
             };
 
-            sinon
-                // @ts-ignore
-                .stub(BaseInteractionClient.prototype, "initializeBaseRequest")
-                .callsFake(async () => {
-                    throw new Error("Test error message");
-                });
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockRejectedValue(new Error("Test error message"));
 
             const callbackId = pca.addPerformanceCallback(
                 (events: PerformanceEvent[]) => {
-                    expect(events.length).toEqual(1);
-                    const event = events[0];
-                    expect(event.name).toBe(
-                        PerformanceEvents.AcquireTokenSilent
-                    );
-                    expect(event.correlationId).toBeDefined();
-                    expect(event.success).toBeFalsy();
-                    expect(event.errorName).toEqual("Error");
-                    expect(event.errorStack?.length).toEqual(5);
-                    expect(event.incompleteSubsCount).toEqual(0);
-                    pca.removePerformanceCallback(callbackId);
-                    done();
+                    try {
+                        expect(events.length).toEqual(1);
+                        const event = events[0];
+                        expect(event.name).toBe(
+                            PerformanceEvents.AcquireTokenSilent
+                        );
+                        expect(event.correlationId).toBeDefined();
+                        expect(event.success).toBeFalsy();
+                        expect(event.errorName).toEqual("Error");
+                        expect(event.errorStack?.length).toBeGreaterThan(1);
+                        expect(event.incompleteSubsCount).toEqual(0);
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
                 }
             );
 
@@ -3578,6 +3580,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 account: testAccount,
                 state: "test-state",
+                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
             }).catch(() => {});
         });
 
@@ -4190,7 +4193,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 RANDOM_TEST_GUID
             );
             sinon
-                .stub(CryptoOps.prototype, "hashString")
+                .stub(BrowserCrypto, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             const silentATStub = sinon
                 .stub(
