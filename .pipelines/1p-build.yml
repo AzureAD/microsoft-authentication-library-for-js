@@ -40,8 +40,6 @@ extends:
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-browser-1p
-                        subdirectory: ""
-                        path: ""
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-node
@@ -54,5 +52,4 @@ extends:
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-node-extensions
-                        path: "extensions"
                         os: ["linux", "windows", "macOs"]
