@@ -34,22 +34,29 @@ extends:
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-common
+                        path: "lib/"
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-browser
+                        path: "lib/"
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-browser-1p
+                        subdirectory: ""
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-node
+                        path: "lib/"
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-react
+                        path: "lib/"
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-angular
+                        path: "lib/"
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-node-extensions
+                        path: "extensions/"
                         os: ["linux", "windows", "macOs"]
