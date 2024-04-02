@@ -220,9 +220,9 @@ export class BrowserCacheUtils {
         const totalIdTokens = (idTokens || 1) * numberOfTenants;
         const totalAccessTokens = (accessTokens || 1) * numberOfTenants;
         const totalRefreshTokens = refreshTokens || 1;
-        expect(tokenStore.idTokens).toHaveLength(totalIdTokens);
-        expect(tokenStore.accessTokens).toHaveLength(totalAccessTokens);
-        expect(tokenStore.refreshTokens).toHaveLength(refreshTokens || 1);
+        expect(tokenStore.idTokens.length).toBe(totalIdTokens);
+        expect(tokenStore.accessTokens.length).toBe(totalAccessTokens);
+        expect(tokenStore.refreshTokens.length).toBe(refreshTokens || 1);
 
         const account = await this.getAccountFromCache(tokenStore.idTokens[0]);
         expect(account).toBeDefined();
