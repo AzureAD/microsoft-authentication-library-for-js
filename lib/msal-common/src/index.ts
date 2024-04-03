@@ -244,4 +244,6 @@ export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceCl
 
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
 
+export { HashUtils } from "./crypto/HashUtils";
+
 export { version } from "./packageMetadata";

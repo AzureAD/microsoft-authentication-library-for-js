@@ -446,6 +446,27 @@ describe("ClientCredentialClient unit tests", () => {
                     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
                 );
                 expect(cachedAuthResult.fromCache).toBe(true);
+
+                // validate that the same request but with new claims will make a STS request
+                clientCredentialRequest.claims = CAE_CONSTANTS.NBF_CLAIMS;
+                const nonCachedAuthResult = (await client.acquireToken(
+                    clientCredentialRequest
+                )) as AuthenticationResult;
+                expect(nonCachedAuthResult.accessToken).toEqual(
+                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                );
+                expect(nonCachedAuthResult.fromCache).toBe(false);
+
+                const returnVal2: string = createTokenRequestBodySpy.mock
+                    .results[1].value as string;
+                expect(
+                    decodeURIComponent(
+                        returnVal2
+                            .split("&")
+                            .filter((key: string) => key.includes("claims="))[0]
+                            .split("claims=")[1]
+                    )
+                ).toEqual(CAE_CONSTANTS.MERGED_NBF_CLAIMS);
             }
         );
     });

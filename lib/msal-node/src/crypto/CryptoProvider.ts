@@ -3,11 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, PkceCodes } from "@azure/msal-common";
+import { HashUtils, ICrypto, PkceCodes } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { PkceGenerator } from "./PkceGenerator.js";
-import { HashUtils } from "./HashUtils.js";
 
 /**
  * This class implements MSAL node's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and
@@ -91,7 +90,7 @@ export class CryptoProvider implements ICrypto {
      */
     async hashString(plainText: string): Promise<string> {
         return EncodingUtils.base64EncodeUrl(
-            this.hashUtils.sha256(plainText).toString("base64"),
+            this.hashUtils.sha256Base64(plainText),
             "base64"
         );
     }

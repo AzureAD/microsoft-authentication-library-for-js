@@ -370,3 +370,11 @@ export type JsonWebTokenTypes =
     (typeof JsonWebTokenTypes)[keyof typeof JsonWebTokenTypes];
 
 export const ONE_DAY_IN_MS = 86400000;
+
+/**
+ * Constants used in PKCE
+ */
+export const Hash = {
+    SHA256: "sha256",
+} as const;
+export type Hash = (typeof Hash)[keyof typeof Hash];

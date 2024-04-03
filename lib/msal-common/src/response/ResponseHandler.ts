@@ -52,6 +52,7 @@ import {
     updateAccountTenantProfileData,
 } from "../account/AccountInfo";
 import * as CacheHelpers from "../cache/utils/CacheHelpers";
+import { HashUtils } from "../crypto/HashUtils";
 
 /**
  * Class that handles response parsing.
@@ -66,6 +67,7 @@ export class ResponseHandler {
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
     private performanceClient?: IPerformanceClient;
+    private hashUtils: HashUtils;
 
     constructor(
         clientId: string,
@@ -83,6 +85,7 @@ export class ResponseHandler {
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
         this.performanceClient = performanceClient;
+        this.hashUtils = new HashUtils();
     }
 
     /**
@@ -491,7 +494,7 @@ export class ResponseHandler {
                 userAssertionHash,
                 serverTokenResponse.key_id,
                 request.claims,
-                request.requestedClaimsHash
+                request.claims && this.hashUtils.sha256Base64(request.claims)
             );
         }
 

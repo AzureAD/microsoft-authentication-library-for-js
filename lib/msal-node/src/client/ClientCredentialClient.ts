@@ -17,6 +17,7 @@ import {
     CredentialFilter,
     CredentialType,
     GrantType,
+    HashUtils,
     IAppTokenProvider,
     RequestParameterBuilder,
     RequestThumbprint,
@@ -36,6 +37,7 @@ import {
 export class ClientCredentialClient extends BaseClient {
     private scopeSet: ScopeSet;
     private readonly appTokenProvider?: IAppTokenProvider;
+    private hashUtils: HashUtils;
 
     constructor(
         configuration: ClientConfiguration,
@@ -43,6 +45,7 @@ export class ClientCredentialClient extends BaseClient {
     ) {
         super(configuration);
         this.appTokenProvider = appTokenProvider;
+        this.hashUtils = new HashUtils();
     }
 
     /**
@@ -102,7 +105,7 @@ export class ClientCredentialClient extends BaseClient {
             await this.config.persistencePlugin.beforeCacheAccess(cacheContext);
         }
 
-        const cachedAccessToken = this.readAccessTokenFromCache();
+        const cachedAccessToken = this.readAccessTokenFromCache(request);
 
         if (
             this.config.serializableCache &&
@@ -165,7 +168,9 @@ export class ClientCredentialClient extends BaseClient {
     /**
      * Reads access token from the cache
      */
-    private readAccessTokenFromCache(): AccessTokenEntity | null {
+    private readAccessTokenFromCache(
+        request: CommonClientCredentialRequest
+    ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: Constants.EMPTY_STRING,
             environment:
@@ -174,6 +179,9 @@ export class ClientCredentialClient extends BaseClient {
             clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
             target: ScopeSet.createSearchScopes(this.scopeSet.asArray()),
+            requestedClaimsHash:
+                request.requestedClaimsHash ||
+                (request.claims && this.hashUtils.sha256Base64(request.claims)),
         };
 
         const accessTokens =
