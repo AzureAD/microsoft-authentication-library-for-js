@@ -43,8 +43,8 @@
     "lint:fix": "npm run lint -- --fix",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-react",
     "prepack": "npm run build:all",
-    "format:check": "npx prettier --ignore-path .gitignore --check src test",
-    "format:fix": "npx prettier --ignore-path .gitignore --write src test"
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test"
   },
   "peerDependencies": {
     "@azure/msal-browser": "^3.11.1",
