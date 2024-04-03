@@ -58,8 +58,8 @@
     "build:all": "npm run build",
     "prepack": "npm run build",
     "metadata:check": "ts-node scripts/metadata.ts",
-    "format:check": "npx prettier --ignore-path .gitignore --check src test",
-    "format:fix": "npx prettier --ignore-path .gitignore --write src test"
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test"
   },
   "beachball": {
     "disallowedChangeTypes": [
