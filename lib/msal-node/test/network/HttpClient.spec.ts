@@ -6,6 +6,7 @@ import {
     HttpStatus,
 } from "@azure/msal-common";
 import { MockedMetadataResponse } from "../utils/TestConstants";
+import { ProxyStatus } from "../../src/utils/Constants";
 
 import http from "http";
 jest.mock("http", () => ({
@@ -14,7 +15,6 @@ jest.mock("http", () => ({
 }));
 
 import https from "https";
-import { ProxyStatus } from "../../src/utils/Constants";
 jest.mock("https", () => ({
     // will be overridden every test
     request: jest.fn(),
