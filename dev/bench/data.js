@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712182438869,
+  "lastUpdate": 1712186193829,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6674,6 +6674,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.20%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8a4aa37af8c511f705071842ad2af35fbd9634c9",
+          "message": "Fix for concurrent iframe calls (#6962)\n\nWhen multiple acquireTokenSilent requests are made in parallel there is\r\na chance that they will all need to fallback to the iframe flow. It is\r\nboth unnecessary for more than 1 iframe call to be made and results in a\r\nperf and reliability degradation for all calls. This PR introduces a\r\nmechanism to track in progress iframe calls and cause subsequent\r\nrequests to wait before retrying the cache and/or RT redemption.\r\n\r\nNote: Telemetry dashboards will need to be updated after this change is\r\nreleased to avoid counting awaited iframe calls against our perf metrics\r\nmore than once.\r\n\r\nNote: This PR does not make any changes to ssoSilent - follow up work\r\nshould add ssoSilent calls to the active request tracking variable and\r\nlog warnings when more than 1 ssoSilent requests are made but should\r\n**not** block the calls.",
+          "timestamp": "2024-04-03T16:11:10-07:00",
+          "tree_id": "c8ea87748f039d326cd5a3073d533ff31405ce50",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8a4aa37af8c511f705071842ad2af35fbd9634c9"
+        },
+        "date": 1712186192586,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190137,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 188882,
+            "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
           }
         ]
       }
