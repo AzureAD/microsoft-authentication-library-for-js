@@ -154,7 +154,8 @@ export class RegionDiscovery {
         );
         return this.networkInterface.sendGetRequestAsync<string>(
             `${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`,
-            options
+            options,
+            Constants.IMDS_TIMEOUT
         );
     }
 

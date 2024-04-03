@@ -48,6 +48,7 @@ export const Constants = {
     FORWARD_SLASH: "/",
     IMDS_ENDPOINT: "http://169.254.169.254/metadata/instance/compute/location",
     IMDS_VERSION: "2020-06-01",
+    IMDS_TIMEOUT: 2000,
     AZURE_REGION_AUTO_DISCOVER_FLAG: "TryAutoDetect",
     REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
     KNOWN_PUBLIC_CLOUDS: [
@@ -63,13 +64,17 @@ export const Constants = {
 };
 
 export const HttpStatus = {
+    SUCCESS: 200,
     SUCCESS_RANGE_START: 200,
     SUCCESS_RANGE_END: 299,
     REDIRECT: 302,
+    CLIENT_ERROR: 400,
     CLIENT_ERROR_RANGE_START: 400,
     CLIENT_ERROR_RANGE_END: 499,
+    SERVER_ERROR: 500,
     SERVER_ERROR_RANGE_START: 500,
     SERVER_ERROR_RANGE_END: 599,
+    MULTI_SIDED_ERROR: 600,
 } as const;
 export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
 

@@ -36,7 +36,8 @@ export class HttpClient implements INetworkModule {
      */
     async sendGetRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
+        timeout?: number
     ): Promise<NetworkResponse<T>> {
         if (this.proxyUrl) {
             return networkRequestViaProxy(
@@ -44,14 +45,16 @@ export class HttpClient implements INetworkModule {
                 this.proxyUrl,
                 HttpMethod.GET,
                 options,
-                this.customAgentOptions as http.AgentOptions
+                this.customAgentOptions as http.AgentOptions,
+                timeout
             );
         } else {
             return networkRequestViaHttps(
                 url,
                 HttpMethod.GET,
                 options,
-                this.customAgentOptions as https.AgentOptions
+                this.customAgentOptions as https.AgentOptions,
+                timeout
             );
         }
     }
@@ -89,7 +92,8 @@ const networkRequestViaProxy = <T>(
     proxyUrlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
-    agentOptions?: http.AgentOptions
+    agentOptions?: http.AgentOptions,
+    timeout?: number
 ): Promise<NetworkResponse<T>> => {
     const destinationUrl = new URL(destinationUrlString);
     const proxyUrl = new URL(proxyUrlString);
@@ -116,6 +120,11 @@ const networkRequestViaProxy = <T>(
             "Content-Type: application/x-www-form-urlencoded\r\n" +
             `Content-Length: ${body.length}\r\n` +
             `\r\n${body}`;
+    } else {
+        // optional timeout is only for get requests (regionDiscovery, for example)
+        if (timeout) {
+            tunnelRequestOptions.timeout = timeout;
+        }
     }
     const outgoingRequestString =
         `${httpMethod.toUpperCase()} ${destinationUrl.href} HTTP/1.1\r\n` +
@@ -126,6 +135,14 @@ const networkRequestViaProxy = <T>(
 
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
         const request = http.request(tunnelRequestOptions);
+
+        if (timeout) {
+            request.on("timeout", () => {
+                request.destroy();
+                reject(new Error("Request time out"));
+            });
+        }
+
         request.end();
 
         // establish connection to the proxy
@@ -252,7 +269,8 @@ const networkRequestViaHttps = <T>(
     urlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
-    agentOptions?: https.AgentOptions
+    agentOptions?: https.AgentOptions,
+    timeout?: number
 ): Promise<NetworkResponse<T>> => {
     const isPostRequest = httpMethod === HttpMethod.POST;
     const body: string = options?.body || "";
@@ -275,6 +293,11 @@ const networkRequestViaHttps = <T>(
             ...customOptions.headers,
             "Content-Length": body.length,
         };
+    } else {
+        // optional timeout is only for get requests (regionDiscovery, for example)
+        if (timeout) {
+            customOptions.timeout = timeout;
+        }
     }
 
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
@@ -282,6 +305,13 @@ const networkRequestViaHttps = <T>(
 
         if (isPostRequest) {
             request.write(body);
+        }
+
+        if (timeout) {
+            request.on("timeout", () => {
+                request.destroy();
+                reject(new Error("Request time out"));
+            });
         }
 
         request.end();
