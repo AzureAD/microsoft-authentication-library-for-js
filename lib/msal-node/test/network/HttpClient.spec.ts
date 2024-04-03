@@ -238,13 +238,11 @@ const mockHttpRequest = (
 
     // sample socket object
     const mockSocket: {
-        setTimeout: jest.Mock;
         on: jest.Mock;
         destroy: jest.Mock;
         write: jest.Mock;
         error: jest.Mock;
     } = {
-        setTimeout: jest.fn(),
         on: jest.fn((_socketEvent: string, cb: any) =>
             cb(mockSocketResponseBuffer)
         ),
@@ -368,51 +366,6 @@ describe("HttpClient", () => {
                     postNetworkRequestOptions
                 )
             ).resolves.toEqual(proxyThenSocketNetworkResponse);
-        });
-    });
-
-    describe("Timeout Error (Post Requests Only)", () => {
-        const timeoutInMilliseconds: number = 100;
-        const error: Error = new Error("Request time out");
-
-        test("Via Https", async () => {
-            (https.request as jest.Mock).mockImplementationOnce(
-                mockHttpsRequest(
-                    mockPostResponseBodyBuffer,
-                    httpsStatusCode200,
-                    httpsStatusMessage200
-                )
-            );
-            await expect(
-                httpClientWithoutProxyUrl.sendPostRequestAsync(
-                    url,
-                    postNetworkRequestOptions,
-                    timeoutInMilliseconds
-                )
-            ).rejects.toEqual(error);
-        });
-
-        /**
-         * can only test http timeout, not socket timeout inside of the socket
-         *
-         * future work: add another timeout parameter to sendPostRequestAsync so it accepts two different timeouts:
-         * one for http timeout and one for the socket timeout inside of the socket
-         */
-        test("Via Proxy", async () => {
-            (http.request as jest.Mock).mockImplementationOnce(
-                mockHttpRequest(
-                    mockPostResponseBody,
-                    proxyStatusCode200,
-                    socketStatusCode200
-                )
-            );
-            await expect(
-                httpClientWithProxyUrl.sendPostRequestAsync(
-                    url,
-                    postNetworkRequestOptions,
-                    timeoutInMilliseconds
-                )
-            ).rejects.toEqual(error);
         });
     });
 

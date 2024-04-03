@@ -63,8 +63,7 @@ export class HttpClient implements INetworkModule {
      */
     async sendPostRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions,
-        cancellationToken?: number
+        options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
         if (this.proxyUrl) {
             return networkRequestViaProxy(
@@ -72,16 +71,14 @@ export class HttpClient implements INetworkModule {
                 this.proxyUrl,
                 HttpMethod.POST,
                 options,
-                this.customAgentOptions as http.AgentOptions,
-                cancellationToken
+                this.customAgentOptions as http.AgentOptions
             );
         } else {
             return networkRequestViaHttps(
                 url,
                 HttpMethod.POST,
                 options,
-                this.customAgentOptions as https.AgentOptions,
-                cancellationToken
+                this.customAgentOptions as https.AgentOptions
             );
         }
     }
@@ -92,8 +89,7 @@ const networkRequestViaProxy = <T>(
     proxyUrlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
-    agentOptions?: http.AgentOptions,
-    timeout?: number
+    agentOptions?: http.AgentOptions
 ): Promise<NetworkResponse<T>> => {
     const destinationUrl = new URL(destinationUrlString);
     const proxyUrl = new URL(proxyUrlString);
@@ -107,10 +103,6 @@ const networkRequestViaProxy = <T>(
         path: destinationUrl.hostname,
         headers: headers,
     };
-
-    if (timeout) {
-        tunnelRequestOptions.timeout = timeout;
-    }
 
     if (agentOptions && Object.keys(agentOptions).length) {
         tunnelRequestOptions.agent = new http.Agent(agentOptions);
@@ -134,14 +126,6 @@ const networkRequestViaProxy = <T>(
 
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
         const request = http.request(tunnelRequestOptions);
-
-        if (tunnelRequestOptions.timeout) {
-            request.on("timeout", () => {
-                request.destroy();
-                reject(new Error("Request time out"));
-            });
-        }
-
         request.end();
 
         // establish connection to the proxy
@@ -163,14 +147,6 @@ const networkRequestViaProxy = <T>(
                         }`
                     )
                 );
-            }
-            if (tunnelRequestOptions.timeout) {
-                socket.setTimeout(tunnelRequestOptions.timeout);
-                socket.on("timeout", () => {
-                    request.destroy();
-                    socket.destroy();
-                    reject(new Error("Request time out"));
-                });
             }
 
             // make a request over an HTTP tunnel
@@ -276,8 +252,7 @@ const networkRequestViaHttps = <T>(
     urlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
-    agentOptions?: https.AgentOptions,
-    timeout?: number
+    agentOptions?: https.AgentOptions
 ): Promise<NetworkResponse<T>> => {
     const isPostRequest = httpMethod === HttpMethod.POST;
     const body: string = options?.body || "";
@@ -289,10 +264,6 @@ const networkRequestViaHttps = <T>(
         headers: headers,
         ...NetworkUtils.urlToHttpOptions(url),
     };
-
-    if (timeout) {
-        customOptions.timeout = timeout;
-    }
 
     if (agentOptions && Object.keys(agentOptions).length) {
         customOptions.agent = new https.Agent(agentOptions);
@@ -308,13 +279,6 @@ const networkRequestViaHttps = <T>(
 
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
         const request = https.request(customOptions);
-
-        if (timeout) {
-            request.on("timeout", () => {
-                request.destroy();
-                reject(new Error("Request time out"));
-            });
-        }
 
         if (isPostRequest) {
             request.write(body);

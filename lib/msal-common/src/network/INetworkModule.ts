@@ -30,8 +30,7 @@ export interface INetworkModule {
      */
     sendGetRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions,
-        cancellationToken?: number
+        options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>>;
 
     /**
