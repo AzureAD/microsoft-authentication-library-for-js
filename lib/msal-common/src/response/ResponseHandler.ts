@@ -494,7 +494,9 @@ export class ResponseHandler {
                 userAssertionHash,
                 serverTokenResponse.key_id,
                 request.claims,
-                request.claims && this.hashUtils.sha256Base64(request.claims)
+                request.requestedClaimsHash ||
+                    (request.claims &&
+                        this.hashUtils.sha256Base64(request.claims))
             );
         }
 
