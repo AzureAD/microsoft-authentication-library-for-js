@@ -14,6 +14,7 @@ jest.mock("http", () => ({
 }));
 
 import https from "https";
+import { ProxyStatus } from "../../src/utils/Constants";
 jest.mock("https", () => ({
     // will be overridden every test
     request: jest.fn(),
@@ -23,12 +24,6 @@ const httpsStatusSuccessMessage = "OK";
 const httpsStatusClientErrorMessage = "Bad Request";
 const httpsStatusServerErrorMessage = "Internal Server Error";
 const httpsStatusMultiSidedErrorMessage = "Unknown Error";
-
-const ProxyStatus = {
-    SUCCESS: HttpStatus.SUCCESS,
-    SERVER_ERROR: HttpStatus.SERVER_ERROR,
-} as const;
-type ProxyStatus = (typeof ProxyStatus)[keyof typeof ProxyStatus];
 
 const SocketStatus = {
     SUCCESS: HttpStatus.SUCCESS,
