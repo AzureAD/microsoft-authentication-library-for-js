@@ -557,10 +557,12 @@ export class AuthorizationCodeClient extends BaseClient {
                 parameterBuilder.addSid(request.sid);
             } else if (request.account) {
                 const accountSid = this.extractAccountSid(request.account);
-                // Skip opaque login_hint claim if domain hint is present
-                const accountLoginHintClaim = request.domainHint
-                    ? null
-                    : this.extractLoginHint(request.account);
+                let accountLoginHintClaim = this.extractLoginHint(request.account);
+
+                if (accountLoginHintClaim && request.domainHint) {
+                    this.logger.warning(`AuthorizationCodeClient.createAuthCodeUrlQueryString: "domainHint" param is set, skipping opaque "login_hint" claim`);
+                    accountLoginHintClaim = null;
+                }
 
                 // If login_hint claim is present, use it over sid/username
                 if (accountLoginHintClaim) {
