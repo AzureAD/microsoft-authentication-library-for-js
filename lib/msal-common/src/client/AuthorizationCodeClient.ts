@@ -560,7 +560,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 let accountLoginHintClaim = this.extractLoginHint(request.account);
 
                 if (accountLoginHintClaim && request.domainHint) {
-                    this.logger.warning(`AuthorizationCodeClient.createAuthCodeUrlQueryString: "domainHint" param is set, skipping opaque "login_hint" claim`);
+                    this.logger.warning(`AuthorizationCodeClient.createAuthCodeUrlQueryString: "domainHint" param is set, skipping opaque "login_hint" claim. Please consider not passing domainHint`);
                     accountLoginHintClaim = null;
                 }
 
