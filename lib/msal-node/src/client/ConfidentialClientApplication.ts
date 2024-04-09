@@ -215,7 +215,10 @@ export class ConfidentialClientApplication
 
     private setClientCredential(configuration: Configuration): void {
         const clientSecretNotEmpty = !!configuration.auth.clientSecret;
-        const clientAssertionNotEmpty = !!configuration.auth.clientAssertion;
+        const clientAssertionNotEmpty = !!(
+            configuration.auth.clientAssertion &&
+            configuration.auth.clientAssertion()
+        );
         const certificate = configuration.auth.clientCertificate || {
             thumbprint: Constants.EMPTY_STRING,
             privateKey: Constants.EMPTY_STRING,

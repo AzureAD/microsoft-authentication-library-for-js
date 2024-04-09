@@ -231,7 +231,7 @@ describe("ConfidentialClientApplication", () => {
         ClientCredentialClient.prototype.acquireToken = jest.fn(
             (request: CommonClientCredentialRequest) => {
                 expect(request.clientAssertion).not.toBe(undefined);
-                expect(request.clientAssertion?.assertion).toBe(
+                expect(request.clientAssertion?.assertion()).toBe(
                     "testAssertion"
                 );
                 expect(request.clientAssertion?.assertionType).toBe(
