@@ -15,6 +15,7 @@ import { BridgeStatusCode } from "./BridgeStatusCode";
 import { IBridgeProxy } from "./IBridgeProxy";
 import { InitContext } from "./InitContext";
 import { TokenRequest } from "./TokenRequest";
+import * as BrowserCrypto from "../crypto/BrowserCrypto";
 
 declare global {
     interface Window {
@@ -29,7 +30,6 @@ declare global {
  */
 export class BridgeProxy implements IBridgeProxy {
     static bridgeRequests: BridgeRequest[] = [];
-    static crypto: Crypto;
     sdkName: string;
     sdkVersion: string;
     capabilities?: BridgeCapabilities;
@@ -47,13 +47,8 @@ export class BridgeProxy implements IBridgeProxy {
         if (window.nestedAppAuthBridge === undefined) {
             throw new Error("window.nestedAppAuthBridge is undefined");
         }
-        if (window.crypto === undefined) {
-            throw new Error("window.crypto is undefined");
-        }
 
         try {
-            BridgeProxy.crypto = window.crypto;
-
             window.nestedAppAuthBridge.addEventListener(
                 "message",
                 (response: AuthBridgeResponse) => {
@@ -84,7 +79,7 @@ export class BridgeProxy implements IBridgeProxy {
                     const message: BridgeRequestEnvelope = {
                         messageType: "NestedAppAuthRequest",
                         method: "GetInitContext",
-                        requestId: BridgeProxy.getRandomId(),
+                        requestId: BrowserCrypto.createNewGuid(),
                     };
                     const request: BridgeRequest = {
                         requestId: message.requestId,
@@ -106,10 +101,6 @@ export class BridgeProxy implements IBridgeProxy {
             window.console.log(error);
             throw error;
         }
-    }
-
-    public static getRandomId(): string {
-        return BridgeProxy.crypto.randomUUID();
     }
 
     /**
@@ -164,7 +155,7 @@ export class BridgeProxy implements IBridgeProxy {
         const message: BridgeRequestEnvelope = {
             messageType: "NestedAppAuthRequest",
             method: method,
-            requestId: BridgeProxy.getRandomId(),
+            requestId: BrowserCrypto.createNewGuid(),
             ...requestParams,
         };
 

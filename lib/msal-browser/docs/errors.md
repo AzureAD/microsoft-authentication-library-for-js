@@ -127,7 +127,7 @@ async function myAcquireToken(request) {
     const msalInstance = getMsalInstance(); // get the msal application instance
 
     const tokenRequest = {
-        account: msalInstance.getActiveAccount() || null;
+        account: msalInstance.getActiveAccount() || null,
         ...request
     };
 
@@ -168,7 +168,7 @@ async function myAcquireToken(request) {
     const msalInstance = getMsalInstance(); // get the msal application instance
 
     const tokenRequest = {
-        account: msalInstance.getActiveAccount() || null;
+        account: msalInstance.getActiveAccount() || null,
         ...request
     };
 
