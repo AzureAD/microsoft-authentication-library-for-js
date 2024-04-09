@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712621016226,
+  "lastUpdate": 1712688813248,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6788,6 +6788,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.21%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "Dan Saunders",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "62327356f6cbf31d847223d25b492357393508ed",
+          "message": "Nested App Auth: allow empty parameters for loginPopup (#6941)\n\nThis change allows empty parameters for loginPopup by using a default\r\nrequest to match the behavior of StandardController. It also removes the\r\ndependency on crypto.randomUUID() which is not used elsewhere in the\r\nMSAL code base. Use the shared implementation to generate UUID v7\r\ninstead.",
+          "timestamp": "2024-04-09T11:47:53-07:00",
+          "tree_id": "dbcbd73d859d4cab85e136ae251d3d3262b26abe",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/62327356f6cbf31d847223d25b492357393508ed"
+        },
+        "date": 1712688812238,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 187461,
+            "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 188446,
+            "range": "±1.96%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
