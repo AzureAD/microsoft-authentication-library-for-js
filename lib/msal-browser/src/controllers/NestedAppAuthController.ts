@@ -26,7 +26,12 @@ import { PopupRequest } from "../request/PopupRequest";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { ApiId, WrapperSKU, InteractionType } from "../utils/BrowserConstants";
+import {
+    ApiId,
+    WrapperSKU,
+    InteractionType,
+    DEFAULT_REQUEST,
+} from "../utils/BrowserConstants";
 import { IController } from "./IController";
 import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
 import { IBridgeProxy } from "../naa/IBridgeProxy";
@@ -418,11 +423,7 @@ export class NestedAppAuthController implements IController {
     loginPopup(
         request?: PopupRequest | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult> {
-        if (request !== undefined) {
-            return this.acquireTokenInteractive(request);
-        } else {
-            throw NestedAppAuthError.createUnsupportedError();
-        }
+        return this.acquireTokenInteractive(request || DEFAULT_REQUEST);
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
