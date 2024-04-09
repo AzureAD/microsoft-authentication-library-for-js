@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712693997467,
+  "lastUpdate": 1712695549750,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6900,6 +6900,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 187947,
             "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d15694644f9cec046032a16267110bf4209dad9d",
+          "message": "Fix handleRedirectPromise Memoization (#6998)\n\nWe're doing too many things after checking for an existing promise but\r\nbefore setting the current promise which can create a race condition if\r\nmultiple instances of handleRedirectPromise are invoked.\r\n\r\nTo address this PR sets the promise immediately after checking for one.\r\n\r\nFixes #6893\r\n\r\n---------\r\n\r\nCo-authored-by: Jo Arroyo <joarroyo@microsoft.com>",
+          "timestamp": "2024-04-09T13:40:17-07:00",
+          "tree_id": "5768984993262e6e3115c7eb907a5a79e6aa2804",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d15694644f9cec046032a16267110bf4209dad9d"
+        },
+        "date": 1712695548546,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 186378,
+            "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 190077,
+            "range": "±2.19%",
             "unit": "ops/sec",
             "extra": "224 samples"
           }
