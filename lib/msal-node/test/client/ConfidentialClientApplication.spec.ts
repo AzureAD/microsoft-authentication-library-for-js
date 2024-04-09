@@ -203,7 +203,7 @@ describe("ConfidentialClientApplication", () => {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.AUTHORITY,
-                clientAssertion: "testAssertion",
+                clientAssertion: () => "testAssertion",
             },
         };
 
@@ -225,7 +225,7 @@ describe("ConfidentialClientApplication", () => {
         const request: ClientCredentialRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: false,
-            clientAssertion: "testAssertion",
+            clientAssertion: () => "testAssertion",
         };
 
         ClientCredentialClient.prototype.acquireToken = jest.fn(
@@ -292,7 +292,7 @@ describe("ConfidentialClientApplication", () => {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.DEFAULT_AUTHORITY, // contains "common"
-                clientAssertion: "testAssertion",
+                clientAssertion: () => "testAssertion",
             },
         };
 

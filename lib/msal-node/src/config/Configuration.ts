@@ -14,6 +14,7 @@ import {
     AzureCloudOptions,
     ApplicationTelemetry,
     INativeBrokerPlugin,
+    ClientAssertionCallbackFunction,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
@@ -24,7 +25,7 @@ import https from "https";
  * - authority              - Url of the authority. If no value is set, defaults to https://login.microsoftonline.com/common.
  * - knownAuthorities       - Needed for Azure B2C and ADFS. All authorities that will be used in the client application. Only the host of the authority should be passed in.
  * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal.
- * - clientAssertion        - Assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
+ * - clientAssertion        - Callback Function that returns an assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
@@ -34,7 +35,7 @@ export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     clientSecret?: string;
-    clientAssertion?: string;
+    clientAssertion?: ClientAssertionCallbackFunction;
     clientCertificate?: {
         thumbprint: string;
         privateKey: string;
@@ -111,7 +112,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientId: Constants.EMPTY_STRING,
     authority: Constants.DEFAULT_AUTHORITY,
     clientSecret: Constants.EMPTY_STRING,
-    clientAssertion: Constants.EMPTY_STRING,
+    clientAssertion: () => Constants.EMPTY_STRING,
     clientCertificate: {
         thumbprint: Constants.EMPTY_STRING,
         privateKey: Constants.EMPTY_STRING,

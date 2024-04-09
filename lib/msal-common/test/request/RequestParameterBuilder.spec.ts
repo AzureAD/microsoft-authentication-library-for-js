@@ -23,6 +23,7 @@ import {
     ClientConfigurationErrorMessage,
     createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
+import { ClientAssertion } from "../../src";
 
 describe("RequestParameterBuilder unit tests", () => {
     it("constructor", () => {
@@ -380,13 +381,13 @@ describe("RequestParameterBuilder unit tests", () => {
     });
 
     it("adds clientAssertion and assertionType if they are passed in as strings", () => {
-        const clientAssertion = {
-            assertion: "testAssertion",
+        const clientAssertion: ClientAssertion = {
+            assertion: () => "testAssertion",
             assertionType: "jwt-bearer",
         };
 
         const requestParameterBuilder = new RequestParameterBuilder();
-        requestParameterBuilder.addClientAssertion(clientAssertion.assertion);
+        requestParameterBuilder.addClientAssertion(clientAssertion.assertion());
         requestParameterBuilder.addClientAssertionType(
             clientAssertion.assertionType
         );
@@ -408,13 +409,13 @@ describe("RequestParameterBuilder unit tests", () => {
     });
 
     it("doesn't add client assertion and client assertion type if they are empty strings", () => {
-        const clientAssertion = {
-            assertion: "",
+        const clientAssertion: ClientAssertion = {
+            assertion: () => "",
             assertionType: "",
         };
 
         const requestParameterBuilder = new RequestParameterBuilder();
-        requestParameterBuilder.addClientAssertion(clientAssertion.assertion);
+        requestParameterBuilder.addClientAssertion(clientAssertion.assertion());
         requestParameterBuilder.addClientAssertionType(
             clientAssertion.assertionType
         );

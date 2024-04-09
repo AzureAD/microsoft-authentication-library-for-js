@@ -499,7 +499,7 @@ describe("ClientCredentialClient unit tests", () => {
         config.clientCredentials = {
             ...config.clientCredentials,
             clientAssertion: {
-                assertion: TEST_CONFIG.TEST_CONFIG_ASSERTION,
+                assertion: () => TEST_CONFIG.TEST_CONFIG_ASSERTION,
                 assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
             },
         };
@@ -553,7 +553,7 @@ describe("ClientCredentialClient unit tests", () => {
         config.clientCredentials = {
             ...config.clientCredentials,
             clientAssertion: {
-                assertion: TEST_CONFIG.TEST_CONFIG_ASSERTION,
+                assertion: () => TEST_CONFIG.TEST_CONFIG_ASSERTION,
                 assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
             },
         };
@@ -567,7 +567,7 @@ describe("ClientCredentialClient unit tests", () => {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             claims: "{}",
             clientAssertion: {
-                assertion: TEST_CONFIG.TEST_REQUEST_ASSERTION,
+                assertion: () => TEST_CONFIG.TEST_REQUEST_ASSERTION,
                 assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
             },
         };

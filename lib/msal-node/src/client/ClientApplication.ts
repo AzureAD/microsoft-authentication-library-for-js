@@ -33,6 +33,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     buildStaticAuthorityOptions,
+    ClientAssertion as ClientAssertionType,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -469,16 +470,14 @@ export abstract class ClientApplication {
         return clientConfiguration;
     }
 
-    private getClientAssertion(authority: Authority): {
-        assertion: string;
-        assertionType: string;
-    } {
+    private getClientAssertion(authority: Authority): ClientAssertionType {
         return {
-            assertion: this.clientAssertion.getJwt(
-                this.cryptoProvider,
-                this.config.auth.clientId,
-                authority.tokenEndpoint
-            ),
+            assertion: () =>
+                this.clientAssertion.getJwt(
+                    this.cryptoProvider,
+                    this.config.auth.clientId,
+                    authority.tokenEndpoint
+                ),
             assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE,
         };
     }

@@ -133,7 +133,10 @@ export { NativeRequest } from "./request/NativeRequest";
 export { NativeSignOutRequest } from "./request/NativeSignOutRequest";
 export { RequestParameterBuilder } from "./request/RequestParameterBuilder";
 export { StoreInCache } from "./request/StoreInCache";
-export { ClientAssertion } from "./account/ClientCredentials";
+export {
+    ClientAssertion,
+    ClientAssertionCallbackFunction,
+} from "./account/ClientCredentials";
 // Response
 export { AzureRegion } from "./authority/AzureRegion";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";

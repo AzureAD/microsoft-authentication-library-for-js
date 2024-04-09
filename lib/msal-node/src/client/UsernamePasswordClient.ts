@@ -8,6 +8,7 @@ import {
     Authority,
     BaseClient,
     CcsCredentialType,
+    ClientAssertion,
     ClientConfiguration,
     CommonUsernamePasswordRequest,
     GrantType,
@@ -149,9 +150,9 @@ export class UsernamePasswordClient extends BaseClient {
         }
 
         if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion =
+            const clientAssertion: ClientAssertion =
                 this.config.clientCredentials.clientAssertion;
-            parameterBuilder.addClientAssertion(clientAssertion.assertion);
+            parameterBuilder.addClientAssertion(clientAssertion.assertion());
             parameterBuilder.addClientAssertionType(
                 clientAssertion.assertionType
             );

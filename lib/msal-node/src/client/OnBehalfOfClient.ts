@@ -30,6 +30,7 @@ import {
     TimeUtils,
     TokenClaims,
     UrlString,
+    ClientAssertion,
 } from "@azure/msal-common";
 import { EncodingUtils } from "../utils/EncodingUtils";
 
@@ -344,9 +345,9 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion =
+            const clientAssertion: ClientAssertion =
                 this.config.clientCredentials.clientAssertion;
-            parameterBuilder.addClientAssertion(clientAssertion.assertion);
+            parameterBuilder.addClientAssertion(clientAssertion.assertion());
             parameterBuilder.addClientAssertionType(
                 clientAssertion.assertionType
             );

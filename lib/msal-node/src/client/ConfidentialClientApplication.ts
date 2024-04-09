@@ -26,6 +26,7 @@ import {
     AADAuthorityConstants,
     createClientAuthError,
     ClientAuthErrorCodes,
+    ClientAssertion as ClientAssertionType,
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
@@ -91,7 +92,7 @@ export class ConfidentialClientApplication
         );
 
         // If there is a client assertion present in the request, it overrides the one present in the client configuration
-        let clientAssertion;
+        let clientAssertion: ClientAssertionType | undefined;
         if (request.clientAssertion) {
             clientAssertion = {
                 assertion: request.clientAssertion,
@@ -248,7 +249,7 @@ export class ConfidentialClientApplication
 
         if (configuration.auth.clientAssertion) {
             this.clientAssertion = ClientAssertion.fromAssertion(
-                configuration.auth.clientAssertion
+                configuration.auth.clientAssertion()
             );
             return;
         }

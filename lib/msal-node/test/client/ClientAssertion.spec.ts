@@ -8,15 +8,15 @@ const jsonwebtoken = require("jsonwebtoken");
 
 jest.mock("jsonwebtoken");
 
+const assertionCallback = (): string => TEST_CONSTANTS.CLIENT_ASSERTION;
+
 describe("Client assertion test", () => {
     const cryptoProvider = new CryptoProvider();
     const issuer = "client_id";
     const audience = "audience";
 
     test("creates ClientAssertion From assertion", () => {
-        const assertion = ClientAssertion.fromAssertion(
-            TEST_CONSTANTS.CLIENT_ASSERTION
-        );
+        const assertion = ClientAssertion.fromAssertion(assertionCallback());
         expect(assertion.getJwt(cryptoProvider, issuer, audience)).toEqual(
             TEST_CONSTANTS.CLIENT_ASSERTION
         );

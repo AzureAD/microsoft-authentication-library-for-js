@@ -28,6 +28,7 @@ import {
     TokenCacheContext,
     UrlString,
     createClientAuthError,
+    ClientAssertion,
 } from "@azure/msal-common";
 
 /**
@@ -324,12 +325,12 @@ export class ClientCredentialClient extends BaseClient {
         }
 
         // Use clientAssertion from request, fallback to client assertion in base configuration
-        const clientAssertion =
+        const clientAssertion: ClientAssertion | undefined =
             request.clientAssertion ||
             this.config.clientCredentials.clientAssertion;
 
         if (clientAssertion) {
-            parameterBuilder.addClientAssertion(clientAssertion.assertion);
+            parameterBuilder.addClientAssertion(clientAssertion.assertion());
             parameterBuilder.addClientAssertionType(
                 clientAssertion.assertionType
             );
