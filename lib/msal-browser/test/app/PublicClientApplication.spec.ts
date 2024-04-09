@@ -944,20 +944,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(FetchClient.prototype, "sendGetRequestAsync")
-                .callsFake((url): any => {
-                    if (url.includes("discovery/instance")) {
-                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
-                    } else if (
-                        url.includes(".well-known/openid-configuration")
-                    ) {
-                        return DEFAULT_OPENID_CONFIG_RESPONSE;
-                    }
-                });
-            sinon
-                .stub(FetchClient.prototype, "sendPostRequestAsync")
-                .resolves(testServerTokenResponse);
+            const postMock = jest
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValueOnce(testServerTokenResponse);
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -984,6 +973,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             if (!tokenResponse1 || !tokenResponse2) {
                 throw "This should not throw. Both responses should be non-null.";
             }
+
+            expect(postMock).toHaveBeenCalledTimes(1);
 
             // Response from first promise
             expect(tokenResponse1.uniqueId).toEqual(testTokenResponse.uniqueId);
