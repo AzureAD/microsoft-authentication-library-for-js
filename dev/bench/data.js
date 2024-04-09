@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712190606521,
+  "lastUpdate": 1712621016226,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6750,6 +6750,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.23%",
             "unit": "ops/sec",
             "extra": "212 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jared@smell.flowers",
+            "name": "Jared Miller",
+            "username": "shmup"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c9311d91794b7f4b3ae12b82754b1236746e1eb8",
+          "message": "Correct the tokenRequest code examples (#7009)\n\nSimple change to example code, `;` becomes `,` and the Object is happy",
+          "timestamp": "2024-04-08T16:58:08-07:00",
+          "tree_id": "47b750b1623cf6c8046d384871f9d4031cd8e4f2",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c9311d91794b7f4b3ae12b82754b1236746e1eb8"
+        },
+        "date": 1712621014227,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 199628,
+            "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191834,
+            "range": "±2.21%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
