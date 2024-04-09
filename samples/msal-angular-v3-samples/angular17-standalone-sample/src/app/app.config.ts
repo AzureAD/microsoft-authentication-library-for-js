@@ -1,7 +1,7 @@
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
-import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
+import { BrowserModule } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS, withFetch, withInterceptors } from '@angular/common/http';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation, LogLevel } from '@azure/msal-browser';
@@ -61,11 +61,9 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes), 
-    // provideClientHydration(),
     importProvidersFrom(BrowserModule, MatButtonModule, MatToolbarModule, MatListModule, MatMenuModule),
     provideNoopAnimations(),
-    // provideHttpClient(withInterceptorsFromDi(), withFetch()), // Legacy
-    // provideHttpClient(withInterceptors(MsalInterceptor), withFetch()),
+    provideHttpClient(withInterceptorsFromDi(), withFetch()), // Legacy - should fix?
     {
         provide: HTTP_INTERCEPTORS,
         useClass: MsalInterceptor,
