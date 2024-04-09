@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712688813248,
+  "lastUpdate": 1712692247729,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6826,6 +6826,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.96%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "031e6ecf0c86b75aec01f3d93f41e87dbd030fbc",
+          "message": "Added classname for silent token renewal iframe (#6985)\n\nPorting change from v2 PR:\r\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/pull/6960",
+          "timestamp": "2024-04-09T12:44:55-07:00",
+          "tree_id": "348a099816406cd3cea930fede5c5644d9429ab4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/031e6ecf0c86b75aec01f3d93f41e87dbd030fbc"
+        },
+        "date": 1712692246493,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 197574,
+            "range": "±2.29%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 184797,
+            "range": "±2.04%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
