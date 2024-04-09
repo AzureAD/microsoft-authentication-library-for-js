@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712695549750,
+  "lastUpdate": 1712700356092,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -6938,6 +6938,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 190077,
             "range": "±2.19%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cd48cb747404831026ba7af6bc22cf34ce2cafed",
+          "message": "Linted MSAL-Node's API Doc (#7015)\n\nI saved the file (without making any changes of my own) and it was\r\nautomatically reformatted.",
+          "timestamp": "2024-04-09T18:00:33-04:00",
+          "tree_id": "72842468810818b9f4878c16fc05490a03b926f9",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/cd48cb747404831026ba7af6bc22cf34ce2cafed"
+        },
+        "date": 1712700354262,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 199260,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191664,
+            "range": "±1.98%",
             "unit": "ops/sec",
             "extra": "224 samples"
           }
