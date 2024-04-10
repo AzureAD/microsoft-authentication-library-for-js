@@ -168,6 +168,7 @@ export {
     createAuthError,
 } from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
+export { CacheError, CacheErrorCodes } from "./error/CacheError";
 export {
     ClientAuthError,
     ClientAuthErrorMessage,
