@@ -69,7 +69,11 @@ export class BrowserPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
 {
-    constructor(configuration: Configuration, intFields?: Set<string>) {
+    constructor(
+        configuration: Configuration,
+        intFields?: Set<string>,
+        abbreviations?: Map<string, string>
+    ) {
         super(
             configuration.auth.clientId,
             configuration.auth.authority || `${Constants.DEFAULT_AUTHORITY}`,
@@ -84,7 +88,8 @@ export class BrowserPerformanceClient
                 appName: "",
                 appVersion: "",
             },
-            intFields
+            intFields,
+            abbreviations
         );
     }
 
@@ -159,14 +164,18 @@ export class BrowserPerformanceClient
         return {
             ...inProgressEvent,
             end: (
-                event?: Partial<PerformanceEvent>
+                event?: Partial<PerformanceEvent>,
+                error?: unknown
             ): PerformanceEvent | null => {
-                const res = inProgressEvent.end({
-                    ...event,
-                    startPageVisibility,
-                    endPageVisibility: this.getPageVisibility(),
-                    durationMs: getPerfDurationMs(startTime),
-                });
+                const res = inProgressEvent.end(
+                    {
+                        ...event,
+                        startPageVisibility,
+                        endPageVisibility: this.getPageVisibility(),
+                        durationMs: getPerfDurationMs(startTime),
+                    },
+                    error
+                );
                 void browserMeasurement?.then((measurement) =>
                     measurement.endMeasurement()
                 );

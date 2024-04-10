@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "14.7.1",
+  "version": "14.8.1",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -58,8 +58,8 @@
     "build:all": "npm run build",
     "prepack": "npm run build",
     "metadata:check": "ts-node scripts/metadata.ts",
-    "format:check": "npx prettier --ignore-path .gitignore --check src test",
-    "format:fix": "npx prettier --ignore-path .gitignore --write src test"
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test"
   },
   "beachball": {
     "disallowedChangeTypes": [

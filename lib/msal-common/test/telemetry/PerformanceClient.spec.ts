@@ -5,14 +5,21 @@
 
 import {
     ApplicationTelemetry,
+    AuthError,
     IGuidGenerator,
     IPerformanceClient,
     Logger,
-    PerformanceClient,
     PerformanceEvents,
     PerformanceEventStatus,
 } from "../../src";
 import crypto from "crypto";
+import {
+    compactStack,
+    compactStackLine,
+} from "../../src/telemetry/performance/PerformanceClient";
+import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient";
+import { PerformanceEventAbbreviations } from "../../src/telemetry/performance/PerformanceEvent";
+import { afterEach } from "node:test";
 
 const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
@@ -39,7 +46,7 @@ class MockGuidGenerator implements IGuidGenerator {
 
 // @ts-ignore
 export class MockPerformanceClient
-    extends PerformanceClient
+    extends PerformanceClient.PerformanceClient
     implements IPerformanceClient
 {
     private guidGenerator: MockGuidGenerator;
@@ -443,6 +450,145 @@ describe("PerformanceClient.spec.ts", () => {
         });
     });
 
+    describe("addError", () => {
+        it("adds error", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new Error("Non-auth test error");
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.errorStack?.length).toEqual(5);
+                expect(event.errorName).toEqual("Error");
+                expect(
+                    event.errorStack?.some((v) => v.includes("Test error"))
+                ).toBeFalsy();
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                error
+            );
+        });
+
+        it("does not override error stack", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.errorStack?.length).toEqual(5);
+                expect(event.errorName).toEqual("Error");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            PerformanceClient.addError(
+                new Error("Test error"),
+                logger,
+                // @ts-ignore
+                mockPerfClient.eventsByCorrelationId.get(correlationId)
+            );
+            const newError = new Error("Test error 2");
+            newError.stack = "Test message\n at line1 \n at line 2";
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                newError
+            );
+        });
+    });
+
+    describe("compactStackTrace", () => {
+        it("compacts error stack", () => {
+            const error = new Error("test error");
+            error.stack = "";
+            for (let ix = 1; ix <= 20; ix++) {
+                error.stack += `  at testFunction${ix} (microsoft-authentication-library-for-js/lib/msal-browser/testFile${ix}.js:10:1)\n`;
+            }
+
+            const result1 = compactStack(error.stack!, 3);
+            expect(result1.length).toEqual(3);
+            expect(result1).toEqual([
+                "at testFunction18 (testFile18.js:10:1)",
+                "at testFunction19 (testFile19.js:10:1)",
+                "at testFunction20 (testFile20.js:10:1)",
+            ]);
+
+            expect(compactStack(error.stack!, -2)).toEqual([]);
+
+            expect(
+                compactStack(
+                    "Test error message\n   at testFunction (microsoft-authentication-library-for-js/lib/msal-browser/testFile.js:10:1)",
+                    3
+                )
+            ).toEqual(["at testFunction (testFile.js:10:1)"]);
+        });
+
+        it("handles empty error stack", () => {
+            expect(compactStack("", 3)).toEqual([]);
+        });
+
+        it("handles error stack with a single error message", () => {
+            expect(compactStack("Test error message", 3)).toEqual([]);
+        });
+    });
+
+    describe("compactStackLine", () => {
+        it("compacts stack line", () => {
+            expect(
+                compactStackLine(
+                    "testFunction at (/microsoft-authentication-library-for-js/lib/msal-browser/app/PublicClientApplication.spec.ts:1234:56)"
+                )
+            ).toEqual(
+                "testFunction at (PublicClientApplication.spec.ts:1234:56)"
+            );
+
+            expect(
+                compactStackLine(
+                    "testFunction at /microsoft-authentication-library-for-js/lib/msal-browser/app/PublicClientApplication.spec.ts:1234:56"
+                )
+            ).toEqual(
+                "testFunction at (PublicClientApplication.spec.ts:1234:56)"
+            );
+
+            expect(
+                compactStackLine(
+                    "testFunction at (PublicClientApplication.spec.ts:1234:56)"
+                )
+            ).toEqual(
+                "testFunction at (PublicClientApplication.spec.ts:1234:56)"
+            );
+        });
+
+        it("compacts minified bundle stack line", () => {
+            expect(
+                compactStackLine(
+                    "testFunction at (https://localhost/something/testMinified.jsbundle:1234:56)"
+                )
+            ).toEqual("testFunction at (testMinified.jsbundle:1234:56)");
+
+            expect(
+                compactStackLine(
+                    "testFunction at (testMinified.jsbundle:1234:56)"
+                )
+            ).toEqual("testFunction at (testMinified.jsbundle:1234:56)");
+        });
+    });
+
     describe("calculateQueuedTime", () => {
         it("returns the queuedTime calculation", () => {
             const mockPerfClient = new MockPerformanceClient();
@@ -466,6 +612,451 @@ describe("PerformanceClient.spec.ts", () => {
             const mockPerfClient = new MockPerformanceClient();
             const result = mockPerfClient.calculateQueuedTime(2, 1);
             expect(result).toBe(0);
+        });
+    });
+
+    describe("context", () => {
+        const perfDuration = Math.round(samplePerfDuration);
+        const abbrEventName = (name: string) => {
+            return PerformanceEventAbbreviations.get(name) || name;
+        };
+        const correlationId = "test-correlation-id";
+
+        it("captures successful single event", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(JSON.parse(event.context || "")).toEqual({
+                    [abbrEventName(rootEvent.event.name)]: {
+                        dur: perfDuration,
+                    },
+                });
+                done();
+            });
+
+            const rootEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            rootEvent.end({ success: true });
+        });
+
+        it("captures siblings with the same event name", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(JSON.parse(event.context || "")).toEqual({
+                    [abbrEventName(rootEvent.event.name)]: {
+                        dur: perfDuration,
+                        [abbrEventName(
+                            PerformanceEvents.AcquireTokenSilentAsync
+                        )]: {
+                            dur: perfDuration,
+                        },
+                        [`${abbrEventName(
+                            PerformanceEvents.AcquireTokenSilentAsync
+                        )}_2`]: {
+                            dur: perfDuration,
+                        },
+                        [`${abbrEventName(
+                            PerformanceEvents.AcquireTokenSilentAsync
+                        )}_3`]: {
+                            dur: perfDuration,
+                            [abbrEventName(thirdChildEventChild.event.name)]: {
+                                dur: perfDuration,
+                            },
+                        },
+                    },
+                });
+                done();
+            });
+
+            const rootEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            const firstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilentAsync,
+                correlationId
+            );
+            firstChildEvent.end({ success: true });
+
+            const secondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilentAsync,
+                correlationId
+            );
+            secondChildEvent.end({ success: true });
+
+            const thirdChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilentAsync,
+                correlationId
+            );
+
+            const thirdChildEventChild = mockPerfClient.startMeasurement(
+                PerformanceEvents.AuthClientCreateQueryString,
+                correlationId
+            );
+            thirdChildEventChild.end({ success: true });
+
+            thirdChildEvent.end({ success: true });
+
+            rootEvent.end({ success: true });
+        });
+
+        it("captures successful nested events", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(JSON.parse(event.context || "")).toEqual({
+                    [abbrEventName(rootEvent.event.name)]: {
+                        dur: perfDuration,
+                        [abbrEventName(firstLevelFirstChildEvent.event.name)]: {
+                            dur: perfDuration,
+                            [abbrEventName(
+                                secondLevelFirstChildEvent.event.name
+                            )]: {
+                                dur: perfDuration,
+                            },
+                            [abbrEventName(
+                                secondLevelSecondChildEvent.event.name
+                            )]: {
+                                dur: perfDuration,
+                            },
+                        },
+                        [abbrEventName(firstLevelSecondChildEvent.event.name)]:
+                            {
+                                dur: perfDuration,
+                            },
+                    },
+                });
+                done();
+            });
+
+            const rootEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            const firstLevelFirstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.GetAuthCodeUrl,
+                correlationId
+            );
+
+            const secondLevelFirstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.HandleCodeResponseFromServer,
+                correlationId
+            );
+            secondLevelFirstChildEvent.end({ success: true });
+
+            const secondLevelSecondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+            secondLevelSecondChildEvent.end({ success: true });
+            firstLevelFirstChildEvent.end({ success: true });
+
+            const firstLevelSecondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenFromCache,
+                correlationId
+            );
+            firstLevelSecondChildEvent.end({ success: true });
+            rootEvent.end({ success: true });
+        });
+
+        it("captures auth errors", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new AuthError(
+                "test error code",
+                "test error message",
+                "test sub error code"
+            );
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(JSON.parse(event.context || "")).toEqual({
+                    [abbrEventName(rootEvent.event.name)]: {
+                        dur: perfDuration,
+                        [abbrEventName(firstLevelFirstChildEvent.event.name)]: {
+                            dur: perfDuration,
+                            fail: 1,
+                            [abbrEventName(
+                                secondLevelFirstChildEvent.event.name
+                            )]: {
+                                dur: perfDuration,
+                            },
+                            [abbrEventName(
+                                secondLevelSecondChildEvent.event.name
+                            )]: {
+                                dur: perfDuration,
+                                err: error.errorCode,
+                                subErr: error.subError,
+                                fail: 1,
+                            },
+                        },
+                        [abbrEventName(firstLevelSecondChildEvent.event.name)]:
+                            {
+                                dur: perfDuration,
+                            },
+                    },
+                });
+                done();
+            });
+
+            const rootEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            const firstLevelFirstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.GetAuthCodeUrl,
+                correlationId
+            );
+
+            const secondLevelFirstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.HandleCodeResponseFromServer,
+                correlationId
+            );
+            secondLevelFirstChildEvent.end({ success: true });
+
+            const secondLevelSecondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+            secondLevelSecondChildEvent.end({ success: false }, error);
+            firstLevelFirstChildEvent.end({ success: false }, error);
+
+            const firstLevelSecondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenFromCache,
+                correlationId
+            );
+            firstLevelSecondChildEvent.end({ success: true });
+            rootEvent.end({ success: true });
+        });
+
+        it("captures different auth errors", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new AuthError(
+                "test error code",
+                "test error message",
+                "test sub error code"
+            );
+            const secondError = new AuthError(
+                "test error code 2",
+                "test error message 2",
+                "test sub error code 2"
+            );
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(JSON.parse(event.context || "")).toEqual({
+                    [abbrEventName(rootEvent.event.name)]: {
+                        dur: perfDuration,
+                        [abbrEventName(firstLevelFirstChildEvent.event.name)]: {
+                            dur: perfDuration,
+                            fail: 1,
+                            err: secondError.errorCode,
+                            subErr: secondError.subError,
+                            [abbrEventName(
+                                secondLevelFirstChildEvent.event.name
+                            )]: {
+                                dur: perfDuration,
+                            },
+                            [abbrEventName(
+                                secondLevelSecondChildEvent.event.name
+                            )]: {
+                                dur: perfDuration,
+                                err: error.errorCode,
+                                subErr: error.subError,
+                                fail: 1,
+                            },
+                        },
+                        [abbrEventName(firstLevelSecondChildEvent.event.name)]:
+                            {
+                                dur: perfDuration,
+                            },
+                    },
+                });
+                done();
+            });
+
+            const rootEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            const firstLevelFirstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.GetAuthCodeUrl,
+                correlationId
+            );
+
+            const secondLevelFirstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.HandleCodeResponseFromServer,
+                correlationId
+            );
+            secondLevelFirstChildEvent.end({ success: true });
+
+            const secondLevelSecondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+            secondLevelSecondChildEvent.end({ success: false }, error);
+            firstLevelFirstChildEvent.end({ success: false }, secondError);
+
+            const firstLevelSecondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenFromCache,
+                correlationId
+            );
+            firstLevelSecondChildEvent.end({ success: true });
+            rootEvent.end({ success: true });
+        });
+
+        it("captures auth and non-auth errors", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new AuthError(
+                "test error code",
+                "test error message",
+                "test sub error code"
+            );
+            const secondError = new TypeError("test type error");
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(JSON.parse(event.context || "")).toEqual({
+                    [abbrEventName(rootEvent.event.name)]: {
+                        dur: perfDuration,
+                        [abbrEventName(firstLevelFirstChildEvent.event.name)]: {
+                            dur: perfDuration,
+                            fail: 1,
+                            err: secondError.name,
+                            [abbrEventName(
+                                secondLevelFirstChildEvent.event.name
+                            )]: {
+                                dur: perfDuration,
+                            },
+                            [abbrEventName(
+                                secondLevelSecondChildEvent.event.name
+                            )]: {
+                                dur: perfDuration,
+                                err: error.errorCode,
+                                subErr: error.subError,
+                                fail: 1,
+                            },
+                        },
+                        [abbrEventName(firstLevelSecondChildEvent.event.name)]:
+                            {
+                                dur: perfDuration,
+                            },
+                    },
+                });
+                done();
+            });
+
+            const rootEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            const firstLevelFirstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.GetAuthCodeUrl,
+                correlationId
+            );
+
+            const secondLevelFirstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.HandleCodeResponseFromServer,
+                correlationId
+            );
+            secondLevelFirstChildEvent.end({ success: true });
+
+            const secondLevelSecondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+            secondLevelSecondChildEvent.end({ success: false }, error);
+            firstLevelFirstChildEvent.end({ success: false }, secondError);
+
+            const firstLevelSecondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenFromCache,
+                correlationId
+            );
+            firstLevelSecondChildEvent.end({ success: true });
+            rootEvent.end({ success: true });
+        });
+
+        it("captures non-auth errors", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new TypeError("test type error");
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(JSON.parse(event.context || "")).toEqual({
+                    [abbrEventName(rootEvent.event.name)]: {
+                        dur: perfDuration,
+                        [abbrEventName(firstLevelFirstChildEvent.event.name)]: {
+                            dur: perfDuration,
+                            fail: 1,
+                            [abbrEventName(
+                                secondLevelFirstChildEvent.event.name
+                            )]: {
+                                dur: perfDuration,
+                            },
+                            [abbrEventName(
+                                secondLevelSecondChildEvent.event.name
+                            )]: {
+                                dur: perfDuration,
+                                err: error.name,
+                                fail: 1,
+                            },
+                        },
+                        [abbrEventName(firstLevelSecondChildEvent.event.name)]:
+                            {
+                                dur: perfDuration,
+                            },
+                    },
+                });
+                done();
+            });
+
+            const rootEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+
+            const firstLevelFirstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.GetAuthCodeUrl,
+                correlationId
+            );
+
+            const secondLevelFirstChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.HandleCodeResponseFromServer,
+                correlationId
+            );
+            secondLevelFirstChildEvent.end({ success: true });
+
+            const secondLevelSecondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.RefreshTokenClientAcquireToken,
+                correlationId
+            );
+            secondLevelSecondChildEvent.end({ success: false }, error);
+            firstLevelFirstChildEvent.end({ success: false }, error);
+
+            const firstLevelSecondChildEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenFromCache,
+                correlationId
+            );
+            firstLevelSecondChildEvent.end({ success: true });
+            rootEvent.end({ success: true });
         });
     });
 });

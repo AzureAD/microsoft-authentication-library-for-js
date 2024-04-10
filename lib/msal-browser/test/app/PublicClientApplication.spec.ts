@@ -18,6 +18,7 @@ import {
     TEST_SSH_VALUES,
     TEST_STATE_VALUES,
     TEST_TOKEN_LIFETIMES,
+    TEST_TOKEN_RESPONSE,
     TEST_TOKENS,
     TEST_URIS,
     testLogoutUrl,
@@ -40,9 +41,11 @@ import {
     createClientAuthError,
     createInteractionRequiredAuthError,
     IdTokenEntity,
+    InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     Logger,
     LogLevel,
+    PerformanceEvent,
     PerformanceEvents,
     PersistentCacheKeys,
     ProtocolMode,
@@ -89,6 +92,7 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
+import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { AuthorizationCodeRequest, EndSessionRequest } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
@@ -940,20 +944,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(FetchClient.prototype, "sendGetRequestAsync")
-                .callsFake((url): any => {
-                    if (url.includes("discovery/instance")) {
-                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
-                    } else if (
-                        url.includes(".well-known/openid-configuration")
-                    ) {
-                        return DEFAULT_OPENID_CONFIG_RESPONSE;
-                    }
-                });
-            sinon
-                .stub(FetchClient.prototype, "sendPostRequestAsync")
-                .resolves(testServerTokenResponse);
+            const postMock = jest
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValueOnce(testServerTokenResponse);
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -980,6 +973,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             if (!tokenResponse1 || !tokenResponse2) {
                 throw "This should not throw. Both responses should be non-null.";
             }
+
+            expect(postMock).toHaveBeenCalledTimes(1);
 
             // Response from first promise
             expect(tokenResponse1.uniqueId).toEqual(testTokenResponse.uniqueId);
@@ -2810,10 +2805,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const silentClientSpy = sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
-                .rejects({
-                    errorCode: "abc",
-                    subError: "defg",
-                });
+                .rejects(new AuthError("abc", "error message", "defg"));
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(false);
@@ -3269,10 +3261,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const silentClientSpy = sinon
                 .stub(SilentAuthCodeClient.prototype, "acquireToken")
-                .rejects({
-                    errorCode: "abc",
-                    subError: "defg",
-                });
+                .rejects(new AuthError("abc", "error message", "defg"));
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(false);
@@ -3552,6 +3541,49 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentCacheSpy.calledOnce).toBe(true);
             expect(silentRefreshSpy.called).toBe(false);
             expect(silentIframeSpy.called).toBe(false);
+        });
+
+        it("Calls SilentCacheClient.acquireToken and captures the stack trace for non-auth error", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockRejectedValue(new Error("Test error message"));
+
+            const callbackId = pca.addPerformanceCallback(
+                (events: PerformanceEvent[]) => {
+                    try {
+                        expect(events.length).toEqual(1);
+                        const event = events[0];
+                        expect(event.name).toBe(
+                            PerformanceEvents.AcquireTokenSilent
+                        );
+                        expect(event.correlationId).toBeDefined();
+                        expect(event.success).toBeFalsy();
+                        expect(event.errorName).toEqual("Error");
+                        expect(event.errorStack?.length).toBeGreaterThan(1);
+                        expect(event.incompleteSubsCount).toEqual(0);
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                }
+            );
+
+            pca.acquireTokenSilent({
+                scopes: ["openid"],
+                account: testAccount,
+                state: "test-state",
+                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+            }).catch(() => {});
         });
 
         it("Calls SilentRefreshClient.acquireToken and returns its response if cache lookup throws", async () => {
@@ -4163,7 +4195,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 RANDOM_TEST_GUID
             );
             sinon
-                .stub(CryptoOps.prototype, "hashString")
+                .stub(BrowserCrypto, "hashString")
                 .resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             const silentATStub = sinon
                 .stub(
@@ -4472,6 +4504,205 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
                 expect(e).toEqual(testError);
             }
+        });
+
+        it("waits for in progress iframe renewal to complete before trying cache/RT again", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "testTenantId",
+                username: "username@contoso.com",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: ID_TOKEN_CLAIMS.oid || "",
+                tenantId: ID_TOKEN_CLAIMS.tid || "",
+                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(
+                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            const rtMockFirst = jest
+                .spyOn(
+                    RefreshTokenClient.prototype,
+                    "acquireTokenByRefreshToken"
+                )
+                .mockRejectedValue(
+                    createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                    )
+                );
+
+            let rtMockSecond;
+            let rtMockFirstCalledTimes;
+
+            const iframeMock = jest
+                .spyOn(SilentIframeClient.prototype, "acquireToken")
+                .mockImplementationOnce(() => {
+                    return new Promise((resolve, reject) => {
+                        // Resolve after some time to mimic iframe latency
+                        setTimeout(() => {
+                            // Mock call info is cleared when the mock is reset, save it for validation at the end of the test
+                            rtMockFirstCalledTimes =
+                                rtMockFirst.mock.calls.length;
+                            rtMockFirst.mockRestore();
+                            rtMockSecond = jest
+                                .spyOn(
+                                    RefreshTokenClient.prototype,
+                                    "acquireTokenByRefreshToken"
+                                )
+                                .mockResolvedValue(testTokenResponse);
+                            return resolve(testTokenResponse);
+                        }, 1000);
+                    });
+                });
+
+            const silentRequest1 = pca.acquireTokenSilent({
+                scopes: ["Scope1"],
+                account: testAccount,
+            });
+            const silentRequest2 = pca.acquireTokenSilent({
+                scopes: ["Scope2"],
+                account: testAccount,
+            });
+            const silentRequest3 = pca.acquireTokenSilent({
+                scopes: ["Scope3"],
+                account: testAccount,
+            });
+            await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
+            expect(iframeMock).toHaveBeenCalledTimes(1);
+            expect(rtMockFirstCalledTimes).toEqual(3);
+            expect(rtMockSecond).toHaveBeenCalledTimes(2);
+            expect(await silentRequest1).toEqual(testTokenResponse);
+            expect(await silentRequest2).toEqual(testTokenResponse);
+            expect(await silentRequest3).toEqual(testTokenResponse);
+        });
+
+        it("throws RT renewal error if other in progress iframe renewal throws", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "testTenantId",
+                username: "username@contoso.com",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: ID_TOKEN_CLAIMS.oid || "",
+                tenantId: ID_TOKEN_CLAIMS.tid || "",
+                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(
+                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            const rtMockFirst = jest
+                .spyOn(
+                    RefreshTokenClient.prototype,
+                    "acquireTokenByRefreshToken"
+                )
+                .mockRejectedValue(
+                    createInteractionRequiredAuthError(
+                        InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                    )
+                );
+
+            let rtMockSecond;
+            let rtMockFirstCalledTimes;
+
+            const testIframeError = new InteractionRequiredAuthError(
+                "interaction_required",
+                "interaction is required"
+            );
+
+            const iframeMock = jest
+                .spyOn(SilentIframeClient.prototype, "acquireToken")
+                .mockImplementationOnce(() => {
+                    return new Promise((resolve, reject) => {
+                        // Resolve after some time to mimic iframe latency
+                        setTimeout(() => {
+                            // Mock call info is cleared when the mock is reset, save it for validation at the end of the test
+                            rtMockFirstCalledTimes =
+                                rtMockFirst.mock.calls.length;
+                            rtMockFirst.mockRestore();
+                            rtMockSecond = jest
+                                .spyOn(
+                                    RefreshTokenClient.prototype,
+                                    "acquireTokenByRefreshToken"
+                                )
+                                .mockRejectedValue(testTokenResponse);
+                            return reject(testIframeError);
+                        }, 1000);
+                    });
+                });
+
+            const silentRequest1 = pca.acquireTokenSilent({
+                scopes: ["Scope1"],
+                account: testAccount,
+            });
+            const silentRequest2 = pca.acquireTokenSilent({
+                scopes: ["Scope2"],
+                account: testAccount,
+            });
+            const silentRequest3 = pca.acquireTokenSilent({
+                scopes: ["Scope3"],
+                account: testAccount,
+            });
+            try {
+                await Promise.all([
+                    silentRequest1,
+                    silentRequest2,
+                    silentRequest3,
+                ]);
+            } catch (e) {}
+            expect(iframeMock).toHaveBeenCalledTimes(1);
+            expect(rtMockFirstCalledTimes).toEqual(3);
+            expect(rtMockSecond).toHaveBeenCalledTimes(0);
+            await silentRequest1
+                .then(() => {
+                    throw "This should throw";
+                })
+                .catch((e) => {
+                    expect(e).toEqual(testIframeError);
+                });
+            await silentRequest2
+                .then(() => {
+                    throw "This should throw";
+                })
+                .catch((e) => {
+                    expect(e).toEqual(
+                        createInteractionRequiredAuthError(
+                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                        )
+                    );
+                });
+            await silentRequest3
+                .then(() => {
+                    throw "This should throw";
+                })
+                .catch((e) => {
+                    expect(e).toEqual(
+                        createInteractionRequiredAuthError(
+                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                        )
+                    );
+                });
         });
 
         it("Falls back to silent handler if thrown error is a refresh token expired error", async () => {
@@ -4829,10 +5060,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     StandardController.prototype,
                     <any>"acquireTokenSilentAsync"
                 )
-                .rejects({
-                    errorCode: "abc",
-                    subError: "defg",
-                });
+                .rejects(new AuthError("abc", "error message", "defg"));
 
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
