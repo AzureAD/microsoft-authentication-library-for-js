@@ -207,7 +207,8 @@ export class StandardController implements IController {
                   this.config.cache,
                   this.browserCrypto,
                   this.logger,
-                  buildStaticAuthorityOptions(this.config.auth)
+                  buildStaticAuthorityOptions(this.config.auth),
+                  this.performanceClient
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
@@ -227,7 +228,9 @@ export class StandardController implements IController {
             this.config.auth.clientId,
             nativeCacheOptions,
             this.browserCrypto,
-            this.logger
+            this.logger,
+            undefined,
+            this.performanceClient
         );
 
         // Initialize the token cache
