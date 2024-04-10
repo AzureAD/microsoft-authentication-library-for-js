@@ -22,4 +22,10 @@
     * This sample does not use the `MsalRedirectComponent`, but subscribes to `handleRedirectObservable` in the App Component. See our doc on [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for more information.
     * `PathLocationStrategy`: This sample uses the `PathLocationStrategy` for routing. See [Angular docs](https://angular.io/guide/router#locationstrategy-and-browser-url-styles) for more details.
 
+* [Angular17 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular17-standalone-sample)
+    * This sample demonstrates how to use Msal Angular with Angular's standalone components.
+    * This sample uses the new Angular 17 application builder, but **does not** demonstrate use of server-side and prerendering capabilities. See [Angular's docs](https://angular.io/guide/esbuild) for more details.
+    * This sample does not use the `MsalRedirectComponent`, but subscribes to `handleRedirectObservable` in the App Component. See our doc on [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for more information.
+    * `PathLocationStrategy`: This sample uses the `PathLocationStrategy` for routing. See [Angular docs](https://angular.io/guide/router#locationstrategy-and-browser-url-styles) for more details.
+
 Additional samples will continue to be added at a later date.
