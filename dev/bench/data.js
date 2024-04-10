@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712783956568,
+  "lastUpdate": 1712788123926,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7130,6 +7130,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.07%",
             "unit": "ops/sec",
             "extra": "228 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5f57e84f83958d07f5178cd1d0e5af0c3341985c",
+          "message": "Node-Extensions workaround npm regression (#7022)\n\nnpm version 10.4.0 introduced a regression where it auto-adds a default\r\ninstall script during publish when a binding.gyp file exists. This\r\ninstall script attempts to recompile binaries upon install. This is\r\nbreaking installation of node-extensions as we ship precompiled binaries\r\nand don't include the .gyp file in the package.\r\n\r\nTo workaround this I've added an explicit install script that simply\r\nexits so npm doesn't add its own.",
+          "timestamp": "2024-04-10T15:23:21-07:00",
+          "tree_id": "c7f94e250f3c71ad161e7d3267704de804aa4913",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5f57e84f83958d07f5178cd1d0e5af0c3341985c"
+        },
+        "date": 1712788122701,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 204707,
+            "range": "±2.08%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 188829,
+            "range": "±2.02%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
