@@ -19,6 +19,10 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - Navigate to [http://localhost:4200](http://localhost:4200)
 - In the web page, click on the "Login" button. The app will automatically reload if you change any of the source files.
 
+## Local development
+
+If you are trying to run this sample locally in the MSAL.js repo, run `npm run build` before `npm run start` to install a tarball file of MSAL Angular.
+
 ## Additional notes
 - This sample does not use the `MsalRedirectComponent`, but subscribes to `handleRedirectObservable` in the `app.component.ts` file. See our doc on [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for more information.
 - The default interaction type for the sample is redirects. The sample can be configured to use redirects by changing the `interactionType` in `main.ts` to `InteractionType.Popup`. 
