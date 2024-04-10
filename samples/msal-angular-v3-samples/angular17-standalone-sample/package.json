@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "npm run postinstall:msal-angular && ng build",
+    "postinstall:msal-angular": "cd ../../../lib/msal-angular && npm run build && cd dist/ && npm pack && cd ../../../samples/msal-angular-v3-samples/angular17-standalone-sample && npm i ../../../lib/msal-angular/dist/azure-msal-angular-3.0.13.tgz",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
