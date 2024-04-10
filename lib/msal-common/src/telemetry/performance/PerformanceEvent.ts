@@ -804,6 +804,11 @@ export type PerformanceEvent = {
 
     // Event context as JSON string
     context?: string;
+
+    // Number of tokens in the cache to be reported when cache quota is exceeded
+    cacheRtCount?: number;
+    cacheIdCount?: number;
+    cacheAtCount?: number;
 };
 
 export type PerformanceEventContext = {
