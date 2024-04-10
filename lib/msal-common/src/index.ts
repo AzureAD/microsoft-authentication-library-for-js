@@ -204,6 +204,7 @@ export {
     GrantType,
     AADAuthorityConstants,
     HttpStatus,
+    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     JsonWebTokenTypes,
 } from "./utils/Constants";
 export * as AADServerParamKeys from "./constants/AADServerParamKeys";

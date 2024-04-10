@@ -18,6 +18,14 @@ import {
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
 import https from "https";
+import { ManagedIdentityId } from "./ManagedIdentityId.js";
+import {
+    MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
+    MANAGED_IDENTITY_MAX_RETRIES,
+    MANAGED_IDENTITY_RETRY_DELAY,
+} from "../utils/Constants.js";
+import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
+import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
 
 /**
  * - clientId               - Client id of the application.
@@ -83,6 +91,7 @@ export type NodeSystemOptions = {
     networkClient?: INetworkModule;
     proxyUrl?: string;
     customAgentOptions?: http.AgentOptions | https.AgentOptions;
+    disableInternalRetries?: boolean;
 };
 
 export type NodeTelemetryOptions = {
@@ -105,6 +114,17 @@ export type Configuration = {
     cache?: CacheOptions;
     system?: NodeSystemOptions;
     telemetry?: NodeTelemetryOptions;
+};
+
+export type ManagedIdentityIdParams = {
+    userAssignedClientId?: string;
+    userAssignedResourceId?: string;
+    userAssignedObjectId?: string;
+};
+
+export type ManagedIdentityConfiguration = {
+    managedIdentityIdParams?: ManagedIdentityIdParams;
+    system?: NodeSystemOptions;
 };
 
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
@@ -146,6 +166,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
+    disableInternalRetries: false,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
@@ -189,6 +210,7 @@ export function buildAppConfiguration({
             system?.customAgentOptions as http.AgentOptions | https.AgentOptions
         ),
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
+        disableInternalRetries: system?.disableInternalRetries || false,
     };
 
     return {
@@ -197,5 +219,57 @@ export function buildAppConfiguration({
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
+    };
+}
+
+export type ManagedIdentityNodeConfiguration = {
+    managedIdentityId: ManagedIdentityId;
+    system: Required<
+        Pick<NodeSystemOptions, "loggerOptions" | "networkClient">
+    >;
+};
+
+export function buildManagedIdentityConfiguration({
+    managedIdentityIdParams,
+    system,
+}: ManagedIdentityConfiguration): ManagedIdentityNodeConfiguration {
+    const managedIdentityId: ManagedIdentityId = new ManagedIdentityId(
+        managedIdentityIdParams
+    );
+
+    const loggerOptions: LoggerOptions =
+        system?.loggerOptions || DEFAULT_LOGGER_OPTIONS;
+
+    let networkClient: INetworkModule;
+    // use developer provided network client if passed in
+    if (system?.networkClient) {
+        networkClient = system.networkClient;
+        // otherwise, create a new one
+    } else {
+        networkClient = new HttpClient(
+            system?.proxyUrl,
+            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
+        );
+    }
+
+    // wrap the network client with a retry policy if the developer has not disabled the option to do so
+    if (!system?.disableInternalRetries) {
+        const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
+            MANAGED_IDENTITY_MAX_RETRIES,
+            MANAGED_IDENTITY_RETRY_DELAY,
+            MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON
+        );
+        networkClient = new HttpClientWithRetries(
+            networkClient,
+            linearRetryPolicy
+        );
+    }
+
+    return {
+        managedIdentityId: managedIdentityId,
+        system: {
+            loggerOptions,
+            networkClient,
+        },
     };
 }
