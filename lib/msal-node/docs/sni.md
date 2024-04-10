@@ -51,7 +51,7 @@ const config = {
         clientCertificate: {
                 thumbprint: process.env.thumbprint; // a 40-digit hexadecimal string
                 privateKey: process.env.privateKey,
-                x5c: process.env.x5c 
+                x5c: process.env.x5c
             }
    }
 }
