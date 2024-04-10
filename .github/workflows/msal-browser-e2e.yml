@@ -35,7 +35,7 @@ jobs:
             matrix:
                 sample:
                     - "client-capabilities"
-                    - "multipleResources"
+                    #- "multipleResources" temporarily disabled pending a sample update
                     - "onPageLoad"
                     - "pop"
                     - "customizable-e2e-test"
