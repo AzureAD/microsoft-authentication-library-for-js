@@ -68,9 +68,10 @@ async function getTokenPopup(request, homeAccountId) {
 
 As of `@azure/msal-browser@3.2.0`, all login hint values can be used to search for and filter accounts. In order to filter by login hint, MSAL will compare the `loginHint` value in the `AccountFilter` object against the following account attributes (in order of precedence) to search for matches:
 
--   `login_hint` ID token claim
+-   `login_hint` ID token claim. Ignored in favor of the account attributes listed below when `domainHint` param is set as both opaque `login_hint` and `domain_hint` can't be used together
 -   `username` account property
 -   `upn` ID token claim
+
 
 > Note: All attributes above can be passed into the account filter as the `loginHint` property. The account filter will also accept the `username` attribute as `username`, and will yield a more performant search.
 

@@ -487,6 +487,166 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
         });
 
+        it("skips login_hint claim if domainHint param is set", async () => {
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+            const testAccount = TEST_ACCOUNT_INFO;
+            // @ts-ignore
+            const testTokenClaims: Required<
+                Omit<
+                    TokenClaims,
+                    | "home_oid"
+                    | "upn"
+                    | "cloud_instance_host_name"
+                    | "cnf"
+                    | "emails"
+                >
+            > = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+                sid: "testSid",
+                login_hint: "opaque-login-hint-claim",
+            };
+
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                account: {
+                    ...testAccount,
+                    idTokenClaims: testTokenClaims,
+                },
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.FRAGMENT,
+                domainHint: TEST_CONFIG.DOMAIN_HINT,
+            };
+            const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
+            expect(
+                loginUrl.includes(
+                    `${AADServerParamKeys.SID}=${encodeURIComponent(
+                        testTokenClaims.sid
+                    )}`
+                )
+            ).toBe(false);
+            expect(
+                loginUrl.includes(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
+                        testAccount.username
+                    )}`
+                )
+            ).toBe(true);
+            expect(
+                loginUrl.includes(
+                    `${AADServerParamKeys.DOMAIN_HINT}=${encodeURIComponent(
+                        TEST_CONFIG.DOMAIN_HINT
+                    )}`
+                )
+            ).toBe(true);
+            expect(
+                loginUrl.includes(
+                    `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
+                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
+                    )}`
+                )
+            ).toBe(true);
+        });
+
+        it("picks up both loginHint and domainHint params", async () => {
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+            const testAccount = TEST_ACCOUNT_INFO;
+            // @ts-ignore
+            const testTokenClaims: Required<
+                Omit<
+                    TokenClaims,
+                    | "home_oid"
+                    | "upn"
+                    | "cloud_instance_host_name"
+                    | "cnf"
+                    | "emails"
+                >
+            > = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+                sid: "testSid",
+                login_hint: "opaque-login-hint-claim",
+            };
+
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                account: {
+                    ...testAccount,
+                    idTokenClaims: testTokenClaims,
+                },
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.FRAGMENT,
+                domainHint: TEST_CONFIG.DOMAIN_HINT,
+                loginHint: TEST_CONFIG.LOGIN_HINT,
+            };
+            const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
+            expect(
+                loginUrl.includes(
+                    `${AADServerParamKeys.SID}=${encodeURIComponent(
+                        testTokenClaims.sid
+                    )}`
+                )
+            ).toBe(false);
+            expect(
+                loginUrl.includes(
+                    `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
+                        TEST_CONFIG.LOGIN_HINT
+                    )}`
+                )
+            ).toBe(true);
+            expect(
+                loginUrl.includes(
+                    `${AADServerParamKeys.DOMAIN_HINT}=${encodeURIComponent(
+                        TEST_CONFIG.DOMAIN_HINT
+                    )}`
+                )
+            ).toBe(true);
+        });
+
         it("Prefers sid over loginHint if both provided and prompt=None", async () => {
             // Override with alternate authority openid_config
             sinon
