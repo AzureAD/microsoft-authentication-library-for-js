@@ -34,6 +34,11 @@ import {
     CredentialType,
     ProtocolMode,
     CacheHelpers,
+    CacheError,
+    CacheErrorCodes,
+    CacheManager,
+    CacheRecord,
+    PerformanceEvent,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
@@ -46,6 +51,7 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
 import { base64Decode } from "../../src/encode/Base64Decode";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -1562,6 +1568,95 @@ describe("BrowserCacheManager tests", () => {
                     expect(
                         browserLocalStorage.getThrottlingCache(testKey)
                     ).toEqual(testVal);
+                });
+            });
+
+            describe("saveCacheRecord", () => {
+                it("saveCacheRecord re-throws and captures telemetry", (done) => {
+                    const cacheError = new CacheError(
+                        CacheErrorCodes.cacheQuotaExceededErrorCode
+                    );
+                    const testAppConfig = {
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    };
+                    const perfClient = new BrowserPerformanceClient(
+                        testAppConfig
+                    );
+
+                    const testAccessToken =
+                        CacheHelpers.createAccessTokenEntity(
+                            "homeAccountId",
+                            "environment",
+                            TEST_TOKENS.ACCESS_TOKEN,
+                            "client-id",
+                            "tenantId",
+                            "openid",
+                            1000,
+                            1000,
+                            browserCrypto.base64Decode,
+                            500,
+                            AuthenticationScheme.BEARER,
+                            "oboAssertion"
+                        );
+
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        undefined,
+                        perfClient
+                    );
+                    cacheManager.setAccessTokenCredential(testAccessToken);
+
+                    sinon
+                        .stub(CacheManager.prototype, "saveCacheRecord")
+                        .throws(cacheError);
+
+                    // @ts-ignore
+                    const callbackId = perfClient.addPerformanceCallback(
+                        (events: PerformanceEvent[]) => {
+                            expect(events.length).toEqual(1);
+                            const event = events[0];
+                            expect(event.name).toBe("test-measurement");
+                            expect(event.correlationId).toEqual(
+                                "test-correlation-id"
+                            );
+                            expect(event.success).toBeFalsy();
+                            expect(event.errorCode).toEqual(
+                                CacheErrorCodes.cacheQuotaExceededErrorCode
+                            );
+                            expect(event.cacheIdCount).toEqual(0);
+                            expect(event.cacheRtCount).toEqual(0);
+                            expect(event.cacheAtCount).toEqual(1);
+                            // @ts-ignore
+                            perfClient.removePerformanceCallback(callbackId);
+                            done();
+                        }
+                    );
+
+                    const measurement = perfClient.startMeasurement(
+                        "test-measurement",
+                        "test-correlation-id"
+                    );
+
+                    cacheManager
+                        .saveCacheRecord(
+                            new CacheRecord(),
+                            undefined,
+                            "test-correlation-id"
+                        )
+                        .then(() => {
+                            throw new Error(
+                                "saveCacheRecord should have thrown"
+                            );
+                        })
+                        .catch((e) => {
+                            expect(e).toBeInstanceOf(CacheError);
+                            measurement.end({ success: false }, e);
+                        });
                 });
             });
         });

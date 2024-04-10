@@ -53,6 +53,7 @@ import { getAliasesFromStaticSources } from "../authority/AuthorityMetadata";
 import { StaticAuthorityOptions } from "../authority/AuthorityOptions";
 import { TokenClaims } from "../account/TokenClaims";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { CacheError, CacheErrorCodes } from "../error/CacheError";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -501,11 +502,14 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * saves a cache record
-     * @param cacheRecord
+     * @param cacheRecord {CacheRecord}
+     * @param storeInCache {?StoreInCache}
+     * @param correlationId {?string} correlation id
      */
     async saveCacheRecord(
         cacheRecord: CacheRecord,
-        storeInCache?: StoreInCache
+        storeInCache?: StoreInCache,
+        correlationId?: string
     ): Promise<void> {
         if (!cacheRecord) {
             throw createClientAuthError(
@@ -513,27 +517,62 @@ export abstract class CacheManager implements ICacheManager {
             );
         }
 
-        if (!!cacheRecord.account) {
-            this.setAccount(cacheRecord.account);
-        }
+        try {
+            if (!!cacheRecord.account) {
+                this.setAccount(cacheRecord.account);
+            }
 
-        if (!!cacheRecord.idToken && storeInCache?.idToken !== false) {
-            this.setIdTokenCredential(cacheRecord.idToken);
-        }
+            if (!!cacheRecord.idToken && storeInCache?.idToken !== false) {
+                this.setIdTokenCredential(cacheRecord.idToken);
+            }
 
-        if (!!cacheRecord.accessToken && storeInCache?.accessToken !== false) {
-            await this.saveAccessToken(cacheRecord.accessToken);
-        }
+            if (
+                !!cacheRecord.accessToken &&
+                storeInCache?.accessToken !== false
+            ) {
+                await this.saveAccessToken(cacheRecord.accessToken);
+            }
 
-        if (
-            !!cacheRecord.refreshToken &&
-            storeInCache?.refreshToken !== false
-        ) {
-            this.setRefreshTokenCredential(cacheRecord.refreshToken);
-        }
+            if (
+                !!cacheRecord.refreshToken &&
+                storeInCache?.refreshToken !== false
+            ) {
+                this.setRefreshTokenCredential(cacheRecord.refreshToken);
+            }
 
-        if (!!cacheRecord.appMetadata) {
-            this.setAppMetadata(cacheRecord.appMetadata);
+            if (!!cacheRecord.appMetadata) {
+                this.setAppMetadata(cacheRecord.appMetadata);
+            }
+        } catch (e: unknown) {
+            this.commonLogger?.error(`CacheManager.saveCacheRecord: failed`);
+            if (e instanceof Error) {
+                this.commonLogger?.errorPii(
+                    `CacheManager.saveCacheRecord: ${e.message}`,
+                    correlationId
+                );
+
+                if (
+                    e.name === "QuotaExceededError" ||
+                    e.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+                    e.message.includes("exceeded the quota")
+                ) {
+                    this.commonLogger?.error(
+                        `CacheManager.saveCacheRecord: exceeded storage quota`,
+                        correlationId
+                    );
+                    throw new CacheError(
+                        CacheErrorCodes.cacheQuotaExceededErrorCode
+                    );
+                } else {
+                    throw new CacheError(e.name, e.message);
+                }
+            } else {
+                this.commonLogger?.errorPii(
+                    `CacheManager.saveCacheRecord: ${e}`,
+                    correlationId
+                );
+                throw new CacheError(CacheErrorCodes.cacheUnknownErrorCode);
+            }
         }
     }
 

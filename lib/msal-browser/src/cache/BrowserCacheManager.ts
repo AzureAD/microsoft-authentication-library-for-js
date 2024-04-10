@@ -37,6 +37,8 @@ import {
     IPerformanceClient,
     StaticAuthorityOptions,
     CacheHelpers,
+    StoreInCache,
+    CacheError,
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import {
@@ -79,6 +81,8 @@ export class BrowserCacheManager extends CacheManager {
     protected temporaryCacheStorage: IWindowStorage<string>;
     // Logger instance
     protected logger: Logger;
+    // Telemetry perf client
+    protected performanceClient?: IPerformanceClient;
 
     // Cookie life calculation (hours * minutes * seconds * ms)
     protected readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
@@ -88,7 +92,8 @@ export class BrowserCacheManager extends CacheManager {
         cacheConfig: Required<CacheOptions>,
         cryptoImpl: ICrypto,
         logger: Logger,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        performanceClient?: IPerformanceClient
     ) {
         super(clientId, cryptoImpl, logger, staticAuthorityOptions);
         this.cacheConfig = cacheConfig;
@@ -107,6 +112,8 @@ export class BrowserCacheManager extends CacheManager {
             this.migrateCacheEntries();
             this.createKeyMaps();
         }
+
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -1854,6 +1861,47 @@ export class BrowserCacheManager extends CacheManager {
             accessTokenEntity
         );
         return this.saveCacheRecord(cacheRecord);
+    }
+
+    /**
+     * saves a cache record
+     * @param cacheRecord {CacheRecord}
+     * @param storeInCache {?StoreInCache}
+     * @param correlationId {?string} correlation id
+     */
+    async saveCacheRecord(
+        cacheRecord: CacheRecord,
+        storeInCache?: StoreInCache,
+        correlationId?: string
+    ): Promise<void> {
+        try {
+            await super.saveCacheRecord(
+                cacheRecord,
+                storeInCache,
+                correlationId
+            );
+        } catch (e) {
+            if (
+                e instanceof CacheError &&
+                this.performanceClient &&
+                correlationId
+            ) {
+                try {
+                    const tokenKeys = this.getTokenKeys();
+
+                    this.performanceClient.addFields(
+                        {
+                            cacheRtCount: tokenKeys.refreshToken.length,
+                            cacheIdCount: tokenKeys.idToken.length,
+                            cacheAtCount: tokenKeys.accessToken.length,
+                        },
+                        correlationId
+                    );
+                } catch (e) {}
+            }
+
+            throw e;
+        }
     }
 }
 
