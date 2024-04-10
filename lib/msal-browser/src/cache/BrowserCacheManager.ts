@@ -1886,16 +1886,18 @@ export class BrowserCacheManager extends CacheManager {
                 this.performanceClient &&
                 correlationId
             ) {
-                const tokenKeys = this.getTokenKeys();
+                try {
+                    const tokenKeys = this.getTokenKeys();
 
-                this.performanceClient.addFields(
-                    {
-                        cacheRtCount: tokenKeys.refreshToken.length,
-                        cacheIdCount: tokenKeys.idToken.length,
-                        cacheAtCount: tokenKeys.accessToken.length,
-                    },
-                    correlationId
-                );
+                    this.performanceClient.addFields(
+                        {
+                            cacheRtCount: tokenKeys.refreshToken.length,
+                            cacheIdCount: tokenKeys.idToken.length,
+                            cacheAtCount: tokenKeys.accessToken.length,
+                        },
+                        correlationId
+                    );
+                } catch (e) {}
             }
 
             throw e;
