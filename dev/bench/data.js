@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712765737479,
+  "lastUpdate": 1712777870996,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7014,6 +7014,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 189918,
             "range": "±1.92%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8f3bad900ac10349c1002c8834bd5b92caed479b",
+          "message": "Managed Identity in MSALJS (#6880)\n\nCo-authored-by: Robbie Ginsburg <rgins16@gmail.com>",
+          "timestamp": "2024-04-10T15:32:28-04:00",
+          "tree_id": "09242e18ac9973901c7c8ec5f71a43572007b290",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8f3bad900ac10349c1002c8834bd5b92caed479b"
+        },
+        "date": 1712777869704,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 186532,
+            "range": "±1.91%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 187736,
+            "range": "±1.94%",
             "unit": "ops/sec",
             "extra": "222 samples"
           }
