@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712777870996,
+  "lastUpdate": 1712779476934,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7052,6 +7052,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 187736,
             "range": "±1.94%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "17a0bcb7e0b75ceb881226cd456e24d04252698a",
+          "message": "Disable multiple resources E2E tests (#7024)\n\nTemporarily disabling multipleResources E2E tests pending a sample\r\nupdate",
+          "timestamp": "2024-04-10T12:59:10-07:00",
+          "tree_id": "d5f1b351f6071a59eb2ad77e5abaa31d086aec77",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/17a0bcb7e0b75ceb881226cd456e24d04252698a"
+        },
+        "date": 1712779475610,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193376,
+            "range": "±2.02%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 185323,
+            "range": "±1.91%",
             "unit": "ops/sec",
             "extra": "222 samples"
           }
