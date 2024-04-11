@@ -51,6 +51,8 @@ export const ClientConfigurationErrorMessages = {
         "Cannot set allowNativeBroker parameter to true when not in AAD protocol mode.",
     [ClientConfigurationErrorCodes.authorityMismatch]:
         "Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.",
+    [ClientConfigurationErrorCodes.claimsBasedCachingEnabled]:
+        "Claims based caching is not supported in MSALJS.",
 };
 
 /**

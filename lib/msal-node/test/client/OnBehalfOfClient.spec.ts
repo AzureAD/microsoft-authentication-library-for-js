@@ -143,6 +143,7 @@ describe("OnBehalfOf unit tests", () => {
                 "Validates that claims and client capabilities are correctly merged",
                 async (claims, mergedClaims) => {
                     // acquire a token with a client that has client capabilities, but no claims in the request
+                    // verify that it comes from the IDP
                     const authResult = (await client.acquireToken(
                         oboRequest
                     )) as AuthenticationResult;
@@ -166,6 +167,7 @@ describe("OnBehalfOf unit tests", () => {
                     ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
 
                     // acquire a token (without changing anything) and verify that it comes from the cache
+                    // verify that it comes from the cache
                     const cachedAuthResult = (await client.acquireToken(
                         oboRequest
                     )) as AuthenticationResult;
@@ -175,6 +177,7 @@ describe("OnBehalfOf unit tests", () => {
                     expect(cachedAuthResult.fromCache).toBe(true);
 
                     // acquire a token with a client that has client capabilities, and has claims in the request
+                    // verify that it comes from the IDP
                     oboRequest.claims = claims;
                     const authResult2 = (await client.acquireToken(
                         oboRequest
@@ -197,6 +200,28 @@ describe("OnBehalfOf unit tests", () => {
                                 .split("claims=")[1]
                         )
                     ).toEqual(mergedClaims);
+
+                    // acquire a token with a client that has client capabilities, but no claims in the request
+                    // verify that it comes from the cache
+                    delete oboRequest.claims;
+                    const authResult3 = (await client.acquireToken(
+                        oboRequest
+                    )) as AuthenticationResult;
+                    expect(authResult3.accessToken).toEqual(
+                        AUTHENTICATION_RESULT.body.access_token
+                    );
+                    expect(authResult3.fromCache).toBe(true);
+
+                    // acquire a token with a client that has client capabilities, and has claims in the request
+                    // verify that it comes from the IDP
+                    oboRequest.claims = claims;
+                    const authResult4 = (await client.acquireToken(
+                        oboRequest
+                    )) as AuthenticationResult;
+                    expect(authResult4.accessToken).toEqual(
+                        AUTHENTICATION_RESULT.body.access_token
+                    );
+                    expect(authResult4.fromCache).toBe(false);
                 }
             );
         });

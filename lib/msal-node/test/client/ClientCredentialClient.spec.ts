@@ -20,6 +20,8 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     CacheHelpers,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
 import {
@@ -39,10 +41,6 @@ import {
     mockCrypto,
 } from "./ClientTestUtils";
 import { mockNetworkClient } from "../utils/MockNetworkClient";
-import {
-    ConfigurationErrorCodes,
-    createConfigurationError,
-} from "../../src/error/ConfigurationError";
 
 describe("ClientCredentialClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -425,6 +423,7 @@ describe("ClientCredentialClient unit tests", () => {
             "Validates that claims and client capabilities are correctly merged",
             async (claims, mergedClaims) => {
                 // acquire a token with a client that has client capabilities, but no claims in the request
+                // verify that it comes from the IDP
                 const authResult = (await client.acquireToken(
                     clientCredentialRequest
                 )) as AuthenticationResult;
@@ -446,6 +445,7 @@ describe("ClientCredentialClient unit tests", () => {
                 ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
 
                 // acquire a token (without changing anything) and verify that it comes from the cache
+                // verify that it comes from the cache
                 const cachedAuthResult = (await client.acquireToken(
                     clientCredentialRequest
                 )) as AuthenticationResult;
@@ -455,6 +455,7 @@ describe("ClientCredentialClient unit tests", () => {
                 expect(cachedAuthResult.fromCache).toBe(true);
 
                 // acquire a token with a client that has client capabilities, and has claims in the request
+                // verify that it comes from the IDP
                 clientCredentialRequest.claims = claims;
                 const authResult2 = (await client.acquireToken(
                     clientCredentialRequest
@@ -475,19 +476,42 @@ describe("ClientCredentialClient unit tests", () => {
                             .split("claims=")[1]
                     )
                 ).toEqual(mergedClaims);
+
+                // acquire a token with a client that has client capabilities, but no claims in the request
+                // verify that it comes from the cache
+                delete clientCredentialRequest.claims;
+                const authResult3 = (await client.acquireToken(
+                    clientCredentialRequest
+                )) as AuthenticationResult;
+                expect(authResult3.accessToken).toEqual(
+                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                );
+                expect(authResult3.fromCache).toBe(true);
+
+                // acquire a token with a client that has client capabilities, and has claims in the request
+                // verify that it comes from the IDP
+                clientCredentialRequest.claims = claims;
+                const authResult4 = (await client.acquireToken(
+                    clientCredentialRequest
+                )) as AuthenticationResult;
+                expect(authResult4.accessToken).toEqual(
+                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                );
+                expect(authResult4.fromCache).toBe(false);
             }
         );
     });
 
     it("An error is thrown when claims based caching is enabled", async () => {
         expect(() => {
+            // will use msal-common's buildAppConfiguration
             new ClientCredentialClient({
                 ...config,
                 cacheOptions: { claimsBasedCachingEnabled: true },
             });
         }).toThrow(
-            createConfigurationError(
-                ConfigurationErrorCodes.claimsBasedCachingEnabled
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.claimsBasedCachingEnabled
             )
         );
     });

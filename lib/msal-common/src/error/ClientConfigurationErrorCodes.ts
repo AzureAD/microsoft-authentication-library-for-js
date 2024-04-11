@@ -26,3 +26,4 @@ export const invalidAuthenticationHeader = "invalid_authentication_header";
 export const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
 export const cannotAllowNativeBroker = "cannot_allow_native_broker";
 export const authorityMismatch = "authority_mismatch";
+export const claimsBasedCachingEnabled = "claims_based_caching_enabled";

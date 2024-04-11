@@ -14,6 +14,8 @@ import {
     AzureCloudOptions,
     ApplicationTelemetry,
     INativeBrokerPlugin,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
@@ -26,10 +28,6 @@ import {
 } from "../utils/Constants.js";
 import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
 import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
-import {
-    ConfigurationErrorCodes,
-    createConfigurationError,
-} from "../error/ConfigurationError";
 
 /**
  * - clientId               - Client id of the application.
@@ -208,8 +206,8 @@ export function buildAppConfiguration({
     telemetry,
 }: Configuration): NodeConfiguration {
     if (cache?.claimsBasedCachingEnabled) {
-        throw createConfigurationError(
-            ConfigurationErrorCodes.claimsBasedCachingEnabled
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.claimsBasedCachingEnabled
         );
     }
 

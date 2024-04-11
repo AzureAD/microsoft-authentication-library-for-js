@@ -23,6 +23,10 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../error/ClientConfigurationError";
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
@@ -233,6 +237,12 @@ export function buildClientConfiguration({
     persistencePlugin: persistencePlugin,
     serializableCache: serializableCache,
 }: ClientConfiguration): CommonClientConfiguration {
+    if (userCacheOptions?.claimsBasedCachingEnabled) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.claimsBasedCachingEnabled
+        );
+    }
+
     const loggerOptions = {
         ...DEFAULT_LOGGER_IMPLEMENTATION,
         ...userLoggerOption,

@@ -11,6 +11,8 @@ import {
     CommonClientCredentialRequest,
     createClientAuthError,
     ClientAuthErrorCodes,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
 import {
@@ -133,6 +135,7 @@ describe("ConfidentialClientApplication", () => {
                 "Validates that claims and client capabilities are correctly merged",
                 async (claims, mergedClaims) => {
                     // acquire a token with a client that has client capabilities, but no claims in the request
+                    // verify that it comes from the IDP
                     const authResult = (await client.acquireTokenByCode(
                         authorizationCodeRequest
                     )) as AuthenticationResult;
@@ -159,6 +162,7 @@ describe("ConfidentialClientApplication", () => {
                     // skip cache lookup verification because acquireTokenByCode does not pull elements from the cache
 
                     // acquire a token with a client that has client capabilities, and has claims in the request
+                    // verify that it comes from the IDP
                     authorizationCodeRequest.claims = claims;
                     const authResult2 = (await client.acquireTokenByCode(
                         authorizationCodeRequest
@@ -382,5 +386,19 @@ describe("ConfidentialClientApplication", () => {
 
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenByClientCredential(request);
+    });
+
+    it("An error is thrown when claims based caching is enabled", async () => {
+        expect(() => {
+            // will use msal-node's buildAppConfiguration
+            new ConfidentialClientApplication({
+                ...appConfig,
+                cache: { claimsBasedCachingEnabled: true },
+            });
+        }).toThrow(
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.claimsBasedCachingEnabled
+            )
+        );
     });
 });
