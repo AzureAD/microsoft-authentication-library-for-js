@@ -14,12 +14,4 @@ export class HashUtils {
     sha256(buffer: string): Buffer {
         return crypto.createHash(Hash.SHA256).update(buffer).digest();
     }
-
-    /**
-     * generate 'SHA256' hash as a base64 string
-     * @param buffer
-     */
-    sha256Base64(buffer: string): string {
-        return crypto.createHash(Hash.SHA256).update(buffer).digest("base64");
-    }
 }

@@ -22,7 +22,6 @@ import {
     CredentialFilter,
     CredentialType,
     GrantType,
-    HashUtils,
     IdTokenEntity,
     RequestParameterBuilder,
     RequestThumbprint,
@@ -40,11 +39,9 @@ import { EncodingUtils } from "../utils/EncodingUtils";
 export class OnBehalfOfClient extends BaseClient {
     private scopeSet: ScopeSet;
     private userAssertionHash: string;
-    private hashUtils: HashUtils;
 
     constructor(configuration: ClientConfiguration) {
         super(configuration);
-        this.hashUtils = new HashUtils();
     }
 
     /**
@@ -61,7 +58,7 @@ export class OnBehalfOfClient extends BaseClient {
             request.oboAssertion
         );
 
-        if (request.skipCache) {
+        if (request.skipCache || request.claims) {
             return this.executeTokenRequest(
                 request,
                 this.authority,
@@ -226,9 +223,7 @@ export class OnBehalfOfClient extends BaseClient {
             target: ScopeSet.createSearchScopes(this.scopeSet.asArray()),
             tokenType: authScheme,
             keyId: request.sshKid,
-            requestedClaimsHash:
-                request.requestedClaimsHash ||
-                (request.claims && this.hashUtils.sha256Base64(request.claims)),
+            requestedClaimsHash: request.requestedClaimsHash,
             userAssertionHash: this.userAssertionHash,
         };
 

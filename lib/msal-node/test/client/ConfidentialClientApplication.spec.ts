@@ -132,7 +132,7 @@ describe("ConfidentialClientApplication", () => {
             ])(
                 "Validates that claims and client capabilities are correctly merged",
                 async (claims, mergedClaims) => {
-                    authorizationCodeRequest.claims = claims;
+                    // acquire a token with a client that has client capabilities, but no claims in the request
                     const authResult = (await client.acquireTokenByCode(
                         authorizationCodeRequest
                     )) as AuthenticationResult;
@@ -140,7 +140,9 @@ describe("ConfidentialClientApplication", () => {
                         CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body
                             .access_token
                     );
+                    expect(authResult.fromCache).toBe(false);
 
+                    // verify that the client capabilities have been merged with the (empty) claims
                     const returnVal: string = (await createTokenRequestBodySpy
                         .mock.results[0].value) as string;
                     expect(
@@ -152,9 +154,34 @@ describe("ConfidentialClientApplication", () => {
                                 )[0]
                                 .split("claims=")[1]
                         )
-                    ).toEqual(mergedClaims);
+                    ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
 
                     // skip cache lookup verification because acquireTokenByCode does not pull elements from the cache
+
+                    // acquire a token with a client that has client capabilities, and has claims in the request
+                    authorizationCodeRequest.claims = claims;
+                    const authResult2 = (await client.acquireTokenByCode(
+                        authorizationCodeRequest
+                    )) as AuthenticationResult;
+                    expect(authResult2.accessToken).toEqual(
+                        CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body
+                            .access_token
+                    );
+                    expect(authResult2.fromCache).toBe(false);
+
+                    // verify that the client capabilities have been merged with the claims
+                    const returnVal2: string = (await createTokenRequestBodySpy
+                        .mock.results[1].value) as string;
+                    expect(
+                        decodeURIComponent(
+                            returnVal2
+                                .split("&")
+                                .filter((key: string) =>
+                                    key.includes("claims=")
+                                )[0]
+                                .split("claims=")[1]
+                        )
+                    ).toEqual(mergedClaims);
                 }
             );
         });

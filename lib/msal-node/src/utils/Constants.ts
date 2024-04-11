@@ -82,6 +82,13 @@ export const REGION_ENVIRONMENT_VARIABLE = "REGION_NAME";
 export const RANDOM_OCTET_SIZE = 32;
 
 /**
+ * Constants used in PKCE
+ */
+export const Hash = {
+    SHA256: "sha256",
+};
+
+/**
  * Constants for encoding schemes
  */
 export const CharSet = {

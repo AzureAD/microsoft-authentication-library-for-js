@@ -26,6 +26,10 @@ import {
 } from "../utils/Constants.js";
 import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
 import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
+import {
+    ConfigurationErrorCodes,
+    createConfigurationError,
+} from "../error/ConfigurationError";
 
 /**
  * - clientId               - Client id of the application.
@@ -203,6 +207,12 @@ export function buildAppConfiguration({
     system,
     telemetry,
 }: Configuration): NodeConfiguration {
+    if (cache?.claimsBasedCachingEnabled) {
+        throw createConfigurationError(
+            ConfigurationErrorCodes.claimsBasedCachingEnabled
+        );
+    }
+
     const systemOptions: Required<NodeSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         networkClient: new HttpClient(

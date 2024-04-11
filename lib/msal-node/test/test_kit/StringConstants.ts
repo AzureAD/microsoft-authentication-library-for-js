@@ -199,8 +199,6 @@ const NEW_CLAIM = '"new_claim":{"new_key":"new_value"}';
 const XMS_CC_CLAIM = '"xms_cc":{"values":["cp1","cp2"]}';
 export const CAE_CONSTANTS = {
     CLIENT_CAPABILITIES: ["cp1", "cp2"],
-    NBF_CLAIMS: `{"access_token":{${NBF_CLAIM}}}`,
-    MERGED_NBF_CLAIMS: `{"access_token":{${NBF_CLAIM},${XMS_CC_CLAIM}}}`,
     EMPTY_CLAIMS: "{}",
     MERGED_EMPTY_CLAIMS: `{"access_token":{${XMS_CC_CLAIM}}}`,
     CLAIMS_WITH_ADDITIONAL_CLAIMS: `{"access_token":{${NBF_CLAIM},${ADDITIONAL_CLAIM}}}`,

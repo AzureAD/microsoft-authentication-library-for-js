@@ -19,7 +19,6 @@ import {
     CredentialType,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     GrantType,
-    HashUtils,
     IAppTokenProvider,
     ICrypto,
     RequestParameterBuilder,
@@ -44,7 +43,6 @@ import {
  */
 export class ClientCredentialClient extends BaseClient {
     private readonly appTokenProvider?: IAppTokenProvider;
-    private hashUtils: HashUtils;
 
     constructor(
         configuration: ClientConfiguration,
@@ -52,7 +50,6 @@ export class ClientCredentialClient extends BaseClient {
     ) {
         super(configuration);
         this.appTokenProvider = appTokenProvider;
-        this.hashUtils = new HashUtils();
     }
 
     /**
@@ -62,7 +59,7 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
-        if (request.skipCache) {
+        if (request.skipCache || request.claims) {
             return this.executeTokenRequest(request, this.authority);
         }
 
@@ -136,8 +133,7 @@ export class ClientCredentialClient extends BaseClient {
             managedIdentityConfiguration.managedIdentityId?.id ||
                 clientConfiguration.authOptions.clientId,
             new ScopeSet(request.scopes || []),
-            cacheManager,
-            request
+            cacheManager
         );
 
         if (
@@ -208,8 +204,7 @@ export class ClientCredentialClient extends BaseClient {
         authority: Authority,
         id: string,
         scopeSet: ScopeSet,
-        cacheManager: CacheManager,
-        request: CommonClientCredentialRequest
+        cacheManager: CacheManager
     ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: Constants.EMPTY_STRING,
@@ -219,9 +214,6 @@ export class ClientCredentialClient extends BaseClient {
             clientId: id,
             realm: authority.tenant,
             target: ScopeSet.createSearchScopes(scopeSet.asArray()),
-            requestedClaimsHash:
-                request.requestedClaimsHash ||
-                (request.claims && this.hashUtils.sha256Base64(request.claims)),
         };
 
         const accessTokens =

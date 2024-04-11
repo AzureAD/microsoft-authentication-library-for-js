@@ -39,6 +39,10 @@ import {
     mockCrypto,
 } from "./ClientTestUtils";
 import { mockNetworkClient } from "../utils/MockNetworkClient";
+import {
+    ConfigurationErrorCodes,
+    createConfigurationError,
+} from "../../src/error/ConfigurationError";
 
 describe("ClientCredentialClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -420,14 +424,16 @@ describe("ClientCredentialClient unit tests", () => {
         ])(
             "Validates that claims and client capabilities are correctly merged",
             async (claims, mergedClaims) => {
-                clientCredentialRequest.claims = claims;
+                // acquire a token with a client that has client capabilities, but no claims in the request
                 const authResult = (await client.acquireToken(
                     clientCredentialRequest
                 )) as AuthenticationResult;
                 expect(authResult.accessToken).toEqual(
                     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
                 );
+                expect(authResult.fromCache).toBe(false);
 
+                // verify that the client capabilities have been merged with the (empty) claims
                 const returnVal: string = createTokenRequestBodySpy.mock
                     .results[0].value as string;
                 expect(
@@ -437,8 +443,9 @@ describe("ClientCredentialClient unit tests", () => {
                             .filter((key: string) => key.includes("claims="))[0]
                             .split("claims=")[1]
                     )
-                ).toEqual(mergedClaims);
+                ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
 
+                // acquire a token (without changing anything) and verify that it comes from the cache
                 const cachedAuthResult = (await client.acquireToken(
                     clientCredentialRequest
                 )) as AuthenticationResult;
@@ -447,16 +454,17 @@ describe("ClientCredentialClient unit tests", () => {
                 );
                 expect(cachedAuthResult.fromCache).toBe(true);
 
-                // validate that the same request but with new claims will make a STS request
-                clientCredentialRequest.claims = CAE_CONSTANTS.NBF_CLAIMS;
-                const nonCachedAuthResult = (await client.acquireToken(
+                // acquire a token with a client that has client capabilities, and has claims in the request
+                clientCredentialRequest.claims = claims;
+                const authResult2 = (await client.acquireToken(
                     clientCredentialRequest
                 )) as AuthenticationResult;
-                expect(nonCachedAuthResult.accessToken).toEqual(
+                expect(authResult2.accessToken).toEqual(
                     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
                 );
-                expect(nonCachedAuthResult.fromCache).toBe(false);
+                expect(authResult2.fromCache).toBe(false);
 
+                // verify that the client capabilities have been merged with the claims
                 const returnVal2: string = createTokenRequestBodySpy.mock
                     .results[1].value as string;
                 expect(
@@ -466,8 +474,21 @@ describe("ClientCredentialClient unit tests", () => {
                             .filter((key: string) => key.includes("claims="))[0]
                             .split("claims=")[1]
                     )
-                ).toEqual(CAE_CONSTANTS.MERGED_NBF_CLAIMS);
+                ).toEqual(mergedClaims);
             }
+        );
+    });
+
+    it("An error is thrown when claims based caching is enabled", async () => {
+        expect(() => {
+            new ClientCredentialClient({
+                ...config,
+                cacheOptions: { claimsBasedCachingEnabled: true },
+            });
+        }).toThrow(
+            createConfigurationError(
+                ConfigurationErrorCodes.claimsBasedCachingEnabled
+            )
         );
     });
 

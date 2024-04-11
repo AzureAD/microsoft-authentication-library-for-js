@@ -382,11 +382,3 @@ export const ONE_DAY_IN_MS = 86400000;
 
 // Token renewal offset default in seconds
 export const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
-
-/**
- * Constants used in PKCE
- */
-export const Hash = {
-    SHA256: "sha256",
-} as const;
-export type Hash = (typeof Hash)[keyof typeof Hash];
