@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Migrate ADO Pipelines to OneBranch #6992",
-  "packageName": "@azure/msal-node",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}

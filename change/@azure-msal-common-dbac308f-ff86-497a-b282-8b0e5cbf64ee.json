@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "New performance event for awaiting parallel iframe calls #6962",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

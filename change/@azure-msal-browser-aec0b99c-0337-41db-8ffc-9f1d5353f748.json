@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Skip v3.12.0",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}

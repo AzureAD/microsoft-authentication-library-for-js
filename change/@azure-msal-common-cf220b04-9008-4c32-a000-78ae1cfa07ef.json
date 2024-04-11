@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Skip login_hint opaque claim if domainHint param is set #7008",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
