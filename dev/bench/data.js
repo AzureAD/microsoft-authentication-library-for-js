@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712797290504,
+  "lastUpdate": 1712865549871,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7206,6 +7206,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.93%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f5cae2b0cd468f0816667b171c9476bf9fa4c223",
+          "message": "Angular17 standalone sample app (#7017)\n\nAdds Angular 17 sample that uses MSAL Angular v3 to\r\nmsal-angular-v3-samples.\r\n\r\nNote: Documentation update for Angular 17 support is in PR #7018",
+          "timestamp": "2024-04-11T12:53:40-07:00",
+          "tree_id": "bac825ef92181a648156ba0cdfc4120647b7a433",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f5cae2b0cd468f0816667b171c9476bf9fa4c223"
+        },
+        "date": 1712865547839,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 183665,
+            "range": "±2.26%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 190314,
+            "range": "±2.01%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
