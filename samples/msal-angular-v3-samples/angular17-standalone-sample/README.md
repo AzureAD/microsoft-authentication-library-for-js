@@ -1,6 +1,6 @@
 # Angular 17 Standalone MSAL Angular v3 Sample
 
-This developer sample is used to demonstrate how to use `@azure/msal-angular` with Angular standalone components, and does not use the `MsalModule` or `NgModule`. Please see [Angular's docs on standalone](https://angular.io/guide/standalone-components) for more information.
+This developer sample is used to demonstrate how to use `@azure/msal-angular` with Angular standalone components, and **does not** use the `MsalModule` or `NgModule`. Please see [Angular's docs on standalone](https://angular.io/guide/standalone-components) for more information.
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.3, and uses Angular 17's application builder, but **does not** demonstrate use of server-side and prerendering capabilities. See [Angular's docs](https://angular.io/guide/esbuild) for more details.
 
