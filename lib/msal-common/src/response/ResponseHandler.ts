@@ -364,7 +364,8 @@ export class ResponseHandler {
             }
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
-                request.storeInCache
+                request.storeInCache,
+                request.correlationId
             );
         } finally {
             if (
