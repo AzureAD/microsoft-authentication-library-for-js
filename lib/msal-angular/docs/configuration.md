@@ -1,10 +1,11 @@
 # MSAL Angular Configuration
 
 MSAL for Angular can be configured in multiple ways:
-- `MsalModule.forRoot`
-- Factory providers
-- `platformBrowserDynamic`
-- Dynamic configurations using Factory Providers and `APP_INITIALIZER`
+1. [`MsalModule.forRoot`](#msalmoduleforroot)
+1. [Factory providers](#factory-providers)
+1. [`platformBrowserDynamic`](#platformbrowserdynamic)
+1. [Dynamic configurations using Factory Providers and `APP_INITIALIZER`](#dynamic-configurations-using-factory-providers-and-app_initializer)
+1. [Configurations for Angular 17 apps with standalone components](#configurations-for-angular-17-apps-with-standalone-components)
 
 This guide will detail how to leverage each method for your application.
 
@@ -519,4 +520,107 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     loginFailedRoute: "./login-failed"
   };
 }
+```
+
+## Configurations for Angular 17 apps with standalone components
+
+Angular 17 applications using standalone components can be used with [factory providers](#factory-providers) as above in the `app.config.ts` file, which is then imported into `main.ts` for bootstrapping.
+
+Please see our [Angular 17 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular17-standalone-sample) for usage.
+
+```ts
+// app.config.ts
+import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { routes } from './app.routes';
+import { BrowserModule } from '@angular/platform-browser';
+import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS, withFetch, withInterceptors } from '@angular/common/http';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation, LogLevel } from '@azure/msal-browser';
+import { MsalInterceptor, MSAL_INSTANCE, MsalInterceptorConfiguration, MsalGuardConfiguration, MSAL_GUARD_CONFIG, MSAL_INTERCEPTOR_CONFIG, MsalService, MsalGuard, MsalBroadcastService } from '@azure/msal-angular';
+
+export function loggerCallback(logLevel: LogLevel, message: string) {
+  console.log(message);
+}
+
+export function MSALInstanceFactory(): IPublicClientApplication {
+  return new PublicClientApplication({
+    auth: {
+      clientId: "clientid",
+      authority: "https://login.microsoftonline.com/common/",
+      redirectUri: '/',
+      postLogoutRedirectUri: '/'
+    },
+    cache: {
+      cacheLocation: BrowserCacheLocation.LocalStorage
+    },
+    system: {
+      allowNativeBroker: false, // Disables WAM Broker
+      loggerOptions: {
+        loggerCallback,
+        logLevel: LogLevel.Info,
+        piiLoggingEnabled: false
+      }
+    }
+  });
+}
+
+export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
+  const protectedResourceMap = new Map<string, Array<string>>();
+  protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
+
+  return {
+    interactionType: InteractionType.Redirect,
+    protectedResourceMap
+  };
+}
+
+export function MSALGuardConfigFactory(): MsalGuardConfiguration {
+  return { 
+    interactionType: InteractionType.Redirect,
+    authRequest: {
+      scopes: ['user.read']
+    },
+    loginFailedRoute: '/login-failed'
+  };
+}
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes), 
+    importProvidersFrom(BrowserModule),
+    provideNoopAnimations(),
+    provideHttpClient(withInterceptorsFromDi(), withFetch()),
+    {
+        provide: HTTP_INTERCEPTORS,
+        useClass: MsalInterceptor,
+        multi: true
+    },
+    {
+        provide: MSAL_INSTANCE,
+        useFactory: MSALInstanceFactory
+    },
+    {
+        provide: MSAL_GUARD_CONFIG,
+        useFactory: MSALGuardConfigFactory
+    },
+    {
+        provide: MSAL_INTERCEPTOR_CONFIG,
+        useFactory: MSALInterceptorConfigFactory
+    },
+    MsalService,
+    MsalGuard,
+    MsalBroadcastService
+  ]
+};
+```
+
+```ts
+// main.ts
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
 ```
