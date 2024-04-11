@@ -221,6 +221,7 @@ export {
 } from "./utils/ProtocolUtils";
 export * as TimeUtils from "./utils/TimeUtils";
 export * as UrlUtils from "./utils/UrlUtils";
+export * as ClientAssertionUtils from "./utils/ClientAssertionUtils";
 export * from "./utils/FunctionWrappers";
 // Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";

@@ -51,6 +51,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient"
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { invokeAsync } from "../utils/FunctionWrappers";
 import { ClientAssertion } from "../account/ClientCredentials";
+import { getClientAssertion } from "../utils/ClientAssertionUtils";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -367,7 +368,14 @@ export class AuthorizationCodeClient extends BaseClient {
         if (this.config.clientCredentials.clientAssertion) {
             const clientAssertion: ClientAssertion =
                 this.config.clientCredentials.clientAssertion;
-            parameterBuilder.addClientAssertion(clientAssertion.assertion());
+
+            parameterBuilder.addClientAssertion(
+                await getClientAssertion(
+                    clientAssertion.assertion,
+                    this.config.authOptions.clientId,
+                    request.resourceRequestUri
+                )
+            );
             parameterBuilder.addClientAssertionType(
                 clientAssertion.assertionType
             );

@@ -3,14 +3,20 @@
  * Licensed under the MIT License.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ClientAssertionCallbackFunction = (...args: any[]) => string;
+export type ClientAssertionConfig = {
+    clientId: string;
+    tokenEndpoint?: string;
+};
+
+export type ClientAssertionCallbackFunction = (
+    config: ClientAssertionConfig
+) => Promise<string>;
 
 /**
  * Client Assertion credential for Confidential Clients
  */
 export type ClientAssertion = {
-    assertion: ClientAssertionCallbackFunction;
+    assertion: string | ClientAssertionCallbackFunction;
     assertionType: string;
 };
 

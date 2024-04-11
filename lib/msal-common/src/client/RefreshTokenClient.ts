@@ -49,6 +49,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient"
 import { invoke, invokeAsync } from "../utils/FunctionWrappers";
 import { generateCredentialKey } from "../cache/utils/CacheHelpers";
 import { ClientAssertion } from "../account/ClientCredentials";
+import { getClientAssertion } from "../utils/ClientAssertionUtils";
 
 const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 
@@ -388,7 +389,14 @@ export class RefreshTokenClient extends BaseClient {
         if (this.config.clientCredentials.clientAssertion) {
             const clientAssertion: ClientAssertion =
                 this.config.clientCredentials.clientAssertion;
-            parameterBuilder.addClientAssertion(clientAssertion.assertion());
+
+            parameterBuilder.addClientAssertion(
+                await getClientAssertion(
+                    clientAssertion.assertion,
+                    this.config.authOptions.clientId,
+                    request.resourceRequestUri
+                )
+            );
             parameterBuilder.addClientAssertionType(
                 clientAssertion.assertionType
             );

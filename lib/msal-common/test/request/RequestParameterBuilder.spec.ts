@@ -23,7 +23,9 @@ import {
     ClientConfigurationErrorMessage,
     createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
-import { ClientAssertion } from "../../src";
+import { ClientAssertion, ClientAssertionCallbackFunction } from "../../src";
+import { getClientAssertion } from "../../src/utils/ClientAssertionUtils";
+import { ClientAssertionConfig } from "../../src/account/ClientCredentials";
 
 describe("RequestParameterBuilder unit tests", () => {
     it("constructor", () => {
@@ -380,14 +382,20 @@ describe("RequestParameterBuilder unit tests", () => {
         sinon.restore();
     });
 
-    it("adds clientAssertion and assertionType if they are passed in as strings", () => {
+    it("adds clientAssertion (string) and assertionType if they are provided by the developer", async () => {
         const clientAssertion: ClientAssertion = {
-            assertion: () => "testAssertion",
+            assertion: "testAssertion",
             assertionType: "jwt-bearer",
         };
 
         const requestParameterBuilder = new RequestParameterBuilder();
-        requestParameterBuilder.addClientAssertion(clientAssertion.assertion());
+        requestParameterBuilder.addClientAssertion(
+            await getClientAssertion(
+                clientAssertion.assertion,
+                "client_id",
+                "optional_token_endpoint"
+            )
+        );
         requestParameterBuilder.addClientAssertionType(
             clientAssertion.assertionType
         );
@@ -408,14 +416,92 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
-    it("doesn't add client assertion and client assertion type if they are empty strings", () => {
+    it("doesn't add client assertion (string) and client assertion type if they are empty strings", async () => {
         const clientAssertion: ClientAssertion = {
-            assertion: () => "",
+            assertion: "",
             assertionType: "",
         };
 
         const requestParameterBuilder = new RequestParameterBuilder();
-        requestParameterBuilder.addClientAssertion(clientAssertion.assertion());
+        requestParameterBuilder.addClientAssertion(
+            await getClientAssertion(
+                clientAssertion.assertion,
+                "client_id",
+                "optional_token_endpoint"
+            )
+        );
+        requestParameterBuilder.addClientAssertionType(
+            clientAssertion.assertionType
+        );
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(
+            requestQueryString.includes(AADServerParamKeys.CLIENT_ASSERTION)
+        ).toBe(false);
+        expect(
+            requestQueryString.includes(
+                AADServerParamKeys.CLIENT_ASSERTION_TYPE
+            )
+        ).toBe(false);
+    });
+
+    it("adds clientAssertion (ClientAssertionCallbackFunction) and assertionType if they are provided by the developer", async () => {
+        const clientAssertionCallbackFunction: ClientAssertionCallbackFunction =
+            (_config: ClientAssertionConfig) => {
+                return Promise.resolve("testAssertion");
+            };
+
+        const clientAssertion: ClientAssertion = {
+            assertion: clientAssertionCallbackFunction,
+            assertionType: "jwt-bearer",
+        };
+
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addClientAssertion(
+            await getClientAssertion(
+                clientAssertion.assertion,
+                "client_id",
+                "optional_token_endpoint"
+            )
+        );
+        requestParameterBuilder.addClientAssertionType(
+            clientAssertion.assertionType
+        );
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent(
+                    "testAssertion"
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${
+                    AADServerParamKeys.CLIENT_ASSERTION_TYPE
+                }=${encodeURIComponent("jwt-bearer")}`
+            )
+        ).toBe(true);
+    });
+
+    it("doesn't add client assertion (ClientAssertionCallbackFunction) and client assertion type if they are empty strings", async () => {
+        const clientAssertionCallbackFunction: ClientAssertionCallbackFunction =
+            (_config: ClientAssertionConfig) => {
+                return Promise.resolve("");
+            };
+
+        const clientAssertion: ClientAssertion = {
+            assertion: clientAssertionCallbackFunction,
+            assertionType: "",
+        };
+
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addClientAssertion(
+            await getClientAssertion(
+                clientAssertion.assertion,
+                "client_id",
+                "optional_token_endpoint"
+            )
+        );
         requestParameterBuilder.addClientAssertionType(
             clientAssertion.assertionType
         );
