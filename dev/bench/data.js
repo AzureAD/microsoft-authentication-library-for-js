@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712788123926,
+  "lastUpdate": 1712797290504,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7168,6 +7168,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.02%",
             "unit": "ops/sec",
             "extra": "225 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "03b85a6be980d1a8d02b6adbf69f49e920302c94",
+          "message": "Manual browser bump (#7023)\n\nThis PR bumps msal-browser to v3.12.0 so the next release bumps to\r\n3.13.0+ to catch up with 1P package",
+          "timestamp": "2024-04-10T17:56:01-07:00",
+          "tree_id": "b804ee90b5891161ccbda0f5ab56d3f3f6f20b14",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/03b85a6be980d1a8d02b6adbf69f49e920302c94"
+        },
+        "date": 1712797289419,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188453,
+            "range": "±1.91%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 187504,
+            "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
