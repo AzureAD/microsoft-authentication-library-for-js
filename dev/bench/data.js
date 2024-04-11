@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712865549871,
+  "lastUpdate": 1712865930015,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7244,6 +7244,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.01%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+          "message": "Angular 17 support docs update (#7018)\n\nMSAL Angular documentation update for Angular 17.\r\n\r\nThis PR follows and should be merged after #7017",
+          "timestamp": "2024-04-11T13:00:07-07:00",
+          "tree_id": "900cf828aaa6340da7aac7c90826232e321d1d39",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1549ef7bde5a8ffe0c15024bba5169030a422a64"
+        },
+        "date": 1712865928804,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 194982,
+            "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193131,
+            "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "210 samples"
           }
         ]
       }
