@@ -3,17 +3,17 @@ import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAutho
 import { ResponseHandler } from "../../src/response/ResponseHandler";
 import {
     AUTHENTICATION_RESULT,
+    ID_TOKEN_CLAIMS,
+    POP_AUTHENTICATION_RESULT,
     RANDOM_TEST_GUID,
     TEST_CONFIG,
-    ID_TOKEN_CLAIMS,
+    TEST_CRYPTO_VALUES,
     TEST_DATA_CLIENT_INFO,
-    TEST_STATE_VALUES,
     TEST_POP_VALUES,
-    POP_AUTHENTICATION_RESULT,
-    TEST_URIS,
+    TEST_STATE_VALUES,
     TEST_TOKEN_LIFETIMES,
     TEST_TOKENS,
-    TEST_CRYPTO_VALUES,
+    TEST_URIS,
 } from "../test_kit/StringConstants";
 import { Authority } from "../../src/authority/Authority";
 import {
@@ -29,7 +29,7 @@ import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { AuthenticationScheme } from "../../src/utils/Constants";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
-import { LogLevel, Logger } from "../../src/logger/Logger";
+import { Logger, LogLevel } from "../../src/logger/Logger";
 import * as AuthToken from "../../src/account/AuthToken";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
@@ -41,6 +41,13 @@ import {
 } from "../../src/error/ClientAuthError";
 import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
 import { ServerError } from "../../src/error/ServerError";
+import {
+    CacheError,
+    CacheErrorCodes,
+    CacheErrorMessages,
+} from "../../src/error/CacheError";
+import { CacheManager } from "../../src/cache/CacheManager";
+import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -892,6 +899,195 @@ describe("ResponseHandler.ts", () => {
                 const err = e as ClientAuthError;
                 expect(err.errorCode).toBe(ClientAuthErrorCodes.invalidState);
                 done();
+            }
+        });
+    });
+
+    describe("captures cache error", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("captures cache quota error by checking error code", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            const errorMessage = "storage error message";
+            const quotaExceededError = new Error(errorMessage);
+            quotaExceededError.name = "QuotaExceededError";
+
+            sinon
+                // @ts-ignore
+                .stub(CacheManager.prototype, "saveAccessToken")
+                .throws(quotaExceededError);
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                const timestamp = TimeUtils.nowSeconds();
+                await responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    timestamp,
+                    testRequest
+                );
+                throw Error("should throw cache error");
+            } catch (e) {
+                expect(e).toBeInstanceOf(CacheError);
+                const cacheError: CacheError = e as CacheError;
+                expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
+                expect(cacheError.errorMessage).toEqual(
+                    CacheErrorMessages[cacheQuotaExceededErrorCode]
+                );
+            }
+        });
+
+        it("captures cache quota error by checking error message", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            const errorMessage =
+                "Failed to run localstorage.setItem(). Local storage exceeded the quota.";
+            const quotaExceededError = new Error(errorMessage);
+
+            sinon
+                // @ts-ignore
+                .stub(CacheManager.prototype, "saveAccessToken")
+                .throws(quotaExceededError);
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                const timestamp = TimeUtils.nowSeconds();
+                await responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    timestamp,
+                    testRequest
+                );
+                throw Error("should throw cache error");
+            } catch (e) {
+                expect(e).toBeInstanceOf(CacheError);
+                const cacheError: CacheError = e as CacheError;
+                expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
+                expect(cacheError.errorMessage).toEqual(
+                    CacheErrorMessages[cacheQuotaExceededErrorCode]
+                );
+            }
+        });
+
+        it("captures dummy cache error", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            const errorMessage = "Dummy cache error";
+            const error = new Error(errorMessage);
+            error.name = "DummyError";
+
+            sinon
+                // @ts-ignore
+                .stub(CacheManager.prototype, "saveAccessToken")
+                .throws(error);
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                const timestamp = TimeUtils.nowSeconds();
+                await responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    timestamp,
+                    testRequest
+                );
+                throw Error("should throw cache error");
+            } catch (e) {
+                expect(e).toBeInstanceOf(CacheError);
+                const cacheError: CacheError = e as CacheError;
+                expect(cacheError.errorCode).toEqual("DummyError");
+                expect(cacheError.errorMessage).toEqual(errorMessage);
+            }
+        });
+
+        it("captures unknown cache error", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            const errorMessage = "Dummy cache error";
+            const error = new DOMException(errorMessage);
+
+            sinon
+                // @ts-ignore
+                .stub(CacheManager.prototype, "saveAccessToken")
+                .throws(error);
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                const timestamp = TimeUtils.nowSeconds();
+                await responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    timestamp,
+                    testRequest
+                );
+                throw Error("should throw cache error");
+            } catch (e) {
+                expect(e).toBeInstanceOf(CacheError);
+                const cacheError: CacheError = e as CacheError;
+                expect(cacheError.errorCode).toEqual(
+                    CacheErrorCodes.cacheUnknownErrorCode
+                );
+                expect(cacheError.errorMessage).toEqual(
+                    CacheErrorMessages[CacheErrorCodes.cacheUnknownErrorCode]
+                );
             }
         });
     });
