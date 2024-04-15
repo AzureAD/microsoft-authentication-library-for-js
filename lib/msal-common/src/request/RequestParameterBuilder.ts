@@ -28,13 +28,17 @@ import {
 } from "../config/ClientConfiguration";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ClientInfo } from "../account/ClientInfo";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 /** @internal */
 export class RequestParameterBuilder {
-    private parameters: Map<string, string>;
+    private readonly parameters: Map<string, string>;
+    private readonly performanceClient?: IPerformanceClient;
+    private correlationId?: string;
 
-    constructor() {
+    constructor(performanceClient?: IPerformanceClient) {
         this.parameters = new Map<string, string>();
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -231,6 +235,7 @@ export class RequestParameterBuilder {
             AADServerParamKeys.CLIENT_REQUEST_ID,
             encodeURIComponent(correlationId)
         );
+        this.correlationId = correlationId;
     }
 
     /**
@@ -471,6 +476,12 @@ export class RequestParameterBuilder {
         );
         Object.keys(sanitizedEQParams).forEach((key) => {
             this.parameters.set(key, eQParams[key]);
+            if (key === "scenarioId" && this.correlationId) {
+                this.performanceClient?.addFields(
+                    { scenarioId: eQParams[key] },
+                    this.correlationId
+                );
+            }
         });
     }
 

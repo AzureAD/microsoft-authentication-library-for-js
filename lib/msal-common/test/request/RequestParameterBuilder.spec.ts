@@ -23,6 +23,7 @@ import {
     ClientConfigurationErrorMessage,
     createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
+import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec";
 
 describe("RequestParameterBuilder unit tests", () => {
     it("constructor", () => {
@@ -529,6 +530,39 @@ describe("RequestParameterBuilder unit tests", () => {
             ).toThrowError(
                 ClientConfigurationErrorMessage.invalidClaimsRequest.desc
             );
+        });
+    });
+
+    describe("RequestParameterBuilder Telemetry", () => {
+        it("instruments scenario id", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const measurementName = "test-measurement-name";
+            const extraQueryParams = {
+                testParam1: "testValue1",
+                testParam2: "testValue2",
+                scenarioId: "test-scenario-id",
+            };
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                expect(events[0].correlationId).toBe(correlationId);
+                expect(events[0].scenarioId).toBe(extraQueryParams.scenarioId);
+                done();
+            });
+
+            const measurement = mockPerfClient.startMeasurement(
+                measurementName,
+                correlationId
+            );
+
+            const requestParameterBuilder = new RequestParameterBuilder(
+                mockPerfClient
+            );
+
+            requestParameterBuilder.addCorrelationId(correlationId);
+            requestParameterBuilder.addExtraQueryParameters(extraQueryParams);
+            measurement.end({ success: true });
         });
     });
 });

@@ -814,6 +814,9 @@ export type PerformanceEvent = {
     cacheRtCount?: number;
     cacheIdCount?: number;
     cacheAtCount?: number;
+
+    // Custom scenario id for tracking user prompts
+    scenarioId?: string;
 };
 
 export type PerformanceEventContext = {

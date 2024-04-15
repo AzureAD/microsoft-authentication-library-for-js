@@ -312,7 +312,9 @@ export class AuthorizationCodeClient extends BaseClient {
             request.correlationId
         );
 
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameterBuilder = new RequestParameterBuilder(
+            this.performanceClient
+        );
 
         parameterBuilder.addClientId(
             request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
@@ -492,7 +494,9 @@ export class AuthorizationCodeClient extends BaseClient {
             request.correlationId
         );
 
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameterBuilder = new RequestParameterBuilder(
+            this.performanceClient
+        );
 
         parameterBuilder.addClientId(
             request.extraQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
@@ -695,7 +699,9 @@ export class AuthorizationCodeClient extends BaseClient {
     private createLogoutUrlQueryString(
         request: CommonEndSessionRequest
     ): string {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameterBuilder = new RequestParameterBuilder(
+            this.performanceClient
+        );
 
         if (request.postLogoutRedirectUri) {
             parameterBuilder.addPostLogoutRedirectUri(

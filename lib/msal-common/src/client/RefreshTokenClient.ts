@@ -343,7 +343,9 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         const correlationId = request.correlationId;
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameterBuilder = new RequestParameterBuilder(
+            this.performanceClient
+        );
 
         parameterBuilder.addClientId(
             request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
