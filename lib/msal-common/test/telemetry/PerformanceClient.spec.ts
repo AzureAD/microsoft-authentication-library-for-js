@@ -11,6 +11,7 @@ import {
     Logger,
     PerformanceEvents,
     PerformanceEventStatus,
+    ServerError,
 } from "../../src";
 import crypto from "crypto";
 import {
@@ -508,6 +509,35 @@ describe("PerformanceClient.spec.ts", () => {
                     success: false,
                 },
                 newError
+            );
+        });
+
+        it("captures error server no", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new ServerError(
+                "test-error-code",
+                undefined,
+                undefined,
+                "70011"
+            );
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.serverErrorNo).toEqual(error.errorNo);
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                error
             );
         });
     });

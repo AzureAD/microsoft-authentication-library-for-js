@@ -53,6 +53,19 @@ import {
 } from "../account/AccountInfo";
 import * as CacheHelpers from "../cache/utils/CacheHelpers";
 
+function parseServerErrorNo(
+    serverResponse: ServerAuthorizationCodeResponse
+): string | undefined {
+    const errorCodePrefix = "error_code=";
+    const errorCodePrefixIndex =
+        serverResponse.error_uri?.lastIndexOf(errorCodePrefix);
+    return errorCodePrefixIndex && errorCodePrefixIndex >= 0
+        ? serverResponse.error_uri?.substring(
+              errorCodePrefixIndex + errorCodePrefix.length
+          )
+        : undefined;
+}
+
 /**
  * Class that handles response parsing.
  * @internal
@@ -161,7 +174,8 @@ export class ResponseHandler {
             throw new ServerError(
                 serverResponse.error || "",
                 serverResponse.error_description,
-                serverResponse.suberror
+                serverResponse.suberror,
+                parseServerErrorNo(serverResponse)
             );
         }
     }
@@ -185,7 +199,10 @@ export class ResponseHandler {
             const serverError = new ServerError(
                 serverResponse.error,
                 errString,
-                serverResponse.suberror
+                serverResponse.suberror,
+                serverResponse.error_codes?.length
+                    ? serverResponse.error_codes[0]
+                    : undefined
             );
 
             // check if 500 error

@@ -648,6 +648,11 @@ export type PerformanceEvent = {
     subErrorCode?: string;
 
     /**
+     * Server error number
+     */
+    serverErrorNo?: string;
+
+    /**
      * Name of the library used for the operation.
      *
      * @type {string}

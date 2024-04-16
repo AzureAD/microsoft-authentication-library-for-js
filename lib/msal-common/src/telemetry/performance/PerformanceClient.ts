@@ -24,6 +24,7 @@ import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { StubPerformanceMeasurement } from "./StubPerformanceClient";
 import { AuthError } from "../../error/AuthError";
 import { CacheError } from "../../error/CacheError";
+import { ServerError } from "../../error/ServerError";
 
 export interface PreQueueEvent {
     name: PerformanceEvents;
@@ -154,6 +155,9 @@ export function addError(
     } else if (error instanceof AuthError) {
         event.errorCode = error.errorCode;
         event.subErrorCode = error.subError;
+        if (error instanceof ServerError) {
+            event.serverErrorNo = error.errorNo;
+        }
         return;
     } else if (error instanceof CacheError) {
         event.errorCode = error.errorCode;
