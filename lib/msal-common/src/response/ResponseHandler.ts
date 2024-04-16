@@ -56,7 +56,7 @@ import * as CacheHelpers from "../cache/utils/CacheHelpers";
 function parseServerErrorNo(
     serverResponse: ServerAuthorizationCodeResponse
 ): string | undefined {
-    const errorCodePrefix = "error_code=";
+    const errorCodePrefix = "code=";
     const errorCodePrefixIndex =
         serverResponse.error_uri?.lastIndexOf(errorCodePrefix);
     return errorCodePrefixIndex && errorCodePrefixIndex >= 0
