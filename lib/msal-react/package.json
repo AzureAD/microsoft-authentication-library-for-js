@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "2.0.13",
+  "version": "2.0.15",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -43,15 +43,15 @@
     "lint:fix": "npm run lint -- --fix",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-react",
     "prepack": "npm run build:all",
-    "format:check": "npx prettier --ignore-path .gitignore --check src test",
-    "format:fix": "npx prettier --ignore-path .gitignore --write src test"
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^3.11.0",
+    "@azure/msal-browser": "^3.13.0",
     "react": "^16.8.0 || ^17 || ^18"
   },
   "devDependencies": {
-    "@azure/msal-browser": "^3.11.0",
+    "@azure/msal-browser": "^3.13.0",
     "@rollup/plugin-typescript": "^11.1.5",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^13.4.0",

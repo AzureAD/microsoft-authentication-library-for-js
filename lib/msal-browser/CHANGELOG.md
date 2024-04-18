@@ -1,8 +1,36 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Fri, 22 Mar 2024 20:32:39 GMT and should not be manually modified.
+This log was last generated on Thu, 11 Apr 2024 21:46:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.13.0
+
+Thu, 11 Apr 2024 21:46:57 GMT
+
+### Minor changes
+
+- Capture and instrument cache errors #7021 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.9.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Nested App Auth: allow empty parameters for loginPopup (#6941) (dasau@microsoft.com)
+- Improve perf and reliability of parallel acquireTokenSilent calls that must fallback to iframes #6962 (thomas.norling@microsoft.com)
+- fix handleRedirectPromise memoization #6998 (thomas.norling@microsoft.com)
+- Add classname to silent token renewal iframe HTML element #6985 (lalimasharda@microsoft.com)
+
+## 3.11.1
+
+Wed, 27 Mar 2024 18:41:17 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.8.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 3.11.0
 

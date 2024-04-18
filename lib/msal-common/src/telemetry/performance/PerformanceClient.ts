@@ -23,6 +23,7 @@ import {
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { StubPerformanceMeasurement } from "./StubPerformanceClient";
 import { AuthError } from "../../error/AuthError";
+import { CacheError } from "../../error/CacheError";
 
 export interface PreQueueEvent {
     name: PerformanceEvents;
@@ -153,6 +154,9 @@ export function addError(
     } else if (error instanceof AuthError) {
         event.errorCode = error.errorCode;
         event.subErrorCode = error.subError;
+        return;
+    } else if (error instanceof CacheError) {
+        event.errorCode = error.errorCode;
         return;
     } else if (event.errorStack?.length) {
         logger.trace(
@@ -597,11 +601,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
             event.durationMs || this.getDurationMs(event.startTimeMs)
         );
 
-        const context = endContext(
-            event,
-            this.abbreviations,
-            this.eventStack.get(rootEvent.correlationId),
-            error
+        const context = JSON.stringify(
+            endContext(
+                event,
+                this.abbreviations,
+                this.eventStack.get(rootEvent.correlationId),
+                error
+            )
         );
 
         if (isRoot) {

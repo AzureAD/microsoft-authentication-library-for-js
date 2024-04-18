@@ -69,6 +69,7 @@ export const PerformanceEvents = {
      * Used to acquire a new set of tokens from the authorize endpoint in a hidden iframe.
      */
     SilentIframeClientAcquireToken: "silentIframeClientAcquireToken",
+    AwaitConcurrentIframe: "awaitConcurrentIframe", // Time spent waiting for a concurrent iframe to complete
 
     /**
      * acquireToken API in SilentRereshClient (msal-browser).
@@ -701,6 +702,11 @@ export type PerformanceEvent = {
 
     visibilityChangeCount?: number;
     incompleteSubsCount?: number;
+
+    /**
+     * CorrelationId of the in progress iframe request that was awaited
+     */
+    awaitIframeCorrelationId?: string;
     /**
      * Amount of times queued in the JS event queue.
      *
@@ -796,8 +802,13 @@ export type PerformanceEvent = {
     errorName?: string;
     errorStack?: string[];
 
-    //
-    context?: object;
+    // Event context as JSON string
+    context?: string;
+
+    // Number of tokens in the cache to be reported when cache quota is exceeded
+    cacheRtCount?: number;
+    cacheIdCount?: number;
+    cacheAtCount?: number;
 };
 
 export type PerformanceEventContext = {
