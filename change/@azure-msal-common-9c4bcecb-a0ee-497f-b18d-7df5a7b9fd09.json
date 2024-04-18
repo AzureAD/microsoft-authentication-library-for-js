@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Instrument server error number #7036",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

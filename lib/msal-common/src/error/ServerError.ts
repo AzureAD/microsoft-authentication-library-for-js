@@ -9,9 +9,20 @@ import { AuthError } from "./AuthError";
  * Error thrown when there is an error with the server code, for example, unavailability.
  */
 export class ServerError extends AuthError {
-    constructor(errorCode?: string, errorMessage?: string, subError?: string) {
+    /**
+     * Server error number;
+     */
+    readonly errorNo?: string;
+
+    constructor(
+        errorCode?: string,
+        errorMessage?: string,
+        subError?: string,
+        errorNo?: string
+    ) {
         super(errorCode, errorMessage, subError);
         this.name = "ServerError";
+        this.errorNo = errorNo;
 
         Object.setPrototypeOf(this, ServerError.prototype);
     }
