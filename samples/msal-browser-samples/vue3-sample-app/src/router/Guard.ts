@@ -17,7 +17,10 @@ export function registerGuard(router: Router) {
     });
 }
 
-export async function isAuthenticated(instance: PublicClientApplication, interactionType: InteractionType, loginRequest: PopupRequest|RedirectRequest): Promise<boolean> {    
+export async function isAuthenticated(instance: PublicClientApplication, interactionType: InteractionType, loginRequest: PopupRequest|RedirectRequest): Promise<boolean> {
+	// Must call and await the initialize
+    await instance.initialize();    
+    
     // If your application uses redirects for interaction, handleRedirectPromise must be called and awaited on each page load before determining if a user is signed in or not  
     return instance.handleRedirectPromise().then(() => {
         const accounts = instance.getAllAccounts();
