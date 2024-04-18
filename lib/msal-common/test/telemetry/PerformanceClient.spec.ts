@@ -7,6 +7,7 @@ import {
     ApplicationTelemetry,
     AuthError,
     IGuidGenerator,
+    InteractionRequiredAuthError,
     IPerformanceClient,
     Logger,
     PerformanceEvents,
@@ -20,7 +21,6 @@ import {
 } from "../../src/telemetry/performance/PerformanceClient";
 import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient";
 import { PerformanceEventAbbreviations } from "../../src/telemetry/performance/PerformanceEvent";
-import { afterEach } from "node:test";
 
 const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
@@ -512,11 +512,44 @@ describe("PerformanceClient.spec.ts", () => {
             );
         });
 
-        it("captures error server no", (done) => {
+        it("captures server error no", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
             const error = new ServerError(
                 "test-error-code",
+                undefined,
+                undefined,
+                "70011"
+            );
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.serverErrorNo).toEqual(error.errorNo);
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end(
+                {
+                    success: false,
+                },
+                error
+            );
+        });
+
+        it("captures interaction required error no", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const error = new InteractionRequiredAuthError(
+                "test-error-code",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
                 undefined,
                 undefined,
                 "70011"

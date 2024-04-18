@@ -153,6 +153,7 @@ export class ResponseHandler {
             serverResponse.error_description ||
             serverResponse.suberror
         ) {
+            const serverErrorNo = parseServerErrorNo(serverResponse);
             if (
                 isInteractionRequiredError(
                     serverResponse.error,
@@ -167,7 +168,8 @@ export class ResponseHandler {
                     serverResponse.timestamp || "",
                     serverResponse.trace_id || "",
                     serverResponse.correlation_id || "",
-                    serverResponse.claims || ""
+                    serverResponse.claims || "",
+                    serverErrorNo
                 );
             }
 
@@ -175,7 +177,7 @@ export class ResponseHandler {
                 serverResponse.error || "",
                 serverResponse.error_description,
                 serverResponse.suberror,
-                parseServerErrorNo(serverResponse)
+                serverErrorNo
             );
         }
     }
@@ -196,13 +198,14 @@ export class ResponseHandler {
             serverResponse.suberror
         ) {
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
+            const serverErrorNo = serverResponse.error_codes?.length
+                ? serverResponse.error_codes[0]
+                : undefined;
             const serverError = new ServerError(
                 serverResponse.error,
                 errString,
                 serverResponse.suberror,
-                serverResponse.error_codes?.length
-                    ? serverResponse.error_codes[0]
-                    : undefined
+                serverErrorNo
             );
 
             // check if 500 error
@@ -247,7 +250,8 @@ export class ResponseHandler {
                     serverResponse.timestamp || Constants.EMPTY_STRING,
                     serverResponse.trace_id || Constants.EMPTY_STRING,
                     serverResponse.correlation_id || Constants.EMPTY_STRING,
-                    serverResponse.claims || Constants.EMPTY_STRING
+                    serverResponse.claims || Constants.EMPTY_STRING,
+                    serverErrorNo
                 );
             }
 

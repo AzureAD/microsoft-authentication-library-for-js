@@ -933,6 +933,37 @@ describe("ResponseHandler.ts", () => {
             }
         });
 
+        it("throws InteractionRequiredAuthError and parser error no", (done) => {
+            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "interaction_required",
+                error_uri:
+                    "https://login.microsoftonline.com/error_code=500011",
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+            try {
+                responseHandler.validateServerAuthorizationCodeResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
+                const serverError = e as InteractionRequiredAuthError;
+                expect(serverError.errorNo).toEqual("500011");
+                done();
+            }
+        });
+
         it("throws ServerError and skips invalid error uri", (done) => {
             const testServerCodeResponse: ServerAuthorizationCodeResponse = {
                 code: "testCode",
@@ -1050,6 +1081,38 @@ describe("ResponseHandler.ts", () => {
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;
+                expect(serverError.errorCode).toEqual(testTokenResponse.error);
+                expect(serverError.errorMessage).toContain(
+                    testTokenResponse.error_description
+                );
+                expect(serverError.errorNo).toEqual(
+                    testTokenResponse.error_codes![0]
+                );
+                done();
+            }
+        });
+
+        it("captures InteractionRequiredAuthError error no", (done) => {
+            const testTokenResponse: ServerAuthorizationTokenResponse = {
+                error: "interaction_required",
+                error_description: "test error description",
+                error_codes: ["50011"],
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                responseHandler.validateTokenResponse(testTokenResponse);
+            } catch (e) {
+                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
+                const serverError = e as InteractionRequiredAuthError;
                 expect(serverError.errorCode).toEqual(testTokenResponse.error);
                 expect(serverError.errorMessage).toContain(
                     testTokenResponse.error_description
