@@ -2424,6 +2424,47 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     window.opener = oldWindowOpener;
                 });
         });
+
+        it("emits successful performance telemetry event", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            const popupClientSpy = sinon
+                .stub(PopupClient.prototype, "acquireToken")
+                .resolves(testTokenResponse);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
+                expect(events[0].success).toBe(true);
+                expect(events[0].scenarioId).toBe("test-scenario-id");
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.acquireTokenPopup({
+                scopes: ["openid"],
+                scenarioId: "test-scenario-id",
+                correlationId: RANDOM_TEST_GUID,
+            });
+        });
     });
 
     describe("ssoSilent", () => {
@@ -2811,12 +2852,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].success).toBe(false);
                 expect(events[0].errorCode).toBe("abc");
                 expect(events[0].subErrorCode).toBe("defg");
+                expect(events[0].scenarioId).toBe("test-scenario-id");
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
             pca.ssoSilent({
                 scopes: ["openid"],
                 correlationId: RANDOM_TEST_GUID,
+                scenarioId: "test-scenario-id",
             }).catch(() => {});
         });
     });
@@ -3175,12 +3218,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].idTokenSize).toBe(12);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
+                expect(events[0].scenarioId).toBe("test-scenario-id");
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
             pca.acquireTokenByCode({
                 code: "auth-code",
                 correlationId: testTokenResponse.correlationId,
+                scenarioId: "test-scenario-id",
             });
         });
 
@@ -4854,6 +4899,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
+                scenarioId: "test-scenario-id",
             };
 
             const atsSpy = sinon
@@ -4876,6 +4922,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].idTokenSize).toBe(4);
                 expect(events[0].isNativeBroker).toBe(true);
                 expect(events[0].requestId).toBe(undefined);
+                expect(events[0].scenarioId).toBe("test-scenario-id");
 
                 pca.removePerformanceCallback(callbackId);
                 done();

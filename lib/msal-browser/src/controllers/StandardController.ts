@@ -631,6 +631,8 @@ export class StandardController implements IController {
             correlationId
         );
 
+        atPopupMeasurement.add({ scenarioId: request.scenarioId });
+
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
             BrowserUtils.preflightCheck(this.initialized);
@@ -811,6 +813,8 @@ export class StandardController implements IController {
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0,
         });
+        this.ssoSilentMeasurement?.add({ scenarioId: request.scenarioId });
+
         document.addEventListener(
             "visibilitychange",
             this.trackPageVisibilityWithMeasurement
@@ -912,6 +916,7 @@ export class StandardController implements IController {
             PerformanceEvents.AcquireTokenByCode,
             correlationId
         );
+        atbcMeasurement.add({ scenarioId: request.scenarioId });
 
         try {
             if (request.code && request.nativeAccountId) {
@@ -1856,6 +1861,7 @@ export class StandardController implements IController {
         );
         atsMeasurement.add({
             cacheLookupPolicy: request.cacheLookupPolicy,
+            scenarioId: request.scenarioId,
         });
 
         BrowserUtils.preflightCheck(this.initialized);
