@@ -210,7 +210,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.browserStorage.setInteractionInProgress(false);
             return result;
         } catch (e) {
-            this.browserStorage.setInteractionInProgress(false);
+            this.browserStorage.setInteractionInProgress(false);    
             throw e;
         }
     }
@@ -240,19 +240,25 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // Get the preferred_cache domain for the given authority
         const authority = await this.getDiscoveredAuthority(request.authority);
-        const authorityPreferredCache = authority.getPreferredCache();
 
         // generate identifiers
         const idTokenObj = this.createIdTokenObj(response);
         const homeAccountIdentifier = this.createHomeAccountIdentifier(response, idTokenObj);
-        const accountEntity = this.createAccountEntity(response, homeAccountIdentifier, idTokenObj, authorityPreferredCache);
-
+        const accountEntity = AccountEntity. AccountEntity.createAccount(
+            {
+                homeAccountId: homeAccountIdentifier,
+                idTokenClaims: idTokenObj.claims,
+                clientInfo: response.client_info,
+                nativeAccountId: response.account.id,
+            },
+            authority
+        );
         // generate authenticationResult
         const result = await this.generateAuthenticationResult(response, request, idTokenObj, accountEntity, authority.canonicalAuthority, reqTimestamp);
 
         // cache accounts and tokens in the appropriate storage
         this.cacheAccount(accountEntity);
-        this.cacheNativeTokens(response, request, homeAccountIdentifier, accountEntity, idTokenObj, result.accessToken, result.tenantId, reqTimestamp);
+        this.cacheNativeTokens(response, request, homeAccountIdentifier, idTokenObj, result.accessToken, result.tenantId, reqTimestamp);
         
         return result;
     }
@@ -277,19 +283,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj);
 
         return homeAccountIdentifier;
-    }
-
-    /**
-     * Creates account entity
-     * @param response 
-     * @param homeAccountIdentifier 
-     * @param idTokenObj 
-     * @param authority 
-     * @returns 
-     */
-    protected createAccountEntity(response: NativeResponse, homeAccountIdentifier: string, idTokenObj: AuthToken, authority: string): AccountEntity {
-
-        return AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, authority, response.account.id);
     }
 
     /**
@@ -413,7 +406,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param tenantId 
      * @param reqTimestamp 
      */
-    cacheNativeTokens(response: NativeResponse, request: NativeTokenRequest, homeAccountIdentifier: string, accountEntity: AccountEntity, idTokenObj: AuthToken, responseAccessToken: string, tenantId: string, reqTimestamp: number): void {
+    cacheNativeTokens(response: NativeResponse, request: NativeTokenRequest, homeAccountIdentifier: string, idTokenObj: AuthToken, responseAccessToken: string, tenantId: string, reqTimestamp: number): void {
 
         const cachedIdToken: IdTokenEntity | null =
             IdTokenEntity.createIdTokenEntity(
@@ -450,7 +443,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             );
 
         const nativeCacheRecord = new CacheRecord(
-            accountEntity,
+            undefined,
             cachedIdToken,
             cachedAccessToken
         );

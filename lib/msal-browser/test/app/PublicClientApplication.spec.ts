@@ -3322,6 +3322,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined,
+            authorityType: "MSSTS",
         };
 
         const testAccount1: AccountEntity = new AccountEntity();
@@ -3353,6 +3355,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined,
+            authorityType: "MSSTS"
         };
 
         const testAccount2: AccountEntity = new AccountEntity();
@@ -3490,7 +3494,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined
+            nativeAccountId: undefined,
+            authorityType: "MSSTS"
         };
 
         const testAccount1: AccountEntity = new AccountEntity();
@@ -3525,7 +3530,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
-            nativeAccountId: undefined
+            nativeAccountId: undefined,
+            authorityType: "MSSTS"
         };
 
         const testAccount2: AccountEntity = new AccountEntity();
@@ -3835,4 +3841,111 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.browserStorage.getInteractionInProgress()).toBeFalsy;
         });
     })
+
+    describe("hydrateCache tests", () => {
+        const testAccount: AccountInfo = {
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+            environment: "login.windows.net",
+            tenantId: ID_TOKEN_CLAIMS.tid,
+            username: ID_TOKEN_CLAIMS.preferred_username,
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            name: ID_TOKEN_CLAIMS.name,
+            nativeAccountId: undefined,
+            authorityType: "MSSTS",
+        };
+
+        const testAuthenticationResult: AuthenticationResult = {
+            authority: TEST_CONFIG.validAuthority,
+            uniqueId: testAccount.localAccountId,
+            tenantId: testAccount.tenantId,
+            scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            accessToken: TEST_TOKENS.ACCESS_TOKEN,
+            fromCache: false,
+            correlationId: RANDOM_TEST_GUID,
+            expiresOn: new Date(Date.now() + 3600000),
+            account: testAccount,
+            tokenType: AuthenticationScheme.BEARER,
+        };
+
+        const request: SilentRequest = {
+            scopes: ["openid", "profile"],
+            account: testAccount,
+            cacheLookupPolicy: CacheLookupPolicy.AccessToken, // Only perform cache lookup during validation
+        };
+        it("hydrates cache with the provided id and access tokens", async () => {
+            await pca.initialize();
+            await pca
+                .acquireTokenSilent(request)
+                .then(() => {
+                    throw "This is unexpected. Cache should be empty to start";
+                })
+                .catch((e) => {
+                    // This is expected to throw because cache is empty, swallow error
+                });
+            await pca.hydrateCache(testAuthenticationResult, request);
+
+            const result = await pca.acquireTokenSilent(request); // Get tokens from the cache
+            expect(result.accessToken).toEqual(
+                testAuthenticationResult.accessToken
+            );
+            expect(result.idToken).toEqual(testAuthenticationResult.idToken);
+            expect(result.account).toEqual(testAccount);
+            expect(result.fromCache).toEqual(true);
+        });
+
+        it("hydrates internal cache if provided AuthenticationResult came from native broker", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: true,
+                },
+            });
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            stubProvider(pca);
+            await pca.initialize();
+
+            const nativeAccount = {
+                ...testAccount,
+                nativeAccountId: "testNativeAccountId",
+            };
+
+            const nativeResult = {
+                ...testAuthenticationResult,
+                account: nativeAccount,
+                fromNativeBroker: true,
+            };
+
+            const nativeRequest = {
+                ...request,
+                account: nativeAccount,
+            };
+
+            await pca
+                .acquireTokenSilent(request)
+                .then(() => {
+                    throw "This is unexpected. Cache should be empty to start";
+                })
+                .catch((e) => {
+                    // This is expected to throw because cache is empty, swallow error
+                });
+
+            await pca.hydrateCache(nativeResult, nativeRequest);
+
+            const result = await pca.acquireTokenSilent(nativeRequest); // Get tokens from the cache
+
+            // Verify tokens were returned from internal memory
+            expect(result.accessToken).toEqual(nativeResult.accessToken);
+            expect(result.idToken).toEqual(nativeResult.idToken);
+            expect(result.account).toEqual(nativeAccount);
+            expect(result.fromCache).toEqual(true);
+        });
+    });
 });

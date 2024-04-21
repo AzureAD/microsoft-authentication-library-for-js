@@ -84,7 +84,11 @@ export class TokenCache implements ITokenCache {
             // "clientInfo" from options takes precedence over "clientInfo" in response
             if (options.clientInfo) {
                 this.logger.trace("TokenCache - homeAccountId from options");
-                cacheRecordAccount = this.loadAccount(idToken, authority.hostnameAndPort, options.clientInfo, authority.authorityType);
+                cacheRecordAccount = this.loadAccount(
+                    idToken,
+                    authority,
+                    options.clientInfo
+                );
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
                     this.loadIdToken(idToken, cacheRecordAccount.homeAccountId, authority.hostnameAndPort, authority.tenant),
@@ -119,13 +123,13 @@ export class TokenCache implements ITokenCache {
      * @param requestHomeAccountId
      * @returns `AccountEntity`
      */
-    private loadAccount(idToken: AuthToken, authority: Authority, clientInfo?: string, authorityType?: AuthorityType, requestHomeAccountId?: string): AccountEntity {
+    private loadAccount(idToken: AuthToken, authority: Authority, clientInfo?: string, requestHomeAccountId?: string): AccountEntity {
 
         let homeAccountId;
         if (requestHomeAccountId) {
             homeAccountId = requestHomeAccountId;
         } else if (authority.authorityType !== undefined && clientInfo) {
-            homeAccountId = AccountEntity.generateHomeAccountId(clientInfo, authority.authorityType, this.logger, this.cryptoObj, idToken);
+            homeAccountId = AccountEntity.generateHomeAccountId(clientInfo, authority.authorityType, this.logger, this.cryptoObj, idToken.claims);
         }
 
         if (!homeAccountId) {
@@ -278,8 +282,8 @@ export class TokenCache implements ITokenCache {
             familyId: Constants.EMPTY_STRING,
             tokenType: cacheRecord?.accessToken?.tokenType || Constants.EMPTY_STRING,
             state: Constants.EMPTY_STRING,
-            cloudGraphHostName: cacheRecord?.account?.cloudGraphHostName || Constants.EMPTY_STRING,
-            msGraphHost: cacheRecord?.account?.msGraphHost || Constants.EMPTY_STRING,
+            cloudGraphHostName: accountEntity.cloudGraphHostName || Constants.EMPTY_STRING,
+            msGraphHost: accountEntity.msGraphHost || Constants.EMPTY_STRING,
             code: undefined,
             fromNativeBroker: false
         };
