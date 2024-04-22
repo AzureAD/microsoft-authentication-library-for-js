@@ -24,7 +24,6 @@ extends:
         globalSdl:
             policheck:
                 break: true
-
         stages:
             - stage: e2e_test
               displayName: "E2E Tests"
