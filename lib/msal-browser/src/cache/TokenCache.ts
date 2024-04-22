@@ -97,7 +97,7 @@ export class TokenCache implements ITokenCache {
                 );
             } else if (response.client_info) {
                 this.logger.trace("TokenCache - homeAccountId from response");
-                cacheRecordAccount = this.loadAccount(idToken, authority.hostnameAndPort, response.client_info, authority.authorityType);
+                cacheRecordAccount = this.loadAccount(idToken, authority, response.client_info);
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
                     this.loadIdToken(idToken, cacheRecordAccount.homeAccountId, authority.hostnameAndPort, authority.tenant),
@@ -111,7 +111,7 @@ export class TokenCache implements ITokenCache {
             throw BrowserAuthError.createUnableToLoadTokenError("Please provide a request with an account or a request with authority.");
         }
 
-        return this.generateAuthenticationResult(request, idToken, cacheRecord, authority);
+        return this.generateAuthenticationResult(request, idToken, cacheRecord, cacheRecordAccount, authority);
     }
 
     /**

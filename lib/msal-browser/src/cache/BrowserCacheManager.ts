@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError, TokenKeys, CredentialType, AuthenticationResult, IdTokenEntity, AccessTokenEntity, AppMetadataEntity, AuthenticationScheme, AuthorityMetadataEntity, CacheRecord, IdTokenEntity, RefreshTokenEntity, ServerTelemetryEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError, TokenKeys, CredentialType, AuthenticationResult, AuthenticationScheme, CacheRecord } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys, StaticCacheKeys } from "../utils/BrowserConstants";
@@ -1422,8 +1422,8 @@ export class BrowserCacheManager extends CacheManager {
         request: SilentRequest
     ): Promise<void> {
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
-            result.account?.homeAccountId,
-            result.account?.environment,
+            result.account?.homeAccountId || "" ,
+            result.account?.environment || "",
             result.idToken,
             this.clientId,
             result.tenantId
@@ -1434,8 +1434,8 @@ export class BrowserCacheManager extends CacheManager {
             claimsHash = await this.cryptoImpl.hashString(request.claims);
         }
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            result.account?.homeAccountId,
-            result.account?.environment,
+            result.account?.homeAccountId || "",
+            result.account?.environment || "",
             result.accessToken,
             this.clientId,
             result.tenantId,

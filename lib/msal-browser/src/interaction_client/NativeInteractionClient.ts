@@ -244,7 +244,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // generate identifiers
         const idTokenObj = this.createIdTokenObj(response);
         const homeAccountIdentifier = this.createHomeAccountIdentifier(response, idTokenObj);
-        const accountEntity = AccountEntity. AccountEntity.createAccount(
+        const accountEntity = AccountEntity.createAccount(
             {
                 homeAccountId: homeAccountIdentifier,
                 idTokenClaims: idTokenObj.claims,
@@ -280,7 +280,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     protected createHomeAccountIdentifier(response: NativeResponse, idTokenObj: AuthToken): string {
         // Save account in browser storage
-        const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj);
+        const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj.claims);
 
         return homeAccountIdentifier;
     }

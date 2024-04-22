@@ -119,7 +119,7 @@ export class AccountEntity {
         accountDetails: {
             homeAccountId: string,
             idTokenClaims: TokenClaims,
-            clientInfo: string,
+            clientInfo?: string,
             cloudGraphHostName?: string,
             msGraphHost?: string,
             environment?: string,
