@@ -289,7 +289,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param request - The request object that was used to obtain the AuthenticationResult
      * @returns
      */
-     async hydrateCache(
+    async hydrateCache(
         result: AuthenticationResult,
         request: SilentRequest
     ): Promise<void> {
