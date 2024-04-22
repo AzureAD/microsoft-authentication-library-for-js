@@ -84,6 +84,23 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest";
 import { createNewGuid } from "../crypto/BrowserCrypto";
 import { initializeSilentRequest } from "../request/RequestHelpers";
 
+function getAccountType(
+    account?: AccountInfo
+): "AAD" | "MSA" | "B2C" | undefined {
+    const idTokenClaims = account?.idTokenClaims;
+    if (idTokenClaims?.tid) {
+        if (idTokenClaims.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+            return "MSA";
+        }
+
+        return "AAD";
+    } else if (idTokenClaims?.tfp || idTokenClaims?.acr) {
+        return "B2C";
+    }
+
+    return undefined;
+}
+
 export class StandardController implements IController {
     // OperatingContext
     protected readonly operatingContext: StandardOperatingContext;
@@ -472,7 +489,10 @@ export class StandardController implements IController {
                             "handleRedirectResponse returned result, acquire token success"
                         );
                     }
-                    rootMeasurement.end({ success: true });
+                    rootMeasurement.end({
+                        success: true,
+                        accountType: getAccountType(result.account),
+                    });
                 }
                 this.eventHandler.emitEvent(
                     EventType.HANDLE_REDIRECT_END,
@@ -631,7 +651,10 @@ export class StandardController implements IController {
             correlationId
         );
 
-        atPopupMeasurement.add({ scenarioId: request.scenarioId });
+        atPopupMeasurement.add({
+            scenarioId: request.scenarioId,
+            accountType: getAccountType(request.account),
+        });
 
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
@@ -674,6 +697,7 @@ export class StandardController implements IController {
                         success: true,
                         isNativeBroker: true,
                         requestId: response.requestId,
+                        accountType: getAccountType(response.account),
                     });
                     return response;
                 })
@@ -723,13 +747,12 @@ export class StandardController implements IController {
                     );
                 }
 
-                atPopupMeasurement.add({
-                    accessTokenSize: result.accessToken.length,
-                    idTokenSize: result.idToken.length,
-                });
                 atPopupMeasurement.end({
                     success: true,
                     requestId: result.requestId,
+                    accessTokenSize: result.accessToken.length,
+                    idTokenSize: result.idToken.length,
+                    accountType: getAccountType(result.account),
                 });
                 return result;
             })
@@ -813,7 +836,10 @@ export class StandardController implements IController {
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0,
         });
-        this.ssoSilentMeasurement?.add({ scenarioId: request.scenarioId });
+        this.ssoSilentMeasurement?.add({
+            scenarioId: request.scenarioId,
+            accountType: getAccountType(request.account),
+        });
 
         document.addEventListener(
             "visibilitychange",
@@ -857,14 +883,13 @@ export class StandardController implements IController {
                     InteractionType.Silent,
                     response
                 );
-                this.ssoSilentMeasurement?.add({
-                    accessTokenSize: response.accessToken.length,
-                    idTokenSize: response.idToken.length,
-                });
                 this.ssoSilentMeasurement?.end({
                     success: true,
                     isNativeBroker: response.fromNativeBroker,
                     requestId: response.requestId,
+                    accessTokenSize: response.accessToken.length,
+                    idTokenSize: response.idToken.length,
+                    accountType: getAccountType(response.account),
                 });
                 return response;
             })
@@ -943,14 +968,13 @@ export class StandardController implements IController {
                                 result
                             );
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
-                            atbcMeasurement.add({
-                                accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
-                            });
                             atbcMeasurement.end({
                                 success: true,
                                 isNativeBroker: result.fromNativeBroker,
                                 requestId: result.requestId,
+                                accessTokenSize: result.accessToken.length,
+                                idTokenSize: result.idToken.length,
+                                accountType: getAccountType(result.account),
                             });
                             return result;
                         })
@@ -981,7 +1005,7 @@ export class StandardController implements IController {
                 return await response;
             } else if (request.nativeAccountId) {
                 if (this.canUseNative(request, request.nativeAccountId)) {
-                    return await this.acquireTokenNative(
+                    const result = await this.acquireTokenNative(
                         {
                             ...request,
                             correlationId,
@@ -996,8 +1020,19 @@ export class StandardController implements IController {
                         ) {
                             this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         }
+                        atbcMeasurement.end(
+                            {
+                                success: false,
+                            },
+                            e
+                        );
                         throw e;
                     });
+                    atbcMeasurement.end({
+                        accountType: getAccountType(result.account),
+                        success: true,
+                    });
+                    return result;
                 } else {
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform
@@ -1871,6 +1906,7 @@ export class StandardController implements IController {
         if (!account) {
             throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
         }
+        atsMeasurement.add({ accountType: getAccountType(account) });
 
         const thumbprint: RequestThumbprint = {
             clientId: this.config.auth.clientId,
@@ -1910,16 +1946,14 @@ export class StandardController implements IController {
             )
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.add({
-                        accessTokenSize: result.accessToken.length,
-                        idTokenSize: result.idToken.length,
-                    });
                     atsMeasurement.end({
                         success: true,
                         fromCache: result.fromCache,
                         isNativeBroker: result.fromNativeBroker,
                         cacheLookupPolicy: request.cacheLookupPolicy,
                         requestId: result.requestId,
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length,
                     });
                     return result;
                 })
