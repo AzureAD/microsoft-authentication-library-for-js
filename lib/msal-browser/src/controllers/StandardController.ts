@@ -88,17 +88,17 @@ function getAccountType(
     account?: AccountInfo
 ): "AAD" | "MSA" | "B2C" | undefined {
     const idTokenClaims = account?.idTokenClaims;
-    if (idTokenClaims?.tid) {
-        if (idTokenClaims.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-            return "MSA";
-        }
-
-        return "AAD";
-    } else if (idTokenClaims?.tfp || idTokenClaims?.acr) {
+    if (idTokenClaims?.tfp || idTokenClaims?.acr) {
         return "B2C";
     }
 
-    return undefined;
+    const tenantId = idTokenClaims?.tid || account?.tenantId;
+    if (!tenantId) {
+        return undefined;
+    } else if (tenantId === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+        return "MSA";
+    }
+    return "AAD";
 }
 
 export class StandardController implements IController {
