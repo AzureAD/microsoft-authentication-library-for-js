@@ -1020,12 +1020,6 @@ export class StandardController implements IController {
                         ) {
                             this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         }
-                        atbcMeasurement.end(
-                            {
-                                success: false,
-                            },
-                            e
-                        );
                         throw e;
                     });
                     atbcMeasurement.end({
