@@ -814,6 +814,11 @@ export type PerformanceEvent = {
     cacheRtCount?: number;
     cacheIdCount?: number;
     cacheAtCount?: number;
+
+    // Scenario id to track custom user prompts
+    scenarioId?: string;
+
+    accountType?: "AAD" | "MSA" | "B2C";
 };
 
 export type PerformanceEventContext = {
