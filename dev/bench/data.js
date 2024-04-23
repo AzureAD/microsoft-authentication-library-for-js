@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1713888289357,
+  "lastUpdate": 1713895074981,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7470,6 +7470,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.02%",
             "unit": "ops/sec",
             "extra": "226 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "236cc4acb053662e108d4c6fa68b873dd1fa7ecc",
+          "message": "Managed Identity Documentation Updates (#7035)\n\nUpdated managed identity docs now that the feature is out of alpha and\r\nis available in msal-node v 2.7.0.",
+          "timestamp": "2024-04-23T13:52:18-04:00",
+          "tree_id": "c217b58b8f92a155638b82f832f5f796d70e6da8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/236cc4acb053662e108d4c6fa68b873dd1fa7ecc"
+        },
+        "date": 1713895073854,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192930,
+            "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 220642,
+            "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
