@@ -126,18 +126,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(ac.generateAccountKey()).toEqual("uid.utid-login.microsoftonline.com-microsoft");
     });
 
-    it("throws error if account entity is not assigned a type", () => {
-        const ac = new AccountEntity();
-        expect(() => ac.generateType()).toThrowError(ClientAuthError);
-        expect(() => ac.generateType()).toThrowError(ClientAuthErrorMessage.unexpectedAccountType.desc);
-    });
-
-    it("generate type of the cache", () => {
-        const ac = new AccountEntity();
-        Object.assign(ac, mockAccountEntity);
-        expect(ac.generateType()).toEqual(1003);
-    });
-
     it("create an Account", () => {
         // Set up stubs
         const idTokenClaims = {
@@ -159,12 +147,12 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken.claims);
 
-        const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            }, 
             authority
         );
 
@@ -197,12 +185,12 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken.claims);
 
-        const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
             authority
         );
 
@@ -236,12 +224,12 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken.claims);
 
-        const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
             authority
         );
         expect(acc.generateAccountKey()).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
@@ -281,12 +269,12 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken.claims);
 
-        const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
             authority
         );
 
@@ -329,9 +317,10 @@ describe("AccountEntity.ts Unit Tests", () => {
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
-        const acc = AccountEntity.createGenericAccount(
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
             authority
         );
 
@@ -379,12 +368,12 @@ describe("AccountEntity.ts Unit Tests", () => {
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
-                idToken);
+                idToken.claims);
 
-            acc = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-                homeAccountId,
-                idToken,
+            acc = AccountEntity.createAccount({
+                    homeAccountId,
+                    idTokenClaims: idToken.claims,
+                },
                 authority
             );
         })
@@ -552,9 +541,10 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
-        const acc = AccountEntity.createGenericAccount(
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims
+            },
             authority
         );
 
@@ -599,11 +589,12 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
-        const acc = AccountEntity.createGenericAccount(
+        const acc = AccountEntity.createAccount({
             homeAccountId,
-            idToken,
-            authority
-        );
+            idTokenClaims: idToken.claims,
+        },
+        authority
+    );
 
         expect(acc.generateAccountKey()).toEqual(`${idTokenClaims.sub.toLowerCase()}-myadfs.com-`);
         expect(acc.homeAccountId).toBe(homeAccountId);

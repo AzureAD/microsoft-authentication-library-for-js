@@ -3906,9 +3906,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             stubProvider(pca);
             await pca.initialize();
 

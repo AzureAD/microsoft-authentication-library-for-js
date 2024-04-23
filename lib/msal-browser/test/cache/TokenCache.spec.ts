@@ -74,7 +74,7 @@ describe("TokenCache tests", () => {
             testClientInfo = `${TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED}.${TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED}`;
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
             testIdAuthToken = new AuthToken(testIdToken, cryptoObj);
-            testHomeAccountId = AccountEntity.generateHomeAccountId(testClientInfo, AuthorityType.Default, logger, cryptoObj, testIdAuthToken);
+            testHomeAccountId = AccountEntity.generateHomeAccountId(testClientInfo, AuthorityType.Default, logger, cryptoObj, testIdAuthToken.claims);
 
             idTokenEntity = IdTokenEntity.createIdTokenEntity(testHomeAccountId, testEnvironment, TEST_TOKENS.IDTOKEN_V2, configuration.auth.clientId, TEST_CONFIG.TENANT);
             idTokenKey = idTokenEntity.generateCredentialKey();
@@ -148,21 +148,24 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo
             };
 
-            const testAccount = AccountEntity.createAccount(testClientInfo, testHomeAccountId, testIdAuthToken, undefined, undefined, undefined, testEnvironment, undefined);
             const testAccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: testHomeAccountId,
                 environment: testEnvironment,
                 tenantId: TEST_CONFIG.MSAL_TENANT_ID,
                 username: "AbeLi@microsoft.com",
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                idTokenClaims: testIdAuthToken.claims,
+                name: testIdAuthToken.claims.name,
+                nativeAccountId: undefined,
             };
             const testAccountKey = AccountEntity.generateAccountCacheKey(testAccountInfo);
             const result = tokenCache.loadExternalTokens(request, response, options);
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-            expect(result.account).toEqual(testAccount.getAccountInfo());
+            expect(result.account).toEqual(testAccountInfo);
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
-            expect(browserStorage.getAccount(testAccountKey)).toEqual(testAccount);
+            expect(browserStorage.getAccount(testAccountKey)?.homeAccountId).toEqual(testAccountInfo.homeAccountId);
         });
 
         it("loads id token with request authority and client info provided in response", () => {

@@ -147,8 +147,36 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it("Adds existing accounts to account key map on initialization", () => {
+
+            const browserSessionStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+            const authority = new Authority(
+                TEST_CONFIG.validAuthority,
+                StubbedNetworkModule,
+                browserSessionStorage,
+                {
+                    protocolMode: ProtocolMode.AAD,
+                    authorityMetadata: "",
+                    cloudDiscoveryMetadata: "",
+                    knownAuthorities: []
+                },
+                logger
+            );
+
             // Pre-populate localstorage with accounts
-            const testAccount = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,  new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto), undefined, undefined, undefined, "environment");
+            const testAccount = AccountEntity.createAccount(
+                {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    idTokenClaims: new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto).claims,
+                    clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    environment: "environment",
+                },
+                authority
+            );
             window.localStorage.setItem(testAccount.generateAccountKey(), JSON.stringify(testAccount));
 
             // Validate that accounts are not added to account key map when cacheMigration is false
@@ -282,8 +310,19 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccount returns AccountEntity", () => {
-                    const testAccount = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "homeAccountId", new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto), authority, "oboAssertion", "cloudGraphHost", "msGraphHost");
-
+                    const testAccount = AccountEntity.createAccount({
+                            homeAccountId: "homeAccountId",
+                            idTokenClaims: new IdToken(
+                                TEST_TOKENS.IDTOKEN_V2,
+                                browserCrypto
+                            ).claims,
+                            clientInfo:
+                                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                            cloudGraphHostName: "cloudGraphHost",
+                            msGraphHost: "msGraphHost",
+                        },
+                        authority
+                    );
                     browserLocalStorage.setAccount(testAccount);
                     browserSessionStorage.setAccount(testAccount);
 
@@ -800,7 +839,18 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccount returns AccountEntity", () => {
-                    const testAccount = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "homeAccountId", new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto), authority, "oboAssertion", "cloudGraphHost", "msGraphHost");
+                    const testAccount = AccountEntity.createAccount({
+                        homeAccountId: "homeAccountId",
+                        idTokenClaims: new IdToken(
+                            TEST_TOKENS.IDTOKEN_V2,
+                            browserCrypto
+                        ).claims,
+                        clientInfo:
+                            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                        cloudGraphHostName: "cloudGraphHost",
+                        msGraphHost: "msGraphHost",
+                    },
+                    authority);
 
                     browserLocalStorage.setAccount(testAccount);
                     browserSessionStorage.setAccount(testAccount);
@@ -1854,7 +1904,7 @@ describe("BrowserCacheManager tests", () => {
                 realm: "test-tenantId-1",
                 name: "name-1",
                 idTokenClaims: {},
-                authorityType: "AAD"
+                authorityType: "MSSTS"
             }
 
             const accountEntity2 = {
@@ -1865,27 +1915,31 @@ describe("BrowserCacheManager tests", () => {
                 realm: "test-tenantId-2",
                 name: "name-2",
                 idTokenClaims: {},
-                authorityType: "AAD"
+                authorityType: "MSSTS"
             }
 
             const account1: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: accountEntity1.homeAccountId,
                 localAccountId: accountEntity1.localAccountId,
                 username: accountEntity1.username,
                 environment: accountEntity1.environment,
                 tenantId: accountEntity1.realm,
                 name: accountEntity1.name,
-                idTokenClaims: accountEntity1.idTokenClaims
+                idTokenClaims: accountEntity1.idTokenClaims,
+                nativeAccountId: undefined,
             };
 
             const account2: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: accountEntity2.homeAccountId,
                 localAccountId: accountEntity2.localAccountId,
                 username: accountEntity2.username,
                 environment: accountEntity2.environment,
                 tenantId: accountEntity2.realm,
                 name: accountEntity2.name,
-                idTokenClaims: accountEntity2.idTokenClaims
+                idTokenClaims: accountEntity2.idTokenClaims,
+                nativeAccountId: undefined,
             };
             const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
             const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
@@ -1987,7 +2041,7 @@ describe("BrowserCacheManager tests", () => {
                 idTokenClaims: {
                     sid: "session-1"
                 },
-                authorityType: "AAD"
+                authorityType: "MSSTS"
             }
 
             const accountEntity2 = {
@@ -2000,10 +2054,11 @@ describe("BrowserCacheManager tests", () => {
                 idTokenClaims: {
                     sid: "session-2"
                 },
-                authorityType: "AAD"
+                authorityType: "MSSTS"
             }
 
             const account1: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: accountEntity1.homeAccountId,
                 localAccountId: accountEntity1.localAccountId,
                 username: accountEntity1.username,
@@ -2015,6 +2070,7 @@ describe("BrowserCacheManager tests", () => {
             };
 
             const account2: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: accountEntity2.homeAccountId,
                 localAccountId: accountEntity2.localAccountId,
                 username: accountEntity2.username,
@@ -2050,6 +2106,7 @@ describe("BrowserCacheManager tests", () => {
 
             it("Throws if multiple accounts match by loginHint", (done) => {
                 const accountEntity3 = {
+                    authorityType: "MSSTS",
                     homeAccountId: "test-home-accountId-3",
                     localAccountId: "test-local-accountId-3",
                     username: accountEntity1.username, // Keep this the same as account 1
@@ -2057,7 +2114,7 @@ describe("BrowserCacheManager tests", () => {
                     realm: "test-tenantId-3",
                     name: "name-3",
                     idTokenClaims: accountEntity1.idTokenClaims, // Keep this the same as account 1 
-                    authorityType: "AAD"
+                    nativeAccountId: undefined
                 }
 
                 const account3: AccountInfo = {
@@ -2093,7 +2150,7 @@ describe("BrowserCacheManager tests", () => {
                     realm: "test-tenantId-3",
                     name: "name-3",
                     idTokenClaims: accountEntity1.idTokenClaims, // Keep this the same as account 1 
-                    authorityType: "AAD"
+                    authorityType: "MSSTS"
                 }
 
                 const account3: AccountInfo = {
