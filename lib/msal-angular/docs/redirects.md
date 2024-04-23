@@ -250,7 +250,7 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.authService.handleRedirectObservable().subscribe(); // Subscribing to handleRedirectObservable before any other functions both initialize the application and ensures redirects are handled
+    this.authService.handleRedirectObservable().subscribe(); // Subscribing to handleRedirectObservable before any other functions both initializes the application and ensures redirects are handled
   }
 }
 

@@ -44,7 +44,7 @@ Please see [here](https://github.com/AzureAD/microsoft-authentication-library-fo
 
 ### What versions of Angular are supported?
 
-MSAL Angular v3 currently supports Angular 15 and 16.
+MSAL Angular v3 currently supports Angular 15, 16, and 17.
 
 MSAL Angular v2 supports Angular 9, 10, 11, 12, 13 and 14.
 
@@ -52,9 +52,11 @@ MSAL Angular v2 supports Angular 9, 10, 11, 12, 13 and 14.
 
 Yes, server side rendering is supported through Angular universal. See our doc [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/angular-universal.md) for more information.
 
+**Note:** MSAL Angular currently does not officially support Angular 17's server-side and prerendering capabilities. Using SSR with MSAL Angular may break your app.
+
 ### Does `@azure/msal-angular` support standalone components?
 
-MSAL Angular v3 supports standalone components. Please see our [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for more information on using standalone components with redirects and our [standalone sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular-standalone-sample) for usage details. 
+MSAL Angular v3 supports standalone components. Please see our [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for more information on using standalone components with redirects and our [standalone sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular-standalone-sample) and [Angular 17 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular17-standalone-sample)for usage details. 
 
 ### Can `@azure/msal-angular` be used with Internet Explorer?
 

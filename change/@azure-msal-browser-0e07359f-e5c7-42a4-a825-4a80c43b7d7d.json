@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Nested App Auth: allow empty parameters for loginPopup (#6941)",
-  "packageName": "@azure/msal-browser",
-  "email": "dasau@microsoft.com",
-  "dependentChangeType": "patch"
-}

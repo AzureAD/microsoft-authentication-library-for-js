@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 27 Mar 2024 18:41:17 GMT and should not be manually modified.
+This log was last generated on Thu, 11 Apr 2024 21:46:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.7.0
+
+Thu, 11 Apr 2024 21:46:57 GMT
+
+### Minor changes
+
+- Implemented Managed Identity in MSAL-Node (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v14.9.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.6.6
 

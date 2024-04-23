@@ -901,6 +901,290 @@ describe("ResponseHandler.ts", () => {
                 done();
             }
         });
+
+        it("throws ServerError and parser error no", (done) => {
+            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "test_error",
+                error_uri:
+                    "https://login.microsoftonline.com/error_code=500011",
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+            try {
+                responseHandler.validateServerAuthorizationCodeResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorNo).toEqual("500011");
+                done();
+            }
+        });
+
+        it("throws InteractionRequiredAuthError and parser error no", (done) => {
+            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "interaction_required",
+                error_uri:
+                    "https://login.microsoftonline.com/error_code=500011",
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+            try {
+                responseHandler.validateServerAuthorizationCodeResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
+                const serverError = e as InteractionRequiredAuthError;
+                expect(serverError.errorNo).toEqual("500011");
+                done();
+            }
+        });
+
+        it("throws ServerError and skips invalid error uri", (done) => {
+            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "test_error",
+                error_uri: "https://login.microsoftonline.com/500011",
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+            try {
+                responseHandler.validateServerAuthorizationCodeResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorNo).toBeUndefined();
+                done();
+            }
+        });
+
+        it("throws ServerError and skips undefined error uri", (done) => {
+            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "test_error",
+                error_uri: undefined,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+            try {
+                responseHandler.validateServerAuthorizationCodeResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorNo).toBeUndefined();
+                done();
+            }
+        });
+
+        it("throws ServerError and skips empty error uri", (done) => {
+            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "test_error",
+                error_uri: "",
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+            try {
+                responseHandler.validateServerAuthorizationCodeResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorNo).toBeUndefined();
+                done();
+            }
+        });
+    });
+
+    describe("validateTokenResponse", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("captures server error no", (done) => {
+            const testTokenResponse: ServerAuthorizationTokenResponse = {
+                error: "test error",
+                error_description: "test error description",
+                error_codes: ["50011"],
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                responseHandler.validateTokenResponse(testTokenResponse);
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorCode).toEqual(testTokenResponse.error);
+                expect(serverError.errorMessage).toContain(
+                    testTokenResponse.error_description
+                );
+                expect(serverError.errorNo).toEqual(
+                    testTokenResponse.error_codes![0]
+                );
+                done();
+            }
+        });
+
+        it("captures InteractionRequiredAuthError error no", (done) => {
+            const testTokenResponse: ServerAuthorizationTokenResponse = {
+                error: "interaction_required",
+                error_description: "test error description",
+                error_codes: ["50011"],
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                responseHandler.validateTokenResponse(testTokenResponse);
+            } catch (e) {
+                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
+                const serverError = e as InteractionRequiredAuthError;
+                expect(serverError.errorCode).toEqual(testTokenResponse.error);
+                expect(serverError.errorMessage).toContain(
+                    testTokenResponse.error_description
+                );
+                expect(serverError.errorNo).toEqual(
+                    testTokenResponse.error_codes![0]
+                );
+                done();
+            }
+        });
+
+        it("captures first server error no when multiple provided", (done) => {
+            const testTokenResponse: ServerAuthorizationTokenResponse = {
+                error: "test error",
+                error_description: "test error description",
+                error_codes: ["50011", "12345"],
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                responseHandler.validateTokenResponse(testTokenResponse);
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorCode).toEqual(testTokenResponse.error);
+                expect(serverError.errorMessage).toContain(
+                    testTokenResponse.error_description
+                );
+                expect(serverError.errorNo).toEqual(
+                    testTokenResponse.error_codes![0]
+                );
+                done();
+            }
+        });
+
+        it("skips error no when no error codes are provided", (done) => {
+            const testTokenResponse: ServerAuthorizationTokenResponse = {
+                error: "test error",
+                error_description: "test error description",
+                error_codes: [],
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                responseHandler.validateTokenResponse(testTokenResponse);
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorCode).toEqual(testTokenResponse.error);
+                expect(serverError.errorMessage).toContain(
+                    testTokenResponse.error_description
+                );
+                expect(serverError.errorNo).toBeUndefined();
+                done();
+            }
+        });
     });
 
     describe("captures cache error", () => {

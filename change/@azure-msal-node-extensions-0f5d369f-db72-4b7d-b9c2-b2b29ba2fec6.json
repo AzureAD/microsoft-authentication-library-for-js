@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add install script to workaround regression in npm version 10.4.0",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

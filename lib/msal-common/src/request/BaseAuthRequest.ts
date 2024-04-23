@@ -27,6 +27,7 @@ import { ShrOptions } from "../crypto/SignedHttpRequest";
  * - requestedClaimsHash     - SHA 256 hash string of the requested claims string, used as part of an access token cache key so tokens can be filtered by requested claims
  * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
  * - storeInCache            - Object containing boolean values indicating whether to store tokens in the cache or not (default is true)
+ * - scenarioId              - Scenario id to track custom user prompts
  */
 export type BaseAuthRequest = {
     authority: string;
@@ -46,4 +47,5 @@ export type BaseAuthRequest = {
     maxAge?: number;
     tokenQueryParameters?: StringDict;
     storeInCache?: StoreInCache;
+    scenarioId?: string;
 };
