@@ -2,7 +2,7 @@
 
 ### Note
 
-> This feature is in preview and feedback is welcome. See the [preview package](https://www.npmjs.com/package/@azure/msal-node/v/2.6.5-alpha.0) that has been upload to npm.
+> This feature is available in msal-node 2.7.0.
 
 A common challenge for developers is the management of secrets, credentials, certificates, and keys used to secure communication between services. [Managed identities](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview) in Azure eliminate the need for developers to handle these credentials manually. MSALJS's msal-node library supports acquiring tokens through the managed identity service when used with applications running inside Azure infrastructure, such as:
 
