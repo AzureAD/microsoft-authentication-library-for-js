@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1713895074981,
+  "lastUpdate": 1713897989536,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7506,6 +7506,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 220642,
             "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "23df98f6747f47f9ba1bb458feba9f183f4a902c",
+          "message": "Instrument account type (#7049)\n\n- Instrument account type\r\n- Fix acquireTokenByCode native flow instrumentation",
+          "timestamp": "2024-04-23T14:40:57-04:00",
+          "tree_id": "f7ef34398acc317e9b876acc54c2f95d18858b6e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/23df98f6747f47f9ba1bb458feba9f183f4a902c"
+        },
+        "date": 1713897988421,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 195680,
+            "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 195384,
+            "range": "±2.10%",
             "unit": "ops/sec",
             "extra": "224 samples"
           }
