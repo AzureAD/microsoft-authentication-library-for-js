@@ -22,6 +22,7 @@ export type ServerAuthorizationCodeResponse = {
     msgraph_host?: string;
     // Error case
     error?: string;
+    error_uri?: string;
     error_description?: string;
     suberror?: string;
     timestamp?: string;
