@@ -92,10 +92,9 @@ function getAccountType(
         return "B2C";
     }
 
-    const tenantId = idTokenClaims?.tid || account?.tenantId;
-    if (!tenantId) {
+    if (!idTokenClaims?.tid) {
         return undefined;
-    } else if (tenantId === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+    } else if (idTokenClaims?.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
         return "MSA";
     }
     return "AAD";

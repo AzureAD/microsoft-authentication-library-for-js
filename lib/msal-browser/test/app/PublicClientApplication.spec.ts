@@ -590,7 +590,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ).toBeGreaterThanOrEqual(0);
                 expect(event["handleRedirectPromiseCallCount"]).toEqual(1);
                 expect(event.success).toBeTruthy();
-                expect(event.accountType).toEqual("AAD");
+                expect(event.accountType).toEqual(undefined);
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -729,6 +729,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tenantId: "9188040d-6c67-4c5b-b112-36a304b66dad",
                     username: "AbeLi@microsoft.com",
                     nativeAccountId: "test-nativeAccountId",
+                    idTokenClaims: {
+                        tid: "9188040d-6c67-4c5b-b112-36a304b66dad",
+                    },
                 };
                 const testTokenResponse: AuthenticationResult = {
                     authority: TEST_CONFIG.validAuthority,
@@ -2434,6 +2437,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                idTokenClaims: {
+                    tfp: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                },
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -2446,12 +2452,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
-                account: {
-                    ...testAccount,
-                    idTokenClaims: {
-                        tfp: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    },
-                },
+                account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             const popupClientSpy = sinon
@@ -2777,7 +2778,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].idTokenSize).toBe(12);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
-                expect(events[0].accountType).toBe("AAD");
+                expect(events[0].accountType).toBeUndefined();
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -2838,6 +2839,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                idTokenClaims: {
+                    tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                },
             };
             sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
@@ -3190,6 +3194,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                idTokenClaims: {
+                    tid: "9188040d-6c67-4c5b-b112-36a304b66dad",
+                },
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -3202,10 +3209,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
-                account: {
-                    ...testAccount,
-                    tenantId: "9188040d-6c67-4c5b-b112-36a304b66dad",
-                },
+                account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             const silentClientSpy = sinon
@@ -4876,6 +4880,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: { ...testIdTokenClaims },
             };
 
             sinon
@@ -4925,6 +4930,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                idTokenClaims: {
+                    tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                },
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -5037,16 +5045,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("emits expect performance event when there is an error", (done) => {
-            const testServerTokenResponse = {
-                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                access_token: TEST_TOKENS.ACCESS_TOKEN,
-                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2,
-            };
-
             const testIdTokenClaims: TokenClaims = {
                 ver: "2.0",
                 iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
@@ -5063,6 +5061,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: {
+                    ...testIdTokenClaims,
+                },
             };
 
             sinon
