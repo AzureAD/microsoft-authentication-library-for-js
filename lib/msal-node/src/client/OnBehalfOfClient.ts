@@ -31,6 +31,7 @@ import {
     TokenClaims,
     UrlString,
     ClientAssertion,
+    getClientAssertion,
 } from "@azure/msal-common";
 import { EncodingUtils } from "../utils/EncodingUtils";
 
@@ -258,7 +259,7 @@ export class OnBehalfOfClient extends BaseClient {
             authority.tokenEndpoint,
             queryParametersString
         );
-        const requestBody = this.createTokenRequestBody(request);
+        const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> =
             this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
@@ -308,7 +309,9 @@ export class OnBehalfOfClient extends BaseClient {
      * generate a server request in accepable format
      * @param request
      */
-    private createTokenRequestBody(request: CommonOnBehalfOfRequest): string {
+    private async createTokenRequestBody(
+        request: CommonOnBehalfOfRequest
+    ): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -344,10 +347,17 @@ export class OnBehalfOfClient extends BaseClient {
             );
         }
 
-        if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion: ClientAssertion =
-                this.config.clientCredentials.clientAssertion;
-            parameterBuilder.addClientAssertion(clientAssertion.assertion());
+        const clientAssertion: ClientAssertion | undefined =
+            this.config.clientCredentials.clientAssertion;
+
+        if (clientAssertion) {
+            parameterBuilder.addClientAssertion(
+                await getClientAssertion(
+                    clientAssertion.assertion,
+                    this.config.authOptions.clientId,
+                    request.resourceRequestUri
+                )
+            );
             parameterBuilder.addClientAssertionType(
                 clientAssertion.assertionType
             );

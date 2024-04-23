@@ -17,6 +17,7 @@ import {
     AuthorityMetadataEntity,
     BaseAuthRequest,
     CacheManager,
+    ClientAssertion,
     ClientAssertionCallbackFunction,
     ClientAuthError,
     ClientAuthErrorMessage,
@@ -321,7 +322,7 @@ export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     clientSecret?: string;
-    clientAssertion?: ClientAssertionCallbackFunction;
+    clientAssertion?: string | ClientAssertion;
     clientCertificate?: {
         thumbprint: string;
         privateKey: string;

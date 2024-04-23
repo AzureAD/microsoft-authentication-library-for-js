@@ -14,7 +14,7 @@ export async function getClientAssertion(
     tokenEndpoint?: string
 ): Promise<string> {
     if (typeof clientAssertion === "string") {
-        return Promise.resolve(clientAssertion);
+        return clientAssertion;
     } else {
         const config: ClientAssertionConfig = {
             clientId: clientId,

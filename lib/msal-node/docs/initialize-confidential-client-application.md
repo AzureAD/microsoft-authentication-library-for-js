@@ -29,7 +29,16 @@ See the MSAL sample: [auth-code-with-certs](../../../samples/msal-node-samples/a
 import * as msal from "@azure/msal-node";
 import "dotenv/config"; // process.env now has the values defined in a .env file
 
-const assertionCallback = (): string => "assertion";
+const clientAssertionCallbackFunction: msal.ClientAssertionCallbackFunction = (
+    _config: msal.ClientAssertionConfig
+): Promise<string> => {
+    // network request that uses config.clientId and config.tokenEndpoint
+    const result: Promise<string> = Promise.resolve(
+        "network request which gets assertion"
+    );
+    return result;
+};
+
 const clientConfig = {
     auth: {
         clientId: "your_client_id",
@@ -39,7 +48,7 @@ const clientConfig = {
             thumbprint: process.env.thumbprint,
             privateKey: process.env.privateKey,
         }, // OR
-        clientAssertion: assertionCallback,
+        clientAssertion: clientAssertionCallbackFunction, // or a predetermined clientAssertion string
     },
 };
 const pca = new msal.ConfidentialClientApplication(clientConfig);
@@ -54,7 +63,7 @@ const pca = new msal.ConfidentialClientApplication(clientConfig);
 -   A Client credential is mandatory for confidential clients. Client credential can be a:
     -   `clientSecret` is secret string generated set on the app registration.
     -   `clientCertificate` is a certificate set on the app registration. The `thumbprint` is a X.509 SHA-1 thumbprint of the certificate, and the `privateKey` is the PEM encoded private key. `x5c` is the optional X.509 certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
-    -   `clientAssertion` is a callback function that returns a string that the application uses when requesting a token. The certificate used to sign the assertion should be set on the app registration. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
+    -   `clientAssertion` is a ClientAssertion object containing an assertion string or a callback function that returns an assertion string that the application uses when requesting a token, as well as the assertion's type (urn:ietf:params:oauth:client-assertion-type:jwt-bearer). The certificate used to sign the assertion should be set on the app registration.
 
 ## Configure Authority
 

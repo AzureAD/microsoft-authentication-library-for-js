@@ -34,6 +34,8 @@ import {
     ClientAuthErrorCodes,
     buildStaticAuthorityOptions,
     ClientAssertion as ClientAssertionType,
+    IAppTokenProvider,
+    getClientAssertion,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -400,7 +402,8 @@ export abstract class ClientApplication {
         requestCorrelationId: string,
         serverTelemetryManager?: ServerTelemetryManager,
         azureRegionConfiguration?: AzureRegionConfiguration,
-        azureCloudOptions?: AzureCloudOptions
+        azureCloudOptions?: AzureCloudOptions,
+        appTokenProvider?: IAppTokenProvider
     ): Promise<ClientConfiguration> {
         this.logger.verbose(
             "buildOauthClientConfiguration called",
@@ -453,7 +456,10 @@ export abstract class ClientApplication {
             clientCredentials: {
                 clientSecret: this.clientSecret,
                 clientAssertion: this.clientAssertion
-                    ? this.getClientAssertion(discoveredAuthority)
+                    ? await this.getClientAssertion(
+                          discoveredAuthority,
+                          appTokenProvider
+                      )
                     : undefined,
             },
             libraryInfo: {
@@ -470,14 +476,21 @@ export abstract class ClientApplication {
         return clientConfiguration;
     }
 
-    private getClientAssertion(authority: Authority): ClientAssertionType {
+    private async getClientAssertion(
+        authority: Authority,
+        appTokenProvider?: IAppTokenProvider
+    ): Promise<ClientAssertionType> {
+        await this.setClientCredential(
+            authority.tokenEndpoint,
+            appTokenProvider
+        );
+
         return {
-            assertion: () =>
-                this.clientAssertion.getJwt(
-                    this.cryptoProvider,
-                    this.config.auth.clientId,
-                    authority.tokenEndpoint
-                ),
+            assertion: this.clientAssertion.getJwt(
+                this.cryptoProvider,
+                this.config.auth.clientId,
+                authority.tokenEndpoint
+            ),
             assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE,
         };
     }
@@ -595,5 +608,66 @@ export abstract class ClientApplication {
      */
     clearCache(): void {
         void this.storage.clear();
+    }
+
+    private async setClientCredential(
+        tokenEndpoint?: string,
+        appTokenProvider?: IAppTokenProvider
+    ): Promise<void> {
+        const clientSecretNotEmpty = !!this.config.auth.clientSecret;
+        const clientAssertionNotEmpty = !!this.config.auth.clientAssertion;
+        const certificate = this.config.auth.clientCertificate || {
+            thumbprint: Constants.EMPTY_STRING,
+            privateKey: Constants.EMPTY_STRING,
+        };
+        const certificateNotEmpty =
+            !!certificate.thumbprint || !!certificate.privateKey;
+
+        /*
+         * If app developer configures this callback, they don't need a credential
+         * i.e. AzureSDK can get token from Managed Identity without a cert / secret
+         */
+        if (appTokenProvider) {
+            return;
+        }
+
+        // Check that at most one credential is set on the application
+        if (
+            (clientSecretNotEmpty && clientAssertionNotEmpty) ||
+            (clientAssertionNotEmpty && certificateNotEmpty) ||
+            (clientSecretNotEmpty && certificateNotEmpty)
+        ) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidClientCredential
+            );
+        }
+
+        if (this.config.auth.clientSecret) {
+            this.clientSecret = this.config.auth.clientSecret;
+            return;
+        }
+
+        if (this.config.auth.clientAssertion) {
+            this.clientAssertion = ClientAssertion.fromAssertion(
+                await getClientAssertion(
+                    this.config.auth.clientAssertion,
+                    this.config.auth.clientId,
+                    tokenEndpoint
+                )
+            );
+            return;
+        }
+
+        if (!certificateNotEmpty) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidClientCredential
+            );
+        } else {
+            this.clientAssertion = ClientAssertion.fromCertificate(
+                certificate.thumbprint,
+                certificate.privateKey,
+                this.config.auth.clientCertificate?.x5c
+            );
+        }
     }
 }

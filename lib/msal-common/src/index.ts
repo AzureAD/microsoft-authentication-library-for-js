@@ -185,6 +185,7 @@ export {
     createClientConfigurationError,
 } from "./error/ClientConfigurationError";
 // Constants and Utils
+export { getClientAssertion } from "./utils/ClientAssertionUtils";
 export {
     Constants,
     OIDC_DEFAULT_SCOPES,

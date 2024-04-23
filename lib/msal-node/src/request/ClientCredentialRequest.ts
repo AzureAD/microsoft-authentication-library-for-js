@@ -28,5 +28,5 @@ export type ClientCredentialRequest = Partial<
         | "storeInCache"
     >
 > & {
-    clientAssertion?: ClientAssertionCallbackFunction;
+    clientAssertion?: string | ClientAssertionCallbackFunction;
 };

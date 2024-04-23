@@ -33,6 +33,7 @@ import {
     UrlString,
     createClientAuthError,
     ClientAssertion,
+    getClientAssertion,
 } from "@azure/msal-common";
 import {
     ManagedIdentityConfiguration,
@@ -271,7 +272,7 @@ export class ClientCredentialClient extends BaseClient {
                 queryParametersString
             );
 
-            const requestBody = this.createTokenRequestBody(request);
+            const requestBody = await this.createTokenRequestBody(request);
             const headers: Record<string, string> =
                 this.createTokenRequestHeaders();
             const thumbprint: RequestThumbprint = {
@@ -331,9 +332,9 @@ export class ClientCredentialClient extends BaseClient {
      * generate the request to the server in the acceptable format
      * @param request
      */
-    private createTokenRequestBody(
+    private async createTokenRequestBody(
         request: CommonClientCredentialRequest
-    ): string {
+    ): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -370,7 +371,13 @@ export class ClientCredentialClient extends BaseClient {
             this.config.clientCredentials.clientAssertion;
 
         if (clientAssertion) {
-            parameterBuilder.addClientAssertion(clientAssertion.assertion());
+            parameterBuilder.addClientAssertion(
+                await getClientAssertion(
+                    clientAssertion.assertion,
+                    this.config.authOptions.clientId,
+                    request.resourceRequestUri
+                )
+            );
             parameterBuilder.addClientAssertionType(
                 clientAssertion.assertionType
             );
