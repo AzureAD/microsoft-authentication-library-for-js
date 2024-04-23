@@ -4,7 +4,8 @@ This sample demonstrates how to use [managed identity via the msal-node library]
 
 ## Note
 
--   This sample is written in TypeScript and was developed with Node version 18.17.0. Managed Identity is available in msal-node 2.7.0.
+-   This sample is written in TypeScript and was developed with Node version 18.17.0.
+-   Managed Identity is available in msal-node 2.7.0.
 
 ## Service Fabric Cluster Setup
 
