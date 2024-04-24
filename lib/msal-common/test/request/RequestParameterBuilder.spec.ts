@@ -23,7 +23,7 @@ import {
     ClientConfigurationErrorMessage,
     createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
-import { ClientAssertion, ClientAssertionCallbackFunction } from "../../src";
+import { ClientAssertion, ClientAssertionCallback } from "../../src";
 import { getClientAssertion } from "../../src/utils/ClientAssertionUtils";
 import { ClientAssertionConfig } from "../../src/account/ClientCredentials";
 
@@ -444,14 +444,15 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(false);
     });
 
-    it("adds clientAssertion (ClientAssertionCallbackFunction) and assertionType if they are provided by the developer", async () => {
-        const clientAssertionCallbackFunction: ClientAssertionCallbackFunction =
-            (_config: ClientAssertionConfig) => {
-                return Promise.resolve("testAssertion");
-            };
+    it("adds clientAssertion (ClientAssertionCallback) and assertionType if they are provided by the developer", async () => {
+        const ClientAssertionCallback: ClientAssertionCallback = (
+            _config: ClientAssertionConfig
+        ) => {
+            return Promise.resolve("testAssertion");
+        };
 
         const clientAssertion: ClientAssertion = {
-            assertion: clientAssertionCallbackFunction,
+            assertion: ClientAssertionCallback,
             assertionType: "jwt-bearer",
         };
 
@@ -483,14 +484,15 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
-    it("doesn't add client assertion (ClientAssertionCallbackFunction) and client assertion type if they are empty strings", async () => {
-        const clientAssertionCallbackFunction: ClientAssertionCallbackFunction =
-            (_config: ClientAssertionConfig) => {
-                return Promise.resolve("");
-            };
+    it("doesn't add client assertion (ClientAssertionCallback) and client assertion type if they are empty strings", async () => {
+        const ClientAssertionCallback: ClientAssertionCallback = (
+            _config: ClientAssertionConfig
+        ) => {
+            return Promise.resolve("");
+        };
 
         const clientAssertion: ClientAssertion = {
-            assertion: clientAssertionCallbackFunction,
+            assertion: ClientAssertionCallback,
             assertionType: "",
         };
 

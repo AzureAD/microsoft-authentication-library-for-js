@@ -4,7 +4,7 @@
  */
 
 import {
-    ClientAssertionCallbackFunction,
+    ClientAssertionCallback,
     CommonClientCredentialRequest,
 } from "@azure/msal-common";
 
@@ -28,5 +28,5 @@ export type ClientCredentialRequest = Partial<
         | "storeInCache"
     >
 > & {
-    clientAssertion?: string | ClientAssertionCallbackFunction;
+    clientAssertion?: string | ClientAssertionCallback;
 };

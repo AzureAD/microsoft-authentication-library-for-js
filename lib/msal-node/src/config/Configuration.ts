@@ -14,7 +14,7 @@ import {
     AzureCloudOptions,
     ApplicationTelemetry,
     INativeBrokerPlugin,
-    ClientAssertionCallbackFunction,
+    ClientAssertionCallback,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
@@ -43,7 +43,7 @@ export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     clientSecret?: string;
-    clientAssertion?: string | ClientAssertionCallbackFunction;
+    clientAssertion?: string | ClientAssertionCallback;
     clientCertificate?: {
         thumbprint: string;
         privateKey: string;

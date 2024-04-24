@@ -8,7 +8,7 @@ export type ClientAssertionConfig = {
     tokenEndpoint?: string;
 };
 
-export type ClientAssertionCallbackFunction = (
+export type ClientAssertionCallback = (
     config: ClientAssertionConfig
 ) => Promise<string>;
 
@@ -16,7 +16,7 @@ export type ClientAssertionCallbackFunction = (
  * Client Assertion credential for Confidential Clients
  */
 export type ClientAssertion = {
-    assertion: string | ClientAssertionCallbackFunction;
+    assertion: string | ClientAssertionCallback;
     assertionType: string;
 };
 

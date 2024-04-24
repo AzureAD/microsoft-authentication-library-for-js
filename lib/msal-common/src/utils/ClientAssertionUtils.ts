@@ -4,12 +4,12 @@
  */
 
 import {
-    ClientAssertionCallbackFunction,
+    ClientAssertionCallback,
     ClientAssertionConfig,
 } from "../account/ClientCredentials";
 
 export async function getClientAssertion(
-    clientAssertion: string | ClientAssertionCallbackFunction,
+    clientAssertion: string | ClientAssertionCallback,
     clientId: string,
     tokenEndpoint?: string
 ): Promise<string> {

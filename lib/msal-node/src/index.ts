@@ -125,7 +125,7 @@ export {
     AppTokenProviderParameters,
     AppTokenProviderResult,
     INativeBrokerPlugin,
-    ClientAssertionCallbackFunction,
+    ClientAssertionCallback,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata.js";

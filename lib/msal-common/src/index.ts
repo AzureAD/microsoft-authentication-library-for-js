@@ -135,7 +135,7 @@ export { RequestParameterBuilder } from "./request/RequestParameterBuilder";
 export { StoreInCache } from "./request/StoreInCache";
 export {
     ClientAssertion,
-    ClientAssertionCallbackFunction,
+    ClientAssertionCallback,
 } from "./account/ClientCredentials";
 // Response
 export { AzureRegion } from "./authority/AzureRegion";
