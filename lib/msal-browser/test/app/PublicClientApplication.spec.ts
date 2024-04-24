@@ -865,6 +865,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
+        it("Emits performance event with error code if no response is provided", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            sinon
+                .stub(StandardController.prototype, "getAllAccounts")
+                .returns([testAccount]);
+            sinon
+                .stub(RedirectClient.prototype, "handleRedirectPromise")
+                .resolves(null);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events.length).toEqual(1);
+                expect(events[0].success).toBe(false);
+                expect(events[0].errorCode).toBe("no_server_response");
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.handleRedirectPromise();
+        });
+
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));

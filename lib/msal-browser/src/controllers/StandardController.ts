@@ -455,11 +455,7 @@ export class StandardController implements IController {
                 this.logger,
                 this.performanceClient,
                 rootMeasurement.event.correlationId
-            )(
-                hash,
-                this.performanceClient,
-                rootMeasurement.event.correlationId
-            );
+            )(hash);
         }
 
         return redirectResponse
@@ -497,7 +493,13 @@ export class StandardController implements IController {
                     EventType.HANDLE_REDIRECT_END,
                     InteractionType.Redirect
                 );
-                rootMeasurement.end({ success: false });
+
+                rootMeasurement.end(
+                    {
+                        success: false,
+                    },
+                    new AuthError("no_server_response")
+                );
 
                 return result;
             })

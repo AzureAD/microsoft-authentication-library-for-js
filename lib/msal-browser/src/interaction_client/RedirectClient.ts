@@ -191,13 +191,9 @@ export class RedirectClient extends StandardInteractionClient {
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
      * @param hash {string?} url hash
-     * @param performanceClient {IPerformanceClient?}
-     * @param correlationId {string?} correlation identifier
      */
     async handleRedirectPromise(
-        hash?: string,
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
+        hash?: string
     ): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.handleRedirectPromise
@@ -220,12 +216,6 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.cleanRequestByInteractionType(
                     InteractionType.Redirect
                 );
-                if (performanceClient && correlationId) {
-                    performanceClient?.addFields(
-                        { errorCode: "no_server_response" },
-                        correlationId
-                    );
-                }
                 return null;
             }
 
