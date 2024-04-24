@@ -1,8 +1,50 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Sat, 17 Feb 2024 01:49:05 GMT and should not be manually modified.
+This log was last generated on Thu, 11 Apr 2024 21:46:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.9.0
+
+Thu, 11 Apr 2024 21:46:57 GMT
+
+### Minor changes
+
+- Capture and instrument cache errors #7021 (kshabelko@microsoft.com)
+- Implemented Managed Identity in MSAL-Node (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Skip login_hint opaque claim if domainHint param is set #7008 (kshabelko@microsoft.com)
+- New performance event for awaiting parallel iframe calls #6962 (thomas.norling@microsoft.com)
+
+## 14.8.1
+
+Wed, 27 Mar 2024 18:41:17 GMT
+
+### Patches
+
+- Stringify telemetry context #6984 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 14.8.0
+
+Fri, 22 Mar 2024 20:32:39 GMT
+
+### Minor changes
+
+- Capture telemetry event tree #6948 (kshabelko@microsoft.com)
+- Instrument non-auth error name and stack #6937 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Minor cache cleanup (thomas.norling@microsoft.com)
+- Append default scopes for the cache lookup #6909 (kshabelko@microsoft.com)
 
 ## 14.7.1
 

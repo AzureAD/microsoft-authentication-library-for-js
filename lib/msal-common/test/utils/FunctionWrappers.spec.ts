@@ -92,7 +92,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testEventName",
                 "testCorrelationId"
             );
-            expect(end).toHaveBeenCalledWith({ success: false });
+            expect(end).toHaveBeenCalledWith({ success: false }, error);
             expect(loggerSpy).toHaveBeenCalledTimes(3);
         });
     });
@@ -179,7 +179,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testEventName",
                 "testCorrelationId"
             );
-            expect(end).toHaveBeenCalledWith({ success: false });
+            expect(end).toHaveBeenCalledWith({ success: false }, error);
             expect(loggerSpy).toHaveBeenCalledTimes(3);
         });
     });

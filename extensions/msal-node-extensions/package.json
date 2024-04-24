@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.12",
+  "version": "1.0.15",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
@@ -35,6 +35,7 @@
   },
   "scripts": {
     "compile": "node-gyp rebuild",
+    "install": "exit 0",
     "clean": "shx rm -rf dist bin",
     "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs && node ./scripts/buildBinaries.cjs",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node-extensions",
@@ -42,8 +43,8 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
-    "format:check": "npx prettier --ignore-path .gitignore --check src test",
-    "format:fix": "npx prettier --ignore-path .gitignore --write src test",
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test",
     "prepack": "npm run build:all && node ./scripts/checkBinaries.cjs"
   },
   "author": {
@@ -57,7 +58,7 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "14.7.1",
+    "@azure/msal-common": "14.9.0",
     "@azure/msal-node-runtime": "^0.13.6-alpha.0",
     "keytar": "^7.8.0"
   },

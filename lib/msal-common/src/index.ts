@@ -168,6 +168,7 @@ export {
     createAuthError,
 } from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
+export { CacheError, CacheErrorCodes } from "./error/CacheError";
 export {
     ClientAuthError,
     ClientAuthErrorMessage,
@@ -204,6 +205,7 @@ export {
     GrantType,
     AADAuthorityConstants,
     HttpStatus,
+    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     JsonWebTokenTypes,
 } from "./utils/Constants";
 export * as AADServerParamKeys from "./constants/AADServerParamKeys";

@@ -53,6 +53,19 @@ import {
 } from "../account/AccountInfo";
 import * as CacheHelpers from "../cache/utils/CacheHelpers";
 
+function parseServerErrorNo(
+    serverResponse: ServerAuthorizationCodeResponse
+): string | undefined {
+    const errorCodePrefix = "code=";
+    const errorCodePrefixIndex =
+        serverResponse.error_uri?.lastIndexOf(errorCodePrefix);
+    return errorCodePrefixIndex && errorCodePrefixIndex >= 0
+        ? serverResponse.error_uri?.substring(
+              errorCodePrefixIndex + errorCodePrefix.length
+          )
+        : undefined;
+}
+
 /**
  * Class that handles response parsing.
  * @internal
@@ -140,6 +153,7 @@ export class ResponseHandler {
             serverResponse.error_description ||
             serverResponse.suberror
         ) {
+            const serverErrorNo = parseServerErrorNo(serverResponse);
             if (
                 isInteractionRequiredError(
                     serverResponse.error,
@@ -154,14 +168,16 @@ export class ResponseHandler {
                     serverResponse.timestamp || "",
                     serverResponse.trace_id || "",
                     serverResponse.correlation_id || "",
-                    serverResponse.claims || ""
+                    serverResponse.claims || "",
+                    serverErrorNo
                 );
             }
 
             throw new ServerError(
                 serverResponse.error || "",
                 serverResponse.error_description,
-                serverResponse.suberror
+                serverResponse.suberror,
+                serverErrorNo
             );
         }
     }
@@ -182,10 +198,14 @@ export class ResponseHandler {
             serverResponse.suberror
         ) {
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
+            const serverErrorNo = serverResponse.error_codes?.length
+                ? serverResponse.error_codes[0]
+                : undefined;
             const serverError = new ServerError(
                 serverResponse.error,
                 errString,
-                serverResponse.suberror
+                serverResponse.suberror,
+                serverErrorNo
             );
 
             // check if 500 error
@@ -230,7 +250,8 @@ export class ResponseHandler {
                     serverResponse.timestamp || Constants.EMPTY_STRING,
                     serverResponse.trace_id || Constants.EMPTY_STRING,
                     serverResponse.correlation_id || Constants.EMPTY_STRING,
-                    serverResponse.claims || Constants.EMPTY_STRING
+                    serverResponse.claims || Constants.EMPTY_STRING,
+                    serverErrorNo
                 );
             }
 
@@ -364,7 +385,8 @@ export class ResponseHandler {
             }
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
-                request.storeInCache
+                request.storeInCache,
+                request.correlationId
             );
         } finally {
             if (
