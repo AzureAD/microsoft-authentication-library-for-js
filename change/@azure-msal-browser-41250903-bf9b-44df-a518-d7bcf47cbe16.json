@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix empty telemetry error code for the redirect flow when server response is empty #7056",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
