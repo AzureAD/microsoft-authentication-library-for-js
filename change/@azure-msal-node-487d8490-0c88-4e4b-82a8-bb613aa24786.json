@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Tests support for `hydrateCache()` API",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none"
+}
