@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1713897989536,
+  "lastUpdate": 1713978572426,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7546,6 +7546,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.10%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c48651089bd476cf44029985eb8bcbb74ad08494",
+          "message": "Remove msal-angular2 references (#7054)\n\nThis PR removes references to `msal-angular2` app client ID in docs and\r\nunit tests, replaces with client Id currently used in samples.",
+          "timestamp": "2024-04-24T10:04:09-07:00",
+          "tree_id": "71678d252670f5d6e1dfbf750068501120c0d8f8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c48651089bd476cf44029985eb8bcbb74ad08494"
+        },
+        "date": 1713978571384,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190997,
+            "range": "±1.92%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 195095,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
