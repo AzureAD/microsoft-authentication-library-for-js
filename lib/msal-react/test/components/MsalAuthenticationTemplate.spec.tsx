@@ -664,9 +664,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             await waitFor(() =>
                 expect(acquireTokenPopupSpy).toHaveBeenCalledTimes(1)
             );
-            expect(
-                screen.queryByText("This text will always display.")
-            ).toBeInTheDocument();
+            await screen.findByText("This text will always display.");
             expect(
                 screen.queryByText("A user is authenticated!")
             ).toBeInTheDocument();
@@ -697,16 +695,18 @@ describe("MsalAuthenticationTemplate tests", () => {
                     return Promise.resolve();
                 });
 
-            render(
-                <MsalProvider instance={pca}>
-                    <p>This text will always display.</p>
-                    <MsalAuthenticationTemplate
-                        interactionType={InteractionType.Redirect}
-                    >
-                        <span> A user is authenticated!</span>
-                    </MsalAuthenticationTemplate>
-                </MsalProvider>
-            );
+            await act(async () => {
+                render(
+                    <MsalProvider instance={pca}>
+                        <p>This text will always display.</p>
+                        <MsalAuthenticationTemplate
+                            interactionType={InteractionType.Redirect}
+                        >
+                            <span> A user is authenticated!</span>
+                        </MsalAuthenticationTemplate>
+                    </MsalProvider>
+                );
+            });
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -764,9 +764,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
             );
             await waitFor(() => expect(ssoSilentSpy).toHaveBeenCalledTimes(1));
-            expect(
-                screen.queryByText("This text will always display.")
-            ).toBeInTheDocument();
+            await screen.findByText("This text will always display.");
             expect(
                 screen.queryByText("A user is authenticated!")
             ).toBeInTheDocument();
@@ -825,6 +823,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                             error: null,
                             timestamp: 10000,
                         };
+
                         eventCallbacks.forEach((callback) => {
                             callback(eventMessage);
                         });
@@ -863,7 +862,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             await waitFor(() =>
                 expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
             );
-            act(() => {
+            await act(async () => {
                 const eventMessage: EventMessage = {
                     eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Redirect,
@@ -871,6 +870,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                     error: null,
                     timestamp: 10000,
                 };
+
                 eventCallbacks.forEach((callback) => {
                     callback(eventMessage);
                 });
@@ -923,7 +923,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             await waitFor(() =>
                 expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
             );
-            expect(screen.queryByText("Error Occurred")).toBeInTheDocument();
+            await screen.findByText("Error Occurred");
             expect(
                 screen.queryByText("This text will always display.")
             ).toBeInTheDocument();
