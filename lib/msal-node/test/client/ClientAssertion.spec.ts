@@ -1,9 +1,13 @@
 import { ClientAssertion } from "../../src/client/ClientAssertion";
-import { TEST_CONSTANTS } from "../utils/TestConstants";
+import {
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+    TEST_CONSTANTS,
+} from "../utils/TestConstants";
 import { CryptoProvider } from "../../src/crypto/CryptoProvider";
 import { EncodingUtils } from "../../src/utils/EncodingUtils";
 import { JwtConstants } from "../../src/utils/Constants";
-import { clientAssertionCallback } from "./ClientTestUtils";
+import { getClientAssertionCallback } from "./ClientTestUtils";
+import { getClientAssertion } from "@azure/msal-common";
 
 const jsonwebtoken = require("jsonwebtoken");
 
@@ -24,9 +28,17 @@ describe("Client assertion test", () => {
     });
 
     test("creates ClientAssertion from assertion callback (which returns a string)", async () => {
-        const assertion = ClientAssertion.fromAssertion(
-            await clientAssertionCallback(TEST_CONSTANTS.CLIENT_ASSERTION)
+        const clientAssertionCallback = getClientAssertionCallback(
+            TEST_CONSTANTS.CLIENT_ASSERTION
         );
+
+        const assertionFromCallback: string = await getClientAssertion(
+            clientAssertionCallback,
+            TEST_CONSTANTS.CLIENT_ID, // value doesn't matter, will be ignored in mock callback
+            DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint // value doesn't matter, will be ignored in mock callback
+        );
+
+        const assertion = ClientAssertion.fromAssertion(assertionFromCallback);
         expect(assertion.getJwt(cryptoProvider, issuer, audience)).toEqual(
             TEST_CONSTANTS.CLIENT_ASSERTION
         );

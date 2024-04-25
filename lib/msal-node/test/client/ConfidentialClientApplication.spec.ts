@@ -5,14 +5,17 @@
 
 import {
     AuthorizationCodeClient,
+    SilentFlowClient,
     RefreshTokenClient,
     AuthenticationResult,
     OIDC_DEFAULT_SCOPES,
     CommonClientCredentialRequest,
     createClientAuthError,
     ClientAuthErrorCodes,
+    AccountEntity,
+    AccountInfo,
 } from "@azure/msal-common";
-import { TEST_CONSTANTS } from "../utils/TestConstants";
+import { ID_TOKEN_CLAIMS, TEST_CONSTANTS } from "../utils/TestConstants";
 import {
     AuthError,
     ConfidentialClientApplication,
@@ -23,6 +26,7 @@ import {
     AuthorizationCodeRequest,
     ClientCredentialClient,
     RefreshTokenRequest,
+    SilentFlowRequest,
 } from "../../src";
 
 import * as msalNode from "../../src";
@@ -31,9 +35,11 @@ import {
     CAE_CONSTANTS,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     TEST_CONFIG,
+    TEST_TOKENS,
 } from "../test_kit/StringConstants";
 import { mockNetworkClient } from "../utils/MockNetworkClient";
 import { getClientAssertionCallback } from "./ClientTestUtils";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
 
@@ -82,6 +88,38 @@ describe("ConfidentialClientApplication", () => {
             const authApp = new ConfidentialClientApplication(appConfig);
             await authApp.acquireTokenByCode(request);
             expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        });
+
+        test("acquireTokenBySilentFlow", async () => {
+            const testAccountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+
+            const testAccount: AccountInfo = {
+                ...testAccountEntity.getAccountInfo(),
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+            };
+
+            const request: SilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+
+            const mockSilentFlowClientInstance = {
+                includeRedirectUri: false,
+                acquireToken: jest.fn(),
+            };
+            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                () =>
+                    mockSilentFlowClientInstance as unknown as SilentFlowClient
+            );
+
+            const authApp = new ConfidentialClientApplication(appConfig);
+            await authApp.acquireTokenSilent(request);
+            expect(SilentFlowClient).toHaveBeenCalledTimes(1);
         });
 
         describe("CAE, claims and client capabilities", () => {
