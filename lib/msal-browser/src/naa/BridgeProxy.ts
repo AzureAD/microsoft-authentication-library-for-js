@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "./AccountInfo";
 import { AuthBridge, AuthBridgeResponse } from "./AuthBridge";
 import { AuthResult } from "./AuthResult";
 import { BridgeCapabilities } from "./BridgeCapabilities";
+import { AccountContext } from "./BridgeAccountContext";
 import { BridgeError } from "./BridgeError";
 import { BridgeRequest } from "./BridgeRequest";
 import { BridgeRequestEnvelope, BridgeMethods } from "./BridgeRequestEnvelope";
@@ -33,6 +33,11 @@ export class BridgeProxy implements IBridgeProxy {
     sdkName: string;
     sdkVersion: string;
     capabilities?: BridgeCapabilities;
+    accountContext: {
+        homeAccountId: string;
+        environment: string;
+        tenantId: string;
+    };
 
     /**
      * initializeNestedAppAuthBridge - Initializes the bridge to the host app
@@ -134,13 +139,16 @@ export class BridgeProxy implements IBridgeProxy {
         };
     }
 
-    public async getActiveAccount(): Promise<AccountInfo> {
-        const result = await this.sendRequest("GetActiveAccount");
-        return BridgeProxy.validateBridgeResultOrThrow(result.account);
-    }
-
     public getHostCapabilities(): BridgeCapabilities | null {
         return this.capabilities ?? null;
+    }
+
+    public getAccountContext(): AccountContext {
+        return {
+            homeAccountId: this.accountContext.homeAccountId,
+            environment: this.accountContext.environment,
+            tenantId: this.accountContext.tenantId,
+        };
     }
 
     /**
@@ -194,11 +202,14 @@ export class BridgeProxy implements IBridgeProxy {
     private constructor(
         sdkName: string,
         sdkVersion: string,
-        capabilities?: BridgeCapabilities
+        accountContext: AccountContext,
+        capabilities?: BridgeCapabilities,
+
     ) {
         this.sdkName = sdkName;
         this.sdkVersion = sdkVersion;
         this.capabilities = capabilities;
+        this.accountContext = accountContext;
     }
 
     /**
@@ -210,6 +221,7 @@ export class BridgeProxy implements IBridgeProxy {
         return new BridgeProxy(
             response.sdkName,
             response.sdkVersion,
+            response.accountContext,
             response.capabilities
         );
     }

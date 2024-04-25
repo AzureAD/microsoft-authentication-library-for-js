@@ -13,7 +13,6 @@ import {
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     PerformanceEvents,
-    AccountFilter,
     TimeUtils,
     Authority,
     AccountEntity,
@@ -35,7 +34,7 @@ import {
     DEFAULT_REQUEST,
 } from "../utils/BrowserConstants";
 import { IController } from "./IController";
-import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
 import { IBridgeProxy } from "../naa/IBridgeProxy";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { NestedAppAuthAdapter } from "../naa/mapping/NestedAppAuthAdapter";
@@ -49,10 +48,11 @@ import {
     DEFAULT_BROWSER_CACHE_MANAGER,
 } from "../cache/BrowserCacheManager";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import * as AccountManager from "../cache/AccountManager";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
-    protected readonly operatingContext: TeamsAppOperatingContext;
+    protected readonly operatingContext: NestedAppOperatingContext;
 
     // BridgeProxy
     protected readonly bridgeProxy: IBridgeProxy;
@@ -78,8 +78,15 @@ export class NestedAppAuthController implements IController {
     // NestedAppAuthAdapter
     protected readonly nestedAppAuthAdapter: NestedAppAuthAdapter;
 
+    /**
+     * @constructor
+     * Constructor for the NestedAppAuthController used to intialize the NestedApp Controller context
+     * 
+     * @param operatingContext 
+     * @param hydrateCache 
+     */
     constructor(
-        operatingContext: TeamsAppOperatingContext,
+        operatingContext: NestedAppOperatingContext,
         hydrateCache: (
             result: AuthenticationResult,
             request:
@@ -102,6 +109,7 @@ export class NestedAppAuthController implements IController {
 
         // Initialize logger
         this.logger = this.operatingContext.getLogger();
+
         // Initialize performance client
         this.performanceClient = this.config.telemetry.client;
 
@@ -113,16 +121,16 @@ export class NestedAppAuthController implements IController {
         // Initialize the browser storage class.
         this.browserStorage = this.operatingContext.isBrowserEnvironment()
             ? new BrowserCacheManager(
-                  this.config.auth.clientId,
-                  this.config.cache,
-                  this.browserCrypto,
-                  this.logger,
-                  Authority.buildStaticAuthorityOptions(this.config.auth)
-              )
+                this.config.auth.clientId,
+                this.config.cache,
+                this.browserCrypto,
+                this.logger,
+                Authority.buildStaticAuthorityOptions(this.config.auth)
+            )
             : DEFAULT_BROWSER_CACHE_MANAGER(
-                  this.config.auth.clientId,
-                  this.logger
-              );
+                this.config.auth.clientId,
+                this.logger
+            );
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
@@ -135,32 +143,47 @@ export class NestedAppAuthController implements IController {
 
         this.hydrateCache = hydrateCache;
     }
-    getBrowserStorage(): BrowserCacheManager {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
 
+    /**
+     * Returns the event handler instance
+     * @returns EventHandler
+     */
     getEventHandler(): EventHandler {
         return this.eventHandler;
     }
 
+    /**
+     * Factory function to create a new instance of NestedAppAuthController
+     * @param operatingContext 
+     * @returns Promise<IController>
+     */
     static async createController(
-        operatingContext: TeamsAppOperatingContext
+        operatingContext: NestedAppOperatingContext
     ): Promise<IController> {
         const controller = new NestedAppAuthController(operatingContext);
         return Promise.resolve(controller);
     }
 
+    /**
+     * Specific implementation of initialize function for NestedAppAuthController
+     * @returns 
+     */
     initialize(): Promise<void> {
         // do nothing not required by this controller
         return Promise.resolve();
     }
 
+    /**
+     * Validate the incoming request and add correlationId if not present
+     * @param request 
+     * @returns 
+     */
     private ensureValidRequest<
         T extends
-            | SsoSilentRequest
-            | SilentRequest
-            | PopupRequest
-            | RedirectRequest
+        | SsoSilentRequest
+        | SilentRequest
+        | PopupRequest
+        | RedirectRequest
     >(request: T): T {
         if (request?.correlationId) {
             return request;
@@ -171,6 +194,11 @@ export class NestedAppAuthController implements IController {
         };
     }
 
+    /**
+     * Acquire token interactive flow implementation
+     * @param request 
+     * @returns 
+     */
     private async acquireTokenInteractive(
         request: PopupRequest | RedirectRequest
     ): Promise<AuthenticationResult> {
@@ -244,6 +272,11 @@ export class NestedAppAuthController implements IController {
         }
     }
 
+    /**
+     * Acquire token silent flow implementation
+     * @param request 
+     * @returns 
+     */
     private async acquireTokenSilentInternal(
         request: SilentRequest
     ): Promise<AuthenticationResult> {
@@ -316,47 +349,79 @@ export class NestedAppAuthController implements IController {
         }
     }
 
+    /**
+     * acquireTokenPopup flow implementation
+     * @param request 
+     * @returns 
+     */
     async acquireTokenPopup(
         request: PopupRequest
     ): Promise<AuthenticationResult> {
         return this.acquireTokenInteractive(request);
     }
+
+    /**
+     * acquireTokenRedirect flow is not supported in nested app auth
+     * @param request 
+     */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         throw NestedAppAuthError.createUnsupportedError();
     }
 
+    /**
+     * acquireTokenSilent flow implementation
+     * @param silentRequest 
+     * @returns 
+     */
     async acquireTokenSilent(
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
         return this.acquireTokenSilentInternal(silentRequest);
     }
 
+    /**
+     * Hybrid flow is not currently supported in nested app auth
+     * @param request 
+     */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenByCode(
         request: AuthorizationCodeRequest // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult> {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
+    /**
+     * acquireTokenNative flow is not currently supported in nested app auth
+     * @param request 
+     * @param apiId 
+     * @param accountId 
+     */
     acquireTokenNative(
         request: // eslint-disable-line @typescript-eslint/no-unused-vars
-        | SilentRequest
+            | SilentRequest
             | Partial<
-                  Omit<
-                      CommonAuthorizationUrlRequest,
-                      | "requestedClaimsHash"
-                      | "responseMode"
-                      | "codeChallenge"
-                      | "codeChallengeMethod"
-                      | "nativeBroker"
-                  >
-              >
+                Omit<
+                    CommonAuthorizationUrlRequest,
+                    | "requestedClaimsHash"
+                    | "responseMode"
+                    | "codeChallenge"
+                    | "codeChallengeMethod"
+                    | "nativeBroker"
+                >
+            >
             | PopupRequest,
         apiId: ApiId, // eslint-disable-line @typescript-eslint/no-unused-vars
         accountId?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult> {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
+    /**
+     * acquireTokenByRefreshToken flow is not currently supported in nested app auth
+     * @param commonRequest 
+     * @param silentRequest 
+     */
     acquireTokenByRefreshToken(
         commonRequest: CommonSilentFlowRequest, // eslint-disable-line @typescript-eslint/no-unused-vars
         silentRequest: SilentRequest // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -384,77 +449,66 @@ export class NestedAppAuthController implements IController {
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     removePerformanceCallback(callbackId: string): boolean {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
     enableAccountStorageEvents(): void {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
     disableAccountStorageEvents(): void {
         throw NestedAppAuthError.createUnsupportedError();
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // #region Account APIs
+    /**
+     * Returns the first account found in the cache that matches the account filter passed in.
+     * @param accountFilter
+     * @returns The first account found in the cache matching the provided filter or null if no account could be found.
+     */
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
-        throw NestedAppAuthError.createUnsupportedError();
-        // TODO: Look at standard implementation
+        return AccountManager.getAccount(accountFilter, this.logger, this.browserStorage);
     }
 
+    /**
+     * Returns the signed in account matching username.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found.
+     * This API is provided for convenience but getAccountById should be used for best reliability
+     * @param username
+     * @returns The account object stored in MSAL
+     */
+    getAccountByUsername(username: string): AccountInfo | null {
+        return AccountManager.getAccountByUsername(username, this.logger, this.browserStorage);
+    }
+
+    /**
+     * Returns the signed in account matching homeAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @param homeAccountId
+     * @returns The account object stored in MSAL
+     */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        const currentAccount = this.operatingContext.getActiveAccount();
-        if (currentAccount !== undefined) {
-            if (currentAccount.homeAccountId === homeAccountId) {
-                return this.nestedAppAuthAdapter.fromNaaAccountInfo(
-                    currentAccount
-                );
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
+        return AccountManager.getAccountByHomeId(homeAccountId, this.logger, this.browserStorage);
     }
 
-    getAccountByLocalId(localId: string): AccountInfo | null {
-        const currentAccount = this.operatingContext.getActiveAccount();
-        if (currentAccount !== undefined) {
-            if (currentAccount.localAccountId === localId) {
-                return this.nestedAppAuthAdapter.fromNaaAccountInfo(
-                    currentAccount
-                );
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
+    /**
+     * Returns the signed in account matching localAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @param localAccountId
+     * @returns The account object stored in MSAL
+     */
+    getAccountByLocalId(localAccountId: string): AccountInfo | null {
+        return AccountManager.getAccountByLocalId(localAccountId, this.logger, this.browserStorage);
     }
 
-    getAccountByUsername(userName: string): AccountInfo | null {
-        const currentAccount = this.operatingContext.getActiveAccount();
-        if (currentAccount !== undefined) {
-            if (currentAccount.username === userName) {
-                return this.nestedAppAuthAdapter.fromNaaAccountInfo(
-                    currentAccount
-                );
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-    getAllAccounts(): AccountInfo[] {
-        const currentAccount = this.operatingContext.getActiveAccount();
-        if (currentAccount !== undefined) {
-            return [
-                this.nestedAppAuthAdapter.fromNaaAccountInfo(currentAccount),
-            ];
-        } else {
-            return [];
-        }
-    }
+    // #endregion
+
     handleRedirectPromise(
         hash?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult | null> {

@@ -7,8 +7,6 @@ import { TokenRequest } from "./TokenRequest";
 
 export type BridgeMethods =
     | "GetToken"
-    | "GetActiveAccount"
-    | "GetAllAccounts"
     | "GetInitContext"
     | "GetTokenPopup";
 

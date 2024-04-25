@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { IController } from "./IController";
 import { Configuration } from "../config/Configuration";
@@ -23,18 +23,18 @@ export async function createController(
     config: Configuration
 ): Promise<IController | null> {
     const standard = new StandardOperatingContext(config);
-    const teamsApp = new TeamsAppOperatingContext(config);
+    const nestedApp = new NestedAppOperatingContext(config);
 
-    const operatingContexts = [standard.initialize(), teamsApp.initialize()];
+    const operatingContexts = [standard.initialize(), nestedApp.initialize()];
 
     await Promise.all(operatingContexts);
 
     if (
-        teamsApp.isAvailable() &&
-        teamsApp.getConfig().auth.supportsNestedAppAuth
+        nestedApp.isAvailable() &&
+        nestedApp.getConfig().auth.supportsNestedAppAuth
     ) {
         const controller = await import("./NestedAppAuthController");
-        return controller.NestedAppAuthController.createController(teamsApp);
+        return controller.NestedAppAuthController.createController(nestedApp);
     } else if (standard.isAvailable()) {
         const controller = await import("./StandardController");
         return controller.StandardController.createController(standard);
