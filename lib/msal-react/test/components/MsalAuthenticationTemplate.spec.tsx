@@ -764,7 +764,9 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
             );
             await waitFor(() => expect(ssoSilentSpy).toHaveBeenCalledTimes(1));
-            await screen.findByText("This text will always display.");
+            expect(
+                await screen.findByText("This text will always display.")
+            ).toBeVisible();
             expect(
                 screen.queryByText("A user is authenticated!")
             ).toBeInTheDocument();
@@ -923,7 +925,9 @@ describe("MsalAuthenticationTemplate tests", () => {
             await waitFor(() =>
                 expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
             );
-            await screen.findByText("Error Occurred");
+            expect(
+                await screen.findByText("Error Occurred")
+            ).toBeInTheDocument();
             expect(
                 screen.queryByText("This text will always display.")
             ).toBeInTheDocument();
