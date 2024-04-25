@@ -25,7 +25,11 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
 } from "../test_kit/StringConstants";
-import { checkMockedNetworkRequest, ClientTestUtils } from "./ClientTestUtils";
+import {
+    checkMockedNetworkRequest,
+    ClientTestUtils,
+    getClientAssertionCallback,
+} from "./ClientTestUtils";
 import { EncodingUtils } from "../../src/utils/EncodingUtils";
 import { mockNetworkClient } from "../utils/MockNetworkClient";
 
@@ -86,8 +90,8 @@ describe("OnBehalfOf unit tests", () => {
                 oboRequest
             );
 
-            const returnVal: string =
-                createTokenRequestBodySpy.mock.results[0].value;
+            const returnVal: string = await createTokenRequestBodySpy.mock
+                .results[0].value;
             const checks = {
                 graphScope: true,
                 clientId: true,
@@ -150,8 +154,8 @@ describe("OnBehalfOf unit tests", () => {
                         AUTHENTICATION_RESULT.body.access_token
                     );
 
-                    const returnVal: string = createTokenRequestBodySpy.mock
-                        .results[0].value as string;
+                    const returnVal: string = await createTokenRequestBodySpy
+                        .mock.results[0].value;
                     expect(
                         decodeURIComponent(
                             returnVal
@@ -239,8 +243,8 @@ describe("OnBehalfOf unit tests", () => {
                 oboRequest
             );
 
-            const returnVal: string =
-                createTokenRequestBodySpy.mock.results[0].value;
+            const returnVal: string = await createTokenRequestBodySpy.mock
+                .results[0].value;
             const checks = {
                 graphScope: true,
                 clientId: true,
@@ -350,5 +354,60 @@ describe("OnBehalfOf unit tests", () => {
                 testAccessTokenEntity.homeAccountId
             );
         });
+
+        it.each([
+            TEST_CONFIG.TEST_CONFIG_ASSERTION,
+            getClientAssertionCallback(TEST_CONFIG.TEST_CONFIG_ASSERTION),
+        ])(
+            "Uses clientAssertion from ClientConfiguration when no client assertion is added to request",
+            async (clientAssertion) => {
+                config.clientCredentials = {
+                    ...config.clientCredentials,
+                    clientAssertion: {
+                        assertion: clientAssertion,
+                        assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
+                    },
+                };
+                const client: OnBehalfOfClient = new OnBehalfOfClient(config);
+
+                const oboRequest: CommonOnBehalfOfRequest = {
+                    scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    oboAssertion: "user_assertion_hash",
+                    skipCache: true,
+                };
+
+                const authResult = (await client.acquireToken(
+                    oboRequest
+                )) as AuthenticationResult;
+                expect(authResult.accessToken).toEqual(
+                    AUTHENTICATION_RESULT.body.access_token
+                );
+                expect(authResult.state).toBe("");
+                expect(authResult.fromCache).toBe(false);
+
+                expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+                    oboRequest
+                );
+
+                const returnVal: string = await createTokenRequestBodySpy.mock
+                    .results[0].value;
+                const checks = {
+                    graphScope: true,
+                    clientId: true,
+                    clientSecret: true,
+                    clientSku: true,
+                    clientVersion: true,
+                    clientOs: true,
+                    appName: true,
+                    appVersion: true,
+                    msLibraryCapability: true,
+                    testConfigAssertion: true,
+                    testAssertionType: true,
+                };
+                checkMockedNetworkRequest(returnVal, checks);
+            }
+        );
     });
 });

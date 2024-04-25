@@ -135,6 +135,7 @@ export { RequestParameterBuilder } from "./request/RequestParameterBuilder";
 export { StoreInCache } from "./request/StoreInCache";
 export {
     ClientAssertion,
+    ClientAssertionConfig,
     ClientAssertionCallback,
 } from "./account/ClientCredentials";
 // Response

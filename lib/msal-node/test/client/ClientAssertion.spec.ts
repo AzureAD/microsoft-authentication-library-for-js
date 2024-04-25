@@ -3,20 +3,30 @@ import { TEST_CONSTANTS } from "../utils/TestConstants";
 import { CryptoProvider } from "../../src/crypto/CryptoProvider";
 import { EncodingUtils } from "../../src/utils/EncodingUtils";
 import { JwtConstants } from "../../src/utils/Constants";
+import { clientAssertionCallback } from "./ClientTestUtils";
 
 const jsonwebtoken = require("jsonwebtoken");
 
 jest.mock("jsonwebtoken");
-
-const assertionCallback = (): string => TEST_CONSTANTS.CLIENT_ASSERTION;
 
 describe("Client assertion test", () => {
     const cryptoProvider = new CryptoProvider();
     const issuer = "client_id";
     const audience = "audience";
 
-    test("creates ClientAssertion From assertion", () => {
-        const assertion = ClientAssertion.fromAssertion(assertionCallback());
+    test("creates ClientAssertion from assertion string", () => {
+        const assertion = ClientAssertion.fromAssertion(
+            TEST_CONSTANTS.CLIENT_ASSERTION
+        );
+        expect(assertion.getJwt(cryptoProvider, issuer, audience)).toEqual(
+            TEST_CONSTANTS.CLIENT_ASSERTION
+        );
+    });
+
+    test("creates ClientAssertion from assertion callback (which returns a string)", async () => {
+        const assertion = ClientAssertion.fromAssertion(
+            await clientAssertionCallback(TEST_CONSTANTS.CLIENT_ASSERTION)
+        );
         expect(assertion.getJwt(cryptoProvider, issuer, audience)).toEqual(
             TEST_CONSTANTS.CLIENT_ASSERTION
         );

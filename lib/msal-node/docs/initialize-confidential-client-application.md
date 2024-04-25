@@ -29,11 +29,11 @@ See the MSAL sample: [auth-code-with-certs](../../../samples/msal-node-samples/a
 import * as msal from "@azure/msal-node";
 import "dotenv/config"; // process.env now has the values defined in a .env file
 
-const clientAssertionCallback: msal.ClientAssertionCallback = (
-    _config: msal.ClientAssertionConfig
+const clientAssertionCallback: msal.ClientAssertionCallback = async (
+    config: msal.ClientAssertionConfig
 ): Promise<string> => {
-    // network request that uses config.clientId and config.tokenEndpoint
-    const result: Promise<string> = Promise.resolve(
+    // network request that uses config.clientId and (optionally) config.tokenEndpoint
+    const result: Promise<string> = await Promise.resolve(
         "network request which gets assertion"
     );
     return result;

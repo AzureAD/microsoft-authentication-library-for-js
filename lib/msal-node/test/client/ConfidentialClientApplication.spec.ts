@@ -30,8 +30,10 @@ import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils";
 import {
     CAE_CONSTANTS,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+    TEST_CONFIG,
 } from "../test_kit/StringConstants";
 import { mockNetworkClient } from "../utils/MockNetworkClient";
+import { getClientAssertionCallback } from "./ClientTestUtils";
 
 const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
 
@@ -203,7 +205,7 @@ describe("ConfidentialClientApplication", () => {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.AUTHORITY,
-                clientAssertion: () => "testAssertion",
+                clientAssertion: "testAssertion",
             },
         };
 
@@ -221,29 +223,35 @@ describe("ConfidentialClientApplication", () => {
         expect(ClientCredentialClient).toHaveBeenCalledTimes(1);
     });
 
-    test("acquireTokenByClientCredential with client assertion", async () => {
-        const request: ClientCredentialRequest = {
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            skipCache: false,
-            clientAssertion: () => "testAssertion",
-        };
+    it.each([
+        TEST_CONFIG.TEST_REQUEST_ASSERTION,
+        getClientAssertionCallback(TEST_CONFIG.TEST_REQUEST_ASSERTION),
+    ])(
+        "acquireTokenByClientCredential with client assertion",
+        async (clientAssertion) => {
+            const request: ClientCredentialRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                skipCache: false,
+                clientAssertion: clientAssertion,
+            };
 
-        ClientCredentialClient.prototype.acquireToken = jest.fn(
-            (request: CommonClientCredentialRequest) => {
-                expect(request.clientAssertion).not.toBe(undefined);
-                expect(request.clientAssertion?.assertion()).toBe(
-                    "testAssertion"
-                );
-                expect(request.clientAssertion?.assertionType).toBe(
-                    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-                );
-                return Promise.resolve(null);
-            }
-        );
+            ClientCredentialClient.prototype.acquireToken = jest.fn(
+                (request: CommonClientCredentialRequest) => {
+                    expect(request.clientAssertion).not.toBe(undefined);
+                    expect(request.clientAssertion?.assertion).toBe(
+                        TEST_CONFIG.TEST_REQUEST_ASSERTION
+                    );
+                    expect(request.clientAssertion?.assertionType).toBe(
+                        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                    );
+                    return Promise.resolve(null);
+                }
+            );
 
-        const authApp = new ConfidentialClientApplication(appConfig);
-        await authApp.acquireTokenByClientCredential(request);
-    });
+            const authApp = new ConfidentialClientApplication(appConfig);
+            await authApp.acquireTokenByClientCredential(request);
+        }
+    );
 
     test("acquireTokenOnBehalfOf", async () => {
         const request: OnBehalfOfRequest = {
@@ -292,7 +300,7 @@ describe("ConfidentialClientApplication", () => {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.DEFAULT_AUTHORITY, // contains "common"
-                clientAssertion: () => "testAssertion",
+                clientAssertion: "testAssertion",
             },
         };
 
