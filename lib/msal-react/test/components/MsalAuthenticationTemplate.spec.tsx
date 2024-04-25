@@ -827,7 +827,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                             error: null,
                             timestamp: 10000,
                         };
-
                         eventCallbacks.forEach((callback) => {
                             callback(eventMessage);
                         });
@@ -874,7 +873,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                     error: null,
                     timestamp: 10000,
                 };
-
                 eventCallbacks.forEach((callback) => {
                     callback(eventMessage);
                 });
