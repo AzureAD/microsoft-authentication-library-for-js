@@ -501,10 +501,6 @@ export class StandardController implements IController {
                 if (rootMeasurement.event.errorCode) {
                     rootMeasurement.end({ success: false });
                 } else {
-                    /*
-                     * Discard a measurement and all sub-measurements if error code is empty to make sure
-                     *
-                     */
                     rootMeasurement.discard();
                 }
 
