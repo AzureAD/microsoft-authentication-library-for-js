@@ -494,9 +494,17 @@ export class StandardController implements IController {
                     InteractionType.Redirect
                 );
 
+                /*
+                 * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
+                 * is empty and the error code is missing.
+                 */
                 if (rootMeasurement.event.errorCode) {
                     rootMeasurement.end({ success: false });
                 } else {
+                    /*
+                     * Discard a measurement and all sub-measurements if error code is empty to make sure
+                     *
+                     */
                     rootMeasurement.discard();
                 }
 
