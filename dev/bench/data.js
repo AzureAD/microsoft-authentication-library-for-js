@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714171064203,
+  "lastUpdate": 1714171134806,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7774,6 +7774,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.14%",
             "unit": "ops/sec",
             "extra": "226 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "51962150+alexqbm@users.noreply.github.com",
+            "name": "alexqbm",
+            "username": "alexqbm"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b2bd5ce0ec4545663d93d3083ad284228dd711d3",
+          "message": "Add the protocolMode property to the configuration.md code example. (#7053)\n\nIt was missing from the code example.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-04-26T15:33:26-07:00",
+          "tree_id": "9d2a5bd54809d6c0b5f92c412a789313ef9e5cd7",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b2bd5ce0ec4545663d93d3083ad284228dd711d3"
+        },
+        "date": 1714171132957,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 200243,
+            "range": "±2.18%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 192775,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
