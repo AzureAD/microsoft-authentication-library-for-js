@@ -241,14 +241,9 @@ describe("BridgeProxy tests", () => {
             expect(bridgeProxy).toBeInstanceOf(BridgeProxy);
         });
 
-        it("get active account", async () => {
-            mockBridge.addAccountResponse(
-                "GetActiveAccount",
-                ACCOUNT_INFO_RESPONSE
-            );
-            const response = await bridgeProxy.getActiveAccount();
-            expect(response.homeAccountId).toEqual(
-                ACCOUNT_INFO_RESPONSE.homeAccountId
+        it("get account context", async () => {
+            expect(bridgeProxy.getAccountContext()).toEqual(
+                INIT_CONTEXT_RESPONSE.accountContext
             );
         });
     });
