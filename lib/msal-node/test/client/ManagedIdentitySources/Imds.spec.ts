@@ -779,6 +779,23 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     });
 
     describe("Errors", () => {
+        test("throws an error when an invalid resource is provided", async () => {
+            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
+
+            const systemAssignedManagedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(systemAssignedConfig);
+
+            await expect(
+                systemAssignedManagedIdentityApplication.acquireToken({
+                    resource: "",
+                })
+            ).rejects.toMatchObject(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlEmptyError
+                )
+            );
+        });
+
         test("throws an error when more than one managed identity type is provided", () => {
             expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
 
@@ -795,7 +812,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             expect(() => {
                 new ManagedIdentityApplication(badUserAssignedClientIdConfig);
-            }).toThrowError(
+            }).toThrow(
                 createManagedIdentityError(
                     ManagedIdentityErrorCodes.invalidManagedIdentityIdType
                 )
