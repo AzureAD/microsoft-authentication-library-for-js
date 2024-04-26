@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714133817610,
+  "lastUpdate": 1714157879171,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7622,6 +7622,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.07%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "31a7001dc11e9ab9302d8500e8e96779801aad32",
+          "message": "Make performanceClient.discardMeasurements() flush aux cache data in addition to measurements (#7061)\n\n- Make `performanceClient.discardMeasurements()` flush aux cache data in\r\naddition to measurements.",
+          "timestamp": "2024-04-26T14:52:34-04:00",
+          "tree_id": "b48287d9730fc75ecc4138a581aa151c44e086f8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/31a7001dc11e9ab9302d8500e8e96779801aad32"
+        },
+        "date": 1714157877789,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193647,
+            "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 192861,
+            "range": "±2.07%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
