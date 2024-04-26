@@ -24,6 +24,7 @@ export type NetworkRequestOptions = {
 export interface INetworkModule {
     /**
      * Interface function for async network "GET" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
+     * @deprecated cancellationToken is deprecated, use timeout instead
      * @param url
      * @param requestParams
      * @param enableCaching

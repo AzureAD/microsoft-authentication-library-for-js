@@ -161,7 +161,7 @@ export const MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON = [
     HttpStatus.NOT_FOUND,
     HttpStatus.REQUEST_TIMEOUT,
     HttpStatus.TOO_MANY_REQUESTS,
-    HttpStatus.INTERNAL_SERVER_ERROR,
+    HttpStatus.SERVER_ERROR,
     HttpStatus.SERVICE_UNAVAILABLE,
     HttpStatus.GATEWAY_TIMEOUT,
 ];
