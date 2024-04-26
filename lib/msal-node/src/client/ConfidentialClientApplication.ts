@@ -68,10 +68,6 @@ export class ConfidentialClientApplication
     constructor(configuration: Configuration) {
         super(configuration);
         this.setClientCredential(this.config);
-        /*
-         * the client assertion will be set inside of buildOauthClientConfiguration,
-         * which is called during every acquireToken call
-         */
         this.appTokenProvider = undefined;
     }
 
