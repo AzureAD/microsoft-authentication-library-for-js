@@ -88,6 +88,11 @@ export class InteractionRequiredAuthError extends AuthError {
      */
     claims: string;
 
+    /**
+     * Server error number;
+     */
+    readonly errorNo?: string;
+
     constructor(
         errorCode?: string,
         errorMessage?: string,
@@ -95,7 +100,8 @@ export class InteractionRequiredAuthError extends AuthError {
         timestamp?: string,
         traceId?: string,
         correlationId?: string,
-        claims?: string
+        claims?: string,
+        errorNo?: string
     ) {
         super(errorCode, errorMessage, subError);
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
@@ -105,6 +111,7 @@ export class InteractionRequiredAuthError extends AuthError {
         this.correlationId = correlationId || Constants.EMPTY_STRING;
         this.claims = claims || Constants.EMPTY_STRING;
         this.name = "InteractionRequiredAuthError";
+        this.errorNo = errorNo;
     }
 }
 

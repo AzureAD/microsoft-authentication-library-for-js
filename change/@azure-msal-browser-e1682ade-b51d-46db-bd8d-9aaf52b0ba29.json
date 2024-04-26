@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add classname to silent token renewal iframe HTML element #6985",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}
