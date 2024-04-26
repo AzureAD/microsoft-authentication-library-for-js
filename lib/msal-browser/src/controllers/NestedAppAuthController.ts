@@ -290,6 +290,7 @@ export class NestedAppAuthController implements IController {
             return result;
         }
 
+        // proceed with acquiring tokens via the host
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.SsoSilent,
             validRequest.correlationId
@@ -353,11 +354,62 @@ export class NestedAppAuthController implements IController {
     }
 
     /**
-     *
+     * acquires tokens from cache
      * @param request
      * @returns
      */
     private async acquireTokenFromCache(
+        request: SilentRequest
+    ): Promise<AuthenticationResult | null> {
+        const atsMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            request.correlationId
+        );
+
+        atsMeasurement?.add({
+            nestedAppAuthRequest: true,
+        });
+
+        const result = await this.acquireTokenFromCacheInternal(request);
+
+        if (result) {
+            this.eventHandler.emitEvent(
+                EventType.ACQUIRE_TOKEN_SUCCESS,
+                InteractionType.Silent,
+                result
+            );
+            atsMeasurement?.add({
+                accessTokenSize: result?.accessToken.length,
+                idTokenSize: result?.idToken.length,
+            });
+            atsMeasurement?.end({
+                success: true,
+            });
+            return result;
+        }
+
+        this.logger.error(
+            "Cached tokens are not found for the account, proceeding with silent token request."
+        );
+
+        this.eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_FAILURE,
+            InteractionType.Silent,
+            null
+        );
+        atsMeasurement?.end({
+            success: false,
+        });
+
+        return null;
+    }
+
+    /**
+     *
+     * @param request
+     * @returns
+     */
+    private async acquireTokenFromCacheInternal(
         request: SilentRequest
     ): Promise<AuthenticationResult | null> {
         const cachedAccount = AccountManager.getAccount(
