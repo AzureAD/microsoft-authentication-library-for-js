@@ -425,7 +425,7 @@ This error occurs with MSAL.js v2.x and is due to improper configuration during 
 
 - Exceeded cache storage capacity
 
-This error occurs when MSAL.js surpasses the allotted storage limit attempting to save token information in the [configured cache storage](./caching.md#cache-storage). See [here](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria#web_storage) for the web storage limits.
+This error occurs when MSAL.js surpasses the allotted storage limit when attempting to save token information in the [configured cache storage](./caching.md#cache-storage). See [here](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria#web_storage) for web storage limits.
 
 **Mitigation**:
 
