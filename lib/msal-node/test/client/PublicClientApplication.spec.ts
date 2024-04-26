@@ -23,6 +23,8 @@ import {
     CacheHelpers,
     AuthorityFactory,
     ProtocolMode,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -868,44 +870,17 @@ describe("PublicClientApplication", () => {
         });
     });
 
-    test("initializeBaseRequest passes a requested claims hash to acquireToken when claimsBasedHashing is enabled", async () => {
-        const account: AccountInfo = {
-            homeAccountId: "",
-            environment: "",
-            tenantId: "",
-            username: "",
-            localAccountId: "",
-            name: "",
-            idTokenClaims: ID_TOKEN_CLAIMS,
-        };
-        const request: SilentFlowRequest = {
-            account: account,
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            claims: TEST_CONSTANTS.CLAIMS,
-        };
-
-        const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
-        jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
-            (config) => new silentFlowClient(config)
+    test("throws an error when claimsBasedCaching is enabled", async () => {
+        expect(() => {
+            new PublicClientApplication({
+                ...appConfig,
+                cache: { claimsBasedCachingEnabled: true },
+            });
+        }).toThrow(
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.claimsBasedCachingEnabled
+            )
         );
-
-        const acquireTokenSpy = jest.spyOn(
-            silentFlowClient.prototype,
-            "acquireToken"
-        );
-        const authApp = new PublicClientApplication({
-            ...appConfig,
-            cache: { claimsBasedCachingEnabled: true },
-        });
-        await authApp.acquireTokenSilent(request);
-        expect(silentFlowClient.prototype.acquireToken).toHaveBeenCalledWith(
-            expect.objectContaining({ requestedClaimsHash: expect.any(String) })
-        );
-
-        const submittedRequest = acquireTokenSpy.mock.calls[0][0];
-        expect(
-            (submittedRequest as any)?.requestedClaimsHash?.length
-        ).toBeGreaterThan(0);
     });
 
     test("initializeBaseRequest doesn't pass a claims hash to acquireToken when claimsBasedHashing is disabled by default", async () => {
@@ -1136,7 +1111,7 @@ describe("PublicClientApplication", () => {
         expect(authApp.getLogger().info("Test logger")).toEqual(undefined);
     });
 
-    test("should throw an error if state is not provided", async () => {
+    test("throws an error if state is not provided", async () => {
         const cryptoProvider = new CryptoProvider();
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -1169,12 +1144,11 @@ describe("PublicClientApplication", () => {
         });
 
         const authApp = new PublicClientApplication(appConfig);
-        await authApp.acquireTokenByCode(request, authCodePayLoad);
 
         try {
             await authApp.acquireTokenByCode(request, authCodePayLoad);
         } catch (e) {
-            expect(mockInfo).toBeCalledWith("acquireTokenByCode called");
+            expect(mockInfo).toHaveBeenCalledWith("acquireTokenByCode called");
             expect(mockInfo).toHaveBeenCalledWith(
                 "acquireTokenByCode - validating state"
             );
