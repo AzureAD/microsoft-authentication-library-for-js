@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1713978572426,
+  "lastUpdate": 1714133817610,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7584,6 +7584,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.03%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "83747f017257f0625db08bb1e63ada421cc70ac5",
+          "message": "Discard empty redirect telemetry events with no error codes (#7058)\n\n- Discard empty redirect telemetry events with no error codes. \r\n- Replace performanceClient with parentMeasurement param to track child\r\nerrors without throwing.",
+          "timestamp": "2024-04-26T08:11:22-04:00",
+          "tree_id": "05eb2c9617c75119b15cdbb69bfa1f5594a03a7e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/83747f017257f0625db08bb1e63ada421cc70ac5"
+        },
+        "date": 1714133816747,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193078,
+            "range": "±1.96%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 198528,
+            "range": "±2.07%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
