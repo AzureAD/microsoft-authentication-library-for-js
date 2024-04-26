@@ -4,6 +4,7 @@
  */
 
 import {
+    AccountFilter,
     AccountInfo,
     Logger,
     PerformanceCallbackFunction,
@@ -43,6 +44,7 @@ export interface IPublicClientApplication {
     removePerformanceCallback(callbackId: string): boolean;
     enableAccountStorageEvents(): void;
     disableAccountStorageEvents(): void;
+    getAccount(accountFilter: AccountFilter): AccountInfo | null;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
     getAccountByLocalId(localId: string): AccountInfo | null;
     getAccountByUsername(userName: string): AccountInfo | null;
@@ -112,6 +114,9 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     getAllAccounts: () => {
         return [];
+    },
+    getAccount: () => {
+        return null;
     },
     getAccountByHomeId: () => {
         return null;
