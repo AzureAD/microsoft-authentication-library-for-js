@@ -429,5 +429,5 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 **Mitigation**:
 
-1. Make sure the configured cache storage has enough capacity to allow MSAL.js persist token payload. The amount of cache storage required depends on the number of [cached artifacts tokens](./caching.md#cached-artifacts).
+1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](./caching.md#cached-artifacts).
 2. Disable [claimsBasedCachingEnabled](./configuration.md#cache-config-options) cache config option. When enabled, it caches access tokens under a key containing the hash of the requested claims. Depending on the MSAL.js API usage, it may result in the vast number of access tokens persisted in the cache storage.
