@@ -1158,11 +1158,11 @@ describe("PerformanceClient.spec.ts", () => {
 
             mockPerfClient.startMeasurement(
                 PerformanceEvents.AcquireTokenSilent,
-                "dummy-correlation-id"
+                dummyCorrelationId
             );
             mockPerfClient.setPreQueueTime(
                 PerformanceEvents.AcquireTokenSilent,
-                correlationId
+                dummyCorrelationId
             );
 
             expect(
