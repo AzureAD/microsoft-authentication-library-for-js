@@ -5,7 +5,7 @@ import { Configuration, PublicClientApplication } from "@azure/msal-browser";
 import { TEST_CONFIG, testAccount } from "../TestConstants";
 import { MsalProvider, useIsAuthenticated, withMsal } from "../../src/index";
 
-describe("withMsal tests", () => {
+describe("useIsAuthenticated tests", () => {
     let pca: PublicClientApplication;
     const msalConfig: Configuration = {
         auth: {
