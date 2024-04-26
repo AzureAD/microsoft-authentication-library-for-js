@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714166291703,
+  "lastUpdate": 1714168637735,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7696,6 +7696,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 192837,
             "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "Dan Saunders",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8242d67cec8499154bf94a13926b285e495e6752",
+          "message": "Add getAccount API to IPublicClientApplication (#7019)\n\nAdd getAccount(accountFilter: AccountFilter) API to\r\nIPublicClientApplication so that it can be called by the PCA returned\r\nfrom PublicClientNext.createPublicClientApplication.",
+          "timestamp": "2024-04-26T14:51:36-07:00",
+          "tree_id": "de53512e8917f76b59cd4f1c7491cf37b53213ae",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8242d67cec8499154bf94a13926b285e495e6752"
+        },
+        "date": 1714168636137,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 213594,
+            "range": "±1.98%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 194388,
+            "range": "±2.18%",
             "unit": "ops/sec",
             "extra": "228 samples"
           }
