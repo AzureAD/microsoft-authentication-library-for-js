@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714168637735,
+  "lastUpdate": 1714171064203,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7736,6 +7736,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.18%",
             "unit": "ops/sec",
             "extra": "228 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "91503387+hatched-kade@users.noreply.github.com",
+            "name": "Kade Keith",
+            "username": "hatched-kade"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c244947a022c90fbc055b5d1c9c5a98aea181110",
+          "message": "Fix `useIsAuthenticated` hook briefly returning false even though the user is authenticated (#7057)\n\nAddresses\r\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/issues/6918\r\n\r\nThe current `useIsAuthenticated` has an unnecessary `useEffect`, which\r\ncauses it to briefly return `false` in some cases even when an account\r\nis present. See\r\nhttps://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state\r\nand\r\nhttps://react.dev/learn/you-might-not-need-an-effect#caching-expensive-calculations\r\n\r\nThis PR switches to use the `useMemo` recommendation\r\n\r\nI added a unit test that passes now, but fails with the old\r\nimplementation:\r\n```\r\n FAIL  test/hooks/useIsAuthenticated.spec.tsx\r\n  ● withMsal tests › useAuthenticated always returns true if user has an account\r\n\r\n    expect(jest.fn()).toHaveBeenCalledTimes(expected)\r\n\r\n    Expected number of calls: 0\r\n    Received number of calls: 1\r\n\r\n      78 |         expect(await screen.findByText(\"Has accounts\")).toBeInTheDocument();\r\n      79 |         expect(await screen.findByText(\"Is authed\")).toBeInTheDocument();\r\n    > 80 |         expect(invalidAuthStateCallback).toHaveBeenCalledTimes(0);\r\n         |                                          ^\r\n      81 |     });\r\n      82 | });\r\n      83 |\r\n\r\n      at Object.<anonymous> (test/hooks/useIsAuthenticated.spec.tsx:80:42)\r\n```\r\n\r\nI also had to tweak some act / await / async code in other tests,\r\npresumably because now it takes fewer renders for the hook to start\r\nreturning the correct value. Without the tweaks a couple tests were\r\nfailing, and others printed warning about updating state outside of an\r\n`act(...)`.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>\r\nCo-authored-by: Jo Arroyo <joarroyo@microsoft.com>",
+          "timestamp": "2024-04-26T15:32:09-07:00",
+          "tree_id": "4f3ff92a31df4c6b3aa2046dba18dc7ae8c50c6a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c244947a022c90fbc055b5d1c9c5a98aea181110"
+        },
+        "date": 1714171063182,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 196544,
+            "range": "±2.11%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 194077,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
           }
         ]
       }
