@@ -122,17 +122,6 @@ export class ManagedIdentityApplication {
     public async acquireToken(
         managedIdentityRequestParams: ManagedIdentityRequestParams
     ): Promise<AuthenticationResult> {
-        const resourceUrlString = new UrlString(
-            managedIdentityRequestParams.resource.replace("/.default", "")
-        );
-        try {
-            resourceUrlString.validateAsUri();
-        } catch (e) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.invalidResource
-            );
-        }
-
         const managedIdentityRequest: ManagedIdentityRequest = {
             forceRefresh: managedIdentityRequestParams.forceRefresh,
             resource: managedIdentityRequestParams.resource.replace(
