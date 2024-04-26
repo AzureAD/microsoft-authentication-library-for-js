@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improve perf and reliability of parallel acquireTokenSilent calls that must fallback to iframes #6962",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

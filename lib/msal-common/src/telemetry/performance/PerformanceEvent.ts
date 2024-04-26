@@ -648,6 +648,11 @@ export type PerformanceEvent = {
     subErrorCode?: string;
 
     /**
+     * Server error number
+     */
+    serverErrorNo?: string;
+
+    /**
      * Name of the library used for the operation.
      *
      * @type {string}
@@ -804,6 +809,16 @@ export type PerformanceEvent = {
 
     // Event context as JSON string
     context?: string;
+
+    // Number of tokens in the cache to be reported when cache quota is exceeded
+    cacheRtCount?: number;
+    cacheIdCount?: number;
+    cacheAtCount?: number;
+
+    // Scenario id to track custom user prompts
+    scenarioId?: string;
+
+    accountType?: "AAD" | "MSA" | "B2C";
 };
 
 export type PerformanceEventContext = {
