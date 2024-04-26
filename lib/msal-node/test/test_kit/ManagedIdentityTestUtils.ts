@@ -92,7 +92,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
     sendGetRequestAsync<T>(
         _url: string,
         _options?: NetworkRequestOptions,
-        _cancellationToken?: number
+        _timeout?: number
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
@@ -169,7 +169,7 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
     sendGetRequestAsync<T>(
         _url: string,
         _options?: NetworkRequestOptions,
-        _cancellationToken?: number
+        _timeout?: number
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve(
