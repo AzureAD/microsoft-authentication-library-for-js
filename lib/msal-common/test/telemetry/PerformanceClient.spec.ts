@@ -72,7 +72,10 @@ export class MockPerformanceClient
         eventName: PerformanceEvents,
         correlationId?: string | undefined
     ): void {
-        return;
+        this.preQueueTimeByCorrelationId.set(correlationId || "", {
+            name: eventName,
+            time: 12345,
+        });
     }
 
     getDurationMs(startTimeMs: number): number {
@@ -1120,6 +1123,77 @@ describe("PerformanceClient.spec.ts", () => {
             );
             firstLevelSecondChildEvent.end({ success: true });
             rootEvent.end({ success: true });
+        });
+    });
+
+    describe("discard", () => {
+        it("discards cache data", () => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const dummyCorrelationId = "dummy-correlation-id";
+
+            const rootEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            const firstEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilentAsync,
+                correlationId
+            );
+            mockPerfClient.setPreQueueTime(
+                PerformanceEvents.AcquireTokenSilentAsync,
+                correlationId
+            );
+            const secondEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenFromCache,
+                correlationId
+            );
+            mockPerfClient.setPreQueueTime(
+                PerformanceEvents.AcquireTokenFromCache,
+                correlationId
+            );
+            secondEvent.end({ success: true });
+            firstEvent.end({ success: true });
+            rootEvent.discard();
+
+            mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                dummyCorrelationId
+            );
+            mockPerfClient.setPreQueueTime(
+                PerformanceEvents.AcquireTokenSilent,
+                dummyCorrelationId
+            );
+
+            expect(
+                // @ts-ignore
+                mockPerfClient.eventsByCorrelationId.has(correlationId)
+            ).toBeFalsy();
+            expect(
+                // @ts-ignore
+                mockPerfClient.preQueueTimeByCorrelationId.has(correlationId)
+            ).toBeFalsy();
+            expect(
+                // @ts-ignore
+                mockPerfClient.queueMeasurements.has(correlationId)
+            ).toBeFalsy();
+            // @ts-ignore
+            expect(mockPerfClient.eventStack.has(correlationId)).toBeFalsy();
+
+            expect(
+                // @ts-ignore
+                mockPerfClient.eventsByCorrelationId.has(dummyCorrelationId)
+            ).toBeTruthy();
+            expect(
+                // @ts-ignore
+                mockPerfClient.preQueueTimeByCorrelationId.has(
+                    dummyCorrelationId
+                )
+            ).toBeTruthy();
+            expect(
+                // @ts-ignore
+                mockPerfClient.eventStack.has(dummyCorrelationId)
+            ).toBeTruthy();
         });
     });
 });
