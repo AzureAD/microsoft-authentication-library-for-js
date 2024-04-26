@@ -455,11 +455,7 @@ export class StandardController implements IController {
                 this.logger,
                 this.performanceClient,
                 rootMeasurement.event.correlationId
-            )(
-                hash,
-                this.performanceClient,
-                rootMeasurement.event.correlationId
-            );
+            )(hash, rootMeasurement);
         }
 
         return redirectResponse
@@ -492,12 +488,22 @@ export class StandardController implements IController {
                         success: true,
                         accountType: getAccountType(result.account),
                     });
+                } else {
+                    /*
+                     * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
+                     * is empty and the error code is missing.
+                     */
+                    if (rootMeasurement.event.errorCode) {
+                        rootMeasurement.end({ success: false });
+                    } else {
+                        rootMeasurement.discard();
+                    }
                 }
+
                 this.eventHandler.emitEvent(
                     EventType.HANDLE_REDIRECT_END,
                     InteractionType.Redirect
                 );
-                rootMeasurement.end({ success: false });
 
                 return result;
             })
