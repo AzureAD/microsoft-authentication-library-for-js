@@ -45,6 +45,7 @@ import {
     InteractionRequiredAuthErrorCodes,
     Logger,
     LogLevel,
+    PerformanceClient,
     PerformanceEvent,
     PerformanceEvents,
     PersistentCacheKeys,
@@ -1019,6 +1020,66 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(tokenResponse1).toEqual(tokenResponse2);
             expect(tokenResponse4).toEqual(tokenResponse1);
+        });
+
+        it("Emits performance event with error code if no response is provided", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            sinon
+                .stub(StandardController.prototype, "getAllAccounts")
+                .returns([testAccount]);
+            sinon
+                // @ts-ignore
+                .stub(RedirectClient.prototype, "getRedirectResponse")
+                // @ts-ignore
+                .returns([null, ""]);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events.length).toEqual(1);
+                expect(events[0].success).toBe(false);
+                expect(events[0].errorCode).toBe("no_server_response");
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.CORRELATION_ID}`,
+                RANDOM_TEST_GUID
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            pca.handleRedirectPromise();
+        });
+
+        it("Discards performance event if handleRedirectPromise returns null and no error code is set", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            sinon
+                .stub(StandardController.prototype, "getAllAccounts")
+                .returns([testAccount]);
+            sinon
+                .stub(RedirectClient.prototype, "handleRedirectPromise")
+                .resolves(null);
+
+            const emitSpy = jest.spyOn(
+                PerformanceClient.prototype,
+                "emitEvents"
+            );
+
+            await pca.handleRedirectPromise();
+            expect(emitSpy).toHaveBeenCalledTimes(0);
         });
     });
     describe("OIDC Protocol Mode tests", () => {
