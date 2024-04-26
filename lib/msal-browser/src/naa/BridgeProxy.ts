@@ -203,8 +203,7 @@ export class BridgeProxy implements IBridgeProxy {
         sdkName: string,
         sdkVersion: string,
         accountContext: AccountContext,
-        capabilities?: BridgeCapabilities,
-
+        capabilities?: BridgeCapabilities
     ) {
         this.sdkName = sdkName;
         this.sdkVersion = sdkVersion;

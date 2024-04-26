@@ -13,6 +13,11 @@ export const NestedAppAuthErrorMessage = {
         code: "unsupported_method",
         desc: "The PKCE code challenge and verifier could not be generated.",
     },
+
+    noAccountContext: {
+        code: "no_account_context_set",
+        desc: "The NAA app is not called with an account.",
+    },
 };
 
 export class NestedAppAuthError extends AuthError {
@@ -27,6 +32,13 @@ export class NestedAppAuthError extends AuthError {
         return new NestedAppAuthError(
             NestedAppAuthErrorMessage.unsupportedMethod.code,
             NestedAppAuthErrorMessage.unsupportedMethod.desc
+        );
+    }
+
+    public static createNoAccountContextError(): NestedAppAuthError {
+        return new NestedAppAuthError(
+            NestedAppAuthErrorMessage.noAccountContext.code,
+            NestedAppAuthErrorMessage.noAccountContext.desc
         );
     }
 }

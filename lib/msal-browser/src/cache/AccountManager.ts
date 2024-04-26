@@ -11,20 +11,26 @@ import { BrowserCacheManager } from "./BrowserCacheManager";
  * @param accountFilter - (Optional) filter to narrow down the accounts returned
  * @returns Array of AccountInfo objects in cache
  */
-export function getAllAccounts(logger: Logger, browserStorage: BrowserCacheManager, isInBrowser: boolean, accountFilter?: AccountFilter): AccountInfo[] {
+export function getAllAccounts(
+    logger: Logger,
+    browserStorage: BrowserCacheManager,
+    isInBrowser: boolean,
+    accountFilter?: AccountFilter
+): AccountInfo[] {
     logger.verbose("getAllAccounts called");
-    return isInBrowser
-        ? browserStorage.getAllAccounts(accountFilter)
-        : [];
+    return isInBrowser ? browserStorage.getAllAccounts(accountFilter) : [];
 }
-
 
 /**
  * Returns the first account found in the cache that matches the account filter passed in.
  * @param accountFilter
  * @returns The first account found in the cache matching the provided filter or null if no account could be found.
  */
-export function getAccount(accountFilter: AccountFilter, logger: Logger, browserStorage: BrowserCacheManager): AccountInfo | null {
+export function getAccount(
+    accountFilter: AccountFilter,
+    logger: Logger,
+    browserStorage: BrowserCacheManager
+): AccountInfo | null {
     logger.trace("getAccount called");
     if (Object.keys(accountFilter).length === 0) {
         logger.warning("getAccount: No accountFilter provided");
@@ -40,9 +46,7 @@ export function getAccount(accountFilter: AccountFilter, logger: Logger, browser
         );
         return account;
     } else {
-        logger.verbose(
-            "getAccount: No matching account found, returning null"
-        );
+        logger.verbose("getAccount: No matching account found, returning null");
         return null;
     }
 }
@@ -55,7 +59,11 @@ export function getAccount(accountFilter: AccountFilter, logger: Logger, browser
  * @param username
  * @returns The account object stored in MSAL
  */
-export function getAccountByUsername(username: string, logger: Logger, browserStorage: BrowserCacheManager): AccountInfo | null {
+export function getAccountByUsername(
+    username: string,
+    logger: Logger,
+    browserStorage: BrowserCacheManager
+): AccountInfo | null {
     logger.trace("getAccountByUsername called");
     if (!username) {
         logger.warning("getAccountByUsername: No username provided");
@@ -88,12 +96,14 @@ export function getAccountByUsername(username: string, logger: Logger, browserSt
  * @param homeAccountId
  * @returns The account object stored in MSAL
  */
-export function getAccountByHomeId(homeAccountId: string, logger: Logger, browserStorage: BrowserCacheManager): AccountInfo | null {
+export function getAccountByHomeId(
+    homeAccountId: string,
+    logger: Logger,
+    browserStorage: BrowserCacheManager
+): AccountInfo | null {
     logger.trace("getAccountByHomeId called");
     if (!homeAccountId) {
-        logger.warning(
-            "getAccountByHomeId: No homeAccountId provided"
-        );
+        logger.warning("getAccountByHomeId: No homeAccountId provided");
         return null;
     }
 
@@ -123,12 +133,14 @@ export function getAccountByHomeId(homeAccountId: string, logger: Logger, browse
  * @param localAccountId
  * @returns The account object stored in MSAL
  */
-export function getAccountByLocalId(localAccountId: string, logger: Logger, browserStorage: BrowserCacheManager): AccountInfo | null {
+export function getAccountByLocalId(
+    localAccountId: string,
+    logger: Logger,
+    browserStorage: BrowserCacheManager
+): AccountInfo | null {
     logger.trace("getAccountByLocalId called");
     if (!localAccountId) {
-        logger.warning(
-            "getAccountByLocalId: No localAccountId provided"
-        );
+        logger.warning("getAccountByLocalId: No localAccountId provided");
         return null;
     }
 
@@ -155,14 +167,18 @@ export function getAccountByLocalId(localAccountId: string, logger: Logger, brow
  * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
  * @param account
  */
-export function setActiveAccount(account: AccountInfo | null, browserStorage: BrowserCacheManager): void {
+export function setActiveAccount(
+    account: AccountInfo | null,
+    browserStorage: BrowserCacheManager
+): void {
     browserStorage.setActiveAccount(account);
 }
 
 /**
  * Gets the currently active account
  */
-export function getActiveAccount(browserStorage: BrowserCacheManager): AccountInfo | null {
+export function getActiveAccount(
+    browserStorage: BrowserCacheManager
+): AccountInfo | null {
     return browserStorage.getActiveAccount();
 }
-
