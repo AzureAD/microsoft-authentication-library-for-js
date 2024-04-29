@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714171134806,
+  "lastUpdate": 1714407013202,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7812,6 +7812,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.97%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b4736b139d70b0b030a0c6b18f78dea4bbbaf2ab",
+          "message": "MSAL-Node NetworkModule: Fixed inconsistencies with cancellationToken (timeout) (#7001)\n\n- renamed cancellationToken to timeout\r\n- it can only be used in get requests (region discovery, for example)\r\n- it's not part of the public api",
+          "timestamp": "2024-04-29T12:04:50-04:00",
+          "tree_id": "b338adf44bc0b8fa0db5afca3c101bf777b8074a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b4736b139d70b0b030a0c6b18f78dea4bbbaf2ab"
+        },
+        "date": 1714407011883,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190475,
+            "range": "±1.82%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 203766,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
