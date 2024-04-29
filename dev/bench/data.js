@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714407013202,
+  "lastUpdate": 1714420544825,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7850,6 +7850,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.00%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a8f4145661c37ca0673d67451cbf8e9935b4e10b",
+          "message": "Add node 22 to e2e test matrix (#7060)\n\n- Adds Node 22 to E2E test matrix\r\n- Updates Readme to declare support for Node 22",
+          "timestamp": "2024-04-29T12:50:15-07:00",
+          "tree_id": "def678064875992c308980b6f3338830c9b2cb62",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a8f4145661c37ca0673d67451cbf8e9935b4e10b"
+        },
+        "date": 1714420543459,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 196544,
+            "range": "±2.09%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 216911,
+            "range": "±1.78%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
           }
         ]
       }
