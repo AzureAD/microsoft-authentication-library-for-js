@@ -19,6 +19,7 @@ const msalConfig = {
         postLogoutRedirectUri: "enter_postlogout_uri_here",
         navigateToLoginRequestUrl: true,
         clientCapabilities: ["CP1"],
+        protocolMode: "AAD"
     },
     cache: {
         cacheLocation: "sessionStorage",
