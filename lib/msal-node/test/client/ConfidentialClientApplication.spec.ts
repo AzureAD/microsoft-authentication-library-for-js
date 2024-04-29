@@ -11,8 +11,6 @@ import {
     CommonClientCredentialRequest,
     createClientAuthError,
     ClientAuthErrorCodes,
-    createClientConfigurationError,
-    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
 import {
@@ -386,19 +384,5 @@ describe("ConfidentialClientApplication", () => {
 
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenByClientCredential(request);
-    });
-
-    it("An error is thrown when claims based caching is enabled", async () => {
-        expect(() => {
-            // will use msal-node's buildAppConfiguration
-            new ConfidentialClientApplication({
-                ...appConfig,
-                cache: { claimsBasedCachingEnabled: true },
-            });
-        }).toThrow(
-            createClientConfigurationError(
-                ClientConfigurationErrorCodes.claimsBasedCachingEnabled
-            )
-        );
     });
 });

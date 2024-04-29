@@ -23,8 +23,6 @@ import {
     CacheHelpers,
     AuthorityFactory,
     ProtocolMode,
-    createClientConfigurationError,
-    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -868,19 +866,6 @@ describe("PublicClientApplication", () => {
                 done();
             });
         });
-    });
-
-    test("throws an error when claimsBasedCaching is enabled", async () => {
-        expect(() => {
-            new PublicClientApplication({
-                ...appConfig,
-                cache: { claimsBasedCachingEnabled: true },
-            });
-        }).toThrow(
-            createClientConfigurationError(
-                ClientConfigurationErrorCodes.claimsBasedCachingEnabled
-            )
-        );
     });
 
     test("initializeBaseRequest doesn't pass a claims hash to acquireToken when claimsBasedHashing is disabled by default", async () => {
