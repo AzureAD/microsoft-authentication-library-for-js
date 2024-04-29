@@ -249,7 +249,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                     storeAuthStateInCookie: true,
                     secureCookies: true,
-                    claimsBasedCachingEnabled: true,
+                    claimsBasedCachingEnabled: false,
                 },
                 system: {
                     windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
@@ -281,7 +281,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.cache?.storeAuthStateInCookie).not.toBeNull();
         expect(newConfig.cache?.storeAuthStateInCookie).toBe(true);
         expect(newConfig.cache?.secureCookies).toBe(true);
-        expect(newConfig.cache?.claimsBasedCachingEnabled).toBe(true);
+        expect(newConfig.cache?.claimsBasedCachingEnabled).toBe(false);
         // System config checks
         expect(newConfig.system).not.toBeNull();
         expect(newConfig.system?.windowHashTimeout).not.toBeNull();
