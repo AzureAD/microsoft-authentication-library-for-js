@@ -12,6 +12,8 @@ import {
     ProtocolMode,
     ServerResponseType,
     Logger,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
@@ -310,5 +312,22 @@ describe("Configuration.ts Class Unit Tests", () => {
             true
         );
         expect(loggerSpy).toBeCalled();
+    });
+
+    it("throws an error when claimsBasedCaching is enabled", () => {
+        expect(() => {
+            buildConfiguration(
+                {
+                    // @ts-ignore
+                    auth: null,
+                    cache: { claimsBasedCachingEnabled: true },
+                },
+                true
+            );
+        }).toThrow(
+            createClientConfigurationError(
+                ClientConfigurationErrorCodes.claimsBasedCachingEnabled
+            )
+        );
     });
 });
