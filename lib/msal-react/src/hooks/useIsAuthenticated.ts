@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { AccountInfo, InteractionStatus } from "@azure/msal-browser";
@@ -32,16 +32,12 @@ function isAuthenticated(
 export function useIsAuthenticated(matchAccount?: AccountIdentifiers): boolean {
     const { accounts: allAccounts, inProgress } = useMsal();
 
-    const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(() => {
+    const isUserAuthenticated = useMemo(() => {
         if (inProgress === InteractionStatus.Startup) {
             return false;
         }
         return isAuthenticated(allAccounts, matchAccount);
-    });
+    }, [allAccounts, inProgress, matchAccount]);
 
-    useEffect(() => {
-        setHasAuthenticated(isAuthenticated(allAccounts, matchAccount));
-    }, [allAccounts, matchAccount]);
-
-    return hasAuthenticated;
+    return isUserAuthenticated;
 }
