@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Removed Managed Identity Resource URI Validation",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
