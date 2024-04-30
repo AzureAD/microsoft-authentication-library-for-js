@@ -50,6 +50,7 @@ import {
     ClientConfigurationErrorCodes,
     IdTokenEntity,
     CredentialType,
+    InProgressPerformanceEvent,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils";
 import {
@@ -81,6 +82,7 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -109,6 +111,7 @@ describe("RedirectClient", () => {
     let redirectClient: RedirectClient;
     let browserStorage: BrowserCacheManager;
     let pca: PublicClientApplication;
+    let rootMeasurement: InProgressPerformanceEvent;
 
     beforeEach(async () => {
         pca = new PublicClientApplication({
@@ -162,6 +165,10 @@ describe("RedirectClient", () => {
             //@ts-ignore
             pca.nativeInternalStorage
         );
+
+        rootMeasurement = new BrowserPerformanceClient(
+            pca.getConfiguration()
+        ).startMeasurement("test-measurement", "test-correlation-id");
     });
 
     afterEach(() => {
@@ -185,12 +192,14 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
-            redirectClient.handleRedirectPromise().then((response) => {
-                expect(response).toBe(null);
-                expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(0);
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .then((response) => {
+                    expect(response).toBe(null);
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    done();
+                });
         });
 
         it("cleans temporary cache and return null if no state", (done) => {
@@ -206,7 +215,10 @@ describe("RedirectClient", () => {
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
             redirectClient
-                .handleRedirectPromise("#code=ThisIsAnAuthCode")
+                .handleRedirectPromise(
+                    "#code=ThisIsAnAuthCode",
+                    rootMeasurement
+                )
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
@@ -228,15 +240,17 @@ describe("RedirectClient", () => {
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
-            redirectClient.handleRedirectPromise().then((response) => {
-                expect(response).toBe(null);
-                expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(0);
-                expect(window.location.hash).toEqual(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
-                );
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .then((response) => {
+                    expect(response).toBe(null);
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(0);
+                    expect(window.location.hash).toEqual(
+                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+                    );
+                    done();
+                });
         });
 
         it("cleans temporary cache and rethrows if error is thrown", (done) => {
@@ -261,12 +275,14 @@ describe("RedirectClient", () => {
             ).mockImplementation(() => {
                 throw testError;
             });
-            redirectClient.handleRedirectPromise().catch((e) => {
-                expect(e).toMatchObject(testError);
-                expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(1); // telemetry
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .catch((e) => {
+                    expect(e).toMatchObject(testError);
+                    expect(window.localStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(1); // telemetry
+                    done();
+                });
         });
 
         it("cleans temporary cache and return null if state cannot be decoded", (done) => {
@@ -283,7 +299,8 @@ describe("RedirectClient", () => {
             );
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META
+                    TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META,
+                    rootMeasurement
                 )
                 .then((response) => {
                     expect(response).toBe(null);
@@ -315,7 +332,8 @@ describe("RedirectClient", () => {
             ).mockRejectedValue("Error in handleResponse");
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+                    rootMeasurement
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -352,7 +370,8 @@ describe("RedirectClient", () => {
             ).mockRejectedValue("Error in handleResponse");
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+                    rootMeasurement
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -409,7 +428,8 @@ describe("RedirectClient", () => {
                 );
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+                    rootMeasurement
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -515,7 +535,10 @@ describe("RedirectClient", () => {
                 .stub(FetchClient.prototype, "sendPostRequestAsync")
                 .resolves(testServerTokenResponse);
 
-            const tokenResponse = await redirectClient.handleRedirectPromise();
+            const tokenResponse = await redirectClient.handleRedirectPromise(
+                "",
+                rootMeasurement
+            );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
@@ -674,7 +697,10 @@ describe("RedirectClient", () => {
                 .stub(NativeInteractionClient.prototype, "acquireToken")
                 .resolves(testTokenResponse);
 
-            const tokenResponse = await redirectClient.handleRedirectPromise();
+            const tokenResponse = await redirectClient.handleRedirectPromise(
+                "",
+                rootMeasurement
+            );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
@@ -771,15 +797,19 @@ describe("RedirectClient", () => {
                 base64Encode(JSON.stringify(testTokenReq))
             );
 
-            redirectClient.handleRedirectPromise().catch((e) => {
-                expect(e.errorCode).toEqual(
-                    BrowserAuthErrorMessage.nativeConnectionNotEstablished.code
-                );
-                expect(e.errorMessage).toEqual(
-                    BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc
-                );
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .catch((e) => {
+                    expect(e.errorCode).toEqual(
+                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
+                            .code
+                    );
+                    expect(e.errorMessage).toEqual(
+                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
+                            .desc
+                    );
+                    done();
+                });
         });
 
         it("throws no cached authority error if authority is not in cache", (done) => {
@@ -825,15 +855,17 @@ describe("RedirectClient", () => {
                 base64Encode(JSON.stringify(testTokenReq))
             );
 
-            redirectClient.handleRedirectPromise().catch((e) => {
-                expect(e).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.noCachedAuthorityError
-                    )
-                );
-                expect(window.sessionStorage.length).toEqual(1); // telemetry
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .catch((e) => {
+                    expect(e).toMatchObject(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.noCachedAuthorityError
+                        )
+                    );
+                    expect(window.sessionStorage.length).toEqual(1); // telemetry
+                    done();
+                });
         });
 
         it("gets hash from cache and processes error", (done) => {
@@ -879,10 +911,12 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID
             );
 
-            redirectClient.handleRedirectPromise().catch((err) => {
-                expect(err instanceof ServerError).toBeTruthy();
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .catch((err) => {
+                    expect(err instanceof ServerError).toBeTruthy();
+                    done();
+                });
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is the same", async () => {
@@ -1011,7 +1045,10 @@ describe("RedirectClient", () => {
                 pca.nativeInternalStorage
             );
 
-            const tokenResponse = await redirectClient.handleRedirectPromise();
+            const tokenResponse = await redirectClient.handleRedirectPromise(
+                "",
+                rootMeasurement
+            );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
@@ -1171,7 +1208,10 @@ describe("RedirectClient", () => {
                 pca.nativeInternalStorage
             );
 
-            const tokenResponse = await redirectClient.handleRedirectPromise();
+            const tokenResponse = await redirectClient.handleRedirectPromise(
+                "",
+                rootMeasurement
+            );
             if (!tokenResponse) {
                 expect(tokenResponse).not.toBe(null);
                 throw new Error("Token Response is null!"); // Throw to resolve Typescript complaints below
@@ -1320,7 +1360,10 @@ describe("RedirectClient", () => {
                 pca.nativeInternalStorage
             );
 
-            const tokenResponse = await redirectClient.handleRedirectPromise();
+            const tokenResponse = await redirectClient.handleRedirectPromise(
+                "",
+                rootMeasurement
+            );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
@@ -1347,7 +1390,9 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI
             );
-            expect(await redirectClient.handleRedirectPromise()).toBe(null);
+            expect(
+                await redirectClient.handleRedirectPromise("", rootMeasurement)
+            ).toBe(null);
         });
 
         it("returns null if interaction is in progress for a different clientId", async () => {
@@ -1374,7 +1419,9 @@ describe("RedirectClient", () => {
             expect(secondInstanceStorage.isInteractionInProgress(false)).toBe(
                 true
             );
-            expect(await redirectClient.handleRedirectPromise()).toBe(null);
+            expect(
+                await redirectClient.handleRedirectPromise("", rootMeasurement)
+            ).toBe(null);
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and interaction type is redirect", async () => {
@@ -1399,7 +1446,7 @@ describe("RedirectClient", () => {
                         return Promise.resolve(true);
                     }
                 );
-            await redirectClient.handleRedirectPromise();
+            await redirectClient.handleRedirectPromise("", rootMeasurement);
             expect(
                 window.sessionStorage.getItem(
                     `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
@@ -1468,7 +1515,7 @@ describe("RedirectClient", () => {
                         return Promise.resolve(true);
                     }
                 );
-            await redirectClient.handleRedirectPromise();
+            await redirectClient.handleRedirectPromise("", rootMeasurement);
             expect(
                 window.sessionStorage.getItem(
                     `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
@@ -1498,7 +1545,7 @@ describe("RedirectClient", () => {
                         return Promise.resolve(true);
                     }
                 );
-            redirectClient.handleRedirectPromise();
+            redirectClient.handleRedirectPromise("", rootMeasurement);
             expect(
                 window.sessionStorage.getItem(
                     `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
@@ -1532,7 +1579,7 @@ describe("RedirectClient", () => {
                         return Promise.resolve(true);
                     }
                 );
-            redirectClient.handleRedirectPromise();
+            redirectClient.handleRedirectPromise("", rootMeasurement);
             expect(
                 window.sessionStorage.getItem(
                     `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
@@ -1562,7 +1609,7 @@ describe("RedirectClient", () => {
                         return Promise.resolve(true);
                     }
                 );
-            redirectClient.handleRedirectPromise();
+            redirectClient.handleRedirectPromise("", rootMeasurement);
             expect(
                 window.sessionStorage.getItem(
                     `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
@@ -1593,7 +1640,7 @@ describe("RedirectClient", () => {
                         return Promise.resolve(true);
                     }
                 );
-            redirectClient.handleRedirectPromise();
+            redirectClient.handleRedirectPromise("", rootMeasurement);
             expect(
                 window.sessionStorage.getItem(
                     `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
@@ -1619,9 +1666,11 @@ describe("RedirectClient", () => {
                     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 });
             });
-            redirectClient.handleRedirectPromise().then(() => {
-                expect(window.location.href).toEqual(loginRequestUrl);
-            });
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .then(() => {
+                    expect(window.location.href).toEqual(loginRequestUrl);
+                });
         });
 
         it("replaces custom hash if navigateToLoginRequestUri is true and loginRequestUrl contains custom hash (passed in)", () => {
@@ -1643,7 +1692,8 @@ describe("RedirectClient", () => {
             });
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+                    rootMeasurement
                 )
                 .then(() => {
                     expect(window.location.href).toEqual(loginRequestUrl);
@@ -1675,10 +1725,12 @@ describe("RedirectClient", () => {
                 });
             });
 
-            redirectClient.handleRedirectPromise().then(() => {
-                expect(clearHashSpy.notCalled).toBe(true);
-                expect(window.location.hash).toEqual("#testHash");
-            });
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .then(() => {
+                    expect(clearHashSpy.notCalled).toBe(true);
+                    expect(window.location.hash).toEqual("#testHash");
+                });
         });
 
         it("processes hash if navigateToLoginRequestUri is true and loginRequestUrl contains trailing slash", (done) => {
@@ -1702,7 +1754,7 @@ describe("RedirectClient", () => {
                 });
                 done();
             });
-            redirectClient.handleRedirectPromise();
+            redirectClient.handleRedirectPromise("", rootMeasurement);
         });
 
         it("returns null if inside an iframe", (done) => {
@@ -1715,10 +1767,12 @@ describe("RedirectClient", () => {
                 loginRequestUrl
             );
 
-            redirectClient.handleRedirectPromise().then((response) => {
-                expect(response).toBe(null);
-                done();
-            });
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .then((response) => {
+                    expect(response).toBe(null);
+                    done();
+                });
         });
 
         it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
@@ -1771,7 +1825,7 @@ describe("RedirectClient", () => {
                 });
                 done();
             });
-            redirectClient.handleRedirectPromise();
+            redirectClient.handleRedirectPromise("", rootMeasurement);
         });
     });
 
@@ -3037,7 +3091,8 @@ describe("RedirectClient", () => {
                 });
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+                    rootMeasurement
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -3073,7 +3128,8 @@ describe("RedirectClient", () => {
                 });
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+                    rootMeasurement
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -3109,7 +3165,8 @@ describe("RedirectClient", () => {
                 });
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+                    rootMeasurement
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
