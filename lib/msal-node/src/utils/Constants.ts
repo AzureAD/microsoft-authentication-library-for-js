@@ -65,9 +65,10 @@ export const HttpMethod = {
 export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
 
 export const ProxyStatus = {
-    SUCCESS_RANGE_START: 200,
-    SUCCESS_RANGE_END: 299,
-    SERVER_ERROR: 500,
+    SUCCESS: HttpStatus.SUCCESS,
+    SUCCESS_RANGE_START: HttpStatus.SUCCESS_RANGE_START,
+    SUCCESS_RANGE_END: HttpStatus.SUCCESS_RANGE_END,
+    SERVER_ERROR: HttpStatus.SERVER_ERROR,
 } as const;
 export type ProxyStatus = (typeof ProxyStatus)[keyof typeof ProxyStatus];
 
@@ -160,7 +161,7 @@ export const MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON = [
     HttpStatus.NOT_FOUND,
     HttpStatus.REQUEST_TIMEOUT,
     HttpStatus.TOO_MANY_REQUESTS,
-    HttpStatus.INTERNAL_SERVER_ERROR,
+    HttpStatus.SERVER_ERROR,
     HttpStatus.SERVICE_UNAVAILABLE,
     HttpStatus.GATEWAY_TIMEOUT,
 ];
