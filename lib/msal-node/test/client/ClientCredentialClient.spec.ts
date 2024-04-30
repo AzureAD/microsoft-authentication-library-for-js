@@ -466,8 +466,8 @@ describe("ClientCredentialClient unit tests", () => {
                 expect(authResult2.fromCache).toBe(false);
 
                 // verify that the client capabilities have been merged with the claims
-                const returnVal2: string = createTokenRequestBodySpy.mock
-                    .results[1].value as string;
+                const returnVal2: string = await createTokenRequestBodySpy.mock
+                    .results[1].value;
                 expect(
                     decodeURIComponent(
                         returnVal2
