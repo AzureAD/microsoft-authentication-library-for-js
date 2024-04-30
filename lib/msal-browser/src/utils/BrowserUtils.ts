@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString } from "@azure/msal-common";
+import { UrlString, invoke, invokeAsync } from "@azure/msal-common";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -206,3 +206,6 @@ export function preconnect(authority: string): void {
 export function createGuid(): string {
     return BrowserCrypto.createNewGuid();
 }
+
+export { invoke };
+export { invokeAsync };

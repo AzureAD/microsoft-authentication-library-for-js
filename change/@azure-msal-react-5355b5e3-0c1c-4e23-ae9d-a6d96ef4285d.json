@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix useIsAuthenticated returning incorrect value during useEffect update #7057",
+  "packageName": "@azure/msal-react",
+  "email": "kade@hatchedlabs.com",
+  "dependentChangeType": "patch"
+}
