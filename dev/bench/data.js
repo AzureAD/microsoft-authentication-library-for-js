@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714504368723,
+  "lastUpdate": 1714508768433,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8002,6 +8002,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.06%",
             "unit": "ops/sec",
             "extra": "227 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "37633b4245130d70a39c0a4e043c5f8a84eaf2d4",
+          "message": "ClientCredential and OBO acquireToken requests with claims will now skip the cache (#6999)\n\nClientCredential and OBO acquireToken requests with claims will now skip\r\nthe cache.\r\n\r\nclaimsBasedCachingEnabled has been marked as deprecated in msal-node.",
+          "timestamp": "2024-04-30T16:20:43-04:00",
+          "tree_id": "3326cc577500ce0869feef462cae56e7997cb7bb",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/37633b4245130d70a39c0a4e043c5f8a84eaf2d4"
+        },
+        "date": 1714508767394,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 211950,
+            "range": "±1.39%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 215515,
+            "range": "±1.26%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
