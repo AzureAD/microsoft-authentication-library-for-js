@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": " Fixed inconsistencies with cancellationToken (timeout)",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -17,7 +17,7 @@ export const mockNetworkClient = (
         sendGetRequestAsync<T>(
             _url: string,
             _options?: NetworkRequestOptions,
-            _cancellationToken?: number
+            _timeout?: number
         ): Promise<NetworkResponse<T>> {
             return new Promise<NetworkResponse<T>>((resolve, _reject) => {
                 resolve(getRequestResult as NetworkResponse<T>);
