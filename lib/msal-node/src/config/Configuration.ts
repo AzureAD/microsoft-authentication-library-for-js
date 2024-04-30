@@ -66,6 +66,9 @@ export type NodeAuthOptions = {
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
+    /**
+     * @deprecated claims-based-caching functionality will be removed in the next version of MSALJS
+     */
     claimsBasedCachingEnabled?: boolean;
 };
 

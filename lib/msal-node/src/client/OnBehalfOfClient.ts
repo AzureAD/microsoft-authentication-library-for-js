@@ -60,7 +60,7 @@ export class OnBehalfOfClient extends BaseClient {
             request.oboAssertion
         );
 
-        if (request.skipCache) {
+        if (request.skipCache || request.claims) {
             return this.executeTokenRequest(
                 request,
                 this.authority,

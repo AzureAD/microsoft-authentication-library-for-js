@@ -61,7 +61,7 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(
         request: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
-        if (request.skipCache) {
+        if (request.skipCache || request.claims) {
             return this.executeTokenRequest(request, this.authority);
         }
 

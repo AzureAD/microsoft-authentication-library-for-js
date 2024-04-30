@@ -146,14 +146,17 @@ describe("OnBehalfOf unit tests", () => {
             ])(
                 "Validates that claims and client capabilities are correctly merged",
                 async (claims, mergedClaims) => {
-                    oboRequest.claims = claims;
+                    // acquire a token with a client that has client capabilities, but no claims in the request
+                    // verify that it comes from the IDP
                     const authResult = (await client.acquireToken(
                         oboRequest
                     )) as AuthenticationResult;
                     expect(authResult.accessToken).toEqual(
                         AUTHENTICATION_RESULT.body.access_token
                     );
+                    expect(authResult.fromCache).toBe(false);
 
+                    // verify that the client capabilities have been merged with the (empty) claims
                     const returnVal: string = await createTokenRequestBodySpy
                         .mock.results[0].value;
                     expect(
@@ -165,8 +168,10 @@ describe("OnBehalfOf unit tests", () => {
                                 )[0]
                                 .split("claims=")[1]
                         )
-                    ).toEqual(mergedClaims);
+                    ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
 
+                    // acquire a token (without changing anything) and verify that it comes from the cache
+                    // verify that it comes from the cache
                     const cachedAuthResult = (await client.acquireToken(
                         oboRequest
                     )) as AuthenticationResult;
@@ -174,6 +179,53 @@ describe("OnBehalfOf unit tests", () => {
                         AUTHENTICATION_RESULT.body.access_token
                     );
                     expect(cachedAuthResult.fromCache).toBe(true);
+
+                    // acquire a token with a client that has client capabilities, and has claims in the request
+                    // verify that it comes from the IDP
+                    oboRequest.claims = claims;
+                    const authResult2 = (await client.acquireToken(
+                        oboRequest
+                    )) as AuthenticationResult;
+                    expect(authResult2.accessToken).toEqual(
+                        AUTHENTICATION_RESULT.body.access_token
+                    );
+                    expect(authResult2.fromCache).toBe(false);
+
+                    // verify that the client capabilities have been merged with the claims
+                    const returnVal2: string = createTokenRequestBodySpy.mock
+                        .results[1].value as string;
+                    expect(
+                        decodeURIComponent(
+                            returnVal2
+                                .split("&")
+                                .filter((key: string) =>
+                                    key.includes("claims=")
+                                )[0]
+                                .split("claims=")[1]
+                        )
+                    ).toEqual(mergedClaims);
+
+                    // acquire a token with a client that has client capabilities, but no claims in the request
+                    // verify that it comes from the cache
+                    delete oboRequest.claims;
+                    const authResult3 = (await client.acquireToken(
+                        oboRequest
+                    )) as AuthenticationResult;
+                    expect(authResult3.accessToken).toEqual(
+                        AUTHENTICATION_RESULT.body.access_token
+                    );
+                    expect(authResult3.fromCache).toBe(true);
+
+                    // acquire a token with a client that has client capabilities, and has claims in the request
+                    // verify that it comes from the IDP
+                    oboRequest.claims = claims;
+                    const authResult4 = (await client.acquireToken(
+                        oboRequest
+                    )) as AuthenticationResult;
+                    expect(authResult4.accessToken).toEqual(
+                        AUTHENTICATION_RESULT.body.access_token
+                    );
+                    expect(authResult4.fromCache).toBe(false);
                 }
             );
         });
