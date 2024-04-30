@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714482653747,
+  "lastUpdate": 1714499978318,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7924,6 +7924,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 184495,
             "range": "±2.08%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "Dan Saunders",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9d7cdecd2388c6cdcd37c2950bf969bc65b8bb08",
+          "message": "Add additional logging for NAA initialization (#7064)\n\nAdd additional logging for NAA initialization to help diagnose if\r\nNestAppAuthController is being used for the session, or if it is falling\r\nback to StandardController. Also log exception that occurred in trying\r\nto use Nested App Auth bridge to get further details on failure cases.\r\nThe change also avoids the time spent trying to initialize the bridge if\r\ncaller does not opt-in to supportsNestedAppAuth.",
+          "timestamp": "2024-04-30T10:54:12-07:00",
+          "tree_id": "71ccee2b8fdc2b043c87a5f22bce17b12ad7add7",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9d7cdecd2388c6cdcd37c2950bf969bc65b8bb08"
+        },
+        "date": 1714499977172,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192084,
+            "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 198864,
+            "range": "±2.13%",
             "unit": "ops/sec",
             "extra": "221 samples"
           }
